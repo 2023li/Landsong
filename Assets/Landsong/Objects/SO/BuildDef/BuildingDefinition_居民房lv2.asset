@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 198155d65a044c8295862484abd57357, type: 3}
+  m_Name: "BuildingDefinition_\u5C45\u6C11\u623Flv2"
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingDefinition
+  buildingId: "\u5C45\u6C11\u623Flv2"
+  displayName: "\u5C45\u6C11\u623Flv2"
+  icon: {fileID: -803000322818844266, guid: f0611916a07544a4a83ddc29309cf129, type: 3}
+  size: {x: 1, y: 1}
+  prefabAddressableKey: "\u5C45\u6C11\u623Flv2"
+  constructionTurns: 1
+  constructionCostsByTurn:
+  - costs: []
+  operatingCostsPerTurn:
+  - itemDefinition: {fileID: 11400000, guid: 3083d7b285a48b34384cf36253389185, type: 2}
+    amount: 1
+  category: 10
+  allowUpgrade: 0
+  upgradeTargetDefinition: {fileID: 0}

@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 198155d65a044c8295862484abd57357, type: 3}
+  m_Name: "BuildingDefinition_\u5C45\u6C11\u623Flv1"
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingDefinition
+  buildingId: "\u5C45\u6C11\u623Flv1"
+  displayName: "\u5C45\u6C11\u623Flv1"
+  icon: {fileID: -5674050887179240011, guid: 6c015b6b70681414f81092658fe0932f, type: 3}
+  size: {x: 1, y: 1}
+  prefabAddressableKey: "\u5C45\u6C11\u623Flv1"
+  constructionTurns: 3
+  constructionCostsByTurn:
+  - costs:
+    - itemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+      amount: 10
+  - costs:
+    - itemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+      amount: 10
+  - costs:
+    - itemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+      amount: 10
+  operatingCostsPerTurn:
+  - itemDefinition: {fileID: 11400000, guid: 3083d7b285a48b34384cf36253389185, type: 2}
+    amount: 1
+  category: 10
+  allowUpgrade: 1
+  upgradeTargetDefinition: {fileID: 11400000, guid: d51c7aacb70d42e692297ccafddc4500, type: 2}
