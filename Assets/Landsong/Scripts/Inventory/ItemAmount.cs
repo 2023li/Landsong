@@ -1,13 +1,22 @@
 using System;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Landsong.InventorySystem
 {
     [Serializable]
+    [InlineProperty]
     public struct ItemAmount
     {
+        [HorizontalGroup("Amount", Width = 0.72f)]
+        [LabelText("物品")]
+        [AssetsOnly]
         [SerializeField] private ItemDefinition itemDefinition;
-        [SerializeField, Min(0)] private int amount;
+
+        [HorizontalGroup("Amount")]
+        [LabelText("数量")]
+        [MinValue(0)]
+        [SerializeField] private int amount;
 
         public ItemAmount(ItemDefinition itemDefinition, int amount)
         {
@@ -15,7 +24,8 @@ namespace Landsong.InventorySystem
             this.amount = Mathf.Max(0, amount);
         }
 
-        public string ItemId => itemDefinition.ItemId;
+        public ItemDefinition ItemDefinition => itemDefinition;
+        public string ItemId => itemDefinition == null ? string.Empty : itemDefinition.ItemId;
         public int Amount => amount;
         public bool IsValid => !string.IsNullOrWhiteSpace(ItemId) && amount > 0;
 
@@ -26,7 +36,7 @@ namespace Landsong.InventorySystem
 
         public override string ToString()
         {
-            return $"{itemDefinition.ItemId}: {amount}";
+            return $"{ItemId}: {amount}";
         }
     }
 }

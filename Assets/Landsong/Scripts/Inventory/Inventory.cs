@@ -131,6 +131,55 @@ namespace Landsong.InventorySystem
             return definition != null && CanAdd(definition.ItemId, quantity);
         }
 
+        public bool CanAddItems(IEnumerable<ItemAmount> items)
+        {
+            var totalsByItemId = BuildValidItemTotals(items);
+            var emptySlotCount = 0;
+            foreach (var slot in slots)
+            {
+                if (slot.IsEmpty)
+                {
+                    emptySlotCount++;
+                }
+            }
+
+            foreach (var itemTotal in totalsByItemId)
+            {
+                var itemId = itemTotal.Key;
+                var remaining = itemTotal.Value;
+                var maxStackSize = GetMaxStackSize(itemId);
+
+                foreach (var slot in slots)
+                {
+                    if (!slot.Contains(itemId))
+                    {
+                        continue;
+                    }
+
+                    remaining -= Mathf.Max(0, maxStackSize - slot.Quantity);
+                    if (remaining <= 0)
+                    {
+                        break;
+                    }
+                }
+
+                if (remaining <= 0)
+                {
+                    continue;
+                }
+
+                var requiredEmptySlots = Mathf.CeilToInt((float)remaining / maxStackSize);
+                if (requiredEmptySlots > emptySlotCount)
+                {
+                    return false;
+                }
+
+                emptySlotCount -= requiredEmptySlots;
+            }
+
+            return true;
+        }
+
         public int Add(ItemDefinition definition, int quantity)
         {
             return definition == null ? 0 : Add(definition.ItemId, quantity);
@@ -211,6 +260,30 @@ namespace Landsong.InventorySystem
             return Add(itemId, quantity) == quantity;
         }
 
+        public bool TryAddItems(IEnumerable<ItemAmount> items)
+        {
+            if (!CanAddItems(items))
+            {
+                return false;
+            }
+
+            if (items == null)
+            {
+                return true;
+            }
+
+            foreach (var item in items)
+            {
+                var normalized = item.Normalized();
+                if (normalized.IsValid)
+                {
+                    Add(normalized.ItemId, normalized.Amount);
+                }
+            }
+
+            return true;
+        }
+
         public int Remove(string itemId, int quantity)
         {
             itemId = NormalizeItemId(itemId);
@@ -277,6 +350,33 @@ namespace Landsong.InventorySystem
             }
 
             return true;
+        }
+
+        private static Dictionary<string, int> BuildValidItemTotals(IEnumerable<ItemAmount> items)
+        {
+            var totalsByItemId = new Dictionary<string, int>(StringComparer.Ordinal);
+            if (items == null)
+            {
+                return totalsByItemId;
+            }
+
+            foreach (var item in items)
+            {
+                var normalized = item.Normalized();
+                if (!normalized.IsValid)
+                {
+                    continue;
+                }
+
+                if (!totalsByItemId.ContainsKey(normalized.ItemId))
+                {
+                    totalsByItemId.Add(normalized.ItemId, 0);
+                }
+
+                totalsByItemId[normalized.ItemId] += normalized.Amount;
+            }
+
+            return totalsByItemId;
         }
 
         public bool Move(int fromSlotIndex, int toSlotIndex, int quantity = int.MaxValue)

@@ -64,6 +64,20 @@ namespace Landsong.GridSystem
             return Map.Contains(position);
         }
 
+        public bool TryGetGridPointFromRay(Ray ray, out Vector2 gridPoint)
+        {
+            EnsureInitialized();
+
+            if (!Layout.TryRaycastToGridPlane(ray, out var worldPosition))
+            {
+                gridPoint = default;
+                return false;
+            }
+
+            gridPoint = Layout.WorldToGridPoint(worldPosition);
+            return true;
+        }
+
         public bool TryGetGridPositionFromScreenPosition(Camera sourceCamera, Vector2 screenPosition, out GridPosition position)
         {
             if (sourceCamera == null)
@@ -76,6 +90,18 @@ namespace Landsong.GridSystem
             return TryGetGridPositionFromRay(ray, out position);
         }
 
+        public bool TryGetGridPointFromScreenPosition(Camera sourceCamera, Vector2 screenPosition, out Vector2 gridPoint)
+        {
+            if (sourceCamera == null)
+            {
+                gridPoint = default;
+                return false;
+            }
+
+            var ray = sourceCamera.ScreenPointToRay(screenPosition);
+            return TryGetGridPointFromRay(ray, out gridPoint);
+        }
+
         public Vector3 GetCellCenter(GridPosition position)
         {
             EnsureInitialized();
@@ -86,6 +112,18 @@ namespace Landsong.GridSystem
         {
             EnsureInitialized();
             return Map.TryOccupy(origin, size, occupantId, out failureReason);
+        }
+
+        public bool CanOccupy(GridPosition origin, Vector2Int size, out GridPlacementFailureReason failureReason, string ignoredOccupantId = null)
+        {
+            EnsureInitialized();
+            return Map.CanOccupy(origin, size, out failureReason, ignoredOccupantId);
+        }
+
+        public Vector3 GetFootprintCenter(GridPosition origin, Vector2Int size)
+        {
+            EnsureInitialized();
+            return Layout.GridToWorldPoint(origin.X + size.x * 0.5f, origin.Y + size.y * 0.5f);
         }
 
         public int ClearOccupant(string occupantId)

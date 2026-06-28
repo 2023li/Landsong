@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Moyo.Unity;
 
 namespace Landsong.BuildingSystem
 {
     [CreateAssetMenu(menuName = "Landsong/Building/Building Catalog", fileName = "BuildingCatalog")]
-    public sealed class BuildingCatalog : ScriptableObject
+    public sealed class BuildingCatalog : SingletonScriptableObject<BuildingCatalog>
     {
         [SerializeField] private BuildingDefinition[] definitions = Array.Empty<BuildingDefinition>();
 

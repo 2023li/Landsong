@@ -1,14 +1,23 @@
 using System;
 using Landsong.InventorySystem;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Landsong.BuildingSystem
 {
     [Serializable]
+    [InlineProperty]
     public struct BuildingCost
     {
+        [HorizontalGroup("Cost", Width = 0.72f)]
+        [LabelText("物品")]
+        [AssetsOnly]
         [SerializeField] private ItemDefinition itemDefinition;
-        [SerializeField, Min(0)] private int amount;
+
+        [HorizontalGroup("Cost")]
+        [LabelText("数量")]
+        [MinValue(0)]
+        [SerializeField] private int amount;
 
         public BuildingCost(ItemDefinition itemDefinition, int amount)
         {

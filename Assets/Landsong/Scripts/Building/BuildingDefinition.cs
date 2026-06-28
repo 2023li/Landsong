@@ -1,98 +1,129 @@
 using System;
 using System.Collections.Generic;
+using Landsong.ConditionSystem;
 using Landsong.GridSystem;
+using Sirenix.OdinInspector;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Landsong.BuildingSystem
 {
     [CreateAssetMenu(menuName = "Landsong/Building/Building Definition", fileName = "BuildingDefinition")]
     public sealed class BuildingDefinition : ScriptableObject
     {
+        [TitleGroup("基础信息")]
+        [HorizontalGroup("基础信息/Split", Width = 0.72f)]
+        [VerticalGroup("基础信息/Split/Left")]
+        [LabelText("建筑ID")]
+        [ValidateInput(nameof(HasValidBuildingId), "建筑ID不能为空。")]
         [SerializeField] private string buildingId;
+
+        [VerticalGroup("基础信息/Split/Left")]
+        [LabelText("显示名称")]
         [SerializeField] private string displayName;
-        [SerializeField] private Sprite icon;
-        [SerializeField] private Vector2Int size = Vector2Int.one;
-        [SerializeField] private string prefabAddressableKey;
-        [SerializeField, Min(1)] private int constructionTurns = 1;
-        [SerializeField, FormerlySerializedAs("constructionCostsPerTurn")] private BuildingTurnCosts[] constructionCostsByTurn = { BuildingTurnCosts.Empty };
-        [SerializeField] private BuildingCost[] operatingCostsPerTurn = Array.Empty<BuildingCost>();
+
+        [VerticalGroup("基础信息/Split/Left")]
+        [LabelText("分类")]
+        [EnumToggleButtons]
         [SerializeField] private BuildingCategory category = BuildingCategory.None;
-        [SerializeField] private bool allowUpgrade;
-        [SerializeField] private BuildingDefinition upgradeTargetDefinition;
+
+        [HorizontalGroup("基础信息/Split", Width = 88)]
+        [PreviewField(72)]
+        [HideLabel]
+        [SerializeField] private Sprite icon;
+
+        [TitleGroup("表现与占地")]
+        [HorizontalGroup("表现与占地/Prefabs")]
+        [LabelText("建筑预制体")]
+        [AssetsOnly]
+        [SerializeField] private GameObject buildingPrefab;
+
+        [HorizontalGroup("表现与占地/Prefabs")]
+        [LabelText("放置预览预制体")]
+        [AssetsOnly]
+        [SerializeField] private GameObject placementGhostPrefab;
+
+        [TitleGroup("表现与占地")]
+        [LabelText("占地尺寸")]
+        [MinValue(1)]
+        [SerializeField] private Vector2Int size = Vector2Int.one;
+
+        [TitleGroup("成本")]
+        [LabelText("放置成本")]
+        [PropertyTooltip("玩家确认放置时立即扣除。施工、运营、生产、升级等成本写在建筑 prefab 上的 BuildingBase 子类里。")]
+        [ListDrawerSettings(DefaultExpandedState = true, DraggableItems = true, ShowFoldout = true)]
+        [SerializeField] private BuildingCost[] placementCosts = Array.Empty<BuildingCost>();
+
+        [TitleGroup("建造菜单")]
+        [LabelText("显示条件")]
+        [PropertyTooltip("为空时视为通过。需要显式默认通过时可配置 GameCondition_True。")]
+        [SerializeReference] private GameCondition visibleCondition;
+
+        [TitleGroup("建造菜单")]
+        [LabelText("可用条件")]
+        [PropertyTooltip("为空时视为通过。需要显式默认通过时可配置 GameCondition_True。")]
+        [SerializeReference] private GameCondition availableCondition;
+
+        [TitleGroup("数量限制")]
+        [LabelText("最大建造数量")]
+        [MinValue(0)]
+        [PropertyTooltip("0 表示无限制。")]
+        [SerializeField] private int maxBuildCount;
+
+        [TitleGroup("数量限制")]
+        [LabelText("数量限制分组ID")]
+        [PropertyTooltip("留空时使用建筑ID。同一分组共享数量上限。")]
+        [SerializeField] private string buildLimitGroupId;
 
         public string BuildingId => buildingId;
         public string DisplayName => string.IsNullOrWhiteSpace(displayName) ? name : displayName;
         public Sprite Icon => icon;
+        public GameObject BuildingPrefab => buildingPrefab;
+        public GameObject PlacementGhostPrefab => placementGhostPrefab;
         public Vector2Int Size => size;
-        public string PrefabAddressableKey => prefabAddressableKey;
-        public int ConstructionTurns => constructionTurns;
-        public IReadOnlyList<BuildingTurnCosts> ConstructionCostsByTurn => constructionCostsByTurn ?? Array.Empty<BuildingTurnCosts>();
-        public IReadOnlyList<BuildingCost> OperatingCostsPerTurn => operatingCostsPerTurn ?? Array.Empty<BuildingCost>();
+        public IReadOnlyList<BuildingCost> PlacementCosts => placementCosts ?? Array.Empty<BuildingCost>();
         public BuildingCategory Category => category;
-        public bool AllowUpgrade => allowUpgrade;
-        public BuildingDefinition UpgradeTargetDefinition => upgradeTargetDefinition;
+        public GameCondition VisibleCondition => visibleCondition;
+        public GameCondition AvailableCondition => availableCondition;
+        public int MaxBuildCount => maxBuildCount;
+        public string BuildLimitGroupId => string.IsNullOrWhiteSpace(buildLimitGroupId) ? buildingId : buildLimitGroupId;
         public bool HasIcon => icon != null;
-        public bool HasPrefabAddress => !string.IsNullOrWhiteSpace(prefabAddressableKey);
-        public bool HasUpgradeTarget => allowUpgrade && upgradeTargetDefinition != null;
+        public bool HasBuildingPrefab => buildingPrefab != null;
+        public bool HasPlacementGhostPrefab => placementGhostPrefab != null;
+        public bool HasBuildCountLimit => maxBuildCount > 0;
 
         public GridFootprint CreateFootprint(GridPosition origin)
         {
             return new GridFootprint(origin, size);
         }
 
-        public IReadOnlyList<BuildingCost> GetConstructionCostsForTurnIndex(int turnIndex)
-        {
-            if (turnIndex < 0 || turnIndex >= constructionTurns)
-            {
-                throw new ArgumentOutOfRangeException(nameof(turnIndex), $"Construction turn index {turnIndex} is outside 0..{constructionTurns - 1}.");
-            }
-
-            if (constructionCostsByTurn == null || turnIndex >= constructionCostsByTurn.Length)
-            {
-                return Array.Empty<BuildingCost>();
-            }
-
-            return constructionCostsByTurn[turnIndex].Costs;
-        }
-
         private void OnValidate()
         {
             buildingId = string.IsNullOrWhiteSpace(buildingId) ? string.Empty : buildingId.Trim();
             displayName = string.IsNullOrWhiteSpace(displayName) ? string.Empty : displayName.Trim();
-            prefabAddressableKey = string.IsNullOrWhiteSpace(prefabAddressableKey) ? string.Empty : prefabAddressableKey.Trim();
+            buildLimitGroupId = string.IsNullOrWhiteSpace(buildLimitGroupId) ? string.Empty : buildLimitGroupId.Trim();
             size = new Vector2Int(Mathf.Max(1, size.x), Mathf.Max(1, size.y));
-            constructionTurns = Mathf.Max(1, constructionTurns);
-            constructionCostsByTurn = ResizeConstructionCostsByTurn(constructionCostsByTurn, constructionTurns);
+            maxBuildCount = Mathf.Max(0, maxBuildCount);
+            NormalizeCosts(ref placementCosts);
+        }
 
-            for (var i = 0; i < constructionCostsByTurn.Length; i++)
-            {
-                constructionCostsByTurn[i] = constructionCostsByTurn[i].Normalized();
-            }
+        private bool HasValidBuildingId()
+        {
+            return !string.IsNullOrWhiteSpace(buildingId);
+        }
 
-            if (operatingCostsPerTurn == null)
+        private static void NormalizeCosts(ref BuildingCost[] costs)
+        {
+            if (costs == null)
             {
-                operatingCostsPerTurn = Array.Empty<BuildingCost>();
+                costs = Array.Empty<BuildingCost>();
                 return;
             }
 
-            for (var i = 0; i < operatingCostsPerTurn.Length; i++)
+            for (var i = 0; i < costs.Length; i++)
             {
-                operatingCostsPerTurn[i] = operatingCostsPerTurn[i].Normalized();
+                costs[i] = costs[i].Normalized();
             }
         }
 
-        private static BuildingTurnCosts[] ResizeConstructionCostsByTurn(BuildingTurnCosts[] current, int targetLength)
-        {
-            var resized = new BuildingTurnCosts[targetLength];
-            current ??= Array.Empty<BuildingTurnCosts>();
-
-            for (var i = 0; i < resized.Length; i++)
-            {
-                resized[i] = i < current.Length ? current[i] : BuildingTurnCosts.Empty;
-            }
-
-            return resized;
-        }
     }
 }

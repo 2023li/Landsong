@@ -28,17 +28,23 @@ namespace Landsong.GridSystem
 
         public GridPosition WorldToGridPosition(Vector3 worldPosition)
         {
+            var gridPoint = WorldToGridPoint(worldPosition);
+            return new GridPosition(Mathf.FloorToInt(gridPoint.x), Mathf.FloorToInt(gridPoint.y));
+        }
+
+        public Vector2 WorldToGridPoint(Vector3 worldPosition)
+        {
             var local = worldPosition - Origin;
             switch (PlaneMode)
             {
                 case GridPlaneMode.XZ:
-                    return new GridPosition(Mathf.FloorToInt(local.x / CellSize), Mathf.FloorToInt(local.z / CellSize));
+                    return new Vector2(local.x / CellSize, local.z / CellSize);
                 case GridPlaneMode.XY:
-                    return new GridPosition(Mathf.FloorToInt(local.x / CellSize), Mathf.FloorToInt(local.y / CellSize));
+                    return new Vector2(local.x / CellSize, local.y / CellSize);
                 case GridPlaneMode.IsometricDiamondXY:
-                    return IsometricWorldToGridPosition(local.x, local.y);
+                    return IsometricWorldToGridPoint(local.x, local.y);
                 case GridPlaneMode.IsometricDiamondXZ:
-                    return IsometricWorldToGridPosition(local.x, local.z);
+                    return IsometricWorldToGridPoint(local.x, local.z);
                 default:
                     throw new ArgumentOutOfRangeException(nameof(PlaneMode), PlaneMode, "Unsupported grid plane mode.");
             }
@@ -133,7 +139,7 @@ namespace Landsong.GridSystem
             return true;
         }
 
-        private GridPosition IsometricWorldToGridPosition(float worldX, float worldY)
+        private Vector2 IsometricWorldToGridPoint(float worldX, float worldY)
         {
             var halfWidth = IsometricDiamondWidth * 0.5f;
             var halfHeight = IsometricDiamondHeight * 0.5f;
@@ -142,7 +148,7 @@ namespace Landsong.GridSystem
             var gridX = (projectedX + projectedY) * 0.5f;
             var gridY = (projectedY - projectedX) * 0.5f;
 
-            return new GridPosition(Mathf.FloorToInt(gridX), Mathf.FloorToInt(gridY));
+            return new Vector2(gridX, gridY);
         }
 
         private Vector2 IsometricGridToWorldPoint(float gridX, float gridY)

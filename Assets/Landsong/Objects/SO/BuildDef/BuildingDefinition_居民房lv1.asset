@@ -10,27 +10,28 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 198155d65a044c8295862484abd57357, type: 3}
-  m_Name: "BuildingDefinition_\u5C45\u6C11\u623Flv1"
+  m_Name: BuildingDefinition_居民房lv1
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingDefinition
-  buildingId: "\u5C45\u6C11\u623Flv1"
-  displayName: "\u5C45\u6C11\u623Flv1"
+  buildingId: 居民房lv1
+  displayName: 居民房lv1
+  category: 1
   icon: {fileID: -5674050887179240011, guid: 6c015b6b70681414f81092658fe0932f, type: 3}
+  buildingPrefab: {fileID: 4536016151475147608, guid: ff46eee5f78777f48b52381864189fcd, type: 3}
+  placementGhostPrefab: {fileID: 125638812770613815, guid: c01a6deff9a593e4cbcda40b651246ce, type: 3}
   size: {x: 1, y: 1}
-  prefabAddressableKey: "\u5C45\u6C11\u623Flv1"
-  constructionTurns: 3
-  constructionCostsByTurn:
-  - costs:
-    - itemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
-      amount: 10
-  - costs:
-    - itemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
-      amount: 10
-  - costs:
-    - itemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
-      amount: 10
-  operatingCostsPerTurn:
-  - itemDefinition: {fileID: 11400000, guid: 3083d7b285a48b34384cf36253389185, type: 2}
-    amount: 1
-  category: 10
-  allowUpgrade: 1
-  upgradeTargetDefinition: {fileID: 11400000, guid: d51c7aacb70d42e692297ccafddc4500, type: 2}
+  placementCosts: []
+  visibleCondition:
+    rid: 810000000000000012
+  availableCondition:
+    rid: 810000000000000013
+  maxBuildCount: 0
+  buildLimitGroupId: 
+  references:
+    version: 2
+    RefIds:
+    - rid: 810000000000000012
+      type: {class: GameCondition_True, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
+      data: 
+    - rid: 810000000000000013
+      type: {class: GameCondition_True, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
+      data: 

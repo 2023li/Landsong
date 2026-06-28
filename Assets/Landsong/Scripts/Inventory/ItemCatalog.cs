@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-
+using Moyo.Unity;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -12,7 +12,7 @@ using Sirenix.OdinInspector;
 namespace Landsong.InventorySystem
 {
     [CreateAssetMenu(menuName = "Landsong/Inventory/Item Catalog", fileName = "ItemCatalog")]
-    public sealed class ItemCatalog : ScriptableObject
+    public sealed class ItemCatalog : SingletonScriptableObject<ItemCatalog>
     {
         [SerializeField] private ItemDefinition[] definitions = Array.Empty<ItemDefinition>();
 
