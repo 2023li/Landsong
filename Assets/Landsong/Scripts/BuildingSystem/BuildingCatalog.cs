@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
+using Landsong.InventorySystem;
 using Moyo.Unity;
+using Sirenix.OdinInspector;
+using UnityEditor;
+using UnityEngine;
 
 namespace Landsong.BuildingSystem
 {
@@ -89,5 +92,46 @@ namespace Landsong.BuildingSystem
                 RebuildIndex();
             }
         }
+
+#if UNITY_EDITOR
+
+        [FolderPath(RequireExistingPath = true)]
+        [SerializeField]
+        private string folderPath = "Assets/";
+
+        [Button]
+        private void LoadDefinitionsFromFolder()
+        {
+            if (string.IsNullOrWhiteSpace(folderPath))
+            {
+                Debug.LogWarning("Folder path is empty.", this);
+                return;
+            }
+
+            if (!AssetDatabase.IsValidFolder(folderPath))
+            {
+                Debug.LogWarning($"Folder path '{folderPath}' is not a valid asset folder.", this);
+                return;
+            }
+
+            string[] guids = AssetDatabase.FindAssets("t:BuildingDefinition", new[] { folderPath });
+            List<BuildingDefinition> loaded = new List<BuildingDefinition>(guids.Length);
+
+            foreach (string guid in guids)
+            {
+                string assetPath = AssetDatabase.GUIDToAssetPath(guid);
+                BuildingDefinition def = AssetDatabase.LoadAssetAtPath<BuildingDefinition>(assetPath);
+                if (def != null) loaded.Add(def);
+            }
+
+            definitions = loaded.ToArray();
+            EditorUtility.SetDirty(this);
+            RebuildIndex();
+
+            Debug.Log($"从文件中加载了 {definitions.Length} 个建筑定义.", this);
+        }
+#endif
+
+
     }
 }

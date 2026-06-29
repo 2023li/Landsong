@@ -6,9 +6,7 @@ using Landsong.TurnSystem;
 using Moyo.Unity;
 using Sirenix.OdinInspector;
 using UnityEngine;
-#if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
-#endif
 
 namespace Landsong
 {
@@ -150,11 +148,7 @@ namespace Landsong
         [Header("Turn")]
         [SerializeField, LabelText("起始回合"), Min(1)] private int startingTurn = 1;
         [SerializeField, LabelText("允许键盘推进回合")] private bool allowKeyboardNextTurn = true;
-#if ENABLE_INPUT_SYSTEM
         [SerializeField, LabelText("下一回合按键")] private Key nextTurnKey = Key.N;
-#else
-        [SerializeField, LabelText("下一回合按键")] private KeyCode nextTurnKey = KeyCode.N;
-#endif
         [SerializeField, LabelText("每帧处理建筑数"), Min(1)] private int turnBuildingsPerFrame = 16;
         [SerializeField, LabelText("输出回合日志")] private bool logTurnResult = true;
 
@@ -233,11 +227,7 @@ namespace Landsong
 
         private bool IsNextTurnKeyPressed()
         {
-#if ENABLE_INPUT_SYSTEM
             return Keyboard.current != null && Keyboard.current[nextTurnKey].wasPressedThisFrame;
-#else
-            return Input.GetKeyDown(nextTurnKey);
-#endif
         }
 
         private void LogTurnSummary(TurnAdvanceSummary summary)

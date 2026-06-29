@@ -13,9 +13,23 @@ MonoBehaviour:
   m_Name: BuildingCatalog
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingCatalog
   definitions:
+  - {fileID: 11400000, guid: bcf15c1482a78e446bf34204e2c7dbd3, type: 2}
+  - {fileID: 11400000, guid: bff8460323989b549bfc68fcdec24278, type: 2}
+  - {fileID: 11400000, guid: 2e68203d2b588f6438554af380fe792d, type: 2}
+  - {fileID: 11400000, guid: d4e501e8f911c504fa7ded36099718bb, type: 2}
+  - {fileID: 11400000, guid: 77de380a618fa114ca81de7b601ff67f, type: 2}
+  - {fileID: 11400000, guid: f017b304d93b9364f82ea08e9c78cf42, type: 2}
+  - {fileID: 11400000, guid: efd349ee0ea6eff44add2ee320c0c2a3, type: 2}
+  - {fileID: 11400000, guid: f8abd4e9457e16747b39cedb1284e3ce, type: 2}
+  - {fileID: 11400000, guid: c6b1a9daa8adadc4490f2cdab24ce1b8, type: 2}
+  - {fileID: 11400000, guid: 71b2e9b0502e0bc4e9f6763973487d93, type: 2}
+  - {fileID: 11400000, guid: 72b7b451e41ef854aa2a7698bd5d5318, type: 2}
+  - {fileID: 11400000, guid: 42ba328dcf735044e9c5ae45a38b3c26, type: 2}
+  - {fileID: 11400000, guid: 4a77f5721dad5de44988f391a23f41c1, type: 2}
+  - {fileID: 11400000, guid: 8e687b05247703147812cde25f865881, type: 2}
+  - {fileID: 11400000, guid: e968c9ad6b3b8b44e9870b4a7ff4da86, type: 2}
+  - {fileID: 11400000, guid: 1afa527ed4dbbd34f9ec49eba3f986cf, type: 2}
+  - {fileID: 11400000, guid: dfcca380f705fc9499c2ee809d729707, type: 2}
   - {fileID: 11400000, guid: 5560c400531f49b2920b1c8ac95712d5, type: 2}
   - {fileID: 11400000, guid: d51c7aacb70d42e692297ccafddc4500, type: 2}
-  - {fileID: 11400000, guid: ebeb1fe7e63f64641b6805584e14be06, type: 2}
-  - {fileID: 11400000, guid: dfcca380f705fc9499c2ee809d729707, type: 2}
-  - {fileID: 11400000, guid: 4cd6b8c7703d8fe4d8de653928c5e848, type: 2}
-  - {fileID: 11400000, guid: 6e04dfae56c15fc4488034fd648ffb19, type: 2}
+  folderPath: Assets/Landsong/Objects/SO/BuildDef

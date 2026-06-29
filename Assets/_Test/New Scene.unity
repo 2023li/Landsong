@@ -119,6 +119,51 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &82112880
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 82112882}
+  - component: {fileID: 82112881}
+  m_Layer: 0
+  m_Name: APP
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &82112881
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 82112880}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f25347cab611418f859b593c38f06ebc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.AppSystem.AppManager
+  versionOverride: 0.0.1
+--- !u!4 &82112882
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 82112880}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -3.17621, y: 0.0198, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &274599228
 GameObject:
   m_ObjectHideFlags: 0
@@ -198,6 +243,7 @@ GameObject:
   - component: {fileID: 687844065}
   - component: {fileID: 687844068}
   - component: {fileID: 687844069}
+  - component: {fileID: 687844070}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -339,6 +385,42 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   m_MaxRayIntersections: 0
+--- !u!114 &687844070
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 687844064}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68bd687668b345c2a4be5591a4b050ed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sourceCamera: {fileID: 687844066}
+  gridMap: {fileID: 0}
+  inputController: {fileID: 0}
+  autoResolveSceneReferences: 1
+  allowMouseDragPan: 1
+  allowTouchDragPan: 1
+  dragStartThresholdPixels: 6
+  ignorePanStartedOverUi: 1
+  useGridPlaneMode: 1
+  fallbackPlaneMode: 2
+  fallbackPlaneOrigin: {x: 0, y: 0, z: 0}
+  allowMouseWheelZoom: 1
+  allowTouchPinchZoom: 1
+  ignoreZoomStartedOverUi: 1
+  zoomAroundPointer: 1
+  mouseWheelZoomStep: 1.15
+  pinchZoomSensitivity: 1
+  minOrthographicSize: 2
+  maxOrthographicSize: 12
+  minFieldOfView: 25
+  maxFieldOfView: 80
+  smoothFocus: 1
+  focusLerpSpeed: 8
+  cancelFocusOnManualInput: 1
 --- !u!4 &875103352 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 410952050584554296, guid: 400ee9a210c4445429caa89584753af5, type: 3}
@@ -452,7 +534,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2574508762227379936, guid: e0e4ee364f4a46f4bb416c8b2fbf8da2, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2796414601774045764, guid: e0e4ee364f4a46f4bb416c8b2fbf8da2, type: 3}
       propertyPath: m_BlockingMask.m_Bits
@@ -630,27 +712,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8197413141370498656, guid: 9a17ee4df767305448b550d050042640, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8197413141370498656, guid: 9a17ee4df767305448b550d050042640, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8197413141370498656, guid: 9a17ee4df767305448b550d050042640, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 140.57
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8197413141370498656, guid: 9a17ee4df767305448b550d050042640, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 56
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8197413141370498656, guid: 9a17ee4df767305448b550d050042640, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 175
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8197413141370498656, guid: 9a17ee4df767305448b550d050042640, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -40
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8830557296913223546, guid: 9a17ee4df767305448b550d050042640, type: 3}
       propertyPath: m_Enabled
@@ -783,6 +865,7 @@ MonoBehaviour:
   controlsWorldOffset: {x: 0, y: -1.25, z: 0}
   controlsSize: {x: 220, y: 72}
   controlsWorldScale: 0.01
+  ghostHitPadding: 0.05
   cancelPlacementOnDisable: 1
   validCellColor: {r: 0.1, g: 0.9, b: 0.25, a: 1}
   invalidCellColor: {r: 1, g: 0.1, b: 0.1, a: 1}
@@ -1056,23 +1139,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5916667134806610688, guid: 5e44594c1c50d4340aa22594fd306592, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5916667134806610688, guid: 5e44594c1c50d4340aa22594fd306592, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7192880872047854246, guid: 5e44594c1c50d4340aa22594fd306592, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7192880872047854246, guid: 5e44594c1c50d4340aa22594fd306592, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7192880872047854246, guid: 5e44594c1c50d4340aa22594fd306592, type: 3}
       propertyPath: m_SizeDelta.x
-      value: -37
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7607436239770087376, guid: 5e44594c1c50d4340aa22594fd306592, type: 3}
       propertyPath: m_Pivot.x
@@ -1199,3 +1282,4 @@ SceneRoots:
   - {fileID: 274599230}
   - {fileID: 1051152837}
   - {fileID: 1045673464}
+  - {fileID: 82112882}

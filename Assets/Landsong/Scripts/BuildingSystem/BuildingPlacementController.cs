@@ -1,13 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using Landsong.GridSystem;
+using Landsong.InputSystem;
 using Landsong.InventorySystem;
 using UnityEngine;
-using UnityEngine.EventSystems;
-#if ENABLE_INPUT_SYSTEM
-using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.UI;
-#endif
 using UnityEngine.UI;
 using TMPro;
 
@@ -27,6 +23,7 @@ namespace Landsong.BuildingSystem
         [SerializeField] private Vector3 controlsWorldOffset = new Vector3(0f, -1.25f, 0f);
         [SerializeField] private Vector2 controlsSize = new Vector2(220f, 72f);
         [SerializeField, Min(0.001f)] private float controlsWorldScale = 0.01f;
+        [SerializeField, Min(0f)] private float ghostHitPadding = 0.05f;
         [SerializeField] private bool cancelPlacementOnDisable = true;
 
         [Header("Grid Highlight")]
@@ -36,9 +33,8 @@ namespace Landsong.BuildingSystem
         [SerializeField] private Vector3 highlightWorldOffset = new Vector3(0f, 0f, -0.02f);
 
         private readonly List<LineRenderer> highlightLines = new List<LineRenderer>();
-        private readonly List<RaycastResult> uiRaycastResults = new List<RaycastResult>();
         private Material highlightMaterial;
-        private PointerEventData uiPointerEventData;
+        private InputController inputController;
         private BuildingDefinition activeDefinition;
         private GameObject ghostInstance;
         private BuildingView ghostView;
@@ -52,6 +48,8 @@ namespace Landsong.BuildingSystem
         private bool isConfirming;
         private bool isDraggingPlacement;
 
+        public bool IsPlacing => isPlacing;
+
         private void Reset()
         {
             gridMap = FindFirstObjectByType<GridMapBehaviour>();
@@ -61,6 +59,7 @@ namespace Landsong.BuildingSystem
         private void Awake()
         {
             ResolveSceneReferences();
+            ResolveInputController();
         }
 
         private void Update()
@@ -73,16 +72,30 @@ namespace Landsong.BuildingSystem
             UpdatePlacementDrag();
         }
 
+        private void OnEnable()
+        {
+            if (isPlacing && isDraggingPlacement)
+            {
+                SetCameraInputBlocked(true);
+            }
+        }
+
         private void OnDisable()
         {
             if (cancelPlacementOnDisable)
             {
                 CancelPlacement();
+                return;
             }
+
+            SetCameraInputBlocked(false);
+            isDraggingPlacement = false;
         }
 
         private void OnDestroy()
         {
+            SetCameraInputBlocked(false);
+
             if (highlightMaterial != null)
             {
                 Destroy(highlightMaterial);
@@ -118,6 +131,7 @@ namespace Landsong.BuildingSystem
             isDraggingPlacement = false;
             currentCanPlace = false;
             hasCurrentOrigin = false;
+            SetCameraInputBlocked(false);
 
             CreateGhost(definition);
             CreateControls();
@@ -136,6 +150,8 @@ namespace Landsong.BuildingSystem
 
         public void CancelPlacement()
         {
+            SetCameraInputBlocked(false);
+
             activeDefinition = null;
             isPlacing = false;
             isConfirming = false;
@@ -271,23 +287,27 @@ namespace Landsong.BuildingSystem
 
             if (!TryReadPointerState(out var pointerState))
             {
+                SetCameraInputBlocked(false);
                 isDraggingPlacement = false;
                 return;
             }
 
             if (pointerState.WasReleasedThisFrame || !pointerState.IsPressed)
             {
+                SetCameraInputBlocked(false);
                 isDraggingPlacement = false;
                 return;
             }
 
             if (pointerState.WasPressedThisFrame)
             {
-                isDraggingPlacement = !IsPointerOverUi(pointerState.ScreenPosition);
+                isDraggingPlacement = !IsPointerOverUi(pointerState.ScreenPosition) && IsPointerOverGhost(pointerState.ScreenPosition);
+                SetCameraInputBlocked(isDraggingPlacement);
             }
 
             if (!isDraggingPlacement)
             {
+                SetCameraInputBlocked(false);
                 return;
             }
 
@@ -412,7 +432,8 @@ namespace Landsong.BuildingSystem
 
         private void CreateControls()
         {
-            EnsureEventSystem();
+            ResolveInputController();
+            inputController?.EnsureEventSystemExists();
 
             controlsRoot = new GameObject("Building Placement Controls", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
             controlsRoot.transform.SetParent(transform, false);
@@ -436,17 +457,102 @@ namespace Landsong.BuildingSystem
 
         private bool IsPointerOverUi(Vector2 screenPosition)
         {
-            if (EventSystem.current == null)
+            ResolveInputController();
+            return inputController != null && inputController.IsPointerOverUi(screenPosition);
+        }
+
+        private bool IsPointerOverGhost(Vector2 screenPosition)
+        {
+            if (ghostInstance == null || sourceCamera == null)
             {
                 return false;
             }
 
-            uiPointerEventData ??= new PointerEventData(EventSystem.current);
-            uiPointerEventData.Reset();
-            uiPointerEventData.position = screenPosition;
-            uiRaycastResults.Clear();
-            EventSystem.current.RaycastAll(uiPointerEventData, uiRaycastResults);
-            return uiRaycastResults.Count > 0;
+            var ray = sourceCamera.ScreenPointToRay(screenPosition);
+            if (TryHitGhostCollider(ray))
+            {
+                return true;
+            }
+
+            if (!TryGetWorldPointOnPlacementPlane(ray, out var worldPosition))
+            {
+                return false;
+            }
+
+            return IsWorldPointInsideGhostRenderers(worldPosition);
+        }
+
+        private bool TryHitGhostCollider(Ray ray)
+        {
+            var colliders = ghostInstance.GetComponentsInChildren<Collider>(true);
+            for (var i = 0; i < colliders.Length; i++)
+            {
+                var collider = colliders[i];
+                if (collider != null && collider.enabled && collider.Raycast(ray, out _, sourceCamera.farClipPlane))
+                {
+                    return true;
+                }
+            }
+
+            if ((gridMap == null || gridMap.PlaneMode == GridPlaneMode.XY || gridMap.PlaneMode == GridPlaneMode.IsometricDiamondXY)
+                && TryGetWorldPointOnPlacementPlane(ray, out var worldPoint))
+            {
+                var colliders2D = ghostInstance.GetComponentsInChildren<Collider2D>(true);
+                for (var i = 0; i < colliders2D.Length; i++)
+                {
+                    var collider = colliders2D[i];
+                    if (collider != null && collider.enabled && collider.OverlapPoint(worldPoint))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private bool TryGetWorldPointOnPlacementPlane(Ray ray, out Vector3 worldPosition)
+        {
+            if (gridMap != null && gridMap.IsInitialized && gridMap.Layout.TryRaycastToGridPlane(ray, out worldPosition))
+            {
+                return true;
+            }
+
+            var plane = new UnityEngine.Plane(Vector3.forward, Vector3.zero);
+            if (!plane.Raycast(ray, out var enter))
+            {
+                worldPosition = default;
+                return false;
+            }
+
+            worldPosition = ray.GetPoint(enter);
+            return true;
+        }
+
+        private bool IsWorldPointInsideGhostRenderers(Vector3 worldPosition)
+        {
+            var renderers = ghostInstance.GetComponentsInChildren<Renderer>(true);
+            for (var i = 0; i < renderers.Length; i++)
+            {
+                var renderer = renderers[i];
+                if (renderer == null || !renderer.enabled)
+                {
+                    continue;
+                }
+
+                var bounds = renderer.bounds;
+                if (ghostHitPadding > 0f)
+                {
+                    bounds.Expand(ghostHitPadding * 2f);
+                }
+
+                if (bounds.Contains(worldPosition))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static Button CreateControlButton(RectTransform parent, string label, Vector2 anchorMin, Vector2 anchorMax)
@@ -580,6 +686,24 @@ namespace Landsong.BuildingSystem
             }
         }
 
+        private void ResolveInputController()
+        {
+            if (inputController == null)
+            {
+                inputController = InputController.Instance;
+            }
+        }
+
+        private void SetCameraInputBlocked(bool blocked)
+        {
+            if (blocked)
+            {
+                ResolveInputController();
+            }
+
+            inputController?.SetCameraInputBlocked(this, blocked);
+        }
+
         private Vector2 GetScreenCenter()
         {
             if (sourceCamera != null)
@@ -590,90 +714,16 @@ namespace Landsong.BuildingSystem
             return new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
         }
 
-        private static bool TryReadPointerState(out PlacementPointerState pointerState)
+        private bool TryReadPointerState(out ScreenPointerState pointerState)
         {
-#if ENABLE_INPUT_SYSTEM
-            var touchscreen = Touchscreen.current;
-            if (touchscreen != null)
+            ResolveInputController();
+            if (inputController == null || inputController.ActiveTouchCount > 1)
             {
-                var touch = touchscreen.primaryTouch;
-                if (touch.press.isPressed || touch.press.wasPressedThisFrame || touch.press.wasReleasedThisFrame)
-                {
-                    pointerState = new PlacementPointerState(
-                        touch.position.ReadValue(),
-                        touch.press.isPressed,
-                        touch.press.wasPressedThisFrame,
-                        touch.press.wasReleasedThisFrame);
-                    return true;
-                }
+                pointerState = default;
+                return false;
             }
 
-            var mouse = Mouse.current;
-            if (mouse != null)
-            {
-                pointerState = new PlacementPointerState(
-                    mouse.position.ReadValue(),
-                    mouse.leftButton.isPressed,
-                    mouse.leftButton.wasPressedThisFrame,
-                    mouse.leftButton.wasReleasedThisFrame);
-                return true;
-            }
-#else
-            if (Input.touchCount > 0)
-            {
-                var touch = Input.GetTouch(0);
-                pointerState = new PlacementPointerState(
-                    touch.position,
-                    touch.phase != TouchPhase.Ended && touch.phase != TouchPhase.Canceled,
-                    touch.phase == TouchPhase.Began,
-                    touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled);
-                return true;
-            }
-
-            pointerState = new PlacementPointerState(
-                Input.mousePosition,
-                Input.GetMouseButton(0),
-                Input.GetMouseButtonDown(0),
-                Input.GetMouseButtonUp(0));
-            return true;
-#endif
-            pointerState = default;
-            return false;
-        }
-
-        private static void EnsureEventSystem()
-        {
-            if (EventSystem.current != null)
-            {
-                return;
-            }
-
-            var eventSystemObject = new GameObject("EventSystem", typeof(EventSystem));
-#if ENABLE_INPUT_SYSTEM
-            eventSystemObject.AddComponent<InputSystemUIInputModule>();
-#else
-            eventSystemObject.AddComponent<StandaloneInputModule>();
-#endif
-        }
-
-        private readonly struct PlacementPointerState
-        {
-            public PlacementPointerState(
-                Vector2 screenPosition,
-                bool isPressed,
-                bool wasPressedThisFrame,
-                bool wasReleasedThisFrame)
-            {
-                ScreenPosition = screenPosition;
-                IsPressed = isPressed;
-                WasPressedThisFrame = wasPressedThisFrame;
-                WasReleasedThisFrame = wasReleasedThisFrame;
-            }
-
-            public Vector2 ScreenPosition { get; }
-            public bool IsPressed { get; }
-            public bool WasPressedThisFrame { get; }
-            public bool WasReleasedThisFrame { get; }
+            return inputController.TryGetPrimaryPointerState(out pointerState);
         }
     }
 }
