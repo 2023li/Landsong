@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 198155d65a044c8295862484abd57357, type: 3}
+  m_Name: BuildingDefinition_Tree6
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingDefinition
+  buildingId: "\u68116"
+  displayName: "\u68116"
+  category: 32
+  icon: {fileID: 21300000, guid: c74f6091ec7c0a54ba28b9106d405e59, type: 3}
+  buildingPrefab: {fileID: 0}
+  size: {x: 1, y: 1}
+  placementCosts:
+  - itemDefinition: {fileID: 11400000, guid: dd8a28cea30e0b64c89b0b4be4e74ce0, type: 2}
+    amount: 1
+  - itemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+    amount: 10
+  visibleCondition:
+    rid: -2
+  availableCondition:
+    rid: -2
+  maxBuildCount: 0
+  buildLimitGroupId: 
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }

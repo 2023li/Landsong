@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using Landsong.BuildingSystem;
 using Landsong.InventorySystem;
 using Landsong.TurnSystem;
@@ -31,6 +32,9 @@ namespace Landsong
         [ShowInInspector, ReadOnly, LabelText("回合服务")]
         public TurnService Turn { get; private set; }
 
+        [ShowInInspector, ReadOnly, LabelText("建筑服务")]
+        public BuildingService Buildings { get; private set; }
+
         [ShowInInspector, ReadOnly, LabelText("建筑目录")]
         public BuildingCatalog BuildingCatalog => buildingCatalog;
 
@@ -38,6 +42,7 @@ namespace Landsong
         {
             CreateInventoryService();
             CreateTurnService();
+            CreateBuildingService();
         }
 
         private void Update()
@@ -49,6 +54,7 @@ namespace Landsong
         {
             inventorySlotCount = Mathf.Max(0, inventorySlotCount);
             startingTurn = Mathf.Max(1, startingTurn);
+            turnBuildingsPerFrame = Mathf.Max(1, turnBuildingsPerFrame);
 
             if (startingItems == null)
             {
@@ -105,6 +111,11 @@ namespace Landsong
                 CreateTurnService();
             }
 
+            if (Buildings == null)
+            {
+                CreateBuildingService();
+            }
+
             if (!building.HasDefinition)
             {
                 Debug.LogWarning($"Cannot register building '{building.name}' because it has no BuildingDefinition.", building);
@@ -144,26 +155,72 @@ namespace Landsong
 #else
         [SerializeField, LabelText("下一回合按键")] private KeyCode nextTurnKey = KeyCode.N;
 #endif
+        [SerializeField, LabelText("每帧处理建筑数"), Min(1)] private int turnBuildingsPerFrame = 16;
         [SerializeField, LabelText("输出回合日志")] private bool logTurnResult = true;
 
         public int CurrentTurn => Turn == null ? startingTurn : Turn.CurrentTurn;
 
+        [ShowInInspector, ReadOnly, LabelText("正在推进回合")]
+        public bool IsAdvancingTurn => Turn != null && Turn.IsAdvancingTurn;
+
+        private Coroutine turnAdvanceCoroutine;
+
         [Button("下一回合")]
-        public TurnAdvanceSummary NextTurn()
+        public void NextTurn()
         {
             if (Turn == null)
             {
                 CreateTurnService();
             }
 
-            var summary = Turn.NextTurn();
-            LogTurnSummary(summary);
-            return summary;
+            if (turnAdvanceCoroutine != null || Turn.IsAdvancingTurn)
+            {
+                return;
+            }
+
+            if (!Application.isPlaying)
+            {
+                LogTurnSummary(Turn.NextTurn());
+                return;
+            }
+
+            turnAdvanceCoroutine = StartCoroutine(RunNextTurnRoutine(Turn));
+        }
+
+        private IEnumerator RunNextTurnRoutine(TurnService turn)
+        {
+            TurnAdvanceSummary summary = default;
+            var completed = false;
+
+            try
+            {
+                yield return turn.NextTurnRoutine(
+                    turnBuildingsPerFrame,
+                    result =>
+                    {
+                        summary = result;
+                        completed = true;
+                    });
+
+                if (completed)
+                {
+                    LogTurnSummary(summary);
+                }
+            }
+            finally
+            {
+                turnAdvanceCoroutine = null;
+            }
         }
 
         private void CreateTurnService()
         {
             Turn = new TurnService(startingTurn);
+        }
+
+        private void CreateBuildingService()
+        {
+            Buildings = new BuildingService(this);
         }
 
         private void UpdateTurnInput()
@@ -191,7 +248,7 @@ namespace Landsong
             }
 
             Debug.Log(
-                $"Advanced to turn {CurrentTurn}. Processed: {summary.OperatingConsumed}, failed: {summary.Failed}, skipped: {summary.Skipped}.",
+                $"Advanced to turn {summary.ToTurn}. Processed: {summary.OperatingConsumed}, failed: {summary.Failed}, skipped: {summary.Skipped}.",
                 this);
         }
 

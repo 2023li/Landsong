@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Landsong.InventorySystem
@@ -7,10 +8,13 @@ namespace Landsong.InventorySystem
     [CreateAssetMenu(menuName = "Landsong/Inventory/Item Definition", fileName = "ItemDefinition")]
     public sealed class ItemDefinition : ScriptableObject
     {
+        [PreviewField(72)]
+        [SerializeField] private Sprite icon;
+
         [SerializeField] private string itemId;
         [SerializeField] private string displayName;
         [SerializeField, TextArea] private string description;
-        [SerializeField] private Sprite icon;
+      
         [SerializeField] private ItemCategory category = ItemCategory.None;
         [SerializeField] private bool stackable = true;
         [SerializeField, Min(1)] private int maxStackSize = 99;

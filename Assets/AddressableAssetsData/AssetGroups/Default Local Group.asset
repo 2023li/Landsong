@@ -20,11 +20,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: ff46eee5f78777f48b52381864189fcd
-    m_Address: "\u5EFA\u7B51_\u5C45\u6C11\u623F"
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 937507d618512ed4dbace1bcb57b8e0f, type: 2}
   m_SchemaSet:

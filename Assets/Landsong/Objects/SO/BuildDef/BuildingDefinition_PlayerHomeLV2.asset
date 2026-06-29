@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 198155d65a044c8295862484abd57357, type: 3}
+  m_Name: BuildingDefinition_PlayerHomeLV2
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingDefinition
+  buildingId: PlayerHomeLV2
+  displayName: "\u9886\u4E3B\u8BAE\u4E8B\u5385"
+  category: 0
+  icon: {fileID: 0}
+  buildingPrefab: {fileID: 3989320125506736918, guid: 35dacbf67984fb44c9493e8b17cb16b4, type: 3}
+  size: {x: 4, y: 4}
+  placementCosts: []
+  visibleCondition:
+    rid: -2
+  availableCondition:
+    rid: -2
+  maxBuildCount: 0
+  buildLimitGroupId: 
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }

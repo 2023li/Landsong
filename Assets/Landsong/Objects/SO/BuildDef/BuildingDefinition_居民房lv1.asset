@@ -10,28 +10,27 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 198155d65a044c8295862484abd57357, type: 3}
-  m_Name: BuildingDefinition_居民房lv1
+  m_Name: "BuildingDefinition_\u5C45\u6C11\u623Flv1"
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingDefinition
-  buildingId: 居民房lv1
-  displayName: 居民房lv1
+  buildingId: "\u5C45\u6C11\u623Flv1"
+  displayName: "\u5C45\u6C11\u623Flv1"
   category: 1
-  icon: {fileID: -5674050887179240011, guid: 6c015b6b70681414f81092658fe0932f, type: 3}
-  buildingPrefab: {fileID: 4536016151475147608, guid: ff46eee5f78777f48b52381864189fcd, type: 3}
-  placementGhostPrefab: {fileID: 125638812770613815, guid: c01a6deff9a593e4cbcda40b651246ce, type: 3}
+  icon: {fileID: 21300000, guid: 6c015b6b70681414f81092658fe0932f, type: 3}
+  buildingPrefab: {fileID: 8791965200104292625, guid: 5a2e56844bf1f09479a2a8a48ecfa705, type: 3}
   size: {x: 1, y: 1}
   placementCosts: []
   visibleCondition:
-    rid: 810000000000000012
+    rid: 7364063329067466833
   availableCondition:
-    rid: 810000000000000013
+    rid: 7364063329067466834
   maxBuildCount: 0
   buildLimitGroupId: 
   references:
     version: 2
     RefIds:
-    - rid: 810000000000000012
-      type: {class: GameCondition_True, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
+    - rid: 7364063329067466833
+      type: {class: GameCondition_False, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
       data: 
-    - rid: 810000000000000013
-      type: {class: GameCondition_True, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
+    - rid: 7364063329067466834
+      type: {class: GameCondition_False, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
       data: 

@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 198155d65a044c8295862484abd57357, type: 3}
+  m_Name: "BuildingDefinition_\u4F10\u6728\u5C0F\u5C4BLV2"
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingDefinition
+  buildingId: "\u4F10\u6728\u5C0F\u5C4BLV2"
+  displayName: "\u9AD8\u7EA7\u4F10\u6728\u5DE5\u5C0F\u5C4B"
+  category: 2
+  icon: {fileID: 21300000, guid: 9c8fc0ff8df72df4aa5cbf158be39ecc, type: 3}
+  buildingPrefab: {fileID: 8349078219009942974, guid: 4aba2e27877a1a149b22d64ff0955d88, type: 3}
+  size: {x: 1, y: 1}
+  placementCosts: []
+  visibleCondition:
+    rid: 7364063352011358283
+  availableCondition:
+    rid: 7364063352011358284
+  maxBuildCount: 0
+  buildLimitGroupId: 
+  references:
+    version: 2
+    RefIds:
+    - rid: 7364063352011358283
+      type: {class: GameCondition_False, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
+      data: 
+    - rid: 7364063352011358284
+      type: {class: GameCondition_False, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
+      data: 
