@@ -43,7 +43,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b308408ed4c8e644eb5429e4c91fa9df, type: 3}
-  m_Name: 
+  m_Name: ""
   m_EditorClassIdentifier: Assembly-CSharp::Tree
 --- !u!1 &5716424360940650105
 GameObject:
@@ -55,6 +55,8 @@ GameObject:
   m_Component:
   - component: {fileID: 2449805941886840265}
   - component: {fileID: 3458260056911045826}
+  - component: {fileID: 6824408097468511306}
+  - component: {fileID: 2105868746738441044}
   m_Layer: 0
   m_Name: "\u89C6\u56FE"
   m_TagString: Untagged
@@ -136,3 +138,46 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &6824408097468511306
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5716424360940650105}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 732cba67d2e148e39260027f915f327b, type: 3}
+  m_Name: ""
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.VisualSystem.SpriteFrameAnimator
+  targetRenderer: {fileID: 3458260056911045826}
+  animations:
+  - key: default
+    sprites:
+    - {fileID: 21300000, guid: ecc97bd4e2ed894429c21340d2559199, type: 3}
+    color: {r: 1, g: 1, b: 1, a: 1}
+  - key: preview
+    sprites:
+    - {fileID: 21300000, guid: ecc97bd4e2ed894429c21340d2559199, type: 3}
+    color: {r: 1, g: 1, b: 1, a: 0.45}
+  framesPerSecond: 8
+  loop: 1
+  pingPong: 0
+  randomStartFrame: 0
+  useUnscaledTime: 0
+--- !u!114 &2105868746738441044
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5716424360940650105}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00c77c60ff0d431aa46fcc0b5c77ee71, type: 3}
+  m_Name: ""
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingView
+  spriteFrameAnimator: {fileID: 6824408097468511306}
+  defaultAnimationKey: default
+  placementPreviewAnimationKey: preview
+  playDefaultOnEnable: 1

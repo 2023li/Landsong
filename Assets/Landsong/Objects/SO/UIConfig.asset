@@ -12,4 +12,39 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9dad11d8bc358e1469715148b91cdabb, type: 3}
   m_Name: UIConfig
   m_EditorClassIdentifier: Assembly-CSharp::Moyo.Unity.UIConfig
-  panels: []
+  panels:
+  - panelId: UIPanel_Game
+    addressableKey: UIPanel_Game
+    layer: 1
+    cachePolicy: 0
+    canCloseByBack: 0
+    blurPreviousOnOpen: 0
+    hideSameLayerPanels: 0
+  - panelId: UIPanel_Loading
+    addressableKey: UIPanel_Loading
+    layer: 6
+    cachePolicy: 0
+    canCloseByBack: 0
+    blurPreviousOnOpen: 0
+    hideSameLayerPanels: 0
+  - panelId: UIPanel_MainMenu
+    addressableKey: UIPanel_MainMenu
+    layer: 2
+    cachePolicy: 0
+    canCloseByBack: 0
+    blurPreviousOnOpen: 0
+    hideSameLayerPanels: 1
+  - panelId: UIPanel_Setting
+    addressableKey: UIPanel_Setting
+    layer: 2
+    cachePolicy: 0
+    canCloseByBack: 1
+    blurPreviousOnOpen: 0
+    hideSameLayerPanels: 1
+  - panelId: UIPanel_LoadGame
+    addressableKey: UIPanel_LoadGame
+    layer: 2
+    cachePolicy: 1
+    canCloseByBack: 1
+    blurPreviousOnOpen: 0
+    hideSameLayerPanels: 1

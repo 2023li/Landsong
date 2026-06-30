@@ -7,6 +7,7 @@ namespace Landsong.GridSystem
         InvalidOccupantId = 2,
         OutOfBounds = 3,
         NotBuildable = 4,
-        Occupied = 5
+        Occupied = 5,
+        TerrainMismatch = 6
     }
 }

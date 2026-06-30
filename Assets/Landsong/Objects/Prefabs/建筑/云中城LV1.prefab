@@ -103,27 +103,47 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 732cba67d2e148e39260027f915f327b, type: 3}
-  m_Name: 
+  m_Name: ""
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.VisualSystem.SpriteFrameAnimator
   targetRenderer: {fileID: 3146781422482126340}
-  frames:
-  - {fileID: 21300000, guid: 30a1bdc98bdef0742b1e941c58072a31, type: 3}
-  - {fileID: 21300000, guid: f63b907aa7fb497488b3edda84d72528, type: 3}
-  - {fileID: 21300000, guid: 7d239dce745e1c146ab18e73c9ceea18, type: 3}
-  - {fileID: 21300000, guid: 28a393889ff39d34e89a649c0adc154c, type: 3}
-  - {fileID: 21300000, guid: aa670dfce82d12042b05be531fe6bc4a, type: 3}
-  - {fileID: 21300000, guid: 2e1095cca86d9d84ba295ce91084efc0, type: 3}
-  - {fileID: 21300000, guid: c5e884fe0acb25445a1d75f66ea97809, type: 3}
-  - {fileID: 21300000, guid: b9c75af7ce3248547a314509a41e0cf9, type: 3}
-  - {fileID: 21300000, guid: ac15935d8fec3284cae091d5d6d4dc12, type: 3}
-  - {fileID: 21300000, guid: b46b93ee8f177464f9c58d53ff8bd25f, type: 3}
-  - {fileID: 21300000, guid: 0f36d16371b99114cb02368d8a623d65, type: 3}
-  - {fileID: 21300000, guid: 2439b420a1e0d4f4fbb3ac6a8b833618, type: 3}
-  - {fileID: 21300000, guid: 9621dfabe9d6a2541ba9284009fa816c, type: 3}
-  - {fileID: 21300000, guid: 37db9405f8bf8504ab124afcb470fd64, type: 3}
-  - {fileID: 21300000, guid: 17c4b9d61b43d464cabbbc9f2247d26f, type: 3}
+  animations:
+  - key: default
+    sprites:
+    - {fileID: 21300000, guid: 30a1bdc98bdef0742b1e941c58072a31, type: 3}
+    - {fileID: 21300000, guid: f63b907aa7fb497488b3edda84d72528, type: 3}
+    - {fileID: 21300000, guid: 7d239dce745e1c146ab18e73c9ceea18, type: 3}
+    - {fileID: 21300000, guid: 28a393889ff39d34e89a649c0adc154c, type: 3}
+    - {fileID: 21300000, guid: aa670dfce82d12042b05be531fe6bc4a, type: 3}
+    - {fileID: 21300000, guid: 2e1095cca86d9d84ba295ce91084efc0, type: 3}
+    - {fileID: 21300000, guid: c5e884fe0acb25445a1d75f66ea97809, type: 3}
+    - {fileID: 21300000, guid: b9c75af7ce3248547a314509a41e0cf9, type: 3}
+    - {fileID: 21300000, guid: ac15935d8fec3284cae091d5d6d4dc12, type: 3}
+    - {fileID: 21300000, guid: b46b93ee8f177464f9c58d53ff8bd25f, type: 3}
+    - {fileID: 21300000, guid: 0f36d16371b99114cb02368d8a623d65, type: 3}
+    - {fileID: 21300000, guid: 2439b420a1e0d4f4fbb3ac6a8b833618, type: 3}
+    - {fileID: 21300000, guid: 9621dfabe9d6a2541ba9284009fa816c, type: 3}
+    - {fileID: 21300000, guid: 37db9405f8bf8504ab124afcb470fd64, type: 3}
+    - {fileID: 21300000, guid: 17c4b9d61b43d464cabbbc9f2247d26f, type: 3}
+    color: {r: 1, g: 1, b: 1, a: 1}
+  - key: preview
+    sprites:
+    - {fileID: 21300000, guid: 30a1bdc98bdef0742b1e941c58072a31, type: 3}
+    - {fileID: 21300000, guid: f63b907aa7fb497488b3edda84d72528, type: 3}
+    - {fileID: 21300000, guid: 7d239dce745e1c146ab18e73c9ceea18, type: 3}
+    - {fileID: 21300000, guid: 28a393889ff39d34e89a649c0adc154c, type: 3}
+    - {fileID: 21300000, guid: aa670dfce82d12042b05be531fe6bc4a, type: 3}
+    - {fileID: 21300000, guid: 2e1095cca86d9d84ba295ce91084efc0, type: 3}
+    - {fileID: 21300000, guid: c5e884fe0acb25445a1d75f66ea97809, type: 3}
+    - {fileID: 21300000, guid: b9c75af7ce3248547a314509a41e0cf9, type: 3}
+    - {fileID: 21300000, guid: ac15935d8fec3284cae091d5d6d4dc12, type: 3}
+    - {fileID: 21300000, guid: b46b93ee8f177464f9c58d53ff8bd25f, type: 3}
+    - {fileID: 21300000, guid: 0f36d16371b99114cb02368d8a623d65, type: 3}
+    - {fileID: 21300000, guid: 2439b420a1e0d4f4fbb3ac6a8b833618, type: 3}
+    - {fileID: 21300000, guid: 9621dfabe9d6a2541ba9284009fa816c, type: 3}
+    - {fileID: 21300000, guid: 37db9405f8bf8504ab124afcb470fd64, type: 3}
+    - {fileID: 21300000, guid: 17c4b9d61b43d464cabbbc9f2247d26f, type: 3}
+    color: {r: 1, g: 1, b: 1, a: 0.45}
   framesPerSecond: 8
-  playOnEnable: 1
   loop: 1
   pingPong: 0
   randomStartFrame: 0
@@ -138,11 +158,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 00c77c60ff0d431aa46fcc0b5c77ee71, type: 3}
-  m_Name: 
+  m_Name: ""
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingView
-  spriteRenderers:
-  - {fileID: 3146781422482126340}
-  placementPreviewColor: {r: 1, g: 1, b: 1, a: 0.45}
+  spriteFrameAnimator: {fileID: 9171614472205649280}
+  defaultAnimationKey: default
+  placementPreviewAnimationKey: preview
+  playDefaultOnEnable: 1
 --- !u!1 &8893160386132529406
 GameObject:
   m_ObjectHideFlags: 0
@@ -186,5 +207,5 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f89231d12ba49d942a5cffa93aa84227, type: 3}
-  m_Name: 
+  m_Name: ""
   m_EditorClassIdentifier: Assembly-CSharp::CloudspirePalaceLV1

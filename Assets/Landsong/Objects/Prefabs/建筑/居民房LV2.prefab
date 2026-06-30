@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 9093771114741874587}
   - component: {fileID: 6002152090378235705}
   - component: {fileID: 6956075155179078546}
+  - component: {fileID: 6737454680123311691}
   m_Layer: 0
   m_Name: "\u663E\u793A"
   m_TagString: Untagged
@@ -102,19 +103,31 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 732cba67d2e148e39260027f915f327b, type: 3}
-  m_Name: 
+  m_Name: ""
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.VisualSystem.SpriteFrameAnimator
   targetRenderer: {fileID: 6002152090378235705}
-  frames:
-  - {fileID: 21300000, guid: 6be9e12be7574e24591db7bfabe9d0f7, type: 3}
-  - {fileID: 21300000, guid: d4ed2ede0fdbe174d84b554f047d98d9, type: 3}
-  - {fileID: 21300000, guid: 076992ca66ee6a642a95ce5f6660246c, type: 3}
-  - {fileID: 21300000, guid: 8c4e98b688915aa499aedfa71617776d, type: 3}
-  - {fileID: 21300000, guid: 8e8a4c7846d74134587c84d4e245e720, type: 3}
-  - {fileID: 21300000, guid: c211d869853c6dd41826f0be84b670b2, type: 3}
-  - {fileID: 21300000, guid: 64bab8a6f2484744c83ffbfc9879ab7a, type: 3}
+  animations:
+  - key: default
+    sprites:
+    - {fileID: 21300000, guid: 6be9e12be7574e24591db7bfabe9d0f7, type: 3}
+    - {fileID: 21300000, guid: d4ed2ede0fdbe174d84b554f047d98d9, type: 3}
+    - {fileID: 21300000, guid: 076992ca66ee6a642a95ce5f6660246c, type: 3}
+    - {fileID: 21300000, guid: 8c4e98b688915aa499aedfa71617776d, type: 3}
+    - {fileID: 21300000, guid: 8e8a4c7846d74134587c84d4e245e720, type: 3}
+    - {fileID: 21300000, guid: c211d869853c6dd41826f0be84b670b2, type: 3}
+    - {fileID: 21300000, guid: 64bab8a6f2484744c83ffbfc9879ab7a, type: 3}
+    color: {r: 1, g: 1, b: 1, a: 1}
+  - key: preview
+    sprites:
+    - {fileID: 21300000, guid: 6be9e12be7574e24591db7bfabe9d0f7, type: 3}
+    - {fileID: 21300000, guid: d4ed2ede0fdbe174d84b554f047d98d9, type: 3}
+    - {fileID: 21300000, guid: 076992ca66ee6a642a95ce5f6660246c, type: 3}
+    - {fileID: 21300000, guid: 8c4e98b688915aa499aedfa71617776d, type: 3}
+    - {fileID: 21300000, guid: 8e8a4c7846d74134587c84d4e245e720, type: 3}
+    - {fileID: 21300000, guid: c211d869853c6dd41826f0be84b670b2, type: 3}
+    - {fileID: 21300000, guid: 64bab8a6f2484744c83ffbfc9879ab7a, type: 3}
+    color: {r: 1, g: 1, b: 1, a: 0.45}
   framesPerSecond: 5
-  playOnEnable: 1
   loop: 1
   pingPong: 0
   randomStartFrame: 0
@@ -162,7 +175,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 54967757427538e41b1c827a80ee23a1, type: 3}
-  m_Name: 
+  m_Name: ""
   m_EditorClassIdentifier: Assembly-CSharp::ResidentialHousingLV2
   definition: {fileID: 11400000, guid: d51c7aacb70d42e692297ccafddc4500, type: 2}
   hasGridPosition: 0
@@ -172,3 +185,19 @@ MonoBehaviour:
   gridOccupancyId: 
   autoRepair: 0
   autpUpgrade: 1
+--- !u!114 &6737454680123311691
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3103914250951106056}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00c77c60ff0d431aa46fcc0b5c77ee71, type: 3}
+  m_Name: ""
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingView
+  spriteFrameAnimator: {fileID: 6956075155179078546}
+  defaultAnimationKey: default
+  placementPreviewAnimationKey: preview
+  playDefaultOnEnable: 1

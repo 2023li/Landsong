@@ -26,7 +26,7 @@ namespace Moyo.Unity
         public static T Instance => instance;
 
         /// <summary>
-        /// 获取单例。如果没有加载，会使用 Addressables 加载。
+        /// 获取单例。如果没有加载，会使用指定 Addressables Key 加载。
         /// </summary>
         protected static Task<T> GetInstanceAsync(string addressableKey)
         {
@@ -40,13 +40,15 @@ namespace Moyo.Unity
                 return loadingTask;
             }
 
-            loadingTask = LoadInternalAsync(addressableKey);
+            string loadKey = ResolveLoadKey(addressableKey);
+            loadingTask = LoadInternalAsync(loadKey);
             return loadingTask;
         }
 
         private static async Task<T> LoadInternalAsync(string addressableKey)
         {
-            handle = Addressables.LoadAssetAsync<T>(addressableKey);
+            string loadKey = ResolveLoadKey(addressableKey);
+            handle = Addressables.LoadAssetAsync<T>(loadKey);
             hasHandle = true;
 
             await handle.Task;
@@ -63,7 +65,7 @@ namespace Moyo.Unity
                 hasHandle = false;
 
                 throw new Exception(
-                    $"Addressable ScriptableObject singleton load failed. Type: {typeof(T).Name}, Key: {addressableKey}"
+                    $"Addressable ScriptableObject singleton load failed. Type: {typeof(T).Name}, Key: {loadKey}"
                 );
             }
 
@@ -73,6 +75,19 @@ namespace Moyo.Unity
             instance.OnLoaded();
 
             return instance;
+        }
+
+        private static string ResolveLoadKey(string addressableKey)
+        {
+            if (!string.IsNullOrWhiteSpace(addressableKey))
+            {
+                return addressableKey.Trim();
+            }
+
+            throw new ArgumentException(
+                $"Addressable key is required to load ScriptableObject singleton. Type: {typeof(T).Name}",
+                nameof(addressableKey)
+            );
         }
 
         /// <summary>

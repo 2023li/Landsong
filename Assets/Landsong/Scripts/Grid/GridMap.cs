@@ -8,7 +8,7 @@ namespace Landsong.GridSystem
     {
         private readonly GridCell[,] cells;
 
-        public GridMap(int width, int height, bool defaultBuildable = true)
+        public GridMap(int width, int height, bool defaultBuildable = true, string defaultTerrainKey = GridTerrainKeys.Land)
         {
             if (width <= 0)
             {
@@ -22,19 +22,28 @@ namespace Landsong.GridSystem
 
             Width = width;
             Height = height;
+            DefaultTerrainKey = GridTerrainKeys.Normalize(defaultTerrainKey);
+            if (string.IsNullOrEmpty(DefaultTerrainKey))
+            {
+                DefaultTerrainKey = GridTerrainKeys.Land;
+            }
+
+            DefaultBuildable = defaultBuildable;
             cells = new GridCell[width, height];
 
             for (var y = 0; y < height; y++)
             {
                 for (var x = 0; x < width; x++)
                 {
-                    cells[x, y] = new GridCell(new GridPosition(x, y), defaultBuildable);
+                    cells[x, y] = new GridCell(new GridPosition(x, y), DefaultTerrainKey, defaultBuildable);
                 }
             }
         }
 
         public int Width { get; }
         public int Height { get; }
+        public string DefaultTerrainKey { get; }
+        public bool DefaultBuildable { get; }
 
         public IEnumerable<GridCell> Cells
         {
@@ -93,6 +102,21 @@ namespace Landsong.GridSystem
             return TryGetCell(position, out var cell) && cell.IsBuildable;
         }
 
+        public string GetTerrainKey(GridPosition position)
+        {
+            return TryGetCell(position, out var cell) ? cell.TerrainKey : DefaultTerrainKey;
+        }
+
+        public bool HasTerrainKey(GridPosition position, string terrainKey)
+        {
+            return TryGetCell(position, out var cell) && cell.HasTerrainKey(terrainKey);
+        }
+
+        public bool IsWater(GridPosition position)
+        {
+            return HasTerrainKey(position, GridTerrainKeys.Water);
+        }
+
         public bool IsOccupied(GridPosition position)
         {
             return TryGetCell(position, out var cell) && cell.IsOccupied;
@@ -111,12 +135,32 @@ namespace Landsong.GridSystem
             }
         }
 
+        public void SetTerrainKey(GridPosition position, string terrainKey)
+        {
+            GetCell(position).SetTerrainKey(terrainKey);
+        }
+
+        public void AddTerrainKey(GridPosition position, string terrainKey)
+        {
+            GetCell(position).AddTerrainKey(terrainKey);
+        }
+
         public bool CanOccupy(GridPosition origin, Vector2Int size)
         {
             return CanOccupy(origin, size, out _);
         }
 
         public bool CanOccupy(GridPosition origin, Vector2Int size, out GridPlacementFailureReason failureReason, string ignoredOccupantId = null)
+        {
+            return CanOccupy(origin, size, null, out failureReason, ignoredOccupantId);
+        }
+
+        public bool CanOccupy(
+            GridPosition origin,
+            Vector2Int size,
+            IReadOnlyList<string> requiredTerrainKeys,
+            out GridPlacementFailureReason failureReason,
+            string ignoredOccupantId = null)
         {
             if (size.x <= 0 || size.y <= 0)
             {
@@ -140,6 +184,12 @@ namespace Landsong.GridSystem
                     return false;
                 }
 
+                if (!cell.HasAllTerrainKeys(requiredTerrainKeys))
+                {
+                    failureReason = GridPlacementFailureReason.TerrainMismatch;
+                    return false;
+                }
+
                 if (cell.IsOccupied && cell.OccupantId != ignoredOccupantId)
                 {
                     failureReason = GridPlacementFailureReason.Occupied;
@@ -158,13 +208,23 @@ namespace Landsong.GridSystem
 
         public bool TryOccupy(GridPosition origin, Vector2Int size, string occupantId, out GridPlacementFailureReason failureReason)
         {
+            return TryOccupy(origin, size, occupantId, null, out failureReason);
+        }
+
+        public bool TryOccupy(
+            GridPosition origin,
+            Vector2Int size,
+            string occupantId,
+            IReadOnlyList<string> requiredTerrainKeys,
+            out GridPlacementFailureReason failureReason)
+        {
             if (string.IsNullOrWhiteSpace(occupantId))
             {
                 failureReason = GridPlacementFailureReason.InvalidOccupantId;
                 return false;
             }
 
-            if (!CanOccupy(origin, size, out failureReason))
+            if (!CanOccupy(origin, size, requiredTerrainKeys, out failureReason))
             {
                 return false;
             }
@@ -179,7 +239,7 @@ namespace Landsong.GridSystem
             return true;
         }
 
-        public int ClearOccupant(string occupantId)
+        public int ClearOccupant(string occupantId, ICollection<GridPosition> clearedPositions = null)
         {
             if (string.IsNullOrWhiteSpace(occupantId))
             {
@@ -195,13 +255,14 @@ namespace Landsong.GridSystem
                 }
 
                 cell.ClearOccupant();
+                clearedPositions?.Add(cell.Position);
                 clearedCount++;
             }
 
             return clearedCount;
         }
 
-        public int ClearOccupants(GridFootprint footprint, string requiredOccupantId = null)
+        public int ClearOccupants(GridFootprint footprint, string requiredOccupantId = null, ICollection<GridPosition> clearedPositions = null)
         {
             if (!Contains(footprint))
             {
@@ -223,6 +284,7 @@ namespace Landsong.GridSystem
                 }
 
                 cell.ClearOccupant();
+                clearedPositions?.Add(position);
                 clearedCount++;
             }
 

@@ -11,37 +11,43 @@ namespace Landsong.CameraSystem
     [RequireComponent(typeof(Camera))]
     public sealed class CameraController : MonoBehaviour
     {
-        [Header("Scene")]
-        [SerializeField] private Camera sourceCamera;
-        [SerializeField] private GridMapBehaviour gridMap;
-        [SerializeField] private InputController inputController;
-        [SerializeField] private bool autoResolveSceneReferences = true;
+        [Header("场景引用")]
+        [SerializeField, LabelText("源相机")] private Camera sourceCamera;
+        [SerializeField, LabelText("网格地图")] private GridMapBehaviour gridMap;
+        [SerializeField, LabelText("输入控制器")] private InputController inputController;
+        [SerializeField, LabelText("自动查找场景引用")] private bool autoResolveSceneReferences = true;
 
-        [Header("Pan")]
-        [SerializeField] private bool allowMouseDragPan = true;
-        [SerializeField] private bool allowTouchDragPan = true;
-        [SerializeField, Min(0f)] private float dragStartThresholdPixels = 6f;
-        [SerializeField] private bool ignorePanStartedOverUi = true;
-        [SerializeField] private bool useGridPlaneMode = true;
-        [SerializeField] private GridPlaneMode fallbackPlaneMode = GridPlaneMode.IsometricDiamondXY;
-        [SerializeField] private Vector3 fallbackPlaneOrigin = Vector3.zero;
+        [Header("拖拽平移")]
+        [SerializeField, LabelText("允许鼠标拖拽平移")] private bool allowMouseDragPan = true;
+        [SerializeField, LabelText("允许触摸拖拽平移")] private bool allowTouchDragPan = true;
+        [SerializeField, LabelText("拖拽启动阈值"), Min(0f)] private float dragStartThresholdPixels = 6f;
+        [SerializeField, LabelText("忽略从交互 UI 开始的平移")] private bool ignorePanStartedOverUi = true;
+        [SerializeField, LabelText("使用网格平面模式")] private bool useGridPlaneMode = true;
+        [SerializeField, LabelText("备用平面模式")] private GridPlaneMode fallbackPlaneMode = GridPlaneMode.IsometricDiamondXY;
+        [SerializeField, LabelText("备用平面原点")] private Vector3 fallbackPlaneOrigin = Vector3.zero;
 
-        [Header("Zoom")]
-        [SerializeField] private bool allowMouseWheelZoom = true;
-        [SerializeField] private bool allowTouchPinchZoom = true;
-        [SerializeField] private bool ignoreZoomStartedOverUi = true;
-        [SerializeField] private bool zoomAroundPointer = true;
-        [SerializeField, Min(1.001f)] private float mouseWheelZoomStep = 1.15f;
-        [SerializeField, Min(0.01f)] private float pinchZoomSensitivity = 1f;
-        [SerializeField, Min(0.01f)] private float minOrthographicSize = 2f;
-        [SerializeField, Min(0.01f)] private float maxOrthographicSize = 12f;
-        [SerializeField, Range(1f, 179f)] private float minFieldOfView = 25f;
-        [SerializeField, Range(1f, 179f)] private float maxFieldOfView = 80f;
+        [Header("缩放")]
+        [SerializeField, LabelText("允许鼠标滚轮缩放")] private bool allowMouseWheelZoom = true;
+        [SerializeField, LabelText("允许双指缩放")] private bool allowTouchPinchZoom = true;
+        [SerializeField, LabelText("忽略从交互 UI 开始的缩放")] private bool ignoreZoomStartedOverUi = true;
+        [SerializeField, LabelText("围绕指针缩放")] private bool zoomAroundPointer = true;
+        [SerializeField, LabelText("滚轮缩放倍率"), Min(1.001f)] private float mouseWheelZoomStep = 1.15f;
+        [SerializeField, LabelText("双指缩放灵敏度"), Min(0.01f)] private float pinchZoomSensitivity = 1f;
+        [SerializeField, LabelText("最小正交视野"), Min(0.01f)] private float minOrthographicSize = 2f;
+        [SerializeField, LabelText("最大正交视野"), Min(0.01f)] private float maxOrthographicSize = 12f;
+        [SerializeField, LabelText("最小透视视野"), Range(1f, 179f)] private float minFieldOfView = 25f;
+        [SerializeField, LabelText("最大透视视野"), Range(1f, 179f)] private float maxFieldOfView = 80f;
 
-        [Header("Focus")]
-        [SerializeField] private bool smoothFocus = true;
-        [SerializeField, Min(0.01f)] private float focusLerpSpeed = 8f;
-        [SerializeField] private bool cancelFocusOnManualInput = true;
+        [Header("视野边界")]
+        [SerializeField, LabelText("限制视野范围")] private bool constrainViewToBounds = true;
+        [SerializeField, LabelText("边界最小坐标")] private Vector2 viewBoundsMin = new Vector2(-50f, -50f);
+        [SerializeField, LabelText("边界最大坐标")] private Vector2 viewBoundsMax = new Vector2(50f, 50f);
+        [SerializeField, LabelText("缩放适配边界")] private bool limitZoomToBounds = true;
+
+        [Header("定位")]
+        [SerializeField, LabelText("平滑定位")] private bool smoothFocus = true;
+        [SerializeField, LabelText("定位速度"), Min(0.01f)] private float focusLerpSpeed = 8f;
+        [SerializeField, LabelText("手动输入取消定位")] private bool cancelFocusOnManualInput = true;
 
         private bool isPanning;
         private bool hasPanAnchor;
@@ -105,6 +111,8 @@ namespace Landsong.CameraSystem
         private void Awake()
         {
             ResolveSceneReferences();
+            ClampZoomToViewBounds();
+            ClampCameraToViewBounds();
         }
 
         private void Update()
@@ -131,10 +139,13 @@ namespace Landsong.CameraSystem
             HandleMouseZoom();
             HandleMousePan();
             UpdateFocus();
+            ClampZoomToViewBounds();
+            ClampCameraToViewBounds();
         }
 
         private void OnValidate()
         {
+            NormalizeViewBounds();
             minOrthographicSize = Mathf.Max(0.01f, minOrthographicSize);
             maxOrthographicSize = Mathf.Max(minOrthographicSize, maxOrthographicSize);
             minFieldOfView = Mathf.Clamp(minFieldOfView, 1f, 179f);
@@ -407,6 +418,8 @@ namespace Landsong.CameraSystem
                 sourceCamera.fieldOfView = Mathf.Clamp(sourceCamera.fieldOfView * zoomScale, minFieldOfView, maxFieldOfView);
             }
 
+            ClampZoomToViewBounds();
+
             if (!hasFocusWorldPosition || !TryGetWorldPointOnMovementPlane(screenFocus, out var afterZoomWorldPosition))
             {
                 return;
@@ -420,12 +433,12 @@ namespace Landsong.CameraSystem
             var targetPosition = GetCameraPositionForFocus(worldPosition);
             if (snap || !smoothFocus)
             {
-                CameraTransform.position = targetPosition;
+                CameraTransform.position = ClampCameraPosition(targetPosition);
                 hasFocusTarget = false;
                 return;
             }
 
-            focusTargetPosition = targetPosition;
+            focusTargetPosition = ClampCameraPosition(targetPosition);
             hasFocusTarget = true;
         }
 
@@ -438,7 +451,7 @@ namespace Landsong.CameraSystem
 
             var cameraTransform = CameraTransform;
             var t = 1f - Mathf.Exp(-focusLerpSpeed * Time.unscaledDeltaTime);
-            cameraTransform.position = Vector3.Lerp(cameraTransform.position, focusTargetPosition, t);
+            cameraTransform.position = ClampCameraPosition(Vector3.Lerp(cameraTransform.position, focusTargetPosition, t));
 
             if ((cameraTransform.position - focusTargetPosition).sqrMagnitude <= 0.0001f)
             {
@@ -455,7 +468,7 @@ namespace Landsong.CameraSystem
                 return;
             }
 
-            CameraTransform.position += constrainedDelta;
+            CameraTransform.position = ClampCameraPosition(CameraTransform.position + constrainedDelta);
         }
 
         private Vector3 GetCameraPositionForFocus(Vector3 worldPosition)
@@ -503,6 +516,116 @@ namespace Landsong.CameraSystem
             var worldDelta = (-screenDelta.x * unitsPerPixel * cameraTransform.right)
                              + (-screenDelta.y * unitsPerPixel * cameraTransform.up);
             return worldDelta;
+        }
+
+        private void ClampZoomToViewBounds()
+        {
+            if (!constrainViewToBounds || !limitZoomToBounds || sourceCamera == null || !sourceCamera.orthographic)
+            {
+                return;
+            }
+
+            var boundsSize = GetNormalizedViewBoundsSize();
+            var maxByHeight = boundsSize.y * 0.5f;
+            var maxByWidth = boundsSize.x * 0.5f / Mathf.Max(0.01f, sourceCamera.aspect);
+            var maxAllowedSize = Mathf.Max(0.01f, Mathf.Min(maxOrthographicSize, maxByHeight, maxByWidth));
+            sourceCamera.orthographicSize = Mathf.Clamp(sourceCamera.orthographicSize, 0.01f, maxAllowedSize);
+        }
+
+        private void ClampCameraToViewBounds()
+        {
+            if (sourceCamera == null)
+            {
+                return;
+            }
+
+            CameraTransform.position = ClampCameraPosition(CameraTransform.position);
+        }
+
+        private Vector3 ClampCameraPosition(Vector3 cameraPosition)
+        {
+            if (!constrainViewToBounds || sourceCamera == null)
+            {
+                return cameraPosition;
+            }
+
+            var min = GetNormalizedViewBoundsMin();
+            var max = GetNormalizedViewBoundsMax();
+            var center = GetPlaneCenter(cameraPosition);
+            var extents = GetViewExtentsOnMovementPlane();
+
+            center.x = ClampCenterAxis(center.x, min.x + extents.x, max.x - extents.x, (min.x + max.x) * 0.5f);
+            center.y = ClampCenterAxis(center.y, min.y + extents.y, max.y - extents.y, (min.y + max.y) * 0.5f);
+
+            return SetPlaneCenter(cameraPosition, center);
+        }
+
+        private Vector2 GetViewExtentsOnMovementPlane()
+        {
+            if (sourceCamera == null || !sourceCamera.orthographic)
+            {
+                return Vector2.zero;
+            }
+
+            var yExtent = sourceCamera.orthographicSize;
+            var xExtent = yExtent * Mathf.Max(0.01f, sourceCamera.aspect);
+            return new Vector2(xExtent, yExtent);
+        }
+
+        private Vector2 GetPlaneCenter(Vector3 worldPosition)
+        {
+            switch (GetMovementPlaneMode())
+            {
+                case GridPlaneMode.XZ:
+                case GridPlaneMode.IsometricDiamondXZ:
+                    return new Vector2(worldPosition.x, worldPosition.z);
+                case GridPlaneMode.XY:
+                case GridPlaneMode.IsometricDiamondXY:
+                default:
+                    return new Vector2(worldPosition.x, worldPosition.y);
+            }
+        }
+
+        private Vector3 SetPlaneCenter(Vector3 worldPosition, Vector2 center)
+        {
+            switch (GetMovementPlaneMode())
+            {
+                case GridPlaneMode.XZ:
+                case GridPlaneMode.IsometricDiamondXZ:
+                    return new Vector3(center.x, worldPosition.y, center.y);
+                case GridPlaneMode.XY:
+                case GridPlaneMode.IsometricDiamondXY:
+                default:
+                    return new Vector3(center.x, center.y, worldPosition.z);
+            }
+        }
+
+        private Vector2 GetNormalizedViewBoundsMin()
+        {
+            return Vector2.Min(viewBoundsMin, viewBoundsMax);
+        }
+
+        private Vector2 GetNormalizedViewBoundsMax()
+        {
+            return Vector2.Max(viewBoundsMin, viewBoundsMax);
+        }
+
+        private Vector2 GetNormalizedViewBoundsSize()
+        {
+            return GetNormalizedViewBoundsMax() - GetNormalizedViewBoundsMin();
+        }
+
+        private static float ClampCenterAxis(float value, float min, float max, float fallback)
+        {
+            return min <= max ? Mathf.Clamp(value, min, max) : fallback;
+        }
+
+        private void NormalizeViewBounds()
+        {
+            var min = Vector2.Min(viewBoundsMin, viewBoundsMax);
+            var max = Vector2.Max(viewBoundsMin, viewBoundsMax);
+            viewBoundsMin = min;
+            viewBoundsMax = max;
         }
 
         private bool TryGetWorldPointOnMovementPlane(Vector2 screenPosition, out Vector3 worldPosition)

@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 8541565347668804486}
   - component: {fileID: 5562813696111283433}
   - component: {fileID: 6896628259780812639}
+  - component: {fileID: 4269690486657159540}
   m_Layer: 0
   m_Name: "\u663E\u793A"
   m_TagString: Untagged
@@ -102,12 +103,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 732cba67d2e148e39260027f915f327b, type: 3}
-  m_Name: 
+  m_Name: ""
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.VisualSystem.SpriteFrameAnimator
   targetRenderer: {fileID: 5562813696111283433}
-  frames: []
+  animations:
+  - key: default
+    sprites:
+    - {fileID: 21300000, guid: 8dcb41002fdbfa148ab8afb33c498914, type: 3}
+    color: {r: 1, g: 1, b: 1, a: 1}
+  - key: preview
+    sprites:
+    - {fileID: 21300000, guid: 8dcb41002fdbfa148ab8afb33c498914, type: 3}
+    color: {r: 1, g: 1, b: 1, a: 0.45}
   framesPerSecond: 8
-  playOnEnable: 1
   loop: 1
   pingPong: 0
   randomStartFrame: 0
@@ -155,7 +163,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7f112e29bf8fc044eb8a142b3bbf0921, type: 3}
-  m_Name: 
+  m_Name: ""
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.Buildings.ResidentialHousingLV0
   definition: {fileID: 11400000, guid: dfcca380f705fc9499c2ee809d729707, type: 2}
   hasGridPosition: 0
@@ -176,3 +184,19 @@ MonoBehaviour:
     amount: 10
   residentialHousingLv1Definition: {fileID: 11400000, guid: 5560c400531f49b2920b1c8ac95712d5, type: 2}
   exp: 0
+--- !u!114 &4269690486657159540
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 247528927294901940}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00c77c60ff0d431aa46fcc0b5c77ee71, type: 3}
+  m_Name: ""
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingView
+  spriteFrameAnimator: {fileID: 6896628259780812639}
+  defaultAnimationKey: default
+  placementPreviewAnimationKey: preview
+  playDefaultOnEnable: 1

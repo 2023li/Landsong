@@ -1,3 +1,8 @@
+using System;
+using System.Threading.Tasks;
+using Landsong.BuildingSystem;
+using Landsong.GridSystem;
+using Landsong.InventorySystem;
 using Moyo.Unity;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -22,6 +27,11 @@ namespace Landsong.AppSystem
         [Header("App")]
         [SerializeField, LabelText("版本号覆盖")] private string versionOverride = string.Empty;
 
+        [Header("Config")]
+        [SerializeField, LabelText("地图目录 Addressables Key")] private string mapDataCatalogAddressKey = "MapCatalog";
+        [SerializeField, LabelText("物品目录 Addressables Key")] private string itemCatalogAddressKey = "ItemCatalog";
+        [SerializeField, LabelText("建筑目录 Addressables Key")] private string buildingCatalogAddressKey = "BuildingCatalog";
+
         [ShowInInspector, ReadOnly, LabelText("运行平台")]
         public AppRuntimePlatform RuntimePlatform => ResolveRuntimePlatform();
 
@@ -38,19 +48,38 @@ namespace Landsong.AppSystem
         public bool IsDesktopPlatform => RuntimePlatform == AppRuntimePlatform.Windows || RuntimePlatform == AppRuntimePlatform.MacOS || RuntimePlatform == AppRuntimePlatform.Linux;
         public string BuildLabel => $"{Version} ({RuntimePlatform})";
 
-        public void RequestQuit()
+    
+
+        [ShowInInspector, ReadOnly, LabelText("配置单例加载中")]
+        public bool IsLoadingConfigSingletons { get; private set; }
+
+        [ShowInInspector, ReadOnly, LabelText("配置单例已加载")]
+        public bool HasLoadedConfigSingletons { get; private set; }
+
+       
+
+        protected async override void Init()
         {
-            OnQuitRequested();
+            //加载基础配置
+            await Task.WhenAll(
+                    MapDataCatalog.LoadAsync(mapDataCatalogAddressKey),
+                    ItemCatalog.LoadAsync(itemCatalogAddressKey),
+                    BuildingCatalog.LoadAsync(buildingCatalogAddressKey));
         }
 
+      
+
+     
         public bool CanQuit()
         {
             return true;
         }
 
-        private void OnQuitRequested()
-        {
-        }
+       
+
+     
+
+     
 
         private static AppRuntimePlatform ResolveRuntimePlatform()
         {
@@ -76,6 +105,21 @@ namespace Landsong.AppSystem
                 default:
                     return AppRuntimePlatform.Unknown;
             }
+        }
+
+        internal void ContinueGame()
+        {
+            throw new NotImplementedException();
+        }
+
+        internal void ExitApp()
+        {
+            throw new NotImplementedException();
+        }
+
+        internal void StartNewGame(GridMapBehaviour map)
+        {
+            throw new NotImplementedException();
         }
     }
 }

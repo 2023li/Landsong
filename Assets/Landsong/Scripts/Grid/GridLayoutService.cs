@@ -7,6 +7,21 @@ namespace Landsong.GridSystem
     {
         public const float IsometricDiamondHeightRatio = 0.5f;
 
+        private readonly UnityEngine.Grid unityGrid;
+
+        public GridLayoutService(UnityEngine.Grid unityGrid)
+        {
+            if (unityGrid == null)
+            {
+                throw new ArgumentNullException(nameof(unityGrid));
+            }
+
+            this.unityGrid = unityGrid;
+            CellSize = GetCellSize(unityGrid);
+            Origin = GetOrigin(unityGrid);
+            PlaneMode = GetPlaneMode(unityGrid);
+        }
+
         public GridLayoutService(float cellSize, Vector3 origin, GridPlaneMode planeMode = GridPlaneMode.XZ)
         {
             if (cellSize <= 0f)
@@ -26,6 +41,40 @@ namespace Landsong.GridSystem
         public float IsometricDiamondWidth => CellSize;
         public float IsometricDiamondHeight => CellSize * IsometricDiamondHeightRatio;
 
+        public static float GetCellSize(UnityEngine.Grid grid)
+        {
+            if (grid == null)
+            {
+                return 1f;
+            }
+
+            return Mathf.Max(0.01f, Mathf.Abs(grid.cellSize.x));
+        }
+
+        public static Vector3 GetOrigin(UnityEngine.Grid grid)
+        {
+            return grid == null ? Vector3.zero : grid.CellToWorld(Vector3Int.zero);
+        }
+
+        public static GridPlaneMode GetPlaneMode(UnityEngine.Grid grid)
+        {
+            if (grid == null)
+            {
+                return GridPlaneMode.XY;
+            }
+
+            switch (grid.cellLayout)
+            {
+                case GridLayout.CellLayout.Isometric:
+                case GridLayout.CellLayout.IsometricZAsY:
+                    return GridPlaneMode.IsometricDiamondXY;
+                case GridLayout.CellLayout.Rectangle:
+                case GridLayout.CellLayout.Hexagon:
+                default:
+                    return GridPlaneMode.XY;
+            }
+        }
+
         public GridPosition WorldToGridPosition(Vector3 worldPosition)
         {
             var gridPoint = WorldToGridPoint(worldPosition);
@@ -34,6 +83,13 @@ namespace Landsong.GridSystem
 
         public Vector2 WorldToGridPoint(Vector3 worldPosition)
         {
+            if (unityGrid != null)
+            {
+                var localPosition = unityGrid.transform.InverseTransformPoint(worldPosition);
+                var cellPosition = unityGrid.LocalToCellInterpolated(localPosition);
+                return new Vector2(cellPosition.x, cellPosition.y);
+            }
+
             var local = worldPosition - Origin;
             switch (PlaneMode)
             {
@@ -62,6 +118,12 @@ namespace Landsong.GridSystem
 
         public Vector3 GridToWorldPoint(float gridX, float gridY)
         {
+            if (unityGrid != null)
+            {
+                var localPosition = unityGrid.CellToLocalInterpolated(new Vector3(gridX, gridY, 0f));
+                return unityGrid.transform.TransformPoint(localPosition);
+            }
+
             switch (PlaneMode)
             {
                 case GridPlaneMode.XZ:

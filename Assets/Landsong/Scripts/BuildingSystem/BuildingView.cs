@@ -1,4 +1,4 @@
-using System;
+using Landsong.VisualSystem;
 using UnityEngine;
 
 namespace Landsong.BuildingSystem
@@ -6,130 +6,82 @@ namespace Landsong.BuildingSystem
     [DisallowMultipleComponent]
     public sealed class BuildingView : MonoBehaviour
     {
-        [SerializeField] private SpriteRenderer[] spriteRenderers = Array.Empty<SpriteRenderer>();
-        [SerializeField] private Color placementPreviewColor = new Color(1f, 1f, 1f, 0.45f);
+        [SerializeField] private SpriteFrameAnimator spriteFrameAnimator;
+        [SerializeField] private string defaultAnimationKey = "default";
+        [SerializeField] private string placementPreviewAnimationKey = "preview";
+        [SerializeField] private bool playDefaultOnEnable = true;
 
-        private Color[] originalColors = Array.Empty<Color>();
-        private bool originalColorsCaptured;
         private bool isPlacementPreview;
 
+        public SpriteFrameAnimator SpriteFrameAnimator => spriteFrameAnimator;
+        public string DefaultAnimationKey => defaultAnimationKey;
+        public string PlacementPreviewAnimationKey => placementPreviewAnimationKey;
         public bool IsPlacementPreview => isPlacementPreview;
-
-        public void SetPlacementPreview(bool enabled)
-        {
-            EnsureSpriteRenderers();
-            if (spriteRenderers.Length == 0)
-            {
-                isPlacementPreview = enabled;
-                return;
-            }
-
-            if (enabled)
-            {
-                CaptureOriginalColors();
-                ApplyPlacementPreviewColor();
-            }
-            else
-            {
-                RestoreOriginalColors();
-                originalColors = Array.Empty<Color>();
-                originalColorsCaptured = false;
-            }
-
-            isPlacementPreview = enabled;
-        }
-
-        public void SetPlacementPreviewColor(Color color)
-        {
-            placementPreviewColor = color;
-            if (isPlacementPreview)
-            {
-                ApplyPlacementPreviewColor();
-            }
-        }
 
         private void Reset()
         {
-            spriteRenderers = GetComponentsInChildren<SpriteRenderer>(true);
+            ResolveSpriteFrameAnimator();
         }
 
         private void OnValidate()
         {
-            if (spriteRenderers == null || spriteRenderers.Length == 0)
-            {
-                spriteRenderers = GetComponentsInChildren<SpriteRenderer>(true);
-            }
+            ResolveSpriteFrameAnimator();
         }
 
-        private void EnsureSpriteRenderers()
+        private void OnEnable()
         {
-            if (HasAnySpriteRenderer())
+            if (isPlacementPreview)
             {
+                PlayPlacementPreviewAnimation();
                 return;
             }
 
-            spriteRenderers = GetComponentsInChildren<SpriteRenderer>(true);
+            if (playDefaultOnEnable)
+            {
+                PlayDefaultAnimation();
+            }
         }
 
-        private bool HasAnySpriteRenderer()
+        public bool SetPlacementPreview(bool enabled)
         {
-            if (spriteRenderers == null)
+            isPlacementPreview = enabled;
+            return enabled ? PlayPlacementPreviewAnimation() : PlayDefaultAnimation();
+        }
+
+        public bool PlayDefaultAnimation()
+        {
+            return PlayAnimation(defaultAnimationKey);
+        }
+
+        public bool PlayPlacementPreviewAnimation()
+        {
+            return PlayAnimation(placementPreviewAnimationKey);
+        }
+
+        public bool PlayAnimation(string animationKey)
+        {
+            ResolveSpriteFrameAnimator();
+            if (spriteFrameAnimator == null || string.IsNullOrWhiteSpace(animationKey))
             {
                 return false;
             }
 
-            for (var i = 0; i < spriteRenderers.Length; i++)
-            {
-                if (spriteRenderers[i] != null)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return spriteFrameAnimator.Play(animationKey);
         }
 
-        private void CaptureOriginalColors()
+        public void StopAnimation()
         {
-            if (originalColorsCaptured && originalColors.Length == spriteRenderers.Length)
+            spriteFrameAnimator?.Stop();
+        }
+
+        private void ResolveSpriteFrameAnimator()
+        {
+            if (spriteFrameAnimator != null)
             {
                 return;
             }
 
-            originalColors = new Color[spriteRenderers.Length];
-            for (var i = 0; i < spriteRenderers.Length; i++)
-            {
-                originalColors[i] = spriteRenderers[i] == null ? Color.white : spriteRenderers[i].color;
-            }
-
-            originalColorsCaptured = true;
-        }
-
-        private void ApplyPlacementPreviewColor()
-        {
-            for (var i = 0; i < spriteRenderers.Length; i++)
-            {
-                if (spriteRenderers[i] != null)
-                {
-                    spriteRenderers[i].color = placementPreviewColor;
-                }
-            }
-        }
-
-        private void RestoreOriginalColors()
-        {
-            if (!originalColorsCaptured)
-            {
-                return;
-            }
-
-            for (var i = 0; i < spriteRenderers.Length && i < originalColors.Length; i++)
-            {
-                if (spriteRenderers[i] != null)
-                {
-                    spriteRenderers[i].color = originalColors[i];
-                }
-            }
+            spriteFrameAnimator = GetComponentInChildren<SpriteFrameAnimator>(true);
         }
     }
 }

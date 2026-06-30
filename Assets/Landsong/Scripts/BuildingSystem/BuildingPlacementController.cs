@@ -4,6 +4,7 @@ using Landsong.GridSystem;
 using Landsong.InputSystem;
 using Landsong.InventorySystem;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 using UnityEngine.UI;
 using TMPro;
 
@@ -26,14 +27,12 @@ namespace Landsong.BuildingSystem
         [SerializeField, Min(0f)] private float ghostHitPadding = 0.05f;
         [SerializeField] private bool cancelPlacementOnDisable = true;
 
-        [Header("Grid Highlight")]
-        [SerializeField] private Color validCellColor = new Color(0.1f, 0.9f, 0.25f, 1f);
-        [SerializeField] private Color invalidCellColor = new Color(1f, 0.1f, 0.1f, 1f);
-        [SerializeField, Min(0.001f)] private float highlightLineWidth = 0.035f;
-        [SerializeField] private Vector3 highlightWorldOffset = new Vector3(0f, 0f, -0.02f);
+        [Header("Tile Highlight")]
+        [SerializeField, InspectorName("合法高亮瓦片")] private TileBase validHighlightTile;
+        [SerializeField, InspectorName("非法高亮瓦片")] private TileBase invalidHighlightTile;
 
-        private readonly List<LineRenderer> highlightLines = new List<LineRenderer>();
-        private Material highlightMaterial;
+        private readonly List<Vector3Int> highlightedTileCells = new List<Vector3Int>();
+        private Tilemap activeHighlightTilemap;
         private InputController inputController;
         private BuildingDefinition activeDefinition;
         private GameObject ghostInstance;
@@ -95,12 +94,7 @@ namespace Landsong.BuildingSystem
         private void OnDestroy()
         {
             SetCameraInputBlocked(false);
-
-            if (highlightMaterial != null)
-            {
-                Destroy(highlightMaterial);
-                highlightMaterial = null;
-            }
+            ClearHighlightedTiles();
         }
 
         public void BeginPlacement(BuildingDefinition definition)
@@ -179,14 +173,14 @@ namespace Landsong.BuildingSystem
                 cancelButton = null;
             }
 
-            HideHighlightLines();
+            ClearHighlightedTiles();
         }
 
         private IEnumerator ConfirmPlacementRoutine(BuildingDefinition definition, GridPosition origin)
         {
             isConfirming = true;
 
-            if (!gridMap.CanOccupy(origin, definition.Size, out var failureReason))
+            if (!gridMap.CanOccupy(origin, definition.Size, definition.RequiredTerrainKeys, out var failureReason))
             {
                 Debug.LogWarning($"Cannot place building '{definition.DisplayName}' at {origin}: {failureReason}.", this);
                 isConfirming = false;
@@ -330,11 +324,11 @@ namespace Landsong.BuildingSystem
 
             currentOrigin = GetPlacementOrigin(gridPoint, activeDefinition.Size);
             hasCurrentOrigin = true;
-            currentCanPlace = gridMap.CanOccupy(currentOrigin, activeDefinition.Size, out _);
+            currentCanPlace = gridMap.CanOccupy(currentOrigin, activeDefinition.Size, activeDefinition.RequiredTerrainKeys, out _);
 
             var placementPosition = gridMap.GetFootprintCenter(currentOrigin, activeDefinition.Size);
             MovePreview(placementPosition);
-            UpdateFootprintHighlight(new GridFootprint(currentOrigin, activeDefinition.Size), currentCanPlace);
+            UpdateFootprintHighlight(new GridFootprint(currentOrigin, activeDefinition.Size), activeDefinition);
 
             if (confirmButton != null)
             {
@@ -350,8 +344,8 @@ namespace Landsong.BuildingSystem
                 return;
             }
 
-            currentCanPlace = gridMap.CanOccupy(currentOrigin, activeDefinition.Size, out _);
-            UpdateFootprintHighlight(new GridFootprint(currentOrigin, activeDefinition.Size), currentCanPlace);
+            currentCanPlace = gridMap.CanOccupy(currentOrigin, activeDefinition.Size, activeDefinition.RequiredTerrainKeys, out _);
+            UpdateFootprintHighlight(new GridFootprint(currentOrigin, activeDefinition.Size), activeDefinition);
 
             if (confirmButton != null)
             {
@@ -363,7 +357,7 @@ namespace Landsong.BuildingSystem
         {
             hasCurrentOrigin = false;
             currentCanPlace = false;
-            HideHighlightLines();
+            ClearHighlightedTiles();
 
             if (confirmButton != null)
             {
@@ -406,14 +400,21 @@ namespace Landsong.BuildingSystem
             ghostInstance.name = $"{definition.DisplayName}_PlacementGhost";
             ghostInstance.SetActive(false);
 
+            var ghostBuilding = ghostInstance.GetComponentInChildren<BuildingBase>(true);
             DisablePreviewBuildingRuntime(ghostInstance);
-            ghostView = ghostInstance.GetComponentInChildren<BuildingView>(true);
+            ghostView = ghostBuilding == null ? ghostInstance.GetComponentInChildren<BuildingView>(true) : ghostBuilding.View;
             if (ghostView == null)
             {
-                ghostView = ghostInstance.AddComponent<BuildingView>();
+                Debug.LogWarning($"Building preview '{definition.DisplayName}' has no BuildingView.", ghostInstance);
+                return;
             }
 
-            ghostView.SetPlacementPreview(true);
+            if (!ghostView.SetPlacementPreview(true))
+            {
+                Debug.LogWarning(
+                    $"Building preview '{definition.DisplayName}' cannot play preview animation key '{ghostView.PlacementPreviewAnimationKey}'.",
+                    ghostView);
+            }
         }
 
         private static void DisablePreviewBuildingRuntime(GameObject previewInstance)
@@ -590,87 +591,64 @@ namespace Landsong.BuildingSystem
             return button;
         }
 
-        private void UpdateFootprintHighlight(GridFootprint footprint, bool canPlace)
+        private void UpdateFootprintHighlight(GridFootprint footprint, BuildingDefinition definition)
         {
-            var color = canPlace ? validCellColor : invalidCellColor;
-            var index = 0;
+            ClearHighlightedTiles();
+            if (gridMap == null || gridMap.HighlightTilemap == null)
+            {
+                return;
+            }
+
+            var highlightTilemap = gridMap.HighlightTilemap;
+            activeHighlightTilemap = highlightTilemap;
             foreach (var position in footprint.Positions())
             {
-                var line = GetHighlightLine(index);
-                DrawCellLine(line, position, color);
-                index++;
-            }
-
-            for (var i = index; i < highlightLines.Count; i++)
-            {
-                highlightLines[i].gameObject.SetActive(false);
-            }
-        }
-
-        private LineRenderer GetHighlightLine(int index)
-        {
-            while (highlightLines.Count <= index)
-            {
-                highlightLines.Add(CreateHighlightLine());
-            }
-
-            var line = highlightLines[index];
-            line.gameObject.SetActive(true);
-            return line;
-        }
-
-        private LineRenderer CreateHighlightLine()
-        {
-            var lineObject = new GameObject("Placement Cell Highlight");
-            lineObject.transform.SetParent(transform, false);
-
-            var line = lineObject.AddComponent<LineRenderer>();
-            line.useWorldSpace = true;
-            line.loop = true;
-            line.positionCount = 4;
-            line.startWidth = highlightLineWidth;
-            line.endWidth = highlightLineWidth;
-            line.numCornerVertices = 2;
-            line.numCapVertices = 2;
-            line.material = GetHighlightMaterial();
-            return line;
-        }
-
-        private Material GetHighlightMaterial()
-        {
-            if (highlightMaterial != null)
-            {
-                return highlightMaterial;
-            }
-
-            var shader = Shader.Find("Sprites/Default")
-                         ?? Shader.Find("Universal Render Pipeline/Unlit")
-                         ?? Shader.Find("Unlit/Color");
-            highlightMaterial = new Material(shader);
-            return highlightMaterial;
-        }
-
-        private void DrawCellLine(LineRenderer line, GridPosition position, Color color)
-        {
-            var corners = gridMap.Layout.GetCellCorners(position);
-            for (var i = 0; i < corners.Length; i++)
-            {
-                line.SetPosition(i, corners[i] + highlightWorldOffset);
-            }
-
-            line.startColor = color;
-            line.endColor = color;
-        }
-
-        private void HideHighlightLines()
-        {
-            foreach (var line in highlightLines)
-            {
-                if (line != null)
+                var isCellValid = IsPlacementCellValid(position, definition);
+                var highlightTile = GetHighlightTile(isCellValid);
+                if (highlightTile == null)
                 {
-                    line.gameObject.SetActive(false);
+                    continue;
                 }
+
+                var tilemapCell = GridPositionToHighlightTilemapCell(position);
+                highlightTilemap.SetTile(tilemapCell, highlightTile);
+                highlightedTileCells.Add(tilemapCell);
             }
+        }
+
+        private TileBase GetHighlightTile(bool isCellValid)
+        {
+            return isCellValid ? validHighlightTile : invalidHighlightTile;
+        }
+
+        private bool IsPlacementCellValid(GridPosition position, BuildingDefinition definition)
+        {
+            return definition != null
+                   && gridMap != null
+                   && gridMap.CanOccupy(position, Vector2Int.one, definition.RequiredTerrainKeys, out _);
+        }
+
+        private Vector3Int GridPositionToHighlightTilemapCell(GridPosition position)
+        {
+            return new Vector3Int(position.X, position.Y, 0);
+        }
+
+        private void ClearHighlightedTiles()
+        {
+            if (activeHighlightTilemap == null || highlightedTileCells.Count == 0)
+            {
+                highlightedTileCells.Clear();
+                activeHighlightTilemap = null;
+                return;
+            }
+
+            for (var i = 0; i < highlightedTileCells.Count; i++)
+            {
+                activeHighlightTilemap.SetTile(highlightedTileCells[i], null);
+            }
+
+            highlightedTileCells.Clear();
+            activeHighlightTilemap = null;
         }
 
         private void ResolveSceneReferences()

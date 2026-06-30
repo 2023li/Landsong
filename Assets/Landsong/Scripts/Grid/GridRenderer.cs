@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Serialization;
 
 namespace Landsong.GridSystem
 {
@@ -8,56 +10,36 @@ namespace Landsong.GridSystem
     public sealed class GridRenderer : MonoBehaviour
     {
         private const string LineObjectName = "__GridRenderer_Lines";
-        private const string OverlayObjectName = "__GridRenderer_Overlay";
         private static readonly int ColorId = Shader.PropertyToID("_Color");
         private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
         private static readonly int ZTestId = Shader.PropertyToID("_ZTest");
 
-        [SerializeField] private GridMapBehaviour gridMap;
-        [SerializeField] private GridPointerProbe pointerProbe;
-        [SerializeField] private Material lineMaterial;
-        [SerializeField] private Material overlayMaterial;
-        [SerializeField] private Color lineColor = new Color(1f, 1f, 1f, 0.35f);
-        [SerializeField] private Color blockedCellColor = new Color(0.8f, 0.1f, 0.1f, 0.25f);
-        [SerializeField] private Color occupiedCellColor = new Color(1f, 0.55f, 0.05f, 0.35f);
-        [SerializeField] private Color currentCellColor = new Color(0.15f, 0.75f, 1f, 0.45f);
-        [SerializeField, Min(0f)] private float overlayThickness = 0.02f;
-        [SerializeField, Min(0.001f)] private float gridLineWidth = 0.03f;
-        [SerializeField] private bool showGridLines = true;
-        [SerializeField] private bool drawRuntimeCellStates = true;
-        [SerializeField] private bool drawOccupiedCells = true;
-        [SerializeField] private bool drawPointerCell = true;
-        [SerializeField] private bool refreshEveryFrame = true;
-        [SerializeField] private bool renderOnTop = true;
-        [SerializeField] private int lineSortingOrder;
-        [SerializeField] private int overlaySortingOrder = 1;
+        [SerializeField, BoxGroup("引用"), LabelText("网格地图")] private GridMapBehaviour gridMap;
+        [SerializeField, BoxGroup("线框"), LabelText("材质")] private Material lineMaterial;
+        [SerializeField, BoxGroup("线框"), LabelText("颜色")] private Color lineColor = new Color(1f, 1f, 1f, 0.35f);
+        [SerializeField, FormerlySerializedAs("overlayThickness"), Min(0f), BoxGroup("线框"), LabelText("高度偏移")] private float linePlaneOffset = 0.02f;
+        [SerializeField, Min(0.001f), BoxGroup("线框"), LabelText("宽度")] private float gridLineWidth = 0.03f;
+        [SerializeField, BoxGroup("显示"), LabelText("显示网格线")] private bool showGridLines = true;
+        [SerializeField, BoxGroup("显示"), LabelText("每帧强制刷新")] private bool forceRefreshEveryFrame;
+        [SerializeField, BoxGroup("渲染"), LabelText("置顶渲染")] private bool renderOnTop = true;
+        [SerializeField, BoxGroup("渲染"), LabelText("排序")] private int lineSortingOrder;
 
-        private readonly Dictionary<GridPosition, Color> cellColorOverrides = new Dictionary<GridPosition, Color>();
-        private readonly Dictionary<GridPosition, Color> visibleCellColors = new Dictionary<GridPosition, Color>();
         private readonly List<Vector3> vertices = new List<Vector3>();
         private readonly List<int> indices = new List<int>();
         private readonly List<Color> vertexColors = new List<Color>();
 
         private GameObject lineObject;
-        private GameObject overlayObject;
         private MeshFilter lineMeshFilter;
-        private MeshFilter overlayMeshFilter;
         private MeshRenderer lineRenderer;
-        private MeshRenderer overlayRenderer;
         private Mesh lineMesh;
-        private Mesh overlayMesh;
         private Material runtimeLineMaterial;
-        private Material runtimeOverlayMaterial;
         private bool lineMeshDirty = true;
-        private bool overlayMeshDirty = true;
 
         public bool GridLinesVisible => showGridLines;
-        public bool OccupiedCellsVisible => drawRuntimeCellStates && drawOccupiedCells;
 
         private void Reset()
         {
             gridMap = GetComponent<GridMapBehaviour>();
-            pointerProbe = GetComponent<GridPointerProbe>();
         }
 
         private void OnEnable()
@@ -72,19 +54,14 @@ namespace Landsong.GridSystem
             ResolveReferences();
             EnsureRenderObjects();
 
-            if (refreshEveryFrame)
+            if (forceRefreshEveryFrame)
             {
-                MarkAllDirty();
+                MarkLineDirty();
             }
 
             if (lineMeshDirty)
             {
                 RebuildLineMesh();
-            }
-
-            if (overlayMeshDirty)
-            {
-                RebuildOverlayMesh();
             }
 
             ApplyRendererState();
@@ -96,29 +73,21 @@ namespace Landsong.GridSystem
             {
                 lineRenderer.enabled = false;
             }
-
-            if (overlayRenderer != null)
-            {
-                overlayRenderer.enabled = false;
-            }
         }
 
         private void OnDestroy()
         {
             DestroyOwnedObject(lineObject);
-            DestroyOwnedObject(overlayObject);
             DestroyOwnedObject(lineMesh);
-            DestroyOwnedObject(overlayMesh);
             DestroyOwnedObject(runtimeLineMaterial);
-            DestroyOwnedObject(runtimeOverlayMaterial);
         }
 
         private void OnValidate()
         {
-            overlayThickness = Mathf.Max(0f, overlayThickness);
+            linePlaneOffset = Mathf.Max(0f, linePlaneOffset);
             gridLineWidth = Mathf.Max(0.001f, gridLineWidth);
-            MarkAllDirty();
-            ConfigureRuntimeMaterials();
+            MarkLineDirty();
+            ConfigureRuntimeMaterial(runtimeLineMaterial);
         }
 
         public void SetGridLinesVisible(bool visible)
@@ -127,88 +96,9 @@ namespace Landsong.GridSystem
             ApplyRendererState();
         }
 
-        public void SetOccupiedCellsVisible(bool visible)
-        {
-            drawRuntimeCellStates = true;
-            drawOccupiedCells = visible;
-            MarkOverlayDirty();
-        }
-
-        public void SetCellColor(GridPosition position, Color color)
-        {
-            cellColorOverrides[position] = color;
-            MarkOverlayDirty();
-        }
-
-        public void SetCellsColor(IEnumerable<GridPosition> positions, Color color)
-        {
-            if (positions == null)
-            {
-                return;
-            }
-
-            foreach (var position in positions)
-            {
-                cellColorOverrides[position] = color;
-            }
-
-            MarkOverlayDirty();
-        }
-
-        public void SetFootprintColor(GridFootprint footprint, Color color)
-        {
-            foreach (var position in footprint.Positions())
-            {
-                cellColorOverrides[position] = color;
-            }
-
-            MarkOverlayDirty();
-        }
-
-        public bool ClearCellColor(GridPosition position)
-        {
-            var removed = cellColorOverrides.Remove(position);
-            if (removed)
-            {
-                MarkOverlayDirty();
-            }
-
-            return removed;
-        }
-
-        public void ClearFootprintColor(GridFootprint footprint)
-        {
-            var removed = false;
-            foreach (var position in footprint.Positions())
-            {
-                removed |= cellColorOverrides.Remove(position);
-            }
-
-            if (removed)
-            {
-                MarkOverlayDirty();
-            }
-        }
-
-        public void ClearAllCellColors()
-        {
-            if (cellColorOverrides.Count == 0)
-            {
-                return;
-            }
-
-            cellColorOverrides.Clear();
-            MarkOverlayDirty();
-        }
-
-        public void RefreshOccupiedCells()
-        {
-            MarkOverlayDirty();
-        }
-
         public void RefreshAll()
         {
-            MarkAllDirty();
+            MarkLineDirty();
 
             if (!isActiveAndEnabled)
             {
@@ -217,7 +107,6 @@ namespace Landsong.GridSystem
 
             EnsureRenderObjects();
             RebuildLineMesh();
-            RebuildOverlayMesh();
             ApplyRendererState();
         }
 
@@ -227,17 +116,11 @@ namespace Landsong.GridSystem
             {
                 gridMap = GetComponent<GridMapBehaviour>();
             }
-
-            if (pointerProbe == null)
-            {
-                pointerProbe = GetComponent<GridPointerProbe>();
-            }
         }
 
         private void EnsureRenderObjects()
         {
             EnsureMesh(ref lineMesh, "Grid Renderer Lines Mesh");
-            EnsureMesh(ref overlayMesh, "Grid Renderer Overlay Mesh");
 
             EnsureRenderObject(
                 ref lineObject,
@@ -248,16 +131,7 @@ namespace Landsong.GridSystem
                 GetLineMaterial(),
                 lineSortingOrder);
 
-            EnsureRenderObject(
-                ref overlayObject,
-                ref overlayMeshFilter,
-                ref overlayRenderer,
-                OverlayObjectName,
-                overlayMesh,
-                GetOverlayMaterial(),
-                overlaySortingOrder);
-
-            ConfigureRuntimeMaterials();
+            ConfigureRuntimeMaterial(runtimeLineMaterial);
         }
 
         private void EnsureRenderObject(
@@ -344,21 +218,6 @@ namespace Landsong.GridSystem
             return runtimeLineMaterial;
         }
 
-        private Material GetOverlayMaterial()
-        {
-            if (overlayMaterial != null)
-            {
-                return overlayMaterial;
-            }
-
-            if (runtimeOverlayMaterial == null)
-            {
-                runtimeOverlayMaterial = CreateDefaultMaterial("Grid Renderer Overlay Material");
-            }
-
-            return runtimeOverlayMaterial;
-        }
-
         private static Material CreateDefaultMaterial(string materialName)
         {
             var shader = Shader.Find("Sprites/Default")
@@ -369,7 +228,7 @@ namespace Landsong.GridSystem
 
             if (shader == null)
             {
-                Debug.LogWarning("GridRenderer could not find a shader for grid rendering.");
+                Debug.LogWarning("GridRenderer could not find a shader for grid line rendering.");
                 return null;
             }
 
@@ -379,12 +238,6 @@ namespace Landsong.GridSystem
                 hideFlags = HideFlags.HideAndDontSave,
                 renderQueue = (int)RenderQueue.Transparent
             };
-        }
-
-        private void ConfigureRuntimeMaterials()
-        {
-            ConfigureRuntimeMaterial(runtimeLineMaterial);
-            ConfigureRuntimeMaterial(runtimeOverlayMaterial);
         }
 
         private void ConfigureRuntimeMaterial(Material material)
@@ -431,7 +284,7 @@ namespace Landsong.GridSystem
             indices.Clear();
             vertexColors.Clear();
 
-            var offset = GetPlaneOffset(layout, 1.5f);
+            var offset = GetLineOffset(layout);
             var planeNormal = GetPlaneNormal(layout);
             for (var x = 0; x <= gridMap.Width; x++)
             {
@@ -458,75 +311,6 @@ namespace Landsong.GridSystem
             lineMesh.SetColors(vertexColors);
             lineMesh.SetTriangles(indices, 0);
             lineMesh.RecalculateBounds();
-        }
-
-        private void RebuildOverlayMesh()
-        {
-            overlayMeshDirty = false;
-
-            if (overlayMesh == null)
-            {
-                return;
-            }
-
-            if (!TryGetLayout(out var layout))
-            {
-                overlayMesh.Clear();
-                return;
-            }
-
-            CollectVisibleCellColors();
-
-            vertices.Clear();
-            indices.Clear();
-            vertexColors.Clear();
-
-            var offset = GetPlaneOffset(layout, 1f);
-            foreach (var pair in visibleCellColors)
-            {
-                AddCellQuad(overlayMeshFilter.transform, layout, pair.Key, pair.Value, offset);
-            }
-
-            overlayMesh.Clear();
-            overlayMesh.SetVertices(vertices);
-            overlayMesh.SetColors(vertexColors);
-            overlayMesh.SetTriangles(indices, 0);
-            overlayMesh.RecalculateBounds();
-        }
-
-        private void CollectVisibleCellColors()
-        {
-            visibleCellColors.Clear();
-
-            if (drawRuntimeCellStates && gridMap != null && gridMap.Map != null)
-            {
-                foreach (var cell in gridMap.Map.Cells)
-                {
-                    if (!cell.IsBuildable)
-                    {
-                        visibleCellColors[cell.Position] = blockedCellColor;
-                        continue;
-                    }
-
-                    if (drawOccupiedCells && cell.IsOccupied)
-                    {
-                        visibleCellColors[cell.Position] = occupiedCellColor;
-                    }
-                }
-            }
-
-            foreach (var pair in cellColorOverrides)
-            {
-                if (ContainsGridPosition(pair.Key))
-                {
-                    visibleCellColors[pair.Key] = pair.Value;
-                }
-            }
-
-            if (drawPointerCell && pointerProbe != null && pointerProbe.HasCurrentCell && ContainsGridPosition(pointerProbe.CurrentCell))
-            {
-                visibleCellColors[pointerProbe.CurrentCell] = currentCellColor;
-            }
         }
 
         private void AddLineQuad(Transform targetTransform, Vector3 worldStart, Vector3 worldEnd, Color color, Vector3 planeNormal)
@@ -563,25 +347,6 @@ namespace Landsong.GridSystem
             indices.Add(startIndex + 3);
         }
 
-        private void AddCellQuad(Transform targetTransform, GridLayoutService layout, GridPosition position, Color color, Vector3 offset)
-        {
-            var corners = layout.GetCellCorners(position);
-            var startIndex = vertices.Count;
-
-            for (var i = 0; i < corners.Length; i++)
-            {
-                vertices.Add(targetTransform.InverseTransformPoint(corners[i] + offset));
-                vertexColors.Add(color);
-            }
-
-            indices.Add(startIndex);
-            indices.Add(startIndex + 1);
-            indices.Add(startIndex + 2);
-            indices.Add(startIndex);
-            indices.Add(startIndex + 2);
-            indices.Add(startIndex + 3);
-        }
-
         private bool TryGetLayout(out GridLayoutService layout)
         {
             layout = null;
@@ -600,18 +365,9 @@ namespace Landsong.GridSystem
             return layout != null;
         }
 
-        private bool ContainsGridPosition(GridPosition position)
+        private Vector3 GetLineOffset(GridLayoutService layout)
         {
-            return gridMap != null
-                   && position.X >= 0
-                   && position.X < gridMap.Width
-                   && position.Y >= 0
-                   && position.Y < gridMap.Height;
-        }
-
-        private Vector3 GetPlaneOffset(GridLayoutService layout, float scale)
-        {
-            return GetPlaneNormal(layout) * overlayThickness * scale;
+            return GetPlaneNormal(layout) * linePlaneOffset;
         }
 
         private static Vector3 GetPlaneNormal(GridLayoutService layout)
@@ -621,15 +377,9 @@ namespace Landsong.GridSystem
                 : Vector3.forward;
         }
 
-        private void MarkAllDirty()
+        private void MarkLineDirty()
         {
             lineMeshDirty = true;
-            overlayMeshDirty = true;
-        }
-
-        private void MarkOverlayDirty()
-        {
-            overlayMeshDirty = true;
         }
 
         private void ApplyRendererState()
@@ -638,12 +388,6 @@ namespace Landsong.GridSystem
             {
                 lineRenderer.enabled = isActiveAndEnabled && showGridLines && lineMesh != null && lineMesh.vertexCount > 0;
                 lineRenderer.sortingOrder = lineSortingOrder;
-            }
-
-            if (overlayRenderer != null)
-            {
-                overlayRenderer.enabled = isActiveAndEnabled && overlayMesh != null && overlayMesh.vertexCount > 0;
-                overlayRenderer.sortingOrder = overlaySortingOrder;
             }
         }
 

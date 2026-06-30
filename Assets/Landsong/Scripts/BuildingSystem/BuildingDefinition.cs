@@ -14,6 +14,7 @@ namespace Landsong.BuildingSystem
     public sealed class BuildingDefinition : ScriptableObject
     {
         private const string BuildingPrefabFolder = "Assets/Landsong/Objects/Prefabs/建筑";
+        private static readonly string[] DefaultRequiredTerrainKeys = { GridTerrainKeys.Land };
 
         [TitleGroup("基础信息")]
         [HorizontalGroup("基础信息/Split", Width = 0.72f)]
@@ -82,6 +83,16 @@ namespace Landsong.BuildingSystem
         [MinValue(1)]
         [SerializeField] private Vector2Int size = Vector2Int.one;
 
+        [TitleGroup("建造位置")]
+        [LabelText("忽略地形要求")]
+        [SerializeField] private bool ignoreTerrainRequirement;
+
+        [TitleGroup("建造位置")]
+        [LabelText("需要的地形 Key")]
+        [HideIf(nameof(ignoreTerrainRequirement))]
+        [PropertyTooltip("建筑 footprint 内每个格子都必须包含这些 key。默认 land；水上建筑填 water；特殊区域建筑填对应区域 key。")]
+        [SerializeField] private string[] requiredTerrainKeys = { GridTerrainKeys.Land };
+
         [TitleGroup("成本")]
         [LabelText("放置成本")]
         [PropertyTooltip("玩家确认放置时立即扣除。施工、运营、生产、升级等成本写在建筑 prefab 上的 BuildingBase 子类里。")]
@@ -115,6 +126,21 @@ namespace Landsong.BuildingSystem
         public GameObject BuildingPrefab => buildingPrefab == null ? null : buildingPrefab.gameObject;
         public Vector2Int Size => size;
         public IReadOnlyList<BuildingCost> PlacementCosts => placementCosts ?? Array.Empty<BuildingCost>();
+        public IReadOnlyList<string> RequiredTerrainKeys
+        {
+            get
+            {
+                if (ignoreTerrainRequirement)
+                {
+                    return Array.Empty<string>();
+                }
+
+                return requiredTerrainKeys == null || requiredTerrainKeys.Length == 0
+                    ? DefaultRequiredTerrainKeys
+                    : requiredTerrainKeys;
+            }
+        }
+
         public BuildingCategory Category => category;
         public GameCondition VisibleCondition => visibleCondition;
         public GameCondition AvailableCondition => availableCondition;
@@ -137,6 +163,7 @@ namespace Landsong.BuildingSystem
             size = new Vector2Int(Mathf.Max(1, size.x), Mathf.Max(1, size.y));
             maxBuildCount = Mathf.Max(0, maxBuildCount);
             NormalizeCosts(ref placementCosts);
+            NormalizeTerrainKeys(ref requiredTerrainKeys);
         }
 
         private bool HasValidBuildingId()
@@ -156,6 +183,29 @@ namespace Landsong.BuildingSystem
             {
                 costs[i] = costs[i].Normalized();
             }
+        }
+
+        private static void NormalizeTerrainKeys(ref string[] terrainKeys)
+        {
+            if (terrainKeys == null)
+            {
+                terrainKeys = Array.Empty<string>();
+                return;
+            }
+
+            var normalizedKeys = new List<string>(terrainKeys.Length);
+            for (var i = 0; i < terrainKeys.Length; i++)
+            {
+                var normalizedKey = GridTerrainKeys.Normalize(terrainKeys[i]);
+                if (string.IsNullOrEmpty(normalizedKey) || normalizedKeys.Contains(normalizedKey))
+                {
+                    continue;
+                }
+
+                normalizedKeys.Add(normalizedKey);
+            }
+
+            terrainKeys = normalizedKeys.ToArray();
         }
 
     }

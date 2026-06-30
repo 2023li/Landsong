@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Landsong.InventorySystem;
 using Moyo.Unity;
 using Sirenix.OdinInspector;
@@ -16,6 +17,11 @@ namespace Landsong.BuildingSystem
         private Dictionary<string, BuildingDefinition> definitionsById;
 
         public IReadOnlyList<BuildingDefinition> Definitions => definitions ?? Array.Empty<BuildingDefinition>();
+
+        public static Task<BuildingCatalog> LoadAsync(string addressableKey)
+        {
+            return GetInstanceAsync(addressableKey);
+        }
 
         private void OnEnable()
         {

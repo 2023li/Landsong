@@ -15,8 +15,28 @@ MonoBehaviour:
   m_GroupName: Default Local Group
   m_GUID: 6411b9c44ea25d544b13cd70250c2fb0
   m_SerializeEntries:
+  - m_GUID: 5e44594c1c50d4340aa22594fd306592
+    m_Address: UIPanel_Game
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 69f4857c976d8354f8ed492e371b19d2
+    m_Address: UIPanel_Setting
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b646128c16fb06a43a20f034e7794bc7
+    m_Address: UIPanel_MainMenu
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: c55bd9175cbf32745be4494db4b58946
     m_Address: UIConfig
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d1bb695ad9505e242bfac3cad11df001
+    m_Address: UIPanel_Loading
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

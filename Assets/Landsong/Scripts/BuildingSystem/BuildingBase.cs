@@ -27,6 +27,9 @@ namespace Landsong.BuildingSystem
         [Tooltip("两次点击间隔小于等于该值时，第二次点击视为双击。")]
         [SerializeField, Min(0.05f)] private float doubleClickInterval = 0.3f;
 
+        [Tooltip("建筑视觉控制器。BuildingBase 只持有引用，具体动画播放逻辑由 BuildingView 控制。")]
+        [SerializeField] private BuildingView view;
+
       
         // 当前建筑接入的游戏系统。库存、回合、全局服务都从 GameSystem 获取。
         private Landsong.GameSystem gameSystem;
@@ -51,6 +54,16 @@ namespace Landsong.BuildingSystem
 
         // 当前建筑实例对应的静态定义。
         public BuildingDefinition Definition => definition;
+
+        // 当前建筑的视觉控制器。
+        public BuildingView View
+        {
+            get
+            {
+                ResolveView();
+                return view;
+            }
+        }
 
         // 当前建筑接入的游戏系统；未注册时为 null。
         public Landsong.GameSystem GameSystem => gameSystem;
@@ -90,6 +103,21 @@ namespace Landsong.BuildingSystem
 
         //--------------------------------架构类API-----------------------------------------
         #region 架构类API
+        private void Reset()
+        {
+            ResolveView();
+        }
+
+        private void OnValidate()
+        {
+            ResolveView();
+        }
+
+        protected virtual void Awake()
+        {
+            ResolveView();
+        }
+
         /// <summary>
         /// Unity Start 阶段自动注册到 GameSystem。子类重写 Start 时必须调用 base.Start()。
         /// </summary>
@@ -330,6 +358,20 @@ namespace Landsong.BuildingSystem
         protected void NotifyStateChanged()
         {
             StateChanged?.Invoke(this);
+        }
+
+        private void ResolveView()
+        {
+            if (view != null)
+            {
+                return;
+            }
+
+            view = GetComponentInChildren<BuildingView>(true);
+            if (view == null)
+            {
+                view = GetComponentInParent<BuildingView>(true);
+            }
         }
 
         /// <summary>

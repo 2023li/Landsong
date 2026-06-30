@@ -3,6 +3,7 @@ using Moyo.Unity;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
@@ -49,6 +50,27 @@ namespace Landsong.InputSystem
         public bool IsCameraInputBlocked => cameraInputBlockers.Count > 0;
         public bool CanUseCameraInput => !IsCameraInputBlocked;
         public int ActiveTouchCount => CountActiveTouches();
+
+        public bool InputAnyKeyDown()
+        {
+            foreach (var device in global::UnityEngine.InputSystem.InputSystem.devices)
+            {
+                if (device == null || !device.enabled)
+                {
+                    continue;
+                }
+
+                foreach (var control in device.allControls)
+                {
+                    if (control is ButtonControl button && button.wasPressedThisFrame)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
 
         private void LateUpdate()
         {

@@ -8,15 +8,34 @@ namespace Landsong.VisualSystem
     [RequireComponent(typeof(SpriteRenderer))]
     public sealed class SpriteFrameAnimator : MonoBehaviour
     {
+        [Serializable]
+        public sealed class AnimationData
+        {
+            [SerializeField] private string key = string.Empty;
+            [SerializeField] private Sprite[] sprites = Array.Empty<Sprite>();
+            [SerializeField] private Color color = Color.white;
+
+            public string Key => key;
+            public Sprite[] Sprites => sprites ?? Array.Empty<Sprite>();
+            public Color Color => color;
+
+            internal void Validate()
+            {
+                sprites ??= Array.Empty<Sprite>();
+            }
+        }
+
         [SerializeField] private SpriteRenderer targetRenderer;
-        [SerializeField] private Sprite[] frames = Array.Empty<Sprite>();
+        [SerializeField] private AnimationData[] animations = Array.Empty<AnimationData>();
         [SerializeField, Min(0.01f)] private float framesPerSecond = 8f;
-        [SerializeField] private bool playOnEnable = true;
         [SerializeField] private bool loop = true;
         [SerializeField] private bool pingPong;
         [SerializeField] private bool randomStartFrame;
         [SerializeField] private bool useUnscaledTime;
 
+        private Sprite[] activeSprites = Array.Empty<Sprite>();
+        private Color activeColor = Color.white;
+        private string currentAnimationKey = string.Empty;
         private float timer;
         private int currentFrameIndex;
         private int direction = 1;
@@ -25,9 +44,12 @@ namespace Landsong.VisualSystem
         public event Action<SpriteFrameAnimator> Completed;
 
         public SpriteRenderer TargetRenderer => targetRenderer;
-        public IReadOnlyList<Sprite> Frames => frames;
+        public IReadOnlyList<AnimationData> Animations => animations;
+        public IReadOnlyList<Sprite> CurrentSprites => activeSprites;
         public int CurrentFrameIndex => currentFrameIndex;
         public bool IsPlaying => isPlaying;
+        public string CurrentAnimationKey => currentAnimationKey;
+        public Color ActiveColor => activeColor;
 
         private float FrameDuration => 1f / framesPerSecond;
 
@@ -43,29 +65,19 @@ namespace Landsong.VisualSystem
                 targetRenderer = GetComponent<SpriteRenderer>();
             }
 
-            frames ??= Array.Empty<Sprite>();
+            animations ??= Array.Empty<AnimationData>();
+            for (var i = 0; i < animations.Length; i++)
+            {
+                animations[i]?.Validate();
+            }
+
             framesPerSecond = Mathf.Max(0.01f, framesPerSecond);
-            currentFrameIndex = frames.Length == 0 ? 0 : Mathf.Clamp(currentFrameIndex, 0, frames.Length - 1);
-        }
-
-        private void OnEnable()
-        {
-            if (randomStartFrame && frames.Length > 0)
-            {
-                currentFrameIndex = UnityEngine.Random.Range(0, frames.Length);
-            }
-
-            ApplyCurrentFrame();
-
-            if (playOnEnable)
-            {
-                Play();
-            }
+            currentFrameIndex = activeSprites.Length == 0 ? 0 : Mathf.Clamp(currentFrameIndex, 0, activeSprites.Length - 1);
         }
 
         private void Update()
         {
-            if (!isPlaying || frames.Length <= 1)
+            if (!isPlaying || activeSprites.Length <= 1)
             {
                 return;
             }
@@ -84,15 +96,26 @@ namespace Landsong.VisualSystem
             }
         }
 
-        public void Play()
+        public bool Play(string animationKey, bool restart = true)
         {
-            if (frames.Length == 0)
+            if (!SetAnimation(animationKey, restart))
+            {
+                return false;
+            }
+
+            return Play();
+        }
+
+        public bool Play()
+        {
+            if (activeSprites.Length == 0)
             {
                 isPlaying = false;
-                return;
+                return false;
             }
 
             isPlaying = true;
+            return true;
         }
 
         public void Stop()
@@ -100,40 +123,80 @@ namespace Landsong.VisualSystem
             isPlaying = false;
         }
 
-        public void Restart()
+        public bool Restart()
         {
-            currentFrameIndex = 0;
+            currentFrameIndex = GetStartFrameIndex();
             direction = 1;
             timer = 0f;
             ApplyCurrentFrame();
-            Play();
+            return Play();
+        }
+
+        public bool SetAnimation(string animationKey, bool restart = true)
+        {
+            if (!TryGetAnimation(animationKey, out var animation))
+            {
+                return false;
+            }
+
+            activeSprites = animation.Sprites;
+            activeColor = animation.Color;
+            currentAnimationKey = animation.Key;
+            currentFrameIndex = activeSprites.Length == 0 ? 0 : Mathf.Clamp(currentFrameIndex, 0, activeSprites.Length - 1);
+
+            if (restart)
+            {
+                Restart();
+                return true;
+            }
+
+            ApplyCurrentFrame();
+            return true;
+        }
+
+        public bool TryGetAnimation(string animationKey, out AnimationData animation)
+        {
+            if (animations == null || string.IsNullOrWhiteSpace(animationKey))
+            {
+                animation = null;
+                return false;
+            }
+
+            for (var i = 0; i < animations.Length; i++)
+            {
+                var candidate = animations[i];
+                if (candidate != null && string.Equals(candidate.Key, animationKey, StringComparison.Ordinal))
+                {
+                    animation = candidate;
+                    return true;
+                }
+            }
+
+            animation = null;
+            return false;
         }
 
         public void SetFrame(int frameIndex)
         {
-            if (frames.Length == 0)
+            if (activeSprites.Length == 0)
             {
                 currentFrameIndex = 0;
                 return;
             }
 
-            currentFrameIndex = Mathf.Clamp(frameIndex, 0, frames.Length - 1);
+            currentFrameIndex = Mathf.Clamp(frameIndex, 0, activeSprites.Length - 1);
             timer = 0f;
             ApplyCurrentFrame();
         }
 
-        public void SetFrames(Sprite[] newFrames, bool restart = true)
+        private int GetStartFrameIndex()
         {
-            frames = newFrames ?? Array.Empty<Sprite>();
-            currentFrameIndex = frames.Length == 0 ? 0 : Mathf.Clamp(currentFrameIndex, 0, frames.Length - 1);
-
-            if (restart)
+            if (!randomStartFrame || activeSprites.Length == 0)
             {
-                Restart();
-                return;
+                return 0;
             }
 
-            ApplyCurrentFrame();
+            return UnityEngine.Random.Range(0, activeSprites.Length);
         }
 
         private void AdvanceFrame()
@@ -145,11 +208,11 @@ namespace Landsong.VisualSystem
             }
 
             var nextFrame = currentFrameIndex + 1;
-            if (nextFrame >= frames.Length)
+            if (nextFrame >= activeSprites.Length)
             {
                 if (!loop)
                 {
-                    currentFrameIndex = frames.Length - 1;
+                    currentFrameIndex = activeSprites.Length - 1;
                     ApplyCurrentFrame();
                     Complete();
                     return;
@@ -165,11 +228,11 @@ namespace Landsong.VisualSystem
         private void AdvancePingPongFrame()
         {
             var nextFrame = currentFrameIndex + direction;
-            if (nextFrame >= frames.Length || nextFrame < 0)
+            if (nextFrame >= activeSprites.Length || nextFrame < 0)
             {
                 if (!loop)
                 {
-                    currentFrameIndex = Mathf.Clamp(currentFrameIndex, 0, frames.Length - 1);
+                    currentFrameIndex = Mathf.Clamp(currentFrameIndex, 0, activeSprites.Length - 1);
                     ApplyCurrentFrame();
                     Complete();
                     return;
@@ -179,18 +242,23 @@ namespace Landsong.VisualSystem
                 nextFrame = currentFrameIndex + direction;
             }
 
-            currentFrameIndex = Mathf.Clamp(nextFrame, 0, frames.Length - 1);
+            currentFrameIndex = Mathf.Clamp(nextFrame, 0, activeSprites.Length - 1);
             ApplyCurrentFrame();
         }
 
         private void ApplyCurrentFrame()
         {
-            if (targetRenderer == null || frames.Length == 0)
+            if (targetRenderer == null)
             {
                 return;
             }
 
-            targetRenderer.sprite = frames[currentFrameIndex];
+            if (activeSprites.Length > 0)
+            {
+                targetRenderer.sprite = activeSprites[currentFrameIndex];
+            }
+
+            targetRenderer.color = activeColor;
         }
 
         private void Complete()

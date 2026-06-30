@@ -43,14 +43,14 @@ namespace Landsong.BuildingSystem
                 return false;
             }
 
-            if (!gridMap.CanOccupy(origin, definition.Size, out var failureReason))
+            if (!gridMap.CanOccupy(origin, definition.Size, definition.RequiredTerrainKeys, out var failureReason))
             {
                 Debug.LogWarning($"Cannot place building '{definition.DisplayName}' at {origin}: {failureReason}.");
                 return false;
             }
 
             var occupancyId = CreateGridOccupancyId(definition);
-            if (!gridMap.TryOccupy(origin, definition.Size, occupancyId, out failureReason))
+            if (!gridMap.TryOccupy(origin, definition.Size, occupancyId, definition.RequiredTerrainKeys, out failureReason))
             {
                 Debug.LogWarning($"Cannot occupy grid for building '{definition.DisplayName}' at {origin}: {failureReason}.");
                 return false;
@@ -92,7 +92,7 @@ namespace Landsong.BuildingSystem
             var parent = sourceBuilding.transform.parent;
             var ignoredOccupantId = sourceBuilding.GridOccupancyId;
 
-            if (!gridMap.CanOccupy(origin, replacementDefinition.Size, out var failureReason, ignoredOccupantId))
+            if (!gridMap.CanOccupy(origin, replacementDefinition.Size, replacementDefinition.RequiredTerrainKeys, out var failureReason, ignoredOccupantId))
             {
                 Debug.LogWarning(
                     $"Cannot replace building '{sourceBuilding.name}' with '{replacementDefinition.DisplayName}' at {origin}: {failureReason}.",
