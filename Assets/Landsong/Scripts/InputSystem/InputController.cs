@@ -46,10 +46,28 @@ namespace Landsong.InputSystem
         private readonly List<object> staleBlockers = new List<object>();
         private readonly List<RaycastResult> uiRaycastResults = new List<RaycastResult>();
         private PointerEventData uiPointerEventData;
+        private global::LSActionMap actionMap;
 
         public bool IsCameraInputBlocked => cameraInputBlockers.Count > 0;
         public bool CanUseCameraInput => !IsCameraInputBlocked;
         public int ActiveTouchCount => CountActiveTouches();
+
+        private void OnEnable()
+        {
+            EnableGamePlayActions();
+        }
+
+        private void OnDisable()
+        {
+            actionMap?.Disable();
+        }
+
+        private void OnDestroy()
+        {
+            actionMap?.Disable();
+            actionMap?.Dispose();
+            actionMap = null;
+        }
 
         public bool InputAnyKeyDown()
         {
@@ -91,6 +109,12 @@ namespace Landsong.InputSystem
             }
 
             cameraInputBlockers.Remove(owner);
+        }
+
+        public Vector2 ReadCameraMove()
+        {
+            EnsureActionMap();
+            return actionMap == null ? Vector2.zero : actionMap.GamePlay.Move.ReadValue<Vector2>();
         }
 
         public bool TryGetPrimaryPointerState(out ScreenPointerState pointerState)
@@ -215,7 +239,8 @@ namespace Landsong.InputSystem
 
             for (var i = 0; i < uiRaycastResults.Count; i++)
             {
-                if (IsInteractiveUi(uiRaycastResults[i].gameObject))
+                var result = uiRaycastResults[i];
+                if (IsUiRaycastResult(result) && IsInteractiveUi(result.gameObject))
                 {
                     return true;
                 }
@@ -253,6 +278,22 @@ namespace Landsong.InputSystem
             }
 
             return count;
+        }
+
+        private void EnableGamePlayActions()
+        {
+            EnsureActionMap();
+            actionMap?.GamePlay.Enable();
+        }
+
+        private void EnsureActionMap()
+        {
+            actionMap ??= new global::LSActionMap();
+        }
+
+        private static bool IsUiRaycastResult(RaycastResult result)
+        {
+            return result.module is GraphicRaycaster;
         }
 
         private static bool IsInteractiveUi(GameObject target)

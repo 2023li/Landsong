@@ -5,6 +5,7 @@ using Moyo.Unity;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using UnityEngine.SceneManagement;
 
 namespace Moyo.Unity
 {
@@ -71,6 +72,36 @@ namespace Moyo.Unity
         private readonly Dictionary<string, HashSet<string>> hideOwnersByPanel = new();
 
         private bool isLoadingUIConfig;
+
+        protected override void Init()
+        {
+            base.Init();
+
+            SceneManager.activeSceneChanged -= HandleActiveSceneChanged;
+            SceneManager.activeSceneChanged += HandleActiveSceneChanged;
+        }
+
+        private void OnDestroy()
+        {
+            SceneManager.activeSceneChanged -= HandleActiveSceneChanged;
+        }
+
+        private async void HandleActiveSceneChanged(Scene current, Scene next)
+        {
+            if (!Application.isPlaying)
+            {
+                return;
+            }
+
+            try
+            {
+                await DestroySceneChangePanelsAsync();
+            }
+            catch (Exception exception)
+            {
+                Debug.LogException(exception, this);
+            }
+        }
 
 
         #region Open / Close API
@@ -289,6 +320,94 @@ namespace Moyo.Unity
         public bool IsOpened<T>() where T : UIPanelBase
         {
             return openedPanels.ContainsKey(GetPanelId<T>());
+        }
+
+        #endregion
+
+
+        #region Scene Change Cleanup
+
+        private async Task DestroySceneChangePanelsAsync()
+        {
+            if (uiConfig == null)
+            {
+                return;
+            }
+
+            var panelIds = new HashSet<string>();
+
+            foreach (var panelId in openedPanels.Keys)
+            {
+                if (ShouldDestroyOnSceneChange(panelId))
+                {
+                    panelIds.Add(panelId);
+                }
+            }
+
+            foreach (var panelId in cachedPanels.Keys)
+            {
+                if (ShouldDestroyOnSceneChange(panelId))
+                {
+                    panelIds.Add(panelId);
+                }
+            }
+
+            foreach (var panelId in panelIds)
+            {
+                await DestroyPanelCompletelyAsync(panelId, true);
+            }
+
+            await FocusTopPanelAsync();
+        }
+
+        private bool ShouldDestroyOnSceneChange(string panelId)
+        {
+            return uiConfig != null
+                && uiConfig.TryGet(panelId, out var config)
+                && config != null
+                && config.destroyOnSceneChange;
+        }
+
+        private async Task DestroyPanelCompletelyAsync(string panelId, bool runCloseLifecycle)
+        {
+            if (string.IsNullOrEmpty(panelId))
+            {
+                return;
+            }
+
+            openedPanels.TryGetValue(panelId, out var openedPanel);
+            cachedPanels.TryGetValue(panelId, out var cachedPanel);
+
+            var panel = openedPanel != null ? openedPanel : cachedPanel;
+            var wasOpened = openedPanel != null;
+
+            if (wasOpened && panel != null && runCloseLifecycle)
+            {
+                await panel.OnBlurAsync();
+
+                if (panel != null)
+                {
+                    await panel.OnCloseAsync();
+                }
+            }
+
+            openedPanels.Remove(panelId);
+            cachedPanels.Remove(panelId);
+            RemoveFromCloseStack(panelId);
+
+            RemoveClosedPanelFromHideRecords(panelId);
+
+            if (panel != null)
+            {
+                await panel.OnReleaseAsync();
+
+                if (panel != null)
+                {
+                    Destroy(panel.gameObject);
+                }
+            }
+
+            await RestorePanelsHiddenByAsync(panelId);
         }
 
         #endregion

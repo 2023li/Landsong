@@ -18,6 +18,8 @@ MonoBehaviour:
   icon: {fileID: 0}
   buildingPrefab: {fileID: 3989320125506736918, guid: 35dacbf67984fb44c9493e8b17cb16b4, type: 3}
   size: {x: 4, y: 4}
+  ignoreTerrainRequirement: 0
+  requiredTerrainKeys: []
   placementCosts: []
   visibleCondition:
     rid: -2

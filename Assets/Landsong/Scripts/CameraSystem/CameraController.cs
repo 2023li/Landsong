@@ -1,3 +1,4 @@
+using Landsong.AppSystem;
 using Landsong.BuildingSystem;
 using Landsong.GridSystem;
 using Landsong.InputSystem;
@@ -15,11 +16,14 @@ namespace Landsong.CameraSystem
         [SerializeField, LabelText("源相机")] private Camera sourceCamera;
         [SerializeField, LabelText("网格地图")] private GridMapBehaviour gridMap;
         [SerializeField, LabelText("输入控制器")] private InputController inputController;
+        [SerializeField, LabelText("App 管理器")] private AppManager appManager;
         [SerializeField, LabelText("自动查找场景引用")] private bool autoResolveSceneReferences = true;
 
         [Header("拖拽平移")]
         [SerializeField, LabelText("允许鼠标拖拽平移")] private bool allowMouseDragPan = true;
         [SerializeField, LabelText("允许触摸拖拽平移")] private bool allowTouchDragPan = true;
+        [SerializeField, LabelText("允许键盘平移")] private bool allowKeyboardPan = true;
+        [SerializeField, LabelText("键盘平移速度"), Min(0f)] private float keyboardPanSpeed = 12f;
         [SerializeField, LabelText("拖拽启动阈值"), Min(0f)] private float dragStartThresholdPixels = 6f;
         [SerializeField, LabelText("忽略从交互 UI 开始的平移")] private bool ignorePanStartedOverUi = true;
         [SerializeField, LabelText("使用网格平面模式")] private bool useGridPlaneMode = true;
@@ -51,6 +55,7 @@ namespace Landsong.CameraSystem
 
         private bool isPanning;
         private bool hasPanAnchor;
+        private bool ignorePanUntilRelease;
         private Vector2 panStartScreenPosition;
         private Vector3 panAnchorWorldPosition;
         private Vector2 previousPanScreenPosition;
@@ -130,14 +135,18 @@ namespace Landsong.CameraSystem
                 return;
             }
 
-            if (HandleTouchGesture())
+            if (UseMobileCameraInput())
             {
+                HandleTouchGesture(true);
                 UpdateFocus();
+                ClampZoomToViewBounds();
+                ClampCameraToViewBounds();
                 return;
             }
 
             HandleMouseZoom();
             HandleMousePan();
+            HandleKeyboardPan();
             UpdateFocus();
             ClampZoomToViewBounds();
             ClampCameraToViewBounds();
@@ -153,6 +162,7 @@ namespace Landsong.CameraSystem
             mouseWheelZoomStep = Mathf.Max(1.001f, mouseWheelZoomStep);
             pinchZoomSensitivity = Mathf.Max(0.01f, pinchZoomSensitivity);
             focusLerpSpeed = Mathf.Max(0.01f, focusLerpSpeed);
+            keyboardPanSpeed = Mathf.Max(0f, keyboardPanSpeed);
         }
 
         [Button("定位到建筑")]
@@ -211,7 +221,7 @@ namespace Landsong.CameraSystem
             hasFocusTarget = false;
         }
 
-        private bool HandleTouchGesture()
+        private bool HandleTouchGesture(bool resetPanWhenNoTouch)
         {
             if (inputController == null)
             {
@@ -240,8 +250,13 @@ namespace Landsong.CameraSystem
 
             if (touchCount == 0)
             {
-                isPanning = false;
-                hasPanAnchor = false;
+                isPinching = false;
+                if (resetPanWhenNoTouch)
+                {
+                    isPanning = false;
+                    hasPanAnchor = false;
+                    ignorePanUntilRelease = false;
+                }
             }
 
             return false;
@@ -315,7 +330,21 @@ namespace Landsong.CameraSystem
 
         private void HandleMousePan()
         {
-            if (!allowMouseDragPan || inputController == null || !inputController.TryGetPrimaryPointerState(out var pointerState) || pointerState.Kind != PointerDeviceKind.Mouse)
+            if (!allowMouseDragPan)
+            {
+                isPanning = false;
+                hasPanAnchor = false;
+                return;
+            }
+
+            if (inputController == null)
+            {
+                isPanning = false;
+                hasPanAnchor = false;
+                return;
+            }
+
+            if (!inputController.TryGetMousePointerState(out var pointerState))
             {
                 isPanning = false;
                 hasPanAnchor = false;
@@ -325,29 +354,66 @@ namespace Landsong.CameraSystem
             HandlePointerPan(pointerState);
         }
 
+        private void HandleKeyboardPan()
+        {
+            if (!allowKeyboardPan || inputController == null)
+            {
+                return;
+            }
+
+            var moveInput = inputController.ReadCameraMove();
+            if (moveInput.sqrMagnitude <= Mathf.Epsilon)
+            {
+                return;
+            }
+
+            moveInput = Vector2.ClampMagnitude(moveInput, 1f);
+            var cameraTransform = sourceCamera.transform;
+            var worldDelta = (moveInput.x * cameraTransform.right
+                              + moveInput.y * cameraTransform.up)
+                             * (keyboardPanSpeed * Time.unscaledDeltaTime);
+            MoveCamera(worldDelta);
+            CancelFocusForManualInput();
+        }
+
         private void HandlePointerPan(ScreenPointerState pointerState)
         {
             if (pointerState.WasReleasedThisFrame || !pointerState.IsPressed)
             {
                 isPanning = false;
                 hasPanAnchor = false;
+                ignorePanUntilRelease = false;
+                return;
+            }
+
+            if (ignorePanUntilRelease)
+            {
                 return;
             }
 
             if (pointerState.WasPressedThisFrame)
             {
-                isPanning = !ignorePanStartedOverUi || inputController == null || !inputController.IsPointerOverUi(pointerState.ScreenPosition);
-                hasPanAnchor = false;
-                panStartScreenPosition = pointerState.ScreenPosition;
-                previousPanScreenPosition = pointerState.ScreenPosition;
+                if (!CanStartPointerPan(pointerState.ScreenPosition))
+                {
+                    ignorePanUntilRelease = true;
+                    isPanning = false;
+                    hasPanAnchor = false;
+                    return;
+                }
+
+                BeginPointerPanCandidate(pointerState.ScreenPosition);
                 return;
             }
 
             if (!isPanning && !hasPanAnchor)
             {
-                isPanning = !ignorePanStartedOverUi || inputController == null || !inputController.IsPointerOverUi(pointerState.ScreenPosition);
-                panStartScreenPosition = pointerState.ScreenPosition;
-                previousPanScreenPosition = pointerState.ScreenPosition;
+                if (!CanStartPointerPan(pointerState.ScreenPosition))
+                {
+                    ignorePanUntilRelease = true;
+                    return;
+                }
+
+                BeginPointerPanCandidate(pointerState.ScreenPosition);
                 return;
             }
 
@@ -386,6 +452,19 @@ namespace Landsong.CameraSystem
 
             previousPanScreenPosition = pointerState.ScreenPosition;
             CancelFocusForManualInput();
+        }
+
+        private bool CanStartPointerPan(Vector2 screenPosition)
+        {
+            return !ignorePanStartedOverUi || inputController == null || !inputController.IsPointerOverUi(screenPosition);
+        }
+
+        private void BeginPointerPanCandidate(Vector2 screenPosition)
+        {
+            isPanning = true;
+            hasPanAnchor = false;
+            panStartScreenPosition = screenPosition;
+            previousPanScreenPosition = screenPosition;
         }
 
         private void ApplyZoomSteps(float zoomSteps, Vector2 screenFocus)
@@ -468,7 +547,15 @@ namespace Landsong.CameraSystem
                 return;
             }
 
-            CameraTransform.position = ClampCameraPosition(CameraTransform.position + constrainedDelta);
+            var currentPosition = CameraTransform.position;
+            var requestedPosition = currentPosition + constrainedDelta;
+            var clampedPosition = ClampCameraPosition(requestedPosition);
+            if ((clampedPosition - currentPosition).sqrMagnitude <= Mathf.Epsilon)
+            {
+                return;
+            }
+
+            CameraTransform.position = clampedPosition;
         }
 
         private Vector3 GetCameraPositionForFocus(Vector3 worldPosition)
@@ -678,7 +765,18 @@ namespace Landsong.CameraSystem
         {
             isPanning = false;
             hasPanAnchor = false;
+            ignorePanUntilRelease = false;
             isPinching = false;
+        }
+
+        private bool UseMobileCameraInput()
+        {
+            if (appManager != null)
+            {
+                return appManager.IsMobilePlatform;
+            }
+
+            return Application.isMobilePlatform;
         }
 
         private void ResolveSceneReferences()
@@ -706,6 +804,11 @@ namespace Landsong.CameraSystem
             if (inputController == null)
             {
                 inputController = InputController.Instance;
+            }
+
+            if (appManager == null)
+            {
+                appManager = FindFirstObjectByType<AppManager>(FindObjectsInactive.Include);
             }
         }
     }

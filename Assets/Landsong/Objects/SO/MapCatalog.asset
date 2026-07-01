@@ -13,7 +13,12 @@ MonoBehaviour:
   m_Name: MapCatalog
   m_EditorClassIdentifier: Assembly-CSharp::MapDataCatalog
   mapDatas:
-  - name: "\u9ED8\u8BA4\u5730\u56FE"
+  - displayName: "\u9ED8\u8BA4\u5730\u56FE"
     icon: {fileID: 0}
     description: "\u8FD9\u662F\u4E00\u5F20\u7528\u4E8E\u6D4B\u8BD5\u7684\u9ED8\u8BA4\u5730\u56FE"
     map: {fileID: 4896321450339995972, guid: 7fccb5461c5d34245948c86841191ca3, type: 3}
+  - displayName: "\u9ED8\u8BA4\u5730\u56FE2"
+    icon: {fileID: 0}
+    description: "\u7B2C\u4E8C\u5F20\u6D4B\u8BD5\u5730\u56FE"
+    map: {fileID: 1268522359257915689, guid: ce77efbb746969341a847abb52123b94, type: 3}
+  mapPrefabFolderPath: Assets/Landsong/Objects/Prefabs/Map

@@ -9,14 +9,14 @@ namespace Landsong.BuildingSystem
         public static BuildingAvailability Evaluate(
             BuildingDefinition definition,
             GameSystem gameSystem,
-            IEnumerable<BuildingBase> existingBuildings)
+            int builtCount)
         {
             if (definition == null)
             {
                 return BuildingAvailability.Hidden(null, BuildingUnavailableReason.Hidden);
             }
 
-            var builtCount = CountExistingBuildings(definition, existingBuildings);
+            builtCount = Math.Max(0, builtCount);
             var visibleCondition = definition.VisibleCondition;
             var isVisible = visibleCondition == null || visibleCondition.IsMet(gameSystem);
 
@@ -68,31 +68,6 @@ namespace Landsong.BuildingSystem
             }
 
             return false;
-        }
-
-        private static int CountExistingBuildings(BuildingDefinition definition, IEnumerable<BuildingBase> existingBuildings)
-        {
-            if (definition == null || existingBuildings == null)
-            {
-                return 0;
-            }
-
-            var count = 0;
-            foreach (var building in existingBuildings)
-            {
-                var existingDefinition = building == null ? null : building.Definition;
-                if (existingDefinition == null)
-                {
-                    continue;
-                }
-
-                if (string.Equals(existingDefinition.BuildLimitGroupId, definition.BuildLimitGroupId, StringComparison.Ordinal))
-                {
-                    count++;
-                }
-            }
-
-            return count;
         }
     }
 

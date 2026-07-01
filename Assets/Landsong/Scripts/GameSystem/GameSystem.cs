@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using Landsong.BuildingSystem;
+using Landsong.DynastySystem;
 using Landsong.InventorySystem;
 using Landsong.TurnSystem;
 using Moyo.Unity;
@@ -10,6 +11,12 @@ using UnityEngine.InputSystem;
 
 namespace Landsong
 {
+    public enum GameOverReason
+    {
+        None = 0,
+        NoPalace = 1
+    }
+
     [DisallowMultipleComponent]
     public sealed class GameSystem : MonoSingleton<GameSystem>
     {
@@ -17,6 +24,10 @@ namespace Landsong
         [SerializeField, LabelText("物品目录")] private ItemCatalog itemCatalog;
         [SerializeField, LabelText("库存格子数量"), Min(0)] private int inventorySlotCount = 24;
         [SerializeField, LabelText("初始物品")] private ItemAmount[] startingItems = Array.Empty<ItemAmount>();
+
+        [Header("Dynasty")]
+        [SerializeField, LabelText("初始人口"), Min(0)] private int startingPopulation;
+        [SerializeField, LabelText("回合结束时无王宫则结束游戏")] private bool endGameWhenNoPalaceAtTurnEnd = true;
 
         [Header("Scene Systems")]
         [SerializeField, LabelText("建筑目录")] private BuildingCatalog buildingCatalog;
@@ -30,15 +41,30 @@ namespace Landsong
         [ShowInInspector, ReadOnly, LabelText("回合服务")]
         public TurnService Turn { get; private set; }
 
+        [ShowInInspector, ReadOnly, LabelText("王朝服务")]
+        public DynastyService Dynasty { get; private set; }
+
         [ShowInInspector, ReadOnly, LabelText("建筑服务")]
         public BuildingService Buildings { get; private set; }
 
         [ShowInInspector, ReadOnly, LabelText("建筑目录")]
         public BuildingCatalog BuildingCatalog => buildingCatalog;
 
+        [ShowInInspector, ReadOnly, LabelText("当前人口")]
+        public int Population => Dynasty == null ? startingPopulation : Dynasty.Population;
+
+        [ShowInInspector, ReadOnly, LabelText("拥有王宫")]
+        public bool HasPalace => Dynasty != null && Dynasty.HasPalace;
+
+        [ShowInInspector, ReadOnly, LabelText("游戏已结束")]
+        public bool IsGameOver { get; private set; }
+
+        public event Action<GameSystem, GameOverReason> GameEnded;
+
         protected override void Init()
         {
             CreateInventoryService();
+            CreateDynastyService();
             CreateTurnService();
             CreateBuildingService();
         }
@@ -51,6 +77,7 @@ namespace Landsong
         private void OnValidate()
         {
             inventorySlotCount = Mathf.Max(0, inventorySlotCount);
+            startingPopulation = Mathf.Max(0, startingPopulation);
             startingTurn = Mathf.Max(1, startingTurn);
             turnBuildingsPerFrame = Mathf.Max(1, turnBuildingsPerFrame);
 
@@ -92,6 +119,17 @@ namespace Landsong
             buildingCatalog = newBuildingCatalog;
         }
 
+        internal void RestoreCurrentTurn(int currentTurn)
+        {
+            if (Turn == null)
+            {
+                CreateTurnService();
+            }
+
+            Turn.SetCurrentTurn(currentTurn);
+            startingTurn = Turn.CurrentTurn;
+        }
+
         public void RegisterBuilding(BuildingBase building)
         {
             if (building == null)
@@ -109,6 +147,11 @@ namespace Landsong
                 CreateTurnService();
             }
 
+            if (Dynasty == null)
+            {
+                CreateDynastyService();
+            }
+
             if (Buildings == null)
             {
                 CreateBuildingService();
@@ -120,7 +163,7 @@ namespace Landsong
                 return;
             }
 
-            Turn.RegisterBuilding(building);
+            Buildings.RegisterBuilding(building);
             building.Initialize();
         }
 
@@ -131,7 +174,10 @@ namespace Landsong
                 return;
             }
 
-            Turn?.UnregisterBuilding(building);
+            Dynasty?.UnregisterPalace(building);
+            Dynasty?.RemovePopulationContribution(building);
+            Buildings?.UnregisterBuilding(building);
+
             if (building.IsRegistered)
             {
                 building.NotifyUnregisteredFromGame(this);
@@ -141,6 +187,12 @@ namespace Landsong
         private void CreateInventoryService()
         {
             Inventory = new InventoryService(itemCatalog, inventorySlotCount, startingItems);
+        }
+
+        private void CreateDynastyService()
+        {
+            Dynasty = new DynastyService(startingPopulation);
+            IsGameOver = false;
         }
 
         #region Turn
@@ -162,6 +214,11 @@ namespace Landsong
         [Button("下一回合")]
         public void NextTurn()
         {
+            if (IsGameOver)
+            {
+                return;
+            }
+
             if (Turn == null)
             {
                 CreateTurnService();
@@ -209,7 +266,13 @@ namespace Landsong
 
         private void CreateTurnService()
         {
+            if (Turn != null)
+            {
+                Turn.TurnAdvanced -= HandleTurnAdvanced;
+            }
+
             Turn = new TurnService(startingTurn);
+            Turn.TurnAdvanced += HandleTurnAdvanced;
         }
 
         private void CreateBuildingService()
@@ -219,7 +282,7 @@ namespace Landsong
 
         private void UpdateTurnInput()
         {
-            if (allowKeyboardNextTurn && IsNextTurnKeyPressed())
+            if (!IsGameOver && allowKeyboardNextTurn && IsNextTurnKeyPressed())
             {
                 NextTurn();
             }
@@ -240,6 +303,49 @@ namespace Landsong
             Debug.Log(
                 $"Advanced to turn {summary.ToTurn}. Processed: {summary.OperatingConsumed}, failed: {summary.Failed}, skipped: {summary.Skipped}.",
                 this);
+        }
+
+        private void HandleTurnAdvanced(TurnService turn, TurnAdvanceSummary summary)
+        {
+            if (!endGameWhenNoPalaceAtTurnEnd || IsGameOver)
+            {
+                return;
+            }
+
+            if (Dynasty == null)
+            {
+                CreateDynastyService();
+            }
+
+            Dynasty.Refresh();
+            if (Dynasty.HasPalace)
+            {
+                return;
+            }
+
+            EndGame(GameOverReason.NoPalace);
+        }
+
+        public bool EndGame(GameOverReason reason)
+        {
+            if (IsGameOver)
+            {
+                return false;
+            }
+
+            IsGameOver = true;
+            GameEnded?.Invoke(this, reason);
+            Debug.Log($"Game over: {FormatGameOverReason(reason)}.", this);
+            return true;
+        }
+
+        private static string FormatGameOverReason(GameOverReason reason)
+        {
+            return reason switch
+            {
+                GameOverReason.NoPalace => "no palace remains",
+                _ => reason.ToString()
+            };
         }
 
         #endregion

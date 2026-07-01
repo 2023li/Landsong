@@ -39,6 +39,9 @@ namespace Moyo.Unity
         [Tooltip("关闭面板时的缓存策略。")]
         public UICachePolicy cachePolicy = UICachePolicy.HideOnClose;
 
+        [Tooltip("切换场景时是否销毁该面板。")]
+        public bool destroyOnSceneChange;
+
         [Tooltip("是否允许返回操作关闭该面板。勾选后，BackAsync 会关闭最近打开的此类面板。")]
         public bool canCloseByBack = true;
 

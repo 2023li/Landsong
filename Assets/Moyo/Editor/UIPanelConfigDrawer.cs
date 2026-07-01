@@ -26,10 +26,11 @@ namespace Moyo.Unity
             // 2. Addressable Key
             // 3. Layer
             // 4. Cache Policy
-            // 5. Can Close By Back
-            // 6. Blur Previous On Open
-            // 7. Hide Same Layer Panels
-            return LineHeight + (LineHeight + LineSpacing) * 7 + 6f;
+            // 5. Destroy On Scene Change
+            // 6. Can Close By Back
+            // 7. Blur Previous On Open
+            // 8. Hide Same Layer Panels
+            return LineHeight + (LineHeight + LineSpacing) * 8 + 6f;
         }
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
@@ -51,6 +52,7 @@ namespace Moyo.Unity
             var addressableKeyProp = property.FindPropertyRelative("addressableKey");
             var layerProp = property.FindPropertyRelative("layer");
             var cachePolicyProp = property.FindPropertyRelative("cachePolicy");
+            var destroyOnSceneChangeProp = property.FindPropertyRelative("destroyOnSceneChange");
             var canCloseByBackProp = property.FindPropertyRelative("canCloseByBack");
             var blurPreviousOnOpenProp = property.FindPropertyRelative("blurPreviousOnOpen");
             var hideSameLayerPanelsProp = property.FindPropertyRelative("hideSameLayerPanels");
@@ -62,6 +64,7 @@ namespace Moyo.Unity
             DrawProperty(position, ref y, addressableKeyProp, "Addressable Key");
             DrawProperty(position, ref y, layerProp, "Layer");
             DrawProperty(position, ref y, cachePolicyProp, "Cache Policy");
+            DrawProperty(position, ref y, destroyOnSceneChangeProp, "Destroy On Scene Change");
             DrawProperty(position, ref y, canCloseByBackProp, "Can Close By Back");
             DrawProperty(position, ref y, blurPreviousOnOpenProp, "Blur Previous On Open");
             DrawProperty(position, ref y, hideSameLayerPanelsProp, "Hide Same Layer Panels");

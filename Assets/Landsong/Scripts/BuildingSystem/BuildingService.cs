@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Landsong.GridSystem;
 using UnityEngine;
 
@@ -6,11 +7,87 @@ namespace Landsong.BuildingSystem
 {
     public sealed class BuildingService
     {
+        private static readonly IReadOnlyList<BuildingBase> EmptyBuildings = Array.Empty<BuildingBase>();
         private readonly Landsong.GameSystem gameSystem;
 
         public BuildingService(Landsong.GameSystem gameSystem)
         {
             this.gameSystem = gameSystem;
+        }
+
+        public event Action<BuildingService> BuildingsChanged;
+
+        public IReadOnlyList<BuildingBase> Buildings => gameSystem == null || gameSystem.Turn == null
+            ? EmptyBuildings
+            : gameSystem.Turn.Buildings;
+
+        public BuildingAvailability EvaluateAvailability(BuildingDefinition definition)
+        {
+            return BuildingAvailabilityEvaluator.Evaluate(definition, gameSystem, CountExistingBuildings(definition));
+        }
+
+        public int CountExistingBuildings(BuildingDefinition definition)
+        {
+            if (definition == null)
+            {
+                return 0;
+            }
+
+            var count = 0;
+            var targetGroupId = definition.BuildLimitGroupId;
+            var buildings = Buildings;
+            for (var i = 0; i < buildings.Count; i++)
+            {
+                var building = buildings[i];
+                if (!ShouldCountBuilding(building))
+                {
+                    continue;
+                }
+
+                var existingDefinition = building.Definition;
+                if (existingDefinition == null)
+                {
+                    continue;
+                }
+
+                if (string.Equals(existingDefinition.BuildLimitGroupId, targetGroupId, StringComparison.Ordinal))
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        public void RegisterBuilding(BuildingBase building)
+        {
+            if (building == null || gameSystem == null || gameSystem.Turn == null)
+            {
+                return;
+            }
+
+            var countBefore = gameSystem.Turn.Buildings.Count;
+            gameSystem.Turn.RegisterBuilding(building);
+            if (gameSystem.Turn.Buildings.Count != countBefore)
+            {
+                NotifyBuildingsChanged();
+            }
+        }
+
+        public bool UnregisterBuilding(BuildingBase building)
+        {
+            if (building == null || gameSystem == null || gameSystem.Turn == null)
+            {
+                return false;
+            }
+
+            var removed = gameSystem.Turn.UnregisterBuilding(building);
+            if (removed)
+            {
+                NotifyBuildingsChanged();
+            }
+
+            return removed;
         }
 
         public bool TryPlace(
@@ -147,6 +224,16 @@ namespace Landsong.BuildingSystem
         {
             var prefix = string.IsNullOrWhiteSpace(definition.BuildingId) ? definition.name : definition.BuildingId;
             return $"{prefix}_{Guid.NewGuid():N}";
+        }
+
+        private static bool ShouldCountBuilding(BuildingBase building)
+        {
+            return building != null && building.isActiveAndEnabled && !building.IsDemolishing;
+        }
+
+        private void NotifyBuildingsChanged()
+        {
+            BuildingsChanged?.Invoke(this);
         }
     }
 }

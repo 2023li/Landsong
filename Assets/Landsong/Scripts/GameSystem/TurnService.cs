@@ -49,6 +49,12 @@ namespace Landsong.TurnSystem
             registeredBuildings.Clear();
         }
 
+        public void SetCurrentTurn(int currentTurn)
+        {
+            ThrowIfAdvancing();
+            CurrentTurn = Math.Max(1, currentTurn);
+        }
+
         private void RemoveMissingBuildings()
         {
             var removed = buildings.RemoveAll(building => building == null);

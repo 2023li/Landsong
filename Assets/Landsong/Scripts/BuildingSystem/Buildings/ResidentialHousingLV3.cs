@@ -3,18 +3,24 @@ using UnityEngine;
 
 public class ResidentialHousingLV3 : BuildingBase
 {
+    [SerializeField, Min(0)] private int populationContribution = 3;
+
     protected override void OnPlaced()
     {
-        throw new System.NotImplementedException();
     }
 
     protected override void OnRegistered()
     {
-        throw new System.NotImplementedException();
+        GameSystem?.Dynasty?.SetPopulationContribution(this, populationContribution);
     }
 
     protected override bool OnTurn()
     {
-        throw new System.NotImplementedException();
+        return true;
+    }
+
+    protected override void OnUnregistered()
+    {
+        GameSystem?.Dynasty?.RemovePopulationContribution(this);
     }
 }

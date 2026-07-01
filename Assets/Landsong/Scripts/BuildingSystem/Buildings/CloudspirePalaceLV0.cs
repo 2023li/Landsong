@@ -5,16 +5,20 @@ public class CloudspirePalaceLV0 : BuildingBase
 {
     protected override void OnPlaced()
     {
-        throw new System.NotImplementedException();
     }
 
     protected override void OnRegistered()
     {
-        throw new System.NotImplementedException();
+       
     }
 
     protected override bool OnTurn()
     {
-        throw new System.NotImplementedException();
+        return true;
+    }
+
+    protected override void OnUnregistered()
+    {
+       
     }
 }

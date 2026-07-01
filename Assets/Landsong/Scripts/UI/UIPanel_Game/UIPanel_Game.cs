@@ -1,7 +1,6 @@
 using Landsong.UISystem;
 using Moyo.Unity;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class UIPanel_Game : UIPanelBase
 {
@@ -11,36 +10,83 @@ public class UIPanel_Game : UIPanelBase
 
     private void Reset()
     {
-        hudPanel = GetComponentInChildren<GamePanel_HUD>(true);
-        inventoryPanel = GetComponentInChildren<GamePanel_Inventory>(true);
-        buildingPanel = GetComponentInChildren<GamePanel_Building>(true);
+        ResolvePanels();
     }
 
+    private void OnValidate()
+    {
+        ResolvePanels();
+    }
 
+    private void Awake()
+    {
+        ResolvePanels();
+    }
 
     public void Show_HUD()
     {
+        ResolvePanels();
         HideAll();
-        hudPanel.Show();
+        if (hudPanel != null)
+        {
+            hudPanel.Show();
+        }
+        else
+        {
+            Debug.LogWarning($"{nameof(UIPanel_Game)} has no HUD panel assigned.", this);
+        }
     }
+
     public void Show_Inventory()
     {
+        ResolvePanels();
         HideAll();
-        inventoryPanel.Show();
+        if (inventoryPanel != null)
+        {
+            inventoryPanel.Show();
+        }
+        else
+        {
+            Debug.LogWarning($"{nameof(UIPanel_Game)} has no inventory panel assigned.", this);
+        }
     }
+
     public void Show_Building()
     {
+        ResolvePanels();
         HideAll();
-        buildingPanel.Show();
+        if (buildingPanel != null)
+        {
+            buildingPanel.Show();
+        }
+        else
+        {
+            Debug.LogWarning($"{nameof(UIPanel_Game)} has no building panel assigned.", this);
+        }
     }
+
     private void HideAll()
     {
-        hudPanel.Hide();
-        inventoryPanel.Hide();
-        buildingPanel.Hide();
+        hudPanel?.Hide();
+        inventoryPanel?.Hide();
+        buildingPanel?.Hide();
     }
 
+    private void ResolvePanels()
+    {
+        if (hudPanel == null)
+        {
+            hudPanel = GetComponentInChildren<GamePanel_HUD>(true);
+        }
 
+        if (inventoryPanel == null)
+        {
+            inventoryPanel = GetComponentInChildren<GamePanel_Inventory>(true);
+        }
 
-
+        if (buildingPanel == null)
+        {
+            buildingPanel = GetComponentInChildren<GamePanel_Building>(true);
+        }
+    }
 }

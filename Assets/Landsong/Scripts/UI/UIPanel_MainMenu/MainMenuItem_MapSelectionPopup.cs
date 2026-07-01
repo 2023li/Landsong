@@ -15,8 +15,6 @@ public class MainMenuItem_MapSelectionPopup : MonoBehaviour
     [FormerlySerializedAs("mapDataVieRoot")]
     [LabelText("地图项根节点")]
     [SerializeField] private RectTransform mapDataViewRoot;
-    [LabelText("空列表提示")]
-    [SerializeField] private GameObject emptyState;
     [LabelText("显示时重建列表")]
     [SerializeField] private bool rebuildOnShow = true;
 
@@ -78,7 +76,7 @@ public class MainMenuItem_MapSelectionPopup : MonoBehaviour
             createdCount++;
         }
 
-        SetEmptyState(createdCount <= 0);
+      
     }
 
     private void HideTemplate()
@@ -102,7 +100,7 @@ public class MainMenuItem_MapSelectionPopup : MonoBehaviour
             return;
         }
 
-        AppManager.Instance.StartNewGame(mapData.Map);
+        AppManager.Instance.StartNewGame(mapData);
     }
 
     private void ClearMapDataViews()
@@ -133,10 +131,7 @@ public class MainMenuItem_MapSelectionPopup : MonoBehaviour
         }
     }
 
-    private void SetEmptyState(bool isEmpty)
-    {
-        emptyState.SetActive(isEmpty);
-    }
+   
 
     private bool ValidateRequiredReferences()
     {
@@ -160,11 +155,7 @@ public class MainMenuItem_MapSelectionPopup : MonoBehaviour
             isValid = false;
         }
 
-        if (emptyState == null)
-        {
-            Debug.LogError("地图选择弹窗配置错误：emptyState 未绑定。", this);
-            isValid = false;
-        }
+       
 
         if (closeButton == null)
         {

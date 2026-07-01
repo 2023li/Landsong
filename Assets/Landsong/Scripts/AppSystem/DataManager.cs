@@ -373,7 +373,7 @@ public class DataManager : MonoSingleton<DataManager>
         }
     }
 
-    public GameData CreateNewGame(string playerName, int worldSeed)
+    public GameData CreateNewGame(string playerName, int worldSeed, string mapName = "")
     {
         EnsureAppDataLoaded();
         EnsureGameDataIndexLoaded();
@@ -381,10 +381,10 @@ public class DataManager : MonoSingleton<DataManager>
         GameData gameData = GameData.CreateDefault();
         gameData.PlayerName = string.IsNullOrWhiteSpace(playerName) ? "Player" : playerName.Trim();
         gameData.WorldSeed = worldSeed;
-     
+        gameData.MapName = NormalizeOptionalText(mapName);
 
         CurrentGameData = gameData;
-        SaveNewGameData();
+        SaveGameData(GameDataSaveMode.NewSave, false);
 
         return gameData;
     }
@@ -416,6 +416,11 @@ public class DataManager : MonoSingleton<DataManager>
 
     public void SaveGameData(GameDataSaveMode saveMode)
     {
+        SaveGameData(saveMode, true);
+    }
+
+    private void SaveGameData(GameDataSaveMode saveMode, bool captureRuntimeData)
+    {
         EnsureAppDataLoaded();
         EnsureGameDataIndexLoaded();
 
@@ -425,7 +430,11 @@ public class DataManager : MonoSingleton<DataManager>
             return;
         }
 
-        CaptureCurrentRuntimeData(CurrentGameData);
+        if (captureRuntimeData)
+        {
+            CaptureCurrentRuntimeData(CurrentGameData);
+        }
+
         CurrentGameData.Validate();
 
         long now = DateTimeOffset.Now.ToUnixTimeSeconds();
@@ -642,6 +651,19 @@ public class DataManager : MonoSingleton<DataManager>
         return gameDataMetaList;
     }
 
+    public void RestoreCurrentGameDataToRuntime()
+    {
+        if (CurrentGameData == null)
+        {
+            return;
+        }
+
+        if (!RestoreCurrentRuntimeData(CurrentGameData))
+        {
+            Debug.LogWarning("恢复 GameData 运行时状态失败：GameSystem 不存在。");
+        }
+    }
+
     private void CaptureCurrentRuntimeData(GameData gameData)
     {
         if (gameData == null)
@@ -659,18 +681,33 @@ public class DataManager : MonoSingleton<DataManager>
         }
     }
 
-    private void RestoreCurrentRuntimeData(GameData gameData)
+    private bool RestoreCurrentRuntimeData(GameData gameData)
     {
         if (gameData == null)
         {
-            return;
+            return false;
         }
 
         Landsong.GameSystem gameSystem = UnityEngine.Object.FindFirstObjectByType<Landsong.GameSystem>(FindObjectsInactive.Include);
-        if (gameSystem != null && gameSystem.Inventory != null && gameData.InventoryData != null)
+        if (gameSystem == null)
+        {
+            return false;
+        }
+
+        gameData.Validate();
+        gameSystem.RestoreCurrentTurn(gameData.CurrentTurn);
+
+        if (gameSystem.Inventory != null && gameData.InventoryData != null)
         {
             gameSystem.Inventory.RestoreSaveData(gameData.InventoryData);
         }
+
+        return true;
+    }
+
+    private static string NormalizeOptionalText(string text)
+    {
+        return string.IsNullOrWhiteSpace(text) ? string.Empty : text.Trim();
     }
 }
 

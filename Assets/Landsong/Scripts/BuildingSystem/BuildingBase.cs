@@ -224,9 +224,9 @@ namespace Landsong.BuildingSystem
                 return;
             }
 
-            gameSystem = null;
             isRegistered = false;
             OnUnregistered();
+            gameSystem = null;
             NotifyStateChanged();
         }
 
@@ -382,19 +382,20 @@ namespace Landsong.BuildingSystem
         }
 
         /// <summary>
-        /// 建筑被点击时调用。默认无行为；具体建筑可按需重写。
+        /// 建筑被 GameSystem 纳入运行时管理后调用。适合注册全局人口、buff、事件监听等。
         /// </summary>
-        protected virtual void OnClicked()
-        {
-           
-        }
+        protected abstract void OnRegistered();
 
         /// <summary>
-        /// 建筑被双击时调用。默认无行为；具体建筑可按需重写。
+        /// 玩家放置完成后调用。此时建筑已经拥有格子位置、Definition 和 GameSystem。
         /// </summary>
-        protected virtual void OnDoubleClicked()
-        {
-        }
+        protected abstract void OnPlaced();
+
+      
+        /// <summary>
+        /// 建筑每回合逻辑。施工、运营、产出、升级触发都写在这里。返回 false 表示本回合执行失败。
+        /// </summary>
+        protected abstract bool OnTurn();
 
         /// <summary>
         /// 建筑通过游戏行为被拆除时调用。普通 Destroy 不会触发该钩子。
@@ -404,28 +405,28 @@ namespace Landsong.BuildingSystem
         }
 
         /// <summary>
-        /// 玩家放置完成后调用。此时建筑已经拥有格子位置、Definition 和 GameSystem。
-        /// </summary>
-        protected abstract void OnPlaced();
-
-        /// <summary>
-        /// 建筑被 GameSystem 纳入运行时管理后调用。适合注册全局人口、buff、事件监听等。
-        /// </summary>
-        protected abstract void OnRegistered();
-
-        /// <summary>
-        /// 建筑每回合逻辑。施工、运营、产出、升级触发都写在这里。返回 false 表示本回合执行失败。
-        /// </summary>
-        protected abstract bool OnTurn();
-
-        /// <summary>
         /// 建筑从 GameSystem 移除时调用。适合注销事件监听或清理全局占用。
         /// </summary>
         protected virtual void OnUnregistered()
         {
         }
 
-      
+
+        /// <summary>
+        /// 建筑被点击时调用。默认无行为；具体建筑可按需重写。
+        /// </summary>
+        protected virtual void OnClicked()
+        {
+
+        }
+
+        /// <summary>
+        /// 建筑被双击时调用。默认无行为；具体建筑可按需重写。
+        /// </summary>
+        protected virtual void OnDoubleClicked()
+        {
+        }
+
 
         public virtual bool CanRepair()
         {

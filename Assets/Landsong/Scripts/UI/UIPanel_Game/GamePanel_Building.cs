@@ -15,6 +15,7 @@ namespace Landsong.UISystem
         [ShowInInspector, ReadOnly, LabelText("建筑目录")] private BuildingCatalog buildingCatalog;
         [ShowInInspector, ReadOnly, LabelText("游戏系统")] private Landsong.GameSystem gameSystem;
         [ShowInInspector, ReadOnly, LabelText("库存服务")] private InventoryService inventory;
+        [ShowInInspector, ReadOnly, LabelText("建筑服务")] private BuildingService buildings;
         [SerializeField, LabelText("分类按钮根节点")] private Transform categoryButtonRoot;
         [SerializeField, LabelText("分类按钮预制体")] private GamePanel_BuildingCategoryButton categoryButtonPrefab;
         [SerializeField, LabelText("建筑项根节点")] private Transform buildingItemRoot;
@@ -28,12 +29,10 @@ namespace Landsong.UISystem
         [SerializeField, LabelText("信息数量限制文本")] private TMP_Text infoCountLimitLabel;
         [SerializeField, LabelText("显示空分类")] private bool includeEmptyCategories;
         [SerializeField, LabelText("刷新后选择第一个建筑")] private bool selectFirstBuildingOnRefresh = true;
-        [SerializeField, LabelText("刷新时查找现有建筑")] private bool discoverExistingBuildingsOnRefresh = true;
         [SerializeField, LabelText("库存变化时刷新")] private bool refreshWhenInventoryChanges = true;
         [SerializeField, LabelText("自动查找建造放置控制器")] private bool discoverPlacementControllerOnEnable = true;
         [SerializeField, LabelText("建造放置控制器")] private BuildingPlacementController placementController;
         [SerializeField, LabelText("建筑选择事件")] private BuildingDefinitionEvent buildingSelected = new BuildingDefinitionEvent();
-        [SerializeField, LabelText("现有建筑列表")] private List<BuildingBase> existingBuildings = new List<BuildingBase>();
 
         private readonly List<GamePanel_BuildingCategoryButton> categoryButtons = new List<GamePanel_BuildingCategoryButton>();
         private readonly List<GamePanel_BuildingItem> buildingItems = new List<GamePanel_BuildingItem>();
@@ -41,6 +40,7 @@ namespace Landsong.UISystem
         private BuildingCategory selectedCategory = BuildingCategory.None;
         private BuildingDefinition selectedBuildingDefinition;
         private bool subscribedToInventory;
+        private bool subscribedToBuildings;
 
         public BuildingDefinitionEvent BuildingSelected => buildingSelected;
         public BuildingCategory SelectedCategory => selectedCategory;
@@ -49,13 +49,13 @@ namespace Landsong.UISystem
         {
             ResolveGameSystem();
             ResolvePlacementController();
-            SubscribeInventory();
+            SubscribeRuntimeChanges();
             Refresh();
         }
 
         private void OnDisable()
         {
-            UnsubscribeInventory();
+            UnsubscribeRuntimeChanges();
         }
 
 
@@ -70,12 +70,12 @@ namespace Landsong.UISystem
 
         public void RefreshFromGameSystem()
         {
-            UnsubscribeInventory();
+            UnsubscribeRuntimeChanges();
             ResolveGameSystem();
 
             if (isActiveAndEnabled)
             {
-                SubscribeInventory();
+                SubscribeRuntimeChanges();
             }
 
             Refresh();
@@ -84,11 +84,6 @@ namespace Landsong.UISystem
         [ContextMenu("Refresh Building Panel")]
         public void Refresh()
         {
-            if (discoverExistingBuildingsOnRefresh)
-            {
-                DiscoverExistingBuildings();
-            }
-
             var categories = CollectCategories();
             if (selectedCategory == BuildingCategory.None || !categories.Contains(selectedCategory))
             {
@@ -112,6 +107,7 @@ namespace Landsong.UISystem
             gameSystem = Landsong.GameSystem.Instance;
             buildingCatalog = gameSystem == null ? null : gameSystem.BuildingCatalog;
             inventory = gameSystem == null ? null : gameSystem.Inventory;
+            buildings = gameSystem == null ? null : gameSystem.Buildings;
         }
 
         private void ResolvePlacementController()
@@ -293,7 +289,9 @@ namespace Landsong.UISystem
 
         private BuildingAvailability Evaluate(BuildingDefinition definition)
         {
-            return BuildingAvailabilityEvaluator.Evaluate(definition, gameSystem, existingBuildings);
+            return buildings == null
+                ? BuildingAvailability.Hidden(definition, BuildingUnavailableReason.Hidden)
+                : buildings.EvaluateAvailability(definition);
         }
 
         private static bool ContainsCategory(BuildingCategory categoryFlags, BuildingCategory category)
@@ -420,20 +418,6 @@ namespace Landsong.UISystem
             return parts.Count == 0 ? "无需材料" : string.Join("  ", parts);
         }
 
-        private void DiscoverExistingBuildings()
-        {
-            existingBuildings.Clear();
-
-            var discovered = FindObjectsByType<BuildingBase>(FindObjectsInactive.Exclude, FindObjectsSortMode.InstanceID);
-            foreach (var building in discovered)
-            {
-                if (building != null)
-                {
-                    existingBuildings.Add(building);
-                }
-            }
-        }
-
         private void ClearCategoryButtons()
         {
             foreach (var button in categoryButtons)
@@ -470,7 +454,47 @@ namespace Landsong.UISystem
             subscribedToInventory = false;
         }
 
+        private void SubscribeBuildings()
+        {
+            if (subscribedToBuildings || buildings == null)
+            {
+                return;
+            }
+
+            buildings.BuildingsChanged += HandleBuildingsChanged;
+            subscribedToBuildings = true;
+        }
+
+        private void UnsubscribeBuildings()
+        {
+            if (!subscribedToBuildings || buildings == null)
+            {
+                subscribedToBuildings = false;
+                return;
+            }
+
+            buildings.BuildingsChanged -= HandleBuildingsChanged;
+            subscribedToBuildings = false;
+        }
+
+        private void SubscribeRuntimeChanges()
+        {
+            SubscribeInventory();
+            SubscribeBuildings();
+        }
+
+        private void UnsubscribeRuntimeChanges()
+        {
+            UnsubscribeInventory();
+            UnsubscribeBuildings();
+        }
+
         private void HandleInventoryChanged(InventoryService changedInventory)
+        {
+            Refresh();
+        }
+
+        private void HandleBuildingsChanged(BuildingService changedBuildings)
         {
             Refresh();
         }

@@ -5,16 +5,23 @@ public class PlayerHomeLV3 : BuildingBase
 {
     protected override void OnPlaced()
     {
-        throw new System.NotImplementedException();
+
     }
 
     protected override void OnRegistered()
     {
-        throw new System.NotImplementedException();
+        GameSystem?.Dynasty?.RegisterPalace(this);
     }
+
 
     protected override bool OnTurn()
     {
-        throw new System.NotImplementedException();
+        return true;
     }
+
+    protected override void OnDemolished()
+    {
+        GameSystem?.Dynasty?.UnregisterPalace(this);
+    }
+
 }

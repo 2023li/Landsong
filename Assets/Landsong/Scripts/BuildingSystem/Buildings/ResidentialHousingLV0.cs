@@ -25,6 +25,10 @@ namespace Landsong.BuildingSystem.Buildings
         [Required]
         [SerializeField] private BuildingDefinition residentialHousingLv1Definition;
 
+        [TitleGroup("王朝")]
+        [LabelText("人口贡献")]
+        [SerializeField, Min(0)] private int populationContribution;
+
         [TitleGroup("运行时")]
         [LabelText("施工经验")]
         [ReadOnly]
@@ -41,6 +45,7 @@ namespace Landsong.BuildingSystem.Buildings
 
         protected override void OnRegistered()
         {
+            GameSystem?.Dynasty?.SetPopulationContribution(this, populationContribution);
         }
 
         protected override bool OnTurn()
@@ -96,6 +101,11 @@ namespace Landsong.BuildingSystem.Buildings
             }
 
             return buildingService.TryReplace(this, residentialHousingLv1Definition, out _);
+        }
+
+        protected override void OnUnregistered()
+        {
+            GameSystem?.Dynasty?.RemovePopulationContribution(this);
         }
     }
 }
