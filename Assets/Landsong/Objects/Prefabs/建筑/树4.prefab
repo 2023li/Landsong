@@ -181,7 +181,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b308408ed4c8e644eb5429e4c91fa9df, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Tree
-  definition: {fileID: 11400000, guid: f8abd4e9457e16747b39cedb1284e3ce, type: 2}
+  definition:
+    buildingId: "\u68114"
+    displayName: 
+    category: 32
+    icon: {fileID: 21300000, guid: dd9c72a414e98b04998df07c4f2f8afc, type: 3}
+    size: {x: 1, y: 1}
+    ignoreTerrainRequirement: 0
+    requiredTerrainKeys:
+    - "\u9646\u5730"
+    placementCosts:
+    - itemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+      amount: 10
+    - itemDefinition: {fileID: 11400000, guid: dd8a28cea30e0b64c89b0b4be4e74ce0, type: 2}
+      amount: 1
+    visibleCondition:
+      rid: -2
+    availableCondition:
+      rid: -2
+    buildMenuSortOrder: 0
+    maxBuildCount: 0
+    buildLimitGroupId: 
+    isDevelopmentCompleted: 1
   hasGridPosition: 0
   gridPosition:
     x: 0
@@ -197,3 +218,8 @@ MonoBehaviour:
   woodRewardAmount: 2
   saplingRewardAmount: 3
   currentHealth: 0
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }

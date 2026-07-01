@@ -7,22 +7,23 @@ namespace Landsong.BuildingSystem
     public static class BuildingAvailabilityEvaluator
     {
         public static BuildingAvailability Evaluate(
-            BuildingDefinition definition,
+            BuildingBase buildingPrefab,
             GameSystem gameSystem,
             int builtCount)
         {
-            if (definition == null)
+            if (buildingPrefab == null || !buildingPrefab.HasDefinition)
             {
-                return BuildingAvailability.Hidden(null, BuildingUnavailableReason.Hidden);
+                return BuildingAvailability.Hidden(buildingPrefab, BuildingUnavailableReason.Hidden);
             }
 
+            var definition = buildingPrefab.Definition;
             builtCount = Math.Max(0, builtCount);
             var visibleCondition = definition.VisibleCondition;
             var isVisible = visibleCondition == null || visibleCondition.IsMet(gameSystem);
 
             if (!isVisible)
             {
-                return BuildingAvailability.Hidden(definition, BuildingUnavailableReason.Hidden);
+                return BuildingAvailability.Hidden(buildingPrefab, BuildingUnavailableReason.Hidden);
             }
 
             var availableCondition = definition.AvailableCondition;
@@ -33,7 +34,7 @@ namespace Landsong.BuildingSystem
             var canAfford = CanAffordPlacementCosts(definition, inventory);
 
             return new BuildingAvailability(
-                definition,
+                buildingPrefab,
                 isVisible,
                 isDevelopmentCompleted,
                 isUnlocked,
@@ -76,7 +77,7 @@ namespace Landsong.BuildingSystem
     public readonly struct BuildingAvailability
     {
         public BuildingAvailability(
-            BuildingDefinition definition,
+            BuildingBase buildingPrefab,
             bool isVisible,
             bool isDevelopmentCompleted,
             bool isUnlocked,
@@ -85,7 +86,7 @@ namespace Landsong.BuildingSystem
             int builtCount,
             int maxBuildCount)
         {
-            Definition = definition;
+            BuildingPrefab = buildingPrefab;
             IsVisible = isVisible;
             IsDevelopmentCompleted = isDevelopmentCompleted;
             IsUnlocked = isUnlocked;
@@ -95,7 +96,8 @@ namespace Landsong.BuildingSystem
             MaxBuildCount = maxBuildCount;
         }
 
-        public BuildingDefinition Definition { get; }
+        public BuildingBase BuildingPrefab { get; }
+        public BuildingDefinition Definition => BuildingPrefab == null ? null : BuildingPrefab.Definition;
         public bool IsVisible { get; }
         public bool IsDevelopmentCompleted { get; }
         public bool IsUnlocked { get; }
@@ -139,9 +141,9 @@ namespace Landsong.BuildingSystem
             }
         }
 
-        public static BuildingAvailability Hidden(BuildingDefinition definition, BuildingUnavailableReason reason)
+        public static BuildingAvailability Hidden(BuildingBase buildingPrefab, BuildingUnavailableReason reason)
         {
-            return new BuildingAvailability(definition, false, false, false, false, false, 0, 0);
+            return new BuildingAvailability(buildingPrefab, false, false, false, false, false, 0, 0);
         }
     }
 

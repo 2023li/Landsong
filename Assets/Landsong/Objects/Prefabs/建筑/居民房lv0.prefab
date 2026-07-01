@@ -103,7 +103,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 732cba67d2e148e39260027f915f327b, type: 3}
-  m_Name: ""
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.VisualSystem.SpriteFrameAnimator
   targetRenderer: {fileID: 5562813696111283433}
   animations:
@@ -120,6 +120,22 @@ MonoBehaviour:
   pingPong: 0
   randomStartFrame: 0
   useUnscaledTime: 0
+--- !u!114 &4269690486657159540
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 247528927294901940}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00c77c60ff0d431aa46fcc0b5c77ee71, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingView
+  spriteFrameAnimator: {fileID: 6896628259780812639}
+  defaultAnimationKey: default
+  placementPreviewAnimationKey: preview
+  playDefaultOnEnable: 1
 --- !u!1 &7704027401022783825
 GameObject:
   m_ObjectHideFlags: 0
@@ -163,14 +179,33 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7f112e29bf8fc044eb8a142b3bbf0921, type: 3}
-  m_Name: ""
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.Buildings.ResidentialHousingLV0
-  definition: {fileID: 11400000, guid: dfcca380f705fc9499c2ee809d729707, type: 2}
+  definition:
+    buildingId: "\u5C45\u6C11\u623Flv0"
+    displayName: "\u5C45\u6C11\u623F\uFF08\u5728\u5EFA\uFF09"
+    category: 1
+    icon: {fileID: 21300000, guid: 6c015b6b70681414f81092658fe0932f, type: 3}
+    size: {x: 1, y: 1}
+    ignoreTerrainRequirement: 0
+    requiredTerrainKeys:
+    - "\u9646\u5730"
+    placementCosts: []
+    visibleCondition:
+      rid: 5711026153326903379
+    availableCondition:
+      rid: 5711026153326903380
+    buildMenuSortOrder: 0
+    maxBuildCount: 99
+    buildLimitGroupId: "\u5C45\u6C11\u623F"
+    isDevelopmentCompleted: 1
   hasGridPosition: 0
   gridPosition:
     x: 0
     y: 0
   gridOccupancyId: 
+  doubleClickInterval: 0.3
+  view: {fileID: 4269690486657159540}
   autoRepair: 0
   autpUpgrade: 1
   firstTurnCost:
@@ -182,21 +217,15 @@ MonoBehaviour:
   thirdTurnCost:
     itemDefinition: {fileID: 11400000, guid: 6293531210d744e8b03f1b99017467c3, type: 2}
     amount: 10
-  residentialHousingLv1Definition: {fileID: 11400000, guid: 5560c400531f49b2920b1c8ac95712d5, type: 2}
+  residentialHousingLv1Prefab: {fileID: 8791965200104292625, guid: 5a2e56844bf1f09479a2a8a48ecfa705, type: 3}
+  populationContribution: 0
   exp: 0
---- !u!114 &4269690486657159540
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 247528927294901940}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 00c77c60ff0d431aa46fcc0b5c77ee71, type: 3}
-  m_Name: ""
-  m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingView
-  spriteFrameAnimator: {fileID: 6896628259780812639}
-  defaultAnimationKey: default
-  placementPreviewAnimationKey: preview
-  playDefaultOnEnable: 1
+  references:
+    version: 2
+    RefIds:
+    - rid: 5711026153326903379
+      type: {class: GameCondition_True, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
+      data: 
+    - rid: 5711026153326903380
+      type: {class: GameCondition_True, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
+      data: 

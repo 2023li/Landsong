@@ -50,17 +50,17 @@ namespace Landsong.UISystem
         [SerializeField, LabelText("库存变化时刷新")] private bool refreshWhenInventoryChanges = true;
         [SerializeField, LabelText("自动查找建造放置控制器")] private bool discoverPlacementControllerOnEnable = true;
         [SerializeField, LabelText("建造放置控制器")] private BuildingPlacementController placementController;
-        [SerializeField, LabelText("建筑选择事件")] private BuildingDefinitionEvent buildingSelected = new BuildingDefinitionEvent();
+        [SerializeField, LabelText("建筑选择事件")] private BuildingPrefabEvent buildingSelected = new BuildingPrefabEvent();
 
         private readonly List<GamePanel_BuildingCategoryButton> categoryButtons = new List<GamePanel_BuildingCategoryButton>();
         private readonly List<GamePanel_BuildingItem> buildingItems = new List<GamePanel_BuildingItem>();
         private readonly List<GamePanel_BuildingItem> buildingItemPool = new List<GamePanel_BuildingItem>();
         private BuildingCategory selectedCategory = BuildingCategory.None;
-        private BuildingDefinition selectedBuildingDefinition;
+        private BuildingBase selectedBuildingPrefab;
         private bool subscribedToInventory;
         private bool subscribedToBuildings;
 
-        public BuildingDefinitionEvent BuildingSelected => buildingSelected;
+        public BuildingPrefabEvent BuildingSelected => buildingSelected;
         public BuildingCategory SelectedCategory => selectedCategory;
 
         private void Awake()
@@ -184,14 +184,20 @@ namespace Landsong.UISystem
                 return categories;
             }
 
-            foreach (var definition in buildingCatalog.Definitions)
+            foreach (var buildingPrefab in buildingCatalog.BuildingPrefabs)
             {
-                if (definition == null || definition.Category == BuildingCategory.None)
+                if (buildingPrefab == null || !buildingPrefab.HasDefinition)
                 {
                     continue;
                 }
 
-                var availability = Evaluate(definition);
+                var definition = buildingPrefab.Definition;
+                if (definition.Category == BuildingCategory.None)
+                {
+                    continue;
+                }
+
+                var availability = Evaluate(buildingPrefab);
                 if (!availability.IsVisible)
                 {
                     continue;
@@ -310,40 +316,46 @@ namespace Landsong.UISystem
                 return;
             }
 
-            BuildingDefinition firstVisibleDefinition = null;
+            BuildingBase firstVisibleBuildingPrefab = null;
             var selectedStillVisible = false;
             var visibleEntries = new List<BuildingDisplayEntry>();
-            var definitions = buildingCatalog.Definitions;
+            var buildingPrefabs = buildingCatalog.BuildingPrefabs;
 
-            for (var definitionIndex = 0; definitionIndex < definitions.Count; definitionIndex++)
+            for (var prefabIndex = 0; prefabIndex < buildingPrefabs.Count; prefabIndex++)
             {
-                var definition = definitions[definitionIndex];
-                if (definition == null || !ContainsCategory(definition.Category, selectedCategory))
+                var buildingPrefab = buildingPrefabs[prefabIndex];
+                if (buildingPrefab == null || !buildingPrefab.HasDefinition)
                 {
                     continue;
                 }
 
-                var availability = Evaluate(definition);
+                var definition = buildingPrefab.Definition;
+                if (!ContainsCategory(definition.Category, selectedCategory))
+                {
+                    continue;
+                }
+
+                var availability = Evaluate(buildingPrefab);
                 if (!availability.IsVisible)
                 {
                     continue;
                 }
 
-                visibleEntries.Add(new BuildingDisplayEntry(definition, definitionIndex));
+                visibleEntries.Add(new BuildingDisplayEntry(buildingPrefab, prefabIndex));
             }
 
             visibleEntries.Sort(CompareBuildingDisplayEntries);
 
             for (var i = 0; i < visibleEntries.Count; i++)
             {
-                var definition = visibleEntries[i].Definition;
-                var availability = Evaluate(definition);
+                var buildingPrefab = visibleEntries[i].BuildingPrefab;
+                var availability = Evaluate(buildingPrefab);
                 var item = GetBuildingItemFromPool();
-                item.Bind(definition, availability, HandleBuildingItemClicked);
+                item.Bind(buildingPrefab, availability, HandleBuildingItemClicked);
                 buildingItems.Add(item);
 
-                firstVisibleDefinition ??= definition;
-                if (selectedBuildingDefinition == definition)
+                firstVisibleBuildingPrefab ??= buildingPrefab;
+                if (selectedBuildingPrefab == buildingPrefab)
                 {
                     selectedStillVisible = true;
                 }
@@ -351,7 +363,7 @@ namespace Landsong.UISystem
 
             if (!selectedStillVisible && selectFirstBuildingOnRefresh)
             {
-                SetSelectedBuilding(firstVisibleDefinition);
+                SetSelectedBuilding(firstVisibleBuildingPrefab);
             }
             else if (!selectedStillVisible)
             {
@@ -382,11 +394,11 @@ namespace Landsong.UISystem
 
         private static int CompareBuildingDisplayEntries(BuildingDisplayEntry left, BuildingDisplayEntry right)
         {
-            var result = CompareBuildingDefinitionsForDisplay(left.Definition, right.Definition);
+            var result = CompareBuildingPrefabsForDisplay(left.BuildingPrefab, right.BuildingPrefab);
             return result != 0 ? result : left.CatalogIndex.CompareTo(right.CatalogIndex);
         }
 
-        private static int CompareBuildingDefinitionsForDisplay(BuildingDefinition left, BuildingDefinition right)
+        private static int CompareBuildingPrefabsForDisplay(BuildingBase left, BuildingBase right)
         {
             if (ReferenceEquals(left, right))
             {
@@ -403,19 +415,22 @@ namespace Landsong.UISystem
                 return -1;
             }
 
-            var result = left.BuildMenuSortOrder.CompareTo(right.BuildMenuSortOrder);
+            var leftDefinition = left.Definition;
+            var rightDefinition = right.Definition;
+
+            var result = leftDefinition.BuildMenuSortOrder.CompareTo(rightDefinition.BuildMenuSortOrder);
             if (result != 0)
             {
                 return result;
             }
 
-            result = CompareStableText(left.BuildingId, right.BuildingId);
+            result = CompareStableText(leftDefinition.BuildingId, rightDefinition.BuildingId);
             if (result != 0)
             {
                 return result;
             }
 
-            result = CompareStableText(left.DisplayName, right.DisplayName);
+            result = CompareStableText(leftDefinition.DisplayName, rightDefinition.DisplayName);
             if (result != 0)
             {
                 return result;
@@ -433,13 +448,13 @@ namespace Landsong.UISystem
 
         private readonly struct BuildingDisplayEntry
         {
-            public BuildingDisplayEntry(BuildingDefinition definition, int catalogIndex)
+            public BuildingDisplayEntry(BuildingBase buildingPrefab, int catalogIndex)
             {
-                Definition = definition;
+                BuildingPrefab = buildingPrefab;
                 CatalogIndex = catalogIndex;
             }
 
-            public BuildingDefinition Definition { get; }
+            public BuildingBase BuildingPrefab { get; }
             public int CatalogIndex { get; }
         }
 
@@ -472,11 +487,11 @@ namespace Landsong.UISystem
             buildingItemPool.Add(item);
         }
 
-        private BuildingAvailability Evaluate(BuildingDefinition definition)
+        private BuildingAvailability Evaluate(BuildingBase buildingPrefab)
         {
             return buildings == null
-                ? BuildingAvailability.Hidden(definition, BuildingUnavailableReason.Hidden)
-                : buildings.EvaluateAvailability(definition);
+                ? BuildingAvailability.Hidden(buildingPrefab, BuildingUnavailableReason.Hidden)
+                : buildings.EvaluateAvailability(buildingPrefab);
         }
 
         private static bool ContainsCategory(BuildingCategory categoryFlags, BuildingCategory category)
@@ -490,11 +505,11 @@ namespace Landsong.UISystem
             return value != 0 && (value & (value - 1)) == 0;
         }
 
-        private void HandleBuildingItemClicked(BuildingDefinition definition)
+        private void HandleBuildingItemClicked(BuildingBase buildingPrefab)
         {
-            SetSelectedBuilding(definition);
+            SetSelectedBuilding(buildingPrefab);
 
-            var availability = Evaluate(definition);
+            var availability = Evaluate(buildingPrefab);
             if (!availability.CanBuild)
             {
                 return;
@@ -502,15 +517,15 @@ namespace Landsong.UISystem
 
             if (placementController != null)
             {
-                placementController.BeginPlacement(definition);
+                placementController.BeginPlacement(buildingPrefab);
             }
 
-            buildingSelected.Invoke(definition);
+            buildingSelected.Invoke(buildingPrefab);
         }
 
-        private void SetSelectedBuilding(BuildingDefinition definition)
+        private void SetSelectedBuilding(BuildingBase buildingPrefab)
         {
-            selectedBuildingDefinition = definition;
+            selectedBuildingPrefab = buildingPrefab;
             RefreshInfoPanel();
         }
 
@@ -518,10 +533,10 @@ namespace Landsong.UISystem
         {
             if (infoPanelRoot != null)
             {
-                infoPanelRoot.SetActive(selectedBuildingDefinition != null);
+                infoPanelRoot.SetActive(selectedBuildingPrefab != null);
             }
 
-            if (selectedBuildingDefinition == null)
+            if (selectedBuildingPrefab == null || !selectedBuildingPrefab.HasDefinition)
             {
                 SetInfoIcon(null);
                 SetInfoText(infoNameLabel, string.Empty);
@@ -531,13 +546,14 @@ namespace Landsong.UISystem
                 return;
             }
 
-            var availability = Evaluate(selectedBuildingDefinition);
-            SetInfoIcon(selectedBuildingDefinition.Icon);
-            SetInfoText(infoNameLabel, selectedBuildingDefinition.DisplayName);
+            var selectedDefinition = selectedBuildingPrefab.Definition;
+            var availability = Evaluate(selectedBuildingPrefab);
+            SetInfoIcon(selectedDefinition.Icon);
+            SetInfoText(infoNameLabel, selectedDefinition.DisplayName);
             SetInfoText(infoStatusLabel, GetStatusText(availability));
-            SetInfoText(infoCostLabel, FormatCosts(selectedBuildingDefinition.PlacementCosts));
-            SetInfoText(infoCountLimitLabel, selectedBuildingDefinition.HasBuildCountLimit
-                ? $"{availability.BuiltCount}/{selectedBuildingDefinition.MaxBuildCount}"
+            SetInfoText(infoCostLabel, FormatCosts(selectedDefinition.PlacementCosts));
+            SetInfoText(infoCountLimitLabel, selectedDefinition.HasBuildCountLimit
+                ? $"{availability.BuiltCount}/{selectedDefinition.MaxBuildCount}"
                 : "无限制");
         }
 
@@ -687,7 +703,7 @@ namespace Landsong.UISystem
     }
 
     [Serializable]
-    public sealed class BuildingDefinitionEvent : UnityEvent<BuildingDefinition>
+    public sealed class BuildingPrefabEvent : UnityEvent<BuildingBase>
     {
     }
 }

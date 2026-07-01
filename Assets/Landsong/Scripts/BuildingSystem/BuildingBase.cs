@@ -8,12 +8,12 @@ namespace Landsong.BuildingSystem
 {
     /// <summary>
     /// 建筑 prefab 根节点上的运行时基类。
-    /// BuildingDefinition 只负责静态配置；具体建筑等级通过继承本类实现生命周期。
+    /// BuildingDefinition 是 prefab 上的静态配置数据；具体建筑等级通过继承本类实现生命周期。
     /// </summary>
     public abstract class BuildingBase : MonoBehaviour, IPointerClickHandler
     {
-        [Tooltip("该建筑实例对应的静态定义。由放置系统或场景初始化流程写入，子类不要直接修改。")]
-        [SerializeField] private BuildingDefinition definition;
+        [Tooltip("该建筑 prefab/实例对应的静态配置数据。")]
+        [SerializeField] private BuildingDefinition definition = new BuildingDefinition();
 
         [Tooltip("是否已经拥有有效的格子坐标。未放置或已清除占地时为 false。")]
         [SerializeField] private bool hasGridPosition;
@@ -76,8 +76,8 @@ namespace Landsong.BuildingSystem
         public bool IsRegistered => isRegistered;
         public bool IsDemolishing => isDemolishing;
 
-        // 是否已经持有有效 BuildingDefinition。
-        public bool HasDefinition => definition != null;
+        // 是否已经持有有效 BuildingDefinition 数据。
+        public bool HasDefinition => definition != null && definition.IsValid;
 
         // 是否已经写入格子坐标。
         public bool HasGridPosition => hasGridPosition;
@@ -97,24 +97,32 @@ namespace Landsong.BuildingSystem
         // 根据 Definition 的尺寸和当前原点计算出的占地范围。
         public GridFootprint Footprint => definition == null ? new GridFootprint(gridPosition, Vector2Int.one) : definition.CreateFootprint(gridPosition);
 
+        #region
 
 
-      
+        #endregion
+
+
 
         //--------------------------------架构类API-----------------------------------------
         #region 架构类API
         private void Reset()
         {
+            
+
+            EnsureDefinition();
             ResolveView();
         }
 
         private void OnValidate()
         {
+            EnsureDefinition();
             ResolveView();
         }
 
         protected virtual void Awake()
         {
+            EnsureDefinition();
             ResolveView();
         }
 
@@ -127,13 +135,13 @@ namespace Landsong.BuildingSystem
         }
 
         /// <summary>
-        /// 由 GameSystem 注册流程调用。Definition 从 prefab 上读取，GameSystem 从单例获取。
+        /// 由 GameSystem 注册流程调用。Definition 从 prefab 内嵌数据读取，GameSystem 从单例获取。
         /// </summary>
         internal void Initialize()
         {
-            if (definition == null)
+            if (!HasDefinition)
             {
-                throw new InvalidOperationException($"Building '{name}' has no BuildingDefinition assigned.");
+                throw new InvalidOperationException($"Building '{name}' has no valid BuildingDefinition data.");
             }
 
             var previousGameSystem = gameSystem;
@@ -235,9 +243,9 @@ namespace Landsong.BuildingSystem
         /// </summary>
         public bool ProcessTurn()
         {
-            if (definition == null)
+            if (!HasDefinition)
             {
-                throw new InvalidOperationException($"Building '{name}' has no BuildingDefinition assigned.");
+                throw new InvalidOperationException($"Building '{name}' has no valid BuildingDefinition data.");
             }
 
             if (!initialized)
@@ -372,6 +380,12 @@ namespace Landsong.BuildingSystem
             {
                 view = GetComponentInParent<BuildingView>(true);
             }
+        }
+
+        private void EnsureDefinition()
+        {
+            definition ??= new BuildingDefinition();
+            definition.Normalize();
         }
 
         /// <summary>

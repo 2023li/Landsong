@@ -209,7 +209,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f89231d12ba49d942a5cffa93aa84227, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CloudspirePalaceLV1
-  definition: {fileID: 11400000, guid: 8e687b05247703147812cde25f865881, type: 2}
+  definition:
+    buildingId: 云中城LV1
+    displayName: ""
+    category: 0
+    icon: {fileID: 0}
+    size: {x: 1, y: 1}
+    ignoreTerrainRequirement: 0
+    requiredTerrainKeys:
+    - land
+    placementCosts: []
+    visibleCondition:
+      rid: -2
+    availableCondition:
+      rid: -2
+    buildMenuSortOrder: 0
+    maxBuildCount: 0
+    buildLimitGroupId: ""
+    isDevelopmentCompleted: 0
   hasGridPosition: 0
   gridPosition:
     x: 0

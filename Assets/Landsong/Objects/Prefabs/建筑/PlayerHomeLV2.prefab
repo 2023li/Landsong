@@ -45,7 +45,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d9127710bc6330a4b94b2c648b78f03a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerHomeLV2
-  definition: {fileID: 11400000, guid: bff8460323989b549bfc68fcdec24278, type: 2}
+  definition:
+    buildingId: PlayerHomeLV2
+    displayName: ""
+    category: 0
+    icon: {fileID: 0}
+    size: {x: 1, y: 1}
+    ignoreTerrainRequirement: 0
+    requiredTerrainKeys:
+    - land
+    placementCosts: []
+    visibleCondition:
+      rid: -2
+    availableCondition:
+      rid: -2
+    buildMenuSortOrder: 0
+    maxBuildCount: 0
+    buildLimitGroupId: ""
+    isDevelopmentCompleted: 0
   hasGridPosition: 0
   gridPosition:
     x: 0

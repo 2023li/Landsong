@@ -12,24 +12,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f6946275ca2848c984f99b443bc28990, type: 3}
   m_Name: BuildingCatalog
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingCatalog
-  definitions:
-  - {fileID: 11400000, guid: bcf15c1482a78e446bf34204e2c7dbd3, type: 2}
-  - {fileID: 11400000, guid: bff8460323989b549bfc68fcdec24278, type: 2}
-  - {fileID: 11400000, guid: 2e68203d2b588f6438554af380fe792d, type: 2}
-  - {fileID: 11400000, guid: d4e501e8f911c504fa7ded36099718bb, type: 2}
-  - {fileID: 11400000, guid: 77de380a618fa114ca81de7b601ff67f, type: 2}
-  - {fileID: 11400000, guid: f017b304d93b9364f82ea08e9c78cf42, type: 2}
-  - {fileID: 11400000, guid: efd349ee0ea6eff44add2ee320c0c2a3, type: 2}
-  - {fileID: 11400000, guid: f8abd4e9457e16747b39cedb1284e3ce, type: 2}
-  - {fileID: 11400000, guid: c6b1a9daa8adadc4490f2cdab24ce1b8, type: 2}
-  - {fileID: 11400000, guid: 71b2e9b0502e0bc4e9f6763973487d93, type: 2}
-  - {fileID: 11400000, guid: 72b7b451e41ef854aa2a7698bd5d5318, type: 2}
-  - {fileID: 11400000, guid: 42ba328dcf735044e9c5ae45a38b3c26, type: 2}
-  - {fileID: 11400000, guid: 4a77f5721dad5de44988f391a23f41c1, type: 2}
-  - {fileID: 11400000, guid: 8e687b05247703147812cde25f865881, type: 2}
-  - {fileID: 11400000, guid: e968c9ad6b3b8b44e9870b4a7ff4da86, type: 2}
-  - {fileID: 11400000, guid: 1afa527ed4dbbd34f9ec49eba3f986cf, type: 2}
-  - {fileID: 11400000, guid: dfcca380f705fc9499c2ee809d729707, type: 2}
-  - {fileID: 11400000, guid: 5560c400531f49b2920b1c8ac95712d5, type: 2}
-  - {fileID: 11400000, guid: d51c7aacb70d42e692297ccafddc4500, type: 2}
-  folderPath: Assets/Landsong/Objects/SO/BuildDef
+  buildingPrefabs:
+  - {fileID: 5307823398957073666, guid: a353c3b65ba248f42a49c89f7bb39738, type: 3}
+  - {fileID: 3989320125506736918, guid: 35dacbf67984fb44c9493e8b17cb16b4, type: 3}
+  - {fileID: 1403936962780033596, guid: 7b09b307540df604aa6b463c7d986e94, type: 3}
+  - {fileID: 6664705754455848803, guid: 0881d2a8a1167254ba73ed9bfbcb2718, type: 3}
+  - {fileID: 1273407421134397176, guid: 7201a17d426e47047abe64250dc1feff, type: 3}
+  - {fileID: 3909098805242480703, guid: 77f439366659de348a11c984a0dee1ab, type: 3}
+  - {fileID: 1451453777161291500, guid: 06c2b02f49598024ca5a5cb53ebb838d, type: 3}
+  - {fileID: 8349078219009942974, guid: 4aba2e27877a1a149b22d64ff0955d88, type: 3}
+  - {fileID: 4732425292780895895, guid: fe7a88baee6ec2c4785fa2ea7cf9cd59, type: 3}
+  - {fileID: 8791965200104292625, guid: 5a2e56844bf1f09479a2a8a48ecfa705, type: 3}
+  - {fileID: 7170564799767612855, guid: aacfe165f239b564ba3d264eb012d0c0, type: 3}
+  - {fileID: 4580775676133784266, guid: db66271c5f1f16a489eb20e0f0744ba1, type: 3}
+  - {fileID: 5933262081624040038, guid: 400ee9a210c4445429caa89584753af5, type: 3}
+  - {fileID: 4435295081391544328, guid: 60b125bc38350294ba5c77a73ccb9f90, type: 3}
+  - {fileID: 7454270209908273853, guid: ea5b2751e67e773488379e90e128e386, type: 3}
+  - {fileID: 5458663910527653502, guid: 209259041a358c14d8535bba91707ce1, type: 3}
+  - {fileID: 4140498970006382615, guid: 305daca4f75573c498c1a07384493971, type: 3}
+  - {fileID: 4002633163710648162, guid: d60185ddaf4c2284185111a5c7507c4d, type: 3}
+  - {fileID: 5911436225231381552, guid: 1cbacdbfb734f694ab13fc9630759550, type: 3}
+  - {fileID: 6531376231743720106, guid: 8b60399552f1b884ba51001bc896aaca, type: 3}
+  folderPath: "Assets/Landsong/Objects/Prefabs/\u5EFA\u7B51"

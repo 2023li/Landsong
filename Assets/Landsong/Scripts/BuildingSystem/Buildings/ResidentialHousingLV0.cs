@@ -21,9 +21,9 @@ namespace Landsong.BuildingSystem.Buildings
         [SerializeField] private ItemAmount thirdTurnCost = new ItemAmount(null, 10);
 
         [TitleGroup("升级")]
-        [LabelText("居民房 LV1 定义")]
+        [LabelText("居民房 LV1 预制体")]
         [Required]
-        [SerializeField] private BuildingDefinition residentialHousingLv1Definition;
+        [SerializeField] private BuildingBase residentialHousingLv1Prefab;
 
         [TitleGroup("王朝")]
         [LabelText("人口贡献")]
@@ -94,13 +94,13 @@ namespace Landsong.BuildingSystem.Buildings
                 return false;
             }
 
-            if (residentialHousingLv1Definition == null || !residentialHousingLv1Definition.HasBuildingPrefab)
+            if (residentialHousingLv1Prefab == null || !residentialHousingLv1Prefab.HasDefinition)
             {
-                Debug.LogWarning($"ResidentialHousingLV0 '{name}' cannot upgrade because LV1 definition or prefab is missing.", this);
+                Debug.LogWarning($"ResidentialHousingLV0 '{name}' cannot upgrade because LV1 prefab or definition data is missing.", this);
                 return false;
             }
 
-            return buildingService.TryReplace(this, residentialHousingLv1Definition, out _);
+            return buildingService.TryReplace(this, residentialHousingLv1Prefab, out _);
         }
 
         protected override void OnUnregistered()

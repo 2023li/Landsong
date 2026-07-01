@@ -4,16 +4,12 @@ using Landsong.ConditionSystem;
 using Landsong.GridSystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace Landsong.BuildingSystem
 {
-    [CreateAssetMenu(menuName = "Landsong/Building/Building Definition", fileName = "BuildingDefinition")]
-    public sealed class BuildingDefinition : ScriptableObject
+    [Serializable]
+    public sealed class BuildingDefinition
     {
-        private const string BuildingPrefabFolder = "Assets/Landsong/Objects/Prefabs/建筑";
         private static readonly string[] DefaultRequiredTerrainKeys = { GridTerrainKeys.Land };
 
         [TitleGroup("基础信息")]
@@ -36,44 +32,6 @@ namespace Landsong.BuildingSystem
         [PreviewField(72)]
         [HideLabel]
         [SerializeField] private Sprite icon;
-
-        [TitleGroup("表现与占地")]
-        [HorizontalGroup("表现与占地/Prefabs")]
-        [LabelText("建筑预制体")]
-        [AssetsOnly]
-        [SerializeField] private BuildingBase buildingPrefab;
-
-#if UNITY_EDITOR
-        [TitleGroup("表现与占地")]
-        [Button("通过建筑ID自动引用建筑预制体")]
-        private void AutoAssignBuildingPrefabById()
-        {
-            if (string.IsNullOrWhiteSpace(buildingId))
-            {
-                Debug.LogWarning($"BuildingDefinition '{name}' cannot auto assign prefab because buildingId is empty.", this);
-                return;
-            }
-
-            var prefabPath = $"{BuildingPrefabFolder}/{buildingId.Trim()}.prefab";
-            var prefabObject = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
-            if (prefabObject == null)
-            {
-                Debug.LogWarning($"Building prefab not found at path: {prefabPath}", this);
-                return;
-            }
-
-            var prefabBuilding = prefabObject.GetComponent<BuildingBase>();
-            if (prefabBuilding == null)
-            {
-                Debug.LogWarning($"Prefab '{prefabPath}' has no BuildingBase component on root.", prefabObject);
-                return;
-            }
-
-            Undo.RecordObject(this, "Auto Assign Building Prefab");
-            buildingPrefab = prefabBuilding;
-            EditorUtility.SetDirty(this);
-        }
-#endif
 
         [TitleGroup("表现与占地")]
         [LabelText("占地尺寸")]
@@ -108,7 +66,7 @@ namespace Landsong.BuildingSystem
 
         [TitleGroup("建造菜单")]
         [LabelText("菜单排序")]
-        [PropertyTooltip("值越小越靠前。值相同时按建筑ID、显示名称、资源名称做固定排序。")]
+        [PropertyTooltip("值越小越靠前。值相同时按建筑ID、显示名称做固定排序。")]
         [SerializeField] private int buildMenuSortOrder;
 
         [TitleGroup("数量限制")]
@@ -122,18 +80,18 @@ namespace Landsong.BuildingSystem
         [PropertyTooltip("留空时使用建筑ID。同一分组共享数量上限。")]
         [SerializeField] private string buildLimitGroupId;
 
-
         [TitleGroup("数量限制")]
         [LabelText("开发完成")]
-        [SerializeField]
-        private bool isDevelopmentCompleted = false;
+        [SerializeField] private bool isDevelopmentCompleted;
 
+        [NonSerialized] private string[] cachedRequiredTerrainKeys;
 
         public bool IsDevelopmentCompleted => isDevelopmentCompleted;
         public string BuildingId => buildingId;
-        public string DisplayName => string.IsNullOrWhiteSpace(displayName) ? name : displayName;
+        public string DisplayName => string.IsNullOrWhiteSpace(displayName)
+            ? (string.IsNullOrWhiteSpace(buildingId) ? "未命名建筑" : buildingId)
+            : displayName;
         public Sprite Icon => icon;
-        public GameObject BuildingPrefab => buildingPrefab == null ? null : buildingPrefab.gameObject;
         public Vector2Int Size => size;
         public IReadOnlyList<BuildingCost> PlacementCosts => placementCosts ?? Array.Empty<BuildingCost>();
         public IReadOnlyList<string> RequiredTerrainKeys
@@ -145,9 +103,10 @@ namespace Landsong.BuildingSystem
                     return Array.Empty<string>();
                 }
 
-                return requiredTerrainKeys == null || requiredTerrainKeys.Length == 0
+                cachedRequiredTerrainKeys ??= BuildRuntimeTerrainKeys(requiredTerrainKeys);
+                return cachedRequiredTerrainKeys.Length == 0
                     ? DefaultRequiredTerrainKeys
-                    : requiredTerrainKeys;
+                    : cachedRequiredTerrainKeys;
             }
         }
 
@@ -158,15 +117,15 @@ namespace Landsong.BuildingSystem
         public int MaxBuildCount => maxBuildCount;
         public string BuildLimitGroupId => string.IsNullOrWhiteSpace(buildLimitGroupId) ? buildingId : buildLimitGroupId;
         public bool HasIcon => icon != null;
-        public bool HasBuildingPrefab => buildingPrefab != null;
         public bool HasBuildCountLimit => maxBuildCount > 0;
+        public bool IsValid => !string.IsNullOrWhiteSpace(buildingId);
 
         public GridFootprint CreateFootprint(GridPosition origin)
         {
             return new GridFootprint(origin, size);
         }
 
-        private void OnValidate()
+        public void Normalize()
         {
             buildingId = string.IsNullOrWhiteSpace(buildingId) ? string.Empty : buildingId.Trim();
             displayName = string.IsNullOrWhiteSpace(displayName) ? string.Empty : displayName.Trim();
@@ -174,7 +133,8 @@ namespace Landsong.BuildingSystem
             size = new Vector2Int(Mathf.Max(1, size.x), Mathf.Max(1, size.y));
             maxBuildCount = Mathf.Max(0, maxBuildCount);
             NormalizeCosts(ref placementCosts);
-            NormalizeTerrainKeys(ref requiredTerrainKeys);
+            NormalizeTerrainKeysForInspector(ref requiredTerrainKeys);
+            cachedRequiredTerrainKeys = null;
         }
 
         private bool HasValidBuildingId()
@@ -196,7 +156,7 @@ namespace Landsong.BuildingSystem
             }
         }
 
-        private static void NormalizeTerrainKeys(ref string[] terrainKeys)
+        private static void NormalizeTerrainKeysForInspector(ref string[] terrainKeys)
         {
             if (terrainKeys == null)
             {
@@ -204,8 +164,35 @@ namespace Landsong.BuildingSystem
                 return;
             }
 
-            var normalizedKeys = new List<string>(terrainKeys.Length);
+            var normalizedKeys = new HashSet<string>(StringComparer.Ordinal);
             for (var i = 0; i < terrainKeys.Length; i++)
+            {
+                var normalizedKey = GridTerrainKeys.Normalize(terrainKeys[i]);
+                if (string.IsNullOrEmpty(normalizedKey))
+                {
+                    terrainKeys[i] = string.Empty;
+                    continue;
+                }
+
+                if (!normalizedKeys.Add(normalizedKey))
+                {
+                    terrainKeys[i] = string.Empty;
+                    continue;
+                }
+
+                terrainKeys[i] = normalizedKey;
+            }
+        }
+
+        private static string[] BuildRuntimeTerrainKeys(IReadOnlyList<string> terrainKeys)
+        {
+            if (terrainKeys == null || terrainKeys.Count == 0)
+            {
+                return Array.Empty<string>();
+            }
+
+            var normalizedKeys = new List<string>(terrainKeys.Count);
+            for (var i = 0; i < terrainKeys.Count; i++)
             {
                 var normalizedKey = GridTerrainKeys.Normalize(terrainKeys[i]);
                 if (string.IsNullOrEmpty(normalizedKey) || normalizedKeys.Contains(normalizedKey))
@@ -216,8 +203,9 @@ namespace Landsong.BuildingSystem
                 normalizedKeys.Add(normalizedKey);
             }
 
-            terrainKeys = normalizedKeys.ToArray();
+            return normalizedKeys.Count == 0 ? Array.Empty<string>() : normalizedKeys.ToArray();
         }
 
+        
     }
 }

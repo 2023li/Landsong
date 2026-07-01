@@ -88,7 +88,7 @@ namespace Landsong.BuildingSystem
 
             if (!childBuilding.HasDefinition)
             {
-                Debug.LogWarning($"Initial child building '{childBuilding.name}' has no BuildingDefinition.", childBuilding);
+                Debug.LogWarning($"Initial child building '{childBuilding.name}' has no valid BuildingDefinition data.", childBuilding);
                 return false;
             }
 

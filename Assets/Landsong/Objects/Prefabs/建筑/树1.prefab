@@ -44,15 +44,37 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b308408ed4c8e644eb5429e4c91fa9df, type: 3}
-  m_Name: ""
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Tree
-  definition: {fileID: 11400000, guid: 77de380a618fa114ca81de7b601ff67f, type: 2}
+  definition:
+    buildingId: "\u68111"
+    displayName: 
+    category: 32
+    icon: {fileID: 0}
+    size: {x: 1, y: 1}
+    ignoreTerrainRequirement: 0
+    requiredTerrainKeys:
+    - "\u9646\u5730"
+    placementCosts:
+    - itemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+      amount: 10
+    - itemDefinition: {fileID: 11400000, guid: dd8a28cea30e0b64c89b0b4be4e74ce0, type: 2}
+      amount: 1
+    visibleCondition:
+      rid: -2
+    availableCondition:
+      rid: -2
+    buildMenuSortOrder: 0
+    maxBuildCount: 0
+    buildLimitGroupId: 
+    isDevelopmentCompleted: 1
   hasGridPosition: 0
   gridPosition:
     x: 0
     y: 0
   gridOccupancyId: 
   doubleClickInterval: 0.3
+  view: {fileID: 0}
   autoRepair: 0
   autpUpgrade: 1
   minHealth: 3
@@ -61,6 +83,11 @@ MonoBehaviour:
   woodRewardAmount: 2
   saplingRewardAmount: 3
   currentHealth: 0
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
 --- !u!61 &3880157516896047196
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -210,7 +237,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 00c77c60ff0d431aa46fcc0b5c77ee71, type: 3}
-  m_Name: ""
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingView
   spriteFrameAnimator: {fileID: 7919464987262873114}
   defaultAnimationKey: default
@@ -226,7 +253,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 732cba67d2e148e39260027f915f327b, type: 3}
-  m_Name: ""
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.VisualSystem.SpriteFrameAnimator
   targetRenderer: {fileID: 7780533980940375091}
   animations:

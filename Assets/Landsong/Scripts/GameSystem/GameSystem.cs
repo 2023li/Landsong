@@ -159,7 +159,7 @@ namespace Landsong
 
             if (!building.HasDefinition)
             {
-                Debug.LogWarning($"Cannot register building '{building.name}' because it has no BuildingDefinition.", building);
+                Debug.LogWarning($"Cannot register building '{building.name}' because it has no valid BuildingDefinition data.", building);
                 return;
             }
 

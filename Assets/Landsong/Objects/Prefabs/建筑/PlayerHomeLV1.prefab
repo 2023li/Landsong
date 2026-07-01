@@ -181,7 +181,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18d33de319109d64e8a98fedf33976a1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerHomeLV1
-  definition: {fileID: 11400000, guid: bcf15c1482a78e446bf34204e2c7dbd3, type: 2}
+  definition:
+    buildingId: PlayerHomeLV1
+    displayName: PlayerHomeLV1
+    category: 1
+    icon: {fileID: -3500720322899650623, guid: 8ea5bedac443ad54ea4d109d5e13e55e, type: 3}
+    size: {x: 4, y: 4}
+    ignoreTerrainRequirement: 0
+    requiredTerrainKeys:
+    - "\u9646\u5730"
+    placementCosts: []
+    visibleCondition:
+      rid: 5711026153326903375
+    availableCondition:
+      rid: 5711026153326903376
+    buildMenuSortOrder: 0
+    maxBuildCount: 1
+    buildLimitGroupId: 
+    isDevelopmentCompleted: 1
   hasGridPosition: 0
   gridPosition:
     x: 0
@@ -191,3 +208,13 @@ MonoBehaviour:
   view: {fileID: 6492560851725062278}
   autoRepair: 0
   autpUpgrade: 1
+  isResourceProviderPoint: 1
+  references:
+    version: 2
+    RefIds:
+    - rid: 5711026153326903375
+      type: {class: GameCondition_False, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
+      data: 
+    - rid: 5711026153326903376
+      type: {class: GameCondition_False, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
+      data: 

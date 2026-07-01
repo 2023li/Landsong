@@ -26,20 +26,38 @@ namespace Landsong.DynastySystem
 
         private int basePopulation;
         private int buildingPopulation;
+        private int employedPopulation;
+        private DynastyStage stage = DynastyStage.营地;
 
-        public DynastyService(int startingPopulation = 0)
+        public DynastyService(int startingPopulation = 0, DynastyStage startingStage = DynastyStage.营地)
         {
             basePopulation = Mathf.Max(0, startingPopulation);
+            stage = startingStage;
         }
 
         public event Action<DynastyService> PopulationChanged;
+        public event Action<DynastyService> StageChanged;
         public event Action<DynastyService> PalaceStateChanged;
 
+        public DynastyStage Stage => stage;
         public int Population => basePopulation + buildingPopulation;
+        public int EmployedPopulation => Mathf.Clamp(employedPopulation, 0, Population);
+        public int AvailablePopulation => Mathf.Max(0, Population - EmployedPopulation);
         public int BasePopulation => basePopulation;
         public int BuildingPopulation => buildingPopulation;
         public int PalaceCount => palaces.Count;
         public bool HasPalace => palaces.Count > 0;
+
+        public void SetStage(DynastyStage newStage)
+        {
+            if (stage == newStage)
+            {
+                return;
+            }
+
+            stage = newStage;
+            StageChanged?.Invoke(this);
+        }
 
         public void SetBasePopulation(int population)
         {
@@ -78,6 +96,18 @@ namespace Landsong.DynastySystem
 
             SetBasePopulation(basePopulation - amount);
             return true;
+        }
+
+        public void SetEmployedPopulation(int population)
+        {
+            population = Mathf.Max(0, population);
+            if (employedPopulation == population)
+            {
+                return;
+            }
+
+            employedPopulation = population;
+            PopulationChanged?.Invoke(this);
         }
 
         public void SetPopulationContribution(BuildingBase building, int population)

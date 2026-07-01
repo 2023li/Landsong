@@ -1,8 +1,11 @@
 using Landsong.BuildingSystem;
 using UnityEngine;
 
-public class PlayerHomeLV1 : BuildingBase
+public class PlayerHomeLV1 : BuildingBase, IResourceProviderPoint
 {
+    [SerializeField] private bool isResourceProviderPoint = true;
+
+    public bool IsResourceProviderPoint => isResourceProviderPoint;
 
     protected override void OnRegistered()
     {

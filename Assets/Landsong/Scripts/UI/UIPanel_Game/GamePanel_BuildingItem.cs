@@ -28,9 +28,9 @@ namespace Landsong.UISystem
         [SerializeField] private Button button;
         [SerializeField] private Image icon;
 
-        private BuildingDefinition definition;
+        private BuildingBase buildingPrefab;
         private BuildingAvailability availability;
-        private Action<BuildingDefinition> clicked;
+        private Action<BuildingBase> clicked;
 
         private void Reset()
         {
@@ -55,18 +55,19 @@ namespace Landsong.UISystem
         }
 
         public void Bind(
-            BuildingDefinition buildingDefinition,
+            BuildingBase sourceBuildingPrefab,
             BuildingAvailability buildingAvailability,
-            Action<BuildingDefinition> onClicked)
+            Action<BuildingBase> onClicked)
         {
             if (button != null)
             {
                 button.onClick.RemoveListener(HandleClicked);
             }
 
-            definition = buildingDefinition;
+            buildingPrefab = sourceBuildingPrefab;
             availability = buildingAvailability;
             clicked = onClicked;
+            var definition = buildingPrefab == null ? null : buildingPrefab.Definition;
 
             if (icon != null)
             {
@@ -76,7 +77,7 @@ namespace Landsong.UISystem
 
             if (button != null)
             {
-                button.interactable = definition != null;
+                button.interactable = buildingPrefab != null && buildingPrefab.HasDefinition;
                 button.onClick.AddListener(HandleClicked);
             }
 
@@ -85,7 +86,7 @@ namespace Landsong.UISystem
 
         public void Unbind()
         {
-            definition = null;
+            buildingPrefab = null;
             availability = BuildingAvailability.Hidden(null, BuildingUnavailableReason.Hidden);
             clicked = null;
 
@@ -106,7 +107,8 @@ namespace Landsong.UISystem
 
         private void RefreshState()
         {
-            var hasDefinition = definition != null;
+            var definition = buildingPrefab == null ? null : buildingPrefab.Definition;
+            var hasDefinition = buildingPrefab != null && buildingPrefab.HasDefinition;
             var reason = hasDefinition
                 ? availability.FirstUnavailableReason
                 : BuildingUnavailableReason.Hidden;
@@ -130,6 +132,7 @@ namespace Landsong.UISystem
                 return;
             }
 
+            var definition = buildingPrefab == null ? null : buildingPrefab.Definition;
             var showCountLimit = definition != null
                                  && !isDevelopmentIncomplete
                                  && definition.HasBuildCountLimit
@@ -154,7 +157,7 @@ namespace Landsong.UISystem
 
         private void HandleClicked()
         {
-            clicked?.Invoke(definition);
+            clicked?.Invoke(buildingPrefab);
         }
 
         private static void SetActive(GameObject target, bool active)

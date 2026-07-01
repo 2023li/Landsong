@@ -238,6 +238,24 @@ namespace Landsong.GridSystem
             return true;
         }
 
+        public bool HasBaseTileAt(GridPosition position)
+        {
+            EnsureInitialized();
+            return HasBaseTile(position);
+        }
+
+        public bool HasTerrainKey(GridPosition position, string terrainKey)
+        {
+            EnsureInitialized();
+            return HasTerrainKeyInternal(position, terrainKey);
+        }
+
+        public bool TryGetOccupantId(GridPosition position, out string occupantId)
+        {
+            EnsureInitialized();
+            return occupiedCells.TryGetValue(position, out occupantId);
+        }
+
         public Vector3 GetFootprintCenter(GridPosition origin, Vector2Int size)
         {
             EnsureInitialized();

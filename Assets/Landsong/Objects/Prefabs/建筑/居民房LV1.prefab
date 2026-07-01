@@ -43,16 +43,67 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 53094dde20876d64182ce117b7e42874, type: 3}
-  m_Name: ""
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ResidentialHousingLV1
-  definition: {fileID: 11400000, guid: 5560c400531f49b2920b1c8ac95712d5, type: 2}
+  definition:
+    buildingId: "\u5C45\u6C11\u623FLV1"
+    displayName: "\u7B80\u964B\u5C0F\u5C4B"
+    category: 1
+    icon: {fileID: 21300000, guid: 6c015b6b70681414f81092658fe0932f, type: 3}
+    size: {x: 1, y: 1}
+    ignoreTerrainRequirement: 0
+    requiredTerrainKeys:
+    - "\u9646\u5730"
+    placementCosts: []
+    visibleCondition:
+      rid: 5711026153326903381
+    availableCondition:
+      rid: 5711026153326903382
+    buildMenuSortOrder: 0
+    maxBuildCount: 0
+    buildLimitGroupId: "\u5C45\u6C11\u623F"
+    isDevelopmentCompleted: 1
   hasGridPosition: 0
   gridPosition:
     x: 0
     y: 0
   gridOccupancyId: 
+  doubleClickInterval: 0.3
+  view: {fileID: 0}
   autoRepair: 0
   autpUpgrade: 1
+  initialPopulationContribution: 2
+  maxPopulationContribution: 5
+  foodItemId: "\u852C\u83DC"
+  resourceProviderSearchRange: 10
+  growthIntervalTurns: 3
+  consumptionFailureDecayThreshold: 3
+  taxItemId: "\u91D1\u5E01"
+  taxIntervalTurns: 5
+  roadTerrainKey: "\u9053\u8DEF"
+  currentPopulation: 2
+  growthConsumptionProgress: 0
+  taxConsumptionProgress: 0
+  consecutiveConsumptionFailures: 0
+  isAbandoned: 0
+  lastTurnHadResourceProvider: 0
+  lastTurnConsumptionFailed: 0
+  lastTurnConsumedResources: 0
+  lastTurnPopulationDecayed: 0
+  lastTurnGrewPopulation: 0
+  lastTurnProvidedTax: 0
+  lastResourceProviderPathCost: -1
+  lastAbnormalStatusId: 
+  lastAbnormalStatusText: 
+  references:
+    version: 2
+    RefIds:
+    - rid: 5711026153326903381
+      type: {class: GameCondition_False, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
+      data: 
+    - rid: 5711026153326903382
+      type: {class: GameCondition_False, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
+      data: 
 --- !u!1 &8007512441434207904
 GameObject:
   m_ObjectHideFlags: 0
@@ -156,7 +207,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 732cba67d2e148e39260027f915f327b, type: 3}
-  m_Name: ""
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.VisualSystem.SpriteFrameAnimator
   targetRenderer: {fileID: 2143888551140189138}
   animations:
@@ -197,7 +248,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 00c77c60ff0d431aa46fcc0b5c77ee71, type: 3}
-  m_Name: ""
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingView
   spriteFrameAnimator: {fileID: 4059915917452054629}
   defaultAnimationKey: default

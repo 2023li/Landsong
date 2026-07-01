@@ -181,7 +181,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 95246d642ce11414c869594c1c19b636, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LumberCabinLV1
-  definition: {fileID: 11400000, guid: e968c9ad6b3b8b44e9870b4a7ff4da86, type: 2}
+  definition:
+    buildingId: "\u4F10\u6728\u5C0F\u5C4BLV1"
+    displayName: "\u4F10\u6728\u5C0F\u5C4BLV1"
+    category: 2
+    icon: {fileID: 21300000, guid: 5895c2374555bbe4b9fe06ae5fbacdaa, type: 3}
+    size: {x: 1, y: 1}
+    ignoreTerrainRequirement: 0
+    requiredTerrainKeys:
+    - "\u9646\u5730"
+    placementCosts:
+    - itemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+      amount: 20
+    visibleCondition:
+      rid: 5711026153326903377
+    availableCondition:
+      rid: 5711026153326903378
+    buildMenuSortOrder: 0
+    maxBuildCount: 0
+    buildLimitGroupId: 
+    isDevelopmentCompleted: 1
   hasGridPosition: 0
   gridPosition:
     x: 0
@@ -191,3 +210,43 @@ MonoBehaviour:
   view: {fileID: 6895812447475439656}
   autoRepair: 0
   autpUpgrade: 1
+  maxWorkers: 3
+  baseJobAttraction: 35
+  subsidyGoldPerTurn: 0
+  singleRecruitCost: 10
+  populationSearchRadius: 10
+  jobCompetitionSearchRadius: 10
+  competitionPenaltyPerCompetingJob: 2
+  maxCompetitionPenalty: 60
+  woodItemId: "\u539F\u6728"
+  goldItemId: "\u91D1\u5E01"
+  minimumWorkersForProduction: 2
+  fullProductionWorkers: 3
+  baseProductionAmount: 1
+  fullProductionAmount: 2
+  currentWorkers: 0
+  stableWorkers: 0
+  rawJobAttraction: 0
+  jobAttraction: 0
+  nearbyPopulation: 0
+  populationCellCount: 0
+  populationDensity: 0
+  nearbyCompetingJobs: 0
+  competitionPenalty: 0
+  lastPaidSubsidyGold: 0
+  lastProducedWood: 0
+  lastTurnRecruitedWorker: 0
+  lastTurnWorkerResigned: 0
+  lastTurnSubsidyPaymentFailed: 0
+  lastTurnNoAvailablePopulation: 0
+  lastAbnormalStatusId: 
+  lastAbnormalStatusText: 
+  references:
+    version: 2
+    RefIds:
+    - rid: 5711026153326903377
+      type: {class: GameCondition_True, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
+      data: 
+    - rid: 5711026153326903378
+      type: {class: GameCondition_True, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
+      data: 

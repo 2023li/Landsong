@@ -2,8 +2,9 @@ namespace Landsong.GridSystem
 {
     public static class GridTerrainKeys
     {
-        public const string Land = "land";
-        public const string Water = "water";
+        public const string Land = "陆地";
+        public const string Water = "水域";
+        public const string Road = "道路";
 
         public static string Normalize(string key)
         {

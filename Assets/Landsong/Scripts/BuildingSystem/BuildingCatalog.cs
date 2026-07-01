@@ -1,22 +1,24 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Landsong.InventorySystem;
 using Moyo.Unity;
 using Sirenix.OdinInspector;
-using UnityEditor;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace Landsong.BuildingSystem
 {
     [CreateAssetMenu(menuName = "Landsong/Building/Building Catalog", fileName = "BuildingCatalog")]
     public sealed class BuildingCatalog : SingletonScriptableObject<BuildingCatalog>
     {
-        [SerializeField] private BuildingDefinition[] definitions = Array.Empty<BuildingDefinition>();
+        [SerializeField, LabelText("建筑预制体")]
+        private BuildingBase[] buildingPrefabs = Array.Empty<BuildingBase>();
 
-        private Dictionary<string, BuildingDefinition> definitionsById;
+        private Dictionary<string, BuildingBase> prefabsById;
 
-        public IReadOnlyList<BuildingDefinition> Definitions => definitions ?? Array.Empty<BuildingDefinition>();
+        public IReadOnlyList<BuildingBase> BuildingPrefabs => buildingPrefabs ?? Array.Empty<BuildingBase>();
 
         public static Task<BuildingCatalog> LoadAsync(string addressableKey)
         {
@@ -25,88 +27,90 @@ namespace Landsong.BuildingSystem
 
         private void OnEnable()
         {
+            NormalizePrefabs();
             RebuildIndex();
         }
 
         private void OnValidate()
         {
-            if (definitions == null)
-            {
-                definitions = Array.Empty<BuildingDefinition>();
-            }
-
+            NormalizePrefabs();
             RebuildIndex();
         }
 
-        public bool TryGetDefinition(string buildingId, out BuildingDefinition definition)
+        public bool TryGetBuildingPrefab(string buildingId, out BuildingBase buildingPrefab)
         {
             if (string.IsNullOrWhiteSpace(buildingId))
             {
-                definition = null;
+                buildingPrefab = null;
                 return false;
             }
 
             EnsureIndex();
-            return definitionsById.TryGetValue(buildingId, out definition);
+            return prefabsById.TryGetValue(buildingId, out buildingPrefab);
         }
 
-        public BuildingDefinition GetDefinition(string buildingId)
+        public BuildingBase GetBuildingPrefab(string buildingId)
         {
-            if (TryGetDefinition(buildingId, out var definition))
+            if (TryGetBuildingPrefab(buildingId, out var buildingPrefab))
             {
-                return definition;
+                return buildingPrefab;
             }
 
-            throw new KeyNotFoundException($"Building definition '{buildingId}' was not found in catalog '{name}'.");
+            throw new KeyNotFoundException($"Building prefab '{buildingId}' was not found in catalog '{name}'.");
         }
 
         public bool Contains(string buildingId)
         {
-            return TryGetDefinition(buildingId, out _);
+            return TryGetBuildingPrefab(buildingId, out _);
         }
 
         public void RebuildIndex()
         {
-            definitionsById = new Dictionary<string, BuildingDefinition>(StringComparer.Ordinal);
+            prefabsById = new Dictionary<string, BuildingBase>(StringComparer.Ordinal);
 
-            if (definitions == null)
+            if (buildingPrefabs == null)
             {
                 return;
             }
 
-            foreach (var definition in definitions)
+            foreach (var buildingPrefab in buildingPrefabs)
             {
-                if (definition == null || string.IsNullOrWhiteSpace(definition.BuildingId))
+                if (buildingPrefab == null || !buildingPrefab.HasDefinition)
                 {
                     continue;
                 }
 
-                if (definitionsById.ContainsKey(definition.BuildingId))
+                var buildingId = buildingPrefab.Definition.BuildingId;
+                if (prefabsById.ContainsKey(buildingId))
                 {
-                    Debug.LogWarning($"Duplicate building definition id '{definition.BuildingId}' in catalog '{name}'. The first entry will be used.", this);
+                    Debug.LogWarning($"Duplicate building prefab id '{buildingId}' in catalog '{name}'. The first entry will be used.", this);
                     continue;
                 }
 
-                definitionsById.Add(definition.BuildingId, definition);
+                prefabsById.Add(buildingId, buildingPrefab);
             }
         }
 
         private void EnsureIndex()
         {
-            if (definitionsById == null)
+            if (prefabsById == null)
             {
                 RebuildIndex();
             }
         }
 
-#if UNITY_EDITOR
+        private void NormalizePrefabs()
+        {
+            buildingPrefabs ??= Array.Empty<BuildingBase>();
+        }
 
+#if UNITY_EDITOR
         [FolderPath(RequireExistingPath = true)]
         [SerializeField]
         private string folderPath = "Assets/";
 
-        [Button]
-        private void LoadDefinitionsFromFolder()
+        [Button("从文件夹加载建筑 Prefab")]
+        private void LoadBuildingPrefabsFromFolder()
         {
             if (string.IsNullOrWhiteSpace(folderPath))
             {
@@ -120,24 +124,26 @@ namespace Landsong.BuildingSystem
                 return;
             }
 
-            string[] guids = AssetDatabase.FindAssets("t:BuildingDefinition", new[] { folderPath });
-            List<BuildingDefinition> loaded = new List<BuildingDefinition>(guids.Length);
+            string[] guids = AssetDatabase.FindAssets("t:GameObject", new[] { folderPath });
+            var loaded = new List<BuildingBase>(guids.Length);
 
             foreach (string guid in guids)
             {
                 string assetPath = AssetDatabase.GUIDToAssetPath(guid);
-                BuildingDefinition def = AssetDatabase.LoadAssetAtPath<BuildingDefinition>(assetPath);
-                if (def != null) loaded.Add(def);
+                var prefabObject = AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
+                var building = prefabObject == null ? null : prefabObject.GetComponent<BuildingBase>();
+                if (building != null)
+                {
+                    loaded.Add(building);
+                }
             }
 
-            definitions = loaded.ToArray();
+            buildingPrefabs = loaded.ToArray();
             EditorUtility.SetDirty(this);
             RebuildIndex();
 
-            Debug.Log($"从文件中加载了 {definitions.Length} 个建筑定义.", this);
+            Debug.Log($"从文件中加载了 {buildingPrefabs.Length} 个建筑 Prefab.", this);
         }
 #endif
-
-
     }
 }

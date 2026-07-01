@@ -21,36 +21,30 @@ namespace Landsong.BuildingSystem
             ? EmptyBuildings
             : gameSystem.Turn.Buildings;
 
-        public BuildingAvailability EvaluateAvailability(BuildingDefinition definition)
+        public BuildingAvailability EvaluateAvailability(BuildingBase buildingPrefab)
         {
-            return BuildingAvailabilityEvaluator.Evaluate(definition, gameSystem, CountExistingBuildings(definition));
+            return BuildingAvailabilityEvaluator.Evaluate(buildingPrefab, gameSystem, CountExistingBuildings(buildingPrefab));
         }
 
-        public int CountExistingBuildings(BuildingDefinition definition)
+        public int CountExistingBuildings(BuildingBase buildingPrefab)
         {
-            if (definition == null)
+            if (buildingPrefab == null || !buildingPrefab.HasDefinition)
             {
                 return 0;
             }
 
             var count = 0;
-            var targetGroupId = definition.BuildLimitGroupId;
+            var targetGroupId = buildingPrefab.Definition.BuildLimitGroupId;
             var buildings = Buildings;
             for (var i = 0; i < buildings.Count; i++)
             {
                 var building = buildings[i];
-                if (!ShouldCountBuilding(building))
+                if (!ShouldCountBuilding(building) || !building.HasDefinition)
                 {
                     continue;
                 }
 
-                var existingDefinition = building.Definition;
-                if (existingDefinition == null)
-                {
-                    continue;
-                }
-
-                if (string.Equals(existingDefinition.BuildLimitGroupId, targetGroupId, StringComparison.Ordinal))
+                if (string.Equals(building.Definition.BuildLimitGroupId, targetGroupId, StringComparison.Ordinal))
                 {
                     count++;
                 }
@@ -91,17 +85,17 @@ namespace Landsong.BuildingSystem
         }
 
         public bool TryPlace(
-            BuildingDefinition definition,
+            BuildingBase buildingPrefab,
             GridMapBehaviour gridMap,
             GridPosition origin,
             Transform parent,
             out BuildingBase building)
         {
-            return TryPlace(definition, gridMap, origin, Quaternion.identity, parent, out building);
+            return TryPlace(buildingPrefab, gridMap, origin, Quaternion.identity, parent, out building);
         }
 
         public bool TryPlace(
-            BuildingDefinition definition,
+            BuildingBase buildingPrefab,
             GridMapBehaviour gridMap,
             GridPosition origin,
             Quaternion rotation,
@@ -109,50 +103,49 @@ namespace Landsong.BuildingSystem
             out BuildingBase building)
         {
             building = null;
-            if (!CanUseDefinition(definition))
+            if (!CanUseBuildingPrefab(buildingPrefab))
             {
                 return false;
             }
 
+            var definition = buildingPrefab.Definition;
             if (gridMap == null)
             {
-                Debug.LogWarning($"Cannot place building '{definition.DisplayName}' without a grid map.");
+                Debug.LogWarning($"Cannot place building '{definition.DisplayName}' without a grid map.", buildingPrefab);
                 return false;
             }
 
             if (!gridMap.CanOccupy(origin, definition.Size, definition.RequiredTerrainKeys, out var failureReason))
             {
-                Debug.LogWarning($"Cannot place building '{definition.DisplayName}' at {origin}: {failureReason}.");
+                Debug.LogWarning($"Cannot place building '{definition.DisplayName}' at {origin}: {failureReason}.", buildingPrefab);
                 return false;
             }
 
-            var occupancyId = CreateGridOccupancyId(definition);
+            var occupancyId = CreateGridOccupancyId(buildingPrefab);
             if (!gridMap.TryOccupy(origin, definition.Size, occupancyId, definition.RequiredTerrainKeys, out failureReason))
             {
-                Debug.LogWarning($"Cannot occupy grid for building '{definition.DisplayName}' at {origin}: {failureReason}.");
+                Debug.LogWarning($"Cannot occupy grid for building '{definition.DisplayName}' at {origin}: {failureReason}.", buildingPrefab);
                 return false;
             }
 
             var placementPosition = gridMap.GetFootprintCenter(origin, definition.Size);
-            var placedObject = UnityEngine.Object.Instantiate(definition.BuildingPrefab, placementPosition, rotation, parent);
-            building = placedObject.GetComponent<BuildingBase>();
+            building = UnityEngine.Object.Instantiate(buildingPrefab, placementPosition, rotation, parent);
             if (building == null)
             {
-                Debug.LogWarning($"Placed building prefab '{placedObject.name}' has no BuildingBase component.", placedObject);
+                Debug.LogWarning($"Placed building prefab '{buildingPrefab.name}' could not instantiate a BuildingBase.", buildingPrefab);
                 gridMap.ClearOccupant(occupancyId);
-                UnityEngine.Object.Destroy(placedObject);
                 return false;
             }
 
             building.SetPlacement(origin, occupancyId, gridMap);
-            placedObject.SetActive(true);
+            building.gameObject.SetActive(true);
             return true;
         }
 
-        public bool TryReplace(BuildingBase sourceBuilding, BuildingDefinition replacementDefinition, out BuildingBase replacement)
+        public bool TryReplace(BuildingBase sourceBuilding, BuildingBase replacementPrefab, out BuildingBase replacement)
         {
             replacement = null;
-            if (sourceBuilding == null || !CanUseDefinition(replacementDefinition))
+            if (sourceBuilding == null || !CanUseBuildingPrefab(replacementPrefab))
             {
                 return false;
             }
@@ -163,6 +156,7 @@ namespace Landsong.BuildingSystem
                 return false;
             }
 
+            var replacementDefinition = replacementPrefab.Definition;
             var gridMap = sourceBuilding.GridMap;
             var origin = sourceBuilding.GridPosition;
             var rotation = sourceBuilding.transform.rotation;
@@ -180,7 +174,7 @@ namespace Landsong.BuildingSystem
             sourceBuilding.ClearPlacement();
             UnityEngine.Object.Destroy(sourceBuilding.gameObject);
 
-            return TryPlace(replacementDefinition, gridMap, origin, rotation, parent, out replacement);
+            return TryPlace(replacementPrefab, gridMap, origin, rotation, parent, out replacement);
         }
 
         public void Demolish(BuildingBase building)
@@ -204,25 +198,28 @@ namespace Landsong.BuildingSystem
             UnityEngine.Object.Destroy(building.gameObject);
         }
 
-        private static bool CanUseDefinition(BuildingDefinition definition)
+        private static bool CanUseBuildingPrefab(BuildingBase buildingPrefab)
         {
-            if (definition == null)
+            if (buildingPrefab == null)
             {
                 return false;
             }
 
-            if (definition.HasBuildingPrefab)
+            if (buildingPrefab.HasDefinition)
             {
                 return true;
             }
 
-            Debug.LogWarning($"Cannot use building definition '{definition.DisplayName}' because it has no building prefab.", definition);
+            Debug.LogWarning($"Cannot use building prefab '{buildingPrefab.name}' because it has no valid BuildingDefinition data.", buildingPrefab);
             return false;
         }
 
-        private static string CreateGridOccupancyId(BuildingDefinition definition)
+        private static string CreateGridOccupancyId(BuildingBase buildingPrefab)
         {
-            var prefix = string.IsNullOrWhiteSpace(definition.BuildingId) ? definition.name : definition.BuildingId;
+            var definition = buildingPrefab.Definition;
+            var prefix = definition == null || string.IsNullOrWhiteSpace(definition.BuildingId)
+                ? buildingPrefab.name
+                : definition.BuildingId;
             return $"{prefix}_{Guid.NewGuid():N}";
         }
 

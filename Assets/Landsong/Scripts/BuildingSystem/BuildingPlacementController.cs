@@ -27,13 +27,17 @@ namespace Landsong.BuildingSystem
         [SerializeField] private bool cancelPlacementOnDisable = true;
 
         [Header("Tile Highlight")]
-        [SerializeField, InspectorName("合法高亮瓦片")] private TileBase validHighlightTile;
-        [SerializeField, InspectorName("非法高亮瓦片")] private TileBase invalidHighlightTile;
+        [SerializeField, InspectorName("合法格子高亮瓦片")] private TileBase validHighlightTile;
+        [SerializeField, InspectorName("建筑占格高亮瓦片")] private TileBase buildingFootprintHighlightTile;
+        [SerializeField, InspectorName("非法占格高亮瓦片")] private TileBase invalidHighlightTile;
 
-        private readonly List<Vector3Int> highlightedTileCells = new List<Vector3Int>();
+        private readonly List<Vector3Int> highlightedBuildableAreaCells = new List<Vector3Int>();
+        private readonly List<Vector3Int> highlightedFootprintCells = new List<Vector3Int>();
+        private readonly HashSet<Vector3Int> highlightedBuildableAreaCellSet = new HashSet<Vector3Int>();
         private Tilemap activeHighlightTilemap;
+        private BuildingDefinition highlightedBuildableAreaDefinition;
         private InputController inputController;
-        private BuildingDefinition activeDefinition;
+        private BuildingBase activeBuildingPrefab;
         private GameObject ghostInstance;
         private BuildingView ghostView;
         private GridPosition currentOrigin;
@@ -100,9 +104,9 @@ namespace Landsong.BuildingSystem
             ClearHighlightedTiles();
         }
 
-        public void BeginPlacement(BuildingDefinition definition)
+        public void BeginPlacement(BuildingBase buildingPrefab)
         {
-            if (definition == null)
+            if (buildingPrefab == null)
             {
                 return;
             }
@@ -114,15 +118,15 @@ namespace Landsong.BuildingSystem
                 return;
             }
 
-            if (!definition.HasBuildingPrefab)
+            if (!buildingPrefab.HasDefinition)
             {
-                Debug.LogWarning($"Building '{definition.DisplayName}' has no building prefab.", definition);
+                Debug.LogWarning($"Building prefab '{buildingPrefab.name}' has no valid BuildingDefinition data.", buildingPrefab);
                 return;
             }
 
             CancelPlacement();
 
-            activeDefinition = definition;
+            activeBuildingPrefab = buildingPrefab;
             isPlacing = true;
             isConfirming = false;
             isDraggingPlacement = false;
@@ -130,26 +134,26 @@ namespace Landsong.BuildingSystem
             hasCurrentOrigin = false;
             SetCameraInputBlocked(false);
 
-            CreateGhost(definition);
+            CreateGhost(buildingPrefab);
             PreparePlacementControls();
             PlaceAtScreenPosition(GetScreenCenter());
         }
 
         public void ConfirmPlacement()
         {
-            if (!isPlacing || isConfirming || activeDefinition == null || !hasCurrentOrigin || !currentCanPlace)
+            if (!isPlacing || isConfirming || activeBuildingPrefab == null || !hasCurrentOrigin || !currentCanPlace)
             {
                 return;
             }
 
-            StartCoroutine(ConfirmPlacementRoutine(activeDefinition, currentOrigin));
+            StartCoroutine(ConfirmPlacementRoutine(activeBuildingPrefab, currentOrigin));
         }
 
         public void CancelPlacement()
         {
             SetCameraInputBlocked(false);
 
-            activeDefinition = null;
+            activeBuildingPrefab = null;
             isPlacing = false;
             isConfirming = false;
             isDraggingPlacement = false;
@@ -173,10 +177,19 @@ namespace Landsong.BuildingSystem
             ClearHighlightedTiles();
         }
 
-        private IEnumerator ConfirmPlacementRoutine(BuildingDefinition definition, GridPosition origin)
+        private IEnumerator ConfirmPlacementRoutine(BuildingBase buildingPrefab, GridPosition origin)
         {
             isConfirming = true;
 
+            if (buildingPrefab == null || !buildingPrefab.HasDefinition)
+            {
+                Debug.LogWarning("Cannot place building because the selected prefab has no valid BuildingDefinition data.", this);
+                isConfirming = false;
+                RefreshCurrentPlacementState();
+                yield break;
+            }
+
+            var definition = buildingPrefab.Definition;
             if (!gridMap.CanOccupy(origin, definition.Size, definition.RequiredTerrainKeys, out var failureReason))
             {
                 Debug.LogWarning($"Cannot place building '{definition.DisplayName}' at {origin}: {failureReason}.", this);
@@ -185,18 +198,11 @@ namespace Landsong.BuildingSystem
                 yield break;
             }
 
-            if (!definition.HasBuildingPrefab)
-            {
-                Debug.LogWarning($"Cannot place building '{definition.DisplayName}' because it has no building prefab.", definition);
-                isConfirming = false;
-                yield break;
-            }
-
             var gameSystem = Landsong.GameSystem.Instance;
             var inventory = gameSystem == null ? null : gameSystem.Inventory;
             if (!CanSpendPlacementCosts(definition, inventory))
             {
-                Debug.LogWarning($"Cannot place building '{definition.DisplayName}' because placement costs are missing.", definition);
+                Debug.LogWarning($"Cannot place building '{definition.DisplayName}' because placement costs are missing.", buildingPrefab);
                 isConfirming = false;
                 RefreshCurrentPlacementState();
                 yield break;
@@ -205,13 +211,13 @@ namespace Landsong.BuildingSystem
             var buildingService = gameSystem == null ? null : gameSystem.Buildings;
             if (buildingService == null)
             {
-                Debug.LogWarning($"Cannot place building '{definition.DisplayName}' because BuildingService is missing.", definition);
+                Debug.LogWarning($"Cannot place building '{definition.DisplayName}' because BuildingService is missing.", buildingPrefab);
                 isConfirming = false;
                 RefreshCurrentPlacementState();
                 yield break;
             }
 
-            if (!buildingService.TryPlace(definition, gridMap, origin, placedBuildingRoot, out var placedBuilding))
+            if (!buildingService.TryPlace(buildingPrefab, gridMap, origin, placedBuildingRoot, out var placedBuilding))
             {
                 isConfirming = false;
                 RefreshCurrentPlacementState();
@@ -220,7 +226,7 @@ namespace Landsong.BuildingSystem
 
             if (!SpendPlacementCosts(definition, inventory))
             {
-                Debug.LogWarning($"Cannot place building '{definition.DisplayName}' because placement costs could not be spent.", definition);
+                Debug.LogWarning($"Cannot place building '{definition.DisplayName}' because placement costs could not be spent.", buildingPrefab);
                 buildingService.Remove(placedBuilding);
                 isConfirming = false;
                 RefreshCurrentPlacementState();
@@ -270,7 +276,7 @@ namespace Landsong.BuildingSystem
 
         private void UpdatePlacementDrag()
         {
-            if (activeDefinition == null || gridMap == null || sourceCamera == null)
+            if (activeBuildingPrefab == null || gridMap == null || sourceCamera == null)
             {
                 SetNoCurrentPlacement();
                 return;
@@ -307,11 +313,13 @@ namespace Landsong.BuildingSystem
 
         private void PlaceAtScreenPosition(Vector2 screenPosition)
         {
-            if (activeDefinition == null || gridMap == null || sourceCamera == null)
+            if (activeBuildingPrefab == null || gridMap == null || sourceCamera == null)
             {
                 SetNoCurrentPlacement();
                 return;
             }
+
+            var activeDefinition = activeBuildingPrefab.Definition;
 
             if (!gridMap.TryGetGridPointFromScreenPosition(sourceCamera, screenPosition, out var gridPoint))
             {
@@ -332,12 +340,13 @@ namespace Landsong.BuildingSystem
 
         private void RefreshCurrentPlacementState()
         {
-            if (!hasCurrentOrigin || activeDefinition == null || gridMap == null)
+            if (!hasCurrentOrigin || activeBuildingPrefab == null || gridMap == null)
             {
                 SetNoCurrentPlacement();
                 return;
             }
 
+            var activeDefinition = activeBuildingPrefab.Definition;
             currentCanPlace = gridMap.CanOccupy(currentOrigin, activeDefinition.Size, activeDefinition.RequiredTerrainKeys, out _);
             UpdateFootprintHighlight(new GridFootprint(currentOrigin, activeDefinition.Size), activeDefinition);
 
@@ -348,7 +357,15 @@ namespace Landsong.BuildingSystem
         {
             hasCurrentOrigin = false;
             currentCanPlace = false;
-            ClearHighlightedTiles();
+            if (activeBuildingPrefab != null)
+            {
+                EnsureBuildableAreaHighlight(activeBuildingPrefab.Definition);
+                ClearFootprintHighlight();
+            }
+            else
+            {
+                ClearHighlightedTiles();
+            }
 
             SetPlacementConfirmInteractable(false);
         }
@@ -379,21 +396,23 @@ namespace Landsong.BuildingSystem
 
         private void RefreshPlacementControlsPosition()
         {
-            if (!isPlacing || activeDefinition == null || gridMap == null || !hasCurrentOrigin)
+            if (!isPlacing || activeBuildingPrefab == null || gridMap == null || !hasCurrentOrigin)
             {
                 return;
             }
 
             ResolveSceneReferences();
+            var activeDefinition = activeBuildingPrefab.Definition;
             var placementPosition = gridMap.GetFootprintCenter(currentOrigin, activeDefinition.Size);
             var ghostPosition = placementPosition + ghostWorldOffset;
             placementControls?.SetWorldPosition(sourceCamera, ghostPosition + controlsWorldOffset);
         }
 
-        private void CreateGhost(BuildingDefinition definition)
+        private void CreateGhost(BuildingBase buildingPrefab)
         {
             var parent = previewRoot == null ? transform : previewRoot;
-            ghostInstance = Instantiate(definition.BuildingPrefab, parent);
+            var definition = buildingPrefab.Definition;
+            ghostInstance = Instantiate(buildingPrefab.gameObject, parent);
             ghostInstance.name = $"{definition.DisplayName}_PlacementGhost";
             ghostInstance.SetActive(false);
 
@@ -561,32 +580,112 @@ namespace Landsong.BuildingSystem
 
         private void UpdateFootprintHighlight(GridFootprint footprint, BuildingDefinition definition)
         {
-            ClearHighlightedTiles();
             if (gridMap == null || gridMap.HighlightTilemap == null)
             {
+                ClearHighlightedTiles();
                 return;
             }
 
             var highlightTilemap = gridMap.HighlightTilemap;
+            EnsureBuildableAreaHighlight(definition);
+            ClearFootprintHighlight();
             activeHighlightTilemap = highlightTilemap;
+
+            var highlightTile = currentCanPlace
+                ? buildingFootprintHighlightTile ?? validHighlightTile
+                : invalidHighlightTile ?? buildingFootprintHighlightTile ?? validHighlightTile;
+            if (highlightTile == null)
+            {
+                return;
+            }
+
             foreach (var position in footprint.Positions())
             {
-                var isCellValid = IsPlacementCellValid(position, definition);
-                var highlightTile = GetHighlightTile(isCellValid);
-                if (highlightTile == null)
-                {
-                    continue;
-                }
-
                 var tilemapCell = GridPositionToHighlightTilemapCell(position);
                 highlightTilemap.SetTile(tilemapCell, highlightTile);
-                highlightedTileCells.Add(tilemapCell);
+                highlightedFootprintCells.Add(tilemapCell);
             }
         }
 
-        private TileBase GetHighlightTile(bool isCellValid)
+        private void EnsureBuildableAreaHighlight(BuildingDefinition definition)
         {
-            return isCellValid ? validHighlightTile : invalidHighlightTile;
+            if (gridMap == null || gridMap.HighlightTilemap == null)
+            {
+                ClearHighlightedTiles();
+                return;
+            }
+
+            var highlightTilemap = gridMap.HighlightTilemap;
+            if (activeHighlightTilemap != null && activeHighlightTilemap != highlightTilemap)
+            {
+                ClearHighlightedTiles();
+            }
+
+            activeHighlightTilemap = highlightTilemap;
+            if (highlightedBuildableAreaDefinition == definition)
+            {
+                return;
+            }
+
+            ClearFootprintHighlight();
+            ClearBuildableAreaHighlight();
+            highlightedBuildableAreaDefinition = definition;
+
+            if (definition == null || validHighlightTile == null)
+            {
+                return;
+            }
+
+            var bounds = gridMap.BaseCellBounds;
+            for (var y = bounds.yMin; y < bounds.yMax; y++)
+            {
+                for (var x = bounds.xMin; x < bounds.xMax; x++)
+                {
+                    var position = new GridPosition(x, y);
+                    if (!IsPlacementCellValid(position, definition))
+                    {
+                        continue;
+                    }
+
+                    var tilemapCell = GridPositionToHighlightTilemapCell(position);
+                    highlightTilemap.SetTile(tilemapCell, validHighlightTile);
+                    highlightedBuildableAreaCells.Add(tilemapCell);
+                    highlightedBuildableAreaCellSet.Add(tilemapCell);
+                }
+            }
+        }
+
+        private void ClearFootprintHighlight()
+        {
+            if (activeHighlightTilemap == null || highlightedFootprintCells.Count == 0)
+            {
+                highlightedFootprintCells.Clear();
+                return;
+            }
+
+            for (var i = 0; i < highlightedFootprintCells.Count; i++)
+            {
+                var tilemapCell = highlightedFootprintCells[i];
+                var restoreTile = highlightedBuildableAreaCellSet.Contains(tilemapCell) ? validHighlightTile : null;
+                activeHighlightTilemap.SetTile(tilemapCell, restoreTile);
+            }
+
+            highlightedFootprintCells.Clear();
+        }
+
+        private void ClearBuildableAreaHighlight()
+        {
+            if (activeHighlightTilemap != null)
+            {
+                for (var i = 0; i < highlightedBuildableAreaCells.Count; i++)
+                {
+                    activeHighlightTilemap.SetTile(highlightedBuildableAreaCells[i], null);
+                }
+            }
+
+            highlightedBuildableAreaCells.Clear();
+            highlightedBuildableAreaCellSet.Clear();
+            highlightedBuildableAreaDefinition = null;
         }
 
         private bool IsPlacementCellValid(GridPosition position, BuildingDefinition definition)
@@ -603,19 +702,30 @@ namespace Landsong.BuildingSystem
 
         private void ClearHighlightedTiles()
         {
-            if (activeHighlightTilemap == null || highlightedTileCells.Count == 0)
+            if (activeHighlightTilemap == null)
             {
-                highlightedTileCells.Clear();
+                highlightedFootprintCells.Clear();
+                highlightedBuildableAreaCells.Clear();
+                highlightedBuildableAreaCellSet.Clear();
+                highlightedBuildableAreaDefinition = null;
                 activeHighlightTilemap = null;
                 return;
             }
 
-            for (var i = 0; i < highlightedTileCells.Count; i++)
+            for (var i = 0; i < highlightedFootprintCells.Count; i++)
             {
-                activeHighlightTilemap.SetTile(highlightedTileCells[i], null);
+                activeHighlightTilemap.SetTile(highlightedFootprintCells[i], null);
             }
 
-            highlightedTileCells.Clear();
+            for (var i = 0; i < highlightedBuildableAreaCells.Count; i++)
+            {
+                activeHighlightTilemap.SetTile(highlightedBuildableAreaCells[i], null);
+            }
+
+            highlightedFootprintCells.Clear();
+            highlightedBuildableAreaCells.Clear();
+            highlightedBuildableAreaCellSet.Clear();
+            highlightedBuildableAreaDefinition = null;
             activeHighlightTilemap = null;
         }
 

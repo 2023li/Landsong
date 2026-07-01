@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 6732199605893952649}
   - component: {fileID: 3562996915807780181}
   - component: {fileID: 3837668256779799915}
+  - component: {fileID: 5898616053397243020}
   m_Layer: 0
   m_Name: GameSystem
   m_TagString: Untagged
@@ -90,5 +91,25 @@ MonoBehaviour:
   placementControls: {fileID: 0}
   ghostHitPadding: 0.05
   cancelPlacementOnDisable: 1
-  validHighlightTile: {fileID: 0}
-  invalidHighlightTile: {fileID: 0}
+  validHighlightTile: {fileID: 11400000, guid: ded42df90b68af2428548eca67a40d3d, type: 2}
+  buildingFootprintHighlightTile: {fileID: 11400000, guid: ec459835cfc27264991f68a1c208c899, type: 2}
+  invalidHighlightTile: {fileID: 11400000, guid: 1b3c911605b7cff4c9fb03f23793f0af, type: 2}
+--- !u!114 &5898616053397243020
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6188720778481369210}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 79ab33c8fb994ca1a7ec4cebbd408427, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.UISystem.BuildingStatusMarkerManager
+  markerPrefab: {fileID: -1701031124350798383, guid: ffe235948e9e81f42a2c4ca4c098c6dc, type: 3}
+  markerWorldOffset: {x: 0, y: 1.5, z: 0}
+  markerScreenOffset: {x: 0, y: 0}
+  hideWhenOffscreen: 1
+  cameraController: {fileID: 0}
+  focusBuildingOnMarkerClick: 1
+  showMessageOnMarkerClick: 1

@@ -181,7 +181,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c6b496b47af1cb43a132606260349e5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LumberCabinLV2
-  definition: {fileID: 11400000, guid: 1afa527ed4dbbd34f9ec49eba3f986cf, type: 2}
+  definition:
+    buildingId: 伐木小屋LV2
+    displayName: ""
+    category: 0
+    icon: {fileID: 0}
+    size: {x: 1, y: 1}
+    ignoreTerrainRequirement: 0
+    requiredTerrainKeys:
+    - land
+    placementCosts: []
+    visibleCondition:
+      rid: -2
+    availableCondition:
+      rid: -2
+    buildMenuSortOrder: 0
+    maxBuildCount: 0
+    buildLimitGroupId: ""
+    isDevelopmentCompleted: 0
   hasGridPosition: 0
   gridPosition:
     x: 0

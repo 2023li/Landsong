@@ -177,7 +177,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 54967757427538e41b1c827a80ee23a1, type: 3}
   m_Name: ""
   m_EditorClassIdentifier: Assembly-CSharp::ResidentialHousingLV2
-  definition: {fileID: 11400000, guid: d51c7aacb70d42e692297ccafddc4500, type: 2}
+  definition:
+    buildingId: 居民房LV2
+    displayName: ""
+    category: 0
+    icon: {fileID: 0}
+    size: {x: 1, y: 1}
+    ignoreTerrainRequirement: 0
+    requiredTerrainKeys:
+    - land
+    placementCosts: []
+    visibleCondition:
+      rid: -2
+    availableCondition:
+      rid: -2
+    buildMenuSortOrder: 0
+    maxBuildCount: 0
+    buildLimitGroupId: ""
+    isDevelopmentCompleted: 0
   hasGridPosition: 0
   gridPosition:
     x: 0
