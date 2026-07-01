@@ -18,13 +18,6 @@ namespace Landsong.GridSystem
         public int X => x;
         public int Y => y;
 
-        public static GridPosition Zero => new GridPosition(0, 0);
-
-        public Vector2Int ToVector2Int()
-        {
-            return new Vector2Int(x, y);
-        }
-
         public bool Equals(GridPosition other)
         {
             return x == other.x && y == other.y;
@@ -46,16 +39,6 @@ namespace Landsong.GridSystem
         public override string ToString()
         {
             return $"({x}, {y})";
-        }
-
-        public static GridPosition operator +(GridPosition left, GridPosition right)
-        {
-            return new GridPosition(left.x + right.x, left.y + right.y);
-        }
-
-        public static GridPosition operator -(GridPosition left, GridPosition right)
-        {
-            return new GridPosition(left.x - right.x, left.y - right.y);
         }
 
         public static bool operator ==(GridPosition left, GridPosition right)

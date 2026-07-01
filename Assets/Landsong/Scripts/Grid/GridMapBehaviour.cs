@@ -12,14 +12,10 @@ namespace Landsong.GridSystem
     [RequireComponent(typeof(UnityEngine.Grid))]
     public sealed class GridMapBehaviour : MonoBehaviour
     {
-        [SerializeField, Min(1), BoxGroup("地图"), LabelText("宽度")] private int width = 256;
-        [SerializeField, Min(1), BoxGroup("地图"), LabelText("高度")] private int height = 256;
         [SerializeField, LabelText("Awake 时初始化")] private bool initializeOnAwake = true;
         [SerializeField, BoxGroup("规则"), LabelText("默认地形 Key")] private string defaultTerrainKey = GridTerrainKeys.Land;
         [SerializeField, BoxGroup("规则"), LabelText("默认可建造")] private bool defaultBuildable = true;
         [SerializeField, BoxGroup("底层TileMap"), LabelText("Tilemap_基础层")] private Tilemap baseTilemap;
-        [SerializeField, BoxGroup("底层TileMap"), LabelText("基础层 填充瓦片")] private TileBase baseTile;
-        [SerializeField, BoxGroup("底层TileMap"), LabelText("初始化时填充基础层")] private bool fillBaseLayerOnInitialize = true;
         [SerializeField, BoxGroup("底层TileMap"), LabelText("Tilemap_占用层")] private Tilemap occupancyTilemap;
         [SerializeField, BoxGroup("底层TileMap"), LabelText("占用层 填充瓦片")] private TileBase occupiedTile;
         [SerializeField, BoxGroup("底层TileMap"), LabelText("Tilemap_高亮层")] private Tilemap highlightTilemap;
@@ -27,28 +23,22 @@ namespace Landsong.GridSystem
         [SerializeField, BoxGroup("底层TileMap"), LabelText("初始化时清空高亮层")] private bool clearHighlightLayerOnInitialize = true;
         [SerializeField, BoxGroup("地形层"), LabelText("地形 Tilemap 层")] private List<GridTerrainLayer> terrainLayers = new List<GridTerrainLayer>();
 
+        private readonly Dictionary<GridPosition, string> occupiedCells = new Dictionary<GridPosition, string>();
+        private readonly Dictionary<string, List<GridPosition>> occupiedPositionsById = new Dictionary<string, List<GridPosition>>(StringComparer.Ordinal);
         private readonly List<GridPosition> clearedOccupancyPositions = new List<GridPosition>();
         private UnityEngine.Grid cachedUnityGrid;
+        private bool hasValidBaseTilemap;
+        private bool loggedInvalidBaseTilemap;
 
-        public int Width => width;
-        public int Height => height;
-        public float CellSize => GridLayoutService.GetCellSize(UnityGrid);
+        public BoundsInt BaseCellBounds => baseTilemap == null ? new BoundsInt(0, 0, 0, 0, 0, 1) : baseTilemap.cellBounds;
         public Vector3 WorldOrigin => GridLayoutService.GetOrigin(UnityGrid);
         public GridPlaneMode PlaneMode => GridLayoutService.GetPlaneMode(UnityGrid);
-        public string DefaultTerrainKey => defaultTerrainKey;
-        public bool DefaultBuildable => defaultBuildable;
-        public Tilemap BaseTilemap => baseTilemap;
-        public TileBase BaseTile => baseTile;
-        public IReadOnlyList<GridTerrainLayer> TerrainLayers => terrainLayers ?? (terrainLayers = new List<GridTerrainLayer>());
-        public Tilemap OccupancyTilemap => occupancyTilemap;
-        public TileBase OccupiedTile => occupiedTile;
-        public bool HasOccupancyTilemapVisualization => occupancyTilemap != null && occupiedTile != null;
         public Tilemap HighlightTilemap => highlightTilemap;
-        public bool HasHighlightTilemapVisualization => highlightTilemap != null;
-        public GridMap Map { get; private set; }
         public GridLayoutService Layout { get; private set; }
-        public bool IsInitialized => Map != null && Layout != null;
-        public event Action GridStateChanged;
+        public bool IsInitialized => hasValidBaseTilemap && Layout != null;
+
+        private bool HasOccupancyTilemapVisualization => occupancyTilemap != null && occupiedTile != null;
+
         private UnityEngine.Grid UnityGrid
         {
             get
@@ -72,8 +62,6 @@ namespace Landsong.GridSystem
 
         private void OnValidate()
         {
-            width = Mathf.Max(1, width);
-            height = Mathf.Max(1, height);
             cachedUnityGrid = GetComponent<UnityEngine.Grid>();
             NormalizeSerializedTerrainKeys();
         }
@@ -81,14 +69,12 @@ namespace Landsong.GridSystem
         public void Initialize()
         {
             NormalizeSerializedTerrainKeys();
-            if (fillBaseLayerOnInitialize)
-            {
-                FillBaseTilemapBySize();
-            }
+            hasValidBaseTilemap = TryValidateBaseTilemap(true);
+            loggedInvalidBaseTilemap = hasValidBaseTilemap ? false : loggedInvalidBaseTilemap;
 
-            Map = new GridMap(width, height, defaultBuildable, defaultTerrainKey);
-            ApplyBaseLayer();
-            ApplyTerrainLayers();
+            occupiedCells.Clear();
+            occupiedPositionsById.Clear();
+
             if (clearOccupancyLayerOnInitialize)
             {
                 ClearOccupancyTilemap();
@@ -100,7 +86,6 @@ namespace Landsong.GridSystem
             }
 
             RefreshLayout();
-            RaiseGridStateChanged();
         }
 
         public void RefreshLayout()
@@ -110,33 +95,32 @@ namespace Landsong.GridSystem
 
         public GridLayoutService CreateLayoutSnapshot()
         {
-            return UnityGrid == null
-                ? new GridLayoutService(1f, transform.position, GridPlaneMode.XY)
-                : new GridLayoutService(UnityGrid);
+            return new GridLayoutService(UnityGrid);
         }
 
-        public bool TryGetGridPositionFromRay(Ray ray, out GridPosition position)
+        private bool TryGetGridPositionFromRay(Ray ray, out GridPosition position)
         {
             EnsureInitialized();
+
+            if (Layout == null)
+            {
+                position = default;
+                return false;
+            }
 
             if (!Layout.TryGetGridPosition(ray, out position))
             {
                 return false;
             }
 
-            return Map.Contains(position) && HasBaseTile(position);
+            return HasBaseTile(position);
         }
 
-        public bool ContainsPosition(GridPosition position)
-        {
-            return IsInBounds(position) && HasBaseTile(position);
-        }
-
-        public bool TryGetGridPointFromRay(Ray ray, out Vector2 gridPoint)
+        private bool TryGetGridPointFromRay(Ray ray, out Vector2 gridPoint)
         {
             EnsureInitialized();
 
-            if (!Layout.TryRaycastToGridPlane(ray, out var worldPosition))
+            if (Layout == null || !Layout.TryRaycastToGridPlane(ray, out var worldPosition))
             {
                 gridPoint = default;
                 return false;
@@ -170,25 +154,6 @@ namespace Landsong.GridSystem
             return TryGetGridPointFromRay(ray, out gridPoint);
         }
 
-        public Vector3 GetCellCenter(GridPosition position)
-        {
-            EnsureInitialized();
-            return Layout.GridToWorldCenter(position);
-        }
-
-        public bool TryOccupy(GridPosition origin, Vector2Int size, string occupantId, out GridPlacementFailureReason failureReason)
-        {
-            EnsureInitialized();
-            var occupied = Map.TryOccupy(origin, size, occupantId, out failureReason);
-            if (occupied)
-            {
-                SetOccupancyTiles(new GridFootprint(origin, size));
-                RaiseGridStateChanged();
-            }
-
-            return occupied;
-        }
-
         public bool TryOccupy(
             GridPosition origin,
             Vector2Int size,
@@ -197,20 +162,28 @@ namespace Landsong.GridSystem
             out GridPlacementFailureReason failureReason)
         {
             EnsureInitialized();
-            var occupied = Map.TryOccupy(origin, size, occupantId, requiredTerrainKeys, out failureReason);
-            if (occupied)
+            if (string.IsNullOrWhiteSpace(occupantId))
             {
-                SetOccupancyTiles(new GridFootprint(origin, size));
-                RaiseGridStateChanged();
+                failureReason = GridPlacementFailureReason.InvalidOccupantId;
+                return false;
             }
 
-            return occupied;
-        }
+            if (!CanOccupy(origin, size, requiredTerrainKeys, out failureReason))
+            {
+                return false;
+            }
 
-        public bool CanOccupy(GridPosition origin, Vector2Int size, out GridPlacementFailureReason failureReason, string ignoredOccupantId = null)
-        {
-            EnsureInitialized();
-            return Map.CanOccupy(origin, size, out failureReason, ignoredOccupantId);
+            var footprint = new GridFootprint(origin, size);
+            var occupiedPositions = GetOrCreateOccupiedPositions(occupantId);
+            foreach (var position in footprint.Positions())
+            {
+                occupiedCells[position] = occupantId;
+                occupiedPositions.Add(position);
+            }
+
+            SetOccupancyTiles(footprint);
+            failureReason = GridPlacementFailureReason.None;
+            return true;
         }
 
         public bool CanOccupy(
@@ -221,25 +194,48 @@ namespace Landsong.GridSystem
             string ignoredOccupantId = null)
         {
             EnsureInitialized();
-            return Map.CanOccupy(origin, size, requiredTerrainKeys, out failureReason, ignoredOccupantId);
-        }
+            if (size.x <= 0 || size.y <= 0)
+            {
+                failureReason = GridPlacementFailureReason.InvalidSize;
+                return false;
+            }
 
-        public string GetTerrainKey(GridPosition position)
-        {
-            EnsureInitialized();
-            return HasBaseTile(position) ? Map.GetTerrainKey(position) : null;
-        }
+            if (!IsInitialized)
+            {
+                failureReason = GridPlacementFailureReason.OutOfBounds;
+                return false;
+            }
 
-        public bool HasTerrainKey(GridPosition position, string terrainKey)
-        {
-            EnsureInitialized();
-            return HasBaseTile(position) && Map.HasTerrainKey(position, terrainKey);
-        }
+            var footprint = new GridFootprint(origin, size);
+            foreach (var position in footprint.Positions())
+            {
+                if (!HasBaseTile(position))
+                {
+                    failureReason = GridPlacementFailureReason.OutOfBounds;
+                    return false;
+                }
 
-        public bool IsWater(GridPosition position)
-        {
-            EnsureInitialized();
-            return HasBaseTile(position) && Map.IsWater(position);
+                if (!IsBuildable(position))
+                {
+                    failureReason = GridPlacementFailureReason.NotBuildable;
+                    return false;
+                }
+
+                if (!HasAllTerrainKeys(position, requiredTerrainKeys))
+                {
+                    failureReason = GridPlacementFailureReason.TerrainMismatch;
+                    return false;
+                }
+
+                if (occupiedCells.TryGetValue(position, out var occupantId) && occupantId != ignoredOccupantId)
+                {
+                    failureReason = GridPlacementFailureReason.Occupied;
+                    return false;
+                }
+            }
+
+            failureReason = GridPlacementFailureReason.None;
+            return true;
         }
 
         public Vector3 GetFootprintCenter(GridPosition origin, Vector2Int size)
@@ -252,58 +248,55 @@ namespace Landsong.GridSystem
         {
             EnsureInitialized();
             clearedOccupancyPositions.Clear();
-            var clearedCount = Map.ClearOccupant(occupantId, clearedOccupancyPositions);
-            if (clearedCount > 0)
+            if (string.IsNullOrWhiteSpace(occupantId))
             {
-                ClearOccupancyTiles(clearedOccupancyPositions);
-                RaiseGridStateChanged();
+                return 0;
             }
 
-            return clearedCount;
-        }
-
-        public void RefreshOccupancyTilemap()
-        {
-            ClearOccupancyTilemap();
-            if (Map == null || !HasOccupancyTilemapVisualization)
+            if (occupiedPositionsById.TryGetValue(occupantId, out var positions))
             {
-                return;
-            }
-
-            foreach (var cell in Map.Cells)
-            {
-                if (cell.IsOccupied)
+                for (var i = 0; i < positions.Count; i++)
                 {
-                    SetOccupancyTile(cell.Position);
+                    var position = positions[i];
+                    if (occupiedCells.TryGetValue(position, out var currentOccupantId) && currentOccupantId == occupantId)
+                    {
+                        occupiedCells.Remove(position);
+                        clearedOccupancyPositions.Add(position);
+                    }
+                }
+
+                occupiedPositionsById.Remove(occupantId);
+            }
+            else
+            {
+                foreach (var pair in occupiedCells)
+                {
+                    if (pair.Value == occupantId)
+                    {
+                        clearedOccupancyPositions.Add(pair.Key);
+                    }
+                }
+
+                for (var i = 0; i < clearedOccupancyPositions.Count; i++)
+                {
+                    occupiedCells.Remove(clearedOccupancyPositions[i]);
                 }
             }
+
+            if (clearedOccupancyPositions.Count > 0)
+            {
+                ClearOccupancyTiles(clearedOccupancyPositions);
+            }
+
+            return clearedOccupancyPositions.Count;
         }
 
-        public void ClearHighlightTilemap()
+        private void ClearHighlightTilemap()
         {
             if (highlightTilemap != null)
             {
                 highlightTilemap.ClearAllTiles();
             }
-        }
-
-        public bool SetBuildable(GridPosition position, bool isBuildable)
-        {
-            EnsureInitialized();
-
-            if (!Map.Contains(position) || !HasBaseTile(position))
-            {
-                return false;
-            }
-
-            Map.SetBuildable(position, isBuildable);
-            RaiseGridStateChanged();
-            return true;
-        }
-
-        public bool TryOccupy(GridPosition origin, Vector2Int size, string occupantId)
-        {
-            return TryOccupy(origin, size, occupantId, out _);
         }
 
         private void EnsureInitialized()
@@ -328,25 +321,9 @@ namespace Landsong.GridSystem
             baseTilemap = EnsureTilemapLayer(baseTilemap, "Base Tilemap", 0);
             occupancyTilemap = EnsureTilemapLayer(occupancyTilemap, "Occupancy Tilemap", 100);
             highlightTilemap = EnsureTilemapLayer(highlightTilemap, "Highlight Tilemap", 200);
-            FillBaseTilemapFromInspector();
 
             EditorUtility.SetDirty(this);
             Undo.CollapseUndoOperations(undoGroup);
-        }
-
-        [Button("按长宽填充 Base 层")]
-        [ContextMenu("Fill Base Tilemap")]
-        private void FillBaseTilemapFromInspector()
-        {
-            if (baseTilemap == null)
-            {
-                Debug.LogWarning($"GridMapBehaviour '{name}' has no Base Tilemap.", this);
-                return;
-            }
-
-            Undo.RecordObject(baseTilemap, "Fill Base Tilemap");
-            FillBaseTilemapBySize();
-            EditorUtility.SetDirty(baseTilemap);
         }
 
         private void EnsureUnityGridComponent()
@@ -403,87 +380,106 @@ namespace Landsong.GridSystem
         }
 #endif
 
-        private void FillBaseTilemapBySize()
+        private bool TryValidateBaseTilemap(bool logWarnings)
         {
             if (baseTilemap == null)
             {
-                return;
+                LogInvalidBaseTilemap("GridMapBehaviour requires a manually painted Base Tilemap.", this, logWarnings);
+                return false;
             }
 
-            if (baseTile == null)
+            var bounds = baseTilemap.cellBounds;
+            if (bounds.size.x <= 0 || bounds.size.y <= 0 || baseTilemap.GetUsedTilesCount() <= 0)
             {
-                Debug.LogWarning($"GridMapBehaviour '{name}' has no Base Tile assigned.", this);
-                return;
+                LogInvalidBaseTilemap($"GridMapBehaviour '{name}' Base Tilemap is empty. Paint Base tiles in the editor before entering play mode.", baseTilemap, logWarnings);
+                return false;
             }
 
-            baseTilemap.ClearAllTiles();
+            return true;
+        }
 
-            for (var y = 0; y < height; y++)
+        private bool IsBuildable(GridPosition position)
+        {
+            return HasBaseTile(position) && defaultBuildable;
+        }
+
+        private bool HasAllTerrainKeys(GridPosition position, IReadOnlyList<string> terrainKeys)
+        {
+            if (terrainKeys == null || terrainKeys.Count == 0)
             {
-                for (var x = 0; x < width; x++)
+                return true;
+            }
+
+            for (var i = 0; i < terrainKeys.Count; i++)
+            {
+                if (!HasTerrainKeyInternal(position, terrainKeys[i]))
                 {
-                    baseTilemap.SetTile(new Vector3Int(x, y, 0), baseTile);
+                    return false;
                 }
             }
+
+            return true;
         }
 
-        private void ApplyBaseLayer()
+        private string GetPrimaryTerrainKey(GridPosition position)
         {
-            if (Map == null || baseTilemap == null)
+            var terrainKey = defaultTerrainKey;
+            for (var i = 0; i < terrainLayers.Count; i++)
             {
-                return;
+                var layer = terrainLayers[i];
+                if (layer == null || !layer.IsValid || !layer.ReplaceDefaultTerrainKey)
+                {
+                    continue;
+                }
+
+                if (layer.Tilemap.HasTile(GridPositionToTilemapCell(position)))
+                {
+                    terrainKey = layer.Key;
+                }
             }
 
-            foreach (var cell in Map.Cells)
-            {
-                Map.SetBuildable(cell.Position, defaultBuildable && HasBaseTile(cell.Position));
-            }
+            return terrainKey;
         }
 
-        private void ApplyTerrainLayers()
+        private bool HasTerrainKeyInternal(GridPosition position, string terrainKey)
         {
-            if (Map == null || terrainLayers == null)
+            var normalizedKey = GridTerrainKeys.Normalize(terrainKey);
+            if (string.IsNullOrEmpty(normalizedKey) || !HasBaseTile(position))
             {
-                return;
+                return false;
+            }
+
+            if (normalizedKey == GetPrimaryTerrainKey(position))
+            {
+                return true;
             }
 
             for (var i = 0; i < terrainLayers.Count; i++)
             {
-                ApplyTerrainLayer(terrainLayers[i]);
+                var layer = terrainLayers[i];
+                if (layer == null || !layer.IsValid || layer.ReplaceDefaultTerrainKey || layer.Key != normalizedKey)
+                {
+                    continue;
+                }
+
+                if (layer.Tilemap.HasTile(GridPositionToTilemapCell(position)))
+                {
+                    return true;
+                }
             }
+
+            return false;
         }
 
-        private void ApplyTerrainLayer(GridTerrainLayer layer)
+        private List<GridPosition> GetOrCreateOccupiedPositions(string occupantId)
         {
-            if (layer == null || !layer.IsValid)
+            if (!occupiedPositionsById.TryGetValue(occupantId, out var positions))
             {
-                return;
+                positions = new List<GridPosition>();
+                occupiedPositionsById.Add(occupantId, positions);
             }
 
-            var tilemap = layer.Tilemap;
-            var terrainKey = layer.Key;
-            foreach (var tilemapPosition in tilemap.cellBounds.allPositionsWithin)
-            {
-                if (!tilemap.HasTile(tilemapPosition))
-                {
-                    continue;
-                }
-
-                var gridPosition = layer.TilemapCellToGridPosition(tilemapPosition);
-                if (!Map.Contains(gridPosition) || !HasBaseTile(gridPosition))
-                {
-                    continue;
-                }
-
-                if (layer.ReplaceDefaultTerrainKey)
-                {
-                    Map.SetTerrainKey(gridPosition, terrainKey);
-                }
-                else
-                {
-                    Map.AddTerrainKey(gridPosition, terrainKey);
-                }
-            }
+            return positions;
         }
 
         private void SetOccupancyTiles(GridFootprint footprint)
@@ -530,18 +526,9 @@ namespace Landsong.GridSystem
             return new Vector3Int(position.X, position.Y, 0);
         }
 
-        private bool IsInBounds(GridPosition position)
-        {
-            return position.X >= 0
-                   && position.X < width
-                   && position.Y >= 0
-                   && position.Y < height;
-        }
-
         private bool HasBaseTile(GridPosition position)
         {
-            return IsInBounds(position)
-                   && (baseTilemap == null || baseTilemap.HasTile(GridPositionToTilemapCell(position)));
+            return baseTilemap != null && baseTilemap.HasTile(GridPositionToTilemapCell(position));
         }
 
         private void NormalizeSerializedTerrainKeys()
@@ -555,9 +542,15 @@ namespace Landsong.GridSystem
             terrainLayers ??= new List<GridTerrainLayer>();
         }
 
-        private void RaiseGridStateChanged()
+        private void LogInvalidBaseTilemap(string message, UnityEngine.Object context, bool logWarnings)
         {
-            GridStateChanged?.Invoke();
+            if (!logWarnings || loggedInvalidBaseTilemap)
+            {
+                return;
+            }
+
+            loggedInvalidBaseTilemap = true;
+            Debug.LogWarning(message, context);
         }
     }
 }

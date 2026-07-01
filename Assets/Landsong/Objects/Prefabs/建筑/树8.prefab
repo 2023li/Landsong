@@ -43,8 +43,24 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b308408ed4c8e644eb5429e4c91fa9df, type: 3}
-  m_Name: ""
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Tree
+  definition: {fileID: 11400000, guid: 42ba328dcf735044e9c5ae45a38b3c26, type: 2}
+  hasGridPosition: 0
+  gridPosition:
+    x: 0
+    y: 0
+  gridOccupancyId: 
+  doubleClickInterval: 0.3
+  view: {fileID: 0}
+  autoRepair: 0
+  autpUpgrade: 1
+  minHealth: 3
+  maxHealth: 6
+  damagePerDoubleClick: 1
+  woodRewardAmount: 2
+  saplingRewardAmount: 3
+  currentHealth: 0
 --- !u!1 &5716424360940650105
 GameObject:
   m_ObjectHideFlags: 0
@@ -148,7 +164,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 732cba67d2e148e39260027f915f327b, type: 3}
-  m_Name: ""
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.VisualSystem.SpriteFrameAnimator
   targetRenderer: {fileID: 3458260056911045826}
   animations:
@@ -175,7 +191,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 00c77c60ff0d431aa46fcc0b5c77ee71, type: 3}
-  m_Name: ""
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingView
   spriteFrameAnimator: {fileID: 6824408097468511306}
   defaultAnimationKey: default

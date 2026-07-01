@@ -103,7 +103,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 732cba67d2e148e39260027f915f327b, type: 3}
-  m_Name: ""
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.VisualSystem.SpriteFrameAnimator
   targetRenderer: {fileID: 8521134980916440418}
   animations:
@@ -158,7 +158,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 00c77c60ff0d431aa46fcc0b5c77ee71, type: 3}
-  m_Name: ""
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingView
   spriteFrameAnimator: {fileID: 4245386092780809522}
   defaultAnimationKey: default
@@ -207,5 +207,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 261f6681bae3de54192aa576f9d8dcd8, type: 3}
-  m_Name: ""
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CloudspirePalaceLV0
+  definition: {fileID: 11400000, guid: 4a77f5721dad5de44988f391a23f41c1, type: 2}
+  hasGridPosition: 0
+  gridPosition:
+    x: 0
+    y: 0
+  gridOccupancyId: 
+  doubleClickInterval: 0.3
+  view: {fileID: 8436318151880140692}
+  autoRepair: 0
+  autpUpgrade: 1

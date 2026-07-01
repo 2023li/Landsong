@@ -23,18 +23,10 @@ namespace Landsong.GridSystem
 
         public GridPosition Origin => origin;
         public Vector2Int Size => size;
-        public int MinX => origin.X;
-        public int MinY => origin.Y;
-        public int MaxXExclusive => origin.X + size.x;
-        public int MaxYExclusive => origin.Y + size.y;
-
-        public bool Contains(GridPosition position)
-        {
-            return position.X >= MinX
-                   && position.X < MaxXExclusive
-                   && position.Y >= MinY
-                   && position.Y < MaxYExclusive;
-        }
+        private int MinX => origin.X;
+        private int MinY => origin.Y;
+        private int MaxXExclusive => origin.X + size.x;
+        private int MaxYExclusive => origin.Y + size.y;
 
         public IEnumerable<GridPosition> Positions()
         {

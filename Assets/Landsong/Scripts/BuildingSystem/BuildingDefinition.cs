@@ -32,9 +32,6 @@ namespace Landsong.BuildingSystem
         [EnumToggleButtons]
         [SerializeField] private BuildingCategory category = BuildingCategory.None;
 
-
-        
-
         [HorizontalGroup("基础信息/Split", Width = 88)]
         [PreviewField(72)]
         [HideLabel]
@@ -109,6 +106,11 @@ namespace Landsong.BuildingSystem
         [PropertyTooltip("为空时视为通过。需要显式默认通过时可配置 GameCondition_True。")]
         [SerializeReference] private GameCondition availableCondition;
 
+        [TitleGroup("建造菜单")]
+        [LabelText("菜单排序")]
+        [PropertyTooltip("值越小越靠前。值相同时按建筑ID、显示名称、资源名称做固定排序。")]
+        [SerializeField] private int buildMenuSortOrder;
+
         [TitleGroup("数量限制")]
         [LabelText("最大建造数量")]
         [MinValue(0)]
@@ -120,6 +122,14 @@ namespace Landsong.BuildingSystem
         [PropertyTooltip("留空时使用建筑ID。同一分组共享数量上限。")]
         [SerializeField] private string buildLimitGroupId;
 
+
+        [TitleGroup("数量限制")]
+        [LabelText("开发完成")]
+        [SerializeField]
+        private bool isDevelopmentCompleted = false;
+
+
+        public bool IsDevelopmentCompleted => isDevelopmentCompleted;
         public string BuildingId => buildingId;
         public string DisplayName => string.IsNullOrWhiteSpace(displayName) ? name : displayName;
         public Sprite Icon => icon;
@@ -144,6 +154,7 @@ namespace Landsong.BuildingSystem
         public BuildingCategory Category => category;
         public GameCondition VisibleCondition => visibleCondition;
         public GameCondition AvailableCondition => availableCondition;
+        public int BuildMenuSortOrder => buildMenuSortOrder;
         public int MaxBuildCount => maxBuildCount;
         public string BuildLimitGroupId => string.IsNullOrWhiteSpace(buildLimitGroupId) ? buildingId : buildLimitGroupId;
         public bool HasIcon => icon != null;

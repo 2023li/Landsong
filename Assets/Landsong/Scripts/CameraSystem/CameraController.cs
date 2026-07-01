@@ -1,3 +1,4 @@
+using System;
 using Landsong.AppSystem;
 using Landsong.BuildingSystem;
 using Landsong.GridSystem;
@@ -64,7 +65,14 @@ namespace Landsong.CameraSystem
         private Vector3 pinchAnchorWorldPosition;
         private bool hasFocusTarget;
         private Vector3 focusTargetPosition;
+        private Vector3 lastPublishedCameraPosition;
+        private Quaternion lastPublishedCameraRotation;
+        private float lastPublishedOrthographicSize;
+        private float lastPublishedFieldOfView;
+        private bool hasPublishedCameraState;
 
+        public static event Action<CameraController> AnyCameraViewChanged;
+        public event Action<CameraController> CameraViewChanged;
         public Camera SourceCamera => sourceCamera;
         public bool HasFocusTarget => hasFocusTarget;
 
@@ -150,6 +158,11 @@ namespace Landsong.CameraSystem
             UpdateFocus();
             ClampZoomToViewBounds();
             ClampCameraToViewBounds();
+        }
+
+        private void LateUpdate()
+        {
+            PublishCameraViewChangedIfNeeded();
         }
 
         private void OnValidate()
@@ -810,6 +823,44 @@ namespace Landsong.CameraSystem
             {
                 appManager = FindFirstObjectByType<AppManager>(FindObjectsInactive.Include);
             }
+        }
+
+        private void PublishCameraViewChangedIfNeeded()
+        {
+            if (sourceCamera == null)
+            {
+                hasPublishedCameraState = false;
+                return;
+            }
+
+            var cameraTransform = sourceCamera.transform;
+            if (!hasPublishedCameraState)
+            {
+                CapturePublishedCameraState(cameraTransform);
+                return;
+            }
+
+            var positionChanged = (cameraTransform.position - lastPublishedCameraPosition).sqrMagnitude > 0.000001f;
+            var rotationChanged = Quaternion.Angle(cameraTransform.rotation, lastPublishedCameraRotation) > 0.001f;
+            var sizeChanged = Mathf.Abs(sourceCamera.orthographicSize - lastPublishedOrthographicSize) > 0.0001f;
+            var fieldOfViewChanged = Mathf.Abs(sourceCamera.fieldOfView - lastPublishedFieldOfView) > 0.0001f;
+            if (!positionChanged && !rotationChanged && !sizeChanged && !fieldOfViewChanged)
+            {
+                return;
+            }
+
+            CapturePublishedCameraState(cameraTransform);
+            CameraViewChanged?.Invoke(this);
+            AnyCameraViewChanged?.Invoke(this);
+        }
+
+        private void CapturePublishedCameraState(Transform cameraTransform)
+        {
+            lastPublishedCameraPosition = cameraTransform.position;
+            lastPublishedCameraRotation = cameraTransform.rotation;
+            lastPublishedOrthographicSize = sourceCamera.orthographicSize;
+            lastPublishedFieldOfView = sourceCamera.fieldOfView;
+            hasPublishedCameraState = true;
         }
     }
 }

@@ -60,6 +60,8 @@ MonoBehaviour:
     amount: 199
   - itemDefinition: {fileID: 11400000, guid: 6293531210d744e8b03f1b99017467c3, type: 2}
     amount: 199
+  startingPopulation: 0
+  endGameWhenNoPalaceAtTurnEnd: 1
   buildingCatalog: {fileID: 11400000, guid: 8344cbee3c103ae4ca387a12fc3f7082, type: 2}
   startingUnlockedTechnologies: []
   startingTurn: 1
@@ -85,11 +87,8 @@ MonoBehaviour:
   placedBuildingRoot: {fileID: 0}
   ghostWorldOffset: {x: 0, y: 0, z: 0}
   controlsWorldOffset: {x: 0, y: -1.25, z: 0}
-  controlsSize: {x: 220, y: 72}
-  controlsWorldScale: 0.01
+  placementControls: {fileID: 0}
   ghostHitPadding: 0.05
   cancelPlacementOnDisable: 1
-  validCellColor: {r: 0.1, g: 0.9, b: 0.25, a: 1}
-  invalidCellColor: {r: 1, g: 0.1, b: 0.1, a: 1}
-  highlightLineWidth: 0.035
-  highlightWorldOffset: {x: 0, y: 0, z: -0.02}
+  validHighlightTile: {fileID: 0}
+  invalidHighlightTile: {fileID: 0}

@@ -5,6 +5,20 @@ using UnityEngine;
 
 namespace Landsong.DynastySystem
 {
+
+    public enum DynastyStage
+    {
+
+        营地,
+        聚落,
+        村庄,
+        城镇,
+        城邦,
+        王国,
+        帝国
+    }
+
+
     public sealed class DynastyService
     {
         private readonly Dictionary<BuildingBase, int> populationContributors = new Dictionary<BuildingBase, int>();

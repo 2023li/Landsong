@@ -26,6 +26,7 @@ namespace Landsong.BuildingSystem
             }
 
             var availableCondition = definition.AvailableCondition;
+            var isDevelopmentCompleted = definition.IsDevelopmentCompleted;
             var isUnlocked = availableCondition == null || availableCondition.IsMet(gameSystem);
             var hasBuildSlot = !definition.HasBuildCountLimit || builtCount < definition.MaxBuildCount;
             var inventory = gameSystem == null ? null : gameSystem.Inventory;
@@ -34,6 +35,7 @@ namespace Landsong.BuildingSystem
             return new BuildingAvailability(
                 definition,
                 isVisible,
+                isDevelopmentCompleted,
                 isUnlocked,
                 hasBuildSlot,
                 canAfford,
@@ -76,6 +78,7 @@ namespace Landsong.BuildingSystem
         public BuildingAvailability(
             BuildingDefinition definition,
             bool isVisible,
+            bool isDevelopmentCompleted,
             bool isUnlocked,
             bool hasBuildSlot,
             bool canAfford,
@@ -84,6 +87,7 @@ namespace Landsong.BuildingSystem
         {
             Definition = definition;
             IsVisible = isVisible;
+            IsDevelopmentCompleted = isDevelopmentCompleted;
             IsUnlocked = isUnlocked;
             HasBuildSlot = hasBuildSlot;
             CanAfford = canAfford;
@@ -93,12 +97,13 @@ namespace Landsong.BuildingSystem
 
         public BuildingDefinition Definition { get; }
         public bool IsVisible { get; }
+        public bool IsDevelopmentCompleted { get; }
         public bool IsUnlocked { get; }
         public bool HasBuildSlot { get; }
         public bool CanAfford { get; }
         public int BuiltCount { get; }
         public int MaxBuildCount { get; }
-        public bool IsAvailable => IsVisible && IsUnlocked && HasBuildSlot;
+        public bool IsAvailable => IsVisible && IsDevelopmentCompleted && IsUnlocked && HasBuildSlot;
         public bool CanBuild => IsAvailable && CanAfford;
 
         public BuildingUnavailableReason FirstUnavailableReason
@@ -108,6 +113,11 @@ namespace Landsong.BuildingSystem
                 if (!IsVisible)
                 {
                     return BuildingUnavailableReason.Hidden;
+                }
+
+                if (!IsDevelopmentCompleted)
+                {
+                    return BuildingUnavailableReason.DevelopmentIncomplete;
                 }
 
                 if (!IsUnlocked)
@@ -131,7 +141,7 @@ namespace Landsong.BuildingSystem
 
         public static BuildingAvailability Hidden(BuildingDefinition definition, BuildingUnavailableReason reason)
         {
-            return new BuildingAvailability(definition, false, false, false, false, 0, 0);
+            return new BuildingAvailability(definition, false, false, false, false, false, 0, 0);
         }
     }
 
@@ -139,6 +149,7 @@ namespace Landsong.BuildingSystem
     {
         None = 0,
         Hidden = 10,
+        DevelopmentIncomplete = 15,
         Locked = 20,
         MissingMaterials = 30,
         BuildLimitReached = 40

@@ -19,6 +19,6 @@ MonoBehaviour:
     map: {fileID: 4896321450339995972, guid: 7fccb5461c5d34245948c86841191ca3, type: 3}
   - displayName: "\u9ED8\u8BA4\u5730\u56FE2"
     icon: {fileID: 0}
-    description: "\u7B2C\u4E8C\u5F20\u6D4B\u8BD5\u5730\u56FE"
-    map: {fileID: 1268522359257915689, guid: ce77efbb746969341a847abb52123b94, type: 3}
+    description: 
+    map: {fileID: 4896321450339995972, guid: af9a8ae68ac124d4b83c2e8683541afc, type: 3}
   mapPrefabFolderPath: Assets/Landsong/Objects/Prefabs/Map

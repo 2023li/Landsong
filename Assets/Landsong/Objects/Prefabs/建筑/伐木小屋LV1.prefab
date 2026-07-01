@@ -93,6 +93,49 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &3233218111194138680
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4375686215272297862}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 732cba67d2e148e39260027f915f327b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.VisualSystem.SpriteFrameAnimator
+  targetRenderer: {fileID: 5676576669207478524}
+  animations:
+  - key: default
+    sprites:
+    - {fileID: 21300000, guid: 5895c2374555bbe4b9fe06ae5fbacdaa, type: 3}
+    color: {r: 1, g: 1, b: 1, a: 1}
+  - key: preview
+    sprites:
+    - {fileID: 21300000, guid: 5895c2374555bbe4b9fe06ae5fbacdaa, type: 3}
+    color: {r: 1, g: 1, b: 1, a: 0.45}
+  framesPerSecond: 8
+  loop: 1
+  pingPong: 0
+  randomStartFrame: 0
+  useUnscaledTime: 0
+--- !u!114 &6895812447475439656
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4375686215272297862}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00c77c60ff0d431aa46fcc0b5c77ee71, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingView
+  spriteFrameAnimator: {fileID: 3233218111194138680}
+  defaultAnimationKey: default
+  placementPreviewAnimationKey: preview
+  playDefaultOnEnable: 1
 --- !u!1 &5076905444672905058
 GameObject:
   m_ObjectHideFlags: 0
@@ -136,56 +179,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 95246d642ce11414c869594c1c19b636, type: 3}
-  m_Name: ""
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LumberCabinLV1
-  definition: {fileID: 0}
+  definition: {fileID: 11400000, guid: e968c9ad6b3b8b44e9870b4a7ff4da86, type: 2}
   hasGridPosition: 0
   gridPosition:
     x: 0
     y: 0
   gridOccupancyId: 
+  doubleClickInterval: 0.3
+  view: {fileID: 6895812447475439656}
   autoRepair: 0
   autpUpgrade: 1
---- !u!114 &3233218111194138680
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4375686215272297862}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 732cba67d2e148e39260027f915f327b, type: 3}
-  m_Name: ""
-  m_EditorClassIdentifier: Assembly-CSharp::Landsong.VisualSystem.SpriteFrameAnimator
-  targetRenderer: {fileID: 5676576669207478524}
-  animations:
-  - key: default
-    sprites:
-    - {fileID: 21300000, guid: 5895c2374555bbe4b9fe06ae5fbacdaa, type: 3}
-    color: {r: 1, g: 1, b: 1, a: 1}
-  - key: preview
-    sprites:
-    - {fileID: 21300000, guid: 5895c2374555bbe4b9fe06ae5fbacdaa, type: 3}
-    color: {r: 1, g: 1, b: 1, a: 0.45}
-  framesPerSecond: 8
-  loop: 1
-  pingPong: 0
-  randomStartFrame: 0
-  useUnscaledTime: 0
---- !u!114 &6895812447475439656
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4375686215272297862}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 00c77c60ff0d431aa46fcc0b5c77ee71, type: 3}
-  m_Name: ""
-  m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingView
-  spriteFrameAnimator: {fileID: 3233218111194138680}
-  defaultAnimationKey: default
-  placementPreviewAnimationKey: preview
-  playDefaultOnEnable: 1

@@ -16,10 +16,5 @@ namespace Landsong.GridSystem
         public Tilemap Tilemap => tilemap;
         public bool ReplaceDefaultTerrainKey => replaceDefaultTerrainKey;
         public bool IsValid => tilemap != null && !string.IsNullOrWhiteSpace(Key);
-
-        public GridPosition TilemapCellToGridPosition(Vector3Int tilemapPosition)
-        {
-            return new GridPosition(tilemapPosition.x, tilemapPosition.y);
-        }
     }
 }

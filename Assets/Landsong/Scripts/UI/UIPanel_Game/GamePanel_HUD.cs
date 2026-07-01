@@ -1,10 +1,10 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class GamePanel_HUD : MonoBehaviour
 {
-    [SerializeField] private Button btn_建造;
-    [SerializeField] private Button btn_仓库;
+   
 
     private UIPanel_Game gamePanel;
 
@@ -18,6 +18,19 @@ public class GamePanel_HUD : MonoBehaviour
     {
         UnbindButtons();
     }
+
+    #region 顶部栏
+    //阶段 
+    [SerializeField] private TMP_Text txt_Stage;
+    //人口 
+    [SerializeField] private TMP_Text txt_Population;
+    //金币 从仓库获取 Item_金币的数量
+    [SerializeField] private TMP_Text txt_Gold;
+
+    #endregion
+
+    [SerializeField] private Button btn_建造;
+    [SerializeField] private Button btn_仓库;
 
     private void BindButtons()
     {

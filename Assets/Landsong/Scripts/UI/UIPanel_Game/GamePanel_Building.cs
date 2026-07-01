@@ -12,10 +12,14 @@ namespace Landsong.UISystem
 {
     public sealed class GamePanel_Building : MonoBehaviour
     {
+
+        private UIPanel_Game gamePanel;
         [ShowInInspector, ReadOnly, LabelText("建筑目录")] private BuildingCatalog buildingCatalog;
         [ShowInInspector, ReadOnly, LabelText("游戏系统")] private Landsong.GameSystem gameSystem;
         [ShowInInspector, ReadOnly, LabelText("库存服务")] private InventoryService inventory;
         [ShowInInspector, ReadOnly, LabelText("建筑服务")] private BuildingService buildings;
+
+        [SerializeField, LabelText("关闭按钮")] private Button closeButton;
         [SerializeField, LabelText("分类按钮根节点")] private Transform categoryButtonRoot;
         [SerializeField, LabelText("分类按钮预制体")] private GamePanel_BuildingCategoryButton categoryButtonPrefab;
         [SerializeField, LabelText("建筑项根节点")] private Transform buildingItemRoot;
@@ -28,6 +32,20 @@ namespace Landsong.UISystem
         [SerializeField, LabelText("信息材料文本")] private TMP_Text infoCostLabel;
         [SerializeField, LabelText("信息数量限制文本")] private TMP_Text infoCountLimitLabel;
         [SerializeField, LabelText("显示空分类")] private bool includeEmptyCategories;
+        [SerializeField, LabelText("分类显示顺序")]
+        [ListDrawerSettings(DefaultExpandedState = true, DraggableItems = true)]
+        private BuildingCategory[] categoryDisplayOrder =
+        {
+            BuildingCategory.Housing,
+            BuildingCategory.Production,
+            BuildingCategory.Storage,
+            BuildingCategory.后勤,
+            BuildingCategory.通用,
+            BuildingCategory.美化,
+            BuildingCategory.奇迹,
+            BuildingCategory.神迹
+        };
+
         [SerializeField, LabelText("刷新后选择第一个建筑")] private bool selectFirstBuildingOnRefresh = true;
         [SerializeField, LabelText("库存变化时刷新")] private bool refreshWhenInventoryChanges = true;
         [SerializeField, LabelText("自动查找建造放置控制器")] private bool discoverPlacementControllerOnEnable = true;
@@ -44,6 +62,25 @@ namespace Landsong.UISystem
 
         public BuildingDefinitionEvent BuildingSelected => buildingSelected;
         public BuildingCategory SelectedCategory => selectedCategory;
+
+        private void Awake()
+        {
+            gamePanel = GetComponentInParent<UIPanel_Game>();
+
+            if (closeButton != null)
+            {
+                closeButton.onClick.AddListener(HandleCloseButtonClicked);
+            }
+
+        }
+
+        private void OnDestroy()
+        {
+            if (closeButton != null)
+            {
+                closeButton.onClick.RemoveListener(HandleCloseButtonClicked);
+            }
+        }
 
         private void OnEnable()
         {
@@ -66,6 +103,19 @@ namespace Landsong.UISystem
         public void Hide()
         {
             gameObject.SetActive(false);
+        }
+
+        private void HandleCloseButtonClicked()
+        {
+            if (gamePanel == null)
+            {
+                gamePanel = GetComponentInParent<UIPanel_Game>();
+            }
+
+            if (gamePanel != null)
+            {
+                gamePanel.Hide_Building();
+            }
         }
 
         public void RefreshFromGameSystem()
@@ -125,15 +175,8 @@ namespace Landsong.UISystem
             var categories = new List<BuildingCategory>();
             if (includeEmptyCategories)
             {
-                foreach (BuildingCategory category in Enum.GetValues(typeof(BuildingCategory)))
-                {
-                    if (IsSingleCategory(category))
-                    {
-                        categories.Add(category);
-                    }
-                }
-
-                return categories;
+                AddAllSingleCategories(categories);
+                return SortCategoriesForDisplay(categories);
             }
 
             if (buildingCatalog == null)
@@ -157,7 +200,7 @@ namespace Landsong.UISystem
                 AddDefinitionCategories(categories, definition.Category);
             }
 
-            return categories;
+            return SortCategoriesForDisplay(categories);
         }
 
         private static void AddDefinitionCategories(List<BuildingCategory> categories, BuildingCategory categoryFlags)
@@ -171,6 +214,73 @@ namespace Landsong.UISystem
 
                 categories.Add(category);
             }
+        }
+
+        private static void AddAllSingleCategories(List<BuildingCategory> categories)
+        {
+            foreach (BuildingCategory category in Enum.GetValues(typeof(BuildingCategory)))
+            {
+                if (IsSingleCategory(category) && !categories.Contains(category))
+                {
+                    categories.Add(category);
+                }
+            }
+        }
+
+        private List<BuildingCategory> SortCategoriesForDisplay(List<BuildingCategory> categories)
+        {
+            if (categories.Count <= 1)
+            {
+                return categories;
+            }
+
+            var orderedCategories = new List<BuildingCategory>(categories.Count);
+
+            if (categoryDisplayOrder != null)
+            {
+                for (var i = 0; i < categoryDisplayOrder.Length; i++)
+                {
+                    AddCategoryIfPresent(orderedCategories, categories, categoryDisplayOrder[i]);
+                }
+            }
+
+            foreach (BuildingCategory category in Enum.GetValues(typeof(BuildingCategory)))
+            {
+                AddCategoryIfPresent(orderedCategories, categories, category);
+            }
+
+            for (var i = 0; i < categories.Count; i++)
+            {
+                AddCategoryIfPresent(orderedCategories, categories, categories[i]);
+            }
+
+            return orderedCategories;
+        }
+
+        private static void AddCategoryIfPresent(
+            List<BuildingCategory> target,
+            IReadOnlyList<BuildingCategory> source,
+            BuildingCategory category)
+        {
+            if (!IsSingleCategory(category) || !ContainsCategoryValue(source, category) || target.Contains(category))
+            {
+                return;
+            }
+
+            target.Add(category);
+        }
+
+        private static bool ContainsCategoryValue(IReadOnlyList<BuildingCategory> categories, BuildingCategory category)
+        {
+            for (var i = 0; i < categories.Count; i++)
+            {
+                if (categories[i] == category)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void RebuildCategoryButtons(IReadOnlyList<BuildingCategory> categories)
@@ -202,9 +312,12 @@ namespace Landsong.UISystem
 
             BuildingDefinition firstVisibleDefinition = null;
             var selectedStillVisible = false;
+            var visibleEntries = new List<BuildingDisplayEntry>();
+            var definitions = buildingCatalog.Definitions;
 
-            foreach (var definition in buildingCatalog.Definitions)
+            for (var definitionIndex = 0; definitionIndex < definitions.Count; definitionIndex++)
             {
+                var definition = definitions[definitionIndex];
                 if (definition == null || !ContainsCategory(definition.Category, selectedCategory))
                 {
                     continue;
@@ -216,8 +329,17 @@ namespace Landsong.UISystem
                     continue;
                 }
 
+                visibleEntries.Add(new BuildingDisplayEntry(definition, definitionIndex));
+            }
+
+            visibleEntries.Sort(CompareBuildingDisplayEntries);
+
+            for (var i = 0; i < visibleEntries.Count; i++)
+            {
+                var definition = visibleEntries[i].Definition;
+                var availability = Evaluate(definition);
                 var item = GetBuildingItemFromPool();
-                item.Bind(definition, HandleBuildingItemClicked);
+                item.Bind(definition, availability, HandleBuildingItemClicked);
                 buildingItems.Add(item);
 
                 firstVisibleDefinition ??= definition;
@@ -256,6 +378,69 @@ namespace Landsong.UISystem
             itemTransform.SetAsLastSibling();
             item.gameObject.SetActive(true);
             return item;
+        }
+
+        private static int CompareBuildingDisplayEntries(BuildingDisplayEntry left, BuildingDisplayEntry right)
+        {
+            var result = CompareBuildingDefinitionsForDisplay(left.Definition, right.Definition);
+            return result != 0 ? result : left.CatalogIndex.CompareTo(right.CatalogIndex);
+        }
+
+        private static int CompareBuildingDefinitionsForDisplay(BuildingDefinition left, BuildingDefinition right)
+        {
+            if (ReferenceEquals(left, right))
+            {
+                return 0;
+            }
+
+            if (left == null)
+            {
+                return 1;
+            }
+
+            if (right == null)
+            {
+                return -1;
+            }
+
+            var result = left.BuildMenuSortOrder.CompareTo(right.BuildMenuSortOrder);
+            if (result != 0)
+            {
+                return result;
+            }
+
+            result = CompareStableText(left.BuildingId, right.BuildingId);
+            if (result != 0)
+            {
+                return result;
+            }
+
+            result = CompareStableText(left.DisplayName, right.DisplayName);
+            if (result != 0)
+            {
+                return result;
+            }
+
+            return CompareStableText(left.name, right.name);
+        }
+
+        private static int CompareStableText(string left, string right)
+        {
+            left = string.IsNullOrWhiteSpace(left) ? string.Empty : left.Trim();
+            right = string.IsNullOrWhiteSpace(right) ? string.Empty : right.Trim();
+            return string.Compare(left, right, StringComparison.Ordinal);
+        }
+
+        private readonly struct BuildingDisplayEntry
+        {
+            public BuildingDisplayEntry(BuildingDefinition definition, int catalogIndex)
+            {
+                Definition = definition;
+                CatalogIndex = catalogIndex;
+            }
+
+            public BuildingDefinition Definition { get; }
+            public int CatalogIndex { get; }
         }
 
         private void ReleaseActiveBuildingItems()
@@ -390,6 +575,7 @@ namespace Landsong.UISystem
             return availability.FirstUnavailableReason switch
             {
                 BuildingUnavailableReason.Locked => "未解锁",
+                BuildingUnavailableReason.DevelopmentIncomplete => "建筑未开发完成",
                 BuildingUnavailableReason.BuildLimitReached => "数量已达上限",
                 BuildingUnavailableReason.MissingMaterials => "材料不足",
                 _ => "不可用"

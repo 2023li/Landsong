@@ -1,12 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
+using Landsong.CameraSystem;
 using Landsong.GridSystem;
 using Landsong.InputSystem;
 using Landsong.InventorySystem;
+using Landsong.UISystem;
 using UnityEngine;
 using UnityEngine.Tilemaps;
-using UnityEngine.UI;
-using TMPro;
 
 namespace Landsong.BuildingSystem
 {
@@ -22,8 +22,7 @@ namespace Landsong.BuildingSystem
         [Header("Preview")]
         [SerializeField] private Vector3 ghostWorldOffset = Vector3.zero;
         [SerializeField] private Vector3 controlsWorldOffset = new Vector3(0f, -1.25f, 0f);
-        [SerializeField] private Vector2 controlsSize = new Vector2(220f, 72f);
-        [SerializeField, Min(0.001f)] private float controlsWorldScale = 0.01f;
+        [SerializeField, InspectorName("放置控制 UI")] private GamePanel_BuildingPlacementControls placementControls;
         [SerializeField, Min(0f)] private float ghostHitPadding = 0.05f;
         [SerializeField] private bool cancelPlacementOnDisable = true;
 
@@ -37,9 +36,6 @@ namespace Landsong.BuildingSystem
         private BuildingDefinition activeDefinition;
         private GameObject ghostInstance;
         private BuildingView ghostView;
-        private GameObject controlsRoot;
-        private Button confirmButton;
-        private Button cancelButton;
         private GridPosition currentOrigin;
         private bool hasCurrentOrigin;
         private bool currentCanPlace;
@@ -59,6 +55,7 @@ namespace Landsong.BuildingSystem
         {
             ResolveSceneReferences();
             ResolveInputController();
+            ResolvePlacementControls();
         }
 
         private void Update()
@@ -73,6 +70,8 @@ namespace Landsong.BuildingSystem
 
         private void OnEnable()
         {
+            CameraController.AnyCameraViewChanged += HandleCameraViewChanged;
+
             if (isPlacing && isDraggingPlacement)
             {
                 SetCameraInputBlocked(true);
@@ -81,6 +80,8 @@ namespace Landsong.BuildingSystem
 
         private void OnDisable()
         {
+            CameraController.AnyCameraViewChanged -= HandleCameraViewChanged;
+
             if (cancelPlacementOnDisable)
             {
                 CancelPlacement();
@@ -93,7 +94,9 @@ namespace Landsong.BuildingSystem
 
         private void OnDestroy()
         {
+            CameraController.AnyCameraViewChanged -= HandleCameraViewChanged;
             SetCameraInputBlocked(false);
+            ReleasePlacementControls();
             ClearHighlightedTiles();
         }
 
@@ -128,7 +131,7 @@ namespace Landsong.BuildingSystem
             SetCameraInputBlocked(false);
 
             CreateGhost(definition);
-            CreateControls();
+            PreparePlacementControls();
             PlaceAtScreenPosition(GetScreenCenter());
         }
 
@@ -165,13 +168,7 @@ namespace Landsong.BuildingSystem
                 ghostInstance = null;
             }
 
-            if (controlsRoot != null)
-            {
-                Destroy(controlsRoot);
-                controlsRoot = null;
-                confirmButton = null;
-                cancelButton = null;
-            }
+            ReleasePlacementControls();
 
             ClearHighlightedTiles();
         }
@@ -330,10 +327,7 @@ namespace Landsong.BuildingSystem
             MovePreview(placementPosition);
             UpdateFootprintHighlight(new GridFootprint(currentOrigin, activeDefinition.Size), activeDefinition);
 
-            if (confirmButton != null)
-            {
-                confirmButton.interactable = currentCanPlace;
-            }
+            SetPlacementConfirmInteractable(currentCanPlace);
         }
 
         private void RefreshCurrentPlacementState()
@@ -347,10 +341,7 @@ namespace Landsong.BuildingSystem
             currentCanPlace = gridMap.CanOccupy(currentOrigin, activeDefinition.Size, activeDefinition.RequiredTerrainKeys, out _);
             UpdateFootprintHighlight(new GridFootprint(currentOrigin, activeDefinition.Size), activeDefinition);
 
-            if (confirmButton != null)
-            {
-                confirmButton.interactable = currentCanPlace;
-            }
+            SetPlacementConfirmInteractable(currentCanPlace);
         }
 
         private void SetNoCurrentPlacement()
@@ -359,10 +350,7 @@ namespace Landsong.BuildingSystem
             currentCanPlace = false;
             ClearHighlightedTiles();
 
-            if (confirmButton != null)
-            {
-                confirmButton.interactable = false;
-            }
+            SetPlacementConfirmInteractable(false);
         }
 
         private static GridPosition GetPlacementOrigin(Vector2 gridPoint, Vector2Int size)
@@ -386,11 +374,20 @@ namespace Landsong.BuildingSystem
                 ghostInstance.transform.position = ghostPosition;
             }
 
-            if (controlsRoot != null)
+            placementControls?.SetWorldPosition(sourceCamera, ghostPosition + controlsWorldOffset);
+        }
+
+        private void RefreshPlacementControlsPosition()
+        {
+            if (!isPlacing || activeDefinition == null || gridMap == null || !hasCurrentOrigin)
             {
-                controlsRoot.SetActive(true);
-                controlsRoot.transform.position = ghostPosition + controlsWorldOffset;
+                return;
             }
+
+            ResolveSceneReferences();
+            var placementPosition = gridMap.GetFootprintCenter(currentOrigin, activeDefinition.Size);
+            var ghostPosition = placementPosition + ghostWorldOffset;
+            placementControls?.SetWorldPosition(sourceCamera, ghostPosition + controlsWorldOffset);
         }
 
         private void CreateGhost(BuildingDefinition definition)
@@ -431,29 +428,35 @@ namespace Landsong.BuildingSystem
             }
         }
 
-        private void CreateControls()
+        private void PreparePlacementControls()
         {
             ResolveInputController();
             inputController?.EnsureEventSystemExists();
+            ResolvePlacementControls();
 
-            controlsRoot = new GameObject("Building Placement Controls", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
-            controlsRoot.transform.SetParent(transform, false);
-            controlsRoot.transform.localScale = Vector3.one * controlsWorldScale;
-            controlsRoot.SetActive(false);
+            if (placementControls == null)
+            {
+                Debug.LogWarning(
+                    "Cannot show building placement controls because no GamePanel_BuildingPlacementControls exists in the game UI.",
+                    this);
+                return;
+            }
 
-            var rect = controlsRoot.GetComponent<RectTransform>();
-            rect.sizeDelta = controlsSize;
+            placementControls.Bind(this);
+            placementControls.SetConfirmInteractable(false);
+            placementControls.Hide();
+        }
 
-            var canvas = controlsRoot.GetComponent<Canvas>();
-            canvas.renderMode = RenderMode.WorldSpace;
-            canvas.worldCamera = sourceCamera;
-            canvas.sortingOrder = 100;
+        private void ReleasePlacementControls()
+        {
+            if (placementControls == null)
+            {
+                return;
+            }
 
-            confirmButton = CreateControlButton(rect, "确认", new Vector2(0f, 0f), new Vector2(0.48f, 1f));
-            cancelButton = CreateControlButton(rect, "取消", new Vector2(0.52f, 0f), new Vector2(1f, 1f));
-
-            confirmButton.onClick.AddListener(ConfirmPlacement);
-            cancelButton.onClick.AddListener(CancelPlacement);
+            placementControls.Unbind(this);
+            placementControls.SetConfirmInteractable(false);
+            placementControls.Hide();
         }
 
         private bool IsPointerOverUi(Vector2 screenPosition)
@@ -556,41 +559,6 @@ namespace Landsong.BuildingSystem
             return false;
         }
 
-        private static Button CreateControlButton(RectTransform parent, string label, Vector2 anchorMin, Vector2 anchorMax)
-        {
-            var buttonObject = new GameObject(label, typeof(RectTransform), typeof(Image), typeof(Button));
-            buttonObject.transform.SetParent(parent, false);
-
-            var rect = buttonObject.GetComponent<RectTransform>();
-            rect.anchorMin = anchorMin;
-            rect.anchorMax = anchorMax;
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
-
-            var image = buttonObject.GetComponent<Image>();
-            image.color = new Color(0.08f, 0.08f, 0.08f, 0.82f);
-
-            var button = buttonObject.GetComponent<Button>();
-            button.targetGraphic = image;
-
-            var textObject = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
-            textObject.transform.SetParent(buttonObject.transform, false);
-
-            var textRect = textObject.GetComponent<RectTransform>();
-            textRect.anchorMin = Vector2.zero;
-            textRect.anchorMax = Vector2.one;
-            textRect.offsetMin = Vector2.zero;
-            textRect.offsetMax = Vector2.zero;
-
-            var text = textObject.GetComponent<TextMeshProUGUI>();
-            text.text = label;
-            text.fontSize = 28f;
-            text.alignment = TextAlignmentOptions.Center;
-            text.color = Color.white;
-
-            return button;
-        }
-
         private void UpdateFootprintHighlight(GridFootprint footprint, BuildingDefinition definition)
         {
             ClearHighlightedTiles();
@@ -670,6 +638,32 @@ namespace Landsong.BuildingSystem
             {
                 inputController = InputController.Instance;
             }
+        }
+
+        private void ResolvePlacementControls()
+        {
+            if (placementControls == null)
+            {
+                placementControls = FindFirstObjectByType<GamePanel_BuildingPlacementControls>(FindObjectsInactive.Include);
+            }
+        }
+
+        private void SetPlacementConfirmInteractable(bool interactable)
+        {
+            placementControls?.SetConfirmInteractable(interactable);
+        }
+
+        private void HandleCameraViewChanged(CameraController cameraController)
+        {
+            if (cameraController != null
+                && sourceCamera != null
+                && cameraController.SourceCamera != null
+                && cameraController.SourceCamera != sourceCamera)
+            {
+                return;
+            }
+
+            RefreshPlacementControlsPosition();
         }
 
         private void SetCameraInputBlocked(bool blocked)

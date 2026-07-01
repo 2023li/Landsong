@@ -286,22 +286,23 @@ namespace Landsong.GridSystem
 
             var offset = GetLineOffset(layout);
             var planeNormal = GetPlaneNormal(layout);
-            for (var x = 0; x <= gridMap.Width; x++)
+            var bounds = gridMap.BaseCellBounds;
+            for (var x = bounds.xMin; x <= bounds.xMax; x++)
             {
                 AddLineQuad(
                     lineMeshFilter.transform,
-                    layout.GridToWorldPoint(x, 0) + offset,
-                    layout.GridToWorldPoint(x, gridMap.Height) + offset,
+                    layout.GridToWorldPoint(x, bounds.yMin) + offset,
+                    layout.GridToWorldPoint(x, bounds.yMax) + offset,
                     lineColor,
                     planeNormal);
             }
 
-            for (var y = 0; y <= gridMap.Height; y++)
+            for (var y = bounds.yMin; y <= bounds.yMax; y++)
             {
                 AddLineQuad(
                     lineMeshFilter.transform,
-                    layout.GridToWorldPoint(0, y) + offset,
-                    layout.GridToWorldPoint(gridMap.Width, y) + offset,
+                    layout.GridToWorldPoint(bounds.xMin, y) + offset,
+                    layout.GridToWorldPoint(bounds.xMax, y) + offset,
                     lineColor,
                     planeNormal);
             }

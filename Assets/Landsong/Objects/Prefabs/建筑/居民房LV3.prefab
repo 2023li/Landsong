@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7038025968176344244}
+  - component: {fileID: 4580775676133784266}
   m_Layer: 0
   m_Name: "\u5C45\u6C11\u623FLV3"
   m_TagString: Untagged
@@ -32,6 +33,29 @@ Transform:
   - {fileID: 4550187333174451609}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4580775676133784266
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1168208679407931275}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 54c88f4b95d416843a03ca1e1a6baab4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ResidentialHousingLV3
+  definition: {fileID: 11400000, guid: 2e68203d2b588f6438554af380fe792d, type: 2}
+  hasGridPosition: 0
+  gridPosition:
+    x: 0
+    y: 0
+  gridOccupancyId: 
+  doubleClickInterval: 0.3
+  view: {fileID: 2551919506911812701}
+  autoRepair: 0
+  autpUpgrade: 1
+  populationContribution: 3
 --- !u!1 &2002129951321630064
 GameObject:
   m_ObjectHideFlags: 0
@@ -135,7 +159,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 732cba67d2e148e39260027f915f327b, type: 3}
-  m_Name: ""
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.VisualSystem.SpriteFrameAnimator
   targetRenderer: {fileID: 6609076098431848467}
   animations:
@@ -162,7 +186,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 00c77c60ff0d431aa46fcc0b5c77ee71, type: 3}
-  m_Name: ""
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingView
   spriteFrameAnimator: {fileID: 7431672124346185604}
   defaultAnimationKey: default
