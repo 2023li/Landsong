@@ -62,6 +62,8 @@ public class LoadScene_Start : SceneLoadingPipeline
 
 public class LoadScene_Game : SceneLoadingPipeline
 {
+    private const int RestoreBuildingsPerFrame = 16;
+
     public override string TargetSceneName => "Game";
 
     internal static bool Load()
@@ -84,8 +86,9 @@ public class LoadScene_Game : SceneLoadingPipeline
 
     public override IEnumerator OnTargetSceneLoaded()
     {
-        DataManager.Instance.RestoreCurrentGameDataToRuntime();
         SpawnCurrentMap();
+
+        yield return DataManager.Instance.RestoreCurrentGameDataToRuntimeRoutine(RestoreBuildingsPerFrame);
 
         yield return LSSceneTask.WaitForTask(UIManager.Instance.PreloadAsync<UIPanel_Game>());
     }

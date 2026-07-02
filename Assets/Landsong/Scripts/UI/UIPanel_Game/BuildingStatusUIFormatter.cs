@@ -8,25 +8,19 @@ namespace Landsong.UISystem
     {
         public BuildingStatusDisplayData(
             string buildingName,
-            string statusText,
-            string valueLabel,
-            string valueText,
-            string detailText,
+            string statusInfoText,
+            string baseInfoText,
             bool hasAbnormalStatus)
         {
             BuildingName = buildingName;
-            StatusText = statusText;
-            ValueLabel = valueLabel;
-            ValueText = valueText;
-            DetailText = detailText;
+            StatusInfoText = statusInfoText ?? string.Empty;
+            BaseInfoText = baseInfoText ?? string.Empty;
             HasAbnormalStatus = hasAbnormalStatus;
         }
 
         public string BuildingName { get; }
-        public string StatusText { get; }
-        public string ValueLabel { get; }
-        public string ValueText { get; }
-        public string DetailText { get; }
+        public string StatusInfoText { get; }
+        public string BaseInfoText { get; }
         public bool HasAbnormalStatus { get; }
     }
 
@@ -39,32 +33,20 @@ namespace Landsong.UISystem
         {
             var buildingName = GetBuildingName(building);
             var statuses = GetRuntimeStatuses(building);
-            var hasAbnormalStatus = HasAnyStatus(statuses);
-            var statusText = hasAbnormalStatus ? FormatStatuses(statuses) : normalStatusText;
-            var valueLabel = string.Empty;
-            var valueText = string.Empty;
+            var hasAbnormalStatus = BuildingRuntimeStatusCatalog.HasAbnormalStatus(statuses);
+            var statusText = hasAbnormalStatus ? FormatAbnormalStatuses(statuses) : normalStatusText;
+            var baseInfoText = building == null ? string.Empty : building.GetBaseInfo() ?? string.Empty;
 
-            if (building is IBuildingOverviewSource overview)
-            {
-                valueLabel = overview.OverviewValueLabel ?? string.Empty;
-                valueText = overview.OverviewValueText ?? string.Empty;
-            }
-
-            var detailText = FormatDetail(buildingName, statusText, valueLabel, valueText);
             return new BuildingStatusDisplayData(
                 buildingName,
                 statusText,
-                valueLabel,
-                valueText,
-                detailText,
+                baseInfoText,
                 hasAbnormalStatus);
         }
 
         public static IReadOnlyList<BuildingRuntimeStatus> GetRuntimeStatuses(BuildingBase building)
         {
-            return building is IBuildingRuntimeStatusSource statusSource && statusSource.RuntimeStatuses != null
-                ? statusSource.RuntimeStatuses
-                : EmptyStatuses;
+            return building == null ? EmptyStatuses : building.GetRuntimeStatuses() ?? EmptyStatuses;
         }
 
         public static bool HasAnyStatus(IReadOnlyList<BuildingRuntimeStatus> statuses)
@@ -101,9 +83,10 @@ namespace Landsong.UISystem
             return building.name;
         }
 
-        private static string FormatStatuses(IReadOnlyList<BuildingRuntimeStatus> statuses)
+        //格式化异常状态为字符串，多个状态用顿号分隔
+        private static string FormatAbnormalStatuses(IReadOnlyList<BuildingRuntimeStatus> statuses)
         {
-            if (!HasAnyStatus(statuses))
+            if (!BuildingRuntimeStatusCatalog.HasAbnormalStatus(statuses))
             {
                 return string.Empty;
             }
@@ -112,7 +95,7 @@ namespace Landsong.UISystem
             for (var i = 0; i < statuses.Count; i++)
             {
                 var status = statuses[i];
-                if (!status.IsValid)
+                if (!BuildingRuntimeStatusCatalog.IsAbnormalStatus(status))
                 {
                     continue;
                 }
@@ -138,30 +121,5 @@ namespace Landsong.UISystem
             return status.DisplayName;
         }
 
-        private static string FormatDetail(string buildingName, string statusText, string valueLabel, string valueText)
-        {
-            var builder = new StringBuilder();
-            if (!string.IsNullOrWhiteSpace(buildingName))
-            {
-                builder.Append(buildingName);
-                builder.Append("：");
-            }
-
-            builder.Append(string.IsNullOrWhiteSpace(statusText) ? "正常" : statusText);
-
-            if (!string.IsNullOrWhiteSpace(valueText))
-            {
-                builder.Append("，");
-                if (!string.IsNullOrWhiteSpace(valueLabel))
-                {
-                    builder.Append(valueLabel);
-                    builder.Append(" ");
-                }
-
-                builder.Append(valueText);
-            }
-
-            return builder.ToString();
-        }
     }
 }

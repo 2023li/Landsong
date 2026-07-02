@@ -10,6 +10,11 @@ using UnityEngine.UI;
 [DisallowMultipleComponent]
 public sealed class GamePanel_Inventory : MonoBehaviour
 {
+
+    private UIPanel_Game gamePanel;
+    [SerializeField]
+    private Button btn_关闭;
+
     [SerializeField]
     private RectTransform slotRoot;
 
@@ -37,6 +42,11 @@ public sealed class GamePanel_Inventory : MonoBehaviour
         slotRoot = transform as RectTransform;
     }
 
+    private void Awake()
+    {
+        gamePanel = GetComponentInParent<UIPanel_Game>();
+        btn_关闭.onClick.AddListener(gamePanel.Hide_Inventory);
+    }
     private void OnEnable()
     {
         ResolveInventory();
@@ -48,7 +58,7 @@ public sealed class GamePanel_Inventory : MonoBehaviour
     {
         UnsubscribeInventory();
     }
-    [Button]
+    
     public void Show()
     {
         if (!gameObject.activeSelf)
@@ -63,7 +73,7 @@ public sealed class GamePanel_Inventory : MonoBehaviour
 
         RefreshFromGameSystem();
     }
-    [Button]
+   
     public void Hide()
     {
         UnsubscribeInventory();

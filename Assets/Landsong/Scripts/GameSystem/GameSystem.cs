@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using Landsong.BuildingSystem;
 using Landsong.DynastySystem;
+using Landsong.GameEventSystem;
 using Landsong.InventorySystem;
 using Landsong.TurnSystem;
 using Moyo.Unity;
@@ -48,6 +49,9 @@ namespace Landsong
         [ShowInInspector, ReadOnly, LabelText("建筑服务")]
         public BuildingService Buildings { get; private set; }
 
+        [ShowInInspector, ReadOnly, LabelText("事件服务")]
+        public GameEventService Events { get; private set; }
+
         [ShowInInspector, ReadOnly, LabelText("当前建筑选择控制器")]
         public BuildingSelectionController BuildingSelection => buildingSelection;
 
@@ -71,6 +75,7 @@ namespace Landsong
             CreateDynastyService();
             CreateTurnService();
             CreateBuildingService();
+            CreateGameEventService();
             ResolveBuildingSelectionController();
         }
 
@@ -167,6 +172,11 @@ namespace Landsong
                 CreateBuildingService();
             }
 
+            if (Events == null)
+            {
+                CreateGameEventService();
+            }
+
             ResolveBuildingSelectionController();
 
             if (!building.HasDefinition)
@@ -213,7 +223,7 @@ namespace Landsong
         [SerializeField, LabelText("起始回合"), Min(1)] private int startingTurn = 1;
         [SerializeField, LabelText("允许键盘推进回合")] private bool allowKeyboardNextTurn = true;
         [SerializeField, LabelText("下一回合按键")] private Key nextTurnKey = Key.N;
-        [SerializeField, LabelText("每帧处理建筑数"), Min(1)] private int turnBuildingsPerFrame = 16;
+        [SerializeField, LabelText("每帧处理建筑数"), Min(1)] private int turnBuildingsPerFrame = 4;
         [SerializeField, LabelText("输出回合日志")] private bool logTurnResult = true;
 
         public int CurrentTurn => Turn == null ? startingTurn : Turn.CurrentTurn;
@@ -292,6 +302,11 @@ namespace Landsong
             Buildings = new BuildingService(this);
         }
 
+        private void CreateGameEventService()
+        {
+            Events = new GameEventService();
+        }
+
         internal void RegisterBuildingSelectionController(BuildingSelectionController controller)
         {
             if (controller == null)
@@ -341,7 +356,7 @@ namespace Landsong
             }
 
             Debug.Log(
-                $"Advanced to turn {summary.ToTurn}. Processed: {summary.OperatingConsumed}, failed: {summary.Failed}, skipped: {summary.Skipped}.",
+               $"已推进至回合 {summary.ToTurn}。已处理：{summary.OperatingConsumed}，失败：{summary.Failed}，跳过：{summary.Skipped}。",
                 this);
         }
 

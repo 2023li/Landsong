@@ -95,7 +95,13 @@ namespace Landsong.BuildingSystem
             var size = childBuilding.Definition.Size;
             var origin = GetNearestOrigin(gridMap, childBuilding.transform.position, size);
             var occupancyId = CreateOccupancyId(childBuilding, origin);
-            if (!gridMap.TryOccupy(origin, size, occupancyId, childBuilding.Definition.RequiredTerrainKeys, out var failureReason))
+            if (!gridMap.TryOccupy(
+                    origin,
+                    size,
+                    occupancyId,
+                    childBuilding.Definition.RequiredTerrainKeys,
+                    childBuilding.Definition.MovementResistance,
+                    out var failureReason))
             {
                 Debug.LogWarning(
                     $"Cannot apply initial placement for child building '{childBuilding.name}' at {origin}: {failureReason}.",

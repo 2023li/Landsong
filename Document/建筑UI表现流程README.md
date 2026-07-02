@@ -27,13 +27,13 @@
 
 ### 建筑运行状态
 
-建筑如果需要向 UI 暴露异常状态，实现：
+建筑如果需要向 UI 暴露异常状态，重写：
 
 ```csharp
-IBuildingRuntimeStatusSource
+BuildingBase.GetRuntimeStatuses()
 ```
 
-该接口返回 `RuntimeStatuses`，每个状态由 `BuildingRuntimeStatus` 表示。
+该方法返回一组 `BuildingRuntimeStatus`。默认实现返回空列表，UI 会视为正常。
 
 常见状态示例：
 
@@ -46,18 +46,17 @@ IBuildingRuntimeStatusSource
 
 ### 建筑概览数值
 
-建筑如果需要在列表里显示关键数值，实现：
+建筑如果需要在列表里显示关键数值，重写：
 
 ```csharp
-IBuildingOverviewSource
+BuildingBase.GetsOveriewMessage()
 ```
 
 例如居民房 LV1：
 
-- `OverviewValueLabel`: `人口`
-- `OverviewValueText`: `4/5`
+- `OverviewText`: `人口 4/5`
 
-UI 会组合成：
+UI 会直接显示：
 
 ```text
 居民房LV1 人口 4/5
@@ -105,10 +104,10 @@ private IReadOnlyList<BuildingDetailSection> CreateDetailSections()
 职责区分：
 
 ```text
-IBuildingRuntimeStatusSource
+BuildingBase.GetRuntimeStatuses()
 = 异常/提醒状态，例如“人口衰减”“工人不足”
 
-IBuildingOverviewSource
+BuildingBase.GetsOveriewMessage()
 = 概览列表和底部栏的一行短信息
 
 IBuildingDetailSource
@@ -146,25 +145,21 @@ BuildingBase building;
 正确思路：
 
 ```text
-判断 building 是否实现某个接口。
-如果实现，就读取接口里的结构化字段。
+直接调用 building 提供的基类方法。
+方法返回结构化状态数据，空列表表示正常。
 ```
 
 例如：
 
 ```csharp
-if (building is IBuildingRuntimeStatusSource statusSource)
-{
-    IReadOnlyList<BuildingRuntimeStatus> statuses = statusSource.RuntimeStatuses;
-}
+IReadOnlyList<BuildingRuntimeStatus> statuses = building.GetRuntimeStatuses();
 ```
 
 这句代码的意思是：
 
 ```text
-如果这个建筑实现了 IBuildingRuntimeStatusSource，
-就把它当成 statusSource 使用，
-然后读取 RuntimeStatuses。
+调用建筑的 GetRuntimeStatuses()，
+读取它返回的 BuildingRuntimeStatus 列表。
 ```
 
 ### 示例：点击建筑后打印信息
@@ -244,27 +239,20 @@ public sealed class BuildingClickPrintExample : MonoBehaviour
 
     private static void PrintOverviewInfo(BuildingBase targetBuilding)
     {
-        // 不是所有建筑都有概览信息，所以先判断接口。
-        if (targetBuilding is not IBuildingOverviewSource overviewSource)
+        string overviewText = targetBuilding.GetsOveriewMessage();
+        if (string.IsNullOrWhiteSpace(overviewText))
         {
             return;
         }
 
         Debug.Log(
-            $"概览：{overviewSource.OverviewValueLabel} {overviewSource.OverviewValueText}",
+            $"概览：{overviewText}",
             targetBuilding);
     }
 
     private static void PrintRuntimeStatuses(BuildingBase targetBuilding)
     {
-        // 不是所有建筑都有异常状态，所以先判断接口。
-        if (targetBuilding is not IBuildingRuntimeStatusSource statusSource)
-        {
-            Debug.Log("状态：正常", targetBuilding);
-            return;
-        }
-
-        IReadOnlyList<BuildingRuntimeStatus> statuses = statusSource.RuntimeStatuses;
+        IReadOnlyList<BuildingRuntimeStatus> statuses = targetBuilding.GetRuntimeStatuses();
         if (statuses == null || statuses.Count == 0)
         {
             Debug.Log("状态：正常", targetBuilding);
@@ -363,19 +351,16 @@ public void ShowBuildingDetail(BuildingBase building)
         return;
     }
 
-    if (building is IBuildingOverviewSource overviewSource)
+    string overviewText = building.GetsOveriewMessage();
+    if (!string.IsNullOrWhiteSpace(overviewText))
     {
-        string label = overviewSource.OverviewValueLabel;
-        string value = overviewSource.OverviewValueText;
-
-        // 这里可以把 label 和 value 填到 TMP_Text。
-        Debug.Log($"{label}：{value}", building);
+        // 这里可以把概览短文本填到 TMP_Text。
+        Debug.Log(overviewText, building);
     }
 
-    if (building is IBuildingRuntimeStatusSource statusSource)
+    IReadOnlyList<BuildingRuntimeStatus> statuses = building.GetRuntimeStatuses();
+    if (statuses != null)
     {
-        IReadOnlyList<BuildingRuntimeStatus> statuses = statusSource.RuntimeStatuses;
-
         for (int i = 0; i < statuses.Count; i++)
         {
             BuildingRuntimeStatus status = statuses[i];
@@ -391,12 +376,12 @@ public void ShowBuildingDetail(BuildingBase building)
 }
 ```
 
-所以“解析信息”的本质不是解析文本，而是按接口读取结构化数据：
+所以“解析信息”的本质不是解析文本，而是按基类方法和接口读取结构化数据：
 
 ```text
 BuildingBase
--> 判断是否实现 IBuildingOverviewSource
--> 判断是否实现 IBuildingRuntimeStatusSource
+-> 调用 GetsOveriewMessage() 读取概览短文本
+-> 调用 GetRuntimeStatuses() 读取运行状态
 -> 判断是否实现 IBuildingResourceConsumptionSource
 -> 判断是否实现 IBuildingResourceProductionSource
 -> 判断是否实现 IBuildingTaxSource
@@ -506,7 +491,7 @@ Marker Manager 不需要每帧刷新。
 ```csharp
 TurnService.TurnAdvanced
 BuildingService.Buildings
-IBuildingRuntimeStatusSource.RuntimeStatuses
+BuildingBase.GetRuntimeStatuses()
 ```
 
 职责：
@@ -973,18 +958,21 @@ private void DecayPopulation()
 }
 ```
 
-### 第 4 步：实现 `IBuildingRuntimeStatusSource`
+### 第 4 步：重写 `GetRuntimeStatuses()`
 
-建筑类实现接口：
+建筑类重写基类方法：
 
 ```csharp
-public class ResidentialHousingLV1 : BuildingBase, IBuildingRuntimeStatusSource
+public class ResidentialHousingLV1 : BuildingBase
 {
-    public IReadOnlyList<BuildingRuntimeStatus> RuntimeStatuses => CreateRuntimeStatuses();
+    public override IReadOnlyList<BuildingRuntimeStatus> GetRuntimeStatuses()
+    {
+        return CreateRuntimeStatuses();
+    }
 }
 ```
 
-### 第 5 步：在 `RuntimeStatuses` 中返回状态
+### 第 5 步：在 `GetRuntimeStatuses()` 中返回状态
 
 `BuildingRuntimeStatus` 的参数含义：
 
@@ -1102,7 +1090,7 @@ GameSystem.Instance.Buildings.Buildings
 然后读取每个建筑的：
 
 ```csharp
-IBuildingRuntimeStatusSource.RuntimeStatuses
+BuildingBase.GetRuntimeStatuses()
 ```
 
 如果状态里有 `EventMessage`，就直接显示这条消息：
@@ -1190,8 +1178,8 @@ private IReadOnlyList<BuildingRuntimeStatus> CreateRuntimeStatuses()
 新增建筑如果要接入这套 UI：
 
 1. 在建筑脚本中维护自己的运行状态。
-2. 实现 `IBuildingRuntimeStatusSource` 暴露异常状态。
-3. 如需显示概览数值，实现 `IBuildingOverviewSource`。
+2. 重写 `GetRuntimeStatuses()` 暴露异常状态。
+3. 如需显示概览数值，重写 `GetsOveriewMessage()`。
 4. 在状态变化后调用建筑的状态变化通知。
 5. UI 会通过 `BuildingService.Buildings` 自动刷新列表和 Marker。
 

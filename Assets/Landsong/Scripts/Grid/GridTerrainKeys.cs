@@ -5,6 +5,7 @@ namespace Landsong.GridSystem
         public const string Land = "陆地";
         public const string Water = "水域";
         public const string Road = "道路";
+        public const string AdvancedRoad = "高级道路";
 
         public static string Normalize(string key)
         {

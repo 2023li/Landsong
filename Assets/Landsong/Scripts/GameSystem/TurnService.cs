@@ -17,6 +17,7 @@ namespace Landsong.TurnSystem
 
         public event Action<TurnService> BeforeTurnAdvanced;
         public event Action<TurnService, TurnAdvanceSummary> TurnAdvanced;
+        public event Action<TurnService, BuildingResourceProvidedEvent> BuildingResourceProvided;
 
         public int CurrentTurn { get; private set; }
         public bool IsAdvancingTurn { get; private set; }
@@ -167,7 +168,61 @@ namespace Landsong.TurnSystem
             }
 
             summary.OperatingConsumed++;
+            NotifyProvidedResources(building);
         }
+
+        private void NotifyProvidedResources(BuildingBase building)
+        {
+            if (BuildingResourceProvided == null || building == null)
+            {
+                return;
+            }
+
+            if (building is IBuildingResourceProductionSource productionSource)
+            {
+                NotifyProvidedResources(building, productionSource.LastResourceProductions);
+            }
+
+            if (building is IBuildingTaxSource taxSource)
+            {
+                NotifyProvidedResources(building, taxSource.LastTaxRewards);
+            }
+        }
+
+        private void NotifyProvidedResources(BuildingBase building, IReadOnlyList<BuildingResourceChange> resources)
+        {
+            if (resources == null)
+            {
+                return;
+            }
+
+            for (var i = 0; i < resources.Count; i++)
+            {
+                var resource = resources[i];
+                if (!resource.IsValid)
+                {
+                    continue;
+                }
+
+                BuildingResourceProvided?.Invoke(this, new BuildingResourceProvidedEvent(building, resource));
+            }
+        }
+    }
+
+    [Serializable]
+    public readonly struct BuildingResourceProvidedEvent
+    {
+        public BuildingResourceProvidedEvent(BuildingBase building, BuildingResourceChange resource)
+        {
+            Building = building;
+            Resource = resource;
+        }
+
+        public BuildingBase Building { get; }
+        public BuildingResourceChange Resource { get; }
+        public string ItemId => Resource.ItemId;
+        public int Amount => Resource.Amount;
+        public bool IsValid => Building != null && Resource.IsValid;
     }
 
     [Serializable]

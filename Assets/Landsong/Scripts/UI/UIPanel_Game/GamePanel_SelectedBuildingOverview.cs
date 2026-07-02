@@ -37,15 +37,8 @@ namespace Landsong.UISystem
             BuildingStatusDisplayData data = BuildingStatusUIFormatter.CreateDisplayData(building);
             SetActive(root, true);
             SetText(buildingNameLabel, data.BuildingName);
-            SetText(statusLabel, data.StatusText);
-
-            string valueText = data.ValueText;
-            if (!string.IsNullOrWhiteSpace(data.ValueLabel))
-            {
-                valueText = $"{data.ValueLabel} {data.ValueText}";
-            }
-
-            SetText(valueLabel, valueText);
+            SetText(statusLabel, data.StatusInfoText);
+            SetText(valueLabel, data.BaseInfoText);
         }
 
         public void Hide()

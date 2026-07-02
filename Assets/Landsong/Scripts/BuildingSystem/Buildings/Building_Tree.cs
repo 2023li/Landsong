@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace Landsong.BuildingSystem
@@ -20,7 +21,7 @@ namespace Landsong.BuildingSystem
 
             if (currentHealth <= 0)
             {
-                currentHealth = Random.Range(minHealth, maxHealth + 1);
+                currentHealth = UnityEngine.Random.Range(minHealth, maxHealth + 1);
             }
         }
 
@@ -36,6 +37,26 @@ namespace Landsong.BuildingSystem
         {
             return true;
         }
+
+        protected override BuildingDataBase CaptureBuildingData()
+        {
+            return new TreeData
+            {
+                CurrentHealth = currentHealth
+            };
+        }
+
+        protected override void RestoreBuildingData(BuildingDataBase data)
+        {
+            if (data is not TreeData treeData)
+            {
+                return;
+            }
+
+            currentHealth = Mathf.Max(0, treeData.CurrentHealth);
+        }
+
+        
         protected override void OnClicked()
         {
             Debug.Log("点击");
@@ -98,6 +119,11 @@ namespace Landsong.BuildingSystem
             currentHealth = Mathf.Max(0, currentHealth);
         }
 
+        [Serializable]
+        private sealed class TreeData : BuildingDataBase
+        {
+            public int CurrentHealth;
+        }
 
     }
 }

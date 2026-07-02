@@ -12,6 +12,10 @@ namespace Landsong.UISystem
 {
     public sealed class GamePanel_Building : MonoBehaviour
     {
+        //我能保证引用正确合法 你只用关注业务逻辑
+        [SerializeField] private Toggle btn_拆除模式;
+
+
 
         private UIPanel_Game gamePanel;
         [ShowInInspector, ReadOnly, LabelText("建筑目录")] private BuildingCatalog buildingCatalog;
@@ -57,6 +61,7 @@ namespace Landsong.UISystem
         private readonly List<GamePanel_BuildingItem> buildingItemPool = new List<GamePanel_BuildingItem>();
         private BuildingCategory selectedCategory = BuildingCategory.None;
         private BuildingBase selectedBuildingPrefab;
+        private BuildingPlacementController subscribedPlacementController;
         private bool subscribedToInventory;
         private bool subscribedToBuildings;
 
@@ -72,6 +77,10 @@ namespace Landsong.UISystem
                 closeButton.onClick.AddListener(HandleCloseButtonClicked);
             }
 
+            if (btn_拆除模式 != null)
+            {
+                btn_拆除模式.onValueChanged.AddListener(HandleDemolitionModeToggleChanged);
+            }
         }
 
         private void OnDestroy()
@@ -80,12 +89,21 @@ namespace Landsong.UISystem
             {
                 closeButton.onClick.RemoveListener(HandleCloseButtonClicked);
             }
+
+            if (btn_拆除模式 != null)
+            {
+                btn_拆除模式.onValueChanged.RemoveListener(HandleDemolitionModeToggleChanged);
+            }
+
+            UnsubscribePlacementController();
         }
 
         private void OnEnable()
         {
             ResolveGameSystem();
             ResolvePlacementController();
+            SubscribePlacementController();
+            SyncDemolitionToggleFromController();
             SubscribeRuntimeChanges();
             Refresh();
         }
@@ -93,6 +111,7 @@ namespace Landsong.UISystem
         private void OnDisable()
         {
             UnsubscribeRuntimeChanges();
+            UnsubscribePlacementController();
         }
 
 
@@ -168,6 +187,35 @@ namespace Landsong.UISystem
             }
 
             placementController = FindFirstObjectByType<BuildingPlacementController>(FindObjectsInactive.Include);
+        }
+
+        private void SubscribePlacementController()
+        {
+            if (subscribedPlacementController == placementController)
+            {
+                return;
+            }
+
+            UnsubscribePlacementController();
+
+            if (placementController == null)
+            {
+                return;
+            }
+
+            placementController.DemolitionModeChanged += HandlePlacementDemolitionModeChanged;
+            subscribedPlacementController = placementController;
+        }
+
+        private void UnsubscribePlacementController()
+        {
+            if (subscribedPlacementController == null)
+            {
+                return;
+            }
+
+            subscribedPlacementController.DemolitionModeChanged -= HandlePlacementDemolitionModeChanged;
+            subscribedPlacementController = null;
         }
 
         private List<BuildingCategory> CollectCategories()
@@ -517,10 +565,58 @@ namespace Landsong.UISystem
 
             if (placementController != null)
             {
+                DisableDemolitionMode();
                 placementController.BeginPlacement(buildingPrefab);
             }
 
             buildingSelected.Invoke(buildingPrefab);
+        }
+
+        private void HandleDemolitionModeToggleChanged(bool isOn)
+        {
+            ResolvePlacementController();
+            SubscribePlacementController();
+            if (placementController == null)
+            {
+                SetDemolitionToggleWithoutNotify(false);
+                return;
+            }
+
+            if (isOn)
+            {
+                placementController.BeginDemolitionMode();
+            }
+            else if (placementController.IsDemolitionMode)
+            {
+                placementController.CancelPlacement();
+            }
+        }
+
+        private void HandlePlacementDemolitionModeChanged(bool isActive)
+        {
+            SetDemolitionToggleWithoutNotify(isActive);
+        }
+
+        private void DisableDemolitionMode()
+        {
+            SetDemolitionToggleWithoutNotify(false);
+            if (placementController != null && placementController.IsDemolitionMode)
+            {
+                placementController.CancelPlacement();
+            }
+        }
+
+        private void SyncDemolitionToggleFromController()
+        {
+            SetDemolitionToggleWithoutNotify(placementController != null && placementController.IsDemolitionMode);
+        }
+
+        private void SetDemolitionToggleWithoutNotify(bool isOn)
+        {
+            if (btn_拆除模式 != null)
+            {
+                btn_拆除模式.SetIsOnWithoutNotify(isOn);
+            }
         }
 
         private void SetSelectedBuilding(BuildingBase buildingPrefab)

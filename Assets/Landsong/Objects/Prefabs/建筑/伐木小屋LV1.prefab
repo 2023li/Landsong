@@ -146,6 +146,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8695873954480700809}
   - component: {fileID: 1451453777161291500}
+  - component: {fileID: 1444196072812716139}
   m_Layer: 0
   m_Name: "\u4F10\u6728\u5C0F\u5C4BLV1"
   m_TagString: Untagged
@@ -206,7 +207,13 @@ MonoBehaviour:
     x: 0
     y: 0
   gridOccupancyId: 
+  isResourceProviderPoint: 0
   doubleClickInterval: 0.3
+  playClickScaleFeedback: 1
+  clickScaleMultiplier: 1.12
+  clickScaleDuration: 0.18
+  clickSound: {fileID: 0}
+  doubleClickSound: {fileID: 0}
   view: {fileID: 6895812447475439656}
   autoRepair: 0
   autpUpgrade: 1
@@ -250,3 +257,49 @@ MonoBehaviour:
     - rid: 5711026153326903378
       type: {class: GameCondition_True, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
       data: 
+--- !u!61 &1444196072812716139
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5076905444672905058}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0.004307449, y: -0.020460755}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0, y: 0}
+    oldSize: {x: 0, y: 0}
+    newSize: {x: 0, y: 0}
+    adaptiveTilingThreshold: 0
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  m_Size: {x: 0.5821692, y: 0.5670931}
+  m_EdgeRadius: 0

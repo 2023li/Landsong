@@ -19,6 +19,8 @@ public class PlayerHomeLV4 : BuildingBase
         return true;
     }
 
+  
+
     protected override void OnDemolished()
     {
         GameSystem?.Dynasty?.UnregisterPalace(this);

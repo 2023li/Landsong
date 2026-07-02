@@ -32,11 +32,7 @@ namespace Landsong.UISystem
             }
         }
 
-        public void Bind(
-            int index,
-            BuildingBase targetBuilding,
-            BuildingStatusDisplayData data,
-            Action<BuildingBase> onClicked)
+        public void Bind(int index, BuildingBase targetBuilding,BuildingStatusDisplayData data,Action<BuildingBase> onClicked)
         {
             if (button != null)
             {
@@ -48,8 +44,8 @@ namespace Landsong.UISystem
 
             SetText(indexLabel, index > 0 ? index.ToString() : string.Empty);
             SetText(buildingNameLabel, data.BuildingName);
-            SetText(statusLabel, data.StatusText);
-            SetText(valueLabel, FormatValue(data));
+            SetText(statusLabel, data.StatusInfoText);
+            SetText(valueLabel, data.BaseInfoText);
             SetActive(abnormalRoot, data.HasAbnormalStatus);
             SetActive(normalRoot, !data.HasAbnormalStatus);
 
@@ -81,18 +77,6 @@ namespace Landsong.UISystem
         private void HandleClicked()
         {
             clicked?.Invoke(building);
-        }
-
-        private static string FormatValue(BuildingStatusDisplayData data)
-        {
-            if (string.IsNullOrWhiteSpace(data.ValueText))
-            {
-                return string.Empty;
-            }
-
-            return string.IsNullOrWhiteSpace(data.ValueLabel)
-                ? data.ValueText
-                : $"{data.ValueLabel} {data.ValueText}";
         }
 
         private static void SetText(TMP_Text label, string value)

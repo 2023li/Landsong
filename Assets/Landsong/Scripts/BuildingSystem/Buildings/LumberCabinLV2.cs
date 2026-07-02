@@ -17,4 +17,6 @@ public class LumberCabinLV2 : BuildingBase
     {
         throw new System.NotImplementedException();
     }
+
+   
 }

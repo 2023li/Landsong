@@ -19,9 +19,7 @@ namespace Landsong.UISystem
         [SerializeField] private bool showNormalBuildings = true;
         [SerializeField] private bool sortAbnormalBuildingsFirst = true;
         [SerializeField] private bool focusBuildingOnItemClick = true;
-        [SerializeField] private bool showMessageOnItemClick = true;
         private CameraController cameraController;
-        private GamePanel_BuildingMessageBar messageBar;
 
         private readonly List<GamePanel_BuildingStatusOverviewItem> activeItems = new List<GamePanel_BuildingStatusOverviewItem>();
         private readonly List<GamePanel_BuildingStatusOverviewItem> itemPool = new List<GamePanel_BuildingStatusOverviewItem>();
@@ -86,10 +84,6 @@ namespace Landsong.UISystem
                 cameraController = FindFirstObjectByType<CameraController>(FindObjectsInactive.Include);
             }
 
-            if (messageBar == null)
-            {
-                messageBar = gamePanel.BuildingMessageBar;
-            }
         }
 
         private List<BuildingBase> CollectVisibleBuildings()
@@ -193,15 +187,6 @@ namespace Landsong.UISystem
                 cameraController?.FocusOnBuilding(building);
             }
 
-            if (showMessageOnItemClick)
-            {
-                if (messageBar == null)
-                {
-                    messageBar = FindFirstObjectByType<GamePanel_BuildingMessageBar>(FindObjectsInactive.Include);
-                }
-
-                messageBar?.ShowBuildingMessage(building);
-            }
         }
 
         private void SubscribeBuildings()

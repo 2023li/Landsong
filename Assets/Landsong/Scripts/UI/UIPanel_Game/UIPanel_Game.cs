@@ -6,23 +6,25 @@ using UnityEngine;
 
 public class UIPanel_Game : UIPanelBase
 {
+    [SerializeField] private RectTransform gameMarkRoot;
     [SerializeField] private GamePanel_HUD hudPanel;
     [SerializeField] private GamePanel_Inventory inventoryPanel;
     [SerializeField] private GamePanel_Building buildingPanel;
     [SerializeField] private GamePanel_BuildingPlacementControls buildingPlacementControls;
     [SerializeField] private GamePanel_BuildingStatusOverview buildingStatusOverview;
 
-    [SerializeField] private GamePanel_BuildingMessageBar buildingMessageBar;
     [SerializeField] private GamePanel_BuildingEventMessageList buildingEventMessageList;
     [SerializeField] private GamePanel_SelectedBuildingOverview selectedBuildingOverview;
     [SerializeField] private GamePanel_BuildingDetaiPopup buildingDetailPopup;
     [SerializeField] private GamePanel_BuildingSelectionView buildingSelectionView;
-    public GamePanel_BuildingMessageBar BuildingMessageBar => buildingMessageBar;
+
+    public RectTransform GameMarkRoot => gameMarkRoot;
     public GamePanel_BuildingEventMessageList BuildingEventMessageList => buildingEventMessageList;
     public GamePanel_SelectedBuildingOverview SelectedBuildingOverview => selectedBuildingOverview;
     public GamePanel_BuildingDetaiPopup BuildingDetailPopup => buildingDetailPopup;
     public GamePanel_BuildingSelectionView BuildingSelectionView => buildingSelectionView;
     public GamePanel_BuildingPlacementControls BuildingPlacementControls => buildingPlacementControls;
+
     private void Reset()
     {
         GetReference();
@@ -55,6 +57,10 @@ public class UIPanel_Game : UIPanelBase
         {
             Debug.LogWarning($"{nameof(UIPanel_Game)} has no inventory panel assigned.", this);
         }
+    }
+    internal void Hide_Inventory()
+    {
+        inventoryPanel.Hide();
     }
 
 
@@ -117,10 +123,6 @@ public class UIPanel_Game : UIPanelBase
         {
             buildingPlacementControls = GetComponentInChildren<GamePanel_BuildingPlacementControls>(true);
         }
-        if (buildingMessageBar == null)
-        {
-            buildingMessageBar = GetComponentInChildren<GamePanel_BuildingMessageBar>(true);
-        }
         if (buildingEventMessageList == null)
         {
             buildingEventMessageList = GetComponentInChildren<GamePanel_BuildingEventMessageList>(true);
@@ -142,5 +144,4 @@ public class UIPanel_Game : UIPanelBase
             buildingStatusOverview = GetComponentInChildren<GamePanel_BuildingStatusOverview>();
         }
     }
-
 }

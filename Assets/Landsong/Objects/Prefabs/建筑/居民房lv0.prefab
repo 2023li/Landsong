@@ -205,7 +205,10 @@ MonoBehaviour:
     x: 0
     y: 0
   gridOccupancyId: 
+  isResourceProviderPoint: 0
   doubleClickInterval: 0.3
+  autoCreateClickCollider2D: 0
+  minimumClickColliderSize: {x: 0, y: 0}
   playClickScaleFeedback: 1
   clickScaleMultiplier: 1.12
   clickScaleDuration: 0.18
@@ -250,7 +253,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3

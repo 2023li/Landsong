@@ -10,8 +10,6 @@ namespace Landsong.UISystem
 {
     public sealed class BuildingStatusMarkerManager : MonoBehaviour
     {
-        private const string MarkerRootName = "BuildingStatusMarkerRoot";
-
         [SerializeField, Required] private BuildingStatusMarker markerPrefab;
 
         [FoldoutGroup("选填")]
@@ -29,28 +27,31 @@ namespace Landsong.UISystem
         [FoldoutGroup("选填")]
         [SerializeField] private bool focusBuildingOnMarkerClick = true;
 
-        [FoldoutGroup("选填")]
-        [SerializeField] private bool showMessageOnMarkerClick = true;
-
         private readonly Dictionary<BuildingBase, BuildingStatusMarker> activeMarkers = new Dictionary<BuildingBase, BuildingStatusMarker>();
         private readonly List<BuildingStatusMarker> markerPool = new List<BuildingStatusMarker>();
         private readonly HashSet<BuildingBase> subscribedBuildings = new HashSet<BuildingBase>();
         private Landsong.GameSystem gameSystem;
         private BuildingService buildings;
+        private BuildingService subscribedBuildingService;
         private Canvas markerCanvas;
         private RectTransform markerRoot;
-        private GamePanel_BuildingMessageBar messageBar;
+        private CameraController subscribedCameraController;
         private bool subscribedToBuildings;
         private bool subscribedToCamera;
         private Coroutine delayedResolveCoroutine;
 
         private void OnEnable()
         {
+            RefreshRuntimeBindingsAndMarkers();
+        }
+
+        private void RefreshRuntimeBindingsAndMarkers()
+        {
             ResolveReferences();
             SubscribeBuildings();
             SubscribeCamera();
             RefreshBuildingSubscriptions();
-            RefreshMarkers();
+            RefreshMarkersFromCurrentReferences();
             QueueDelayedResolveIfNeeded();
         }
 
@@ -66,6 +67,12 @@ namespace Landsong.UISystem
         public void RefreshMarkers()
         {
             ResolveReferences();
+            RefreshMarkersFromCurrentReferences();
+            QueueDelayedResolveIfNeeded();
+        }
+
+        private void RefreshMarkersFromCurrentReferences()
+        {
             ReleaseAllMarkers();
 
             if (markerPrefab == null || buildings == null || markerRoot == null)
@@ -99,15 +106,17 @@ namespace Landsong.UISystem
         private void ResolveReferences()
         {
             gameSystem = Landsong.GameSystem.Instance;
-            buildings = gameSystem == null ? null : gameSystem.Buildings;
+            SetBuildingService(gameSystem == null ? null : gameSystem.Buildings);
 
             if (TryGetGamePanelFromUIManager(out var gamePanel))
             {
-                markerCanvas = gamePanel.GetComponentInParent<Canvas>(true);
-                messageBar = gamePanel.BuildingMessageBar;
+                ResolveMarkerRoot(gamePanel);
             }
-
-            EnsureMarkerRoot();
+            else
+            {
+                markerCanvas = null;
+                markerRoot = null;
+            }
 
             if (cameraController == null)
             {
@@ -118,7 +127,7 @@ namespace Landsong.UISystem
         private static bool TryGetGamePanelFromUIManager(out UIPanel_Game gamePanel)
         {
             var uiManager = UIManager.Instance;
-            if (uiManager != null && uiManager.TryGetActivePanel(out gamePanel))
+            if (uiManager != null && uiManager.TryGetActivePanel<UIPanel_Game>(out gamePanel))
             {
                 return gamePanel != null;
             }
@@ -127,36 +136,27 @@ namespace Landsong.UISystem
             return false;
         }
 
-        private void EnsureMarkerRoot()
+        private void ResolveMarkerRoot(UIPanel_Game gamePanel)
         {
-            if (markerCanvas == null)
+            markerRoot = gamePanel == null ? null : gamePanel.GameMarkRoot;
+            markerCanvas = markerRoot == null ? null : markerRoot.GetComponentInParent<Canvas>(true);
+
+            if (markerRoot != null)
             {
-                markerRoot = null;
+                markerRoot.gameObject.SetActive(true);
+            }
+        }
+
+        private void SetBuildingService(BuildingService resolvedBuildings)
+        {
+            if (buildings == resolvedBuildings)
+            {
                 return;
             }
 
-            if (markerRoot != null && markerRoot.parent == markerCanvas.transform)
-            {
-                markerRoot.SetAsFirstSibling();
-                return;
-            }
-
-            var existingRoot = markerCanvas.transform.Find(MarkerRootName);
-            if (existingRoot != null)
-            {
-                markerRoot = existingRoot as RectTransform;
-            }
-
-            if (markerRoot == null)
-            {
-                var rootObject = new GameObject(MarkerRootName, typeof(RectTransform));
-                markerRoot = rootObject.GetComponent<RectTransform>();
-                markerRoot.SetParent(markerCanvas.transform, false);
-            }
-
-            markerRoot.gameObject.SetActive(true);
-            markerRoot.SetAsFirstSibling();
-            StretchToParent(markerRoot);
+            UnsubscribeBuildings();
+            UnsubscribeBuildingStates();
+            buildings = resolvedBuildings;
         }
 
         private BuildingStatusMarker GetMarkerFromPool()
@@ -173,7 +173,7 @@ namespace Landsong.UISystem
                 marker = Instantiate(markerPrefab);
             }
 
-            marker.transform.SetParent(markerRoot == null ? transform : markerRoot, false);
+            marker.transform.SetParent(markerRoot, false);
             marker.gameObject.SetActive(true);
             return marker;
         }
@@ -190,7 +190,10 @@ namespace Landsong.UISystem
 
                 marker.Unbind();
                 marker.gameObject.SetActive(false);
-                marker.transform.SetParent(markerRoot == null ? transform : markerRoot, false);
+                if (markerRoot != null)
+                {
+                    marker.transform.SetParent(markerRoot, false);
+                }
                 markerPool.Add(marker);
             }
 
@@ -319,11 +322,6 @@ namespace Landsong.UISystem
                 cameraController?.FocusOnBuilding(building);
             }
 
-            if (showMessageOnMarkerClick)
-            {
-                ResolveReferences();
-                messageBar?.ShowBuildingMessage(building);
-            }
         }
 
         private static bool CanShowMarker(BuildingBase building)
@@ -333,34 +331,38 @@ namespace Landsong.UISystem
 
         private void SubscribeBuildings()
         {
-            if (subscribedToBuildings || buildings == null)
+            if (buildings == null)
             {
                 return;
             }
 
+            if (subscribedToBuildings && subscribedBuildingService == buildings)
+            {
+                return;
+            }
+
+            UnsubscribeBuildings();
             buildings.BuildingsChanged += HandleBuildingsChanged;
+            subscribedBuildingService = buildings;
             subscribedToBuildings = true;
         }
 
         private void UnsubscribeBuildings()
         {
-            if (!subscribedToBuildings || buildings == null)
+            if (!subscribedToBuildings || subscribedBuildingService == null)
             {
+                subscribedBuildingService = null;
                 subscribedToBuildings = false;
                 return;
             }
 
-            buildings.BuildingsChanged -= HandleBuildingsChanged;
+            subscribedBuildingService.BuildingsChanged -= HandleBuildingsChanged;
+            subscribedBuildingService = null;
             subscribedToBuildings = false;
         }
 
         private void SubscribeCamera()
         {
-            if (subscribedToCamera)
-            {
-                return;
-            }
-
             if (cameraController == null)
             {
                 cameraController = FindFirstObjectByType<CameraController>(FindObjectsInactive.Include);
@@ -371,19 +373,29 @@ namespace Landsong.UISystem
                 return;
             }
 
+            if (subscribedToCamera && subscribedCameraController == cameraController)
+            {
+                return;
+            }
+
+            UnsubscribeCamera();
+
             cameraController.CameraViewChanged += HandleCameraViewChanged;
+            subscribedCameraController = cameraController;
             subscribedToCamera = true;
         }
 
         private void UnsubscribeCamera()
         {
-            if (!subscribedToCamera || cameraController == null)
+            if (!subscribedToCamera || subscribedCameraController == null)
             {
+                subscribedCameraController = null;
                 subscribedToCamera = false;
                 return;
             }
 
-            cameraController.CameraViewChanged -= HandleCameraViewChanged;
+            subscribedCameraController.CameraViewChanged -= HandleCameraViewChanged;
+            subscribedCameraController = null;
             subscribedToCamera = false;
         }
 
@@ -423,9 +435,11 @@ namespace Landsong.UISystem
 
         private void HandleBuildingsChanged(BuildingService changedBuildings)
         {
-            buildings = changedBuildings;
+            SetBuildingService(changedBuildings);
+            SubscribeBuildings();
             RefreshBuildingSubscriptions();
-            RefreshMarkers();
+            RefreshMarkersFromCurrentReferences();
+            QueueDelayedResolveIfNeeded();
         }
 
         private void HandleBuildingStateChanged(BuildingBase changedBuilding)
@@ -440,30 +454,43 @@ namespace Landsong.UISystem
 
         private void QueueDelayedResolveIfNeeded()
         {
-            if (markerCanvas != null && markerRoot != null && messageBar != null)
+            if (!NeedsDelayedResolve())
             {
                 return;
             }
 
             if (delayedResolveCoroutine == null && isActiveAndEnabled)
             {
-                delayedResolveCoroutine = StartCoroutine(ResolveReferencesNextFrame());
+                delayedResolveCoroutine = StartCoroutine(ResolveReferencesUntilReady());
             }
         }
 
-        private IEnumerator ResolveReferencesNextFrame()
+        private bool NeedsDelayedResolve()
         {
-            yield return null;
-            delayedResolveCoroutine = null;
+            return gameSystem == null
+                   || buildings == null
+                   || markerCanvas == null
+                   || markerRoot == null
+                   || !HasPositionCamera()
+                   || !subscribedToBuildings
+                   || (cameraController != null && !subscribedToCamera);
+        }
 
-            if (!isActiveAndEnabled)
+        private bool HasPositionCamera()
+        {
+            var sourceCamera = cameraController == null ? Camera.main : cameraController.SourceCamera;
+            return sourceCamera != null;
+        }
+
+        private IEnumerator ResolveReferencesUntilReady()
+        {
+            while (isActiveAndEnabled && NeedsDelayedResolve())
             {
-                yield break;
+                yield return null;
+                RefreshRuntimeBindingsAndMarkers();
             }
 
-            ResolveReferences();
-            SubscribeCamera();
-            RefreshMarkers();
+            delayedResolveCoroutine = null;
         }
 
         private void StopDelayedResolve()
@@ -477,15 +504,5 @@ namespace Landsong.UISystem
             delayedResolveCoroutine = null;
         }
 
-        private static void StretchToParent(RectTransform rectTransform)
-        {
-            rectTransform.anchorMin = Vector2.zero;
-            rectTransform.anchorMax = Vector2.one;
-            rectTransform.offsetMin = Vector2.zero;
-            rectTransform.offsetMax = Vector2.zero;
-            rectTransform.localScale = Vector3.one;
-            rectTransform.localRotation = Quaternion.identity;
-            rectTransform.anchoredPosition = Vector2.zero;
-        }
     }
 }

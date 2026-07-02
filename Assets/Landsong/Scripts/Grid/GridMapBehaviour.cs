@@ -22,8 +22,14 @@ namespace Landsong.GridSystem
         [SerializeField, BoxGroup("底层TileMap"), LabelText("初始化时清空占用层")] private bool clearOccupancyLayerOnInitialize = true;
         [SerializeField, BoxGroup("底层TileMap"), LabelText("初始化时清空高亮层")] private bool clearHighlightLayerOnInitialize = true;
         [SerializeField, BoxGroup("地形层"), LabelText("地形 Tilemap 层")] private List<GridTerrainLayer> terrainLayers = new List<GridTerrainLayer>();
+        [SerializeField, BoxGroup("寻路"), LabelText("普通格行动力消耗"), Min(1)] private int defaultTraversalActionCost = 10;
+        [SerializeField, BoxGroup("寻路"), LabelText("地形行动力消耗")] private List<GridTraversalCostRule> traversalCostRules = new List<GridTraversalCostRule>
+        {
+            new GridTraversalCostRule(GridTerrainKeys.Road, 5),
+            new GridTraversalCostRule(GridTerrainKeys.AdvancedRoad, 3)
+        };
 
-        private readonly Dictionary<GridPosition, string> occupiedCells = new Dictionary<GridPosition, string>();
+        private readonly Dictionary<GridPosition, GridOccupancyData> occupiedCells = new Dictionary<GridPosition, GridOccupancyData>();
         private readonly Dictionary<string, List<GridPosition>> occupiedPositionsById = new Dictionary<string, List<GridPosition>>(StringComparer.Ordinal);
         private readonly List<GridPosition> clearedOccupancyPositions = new List<GridPosition>();
         private UnityEngine.Grid cachedUnityGrid;
@@ -36,6 +42,8 @@ namespace Landsong.GridSystem
         public Tilemap HighlightTilemap => highlightTilemap;
         public GridLayoutService Layout { get; private set; }
         public bool IsInitialized => hasValidBaseTilemap && Layout != null;
+        public int DefaultTraversalActionCost => Mathf.Max(1, defaultTraversalActionCost);
+        public IReadOnlyList<GridTraversalCostRule> TraversalCostRules => traversalCostRules;
 
         private bool HasOccupancyTilemapVisualization => occupancyTilemap != null && occupiedTile != null;
 
@@ -64,11 +72,13 @@ namespace Landsong.GridSystem
         {
             cachedUnityGrid = GetComponent<UnityEngine.Grid>();
             NormalizeSerializedTerrainKeys();
+            NormalizeTraversalCosts();
         }
 
         public void Initialize()
         {
             NormalizeSerializedTerrainKeys();
+            NormalizeTraversalCosts();
             hasValidBaseTilemap = TryValidateBaseTilemap(true);
             loggedInvalidBaseTilemap = hasValidBaseTilemap ? false : loggedInvalidBaseTilemap;
 
@@ -161,6 +171,17 @@ namespace Landsong.GridSystem
             IReadOnlyList<string> requiredTerrainKeys,
             out GridPlacementFailureReason failureReason)
         {
+            return TryOccupy(origin, size, occupantId, requiredTerrainKeys, 0, out failureReason);
+        }
+
+        public bool TryOccupy(
+            GridPosition origin,
+            Vector2Int size,
+            string occupantId,
+            IReadOnlyList<string> requiredTerrainKeys,
+            int movementResistance,
+            out GridPlacementFailureReason failureReason)
+        {
             EnsureInitialized();
             if (string.IsNullOrWhiteSpace(occupantId))
             {
@@ -175,9 +196,10 @@ namespace Landsong.GridSystem
 
             var footprint = new GridFootprint(origin, size);
             var occupiedPositions = GetOrCreateOccupiedPositions(occupantId);
+            var occupancyData = new GridOccupancyData(occupantId, movementResistance);
             foreach (var position in footprint.Positions())
             {
-                occupiedCells[position] = occupantId;
+                occupiedCells[position] = occupancyData;
                 occupiedPositions.Add(position);
             }
 
@@ -227,7 +249,7 @@ namespace Landsong.GridSystem
                     return false;
                 }
 
-                if (occupiedCells.TryGetValue(position, out var occupantId) && occupantId != ignoredOccupantId)
+                if (occupiedCells.TryGetValue(position, out var occupancyData) && occupancyData.OccupantId != ignoredOccupantId)
                 {
                     failureReason = GridPlacementFailureReason.Occupied;
                     return false;
@@ -250,10 +272,83 @@ namespace Landsong.GridSystem
             return HasTerrainKeyInternal(position, terrainKey);
         }
 
+        public int GetTerrainTraversalActionCost(GridPosition position)
+        {
+            EnsureInitialized();
+            if (!HasBaseTile(position))
+            {
+                return DefaultTraversalActionCost;
+            }
+
+            var bestCost = DefaultTraversalActionCost;
+            if (traversalCostRules == null)
+            {
+                return bestCost;
+            }
+
+            for (var i = 0; i < traversalCostRules.Count; i++)
+            {
+                var rule = traversalCostRules[i];
+                if (rule == null || !rule.IsValid)
+                {
+                    continue;
+                }
+
+                if (HasTerrainKeyInternal(position, rule.TerrainKey))
+                {
+                    bestCost = Mathf.Min(bestCost, rule.ActionCost);
+                }
+            }
+
+            return Mathf.Max(1, bestCost);
+        }
+
+        public bool CanTraverse(GridPosition position, string ignoredOccupantId = null)
+        {
+            EnsureInitialized();
+            if (!HasBaseTile(position))
+            {
+                return false;
+            }
+
+            if (!occupiedCells.TryGetValue(position, out var occupancyData))
+            {
+                return true;
+            }
+
+            return occupancyData.OccupantId == ignoredOccupantId || occupancyData.MovementResistance > 0;
+        }
+
+        public int GetTraversalActionCost(GridPosition position, string ignoredOccupantId = null)
+        {
+            EnsureInitialized();
+            if (!HasBaseTile(position))
+            {
+                return int.MaxValue;
+            }
+
+            if (occupiedCells.TryGetValue(position, out var occupancyData)
+                && occupancyData.OccupantId != ignoredOccupantId)
+            {
+                return occupancyData.MovementResistance > 0
+                    ? occupancyData.MovementResistance
+                    : int.MaxValue;
+            }
+
+            return GetTerrainTraversalActionCost(position);
+        }
+
         public bool TryGetOccupantId(GridPosition position, out string occupantId)
         {
             EnsureInitialized();
-            return occupiedCells.TryGetValue(position, out occupantId);
+            if (occupiedCells.TryGetValue(position, out var occupancyData))
+            {
+                occupantId = occupancyData.OccupantId;
+                return true;
+            }
+
+            occupantId = null;
+            return false;
         }
 
         public Vector3 GetFootprintCenter(GridPosition origin, Vector2Int size)
@@ -276,7 +371,8 @@ namespace Landsong.GridSystem
                 for (var i = 0; i < positions.Count; i++)
                 {
                     var position = positions[i];
-                    if (occupiedCells.TryGetValue(position, out var currentOccupantId) && currentOccupantId == occupantId)
+                    if (occupiedCells.TryGetValue(position, out var currentOccupancyData)
+                        && currentOccupancyData.OccupantId == occupantId)
                     {
                         occupiedCells.Remove(position);
                         clearedOccupancyPositions.Add(position);
@@ -289,7 +385,7 @@ namespace Landsong.GridSystem
             {
                 foreach (var pair in occupiedCells)
                 {
-                    if (pair.Value == occupantId)
+                    if (pair.Value.OccupantId == occupantId)
                     {
                         clearedOccupancyPositions.Add(pair.Key);
                     }
@@ -560,6 +656,24 @@ namespace Landsong.GridSystem
             terrainLayers ??= new List<GridTerrainLayer>();
         }
 
+        private void NormalizeTraversalCosts()
+        {
+            defaultTraversalActionCost = Mathf.Max(1, defaultTraversalActionCost);
+            if (traversalCostRules == null || traversalCostRules.Count == 0)
+            {
+                traversalCostRules = new List<GridTraversalCostRule>
+                {
+                    new GridTraversalCostRule(GridTerrainKeys.Road, 5),
+                    new GridTraversalCostRule(GridTerrainKeys.AdvancedRoad, 3)
+                };
+            }
+
+            for (var i = 0; i < traversalCostRules.Count; i++)
+            {
+                traversalCostRules[i]?.Normalize(defaultTraversalActionCost);
+            }
+        }
+
         private void LogInvalidBaseTilemap(string message, UnityEngine.Object context, bool logWarnings)
         {
             if (!logWarnings || loggedInvalidBaseTilemap)
@@ -569,6 +683,18 @@ namespace Landsong.GridSystem
 
             loggedInvalidBaseTilemap = true;
             Debug.LogWarning(message, context);
+        }
+
+        private readonly struct GridOccupancyData
+        {
+            public GridOccupancyData(string occupantId, int movementResistance)
+            {
+                OccupantId = string.IsNullOrWhiteSpace(occupantId) ? string.Empty : occupantId;
+                MovementResistance = movementResistance;
+            }
+
+            public string OccupantId { get; }
+            public int MovementResistance { get; }
         }
     }
 }

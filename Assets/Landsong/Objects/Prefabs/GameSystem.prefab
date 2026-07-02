@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 3562996915807780181}
   - component: {fileID: 3837668256779799915}
   - component: {fileID: 5898616053397243020}
+  - component: {fileID: 7121184244509117702}
   - component: {fileID: 2710515743868066385}
   m_Layer: 0
   m_Name: GameSystem
@@ -70,7 +71,7 @@ MonoBehaviour:
   startingTurn: 1
   allowKeyboardNextTurn: 1
   nextTurnKey: 28
-  turnBuildingsPerFrame: 16
+  turnBuildingsPerFrame: 4
   logTurnResult: 1
 --- !u!114 &3837668256779799915
 MonoBehaviour:
@@ -89,13 +90,14 @@ MonoBehaviour:
   previewRoot: {fileID: 0}
   placedBuildingRoot: {fileID: 0}
   ghostWorldOffset: {x: 0, y: 0, z: 0}
-  controlsWorldOffset: {x: 0, y: -1.25, z: 0}
+  controlsWorldOffset: {x: 0, y: -0.5, z: 0}
   placementControls: {fileID: 0}
-  ghostHitPadding: 0.05
   cancelPlacementOnDisable: 1
+  demolitionClickMaxMovementPixels: 8
   validHighlightTile: {fileID: 11400000, guid: ded42df90b68af2428548eca67a40d3d, type: 2}
   buildingFootprintHighlightTile: {fileID: 11400000, guid: ec459835cfc27264991f68a1c208c899, type: 2}
   invalidHighlightTile: {fileID: 11400000, guid: 1b3c911605b7cff4c9fb03f23793f0af, type: 2}
+  roadConnectionHighlightTile: {fileID: 11400000, guid: aaacd32a41a1180469f6340ccaa5e562, type: 2}
 --- !u!114 &5898616053397243020
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -109,12 +111,34 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.UISystem.BuildingStatusMarkerManager
   markerPrefab: {fileID: -1701031124350798383, guid: ffe235948e9e81f42a2c4ca4c098c6dc, type: 3}
-  markerWorldOffset: {x: 0, y: 1.5, z: 0}
+  markerWorldOffset: {x: 0, y: 0.5, z: 0}
   markerScreenOffset: {x: 0, y: 0}
   hideWhenOffscreen: 1
   cameraController: {fileID: 0}
   focusBuildingOnMarkerClick: 1
-  showMessageOnMarkerClick: 1
+--- !u!114 &7121184244509117702
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6188720778481369210}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac0016c8454247eb955202680973ee61, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.UISystem.BuildingResourceFloatTextManager
+  floatTextPrefab: {fileID: 328805843825456254, guid: 728110ece4d34c543acee5c41c1844a1, type: 3}
+  markerWorldOffset: {x: 0, y: 1.5, z: 0}
+  markerScreenOffset: {x: 0, y: 0}
+  hideWhenOffscreen: 1
+  maxActiveFloatTexts: 3
+  maxQueuedFloatTexts: 64
+  maxSpawnsPerFrame: 1
+  spawnIntervalSeconds: 0.05
+  floatDistance: 48
+  sameBuildingStackOffset: 22
+  cameraController: {fileID: 0}
 --- !u!114 &2710515743868066385
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -127,9 +151,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 677367c758096174c837a3b92370c584, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingSelectionController
-  detailMarkerPrefab: {fileID: 3887755073401264093, guid: 191329e8eb9c32c46a78da5ecd4ae070, type: 3}
-  selectionHighlightTile: {fileID: 0}
-  detailMarkerWorldOffset: {x: 0, y: -0.75, z: 0}
-  detailMarkerScreenOffset: {x: 0, y: 0}
-  hideMarkerWhenOffscreen: 1
+  operationBarPrefab: {fileID: 3887755073401264093, guid: 191329e8eb9c32c46a78da5ecd4ae070, type: 3}
+  selectionHighlightTile: {fileID: 11400000, guid: 7bf290ab785523d4cba981ae47ddbe58, type: 2}
+  reachableRangeHighlightTile: {fileID: 0}
+  operationBarWorldOffset: {x: 0, y: -0.75, z: 0}
+  operationBarScreenOffset: {x: 0, y: 0}
+  hideOperationBarWhenOffscreen: 1
   cameraController: {fileID: 0}
+  updateSelectionOnWorldClick: 1
+  selectionClickMaxMovementPixels: 8

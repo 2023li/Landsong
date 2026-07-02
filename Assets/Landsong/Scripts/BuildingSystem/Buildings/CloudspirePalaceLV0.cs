@@ -17,6 +17,8 @@ public class CloudspirePalaceLV0 : BuildingBase
         return true;
     }
 
+  
+
     protected override void OnUnregistered()
     {
        

@@ -1,5 +1,8 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using Landsong.BuildingSystem;
+using Landsong.GridSystem;
 using Landsong.InventorySystem;
 using Moyo.Unity;
 using UnityEngine;
@@ -39,6 +42,10 @@ public class DataManager : MonoSingleton<DataManager>
     public event Action<GameData> OnGameDataSave;
 
     public event Action<GameData> OnGameDataLoaded;
+
+    public event Action<GameData> OnRuntimeDataRestoreStarted;
+
+    public event Action<GameData> OnRuntimeDataRestoreCompleted;
 
     private string AppDataFilePath => IOManager.Instance.AppDataFilePath;
 
@@ -512,7 +519,6 @@ public class DataManager : MonoSingleton<DataManager>
             SaveAppData();
 
             CurrentGameData = gameData;
-            RestoreCurrentRuntimeData(CurrentGameData);
             OnGameDataLoaded?.Invoke(CurrentGameData);
 
             return CurrentGameData;
@@ -664,6 +670,16 @@ public class DataManager : MonoSingleton<DataManager>
         }
     }
 
+    public IEnumerator RestoreCurrentGameDataToRuntimeRoutine(int buildingsPerFrame = 16)
+    {
+        if (CurrentGameData == null)
+        {
+            yield break;
+        }
+
+        yield return RestoreCurrentRuntimeDataRoutine(CurrentGameData, buildingsPerFrame);
+    }
+
     private void CaptureCurrentRuntimeData(GameData gameData)
     {
         if (gameData == null)
@@ -671,30 +687,60 @@ public class DataManager : MonoSingleton<DataManager>
             return;
         }
 
-    
-
         Landsong.GameSystem gameSystem = UnityEngine.Object.FindFirstObjectByType<Landsong.GameSystem>(FindObjectsInactive.Include);
         if (gameSystem != null && gameSystem.Inventory != null)
         {
             gameData.InventoryData = gameSystem.Inventory.CaptureSaveData();
             gameData.CurrentTurn = gameSystem.CurrentTurn;
         }
+
+        if (gameSystem != null && gameSystem.Buildings != null)
+        {
+            gameData.BuildingInstances = CaptureBuildingInstances(gameSystem.Buildings.Buildings);
+        }
     }
 
     private bool RestoreCurrentRuntimeData(GameData gameData)
     {
+        if (!PrepareRuntimeRestore(gameData, out var gameSystem))
+        {
+            return false;
+        }
+
+        RestoreBuildingInstances(gameData, gameSystem);
+        OnRuntimeDataRestoreCompleted?.Invoke(gameData);
+        return true;
+    }
+
+    private IEnumerator RestoreCurrentRuntimeDataRoutine(GameData gameData, int buildingsPerFrame)
+    {
+        if (!PrepareRuntimeRestore(gameData, out var gameSystem))
+        {
+            Debug.LogWarning("恢复 GameData 运行时状态失败：GameSystem 不存在。");
+            yield break;
+        }
+
+        yield return RestoreBuildingInstancesRoutine(gameData, gameSystem, buildingsPerFrame);
+        OnRuntimeDataRestoreCompleted?.Invoke(gameData);
+    }
+
+    private bool PrepareRuntimeRestore(GameData gameData, out Landsong.GameSystem gameSystem)
+    {
+        gameSystem = null;
         if (gameData == null)
         {
             return false;
         }
 
-        Landsong.GameSystem gameSystem = UnityEngine.Object.FindFirstObjectByType<Landsong.GameSystem>(FindObjectsInactive.Include);
+        gameSystem = UnityEngine.Object.FindFirstObjectByType<Landsong.GameSystem>(FindObjectsInactive.Include);
         if (gameSystem == null)
         {
             return false;
         }
 
         gameData.Validate();
+        OnRuntimeDataRestoreStarted?.Invoke(gameData);
+
         gameSystem.RestoreCurrentTurn(gameData.CurrentTurn);
 
         if (gameSystem.Inventory != null && gameData.InventoryData != null)
@@ -703,6 +749,249 @@ public class DataManager : MonoSingleton<DataManager>
         }
 
         return true;
+    }
+
+    private static List<BuildingInstanceSaveData> CaptureBuildingInstances(IReadOnlyList<BuildingBase> buildings)
+    {
+        var saveData = new List<BuildingInstanceSaveData>();
+        if (buildings == null)
+        {
+            return saveData;
+        }
+
+        for (var i = 0; i < buildings.Count; i++)
+        {
+            var building = buildings[i];
+            if (!CanCaptureBuilding(building))
+            {
+                continue;
+            }
+
+            var buildingSaveData = BuildingInstanceSaveData.CreateFromBuilding(building);
+            CaptureBuildingData(building, buildingSaveData);
+            saveData.Add(buildingSaveData);
+        }
+
+        return saveData;
+    }
+
+    private static bool CanCaptureBuilding(BuildingBase building)
+    {
+        return building != null
+               && building.isActiveAndEnabled
+               && !building.IsDemolishing
+               && building.HasDefinition
+               && building.HasPlacement;
+    }
+
+    private static void CaptureBuildingData(BuildingBase building, BuildingInstanceSaveData saveData)
+    {
+        if (building == null || saveData == null)
+        {
+            return;
+        }
+
+        var data = building.CaptureSaveData();
+        if (data == null)
+        {
+            return;
+        }
+
+        saveData.BuildingDataType = data.GetType().AssemblyQualifiedName;
+        saveData.BuildingDataJson = JsonUtility.ToJson(data);
+    }
+
+    private void RestoreBuildingInstances(GameData gameData, Landsong.GameSystem gameSystem)
+    {
+        if (gameData == null || gameSystem == null || gameData.BuildingInstances == null)
+        {
+            return;
+        }
+
+        ClearCurrentRuntimeBuildings(gameSystem);
+        RestoreBuildingInstancesInternal(gameData.BuildingInstances, gameSystem);
+    }
+
+    private IEnumerator RestoreBuildingInstancesRoutine(GameData gameData, Landsong.GameSystem gameSystem, int buildingsPerFrame)
+    {
+        if (gameData == null || gameSystem == null || gameData.BuildingInstances == null)
+        {
+            yield break;
+        }
+
+        ClearCurrentRuntimeBuildings(gameSystem);
+        yield return null;
+
+        buildingsPerFrame = Mathf.Max(1, buildingsPerFrame);
+        var restoredThisFrame = 0;
+        var buildingInstances = gameData.BuildingInstances;
+
+        for (var i = 0; i < buildingInstances.Count; i++)
+        {
+            if (RestoreBuildingInstance(buildingInstances[i], gameSystem))
+            {
+                restoredThisFrame++;
+            }
+
+            if (restoredThisFrame < buildingsPerFrame || i >= buildingInstances.Count - 1)
+            {
+                continue;
+            }
+
+            restoredThisFrame = 0;
+            yield return null;
+        }
+    }
+
+    private void RestoreBuildingInstancesInternal(
+        IReadOnlyList<BuildingInstanceSaveData> buildingInstances,
+        Landsong.GameSystem gameSystem)
+    {
+        if (buildingInstances == null || gameSystem == null)
+        {
+            return;
+        }
+
+        for (var i = 0; i < buildingInstances.Count; i++)
+        {
+            RestoreBuildingInstance(buildingInstances[i], gameSystem);
+        }
+    }
+
+    private bool RestoreBuildingInstance(BuildingInstanceSaveData saveData, Landsong.GameSystem gameSystem)
+    {
+        if (saveData == null || gameSystem == null || gameSystem.Buildings == null)
+        {
+            return false;
+        }
+
+        saveData.Validate();
+        if (!saveData.IsValid)
+        {
+            return false;
+        }
+
+        var gridMap = UnityEngine.Object.FindFirstObjectByType<GridMapBehaviour>(FindObjectsInactive.Include);
+        if (gridMap == null)
+        {
+            Debug.LogWarning($"恢复建筑失败：场景中没有 GridMapBehaviour。BuildingId = {saveData.BuildingId}");
+            return false;
+        }
+
+        var catalog = ResolveBuildingCatalog(gameSystem);
+        if (catalog == null || !catalog.TryGetBuildingPrefab(saveData.BuildingId, out var buildingPrefab))
+        {
+            Debug.LogWarning($"恢复建筑失败：建筑目录中找不到 BuildingId = {saveData.BuildingId}");
+            return false;
+        }
+
+        var parent = ResolveRestoredBuildingParent(gridMap);
+        if (!gameSystem.Buildings.TryPlace(
+                buildingPrefab,
+                gridMap,
+                saveData.Origin,
+                saveData.Rotation,
+                parent,
+                out var building))
+        {
+            Debug.LogWarning($"恢复建筑失败：无法放置 BuildingId = {saveData.BuildingId}, Origin = {saveData.Origin}");
+            return false;
+        }
+
+        var buildingData = RestoreBuildingData(saveData);
+        if (buildingData != null)
+        {
+            building.RestoreSaveData(buildingData);
+        }
+
+        gameSystem.RegisterBuilding(building);
+        return true;
+    }
+
+    private static BuildingCatalog ResolveBuildingCatalog(Landsong.GameSystem gameSystem)
+    {
+        if (gameSystem != null && gameSystem.BuildingCatalog != null)
+        {
+            return gameSystem.BuildingCatalog;
+        }
+
+        return BuildingCatalog.Instance;
+    }
+
+    private static Transform ResolveRestoredBuildingParent(GridMapBehaviour gridMap)
+    {
+        if (gridMap == null)
+        {
+            return null;
+        }
+
+        const string restoredBuildingRootName = "Restored Buildings";
+        var existingRoot = gridMap.transform.Find(restoredBuildingRootName);
+        if (existingRoot != null)
+        {
+            return existingRoot;
+        }
+
+        var root = new GameObject(restoredBuildingRootName);
+        root.transform.SetParent(gridMap.transform, false);
+        return root.transform;
+    }
+
+    private static BuildingDataBase RestoreBuildingData(BuildingInstanceSaveData saveData)
+    {
+        if (saveData == null
+            || string.IsNullOrWhiteSpace(saveData.BuildingDataType)
+            || string.IsNullOrWhiteSpace(saveData.BuildingDataJson))
+        {
+            return null;
+        }
+
+        var dataType = Type.GetType(saveData.BuildingDataType);
+        if (dataType == null)
+        {
+            Debug.LogWarning($"恢复建筑数据失败：找不到数据类型 {saveData.BuildingDataType}");
+            return null;
+        }
+
+        if (!typeof(BuildingDataBase).IsAssignableFrom(dataType))
+        {
+            Debug.LogWarning($"恢复建筑数据失败：{saveData.BuildingDataType} 不是 BuildingDataBase。");
+            return null;
+        }
+
+        try
+        {
+            var data = (BuildingDataBase)Activator.CreateInstance(dataType, true);
+            JsonUtility.FromJsonOverwrite(saveData.BuildingDataJson, data);
+            return data;
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning($"恢复建筑数据失败：{saveData.BuildingId}\n{e.Message}");
+            return null;
+        }
+    }
+
+    private static void ClearCurrentRuntimeBuildings(Landsong.GameSystem gameSystem)
+    {
+        var sceneBuildings = UnityEngine.Object.FindObjectsByType<BuildingBase>(
+            FindObjectsInactive.Include,
+            FindObjectsSortMode.None);
+
+        for (var i = 0; i < sceneBuildings.Length; i++)
+        {
+            var building = sceneBuildings[i];
+            if (building == null || building.IsDemolishing || !building.gameObject.scene.IsValid())
+            {
+                continue;
+            }
+
+            gameSystem?.UnregisterBuilding(building);
+            building.ClearPlacement();
+            UnityEngine.Object.Destroy(building.gameObject);
+        }
+
+        gameSystem?.Turn?.ClearBuildings();
     }
 
     private static string NormalizeOptionalText(string text)
@@ -873,7 +1162,7 @@ public class GameDataMeta
 public class GameData
 {
     //data 版本号
-    public const int CurrentDataVersion = 1;
+    public const int CurrentDataVersion = 2;
 
     public int DataVersion = CurrentDataVersion;
 
@@ -903,6 +1192,8 @@ public class GameData
 
     public InventorySaveData InventoryData;
 
+    public List<BuildingInstanceSaveData> BuildingInstances;
+
     public static GameData CreateDefault()
     {
         long now = DateTimeOffset.Now.ToUnixTimeSeconds();
@@ -920,7 +1211,8 @@ public class GameData
             TotalPlayTimeSeconds = 0f,
             CurrentTurn = 1,
             WorldSeed = 0,
-            InventoryData = null
+            InventoryData = null,
+            BuildingInstances = null
         };
     }
 
@@ -967,6 +1259,86 @@ public class GameData
 
         CurrentTurn = Mathf.Max(1, CurrentTurn);
         TotalPlayTimeSeconds = Mathf.Max(0f, TotalPlayTimeSeconds);
+
+        if (BuildingInstances != null)
+        {
+            for (var i = BuildingInstances.Count - 1; i >= 0; i--)
+            {
+                var building = BuildingInstances[i];
+                if (building == null)
+                {
+                    BuildingInstances.RemoveAt(i);
+                    continue;
+                }
+
+                building.Validate();
+            }
+        }
+    }
+}
+
+[Serializable]
+public class BuildingInstanceSaveData
+{
+    public string BuildingId = string.Empty;
+
+    public int OriginX;
+
+    public int OriginY;
+
+    public float RotationX;
+
+    public float RotationY;
+
+    public float RotationZ;
+
+    public float RotationW = 1f;
+
+    public string BuildingDataType = string.Empty;
+
+    public string BuildingDataJson = string.Empty;
+
+    public bool IsValid => !string.IsNullOrWhiteSpace(BuildingId);
+
+    public GridPosition Origin => new GridPosition(OriginX, OriginY);
+
+    public Quaternion Rotation => new Quaternion(RotationX, RotationY, RotationZ, RotationW);
+
+    public static BuildingInstanceSaveData CreateFromBuilding(BuildingBase building)
+    {
+        if (building == null || !building.HasDefinition || !building.HasPlacement)
+        {
+            return null;
+        }
+
+        var rotation = building.transform.rotation;
+        return new BuildingInstanceSaveData
+        {
+            BuildingId = building.Definition.BuildingId,
+            OriginX = building.Origin.X,
+            OriginY = building.Origin.Y,
+            RotationX = rotation.x,
+            RotationY = rotation.y,
+            RotationZ = rotation.z,
+            RotationW = rotation.w,
+            BuildingDataType = string.Empty,
+            BuildingDataJson = string.Empty
+        };
+    }
+
+    public void Validate()
+    {
+        BuildingId = string.IsNullOrWhiteSpace(BuildingId) ? string.Empty : BuildingId.Trim();
+        BuildingDataType = string.IsNullOrWhiteSpace(BuildingDataType) ? string.Empty : BuildingDataType.Trim();
+        BuildingDataJson ??= string.Empty;
+
+        if (Mathf.Approximately(RotationX, 0f)
+            && Mathf.Approximately(RotationY, 0f)
+            && Mathf.Approximately(RotationZ, 0f)
+            && Mathf.Approximately(RotationW, 0f))
+        {
+            RotationW = 1f;
+        }
     }
 }
 

@@ -1,12 +1,8 @@
 using Landsong.BuildingSystem;
 using UnityEngine;
 
-public class PlayerHomeLV1 : BuildingBase, IResourceProviderPoint
+public class PlayerHomeLV1 : BuildingBase
 {
-    [SerializeField] private bool isResourceProviderPoint = true;
-
-    public bool IsResourceProviderPoint => isResourceProviderPoint;
-
     protected override void OnRegistered()
     {
         GameSystem?.Dynasty?.RegisterPalace(this);
@@ -20,6 +16,8 @@ public class PlayerHomeLV1 : BuildingBase, IResourceProviderPoint
     {
        return true;
     }
+
+ 
 
     protected override void OnDemolished()
     {

@@ -1,8 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using Landsong.BuildingSystem;
 using Landsong.CameraSystem;
-using Landsong.TurnSystem;
+using Landsong.GameEventSystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -23,39 +23,30 @@ namespace Landsong.UISystem
         [SerializeField] private bool newestMessageFirst = true;
 
         [FoldoutGroup("选填")]
-        [SerializeField] private bool createOneMessagePerStatus;
-
-        [FoldoutGroup("选填")]
         [SerializeField] private bool focusBuildingOnMessageClick = true;
-
-        [FoldoutGroup("选填")]
-        [SerializeField] private bool showMessageBarOnMessageClick = true;
 
         [FoldoutGroup("选填")]
         [SerializeField] private CameraController cameraController;
 
-        [FoldoutGroup("选填")]
-        [SerializeField] private GamePanel_BuildingMessageBar messageBar;
-
-        private readonly List<BuildingEventMessage> messages = new List<BuildingEventMessage>();
         private readonly List<GamePanel_BuildingEventMessageItem> activeItems = new List<GamePanel_BuildingEventMessageItem>();
         private readonly List<GamePanel_BuildingEventMessageItem> itemPool = new List<GamePanel_BuildingEventMessageItem>();
         private Landsong.GameSystem gameSystem;
-        private BuildingService buildings;
-        private TurnService turn;
+        private GameEventService gameEvents;
         private Coroutine delayedResolveCoroutine;
+
+        public event Action<GamePanel_BuildingEventMessageList, GameEventMessage> MessageClicked;
+        public event Action<GamePanel_BuildingEventMessageList, GameEventMessage> MessageDeleted;
 
         private void Reset()
         {
             itemRoot = transform;
             itemPrefab = GetComponentInChildren<GamePanel_BuildingEventMessageItem>(true);
-            messageBar = GetComponentInParent<UIPanel_Game>(true)?.BuildingMessageBar;
         }
 
         private void OnEnable()
         {
             ResolveReferences();
-            SubscribeTurn();
+            SubscribeGameEvents();
             Refresh();
             QueueDelayedResolveIfNeeded();
         }
@@ -63,62 +54,57 @@ namespace Landsong.UISystem
         private void OnDisable()
         {
             StopDelayedResolve();
-            UnsubscribeTurn();
+            UnsubscribeGameEvents();
         }
 
         public void ClearMessages()
         {
-            messages.Clear();
-            Refresh();
+            ResolveReferences();
+            if (gameEvents == null)
+            {
+                Refresh();
+                return;
+            }
+
+            gameEvents.ClearMessages();
         }
 
-        public void AddMessage(BuildingEventMessage message)
+        public void AddMessage(GameEventMessage message)
         {
             if (!message.IsValid)
             {
                 return;
             }
 
-            if (newestMessageFirst)
-            {
-                messages.Insert(0, message);
-            }
-            else
-            {
-                messages.Add(message);
-            }
-
-            TrimMessages();
-            Refresh();
+            ResolveReferences();
+            gameEvents?.AddMessage(message);
         }
 
-        public void AddCurrentBuildingStatusMessages(int turnNumber)
+        public bool RemoveMessage(GameEventMessage message)
         {
             ResolveReferences();
-            if (buildings == null)
-            {
-                return;
-            }
+            return gameEvents != null && gameEvents.RemoveMessage(message);
+        }
 
-            var source = buildings.Buildings;
-            for (var i = 0; i < source.Count; i++)
-            {
-                AddBuildingStatusMessages(source[i], turnNumber);
-            }
-
-            TrimMessages();
-            Refresh();
+        public void AddGameMessage(
+            string eventTypeId,
+            string message,
+            int turnNumber,
+            Action<GameEventMessage> onClicked = null)
+        {
+            AddMessage(GameEventMessage.ForGame(eventTypeId, message, turnNumber, onClicked));
         }
 
         public void Refresh()
         {
             ReleaseActiveItems();
 
-            if (itemRoot == null || itemPrefab == null)
+            if (itemRoot == null || itemPrefab == null || gameEvents == null)
             {
                 return;
             }
 
+            var messages = gameEvents.Messages;
             for (var i = 0; i < messages.Count; i++)
             {
                 var message = messages[i];
@@ -128,7 +114,7 @@ namespace Landsong.UISystem
                 }
 
                 var item = GetItemFromPool();
-                item.Bind(message, HandleMessageClicked);
+                item.Bind(message, HandleMessageClicked, HandleMessageDeleted);
                 activeItems.Add(item);
             }
         }
@@ -136,124 +122,21 @@ namespace Landsong.UISystem
         private void ResolveReferences()
         {
             gameSystem = Landsong.GameSystem.Instance;
-            buildings = gameSystem == null ? null : gameSystem.Buildings;
 
-            if (gameSystem != null && turn != gameSystem.Turn)
+            var resolvedEvents = gameSystem == null ? null : gameSystem.Events;
+            if (resolvedEvents != gameEvents)
             {
-                UnsubscribeTurn();
-                turn = gameSystem.Turn;
-                SubscribeTurn();
+                UnsubscribeGameEvents();
+                gameEvents = resolvedEvents;
+                SubscribeGameEvents();
             }
+
+            gameEvents?.Configure(maxMessages, newestMessageFirst);
 
             if (cameraController == null)
             {
                 cameraController = FindFirstObjectByType<CameraController>(FindObjectsInactive.Include);
             }
-
-            if (messageBar == null)
-            {
-                messageBar = GetComponentInParent<UIPanel_Game>(true)?.BuildingMessageBar;
-            }
-        }
-
-        private void AddBuildingStatusMessages(BuildingBase building, int turnNumber)
-        {
-            if (building == null || !building.isActiveAndEnabled || building.IsDemolishing)
-            {
-                return;
-            }
-
-            var statuses = BuildingStatusUIFormatter.GetRuntimeStatuses(building);
-            if (!BuildingStatusUIFormatter.HasAnyStatus(statuses))
-            {
-                return;
-            }
-
-            if (createOneMessagePerStatus)
-            {
-                for (var i = 0; i < statuses.Count; i++)
-                {
-                    TryAddStatusMessage(building, statuses[i], turnNumber);
-                }
-
-                return;
-            }
-
-            if (TryGetPrimaryStatus(statuses, out var primaryStatus))
-            {
-                TryAddStatusMessage(building, primaryStatus, turnNumber);
-            }
-        }
-
-        private void TryAddStatusMessage(BuildingBase building, BuildingRuntimeStatus status, int turnNumber)
-        {
-            if (!status.IsValid)
-            {
-                return;
-            }
-
-            var messageText = FormatEventMessage(building, status);
-            var message = new BuildingEventMessage(building, status, messageText, turnNumber);
-            if (!message.IsValid)
-            {
-                return;
-            }
-
-            if (newestMessageFirst)
-            {
-                messages.Insert(0, message);
-            }
-            else
-            {
-                messages.Add(message);
-            }
-        }
-
-        private static bool TryGetPrimaryStatus(IReadOnlyList<BuildingRuntimeStatus> statuses, out BuildingRuntimeStatus status)
-        {
-            status = default;
-            if (statuses == null)
-            {
-                return false;
-            }
-
-            for (var i = 0; i < statuses.Count; i++)
-            {
-                if (statuses[i].IsValid && !string.IsNullOrWhiteSpace(statuses[i].EventMessage))
-                {
-                    status = statuses[i];
-                    return true;
-                }
-            }
-
-            for (var i = 0; i < statuses.Count; i++)
-            {
-                if (!statuses[i].IsValid)
-                {
-                    continue;
-                }
-
-                status = statuses[i];
-                return true;
-            }
-
-            return false;
-        }
-
-        private static string FormatEventMessage(BuildingBase building, BuildingRuntimeStatus status)
-        {
-            if (!string.IsNullOrWhiteSpace(status.EventMessage))
-            {
-                return status.EventMessage;
-            }
-
-            var buildingName = BuildingStatusUIFormatter.GetBuildingName(building);
-            if (string.IsNullOrWhiteSpace(buildingName))
-            {
-                return $"{status.DisplayName}！";
-            }
-
-            return $"{buildingName}{status.DisplayName}！";
         }
 
         private GamePanel_BuildingEventMessageItem GetItemFromPool()
@@ -294,7 +177,38 @@ namespace Landsong.UISystem
             activeItems.Clear();
         }
 
-        private void HandleMessageClicked(BuildingEventMessage message)
+        private void HandleMessageClicked(GameEventMessage message)
+        {
+            if (!message.IsValid)
+            {
+                return;
+            }
+
+            MessageClicked?.Invoke(this, message);
+
+            if (message.Clicked != null)
+            {
+                message.Clicked.Invoke(message);
+                return;
+            }
+
+            if (message.IsBuildingEvent)
+            {
+                HandleBuildingEventMessageClicked(message);
+            }
+        }
+
+        private void HandleMessageDeleted(GameEventMessage message)
+        {
+            if (!RemoveMessage(message))
+            {
+                return;
+            }
+
+            MessageDeleted?.Invoke(this, message);
+        }
+
+        private void HandleBuildingEventMessageClicked(GameEventMessage message)
         {
             var building = message.Building;
             if (building == null)
@@ -311,63 +225,43 @@ namespace Landsong.UISystem
 
                 cameraController?.FocusOnBuilding(building);
             }
-
-            if (showMessageBarOnMessageClick)
-            {
-                if (messageBar == null)
-                {
-                    messageBar = GetComponentInParent<UIPanel_Game>(true)?.BuildingMessageBar;
-                }
-
-                messageBar?.ShowBuildingMessage(building);
-            }
         }
 
-        private void TrimMessages()
+        private void SubscribeGameEvents()
         {
-            maxMessages = Mathf.Max(1, maxMessages);
-            while (messages.Count > maxMessages)
+            if (gameEvents == null)
             {
-                var removeIndex = newestMessageFirst ? messages.Count - 1 : 0;
-                messages.RemoveAt(removeIndex);
-            }
-        }
-
-        private void SubscribeTurn()
-        {
-            if (turn == null)
-            {
-                turn = gameSystem == null ? null : gameSystem.Turn;
+                gameEvents = gameSystem == null ? null : gameSystem.Events;
             }
 
-            if (turn == null)
+            if (gameEvents == null)
             {
                 return;
             }
 
-            turn.TurnAdvanced -= HandleTurnAdvanced;
-            turn.TurnAdvanced += HandleTurnAdvanced;
+            gameEvents.MessagesChanged -= HandleGameEventsChanged;
+            gameEvents.MessagesChanged += HandleGameEventsChanged;
         }
 
-        private void UnsubscribeTurn()
+        private void UnsubscribeGameEvents()
         {
-            if (turn == null)
+            if (gameEvents == null)
             {
                 return;
             }
 
-            turn.TurnAdvanced -= HandleTurnAdvanced;
+            gameEvents.MessagesChanged -= HandleGameEventsChanged;
         }
 
-        private void HandleTurnAdvanced(TurnService changedTurn, TurnAdvanceSummary summary)
+        private void HandleGameEventsChanged(GameEventService changedEvents)
         {
-            turn = changedTurn;
-            AddCurrentBuildingStatusMessages(summary.ToTurn);
+            gameEvents = changedEvents;
+            Refresh();
         }
 
         private void QueueDelayedResolveIfNeeded()
         {
-            if (gameSystem != null && buildings != null && turn != null)
+            if (gameSystem != null && gameEvents != null)
             {
                 return;
             }
@@ -389,7 +283,8 @@ namespace Landsong.UISystem
             }
 
             ResolveReferences();
-            SubscribeTurn();
+            SubscribeGameEvents();
+            Refresh();
         }
 
         private void StopDelayedResolve()

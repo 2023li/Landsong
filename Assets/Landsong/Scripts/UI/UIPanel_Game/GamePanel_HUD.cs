@@ -1,9 +1,11 @@
 using System;
 using System.Collections;
 using Landsong;
+using Landsong.BuildingSystem;
 using Landsong.DynastySystem;
 using Landsong.InventorySystem;
 using Landsong.TurnSystem;
+using Landsong.UISystem;
 using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
@@ -11,8 +13,6 @@ using UnityEngine.UI;
 
 public class GamePanel_HUD : MonoBehaviour
 {
-   
-
     private UIPanel_Game gamePanel;
     private GameSystem gameSystem;
     private DynastyService dynasty;
@@ -21,6 +21,8 @@ public class GamePanel_HUD : MonoBehaviour
     private bool subscribedToDynasty;
     private bool subscribedToInventory;
     private bool subscribedToTurn;
+    private bool subscribedToBuildingSelection;
+    private BuildingSelectionController subscribedBuildingSelection;
     private Coroutine turnProcessingDisplayRoutine;
 
     private void Awake()
@@ -28,27 +30,36 @@ public class GamePanel_HUD : MonoBehaviour
         gamePanel = GetComponentInParent<UIPanel_Game>();
         BindButtons();
     }
-
     private void OnEnable()
     {
         ResolveRuntimeServices();
         SubscribeRuntimeServices();
+        SubscribeBottomBarSelection();
         RefreshTopBar();
+        RefreshBottomBar();
         if (gameSystem != null && gameSystem.IsAdvancingTurn)
         {
             BeginTurnProcessingDisplay();
         }
     }
 
+    private void Start()
+    {
+        SubscribeBottomBarSelection();
+        RefreshBottomBar();
+    }
+
     private void OnDisable()
     {
         UnsubscribeRuntimeServices();
+        UnsubscribeBottomBarSelection();
         StopTurnProcessingDisplay();
     }
 
     private void OnDestroy()
     {
         UnsubscribeRuntimeServices();
+        UnsubscribeBottomBarSelection();
         UnbindButtons();
     }
 
@@ -61,7 +72,6 @@ public class GamePanel_HUD : MonoBehaviour
     [SerializeField] private TMP_Text txt_Gold;
 
     [SerializeField] private TMP_Text txt_TurnCount;
-    [SerializeField] private TMP_Text txt_Turn;
 
     [SerializeField] private ItemDefinition goldItemDefinition;
 
@@ -274,10 +284,9 @@ public class GamePanel_HUD : MonoBehaviour
 
     private void RefreshTurnCount()
     {
-        var targetText = txt_TurnCount != null ? txt_TurnCount : txt_Turn;
-        if (targetText != null)
+        if (txt_TurnCount != null)
         {
-            targetText.text = gameSystem == null ? string.Empty : gameSystem.CurrentTurn.ToString();
+            txt_TurnCount.text = gameSystem == null ? string.Empty : gameSystem.CurrentTurn.ToString();
         }
     }
 
@@ -407,4 +416,99 @@ public class GamePanel_HUD : MonoBehaviour
     {
         gameObject.SetActive(false);
     }
+
+    #region 底部栏
+
+    [SerializeField, FoldoutGroup("底栏")] private GameObject go_底部栏信息根对象;
+    [SerializeField, FoldoutGroup("底栏")] private TMP_Text txt_当前选中的建筑的名称;
+    [SerializeField, FoldoutGroup("底栏")] private TMP_Text txt_选中的建筑的概览信息;
+
+    private void HandleBuildingSelectionChanged(BuildingBase selectedBuilding)
+    {
+        RefreshBottomBar(selectedBuilding);
+    }
+
+    private void SubscribeBottomBarSelection()
+    {
+        var selectionController = FindFirstObjectByType<BuildingSelectionController>(FindObjectsInactive.Include);
+        if (selectionController == null)
+        {
+            HideBottomBar();
+            return;
+        }
+
+        if (subscribedToBuildingSelection && subscribedBuildingSelection == selectionController)
+        {
+            return;
+        }
+
+        UnsubscribeBottomBarSelection();
+        selectionController.SelectionChanged += HandleBuildingSelectionChanged;
+        subscribedBuildingSelection = selectionController;
+        subscribedToBuildingSelection = true;
+    }
+
+    private void UnsubscribeBottomBarSelection()
+    {
+        if (!subscribedToBuildingSelection || subscribedBuildingSelection == null)
+        {
+            subscribedBuildingSelection = null;
+            subscribedToBuildingSelection = false;
+            return;
+        }
+
+        subscribedBuildingSelection.SelectionChanged -= HandleBuildingSelectionChanged;
+        subscribedBuildingSelection = null;
+        subscribedToBuildingSelection = false;
+    }
+
+    private void RefreshBottomBar()
+    {
+        RefreshBottomBar(subscribedBuildingSelection == null ? null : subscribedBuildingSelection.SelectedBuilding);
+    }
+
+    private void RefreshBottomBar(BuildingBase selectedBuilding)
+    {
+        if (selectedBuilding == null || !selectedBuilding.HasDefinition)
+        {
+            HideBottomBar();
+            return;
+        }
+
+        SetActive(go_底部栏信息根对象, true);
+
+        if (txt_当前选中的建筑的名称 != null)
+        {
+            txt_当前选中的建筑的名称.text = selectedBuilding.Definition.DisplayName;
+        }
+
+        if (txt_选中的建筑的概览信息 != null)
+        {
+            BuildingStatusDisplayData data = BuildingStatusUIFormatter.CreateDisplayData(selectedBuilding);
+            txt_选中的建筑的概览信息.text = FormatBottomBarInfo(data);
+        }
+    }
+
+    private static string FormatBottomBarInfo(BuildingStatusDisplayData data)
+    {
+        if (string.IsNullOrWhiteSpace(data.BaseInfoText))
+        {
+            return data.StatusInfoText;
+        }
+
+        if (string.IsNullOrWhiteSpace(data.StatusInfoText))
+        {
+            return data.BaseInfoText;
+        }
+
+        return $"{data.BaseInfoText}   {data.StatusInfoText}";
+    }
+
+    private void HideBottomBar()
+    {
+        SetActive(go_底部栏信息根对象, false);
+    }
+
+    #endregion
+
 }

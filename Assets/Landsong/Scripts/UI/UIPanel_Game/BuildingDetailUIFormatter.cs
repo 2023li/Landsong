@@ -17,10 +17,10 @@ namespace Landsong.UISystem
                 return EmptySections;
             }
 
-            if (building is IBuildingDetailSource detailSource
-                && HasAnyValidSection(detailSource.DetailSections))
+            BuildingDetailInfo detailInfo = building.GetDetailInfo();
+            if (detailInfo.IsValid)
             {
-                return detailSource.DetailSections;
+                return detailInfo.Sections;
             }
 
             return CreateFallbackDetailSections(building);
@@ -135,9 +135,10 @@ namespace Landsong.UISystem
                 rows.Add(new BuildingDetailRow("格子位置", building.GridPosition.ToString()));
             }
 
-            if (building is IBuildingOverviewSource overviewSource)
+            string overviewText = building.GetBaseInfo();
+            if (!string.IsNullOrWhiteSpace(overviewText))
             {
-                rows.Add(new BuildingDetailRow(overviewSource.OverviewValueLabel, overviewSource.OverviewValueText));
+                rows.Add(new BuildingDetailRow("概览", overviewText));
             }
 
             AddSectionIfValid(sections, "基础信息", rows);

@@ -1,3 +1,4 @@
+using System;
 using Landsong.InventorySystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -74,6 +75,29 @@ namespace Landsong.BuildingSystem.Buildings
             return exp < RequiredExp || TryReplaceWithLv1();
         }
 
+        protected override BuildingDataBase CaptureBuildingData()
+        {
+            return new ResidentialHousingLV0Data
+            {
+                Exp = exp
+            };
+        }
+
+        protected override void RestoreBuildingData(BuildingDataBase data)
+        {
+            if (data is not ResidentialHousingLV0Data housingData)
+            {
+                return;
+            }
+
+            exp = Mathf.Clamp(housingData.Exp, 0, RequiredExp);
+        }
+
+        public override string GetBaseInfo()
+        {
+            return $"施工 {exp}/{RequiredExp}";
+        }
+
         private ItemAmount GetCurrentTurnCost()
         {
             return exp switch
@@ -106,6 +130,12 @@ namespace Landsong.BuildingSystem.Buildings
         protected override void OnUnregistered()
         {
             GameSystem?.Dynasty?.RemovePopulationContribution(this);
+        }
+
+        [Serializable]
+        private sealed class ResidentialHousingLV0Data : BuildingDataBase
+        {
+            public int Exp;
         }
     }
 }

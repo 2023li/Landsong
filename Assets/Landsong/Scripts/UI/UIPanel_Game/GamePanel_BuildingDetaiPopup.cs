@@ -66,7 +66,7 @@ namespace Landsong.UISystem
             BuildingStatusDisplayData data = BuildingStatusUIFormatter.CreateDisplayData(building);
             SetActive(root, true);
             SetText(titleLabel, data.BuildingName);
-            SetText(statusLabel, data.StatusText);
+            SetText(statusLabel, data.StatusInfoText);
             RebuildSections(building);
         }
 

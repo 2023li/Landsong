@@ -1,26 +1,25 @@
 using System;
 using System.Collections.Generic;
 using Landsong.BuildingSystem;
+using Landsong.GameEventSystem;
 using Landsong.GridSystem;
 using Landsong.InventorySystem;
+using Landsong.UISystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionSource, IBuildingTaxSource, IBuildingRuntimeStatusSource, IBuildingOverviewSource, IBuildingPopulationSource, IBuildingDetailSource
+public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionSource, IBuildingTaxSource, IBuildingPopulationSource
 {
     private const string DefaultFoodItemId = "蔬菜";
     private const string DefaultTaxItemId = "金币";
-    private const string StatusAbandoned = "abandoned";
-    private const string StatusConsumptionFailed = "consumption_failed";
-    private const string StatusPopulationDecayed = "population_decayed";
-    private const string StatusMissingInventory = "missing_inventory";
-    private const string StatusInvalidFoodItem = "invalid_food_item";
-    private const string StatusMissingResourceProvider = "missing_resource_provider";
-    private const string StatusMissingFood = "missing_food";
-    private const string StatusInvalidTaxItem = "invalid_tax_item";
-    private const string StatusTaxRewardFailed = "tax_reward_failed";
-    private const int ScaledRoadStepCost = 1;
-    private const int ScaledNormalStepCost = 2;
+    private const string StatusAbandoned = BuildingRuntimeStatusCatalog.BS_废弃;
+    private const string StatusConsumptionFailed = BuildingRuntimeStatusCatalog.BS_消耗失败;
+    private const string StatusMissingInventory = BuildingRuntimeStatusCatalog.BS_库存缺失;
+    private const string StatusInvalidFoodItem = BuildingRuntimeStatusCatalog.BS_食物配置异常;
+    private const string StatusMissingResourceProvider = BuildingRuntimeStatusCatalog.BS_无法连接资源点;
+    private const string StatusMissingFood = BuildingRuntimeStatusCatalog.BS_食物不足;
+    private const string StatusInvalidTaxItem = BuildingRuntimeStatusCatalog.BS_税收配置异常;
+    private const string StatusTaxRewardFailed = BuildingRuntimeStatusCatalog.BS_税收存入失败;
 
     private static readonly IReadOnlyList<BuildingResourceChange> EmptyResourceChanges =
         Array.Empty<BuildingResourceChange>();
@@ -38,9 +37,6 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
     [SerializeField] private string foodItemId = DefaultFoodItemId;
 
     [TitleGroup("运营消耗")]
-    [SerializeField, Min(0f)] private float resourceProviderSearchRange = 10f;
-
-    [TitleGroup("运营消耗")]
     [SerializeField, Min(1)] private int growthIntervalTurns = 3;
 
     [TitleGroup("运营消耗")]
@@ -51,9 +47,6 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
 
     [TitleGroup("税收")]
     [SerializeField, Min(1)] private int taxIntervalTurns = 5;
-
-    [TitleGroup("寻路")]
-    [SerializeField] private string roadTerrainKey = GridTerrainKeys.Road;
 
     [TitleGroup("运行时")]
     [SerializeField, ReadOnly] private int currentPopulation = 2;
@@ -89,7 +82,7 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
     [SerializeField, ReadOnly] private bool lastTurnProvidedTax;
 
     [TitleGroup("运行时")]
-    [SerializeField, ReadOnly] private float lastResourceProviderPathCost = -1f;
+    [SerializeField, ReadOnly] private int lastResourceProviderActionCost = -1;
 
     [TitleGroup("运行时")]
     [SerializeField, ReadOnly] private string lastAbnormalStatusId = string.Empty;
@@ -118,17 +111,27 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
     public bool LastTurnProvidedTax => lastTurnProvidedTax;
     public string LastAbnormalStatusId => lastAbnormalStatusId;
     public string LastAbnormalStatusText => lastAbnormalStatusText;
-    public float LastResourceProviderPathCost => lastResourceProviderPathCost;
+    public int LastResourceProviderActionCost => lastResourceProviderActionCost;
     public IReadOnlyList<BuildingResourceChange> CurrentResourceConsumptions =>
         isAbandoned ? EmptyResourceChanges : CreateResourceChanges(foodItemId, GetCurrentFoodConsumptionAmount());
     public IReadOnlyList<BuildingResourceChange> LastResourceConsumptions => lastResourceConsumptions;
     public IReadOnlyList<BuildingResourceChange> CurrentTaxRewards =>
         HasReachedMaxPopulation ? CreateResourceChanges(taxItemId, currentPopulation) : EmptyResourceChanges;
     public IReadOnlyList<BuildingResourceChange> LastTaxRewards => lastTaxRewards;
-    public IReadOnlyList<BuildingRuntimeStatus> RuntimeStatuses => CreateRuntimeStatuses();
-    public string OverviewValueLabel => "人口";
-    public string OverviewValueText => $"{currentPopulation}/{maxPopulationContribution}";
-    public IReadOnlyList<BuildingDetailSection> DetailSections => CreateDetailSections();
+    public override string GetBaseInfo()
+    {
+        return $"人口 {currentPopulation}/{maxPopulationContribution}";
+    }
+
+    public override BuildingDetailInfo GetDetailInfo()
+    {
+        return new BuildingDetailInfo(CreateDetailSections());
+    }
+
+    public override IReadOnlyList<BuildingRuntimeStatus> GetRuntimeStatuses()
+    {
+        return CreateRuntimeStatuses();
+    }
 
     protected override void OnInitialized()
     {
@@ -165,6 +168,7 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
         }
 
         var inventory = GameSystem == null ? null : GameSystem.Inventory;
+
         if (inventory == null)
         {
             return RegisterConsumptionFailure(
@@ -199,6 +203,56 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
         lastResourceConsumptions = CreateResourceChanges(foodItemId, foodAmount);
 
         return ProcessSuccessfulConsumption(inventory);
+    }
+
+    protected override BuildingDataBase CaptureBuildingData()
+    {
+        return new ResidentialHousingLV1Data
+        {
+            CurrentPopulation = currentPopulation,
+            GrowthConsumptionProgress = growthConsumptionProgress,
+            TaxConsumptionProgress = taxConsumptionProgress,
+            ConsecutiveConsumptionFailures = consecutiveConsumptionFailures,
+            IsAbandoned = isAbandoned,
+            LastTurnHadResourceProvider = lastTurnHadResourceProvider,
+            LastTurnConsumptionFailed = lastTurnConsumptionFailed,
+            LastTurnConsumedResources = lastTurnConsumedResources,
+            LastTurnPopulationDecayed = lastTurnPopulationDecayed,
+            LastTurnGrewPopulation = lastTurnGrewPopulation,
+            LastTurnProvidedTax = lastTurnProvidedTax,
+            LastResourceProviderActionCost = lastResourceProviderActionCost,
+            LastAbnormalStatusId = lastAbnormalStatusId,
+            LastAbnormalStatusText = lastAbnormalStatusText
+        };
+    }
+
+    protected override void RestoreBuildingData(BuildingDataBase data)
+    {
+        if (data is not ResidentialHousingLV1Data housingData)
+        {
+            return;
+        }
+
+        currentPopulation = housingData.CurrentPopulation;
+        growthConsumptionProgress = housingData.GrowthConsumptionProgress;
+        taxConsumptionProgress = housingData.TaxConsumptionProgress;
+        consecutiveConsumptionFailures = housingData.ConsecutiveConsumptionFailures;
+        isAbandoned = housingData.IsAbandoned;
+        lastTurnHadResourceProvider = housingData.LastTurnHadResourceProvider;
+        lastTurnConsumptionFailed = housingData.LastTurnConsumptionFailed;
+        lastTurnConsumedResources = housingData.LastTurnConsumedResources;
+        lastTurnPopulationDecayed = housingData.LastTurnPopulationDecayed;
+        lastTurnGrewPopulation = housingData.LastTurnGrewPopulation;
+        lastTurnProvidedTax = housingData.LastTurnProvidedTax;
+        lastResourceProviderActionCost = housingData.LastResourceProviderActionCost;
+        lastAbnormalStatusId = string.IsNullOrWhiteSpace(housingData.LastAbnormalStatusId)
+            ? string.Empty
+            : housingData.LastAbnormalStatusId.Trim();
+        lastAbnormalStatusText = string.IsNullOrWhiteSpace(housingData.LastAbnormalStatusText)
+            ? lastAbnormalStatusId
+            : housingData.LastAbnormalStatusText.Trim();
+
+        NormalizeConfiguration();
     }
 
     protected override void OnUnregistered()
@@ -282,7 +336,7 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
 
     private bool HasReachableResourceProvider()
     {
-        lastResourceProviderPathCost = -1f;
+        lastResourceProviderActionCost = -1;
 
         if (!HasPlacement || GridMap == null || GameSystem == null || GameSystem.Buildings == null)
         {
@@ -295,9 +349,7 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
             return false;
         }
 
-        var maxScaledCost = Mathf.CeilToInt(resourceProviderSearchRange * ScaledNormalStepCost);
-        var bestScaledCost = int.MaxValue;
-
+        var targetCells = new HashSet<GridPosition>();
         for (var i = 0; i < buildings.Count; i++)
         {
             var building = buildings[i];
@@ -306,24 +358,58 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
                 continue;
             }
 
-            if (!TryGetScaledPathCostTo(building, maxScaledCost, out var scaledCost))
+            foreach (var position in building.Footprint.Positions())
             {
-                continue;
-            }
-
-            if (scaledCost < bestScaledCost)
-            {
-                bestScaledCost = scaledCost;
+                targetCells.Add(position);
             }
         }
 
-        if (bestScaledCost == int.MaxValue)
+        if (targetCells.Count == 0)
         {
             return false;
         }
 
-        lastResourceProviderPathCost = bestScaledCost / (float)ScaledNormalStepCost;
+        var ownCells = CreateFootprintCellSet(this);
+        var reachable = GridManhattanPathfinder.FindReachable(
+            GridMap,
+            ownCells,
+            BuildingActionPower,
+            position => CanEnterResourceProviderSearchCell(position, ownCells, targetCells),
+            position => GetResourceProviderSearchActionCost(position, targetCells));
+
+        var bestActionCost = int.MaxValue;
+        for (var i = 0; i < reachable.Count; i++)
+        {
+            var node = reachable[i];
+            if (targetCells.Contains(node.Position) && node.ActionCost < bestActionCost)
+            {
+                bestActionCost = node.ActionCost;
+            }
+        }
+
+        if (bestActionCost == int.MaxValue)
+        {
+            return false;
+        }
+
+        lastResourceProviderActionCost = bestActionCost;
         return true;
+    }
+
+    private static HashSet<GridPosition> CreateFootprintCellSet(BuildingBase building)
+    {
+        var cells = new HashSet<GridPosition>();
+        if (building == null || !building.HasPlacement)
+        {
+            return cells;
+        }
+
+        foreach (var position in building.Footprint.Positions())
+        {
+            cells.Add(position);
+        }
+
+        return cells;
     }
 
     private bool CanUseAsResourceProvider(BuildingBase building)
@@ -338,98 +424,12 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
             return false;
         }
 
-        return building is IResourceProviderPoint provider && provider.IsResourceProviderPoint;
+        return building.IsResourceProviderPoint;
     }
 
-    private bool TryGetScaledPathCostTo(BuildingBase target, int maxScaledCost, out int scaledCost)
-    {
-        scaledCost = int.MaxValue;
-
-        if (target == null || GridMap == null)
-        {
-            return false;
-        }
-
-        var targetCells = new HashSet<GridPosition>();
-        foreach (var position in target.Footprint.Positions())
-        {
-            targetCells.Add(position);
-        }
-
-        if (targetCells.Count == 0)
-        {
-            return false;
-        }
-
-        var open = new List<PathNode>();
-        var bestCosts = new Dictionary<GridPosition, int>();
-
-        foreach (var position in Footprint.Positions())
-        {
-            bestCosts[position] = 0;
-            open.Add(new PathNode(position, 0));
-        }
-
-        while (open.Count > 0)
-        {
-            var cheapestIndex = GetCheapestOpenNodeIndex(open);
-            var current = open[cheapestIndex];
-            open.RemoveAt(cheapestIndex);
-
-            if (targetCells.Contains(current.Position))
-            {
-                scaledCost = current.ScaledCost;
-                return true;
-            }
-
-            if (current.ScaledCost > maxScaledCost)
-            {
-                continue;
-            }
-
-            TryVisitNeighbor(target, targetCells, current, 1, 0, maxScaledCost, open, bestCosts);
-            TryVisitNeighbor(target, targetCells, current, -1, 0, maxScaledCost, open, bestCosts);
-            TryVisitNeighbor(target, targetCells, current, 0, 1, maxScaledCost, open, bestCosts);
-            TryVisitNeighbor(target, targetCells, current, 0, -1, maxScaledCost, open, bestCosts);
-        }
-
-        return false;
-    }
-
-    private void TryVisitNeighbor(
-        BuildingBase target,
-        HashSet<GridPosition> targetCells,
-        PathNode current,
-        int offsetX,
-        int offsetY,
-        int maxScaledCost,
-        List<PathNode> open,
-        Dictionary<GridPosition, int> bestCosts)
-    {
-        var neighbor = new GridPosition(current.Position.X + offsetX, current.Position.Y + offsetY);
-        if (!CanPathThrough(neighbor, target, targetCells))
-        {
-            return;
-        }
-
-        var nextScaledCost = current.ScaledCost + GetScaledStepCost(neighbor);
-        if (nextScaledCost > maxScaledCost)
-        {
-            return;
-        }
-
-        if (bestCosts.TryGetValue(neighbor, out var knownCost) && knownCost <= nextScaledCost)
-        {
-            return;
-        }
-
-        bestCosts[neighbor] = nextScaledCost;
-        open.Add(new PathNode(neighbor, nextScaledCost));
-    }
-
-    private bool CanPathThrough(
+    private bool CanEnterResourceProviderSearchCell(
         GridPosition position,
-        BuildingBase target,
+        HashSet<GridPosition> ownCells,
         HashSet<GridPosition> targetCells)
     {
         if (GridMap == null || !GridMap.HasBaseTileAt(position))
@@ -437,25 +437,27 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
             return false;
         }
 
+        if (ownCells.Contains(position))
+        {
+            return true;
+        }
+
         if (targetCells.Contains(position))
         {
             return true;
         }
 
-        if (!GridMap.TryGetOccupantId(position, out var occupantId))
-        {
-            return true;
-        }
-
-        return string.Equals(occupantId, GridOccupancyId, StringComparison.Ordinal)
-               || string.Equals(occupantId, target.GridOccupancyId, StringComparison.Ordinal);
+        return GridMap.CanTraverse(position, GridOccupancyId);
     }
 
-    private int GetScaledStepCost(GridPosition position)
+    private int GetResourceProviderSearchActionCost(GridPosition position, HashSet<GridPosition> targetCells)
     {
-        return !string.IsNullOrWhiteSpace(roadTerrainKey) && GridMap != null && GridMap.HasTerrainKey(position, roadTerrainKey)
-            ? ScaledRoadStepCost
-            : ScaledNormalStepCost;
+        if (!targetCells.Contains(position) || GridMap.CanTraverse(position, GridOccupancyId))
+        {
+            return GridMap.GetTraversalActionCost(position, GridOccupancyId);
+        }
+
+        return GridMap.GetTerrainTraversalActionCost(position);
     }
 
     private int GetCurrentFoodConsumptionAmount()
@@ -493,6 +495,7 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
         if (lastTurnPopulationDecayed)
         {
             UpdatePopulationContribution();
+            SendBuildingEvent(GameEventCatalog.GE_人口衰减, "居民房人口衰减！");
         }
 
         if (currentPopulation <= 0)
@@ -529,7 +532,7 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
         lastTurnPopulationDecayed = false;
         lastTurnGrewPopulation = false;
         lastTurnProvidedTax = false;
-        lastResourceProviderPathCost = -1f;
+        lastResourceProviderActionCost = -1;
         lastAbnormalStatusId = string.Empty;
         lastAbnormalStatusText = string.Empty;
         lastResourceConsumptions = EmptyResourceChanges;
@@ -541,7 +544,6 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
         initialPopulationContribution = Mathf.Max(1, initialPopulationContribution);
         maxPopulationContribution = Mathf.Max(initialPopulationContribution, maxPopulationContribution);
         currentPopulation = Mathf.Clamp(currentPopulation, 0, maxPopulationContribution);
-        resourceProviderSearchRange = Mathf.Max(0f, resourceProviderSearchRange);
         growthIntervalTurns = Mathf.Max(1, growthIntervalTurns);
         consumptionFailureDecayThreshold = Mathf.Max(1, consumptionFailureDecayThreshold);
         taxIntervalTurns = Mathf.Max(1, taxIntervalTurns);
@@ -556,35 +558,11 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
 
         foodItemId = NormalizeItemId(foodItemId, DefaultFoodItemId);
         taxItemId = NormalizeItemId(taxItemId, DefaultTaxItemId);
-        roadTerrainKey = GridTerrainKeys.Normalize(roadTerrainKey);
-        if (string.IsNullOrEmpty(roadTerrainKey))
-        {
-            roadTerrainKey = GridTerrainKeys.Road;
-        }
     }
 
     private void OnValidate()
     {
         NormalizeConfiguration();
-    }
-
-    private static int GetCheapestOpenNodeIndex(IReadOnlyList<PathNode> open)
-    {
-        var cheapestIndex = 0;
-        var cheapestCost = open[0].ScaledCost;
-
-        for (var i = 1; i < open.Count; i++)
-        {
-            if (open[i].ScaledCost >= cheapestCost)
-            {
-                continue;
-            }
-
-            cheapestIndex = i;
-            cheapestCost = open[i].ScaledCost;
-        }
-
-        return cheapestIndex;
     }
 
     private static bool HasUsableItemId(string itemId)
@@ -611,15 +589,6 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
             ? new BuildingRuntimeStatus(StatusAbandoned, "荒废")
             : default);
 
-        AddRuntimeStatus(ref statuses, lastTurnPopulationDecayed
-            ? new BuildingRuntimeStatus(
-                StatusPopulationDecayed,
-                "人口衰减",
-                currentPopulation,
-                maxPopulationContribution,
-                "居民房人口衰减！")
-            : default);
-
         AddRuntimeStatus(ref statuses, consecutiveConsumptionFailures > 0
             ? new BuildingRuntimeStatus(
                 StatusConsumptionFailed,
@@ -632,6 +601,7 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
             ? new BuildingRuntimeStatus(lastAbnormalStatusId, lastAbnormalStatusText)
             : default);
 
+        AppendCommonRuntimeStatuses(ref statuses);
         return statuses ?? EmptyRuntimeStatuses;
     }
 
@@ -658,13 +628,27 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
             return false;
         }
 
-        if (lastTurnPopulationDecayed && string.Equals(lastAbnormalStatusId, StatusPopulationDecayed, StringComparison.Ordinal))
-        {
-            return false;
-        }
-
         return consecutiveConsumptionFailures <= 0
                || !string.Equals(lastAbnormalStatusId, StatusConsumptionFailed, StringComparison.Ordinal);
+    }
+
+    private void SendBuildingEvent(string eventTypeId, string message)
+    {
+        GameSystem?.Events?.AddMessage(GameEventMessage.ForBuildingEvent(
+            eventTypeId,
+            this,
+            message,
+            GetEventTurnNumber()));
+    }
+
+    private int GetEventTurnNumber()
+    {
+        if (GameSystem == null)
+        {
+            return 0;
+        }
+
+        return GameSystem.IsAdvancingTurn ? GameSystem.CurrentTurn + 1 : GameSystem.CurrentTurn;
     }
 
     private static void AddRuntimeStatus(ref List<BuildingRuntimeStatus> statuses, BuildingRuntimeStatus status)
@@ -699,9 +683,9 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
                     new BuildingDetailRow("上回合实际消耗", FormatResourceChanges(lastResourceConsumptions)),
                     new BuildingDetailRow("成长进度", $"{growthConsumptionProgress}/{growthIntervalTurns}"),
                     new BuildingDetailRow("连续消耗失败", $"{consecutiveConsumptionFailures}/{consumptionFailureDecayThreshold}"),
-                    new BuildingDetailRow("资源点搜索范围", resourceProviderSearchRange.ToString("0.#")),
+                    new BuildingDetailRow("建筑行动力", BuildingActionPower.ToString()),
                     new BuildingDetailRow("上次资源连接", lastTurnHadResourceProvider ? "成功" : "失败"),
-                    new BuildingDetailRow("上次路径消耗", FormatPathCost(lastResourceProviderPathCost))
+                    new BuildingDetailRow("上次行动力消耗", FormatActionCost(lastResourceProviderActionCost))
                 }),
             new BuildingDetailSection(
                 "税收",
@@ -717,9 +701,9 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
         return sections;
     }
 
-    private static string FormatPathCost(float pathCost)
+    private static string FormatActionCost(int actionCost)
     {
-        return pathCost < 0f ? "无" : pathCost.ToString("0.#");
+        return actionCost < 0 ? "无" : actionCost.ToString();
     }
 
     private static string FormatResourceChanges(IReadOnlyList<BuildingResourceChange> changes)
@@ -751,15 +735,23 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
         return builder.Length == 0 ? "无" : builder.ToString();
     }
 
-    private readonly struct PathNode
+    [Serializable]
+    private sealed class ResidentialHousingLV1Data : BuildingDataBase
     {
-        public PathNode(GridPosition position, int scaledCost)
-        {
-            Position = position;
-            ScaledCost = scaledCost;
-        }
-
-        public GridPosition Position { get; }
-        public int ScaledCost { get; }
+        public int CurrentPopulation;
+        public int GrowthConsumptionProgress;
+        public int TaxConsumptionProgress;
+        public int ConsecutiveConsumptionFailures;
+        public bool IsAbandoned;
+        public bool LastTurnHadResourceProvider;
+        public bool LastTurnConsumptionFailed;
+        public bool LastTurnConsumedResources;
+        public bool LastTurnPopulationDecayed;
+        public bool LastTurnGrewPopulation;
+        public bool LastTurnProvidedTax;
+        public int LastResourceProviderActionCost;
+        public string LastAbnormalStatusId;
+        public string LastAbnormalStatusText;
     }
+
 }

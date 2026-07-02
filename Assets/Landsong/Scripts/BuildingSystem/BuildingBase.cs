@@ -1,18 +1,28 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using Landsong.GridSystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 namespace Landsong.BuildingSystem
 {
+
+    [Serializable]
+    public abstract class BuildingDataBase
+    {
+
+    }
+
     /// <summary>
     /// 建筑 prefab 根节点上的运行时基类。
     /// BuildingDefinition 是 prefab 上的静态配置数据；具体建筑等级通过继承本类实现生命周期。
     /// </summary>
-    public abstract class BuildingBase : MonoBehaviour, IPointerClickHandler
+    public abstract class BuildingBase : MonoBehaviour
     {
+        private static readonly IReadOnlyList<BuildingRuntimeStatus> EmptyRuntimeStatuses =
+            Array.Empty<BuildingRuntimeStatus>();
+
         [Tooltip("该建筑 prefab/实例对应的静态配置数据。")]
         [SerializeField] private BuildingDefinition definition = new BuildingDefinition();
 
@@ -24,6 +34,12 @@ namespace Landsong.BuildingSystem
 
         [Tooltip("格子系统中的唯一占用 ID，用来识别和清理该建筑占用的一组格子。不是人口或居民 ID。")]
         [SerializeField] private string gridOccupancyId;
+
+        [Tooltip("为 true 时，该建筑可作为居民房等建筑的资源连接点。")]
+        [SerializeField] private bool isResourceProviderPoint;
+
+        [Tooltip("建筑用于寻路和范围判断的行动力。普通格默认消耗 10 点，道路等地形由 GridMapBehaviour 配置。")]
+        [SerializeField, Min(0)] private int buildingActionPower = 100;
 
         [Tooltip("两次点击间隔小于等于该值时，第二次点击视为双击。")]
         [SerializeField, Min(0.05f)] private float doubleClickInterval = 0.3f;
@@ -55,8 +71,6 @@ namespace Landsong.BuildingSystem
         private bool placedNotified;
         private bool isDemolishing;
 
-        private float lastClickTime = float.NegativeInfinity;
-        private int lastClickFrame = -1;
         private Coroutine clickScaleCoroutine;
         private Transform clickScaleTarget;
         private Vector3 clickScaleOriginalScale;
@@ -67,6 +81,7 @@ namespace Landsong.BuildingSystem
 
         public AudioClip ClickSound => clickSound;
         public AudioClip DoubleClickSound => doubleClickSound;
+        internal float DoubleClickInterval => doubleClickInterval;
 
         // 当前建筑实例对应的静态定义。
         public BuildingDefinition Definition => definition;
@@ -110,6 +125,12 @@ namespace Landsong.BuildingSystem
         // 格子系统中的唯一占用 ID，用于清理该建筑占用的格子。
         public string GridOccupancyId => gridOccupancyId;
 
+        // 是否可作为居民房等建筑的资源连接点。
+        public bool IsResourceProviderPoint => isResourceProviderPoint;
+
+        // 建筑用于寻路和范围判断的行动力。
+        public int BuildingActionPower => Mathf.Max(0, buildingActionPower);
+
         // 根据 Definition 的尺寸和当前原点计算出的占地范围。
         public GridFootprint Footprint => definition == null ? new GridFootprint(gridPosition, Vector2Int.one) : definition.CreateFootprint(gridPosition);
 
@@ -128,6 +149,7 @@ namespace Landsong.BuildingSystem
 
             EnsureDefinition();
             ResolveView();
+            NormalizeBuildingActionPower();
         }
 
         private void OnValidate()
@@ -135,6 +157,7 @@ namespace Landsong.BuildingSystem
             EnsureDefinition();
             ResolveView();
             NormalizeClickFeedback();
+            NormalizeBuildingActionPower();
         }
 
         protected virtual void Awake()
@@ -142,6 +165,7 @@ namespace Landsong.BuildingSystem
             EnsureDefinition();
             ResolveView();
             NormalizeClickFeedback();
+            NormalizeBuildingActionPower();
         }
 
         /// <summary>
@@ -149,6 +173,7 @@ namespace Landsong.BuildingSystem
         /// </summary>
         protected virtual void Start()
         {
+            WarnIfMissingClickCollider();
             Landsong.GameSystem.Instance.RegisterBuilding(this);
         }
 
@@ -276,6 +301,17 @@ namespace Landsong.BuildingSystem
             return succeeded;
         }
 
+        public BuildingDataBase CaptureSaveData()
+        {
+            return CaptureBuildingData();
+        }
+
+        public void RestoreSaveData(BuildingDataBase data)
+        {
+            RestoreBuildingData(data);
+            NotifyStateChanged();
+        }
+
         public void Demolish()
         {
             var buildingService = GameSystem == null ? null : GameSystem.Buildings;
@@ -316,37 +352,8 @@ namespace Landsong.BuildingSystem
         #endregion
 
         #region Click
-        public void OnPointerClick(PointerEventData eventData)
+        internal void DispatchPointerClick(bool isDoubleClick)
         {
-            if (lastClickFrame == Time.frameCount)
-            {
-                return;
-            }
-
-            if (eventData != null && eventData.button != PointerEventData.InputButton.Left)
-            {
-                return;
-            }
-
-            DispatchBuildingClick(eventData != null && eventData.clickCount > 1);
-        }
-
-        protected virtual void OnMouseUpAsButton()
-        {
-            if (lastClickFrame == Time.frameCount)
-            {
-                return;
-            }
-
-            DispatchBuildingClick(Time.unscaledTime - lastClickTime <= doubleClickInterval);
-        }
-
-        private void DispatchBuildingClick(bool isDoubleClick)
-        {
-            lastClickTime = Time.unscaledTime;
-            lastClickFrame = Time.frameCount;
-
-            SelectSelfInBuildingSelectionController();
             Clicked?.Invoke(this);
             PlayClickScaleFeedback();
             OnClicked();
@@ -414,6 +421,23 @@ namespace Landsong.BuildingSystem
             doubleClickInterval = Mathf.Max(0.05f, doubleClickInterval);
             clickScaleMultiplier = Mathf.Max(1f, clickScaleMultiplier);
             clickScaleDuration = Mathf.Max(0f, clickScaleDuration);
+        }
+
+        private void NormalizeBuildingActionPower()
+        {
+            buildingActionPower = Mathf.Max(0, buildingActionPower);
+        }
+
+        private void WarnIfMissingClickCollider()
+        {
+            if (BuildingPointerHitUtility.HasEnabledCollider(gameObject))
+            {
+                return;
+            }
+
+            Debug.LogWarning(
+                $"建筑 '{name}' 缺少启用的 Collider/Collider2D，统一建筑点击链路无法命中它。",
+                this);
         }
 
         private void PlayClickScaleFeedback()
@@ -493,21 +517,19 @@ namespace Landsong.BuildingSystem
             }
         }
 
-        private void SelectSelfInBuildingSelectionController()
-        {
-            Landsong.GameSystem currentGameSystem = gameSystem;
-            if (currentGameSystem == null)
-            {
-                currentGameSystem = Landsong.GameSystem.Instance;
-            }
-
-            currentGameSystem.BuildingSelection?.SelectBuilding(this);
-        }
-
         /// <summary>
         /// Definition 第一次写入后调用一次。适合初始化本建筑等级的运行时默认值。
         /// </summary>
         protected virtual void OnInitialized()
+        {
+        }
+
+        protected virtual BuildingDataBase CaptureBuildingData()
+        {
+            return null;
+        }
+
+        protected virtual void RestoreBuildingData(BuildingDataBase data)
         {
         }
 
@@ -526,6 +548,165 @@ namespace Landsong.BuildingSystem
         /// 建筑每回合逻辑。施工、运营、产出、升级触发都写在这里。返回 false 表示本回合执行失败。
         /// </summary>
         protected abstract bool OnTurn();
+
+        /// <summary>
+        /// 返回建筑当前需要显示的运行状态。空列表表示 UI 可视为正常。
+        /// </summary>
+        public virtual IReadOnlyList<BuildingRuntimeStatus> GetRuntimeStatuses()
+        {
+            return GetCommonRuntimeStatuses();
+        }
+
+        protected IReadOnlyList<BuildingRuntimeStatus> GetCommonRuntimeStatuses()
+        {
+            List<BuildingRuntimeStatus> statuses = null;
+            AppendCommonRuntimeStatuses(ref statuses);
+            return statuses ?? EmptyRuntimeStatuses;
+        }
+
+        protected void AppendCommonRuntimeStatuses(ref List<BuildingRuntimeStatus> statuses)
+        {
+            AppendRuntimeStatus(ref statuses, CreateRoadBlockedStatus());
+        }
+
+        protected static void AppendRuntimeStatus(ref List<BuildingRuntimeStatus> statuses, BuildingRuntimeStatus status)
+        {
+            if (!status.IsValid)
+            {
+                return;
+            }
+
+            statuses ??= new List<BuildingRuntimeStatus>();
+            statuses.Add(status);
+        }
+
+        private BuildingRuntimeStatus CreateRoadBlockedStatus()
+        {
+            if (!HasPlacement || gridMap == null || !HasDefinition || HasPathFromAroundBuildingToMapBoundary())
+            {
+                return default;
+            }
+
+            return new BuildingRuntimeStatus(BuildingRuntimeStatusCatalog.BS_道路不通, "道路不通");
+        }
+
+        private bool HasPathFromAroundBuildingToMapBoundary()
+        {
+            var bounds = gridMap.BaseCellBounds;
+            if (bounds.size.x <= 0 || bounds.size.y <= 0)
+            {
+                return true;
+            }
+
+            var footprintCells = new HashSet<GridPosition>();
+            foreach (var position in Footprint.Positions())
+            {
+                footprintCells.Add(position);
+            }
+
+            if (footprintCells.Count <= 0)
+            {
+                return true;
+            }
+
+            var startCells = new HashSet<GridPosition>();
+            foreach (var position in footprintCells)
+            {
+                AddBoundaryConnectionCandidate(startCells, footprintCells, position.X + 1, position.Y);
+                AddBoundaryConnectionCandidate(startCells, footprintCells, position.X - 1, position.Y);
+                AddBoundaryConnectionCandidate(startCells, footprintCells, position.X, position.Y + 1);
+                AddBoundaryConnectionCandidate(startCells, footprintCells, position.X, position.Y - 1);
+            }
+
+            foreach (var start in startCells)
+            {
+                if (CanReachMapBoundary(start, footprintCells, bounds))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static void AddBoundaryConnectionCandidate(
+            HashSet<GridPosition> startCells,
+            HashSet<GridPosition> footprintCells,
+            int x,
+            int y)
+        {
+            var candidate = new GridPosition(x, y);
+            if (!footprintCells.Contains(candidate))
+            {
+                startCells.Add(candidate);
+            }
+        }
+
+        private bool CanReachMapBoundary(
+            GridPosition start,
+            HashSet<GridPosition> footprintCells,
+            BoundsInt bounds)
+        {
+            if (!IsBoundaryConnectionPassable(start, footprintCells))
+            {
+                return false;
+            }
+
+            var open = new Queue<GridPosition>();
+            var visited = new HashSet<GridPosition> { start };
+            open.Enqueue(start);
+
+            while (open.Count > 0)
+            {
+                var current = open.Dequeue();
+                if (IsMapBoundaryCell(current, bounds))
+                {
+                    return true;
+                }
+
+                TryEnqueueBoundaryConnectionNeighbor(open, visited, footprintCells, current.X + 1, current.Y);
+                TryEnqueueBoundaryConnectionNeighbor(open, visited, footprintCells, current.X - 1, current.Y);
+                TryEnqueueBoundaryConnectionNeighbor(open, visited, footprintCells, current.X, current.Y + 1);
+                TryEnqueueBoundaryConnectionNeighbor(open, visited, footprintCells, current.X, current.Y - 1);
+            }
+
+            return false;
+        }
+
+        private void TryEnqueueBoundaryConnectionNeighbor(
+            Queue<GridPosition> open,
+            HashSet<GridPosition> visited,
+            HashSet<GridPosition> footprintCells,
+            int x,
+            int y)
+        {
+            var neighbor = new GridPosition(x, y);
+            if (visited.Contains(neighbor) || !IsBoundaryConnectionPassable(neighbor, footprintCells))
+            {
+                return;
+            }
+
+            visited.Add(neighbor);
+            open.Enqueue(neighbor);
+        }
+
+        private bool IsBoundaryConnectionPassable(GridPosition position, HashSet<GridPosition> footprintCells)
+        {
+            if (gridMap == null || footprintCells.Contains(position) || !gridMap.HasBaseTileAt(position))
+            {
+                return false;
+            }
+
+            return gridMap.CanTraverse(position, gridOccupancyId);
+        }
+
+        private static bool IsMapBoundaryCell(GridPosition position, BoundsInt bounds)
+        {
+            return position.X <= bounds.xMin
+                   || position.X >= bounds.xMax - 1
+                   || position.Y <= bounds.yMin
+                   || position.Y >= bounds.yMax - 1;
+        }
 
         /// <summary>
         /// 建筑通过游戏行为被拆除时调用。普通 Destroy 不会触发该钩子。
@@ -567,5 +748,25 @@ namespace Landsong.BuildingSystem
         {
             return false;
         }
+
+
+        #region 信息
+        /// <summary>
+        /// 建筑在列表、选中栏、底栏中使用的一行基础摘要。
+        /// </summary>
+        public virtual string GetBaseInfo()
+        {
+            return string.Empty;
+        }
+
+        /// <summary>
+        /// 建筑详情面板使用的结构化详情信息。具体建筑可按自身数据重写。
+        /// </summary>
+        public virtual BuildingDetailInfo GetDetailInfo()
+        {
+            return BuildingDetailInfo.Empty;
+        }
+        #endregion
+
     }
 }

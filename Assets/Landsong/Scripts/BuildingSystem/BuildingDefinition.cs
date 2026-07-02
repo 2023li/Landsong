@@ -48,6 +48,11 @@ namespace Landsong.BuildingSystem
         [PropertyTooltip("建筑 footprint 内每个格子都必须包含这些 key。默认 land；水上建筑填 water；特殊区域建筑填对应区域 key。")]
         [SerializeField] private string[] requiredTerrainKeys = { GridTerrainKeys.Land };
 
+        [TitleGroup("寻路")]
+        [LabelText("移动阻力")]
+        [PropertyTooltip("该建筑占用格的通行行动力消耗。小于等于 0 表示不可通行；道路等可通行建筑填正数。")]
+        [SerializeField] private int movementResistance;
+
         [TitleGroup("成本")]
         [LabelText("放置成本")]
         [PropertyTooltip("玩家确认放置时立即扣除。施工、运营、生产、升级等成本写在建筑 prefab 上的 BuildingBase 子类里。")]
@@ -94,6 +99,7 @@ namespace Landsong.BuildingSystem
         public Sprite Icon => icon;
         public Vector2Int Size => size;
         public IReadOnlyList<BuildingCost> PlacementCosts => placementCosts ?? Array.Empty<BuildingCost>();
+        public int MovementResistance => movementResistance;
         public IReadOnlyList<string> RequiredTerrainKeys
         {
             get

@@ -135,17 +135,17 @@ namespace Landsong.UISystem
             subscribedToSelection = false;
         }
 
-        private void HandleSelectionChanged(BuildingSelectionController controller, BuildingBase selectedBuilding)
+        private void HandleSelectionChanged(BuildingBase selectedBuilding)
         {
             RefreshSelectionViews();
         }
 
-        private void HandleSelectedBuildingStateChanged(BuildingSelectionController controller, BuildingBase selectedBuilding)
+        private void HandleSelectedBuildingStateChanged(BuildingBase selectedBuilding)
         {
             RefreshSelectionViews();
         }
 
-        private void HandleBuildingDetailRequested(BuildingSelectionController controller, BuildingBase building)
+        private void HandleBuildingDetailRequested(BuildingBase building)
         {
             if (!CanShowBuilding(building))
             {

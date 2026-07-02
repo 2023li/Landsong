@@ -23,6 +23,9 @@ namespace Landsong.BuildingSystem
         [InspectorName("奇迹")]
         奇迹 = 1<< 6,
         [InspectorName("神迹")]
-        神迹 = 1<< 7
+        神迹 = 1<< 7,
+        [InspectorName("道路")]
+        道路 = 1 << 8,
+
     }
 }

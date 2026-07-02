@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Text;
 using Landsong.BuildingSystem;
-using Landsong.GridSystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -14,7 +13,7 @@ namespace Landsong.DebugSystem
     [DefaultExecutionOrder(10000)]
     public sealed class LSDebugManager : MonoBehaviour
     {
-        [BoxGroup("UI调试"), SerializeField, LabelText("启用 UI 调试")] private bool uiDebug;
+        [BoxGroup("UI调试"), SerializeField, LabelText("启用 UI 调试")] private bool uiDebug = false;
         [BoxGroup("UI调试"), SerializeField, LabelText("UI 调试快捷键")] private Key toggleUiDebugKey = Key.F9;
         [BoxGroup("UI调试"), SerializeField, LabelText("绘制 RaycastTarget 区域")] private bool drawUiRaycastTargetRects = true;
         [BoxGroup("UI调试"), SerializeField, LabelText("点击时输出 UI 命中日志")] private bool logUiRaycastOnClick = true;
@@ -22,7 +21,7 @@ namespace Landsong.DebugSystem
         [BoxGroup("UI调试"), SerializeField, Min(1), LabelText("最大高亮图形数量")] private int maxHighlightedGraphics = 160;
         [BoxGroup("UI调试"), SerializeField, Range(0f, 0.25f), LabelText("透明判断阈值")] private float transparentAlphaThreshold = 0.01f;
 
-        [BoxGroup("建筑调试"), SerializeField, LabelText("启用建筑点击调试")] private bool buildingClickDebug = true;
+        [BoxGroup("建筑调试"), SerializeField, LabelText("启用建筑点击调试")] private bool buildingClickDebug = false;
         [BoxGroup("建筑调试"), SerializeField, LabelText("点击时输出建筑命中日志")] private bool logBuildingClickOnClick = true;
         [BoxGroup("建筑调试"), SerializeField, Min(1), LabelText("最大显示建筑命中数量")] private int maxDisplayedBuildingHits = 8;
 
@@ -38,12 +37,12 @@ namespace Landsong.DebugSystem
         private EventSystem sampledEventSystem;
         private Vector2 sampledScreenPosition;
         private Camera sampledBuildingCamera;
-        private GameObject sampledInteractiveUiBlocker;
+        private GameObject sampledTopUiRaycastTarget;
+        private bool sampledTopUiRaycastTargetIsInteractive;
+        private bool sampledTopUiRaycastTargetIsTransparent;
         private BuildingBase sampledSelectedBuilding;
         private BuildingBase sampledTopBuilding;
         private int sampledRuntimeBuildingCount;
-        private bool sampledHasPhysicsRaycaster;
-        private bool sampledHasPhysics2DRaycaster;
         private string sampledBuildingDebugNote;
         private bool hasSampledPointer;
         private GUIStyle panelStyle;
@@ -106,13 +105,19 @@ namespace Landsong.DebugSystem
         {
             HandleShortcut();
 
-            if (!uiDebug)
+            bool primaryPointerPressed = WasPrimaryPointerPressedThisFrame();
+            bool shouldSampleDebug = uiDebug || (buildingClickDebug && logBuildingClickOnClick && primaryPointerPressed);
+
+            if (shouldSampleDebug)
             {
-                return;
+                SampleUiRaycasts();
+            }
+            else
+            {
+                ClearUiDebug();
             }
 
-            SampleUiRaycasts();
-            if (buildingClickDebug)
+            if (buildingClickDebug && shouldSampleDebug)
             {
                 SampleBuildingClickDebug();
             }
@@ -121,12 +126,12 @@ namespace Landsong.DebugSystem
                 ClearBuildingClickDebug();
             }
 
-            if (logUiRaycastOnClick && WasPrimaryPointerPressedThisFrame())
+            if (uiDebug && logUiRaycastOnClick && primaryPointerPressed)
             {
                 Debug.Log(BuildUiRaycastReport(), this);
             }
 
-            if (buildingClickDebug && logBuildingClickOnClick && WasPrimaryPointerPressedThisFrame())
+            if (buildingClickDebug && logBuildingClickOnClick && primaryPointerPressed)
             {
                 Debug.Log(BuildBuildingClickReport(), this);
             }
@@ -208,6 +213,15 @@ namespace Landsong.DebugSystem
             sampledEventSystem.RaycastAll(pointerEventData, uiRaycastResults);
 
             CollectHighlightedGraphics();
+        }
+
+        private void ClearUiDebug()
+        {
+            hasSampledPointer = false;
+            sampledScreenPosition = default;
+            sampledEventSystem = null;
+            uiRaycastResults.Clear();
+            highlightedGraphics.Clear();
         }
 
         private void CollectHighlightedGraphics()
@@ -298,10 +312,10 @@ namespace Landsong.DebugSystem
         private void DrawUiDebugPanel()
         {
             var report = BuildUiRaycastReport();
-            var buildingLineCount = buildingClickDebug ? 8 + Mathf.Min(maxDisplayedBuildingHits, buildingClickHits.Count) : 0;
+            var lineCount = CountLines(report);
             var height = Mathf.Min(
                 Screen.height - 24f,
-                Mathf.Max(180f, 92f + uiRaycastResults.Count * 46f + buildingLineCount * 28f));
+                Mathf.Max(180f, 42f + lineCount * 22f));
             var rect = new Rect(12f, 12f, Mathf.Min(900f, Screen.width - 24f), height);
 
             GUI.color = new Color(0f, 0f, 0f, 0.78f);
@@ -476,11 +490,16 @@ namespace Landsong.DebugSystem
                 return;
             }
 
-            sampledHasPhysicsRaycaster = sampledBuildingCamera.GetComponent<PhysicsRaycaster>() != null;
-            sampledHasPhysics2DRaycaster = sampledBuildingCamera.GetComponent<Physics2DRaycaster>() != null;
-            sampledInteractiveUiBlocker = GetTopInteractiveUiBlocker();
+            sampledTopUiRaycastTarget = GetTopUiRaycastTarget(
+                out sampledTopUiRaycastTargetIsInteractive,
+                out sampledTopUiRaycastTargetIsTransparent);
 
             Landsong.GameSystem gameSystem = FindFirstObjectByType<Landsong.GameSystem>(FindObjectsInactive.Include);
+            if (gameSystem == null)
+            {
+                AppendBuildingDebugNote("没有 GameSystem，无法读取选择状态和运行时建筑数量。");
+            }
+
             BuildingSelectionController selectionController = gameSystem == null ? null : gameSystem.BuildingSelection;
             IReadOnlyList<BuildingBase> runtimeBuildings = gameSystem == null || gameSystem.Buildings == null
                 ? null
@@ -492,14 +511,13 @@ namespace Landsong.DebugSystem
             Ray ray = sampledBuildingCamera.ScreenPointToRay(sampledScreenPosition);
             CollectPhysics3DBuildingHits(ray);
             CollectPhysics2DBuildingHits(ray);
-            CollectRuntimeBuildingHits(ray, runtimeBuildings);
 
             buildingClickHits.Sort(CompareBuildingClickHits);
             sampledTopBuilding = buildingClickHits.Count == 0 ? null : buildingClickHits[0].Building;
 
             if (buildingClickHits.Count == 0)
             {
-                sampledBuildingDebugNote = "未命中任何注册建筑。重点检查 Collider/Collider2D、建筑占用格、Camera.main 和 Physics2DRaycaster。";
+                AppendBuildingDebugNote("未命中任何带 Collider/Collider2D 的建筑。缺 Collider 的建筑不会被统一建筑点击链路命中。");
             }
         }
 
@@ -507,12 +525,12 @@ namespace Landsong.DebugSystem
         {
             buildingClickHits.Clear();
             sampledBuildingCamera = null;
-            sampledInteractiveUiBlocker = null;
+            sampledTopUiRaycastTarget = null;
+            sampledTopUiRaycastTargetIsInteractive = false;
+            sampledTopUiRaycastTargetIsTransparent = false;
             sampledSelectedBuilding = null;
             sampledTopBuilding = null;
             sampledRuntimeBuildingCount = 0;
-            sampledHasPhysicsRaycaster = false;
-            sampledHasPhysics2DRaycaster = false;
             sampledBuildingDebugNote = string.Empty;
         }
 
@@ -539,10 +557,7 @@ namespace Landsong.DebugSystem
             textBuilder.Append(Mathf.RoundToInt(sampledScreenPosition.y));
             textBuilder.Append("  Camera: ");
             textBuilder.Append(sampledBuildingCamera == null ? "None" : sampledBuildingCamera.name);
-            textBuilder.Append("  PhysicsRaycaster: ");
-            textBuilder.Append(sampledHasPhysicsRaycaster ? "Yes" : "No");
-            textBuilder.Append("  Physics2DRaycaster: ");
-            textBuilder.Append(sampledHasPhysics2DRaycaster ? "Yes" : "No");
+            textBuilder.Append("  HitTest: Collider-only");
             textBuilder.AppendLine();
 
             textBuilder.Append("Runtime Buildings: ");
@@ -552,17 +567,26 @@ namespace Landsong.DebugSystem
             textBuilder.Append("  Top Hit: ");
             textBuilder.Append(GetBuildingDebugName(sampledTopBuilding));
             textBuilder.AppendLine();
+            AppendBuildingStatusSummaryLine("Selected Status", sampledSelectedBuilding);
+            if (sampledTopBuilding != sampledSelectedBuilding)
+            {
+                AppendBuildingStatusSummaryLine("Top Hit Status", sampledTopBuilding);
+            }
 
-            textBuilder.Append("UI Blocker: ");
-            if (sampledInteractiveUiBlocker == null)
+            textBuilder.Append("UI Top Hit: ");
+            if (sampledTopUiRaycastTarget == null)
             {
                 textBuilder.AppendLine("None");
             }
             else
             {
-                textBuilder.Append(sampledInteractiveUiBlocker.name);
+                textBuilder.Append(sampledTopUiRaycastTarget.name);
+                textBuilder.Append("  interactive=");
+                textBuilder.Append(sampledTopUiRaycastTargetIsInteractive ? "Yes" : "No");
+                textBuilder.Append("  transparent=");
+                textBuilder.Append(sampledTopUiRaycastTargetIsTransparent ? "Yes" : "No");
                 textBuilder.Append("  path=");
-                textBuilder.AppendLine(GetTransformPath(sampledInteractiveUiBlocker.transform));
+                textBuilder.AppendLine(GetTransformPath(sampledTopUiRaycastTarget.transform));
             }
 
             if (!string.IsNullOrWhiteSpace(sampledBuildingDebugNote))
@@ -615,6 +639,7 @@ namespace Landsong.DebugSystem
             textBuilder.Append(GetBuildingDebugName(hit.Building));
             textBuilder.Append("  distance=");
             textBuilder.Append(hit.Distance.ToString("0.###"));
+            AppendBuildingColliderSummary(hit.Building);
             textBuilder.AppendLine();
 
             if (!string.IsNullOrWhiteSpace(hit.TargetPath))
@@ -622,6 +647,8 @@ namespace Landsong.DebugSystem
                 textBuilder.Append("      target=");
                 textBuilder.AppendLine(hit.TargetPath);
             }
+
+            AppendBuildingStatusDetailLines("      ", hit.Building);
         }
 
         private void CollectPhysics3DBuildingHits(Ray ray)
@@ -674,42 +701,6 @@ namespace Landsong.DebugSystem
             }
         }
 
-        private void CollectRuntimeBuildingHits(Ray ray, IReadOnlyList<BuildingBase> runtimeBuildings)
-        {
-            if (runtimeBuildings == null)
-            {
-                return;
-            }
-
-            for (int i = 0; i < runtimeBuildings.Count; i++)
-            {
-                BuildingBase building = runtimeBuildings[i];
-                if (building == null || !building.isActiveAndEnabled)
-                {
-                    continue;
-                }
-
-                if (!TryGetWorldPointForBuilding(building, ray, out Vector3 worldPoint))
-                {
-                    continue;
-                }
-
-                float distance = sampledBuildingCamera == null
-                    ? 0f
-                    : Mathf.Abs(sampledBuildingCamera.WorldToScreenPoint(building.transform.position).z);
-
-                if (IsWorldPointInsideBuildingFootprint(building, worldPoint))
-                {
-                    AddBuildingClickHit(building, "Footprint", GetTransformPath(building.transform), distance);
-                }
-
-                if (IsWorldPointInsideBuildingRenderer(building, worldPoint))
-                {
-                    AddBuildingClickHit(building, "RendererBounds", GetTransformPath(building.transform), distance);
-                }
-            }
-        }
-
         private void AddBuildingClickHit(BuildingBase building, string source, string targetPath, float distance)
         {
             if (building == null)
@@ -720,81 +711,42 @@ namespace Landsong.DebugSystem
             buildingClickHits.Add(new BuildingClickHit(building, source, targetPath, distance));
         }
 
-        private GameObject GetTopInteractiveUiBlocker()
+        private GameObject GetTopUiRaycastTarget(out bool isInteractive, out bool isTransparent)
         {
+            isInteractive = false;
+            isTransparent = false;
+
             for (int i = 0; i < uiRaycastResults.Count; i++)
             {
                 RaycastResult result = uiRaycastResults[i];
-                if (!(result.module is GraphicRaycaster) || !IsInteractiveUi(result.gameObject))
+                if (!(result.module is GraphicRaycaster) || result.gameObject == null)
                 {
                     continue;
                 }
 
+                Graphic graphic = result.gameObject.GetComponent<Graphic>();
+                isInteractive = IsInteractiveUi(result.gameObject);
+                isTransparent = IsSuspiciousTransparentRaycastTarget(graphic);
                 return result.gameObject;
             }
 
             return null;
         }
 
-        private static bool TryGetWorldPointForBuilding(BuildingBase building, Ray ray, out Vector3 worldPoint)
+        private void AppendBuildingDebugNote(string note)
         {
-            if (building != null
-                && building.GridMap != null
-                && building.GridMap.Layout != null
-                && building.GridMap.Layout.TryRaycastToGridPlane(ray, out worldPoint))
+            if (string.IsNullOrWhiteSpace(note))
             {
-                return true;
+                return;
             }
 
-            Vector3 planePosition = building == null ? Vector3.zero : building.transform.position;
-            UnityEngine.Plane plane = new UnityEngine.Plane(Vector3.forward, planePosition);
-            if (plane.Raycast(ray, out float enter))
+            if (string.IsNullOrWhiteSpace(sampledBuildingDebugNote))
             {
-                worldPoint = ray.GetPoint(enter);
-                return true;
+                sampledBuildingDebugNote = note;
+                return;
             }
 
-            worldPoint = default;
-            return false;
-        }
-
-        private static bool IsWorldPointInsideBuildingFootprint(BuildingBase building, Vector3 worldPoint)
-        {
-            if (building == null || !building.HasPlacement || building.GridMap == null || building.GridMap.Layout == null)
-            {
-                return false;
-            }
-
-            GridPosition pointerPosition = building.GridMap.Layout.WorldToGridPosition(worldPoint);
-            foreach (GridPosition footprintPosition in building.Footprint.Positions())
-            {
-                if (footprintPosition == pointerPosition)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private static bool IsWorldPointInsideBuildingRenderer(BuildingBase building, Vector3 worldPoint)
-        {
-            if (building == null)
-            {
-                return false;
-            }
-
-            Renderer[] renderers = building.GetComponentsInChildren<Renderer>(true);
-            for (int i = 0; i < renderers.Length; i++)
-            {
-                Renderer renderer = renderers[i];
-                if (renderer != null && renderer.enabled && renderer.bounds.Contains(worldPoint))
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            sampledBuildingDebugNote += " " + note;
         }
 
         private static BuildingBase GetBuildingFromObject(GameObject target)
@@ -804,13 +756,7 @@ namespace Landsong.DebugSystem
                 return null;
             }
 
-            BuildingBase building = target.GetComponentInParent<BuildingBase>(true);
-            if (building != null)
-            {
-                return building;
-            }
-
-            return target.GetComponentInChildren<BuildingBase>(true);
+            return target.GetComponentInParent<BuildingBase>(true);
         }
 
         private static string GetBuildingDebugName(BuildingBase building)
@@ -827,6 +773,146 @@ namespace Landsong.DebugSystem
             }
 
             return $"{displayName} ({building.name})";
+        }
+
+        private void AppendBuildingColliderSummary(BuildingBase building)
+        {
+            if (building == null)
+            {
+                return;
+            }
+
+            Collider2D[] colliders2D = building.GetComponentsInChildren<Collider2D>(true);
+            Collider[] colliders3D = building.GetComponentsInChildren<Collider>(true);
+
+            textBuilder.Append("  collider2D=");
+            AppendEnabledCount(colliders2D);
+            textBuilder.Append("  collider3D=");
+            AppendEnabledCount(colliders3D);
+            textBuilder.Append("  placed=");
+            textBuilder.Append(building.HasPlacement ? "Yes" : "No");
+        }
+
+        private void AppendBuildingStatusSummaryLine(string label, BuildingBase building)
+        {
+            textBuilder.Append(label);
+            textBuilder.Append(": ");
+            if (building == null)
+            {
+                textBuilder.AppendLine("None");
+                return;
+            }
+
+            IReadOnlyList<BuildingRuntimeStatus> statuses = building.GetRuntimeStatuses();
+            int validStatusCount = CountValidBuildingStatuses(statuses);
+            bool hasAbnormalStatus = BuildingRuntimeStatusCatalog.HasAbnormalStatus(statuses);
+
+            textBuilder.Append(validStatusCount);
+            textBuilder.Append(" status(es), abnormal=");
+            textBuilder.AppendLine(hasAbnormalStatus ? "Yes" : "No");
+        }
+
+        private void AppendBuildingStatusDetailLines(string indent, BuildingBase building)
+        {
+            if (building == null)
+            {
+                return;
+            }
+
+            IReadOnlyList<BuildingRuntimeStatus> statuses = building.GetRuntimeStatuses();
+            int validStatusCount = CountValidBuildingStatuses(statuses);
+            bool hasAbnormalStatus = BuildingRuntimeStatusCatalog.HasAbnormalStatus(statuses);
+
+            textBuilder.Append(indent);
+            textBuilder.Append("statuses=");
+            textBuilder.Append(validStatusCount);
+            textBuilder.Append("  abnormal=");
+            textBuilder.AppendLine(hasAbnormalStatus ? "Yes" : "No");
+
+            if (statuses == null || validStatusCount <= 0)
+            {
+                textBuilder.Append(indent);
+                textBuilder.AppendLine("- None");
+                return;
+            }
+
+            for (int i = 0; i < statuses.Count; i++)
+            {
+                BuildingRuntimeStatus status = statuses[i];
+                if (!status.IsValid)
+                {
+                    continue;
+                }
+
+                textBuilder.Append(indent);
+                textBuilder.Append("- id=");
+                textBuilder.Append(status.StatusId);
+                textBuilder.Append("  name=");
+                textBuilder.Append(status.DisplayName);
+                textBuilder.Append("  abnormal=");
+                textBuilder.Append(BuildingRuntimeStatusCatalog.IsAbnormalStatus(status) ? "Yes" : "No");
+                if (status.Target > 0)
+                {
+                    textBuilder.Append("  progress=");
+                    textBuilder.Append(status.Progress);
+                    textBuilder.Append("/");
+                    textBuilder.Append(status.Target);
+                }
+
+                textBuilder.AppendLine();
+            }
+        }
+
+        private static int CountValidBuildingStatuses(IReadOnlyList<BuildingRuntimeStatus> statuses)
+        {
+            if (statuses == null)
+            {
+                return 0;
+            }
+
+            int count = 0;
+            for (int i = 0; i < statuses.Count; i++)
+            {
+                if (statuses[i].IsValid)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        private void AppendEnabledCount<TCollider>(TCollider[] colliders)
+            where TCollider : Collider
+        {
+            int enabledCount = 0;
+            for (int i = 0; i < colliders.Length; i++)
+            {
+                if (colliders[i] != null && colliders[i].enabled)
+                {
+                    enabledCount++;
+                }
+            }
+
+            textBuilder.Append(enabledCount);
+            textBuilder.Append("/");
+            textBuilder.Append(colliders.Length);
+        }
+
+        private void AppendEnabledCount(Collider2D[] colliders)
+        {
+            int enabledCount = 0;
+            for (int i = 0; i < colliders.Length; i++)
+            {
+                if (colliders[i] != null && colliders[i].enabled)
+                {
+                    enabledCount++;
+                }
+            }
+
+            textBuilder.Append(enabledCount);
+            textBuilder.Append("/");
+            textBuilder.Append(colliders.Length);
         }
 
         private static bool IsInteractiveUi(GameObject target)
@@ -930,6 +1016,25 @@ namespace Landsong.DebugSystem
 
             var touchscreen = Touchscreen.current;
             return touchscreen != null && touchscreen.primaryTouch.press.wasPressedThisFrame;
+        }
+
+        private static int CountLines(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return 0;
+            }
+
+            int count = 1;
+            for (int i = 0; i < value.Length; i++)
+            {
+                if (value[i] == '\n')
+                {
+                    count++;
+                }
+            }
+
+            return count;
         }
 
         private static float GetEffectiveGraphicAlpha(Graphic graphic)

@@ -122,7 +122,13 @@ namespace Landsong.BuildingSystem
             }
 
             var occupancyId = CreateGridOccupancyId(buildingPrefab);
-            if (!gridMap.TryOccupy(origin, definition.Size, occupancyId, definition.RequiredTerrainKeys, out failureReason))
+            if (!gridMap.TryOccupy(
+                    origin,
+                    definition.Size,
+                    occupancyId,
+                    definition.RequiredTerrainKeys,
+                    definition.MovementResistance,
+                    out failureReason))
             {
                 Debug.LogWarning($"Cannot occupy grid for building '{definition.DisplayName}' at {origin}: {failureReason}.", buildingPrefab);
                 return false;

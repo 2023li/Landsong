@@ -19,6 +19,11 @@ public class ResidentialHousingLV3 : BuildingBase
         return true;
     }
 
+    public override string GetBaseInfo()
+    {
+        return $"人口 {populationContribution}";
+    }
+
     protected override void OnUnregistered()
     {
         GameSystem?.Dynasty?.RemovePopulationContribution(this);
