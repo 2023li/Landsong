@@ -31,6 +31,7 @@ namespace Landsong
 
         [Header("Scene Systems")]
         [SerializeField, LabelText("建筑目录")] private BuildingCatalog buildingCatalog;
+        [SerializeField, LabelText("建筑选择控制器")] private BuildingSelectionController buildingSelection;
 
         [Header("Building Runtime")]
         [SerializeField, LabelText("初始已解锁科技")] private string[] startingUnlockedTechnologies = Array.Empty<string>();
@@ -46,6 +47,9 @@ namespace Landsong
 
         [ShowInInspector, ReadOnly, LabelText("建筑服务")]
         public BuildingService Buildings { get; private set; }
+
+        [ShowInInspector, ReadOnly, LabelText("当前建筑选择控制器")]
+        public BuildingSelectionController BuildingSelection => buildingSelection;
 
         [ShowInInspector, ReadOnly, LabelText("建筑目录")]
         public BuildingCatalog BuildingCatalog => buildingCatalog;
@@ -67,11 +71,17 @@ namespace Landsong
             CreateDynastyService();
             CreateTurnService();
             CreateBuildingService();
+            ResolveBuildingSelectionController();
         }
 
         private void Update()
         {
             UpdateTurnInput();
+        }
+
+        private void OnDestroy()
+        {
+            buildingSelection = null;
         }
 
         private void OnValidate()
@@ -156,6 +166,8 @@ namespace Landsong
             {
                 CreateBuildingService();
             }
+
+            ResolveBuildingSelectionController();
 
             if (!building.HasDefinition)
             {
@@ -278,6 +290,34 @@ namespace Landsong
         private void CreateBuildingService()
         {
             Buildings = new BuildingService(this);
+        }
+
+        internal void RegisterBuildingSelectionController(BuildingSelectionController controller)
+        {
+            if (controller == null)
+            {
+                return;
+            }
+
+            buildingSelection = controller;
+        }
+
+        internal void UnregisterBuildingSelectionController(BuildingSelectionController controller)
+        {
+            if (buildingSelection == controller)
+            {
+                buildingSelection = null;
+            }
+        }
+
+        private void ResolveBuildingSelectionController()
+        {
+            if (buildingSelection != null)
+            {
+                return;
+            }
+
+            buildingSelection = FindFirstObjectByType<BuildingSelectionController>(FindObjectsInactive.Include);
         }
 
         private void UpdateTurnInput()

@@ -6,7 +6,7 @@ using Landsong.InventorySystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionSource, IBuildingTaxSource, IBuildingRuntimeStatusSource, IBuildingOverviewSource, IBuildingPopulationSource
+public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionSource, IBuildingTaxSource, IBuildingRuntimeStatusSource, IBuildingOverviewSource, IBuildingPopulationSource, IBuildingDetailSource
 {
     private const string DefaultFoodItemId = "蔬菜";
     private const string DefaultTaxItemId = "金币";
@@ -128,6 +128,7 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
     public IReadOnlyList<BuildingRuntimeStatus> RuntimeStatuses => CreateRuntimeStatuses();
     public string OverviewValueLabel => "人口";
     public string OverviewValueText => $"{currentPopulation}/{maxPopulationContribution}";
+    public IReadOnlyList<BuildingDetailSection> DetailSections => CreateDetailSections();
 
     protected override void OnInitialized()
     {
@@ -240,6 +241,11 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
 
         return true;
     }
+    protected override void OnClicked()
+    {
+        base.OnClicked();
+    }
+
 
     private bool TryProvideTax(InventoryService inventory)
     {
@@ -670,6 +676,79 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
 
         statuses ??= new List<BuildingRuntimeStatus>();
         statuses.Add(status);
+    }
+
+    private IReadOnlyList<BuildingDetailSection> CreateDetailSections()
+    {
+        BuildingDetailSection[] sections =
+        {
+            new BuildingDetailSection(
+                "基础信息",
+                new[]
+                {
+                    new BuildingDetailRow("人口", $"{currentPopulation}/{maxPopulationContribution}"),
+                    new BuildingDetailRow("初始人口", initialPopulationContribution.ToString()),
+                    new BuildingDetailRow("荒废", isAbandoned ? "是" : "否")
+                }),
+            new BuildingDetailSection(
+                "运营消耗",
+                new[]
+                {
+                    new BuildingDetailRow("消耗物品", foodItemId),
+                    new BuildingDetailRow("当前预计消耗", $"{foodItemId} x{GetCurrentFoodConsumptionAmount()}"),
+                    new BuildingDetailRow("上回合实际消耗", FormatResourceChanges(lastResourceConsumptions)),
+                    new BuildingDetailRow("成长进度", $"{growthConsumptionProgress}/{growthIntervalTurns}"),
+                    new BuildingDetailRow("连续消耗失败", $"{consecutiveConsumptionFailures}/{consumptionFailureDecayThreshold}"),
+                    new BuildingDetailRow("资源点搜索范围", resourceProviderSearchRange.ToString("0.#")),
+                    new BuildingDetailRow("上次资源连接", lastTurnHadResourceProvider ? "成功" : "失败"),
+                    new BuildingDetailRow("上次路径消耗", FormatPathCost(lastResourceProviderPathCost))
+                }),
+            new BuildingDetailSection(
+                "税收",
+                new[]
+                {
+                    new BuildingDetailRow("税收物品", taxItemId),
+                    new BuildingDetailRow("税收进度", $"{taxConsumptionProgress}/{taxIntervalTurns}"),
+                    new BuildingDetailRow("当前预计税收", HasReachedMaxPopulation ? $"{taxItemId} x{currentPopulation}" : "无"),
+                    new BuildingDetailRow("上回合实际税收", FormatResourceChanges(lastTaxRewards))
+                })
+        };
+
+        return sections;
+    }
+
+    private static string FormatPathCost(float pathCost)
+    {
+        return pathCost < 0f ? "无" : pathCost.ToString("0.#");
+    }
+
+    private static string FormatResourceChanges(IReadOnlyList<BuildingResourceChange> changes)
+    {
+        if (changes == null || changes.Count == 0)
+        {
+            return "无";
+        }
+
+        var builder = new System.Text.StringBuilder();
+        for (var i = 0; i < changes.Count; i++)
+        {
+            var change = changes[i];
+            if (!change.IsValid)
+            {
+                continue;
+            }
+
+            if (builder.Length > 0)
+            {
+                builder.Append("，");
+            }
+
+            builder.Append(change.ItemId);
+            builder.Append(" x");
+            builder.Append(change.Amount);
+        }
+
+        return builder.Length == 0 ? "无" : builder.ToString();
     }
 
     private readonly struct PathNode

@@ -11,6 +11,7 @@
 - 建筑出现异常状态时，在复用的 HUD Canvas 上显示一个感叹号 Marker。
 - 点击感叹号或概览列表项后，相机移动到建筑，并在消息栏显示具体信息。
 - 回合结算后，异常建筑会在通用信息栏生成可点击消息。
+- 点击建筑后选中建筑，底部栏显示概览信息，建筑占用格子高亮，建筑下方显示详情按钮。
 - Marker 不每帧刷新位置，只在建筑状态变化、建筑列表变化、相机视野变化时刷新。
 
 ## 核心原则
@@ -62,6 +63,58 @@ UI 会组合成：
 居民房LV1 人口 4/5
 ```
 
+### 建筑详情数据
+
+建筑如果需要在详情面板中显示专属信息，实现：
+
+```csharp
+IBuildingDetailSource
+```
+
+该接口返回 `DetailSections`，每个分组包含多行 `BuildingDetailRow`。
+
+示例：
+
+```csharp
+public IReadOnlyList<BuildingDetailSection> DetailSections => CreateDetailSections();
+
+private IReadOnlyList<BuildingDetailSection> CreateDetailSections()
+{
+    BuildingDetailSection[] sections =
+    {
+        new BuildingDetailSection(
+            "基础信息",
+            new[]
+            {
+                new BuildingDetailRow("人口", $"{currentPopulation}/{maxPopulationContribution}"),
+                new BuildingDetailRow("荒废", isAbandoned ? "是" : "否")
+            }),
+        new BuildingDetailSection(
+            "运营消耗",
+            new[]
+            {
+                new BuildingDetailRow("当前预计消耗", $"{foodItemId} x{currentPopulation}"),
+                new BuildingDetailRow("连续消耗失败", $"{consecutiveConsumptionFailures}/{consumptionFailureDecayThreshold}")
+            })
+    };
+
+    return sections;
+}
+```
+
+职责区分：
+
+```text
+IBuildingRuntimeStatusSource
+= 异常/提醒状态，例如“人口衰减”“工人不足”
+
+IBuildingOverviewSource
+= 概览列表和底部栏的一行短信息
+
+IBuildingDetailSource
+= 点击建筑后详情面板中的分组信息
+```
+
 ## UI 如何拿到并解析建筑信息
 
 UI 读取建筑信息的第一步，是拿到一个运行时建筑实例：
@@ -79,6 +132,7 @@ BuildingBase building;
 2. 地图感叹号：BuildingStatusMarker.Bind(BuildingBase building, ...)
 3. 通用信息栏：BuildingEventMessage.Building
 4. 直接点击建筑：BuildingBase.Clicked 事件会把自己传出来
+5. 当前选中建筑：GameSystem.Instance.BuildingSelection.SelectedBuilding
 ```
 
 重点：UI 不应该解析中文字符串。
@@ -475,6 +529,126 @@ IBuildingRuntimeStatusSource.RuntimeStatuses
 - Button
 - TMP 文本
 
+### `BuildingSelectionController`
+
+建筑选中控制器。
+
+这是一个场景中的 `MonoBehaviour`，建议挂在 `GameSystem` 同级或其他常驻运行时节点上。
+
+数据来源：
+
+```csharp
+GameSystem.Instance.Buildings.Buildings
+BuildingBase.StateChanged
+CameraController.CameraViewChanged
+```
+
+职责：
+
+- 接收 `BuildingBase` 点击时调用的 `SelectBuilding(building)`
+- 记录当前选中建筑
+- 对外暴露 `SelectedBuilding`
+- 对外发送 `SelectionChanged`
+- 对外发送 `SelectedBuildingStateChanged`
+- 对外发送 `DetailRequested`
+- 高亮选中建筑占用的格子
+- 在选中建筑下方显示详情按钮
+- 点击详情按钮后发送详情请求
+
+它不负责底部栏和详情面板中的文字显示，也不负责建筑缩放。
+
+选中态视觉相关字段放在这里，其中选填字段放在 Inspector 的 `[FoldoutGroup("选填")]` 中：
+
+- `Detail Marker Prefab`
+- `Selection Highlight Tile`
+- `Detail Marker World Offset`
+- `Detail Marker Screen Offset`
+- `Hide Marker When Offscreen`
+- `Camera Controller`
+
+### `GamePanel_BuildingSelectionView`
+
+建筑选中显示层。
+
+数据来源：
+
+```csharp
+GameSystem.Instance.BuildingSelection
+```
+
+职责：
+
+- 监听 `BuildingSelectionController.SelectionChanged`
+- 监听 `BuildingSelectionController.SelectedBuildingStateChanged`
+- 监听 `BuildingSelectionController.DetailRequested`
+- 更新底部建筑概览栏
+- 收到详情请求后打开详情弹窗
+- 如果详情弹窗已经打开，选中建筑状态变化时刷新详情内容
+
+### `GamePanel_SelectedBuildingOverview`
+
+底部选中建筑概览栏。
+
+数据来源：
+
+```csharp
+BuildingStatusUIFormatter.CreateDisplayData(building)
+```
+
+职责：
+
+- 显示选中建筑名称
+- 显示选中建筑状态
+- 显示选中建筑概览数值
+
+### `GamePanel_BuildingDetailMarker`
+
+建筑下方的详情按钮。
+
+建议预制体内容：
+
+- RectTransform
+- Button
+- Image，配置为放大镜图标
+- 可选 TMP 文本
+
+点击后调用：
+
+```csharp
+BuildingSelectionController.RequestSelectedBuildingDetail()
+```
+
+### `GamePanel_BuildingDetaiPopup`
+
+建筑详情弹窗。
+
+数据来源：
+
+```csharp
+IBuildingDetailSource.DetailSections
+```
+
+如果建筑没有实现 `IBuildingDetailSource`，详情弹窗会通过 `BuildingDetailUIFormatter` 使用已有通用接口生成基础详情。
+
+### `GamePanel_BuildingDetailSectionItem`
+
+详情面板中的一个分组。
+
+建议预制体内容：
+
+- 分组标题 TMP 文本
+- Row Root
+- Row Prefab
+
+### `GamePanel_BuildingDetailRowItem`
+
+详情面板中的一行信息。
+
+建议预制体内容：
+
+- Label TMP 文本
+- Value TMP 文本
+
 ## 完整流程
 
 ```mermaid
@@ -493,6 +667,16 @@ flowchart TD
     M --> N["点击通用消息"]
     N --> J
     N --> K
+    O["点击建筑"] --> Q["BuildingBase 调用 SelectBuilding(this)"]
+    O --> P["BuildingBase 播放缩放反馈"]
+    Q --> W["BuildingSelectionController 记录选中建筑"]
+    W --> R["BuildingSelectionController 高亮占用格子"]
+    W --> T["BuildingSelectionController 显示详情按钮"]
+    W --> X["GamePanel_BuildingSelectionView 更新底部栏"]
+    X --> S["底部栏显示概览"]
+    T --> U["点击详情按钮"]
+    U --> Y["BuildingSelectionController 发送 DetailRequested"]
+    Y --> V["详情弹窗读取 IBuildingDetailSource"]
 ```
 
 ## 预制体配置
@@ -505,6 +689,10 @@ flowchart TD
 - `GamePanel_BuildingEventMessageList`
 - `GamePanel_BuildingStatusOverview`
 - `BuildingStatusMarkerManager`
+- `BuildingSelectionController`
+- `GamePanel_BuildingSelectionView`
+- `GamePanel_SelectedBuildingOverview`
+- `GamePanel_BuildingDetaiPopup`
 
 `UIPanel_Game` 需要把消息栏暴露为：
 
@@ -542,6 +730,142 @@ Item Prefab 需要挂载 `GamePanel_BuildingEventMessageItem`，并配置：
 
 - Button
 - TMP 消息文本
+
+### `GamePanel_BuildingSelectionView`
+
+需要配置或自动获取：
+
+- Selected Overview
+- Detail Popup
+
+注意：
+
+- 这个组件只负责底部概览和详情弹窗，不负责选中格子高亮。
+- 建筑缩放反馈属于 `BuildingBase`，不属于这个 UI View。
+
+### `BuildingSelectionController`
+
+需要配置：
+
+- Detail Marker Prefab
+
+选填：
+
+- Selection Highlight Tile
+- Detail Marker World Offset
+- Detail Marker Screen Offset
+- Hide Marker When Offscreen
+- Camera Controller
+
+注意：
+
+- `Selection Highlight Tile` 为空时，不会高亮建筑占用格子。
+- 详情按钮使用 HUD Canvas，不需要 World Space Canvas。
+- 详情按钮位置不每帧刷新，只在选中、建筑状态变化、相机视野变化时刷新。
+- Marker Canvas 通过 `UIManager` 获取当前 `UIPanel_Game`，然后复用 `UIPanel_Game` 的父级 HUD Canvas。
+- 运行时会创建 `BuildingDetailMarkerRoot`，并放到 HUD Canvas 第一位。
+
+### `GamePanel_SelectedBuildingOverview`
+
+需要配置：
+
+- Root
+- Building Name Label
+- Status Label
+- Value Label
+
+### `GamePanel_BuildingDetailMarker`
+
+需要配置：
+
+- Button
+- Image 放大镜图标
+- 可选 TMP 文本
+
+### `GamePanel_BuildingDetaiPopup`
+
+需要配置：
+
+- Root
+- Title Label
+- Status Label
+- Close Button
+- Section Root
+- Section Prefab
+
+### `GamePanel_BuildingDetailSectionItem`
+
+需要配置：
+
+- Title Label
+- Row Root
+- Row Prefab
+
+### `GamePanel_BuildingDetailRowItem`
+
+需要配置：
+
+- Label Text
+- Value Text
+
+## 点击建筑打开详情的流程
+
+玩家点击建筑后，`BuildingBase` 的点击入口会先通知建筑选择器：
+
+```csharp
+GameSystem.BuildingSelection.SelectBuilding(this);
+```
+
+然后选择器执行：
+
+```text
+1. 记录 selectedBuilding
+2. 高亮建筑 Footprint
+3. 在建筑下方显示 GamePanel_BuildingDetailMarker
+4. 发送 SelectionChanged 事件
+```
+
+`BuildingBase` 仍然会触发 `Clicked` 事件，给其他建筑逻辑或调试脚本使用：
+
+```csharp
+public event Action<BuildingBase> Clicked;
+```
+
+建筑缩放反馈在 `BuildingBase` 自己的点击流程中执行：
+
+```text
+BuildingBase.DispatchBuildingClick
+-> SelectSelfInBuildingSelectionController()
+-> Clicked?.Invoke(this)
+-> PlayClickScaleFeedback()
+-> OnClicked()
+```
+
+`GamePanel_BuildingSelectionView` 收到 `SelectionChanged` 后执行：
+
+```text
+1. 更新底部栏 GamePanel_SelectedBuildingOverview
+2. 如果详情弹窗已经打开，刷新详情弹窗内容
+```
+
+点击详情按钮后：
+
+```csharp
+BuildingSelectionController.DetailRequested
+-> GamePanel_BuildingSelectionView.HandleBuildingDetailRequested
+-> detailPopup.ShowBuilding(selectedBuilding);
+```
+
+详情弹窗显示时会读取：
+
+```csharp
+IReadOnlyList<BuildingDetailSection> sections =
+    BuildingDetailUIFormatter.CreateDetailSections(building);
+```
+
+如果建筑实现了 `IBuildingDetailSource`，就使用建筑自己的 `DetailSections`。
+
+如果没有实现，则用现有通用接口生成基础详情。
 
 ### `GamePanel_BuildingStatusOverview`
 

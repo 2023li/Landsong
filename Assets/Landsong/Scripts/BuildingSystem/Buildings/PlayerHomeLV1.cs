@@ -25,4 +25,11 @@ public class PlayerHomeLV1 : BuildingBase, IResourceProviderPoint
     {
         GameSystem?.Dynasty?.UnregisterPalace(this);
     }
+
+    protected override void OnClicked()
+    {
+        base.OnClicked();
+        Debug.Log("1");
+
+    }
 }

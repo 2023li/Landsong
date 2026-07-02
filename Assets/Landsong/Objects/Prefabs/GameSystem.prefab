@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 3562996915807780181}
   - component: {fileID: 3837668256779799915}
   - component: {fileID: 5898616053397243020}
+  - component: {fileID: 2710515743868066385}
   m_Layer: 0
   m_Name: GameSystem
   m_TagString: Untagged
@@ -64,6 +65,7 @@ MonoBehaviour:
   startingPopulation: 0
   endGameWhenNoPalaceAtTurnEnd: 1
   buildingCatalog: {fileID: 11400000, guid: 8344cbee3c103ae4ca387a12fc3f7082, type: 2}
+  buildingSelection: {fileID: 0}
   startingUnlockedTechnologies: []
   startingTurn: 1
   allowKeyboardNextTurn: 1
@@ -113,3 +115,21 @@ MonoBehaviour:
   cameraController: {fileID: 0}
   focusBuildingOnMarkerClick: 1
   showMessageOnMarkerClick: 1
+--- !u!114 &2710515743868066385
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6188720778481369210}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 677367c758096174c837a3b92370c584, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingSelectionController
+  detailMarkerPrefab: {fileID: 3887755073401264093, guid: 191329e8eb9c32c46a78da5ecd4ae070, type: 3}
+  selectionHighlightTile: {fileID: 0}
+  detailMarkerWorldOffset: {x: 0, y: -0.75, z: 0}
+  detailMarkerScreenOffset: {x: 0, y: 0}
+  hideMarkerWhenOffscreen: 1
+  cameraController: {fileID: 0}

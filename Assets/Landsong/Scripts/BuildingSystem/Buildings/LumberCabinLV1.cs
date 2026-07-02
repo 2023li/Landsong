@@ -5,7 +5,7 @@ using Landsong.InventorySystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingRuntimeStatusSource, IBuildingOverviewSource, IBuildingResourceProductionSource
+public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingRuntimeStatusSource, IBuildingOverviewSource, IBuildingResourceProductionSource, IBuildingDetailSource
 {
     private const string DefaultWoodItemId = "原木";
     private const string DefaultGoldItemId = "金币";
@@ -140,6 +140,7 @@ public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingRuntime
     public string OverviewValueLabel => "岗位";
     public string OverviewValueText =>
         $"补贴 {subsidyGoldPerTurn}，工人 {currentWorkers}/{stableWorkers}，吸引力 {rawJobAttraction:0.#}";
+    public IReadOnlyList<BuildingDetailSection> DetailSections => CreateDetailSections();
     public IReadOnlyList<BuildingResourceChange> CurrentResourceProductions =>
         CreateResourceChanges(woodItemId, GetCurrentWoodProductionAmount());
     public IReadOnlyList<BuildingResourceChange> LastResourceProductions => lastResourceProductions;
@@ -560,5 +561,81 @@ public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingRuntime
 
         statuses ??= new List<BuildingRuntimeStatus>();
         statuses.Add(status);
+    }
+
+    private IReadOnlyList<BuildingDetailSection> CreateDetailSections()
+    {
+        BuildingDetailSection[] sections =
+        {
+            new BuildingDetailSection(
+                "岗位",
+                new[]
+                {
+                    new BuildingDetailRow("当前工人", $"{currentWorkers}/{maxWorkers}"),
+                    new BuildingDetailRow("稳定工人", stableWorkers.ToString()),
+                    new BuildingDetailRow("每回合补贴", subsidyGoldPerTurn.ToString()),
+                    new BuildingDetailRow("上回合支付补贴", lastPaidSubsidyGold.ToString()),
+                    new BuildingDetailRow("原始岗位吸引力", rawJobAttraction.ToString("0.##")),
+                    new BuildingDetailRow("岗位吸引力", jobAttraction.ToString("0.##")),
+                    new BuildingDetailRow("附近人口", nearbyPopulation.ToString()),
+                    new BuildingDetailRow("人口密度", populationDensity.ToString("0.####")),
+                    new BuildingDetailRow("附近竞争岗位", nearbyCompetingJobs.ToString()),
+                    new BuildingDetailRow("竞争惩罚", competitionPenalty.ToString("0.##"))
+                }),
+            new BuildingDetailSection(
+                "产出",
+                new[]
+                {
+                    new BuildingDetailRow("产出物品", woodItemId),
+                    new BuildingDetailRow("当前预计产出", $"{woodItemId} x{GetCurrentWoodProductionAmount()}"),
+                    new BuildingDetailRow("上回合产出", FormatResourceChanges(lastResourceProductions)),
+                    new BuildingDetailRow("最低生产工人", minimumWorkersForProduction.ToString()),
+                    new BuildingDetailRow("满额生产工人", fullProductionWorkers.ToString())
+                }),
+            new BuildingDetailSection(
+                "岗位调试",
+                new[]
+                {
+                    new BuildingDetailRow("基础吸引力", lastJobCalculation.BaseAttraction.ToString("0.##")),
+                    new BuildingDetailRow("人均补贴", lastJobCalculation.PerWorkerSubsidy.ToString("0.##")),
+                    new BuildingDetailRow("补贴加成", lastJobCalculation.SubsidyBonus.ToString("0.##")),
+                    new BuildingDetailRow("缺工比例", lastJobCalculation.WorkerShortageRatio.ToString("0.##")),
+                    new BuildingDetailRow("招工概率", $"{lastJobCalculation.RecruitChancePercent:0.##}%"),
+                    new BuildingDetailRow("超员比例", lastJobCalculation.ExcessWorkerRatio.ToString("0.##")),
+                    new BuildingDetailRow("离职概率", $"{lastJobCalculation.ResignChancePercent:0.##}%"),
+                    new BuildingDetailRow("立即招工费用", lastJobCalculation.ImmediateRecruitCost.ToString())
+                })
+        };
+
+        return sections;
+    }
+
+    private static string FormatResourceChanges(IReadOnlyList<BuildingResourceChange> changes)
+    {
+        if (changes == null || changes.Count == 0)
+        {
+            return "无";
+        }
+
+        var builder = new System.Text.StringBuilder();
+        for (var i = 0; i < changes.Count; i++)
+        {
+            var change = changes[i];
+            if (!change.IsValid)
+            {
+                continue;
+            }
+
+            if (builder.Length > 0)
+            {
+                builder.Append("，");
+            }
+
+            builder.Append(change.ItemId);
+            builder.Append(" x");
+            builder.Append(change.Amount);
+        }
+
+        return builder.Length == 0 ? "无" : builder.ToString();
     }
 }

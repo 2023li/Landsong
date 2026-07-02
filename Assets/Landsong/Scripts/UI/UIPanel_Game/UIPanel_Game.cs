@@ -14,8 +14,14 @@ public class UIPanel_Game : UIPanelBase
 
     [SerializeField] private GamePanel_BuildingMessageBar buildingMessageBar;
     [SerializeField] private GamePanel_BuildingEventMessageList buildingEventMessageList;
+    [SerializeField] private GamePanel_SelectedBuildingOverview selectedBuildingOverview;
+    [SerializeField] private GamePanel_BuildingDetaiPopup buildingDetailPopup;
+    [SerializeField] private GamePanel_BuildingSelectionView buildingSelectionView;
     public GamePanel_BuildingMessageBar BuildingMessageBar => buildingMessageBar;
     public GamePanel_BuildingEventMessageList BuildingEventMessageList => buildingEventMessageList;
+    public GamePanel_SelectedBuildingOverview SelectedBuildingOverview => selectedBuildingOverview;
+    public GamePanel_BuildingDetaiPopup BuildingDetailPopup => buildingDetailPopup;
+    public GamePanel_BuildingSelectionView BuildingSelectionView => buildingSelectionView;
     public GamePanel_BuildingPlacementControls BuildingPlacementControls => buildingPlacementControls;
     private void Reset()
     {
@@ -118,6 +124,18 @@ public class UIPanel_Game : UIPanelBase
         if (buildingEventMessageList == null)
         {
             buildingEventMessageList = GetComponentInChildren<GamePanel_BuildingEventMessageList>(true);
+        }
+        if (selectedBuildingOverview == null)
+        {
+            selectedBuildingOverview = GetComponentInChildren<GamePanel_SelectedBuildingOverview>(true);
+        }
+        if (buildingDetailPopup == null)
+        {
+            buildingDetailPopup = GetComponentInChildren<GamePanel_BuildingDetaiPopup>(true);
+        }
+        if (buildingSelectionView == null)
+        {
+            buildingSelectionView = GetComponentInChildren<GamePanel_BuildingSelectionView>(true);
         }
         if (buildingStatusOverview == null)
         {

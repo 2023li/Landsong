@@ -77,12 +77,7 @@ namespace Landsong.BuildingSystem
     /// </summary>
     public readonly struct BuildingRuntimeStatus
     {
-        public BuildingRuntimeStatus(
-            string statusId,
-            string displayName,
-            int progress = 0,
-            int target = 0,
-            string eventMessage = null)
+        public BuildingRuntimeStatus(string statusId,string displayName,int progress = 0,int target = 0,string eventMessage = null)
         {
             StatusId = string.IsNullOrWhiteSpace(statusId) ? string.Empty : statusId.Trim();
             DisplayName = string.IsNullOrWhiteSpace(displayName) ? StatusId : displayName.Trim();

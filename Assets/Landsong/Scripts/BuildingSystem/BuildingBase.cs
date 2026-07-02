@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using Landsong.GridSystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -27,6 +28,15 @@ namespace Landsong.BuildingSystem
         [Tooltip("两次点击间隔小于等于该值时，第二次点击视为双击。")]
         [SerializeField, Min(0.05f)] private float doubleClickInterval = 0.3f;
 
+        [Header("Click Feedback")]
+        [SerializeField, LabelText("点击时播放缩放反馈")] private bool playClickScaleFeedback = true;
+        [SerializeField, LabelText("点击缩放倍率"), Min(1f)] private float clickScaleMultiplier = 1.12f;
+        [SerializeField, LabelText("点击缩放时长"), Min(0f)] private float clickScaleDuration = 0.18f;
+
+        [Header("Click Audio")]
+        [SerializeField, LabelText("点击时音效")] private AudioClip clickSound;
+        [SerializeField, LabelText("双击时音效")] private AudioClip doubleClickSound;
+
         [Tooltip("建筑视觉控制器。BuildingBase 只持有引用，具体动画播放逻辑由 BuildingView 控制。")]
         [SerializeField] private BuildingView view;
 
@@ -34,7 +44,7 @@ namespace Landsong.BuildingSystem
         // 当前建筑接入的游戏系统。库存、回合、全局服务都从 GameSystem 获取。
         private Landsong.GameSystem gameSystem;
         private GridMapBehaviour gridMap;
-
+       
         // 是否已经执行过 Initialize。用于防止未初始化建筑进入放置或回合流程。
         private bool initialized;
 
@@ -47,10 +57,16 @@ namespace Landsong.BuildingSystem
 
         private float lastClickTime = float.NegativeInfinity;
         private int lastClickFrame = -1;
+        private Coroutine clickScaleCoroutine;
+        private Transform clickScaleTarget;
+        private Vector3 clickScaleOriginalScale;
 
         public event Action<BuildingBase> StateChanged;
         public event Action<BuildingBase> Clicked;
         public event Action<BuildingBase> DoubleClicked;
+
+        public AudioClip ClickSound => clickSound;
+        public AudioClip DoubleClickSound => doubleClickSound;
 
         // 当前建筑实例对应的静态定义。
         public BuildingDefinition Definition => definition;
@@ -118,12 +134,14 @@ namespace Landsong.BuildingSystem
         {
             EnsureDefinition();
             ResolveView();
+            NormalizeClickFeedback();
         }
 
         protected virtual void Awake()
         {
             EnsureDefinition();
             ResolveView();
+            NormalizeClickFeedback();
         }
 
         /// <summary>
@@ -287,6 +305,7 @@ namespace Landsong.BuildingSystem
         /// </summary>
         protected void OnDestroy()
         {
+            StopClickScaleFeedback();
             ClearPlacement();
 
             if (gameSystem != null)
@@ -327,7 +346,9 @@ namespace Landsong.BuildingSystem
             lastClickTime = Time.unscaledTime;
             lastClickFrame = Time.frameCount;
 
+            SelectSelfInBuildingSelectionController();
             Clicked?.Invoke(this);
+            PlayClickScaleFeedback();
             OnClicked();
 
             if (!isDoubleClick)
@@ -386,6 +407,101 @@ namespace Landsong.BuildingSystem
         {
             definition ??= new BuildingDefinition();
             definition.Normalize();
+        }
+
+        private void NormalizeClickFeedback()
+        {
+            doubleClickInterval = Mathf.Max(0.05f, doubleClickInterval);
+            clickScaleMultiplier = Mathf.Max(1f, clickScaleMultiplier);
+            clickScaleDuration = Mathf.Max(0f, clickScaleDuration);
+        }
+
+        private void PlayClickScaleFeedback()
+        {
+            if (!playClickScaleFeedback || clickScaleDuration <= 0f || Mathf.Approximately(clickScaleMultiplier, 1f))
+            {
+                return;
+            }
+
+            Transform target = View == null ? transform : View.transform;
+            if (target == null)
+            {
+                return;
+            }
+
+            StopClickScaleFeedback();
+            clickScaleTarget = target;
+            clickScaleOriginalScale = target.localScale;
+            clickScaleCoroutine = StartCoroutine(ClickScaleRoutine(target, clickScaleOriginalScale));
+        }
+
+        private IEnumerator ClickScaleRoutine(Transform target, Vector3 originalScale)
+        {
+            float halfDuration = Mathf.Max(0.01f, clickScaleDuration * 0.5f);
+            Vector3 expandedScale = originalScale * clickScaleMultiplier;
+
+            yield return ScaleOverTime(target, originalScale, expandedScale, halfDuration);
+            yield return ScaleOverTime(target, expandedScale, originalScale, halfDuration);
+
+            if (target != null)
+            {
+                target.localScale = originalScale;
+            }
+
+            clickScaleCoroutine = null;
+            clickScaleTarget = null;
+        }
+
+        private static IEnumerator ScaleOverTime(
+            Transform target,
+            Vector3 fromScale,
+            Vector3 toScale,
+            float duration)
+        {
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                if (target == null)
+                {
+                    yield break;
+                }
+
+                elapsed += Time.unscaledDeltaTime;
+                float t = Mathf.Clamp01(elapsed / duration);
+                target.localScale = Vector3.Lerp(fromScale, toScale, t);
+                yield return null;
+            }
+
+            if (target != null)
+            {
+                target.localScale = toScale;
+            }
+        }
+
+        private void StopClickScaleFeedback()
+        {
+            if (clickScaleCoroutine != null)
+            {
+                StopCoroutine(clickScaleCoroutine);
+                clickScaleCoroutine = null;
+            }
+
+            if (clickScaleTarget != null)
+            {
+                clickScaleTarget.localScale = clickScaleOriginalScale;
+                clickScaleTarget = null;
+            }
+        }
+
+        private void SelectSelfInBuildingSelectionController()
+        {
+            Landsong.GameSystem currentGameSystem = gameSystem;
+            if (currentGameSystem == null)
+            {
+                currentGameSystem = Landsong.GameSystem.Instance;
+            }
+
+            currentGameSystem.BuildingSelection?.SelectBuilding(this);
         }
 
         /// <summary>
