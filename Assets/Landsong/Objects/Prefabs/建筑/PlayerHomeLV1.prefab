@@ -215,6 +215,8 @@ MonoBehaviour:
   autoRepair: 0
   autpUpgrade: 1
   isResourceProviderPoint: 1
+  buildingModules:
+  - rid: 5711026153326903377
   references:
     version: 2
     RefIds:
@@ -224,6 +226,11 @@ MonoBehaviour:
     - rid: 5711026153326903376
       type: {class: GameCondition_False, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
       data: 
+    - rid: 5711026153326903377
+      type: {class: BuildingInventorySlotCapacityModule, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        enabled: 1
+        providedSlotCount: 5
 --- !u!61 &4364465427982731001
 BoxCollider2D:
   m_ObjectHideFlags: 0

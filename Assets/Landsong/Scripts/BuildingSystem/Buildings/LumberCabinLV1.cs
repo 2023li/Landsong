@@ -6,7 +6,7 @@ using Landsong.InventorySystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingResourceProductionSource
+public class LumberCabinLV1 : BuildingBase, IBuildingWorkforceFundingSource, IBuildingResourceProductionSource
 {
     private const string DefaultWoodItemId = "原木";
     private const string DefaultGoldItemId = "金币";
@@ -16,33 +16,25 @@ public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingResourc
     private const string StatusWoodStorageFailed = BuildingRuntimeStatusCatalog.BS_原木存入失败;
     private const string StatusInsufficientWorkers = BuildingRuntimeStatusCatalog.BS_工人不足;
     private const string StatusWorkerShortage = BuildingRuntimeStatusCatalog.BS_缺工;
-    private const string StatusSubsidyPaymentFailed = BuildingRuntimeStatusCatalog.BS_补贴不足;
     private const string StatusRecruitGoldMissing = BuildingRuntimeStatusCatalog.BS_招工金币不足;
-
-    private static readonly IReadOnlyList<BuildingResourceChange> EmptyResourceChanges =
-        Array.Empty<BuildingResourceChange>();
-
-    private static readonly IReadOnlyList<BuildingRuntimeStatus> EmptyRuntimeStatuses =
-        Array.Empty<BuildingRuntimeStatus>();
+    private const string StatusSubsidyGoldMissing = BuildingRuntimeStatusCatalog.BS_补贴金币不足;
 
     [TitleGroup("岗位")]
-    [SerializeField, Min(1)] private int maxWorkers = 3;
+    [SerializeField, LabelText("最大岗位"), Min(1)] private int maxWorkers = 3;
 
     [TitleGroup("岗位")]
-    [SerializeField, Min(0f)] private float baseJobAttraction = 35f;
+    [SerializeField, LabelText("基础吸引力"), Min(0f)]
+    [PropertyTooltip("单位：岗位吸引力点。没有人口增益和全局修正时使用该值。")]
+    private float baseJobAttraction = 55f;
 
     [TitleGroup("岗位")]
-    [SerializeField, Min(0)] private int subsidyGoldPerTurn;
+    [SerializeField, LabelText("单人招工费用"), Min(0)] private int singleRecruitCost = 10;
 
-    [TitleGroup("岗位")]
-    [SerializeField, Min(0)] private int singleRecruitCost = 10;
+    [TitleGroup("岗位补贴")]
+    [SerializeField, LabelText("自动补贴满岗位")] private bool autoFullWorkerSubsidyEnabled;
 
-    [TitleGroup("岗位")]
-    [SerializeField, Min(0)] private int populationSearchRadius = 10;
-
-    [TitleGroup("岗位")]
-    [SerializeField, Min(0f)] private float populationDensityAttractionMultiplier =
-        BuildingJobSystem.DefaultPopulationDensityAttractionMultiplier;
+    [TitleGroup("岗位补贴")]
+    [SerializeField, LabelText("目标稳定工人"), Min(0)] private int targetStableWorkers;
 
     [TitleGroup("产出")]
     [SerializeField] private string woodItemId = DefaultWoodItemId;
@@ -69,10 +61,16 @@ public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingResourc
     [SerializeField, ReadOnly] private int stableWorkers;
 
     [TitleGroup("运行时")]
+    [SerializeField, ReadOnly] private int stableWorkersWithoutSubsidy;
+
+    [TitleGroup("运行时")]
     [SerializeField, ReadOnly] private float rawJobAttraction;
 
     [TitleGroup("运行时")]
     [SerializeField, ReadOnly] private float jobAttraction;
+
+    [TitleGroup("运行时")]
+    [SerializeField, ReadOnly] private float jobAttractionWithoutSubsidy;
 
     [TitleGroup("运行时")]
     [SerializeField, ReadOnly] private int nearbyPopulation;
@@ -81,16 +79,34 @@ public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingResourc
     [SerializeField, ReadOnly] private int populationCellCount;
 
     [TitleGroup("运行时")]
+    [SerializeField, ReadOnly] private int lastPopulationSearchRadius;
+
+    [TitleGroup("运行时")]
+    [SerializeField, ReadOnly] private float lastAttractionPerNearbyPopulation;
+
+    [TitleGroup("运行时")]
     [SerializeField, ReadOnly] private float populationDensity;
 
     [TitleGroup("运行时")]
     [SerializeField, ReadOnly] private float populationAttractionBonus;
 
     [TitleGroup("运行时")]
-    [SerializeField, ReadOnly] private float externalAttractionPenalty;
+    [SerializeField, ReadOnly] private float globalAttractionModifierTotal;
 
     [TitleGroup("运行时")]
-    [SerializeField, ReadOnly] private int lastPaidSubsidyGold;
+    [SerializeField, ReadOnly] private float subsidyAttractionPerGold;
+
+    [TitleGroup("运行时")]
+    [SerializeField, ReadOnly] private float subsidyAttractionBonus;
+
+    [TitleGroup("运行时")]
+    [SerializeField, ReadOnly] private float targetSubsidyAttractionBonus;
+
+    [TitleGroup("运行时")]
+    [SerializeField, ReadOnly] private int targetSubsidyGoldPerTurn;
+
+    [TitleGroup("运行时")]
+    [SerializeField, ReadOnly] private int paidSubsidyGoldThisTurn;
 
     [TitleGroup("运行时")]
     [SerializeField, ReadOnly] private int lastProducedWood;
@@ -99,7 +115,7 @@ public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingResourc
     [SerializeField, ReadOnly] private bool lastTurnRecruitedWorker;
 
     [TitleGroup("运行时")]
-    [SerializeField, ReadOnly] private bool lastTurnSubsidyPaymentFailed;
+    [SerializeField, ReadOnly] private bool lastTurnSubsidyGoldMissing;
 
     [TitleGroup("运行时")]
     [SerializeField, ReadOnly] private bool lastTurnNoAvailablePopulation;
@@ -111,29 +127,54 @@ public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingResourc
     [SerializeField, ReadOnly] private string lastAbnormalStatusText = string.Empty;
 
     private BuildingJobCalculation lastJobCalculation;
+    private BuildingJobCalculation lastJobCalculationWithoutSubsidy;
+    private readonly List<BuildingWorkforceAttractionFactor> workforceAttractionFactors =
+        new List<BuildingWorkforceAttractionFactor>();
     private IReadOnlyList<BuildingResourceChange> lastResourceProductions = EmptyResourceChanges;
+    private bool hasCalculatedSubsidyTarget;
 
     public int CurrentWorkers => currentWorkers;
     public int MaxWorkers => maxWorkers;
     public int StableWorkers => stableWorkers;
-    public int SubsidyGoldPerTurn => subsidyGoldPerTurn;
+    public bool AutoFullWorkerSubsidyEnabled => autoFullWorkerSubsidyEnabled;
+    public int TargetStableWorkers => targetStableWorkers;
+    public int TargetSubsidyGoldPerTurn => targetSubsidyGoldPerTurn;
+    public int PaidSubsidyGoldThisTurn => paidSubsidyGoldThisTurn;
+    public int MissingWorkersToFull => Mathf.Max(0, maxWorkers - currentWorkers);
+    public int RecruitToFullWorkerCount => CalculateRecruitToFullWorkerCount();
+    public int RecruitToFullCost => CalculateImmediateRecruitCost(RecruitToFullWorkerCount);
     public float RawJobAttraction => rawJobAttraction;
     public float JobAttraction => jobAttraction;
+    public float JobAttractionWithoutSubsidy => jobAttractionWithoutSubsidy;
     public int NearbyPopulation => nearbyPopulation;
     public int PopulationCellCount => populationCellCount;
+    public int LastPopulationSearchRadius => lastPopulationSearchRadius;
+    public float LastAttractionPerNearbyPopulation => lastAttractionPerNearbyPopulation;
     public float PopulationDensity => populationDensity;
     public float PopulationAttractionBonus => populationAttractionBonus;
-    public float ExternalAttractionPenalty => externalAttractionPenalty;
-    public int LastPaidSubsidyGold => lastPaidSubsidyGold;
+    public float GlobalAttractionModifierTotal => globalAttractionModifierTotal;
+    public float SubsidyAttractionPerGold => subsidyAttractionPerGold;
+    public float SubsidyAttractionBonus => subsidyAttractionBonus;
+    public float TargetSubsidyAttractionBonus => targetSubsidyAttractionBonus;
+    public float PreviewJobAttractionWithTargetSubsidy =>
+        BuildingJobSystem.CalculateAttractionWithSubsidy(
+            jobAttractionWithoutSubsidy,
+            targetSubsidyGoldPerTurn,
+            maxWorkers);
+    public float FullWorkerRequiredAttraction => BuildingJobSystem.CalculateFullWorkerRequiredAttraction(maxWorkers);
+    public float JobAttractionGapToFullWorkers =>
+        Mathf.Max(0f, FullWorkerRequiredAttraction - jobAttractionWithoutSubsidy);
     public int LastProducedWood => lastProducedWood;
     public BuildingJobCalculation LastJobCalculation => lastJobCalculation;
+    public IReadOnlyList<BuildingWorkforceAttractionFactor> WorkforceAttractionFactors =>
+        BuildWorkforceAttractionFactors();
     public IReadOnlyList<BuildingResourceChange> CurrentResourceProductions =>
         CreateResourceChanges(woodItemId, GetCurrentWoodProductionAmount());
     public IReadOnlyList<BuildingResourceChange> LastResourceProductions => lastResourceProductions;
 
     public override string GetBaseInfo()
     {
-        return $"工人 {currentWorkers}/{stableWorkers}";
+        return $"工人 {currentWorkers}/{maxWorkers}（{stableWorkers}）";
     }
 
     public override BuildingDetailInfo GetDetailInfo()
@@ -152,17 +193,17 @@ public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingResourc
     protected override void OnInitialized()
     {
         NormalizeConfiguration();
-        RecalculateJobState(subsidyGoldPerTurn);
+        RecalculateJobState();
     }
 
     protected override void OnPlaced()
     {
-        RecalculateJobState(subsidyGoldPerTurn);
+        RecalculateJobState();
     }
 
     protected override void OnRegistered()
     {
-        RecalculateJobState(subsidyGoldPerTurn);
+        RecalculateJobState();
         RefreshDynastyEmployedPopulation();
     }
 
@@ -178,10 +219,11 @@ public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingResourc
             return false;
         }
 
-        var effectiveSubsidy = TryPaySubsidy(inventory) ? subsidyGoldPerTurn : 0;
-        RecalculateJobState(effectiveSubsidy);
+        RecalculateJobState();
+        TryPaySubsidyForCurrentTurn(inventory);
+        RecalculateJobState();
         ProcessWorkerTurn();
-        RecalculateJobState(effectiveSubsidy);
+        RecalculateJobState();
 
         var produced = TryProduceWood(inventory);
         RefreshDynastyEmployedPopulation();
@@ -193,11 +235,11 @@ public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingResourc
         return new LumberCabinLV1Data
         {
             CurrentWorkers = currentWorkers,
-            SubsidyGoldPerTurn = subsidyGoldPerTurn,
-            LastPaidSubsidyGold = lastPaidSubsidyGold,
+            AutoFullWorkerSubsidyEnabled = autoFullWorkerSubsidyEnabled,
+            TargetStableWorkers = targetStableWorkers,
             LastProducedWood = lastProducedWood,
             LastTurnRecruitedWorker = lastTurnRecruitedWorker,
-            LastTurnSubsidyPaymentFailed = lastTurnSubsidyPaymentFailed,
+            LastTurnSubsidyGoldMissing = lastTurnSubsidyGoldMissing,
             LastTurnNoAvailablePopulation = lastTurnNoAvailablePopulation,
             LastAbnormalStatusId = lastAbnormalStatusId,
             LastAbnormalStatusText = lastAbnormalStatusText
@@ -212,11 +254,11 @@ public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingResourc
         }
 
         currentWorkers = cabinData.CurrentWorkers;
-        subsidyGoldPerTurn = cabinData.SubsidyGoldPerTurn;
-        lastPaidSubsidyGold = cabinData.LastPaidSubsidyGold;
+        autoFullWorkerSubsidyEnabled = cabinData.AutoFullWorkerSubsidyEnabled;
+        targetStableWorkers = cabinData.TargetStableWorkers;
         lastProducedWood = cabinData.LastProducedWood;
         lastTurnRecruitedWorker = cabinData.LastTurnRecruitedWorker;
-        lastTurnSubsidyPaymentFailed = cabinData.LastTurnSubsidyPaymentFailed;
+        lastTurnSubsidyGoldMissing = cabinData.LastTurnSubsidyGoldMissing;
         lastTurnNoAvailablePopulation = cabinData.LastTurnNoAvailablePopulation;
         lastAbnormalStatusId = string.IsNullOrWhiteSpace(cabinData.LastAbnormalStatusId)
             ? string.Empty
@@ -226,6 +268,7 @@ public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingResourc
             : cabinData.LastAbnormalStatusText.Trim();
 
         NormalizeConfiguration();
+        RecalculateJobState(false);
     }
 
     protected override void OnUnregistered()
@@ -234,19 +277,39 @@ public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingResourc
         RefreshDynastyEmployedPopulation();
     }
 
-    public void SetSubsidyGoldPerTurn(int amount)
-    {
-        NormalizeConfiguration();
-        subsidyGoldPerTurn = Mathf.Max(0, amount);
-        RecalculateJobState(subsidyGoldPerTurn);
-        NotifyStateChanged();
-    }
-
     [Button("立即招工")]
     public bool TryRecruitImmediately()
     {
+        return TryRecruitToFull();
+    }
+
+    public void SetAutoFullWorkerSubsidyEnabled(bool enabled)
+    {
         NormalizeConfiguration();
-        ClearLastTurnState();
+        autoFullWorkerSubsidyEnabled = enabled;
+        if (autoFullWorkerSubsidyEnabled)
+        {
+            targetStableWorkers = maxWorkers;
+        }
+
+        RecalculateJobState(false);
+        NotifyStateChanged();
+    }
+
+    public void SetTargetStableWorkers(int value)
+    {
+        NormalizeConfiguration();
+        autoFullWorkerSubsidyEnabled = false;
+        RecalculateJobState(false);
+        targetStableWorkers = Mathf.Clamp(value, stableWorkersWithoutSubsidy, maxWorkers);
+        RecalculateJobState(false);
+        NotifyStateChanged();
+    }
+
+    public bool TryRecruitToFull()
+    {
+        NormalizeConfiguration();
+        ClearRecruitAttemptState();
 
         var inventory = GameSystem == null ? null : GameSystem.Inventory;
         if (inventory == null)
@@ -263,7 +326,7 @@ public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingResourc
             return false;
         }
 
-        RecalculateJobState(subsidyGoldPerTurn);
+        RecalculateJobState();
         var missingWorkers = Mathf.Max(0, maxWorkers - currentWorkers);
         if (missingWorkers <= 0)
         {
@@ -279,7 +342,18 @@ public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingResourc
             return false;
         }
 
-        var recruitCount = Mathf.Min(missingWorkers, availablePopulation);
+        var recruitLimitByPopulation = Mathf.Min(missingWorkers, availablePopulation);
+        var recruitCount = CalculateAffordableRecruitCount(inventory, recruitLimitByPopulation);
+        var populationLimited = recruitLimitByPopulation < missingWorkers;
+        var goldLimited = recruitCount < recruitLimitByPopulation;
+        if (recruitCount <= 0)
+        {
+            SetLastAbnormalStatus(StatusRecruitGoldMissing, "招工金币不足");
+            SendBuildingEvent(GameEventCatalog.GE_招工未完全补满, "招工金币不足，未能补满工人");
+            NotifyStateChanged();
+            return false;
+        }
+
         var recruitCost = CalculateImmediateRecruitCost(recruitCount);
         if (recruitCost > 0 && !inventory.TryRemoveItem(goldItemId, recruitCost))
         {
@@ -290,13 +364,15 @@ public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingResourc
 
         currentWorkers += recruitCount;
         lastTurnRecruitedWorker = recruitCount > 0;
-        lastTurnNoAvailablePopulation = recruitCount < missingWorkers;
-        if (lastTurnNoAvailablePopulation)
+        lastTurnNoAvailablePopulation = populationLimited;
+        if (recruitCount < missingWorkers)
         {
-            SendBuildingEvent(GameEventCatalog.GE_可用人口不足, "可用人口不足");
+            SendBuildingEvent(
+                GameEventCatalog.GE_招工未完全补满,
+                CreatePartialRecruitMessage(recruitCount, populationLimited, goldLimited));
         }
 
-        RecalculateJobState(subsidyGoldPerTurn);
+        RecalculateJobState();
         RefreshDynastyEmployedPopulation();
         NotifyStateChanged();
         return recruitCount > 0;
@@ -306,7 +382,7 @@ public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingResourc
     public void LogJobDebugInfo()
     {
         NormalizeConfiguration();
-        RecalculateJobState(subsidyGoldPerTurn);
+        RecalculateJobState();
         Debug.Log($"{name} 岗位调试信息：\n{JobDebugInfo}", this);
     }
 
@@ -314,14 +390,14 @@ public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingResourc
     public void RefreshJobCalculation()
     {
         NormalizeConfiguration();
-        RecalculateJobState(subsidyGoldPerTurn);
+        RecalculateJobState();
         NotifyStateChanged();
     }
 
-    private bool TryPaySubsidy(InventoryService inventory)
+    private bool TryPaySubsidyForCurrentTurn(InventoryService inventory)
     {
-        lastPaidSubsidyGold = 0;
-        if (subsidyGoldPerTurn <= 0)
+        paidSubsidyGoldThisTurn = 0;
+        if (targetSubsidyGoldPerTurn <= 0)
         {
             return true;
         }
@@ -332,15 +408,25 @@ public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingResourc
             return false;
         }
 
-        if (!inventory.TryRemoveItem(goldItemId, subsidyGoldPerTurn))
+        if (inventory == null || inventory.GetQuantity(goldItemId) < targetSubsidyGoldPerTurn)
         {
-            lastTurnSubsidyPaymentFailed = true;
-            SetLastAbnormalStatus(StatusSubsidyPaymentFailed, "补贴不足");
-            SendBuildingEvent(GameEventCatalog.GE_补贴不足, "补贴不足");
+            lastTurnSubsidyGoldMissing = true;
+            SetLastAbnormalStatus(StatusSubsidyGoldMissing, "补贴金币不足");
+            SendBuildingEvent(
+                GameEventCatalog.GE_补贴金币不足,
+                $"补贴需要 {targetSubsidyGoldPerTurn} 金币/回合，金币不足，本回合补贴未生效");
             return false;
         }
 
-        lastPaidSubsidyGold = subsidyGoldPerTurn;
+        if (!inventory.TryRemoveItem(goldItemId, targetSubsidyGoldPerTurn))
+        {
+            lastTurnSubsidyGoldMissing = true;
+            SetLastAbnormalStatus(StatusSubsidyGoldMissing, "补贴金币不足");
+            SendBuildingEvent(GameEventCatalog.GE_补贴金币不足, "补贴金币不足，本回合补贴未生效");
+            return false;
+        }
+
+        paidSubsidyGoldThisTurn = targetSubsidyGoldPerTurn;
         return true;
     }
 
@@ -407,17 +493,44 @@ public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingResourc
         return true;
     }
 
-    private void RecalculateJobState(int effectiveSubsidyGoldPerTurn)
+    private void RecalculateJobState(bool allowAutoSubsidyEvent = true)
     {
         var buildings = GameSystem == null || GameSystem.Buildings == null
             ? null
             : GameSystem.Buildings.Buildings;
 
-        populationCellCount = BuildingJobSystem.CountPopulationCells(this, populationSearchRadius);
-        nearbyPopulation = BuildingJobSystem.CountNearbyPopulation(this, buildings, populationSearchRadius);
-        externalAttractionPenalty = BuildingJobSystem.ResolveExternalAttractionPenalty(
+        var populationModule = TryGetModule<BuildingNearbyPopulationJobAttractionModule>(out var module)
+            ? module
+            : null;
+        lastPopulationSearchRadius = populationModule == null ? 0 : populationModule.PopulationSearchRadius;
+        lastAttractionPerNearbyPopulation = populationModule == null
+            ? 0f
+            : populationModule.AttractionPerNearbyPopulation;
+
+        populationCellCount = BuildingJobSystem.CountPopulationCells(this, lastPopulationSearchRadius);
+        nearbyPopulation = BuildingJobSystem.CountNearbyPopulation(this, buildings, lastPopulationSearchRadius);
+        var globalAttractionModifiers = BuildingJobSystem.ResolveGlobalAttractionModifiers(
             this,
             GameSystem);
+
+        lastJobCalculationWithoutSubsidy = BuildingJobSystem.Calculate(new BuildingJobCalculationInput(
+            maxWorkers,
+            currentWorkers,
+            baseJobAttraction,
+            nearbyPopulation,
+            populationCellCount,
+            lastAttractionPerNearbyPopulation,
+            globalAttractionModifiers,
+            0f,
+            singleRecruitCost));
+
+        stableWorkersWithoutSubsidy = lastJobCalculationWithoutSubsidy.StableWorkers;
+        jobAttractionWithoutSubsidy = lastJobCalculationWithoutSubsidy.Attraction;
+        subsidyAttractionPerGold = BuildingJobSystem.CalculateSubsidyAttractionPerGold(maxWorkers);
+        NormalizeTargetStableWorkers();
+        RefreshTargetSubsidyGold(allowAutoSubsidyEvent);
+        subsidyAttractionBonus = Mathf.Max(0, paidSubsidyGoldThisTurn) * subsidyAttractionPerGold;
+        targetSubsidyAttractionBonus = Mathf.Max(0, targetSubsidyGoldPerTurn) * subsidyAttractionPerGold;
 
         lastJobCalculation = BuildingJobSystem.Calculate(new BuildingJobCalculationInput(
             maxWorkers,
@@ -425,9 +538,9 @@ public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingResourc
             baseJobAttraction,
             nearbyPopulation,
             populationCellCount,
-            populationDensityAttractionMultiplier,
-            Mathf.Max(0, effectiveSubsidyGoldPerTurn),
-            externalAttractionPenalty,
+            lastAttractionPerNearbyPopulation,
+            globalAttractionModifiers,
+            subsidyAttractionBonus,
             singleRecruitCost));
 
         stableWorkers = lastJobCalculation.StableWorkers;
@@ -435,6 +548,55 @@ public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingResourc
         jobAttraction = lastJobCalculation.Attraction;
         populationDensity = lastJobCalculation.PopulationDensity;
         populationAttractionBonus = lastJobCalculation.PopulationAttractionBonus;
+        globalAttractionModifierTotal = lastJobCalculation.GlobalAttractionModifierTotal;
+    }
+
+    private void NormalizeTargetStableWorkers()
+    {
+        if (autoFullWorkerSubsidyEnabled)
+        {
+            targetStableWorkers = maxWorkers;
+            return;
+        }
+
+        targetStableWorkers = Mathf.Clamp(targetStableWorkers, stableWorkersWithoutSubsidy, maxWorkers);
+    }
+
+    private void RefreshTargetSubsidyGold(bool allowAutoSubsidyEvent)
+    {
+        var previous = targetSubsidyGoldPerTurn;
+        targetSubsidyGoldPerTurn = BuildingJobSystem.CalculateRequiredSubsidyGoldForTargetStableWorkers(
+            maxWorkers,
+            jobAttractionWithoutSubsidy,
+            targetStableWorkers);
+
+        if (!autoFullWorkerSubsidyEnabled)
+        {
+            hasCalculatedSubsidyTarget = true;
+            return;
+        }
+
+        if (hasCalculatedSubsidyTarget && allowAutoSubsidyEvent && previous != targetSubsidyGoldPerTurn)
+        {
+            SendAutoSubsidyAdjustedEvent(previous, targetSubsidyGoldPerTurn);
+        }
+
+        hasCalculatedSubsidyTarget = true;
+    }
+
+    private void SendAutoSubsidyAdjustedEvent(int previousSubsidyGold, int newSubsidyGold)
+    {
+        if (previousSubsidyGold == newSubsidyGold)
+        {
+            return;
+        }
+
+        var eventType = newSubsidyGold > previousSubsidyGold
+            ? GameEventCatalog.GE_自动补贴增加
+            : GameEventCatalog.GE_自动补贴减少;
+        SendBuildingEvent(
+            eventType,
+            $"自动补贴从 {previousSubsidyGold} 调整为 {newSubsidyGold} 金币/回合");
     }
 
     private int GetAvailablePopulation()
@@ -462,6 +624,74 @@ public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingResourc
         return Mathf.CeilToInt(recruitCount * singleRecruitCost * (1f + (100f - jobAttraction) / 100f));
     }
 
+    private int CalculateRecruitToFullWorkerCount()
+    {
+        var missingWorkers = Mathf.Max(0, maxWorkers - currentWorkers);
+        if (missingWorkers <= 0)
+        {
+            return 0;
+        }
+
+        var availablePopulation = GetAvailablePopulation();
+        if (availablePopulation <= 0)
+        {
+            return 0;
+        }
+
+        var inventory = GameSystem == null ? null : GameSystem.Inventory;
+        if (inventory == null || !HasUsableItemId(goldItemId))
+        {
+            return 0;
+        }
+
+        return CalculateAffordableRecruitCount(inventory, Mathf.Min(missingWorkers, availablePopulation));
+    }
+
+    private int CalculateAffordableRecruitCount(InventoryService inventory, int maxRecruitCount)
+    {
+        maxRecruitCount = Mathf.Clamp(maxRecruitCount, 0, Mathf.Max(0, maxWorkers - currentWorkers));
+        if (maxRecruitCount <= 0)
+        {
+            return 0;
+        }
+
+        if (inventory == null || !HasUsableItemId(goldItemId))
+        {
+            return 0;
+        }
+
+        var gold = inventory.GetQuantity(goldItemId);
+        for (var count = maxRecruitCount; count >= 1; count--)
+        {
+            if (CalculateImmediateRecruitCost(count) <= gold)
+            {
+                return count;
+            }
+        }
+
+        return 0;
+    }
+
+    private static string CreatePartialRecruitMessage(
+        int recruitedWorkers,
+        bool populationLimited,
+        bool goldLimited)
+    {
+        var reasons = new List<string>();
+        if (populationLimited)
+        {
+            reasons.Add("可用人口不足");
+        }
+
+        if (goldLimited)
+        {
+            reasons.Add("金币不足");
+        }
+
+        var reasonText = reasons.Count == 0 ? "未达到满岗位" : string.Join("，", reasons);
+        return $"只招到 {recruitedWorkers} 名工人：{reasonText}";
+    }
+
     private int GetCurrentWoodProductionAmount()
     {
         if (currentWorkers < minimumWorkersForProduction)
@@ -476,19 +706,19 @@ public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingResourc
     {
         List<BuildingRuntimeStatus> statuses = null;
 
-        AddRuntimeStatus(ref statuses, currentWorkers < minimumWorkersForProduction
+        AppendRuntimeStatus(ref statuses, currentWorkers < minimumWorkersForProduction
             ? new BuildingRuntimeStatus(StatusInsufficientWorkers, "工人不足", currentWorkers, minimumWorkersForProduction)
             : default);
 
-        AddRuntimeStatus(ref statuses, currentWorkers >= minimumWorkersForProduction && currentWorkers < stableWorkers
+        AppendRuntimeStatus(ref statuses, currentWorkers >= minimumWorkersForProduction && currentWorkers < stableWorkers
             ? new BuildingRuntimeStatus(StatusWorkerShortage, "缺工", currentWorkers, stableWorkers)
             : default);
 
-        AddRuntimeStatus(ref statuses, lastTurnSubsidyPaymentFailed
-            ? new BuildingRuntimeStatus(StatusSubsidyPaymentFailed, "补贴不足", lastPaidSubsidyGold, subsidyGoldPerTurn)
+        AppendRuntimeStatus(ref statuses, lastTurnSubsidyGoldMissing
+            ? new BuildingRuntimeStatus(StatusSubsidyGoldMissing, "补贴金币不足", paidSubsidyGoldThisTurn, targetSubsidyGoldPerTurn)
             : default);
 
-        AddRuntimeStatus(ref statuses, ShouldAddLastAbnormalStatus()
+        AppendRuntimeStatus(ref statuses, ShouldAddLastAbnormalStatus()
             ? new BuildingRuntimeStatus(lastAbnormalStatusId, lastAbnormalStatusText)
             : default);
 
@@ -509,8 +739,8 @@ public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingResourc
             return false;
         }
 
-        if (lastTurnSubsidyPaymentFailed
-            && string.Equals(lastAbnormalStatusId, StatusSubsidyPaymentFailed, StringComparison.Ordinal))
+        if (lastTurnSubsidyGoldMissing
+            && string.Equals(lastAbnormalStatusId, StatusSubsidyGoldMissing, StringComparison.Ordinal))
         {
             return false;
         }
@@ -520,24 +750,31 @@ public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingResourc
 
     private void ClearLastTurnState()
     {
-        lastPaidSubsidyGold = 0;
+        paidSubsidyGoldThisTurn = 0;
         lastProducedWood = 0;
         lastTurnRecruitedWorker = false;
-        lastTurnSubsidyPaymentFailed = false;
+        lastTurnSubsidyGoldMissing = false;
         lastTurnNoAvailablePopulation = false;
         lastAbnormalStatusId = string.Empty;
         lastAbnormalStatusText = string.Empty;
         lastResourceProductions = EmptyResourceChanges;
     }
 
+    private void ClearRecruitAttemptState()
+    {
+        lastTurnRecruitedWorker = false;
+        lastTurnNoAvailablePopulation = false;
+        lastAbnormalStatusId = string.Empty;
+        lastAbnormalStatusText = string.Empty;
+    }
+
     private void NormalizeConfiguration()
     {
         maxWorkers = Mathf.Max(1, maxWorkers);
         baseJobAttraction = Mathf.Max(0f, baseJobAttraction);
-        subsidyGoldPerTurn = Mathf.Max(0, subsidyGoldPerTurn);
         singleRecruitCost = Mathf.Max(0, singleRecruitCost);
-        populationSearchRadius = Mathf.Max(0, populationSearchRadius);
-        populationDensityAttractionMultiplier = Mathf.Max(0f, populationDensityAttractionMultiplier);
+        NormalizeBuildingModules();
+        targetStableWorkers = Mathf.Clamp(targetStableWorkers, 0, maxWorkers);
         minimumWorkersForProduction = Mathf.Clamp(minimumWorkersForProduction, 1, maxWorkers);
         fullProductionWorkers = Mathf.Clamp(fullProductionWorkers, minimumWorkersForProduction, maxWorkers);
         baseProductionAmount = Mathf.Max(0, baseProductionAmount);
@@ -558,76 +795,45 @@ public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingResourc
         lastAbnormalStatusText = string.IsNullOrWhiteSpace(statusText) ? lastAbnormalStatusId : statusText.Trim();
     }
 
-    private void SendBuildingEvent(string eventTypeId, string message)
-    {
-        GameSystem?.Events?.AddMessage(GameEventMessage.ForBuildingEvent(
-            eventTypeId,
-            this,
-            message,
-            GetEventTurnNumber()));
-    }
-
-    private int GetEventTurnNumber()
-    {
-        if (GameSystem == null)
-        {
-            return 0;
-        }
-
-        return GameSystem.IsAdvancingTurn ? GameSystem.CurrentTurn + 1 : GameSystem.CurrentTurn;
-    }
-
     private static bool RollChance(float chancePercent)
     {
         return UnityEngine.Random.value * 100f < Mathf.Clamp(chancePercent, 0f, 100f);
     }
 
-    private static bool HasUsableItemId(string itemId)
-    {
-        return !string.IsNullOrWhiteSpace(itemId);
-    }
-
-    private static string NormalizeItemId(string itemId, string fallback)
-    {
-        return string.IsNullOrWhiteSpace(itemId) ? fallback : itemId.Trim();
-    }
-
-    private static IReadOnlyList<BuildingResourceChange> CreateResourceChanges(string itemId, int amount)
-    {
-        var change = new BuildingResourceChange(itemId, amount);
-        return change.IsValid ? new[] { change } : EmptyResourceChanges;
-    }
-
-    private static void AddRuntimeStatus(ref List<BuildingRuntimeStatus> statuses, BuildingRuntimeStatus status)
-    {
-        if (!status.IsValid)
-        {
-            return;
-        }
-
-        statuses ??= new List<BuildingRuntimeStatus>();
-        statuses.Add(status);
-    }
-
     private IReadOnlyList<BuildingDetailSection> CreateDetailSections()
     {
-        BuildingDetailSection[] sections =
+        var sections = new List<BuildingDetailSection>
         {
             new BuildingDetailSection(
                 "岗位",
                 new[]
                 {
-                    new BuildingDetailRow("当前工人", $"{currentWorkers}/{maxWorkers}"),
+                    new BuildingDetailRow("当前工人", $"{currentWorkers}/{maxWorkers}（{stableWorkers}）"),
+                    new BuildingDetailRow("自动补贴满岗位", autoFullWorkerSubsidyEnabled ? "是" : "否"),
+                    new BuildingDetailRow("目标稳定工人", targetStableWorkers.ToString()),
                     new BuildingDetailRow("稳定工人", stableWorkers.ToString()),
-                    new BuildingDetailRow("每回合补贴", subsidyGoldPerTurn.ToString()),
-                    new BuildingDetailRow("上回合支付补贴", lastPaidSubsidyGold.ToString()),
+                    new BuildingDetailRow("无补贴稳定工人", stableWorkersWithoutSubsidy.ToString()),
+                    new BuildingDetailRow("目标补贴金币/回合", targetSubsidyGoldPerTurn.ToString()),
+                    new BuildingDetailRow("本回合已支付补贴", paidSubsidyGoldThisTurn.ToString()),
+                    new BuildingDetailRow("基础吸引力", baseJobAttraction.ToString("0.##")),
+                    new BuildingDetailRow("无补贴岗位吸引力", jobAttractionWithoutSubsidy.ToString("0.##")),
+                    new BuildingDetailRow("每金币补贴就业吸引力", subsidyAttractionPerGold.ToString("0.##")),
+                    new BuildingDetailRow("目标补贴就业吸引力", targetSubsidyAttractionBonus.ToString("0.##")),
+                    new BuildingDetailRow("已支付补贴就业吸引力", subsidyAttractionBonus.ToString("0.##")),
                     new BuildingDetailRow("原始岗位吸引力", rawJobAttraction.ToString("0.##")),
                     new BuildingDetailRow("岗位吸引力", jobAttraction.ToString("0.##")),
+                    new BuildingDetailRow("满岗位最低就业吸引力", FullWorkerRequiredAttraction.ToString("0.##")),
+                    new BuildingDetailRow("满岗位吸引力差值", JobAttractionGapToFullWorkers.ToString("0.##")),
+                    new BuildingDetailRow("人口搜索半径", lastPopulationSearchRadius.ToString()),
                     new BuildingDetailRow("附近人口", nearbyPopulation.ToString()),
+                    new BuildingDetailRow("附近每人口就业吸引力", lastAttractionPerNearbyPopulation.ToString("0.##")),
                     new BuildingDetailRow("人口密度", populationDensity.ToString("0.####")),
-                    new BuildingDetailRow("人口吸引力加成", populationAttractionBonus.ToString("0.##")),
-                    new BuildingDetailRow("外部吸引力惩罚", externalAttractionPenalty.ToString("0.##"))
+                    new BuildingDetailRow("附近人口增益", FormatSigned(populationAttractionBonus)),
+                    new BuildingDetailRow("全局修正合计", FormatSigned(globalAttractionModifierTotal))
                 }),
+            new BuildingDetailSection(
+                "全局修正",
+                CreateGlobalModifierRows()),
             new BuildingDetailSection(
                 "产出",
                 new[]
@@ -643,9 +849,8 @@ public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingResourc
                 new[]
                 {
                     new BuildingDetailRow("基础吸引力", lastJobCalculation.BaseAttraction.ToString("0.##")),
-                    new BuildingDetailRow("人口密度倍率", lastJobCalculation.PopulationDensityAttractionMultiplier.ToString("0.##")),
-                    new BuildingDetailRow("人均补贴", lastJobCalculation.PerWorkerSubsidy.ToString("0.##")),
-                    new BuildingDetailRow("补贴加成", lastJobCalculation.SubsidyBonus.ToString("0.##")),
+                    new BuildingDetailRow("附近每人口就业吸引力", lastJobCalculation.AttractionPerNearbyPopulation.ToString("0.##")),
+                    new BuildingDetailRow("补贴就业吸引力", lastJobCalculation.SubsidyAttractionBonus.ToString("0.##")),
                     new BuildingDetailRow("缺工比例", lastJobCalculation.WorkerShortageRatio.ToString("0.##")),
                     new BuildingDetailRow("招工概率", $"{lastJobCalculation.RecruitChancePercent:0.##}%"),
                     new BuildingDetailRow("超员比例", lastJobCalculation.ExcessWorkerRatio.ToString("0.##")),
@@ -654,47 +859,98 @@ public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingResourc
                 })
         };
 
+        AppendBuildingModuleDetailSections(ref sections);
         return sections;
     }
 
-    private static string FormatResourceChanges(IReadOnlyList<BuildingResourceChange> changes)
+    private IReadOnlyList<BuildingWorkforceAttractionFactor> BuildWorkforceAttractionFactors()
     {
-        if (changes == null || changes.Count == 0)
+        workforceAttractionFactors.Clear();
+        AddWorkforceAttractionFactor("基础吸引力", lastJobCalculationWithoutSubsidy.BaseAttraction);
+        AddWorkforceAttractionFactor("附近人口", populationAttractionBonus);
+
+        var modifiers = lastJobCalculationWithoutSubsidy.GlobalAttractionModifiers;
+        if (modifiers != null)
         {
-            return "无";
+            for (var i = 0; i < modifiers.Count; i++)
+            {
+                var modifier = modifiers[i];
+                if (!modifier.IsValid)
+                {
+                    continue;
+                }
+
+                AddWorkforceAttractionFactor(
+                    string.IsNullOrWhiteSpace(modifier.DisplayText) ? "未命名修正" : modifier.DisplayText,
+                    modifier.Value);
+            }
         }
 
-        var builder = new System.Text.StringBuilder();
-        for (var i = 0; i < changes.Count; i++)
+        AddWorkforceAttractionFactor("补贴就业吸引力", subsidyAttractionBonus);
+        return workforceAttractionFactors;
+    }
+
+    private void AddWorkforceAttractionFactor(string label, float value)
+    {
+        var factor = new BuildingWorkforceAttractionFactor(label, value);
+        if (factor.IsValid)
         {
-            var change = changes[i];
-            if (!change.IsValid)
+            workforceAttractionFactors.Add(factor);
+        }
+    }
+
+    private BuildingDetailRow[] CreateGlobalModifierRows()
+    {
+        var modifiers = lastJobCalculation.GlobalAttractionModifiers;
+        if (modifiers == null || modifiers.Count == 0)
+        {
+            return new[]
+            {
+                new BuildingDetailRow("当前修正", "无")
+            };
+        }
+
+        var rows = new List<BuildingDetailRow>(modifiers.Count + 1)
+        {
+            new BuildingDetailRow("合计", FormatSigned(lastJobCalculation.GlobalAttractionModifierTotal))
+        };
+
+        for (var i = 0; i < modifiers.Count; i++)
+        {
+            var modifier = modifiers[i];
+            if (!modifier.IsValid)
             {
                 continue;
             }
 
-            if (builder.Length > 0)
+            var displayName = string.IsNullOrWhiteSpace(modifier.DisplayText)
+                ? "未命名修正"
+                : modifier.DisplayText;
+            if (!string.IsNullOrWhiteSpace(modifier.SourceType))
             {
-                builder.Append("，");
+                displayName = $"{displayName} [{modifier.SourceType}]";
             }
 
-            builder.Append(change.ItemId);
-            builder.Append(" x");
-            builder.Append(change.Amount);
+            rows.Add(new BuildingDetailRow(displayName, FormatSigned(modifier.Value)));
         }
 
-        return builder.Length == 0 ? "无" : builder.ToString();
+        return rows.ToArray();
+    }
+
+    private static string FormatSigned(float value)
+    {
+        return value.ToString("+0.##;-0.##;0");
     }
 
     [Serializable]
     private sealed class LumberCabinLV1Data : BuildingDataBase
     {
         public int CurrentWorkers;
-        public int SubsidyGoldPerTurn;
-        public int LastPaidSubsidyGold;
+        public bool AutoFullWorkerSubsidyEnabled;
+        public int TargetStableWorkers;
         public int LastProducedWood;
         public bool LastTurnRecruitedWorker;
-        public bool LastTurnSubsidyPaymentFailed;
+        public bool LastTurnSubsidyGoldMissing;
         public bool LastTurnNoAvailablePopulation;
         public string LastAbnormalStatusId;
         public string LastAbnormalStatusText;

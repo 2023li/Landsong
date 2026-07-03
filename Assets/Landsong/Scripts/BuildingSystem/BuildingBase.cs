@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Landsong.GameEventSystem;
 using Landsong.GridSystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -25,8 +26,14 @@ namespace Landsong.BuildingSystem
 
 
 
-        private static readonly IReadOnlyList<BuildingRuntimeStatus> EmptyRuntimeStatuses =
+        protected static readonly IReadOnlyList<BuildingRuntimeStatus> EmptyRuntimeStatuses =
             Array.Empty<BuildingRuntimeStatus>();
+
+        protected static readonly IReadOnlyList<BuildingResourceChange> EmptyResourceChanges =
+            Array.Empty<BuildingResourceChange>();
+
+        private static readonly IReadOnlyList<BuildingModuleBase> EmptyBuildingModules =
+            Array.Empty<BuildingModuleBase>();
 
         [Tooltip("该建筑 prefab/实例对应的静态配置数据。")]
         [SerializeField] private BuildingDefinition definition = new BuildingDefinition();
@@ -42,6 +49,9 @@ namespace Landsong.BuildingSystem
 
         [Tooltip("为 true 时，该建筑可作为居民房等建筑的资源连接点。")]
         [SerializeField] private bool isResourceProviderPoint;
+
+        [Tooltip("建筑可选能力模块。只给需要该能力的建筑添加对应模块。")]
+        [SerializeReference, LabelText("建筑模块")] private List<BuildingModuleBase> buildingModules = new List<BuildingModuleBase>();
 
         [Tooltip("建筑用于寻路和范围判断的行动力。普通格默认消耗 10 点，道路等地形由 GridMapBehaviour 配置。")]
         [SerializeField, Min(0)] private int buildingActionPower = 100;
@@ -133,6 +143,9 @@ namespace Landsong.BuildingSystem
         // 是否可作为居民房等建筑的资源连接点。
         public bool IsResourceProviderPoint => isResourceProviderPoint;
 
+        // 当前建筑挂载的可选能力模块。
+        public IReadOnlyList<BuildingModuleBase> BuildingModules => buildingModules ?? EmptyBuildingModules;
+
         // 建筑用于寻路和范围判断的行动力。
         public int BuildingActionPower => Mathf.Max(0, buildingActionPower);
 
@@ -155,6 +168,7 @@ namespace Landsong.BuildingSystem
             EnsureDefinition();
             ResolveView();
             NormalizeBuildingActionPower();
+            NormalizeBuildingModules();
         }
 
         private void OnValidate()
@@ -163,6 +177,7 @@ namespace Landsong.BuildingSystem
             ResolveView();
             NormalizeClickFeedback();
             NormalizeBuildingActionPower();
+            NormalizeBuildingModules();
         }
 
         protected virtual void Awake()
@@ -171,6 +186,7 @@ namespace Landsong.BuildingSystem
             ResolveView();
             NormalizeClickFeedback();
             NormalizeBuildingActionPower();
+            NormalizeBuildingModules();
         }
 
         /// <summary>
@@ -401,6 +417,130 @@ namespace Landsong.BuildingSystem
             StateChanged?.Invoke(this);
         }
 
+        protected void SendBuildingEvent(string eventTypeId, string message)
+        {
+            GameSystem?.Events?.AddMessage(GameEventMessage.ForBuildingEvent(
+                eventTypeId,
+                this,
+                message,
+                GetEventTurnNumber()));
+        }
+
+        protected int GetEventTurnNumber()
+        {
+            if (GameSystem == null)
+            {
+                return 0;
+            }
+
+            return GameSystem.IsAdvancingTurn ? GameSystem.CurrentTurn + 1 : GameSystem.CurrentTurn;
+        }
+
+        protected static bool HasUsableItemId(string itemId)
+        {
+            return !string.IsNullOrWhiteSpace(itemId);
+        }
+
+        protected static string NormalizeItemId(string itemId, string fallback)
+        {
+            return string.IsNullOrWhiteSpace(itemId) ? fallback : itemId.Trim();
+        }
+
+        protected static IReadOnlyList<BuildingResourceChange> CreateResourceChanges(string itemId, int amount)
+        {
+            var change = new BuildingResourceChange(itemId, amount);
+            return change.IsValid ? new[] { change } : EmptyResourceChanges;
+        }
+
+        protected static string FormatResourceChanges(IReadOnlyList<BuildingResourceChange> changes)
+        {
+            if (changes == null || changes.Count == 0)
+            {
+                return "无";
+            }
+
+            var builder = new System.Text.StringBuilder();
+            for (var i = 0; i < changes.Count; i++)
+            {
+                var change = changes[i];
+                if (!change.IsValid)
+                {
+                    continue;
+                }
+
+                if (builder.Length > 0)
+                {
+                    builder.Append("，");
+                }
+
+                builder.Append(change.ItemId);
+                builder.Append(" x");
+                builder.Append(change.Amount);
+            }
+
+            return builder.Length == 0 ? "无" : builder.ToString();
+        }
+
+        public bool TryGetModule<TModule>(out TModule module)
+            where TModule : BuildingModuleBase
+        {
+            module = null;
+            if (buildingModules == null)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < buildingModules.Count; i++)
+            {
+                if (buildingModules[i] is TModule candidate && candidate.IsEnabled)
+                {
+                    module = candidate;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public List<TModule> GetModules<TModule>(List<TModule> results = null)
+            where TModule : BuildingModuleBase
+        {
+            results ??= new List<TModule>();
+            if (buildingModules == null)
+            {
+                return results;
+            }
+
+            for (var i = 0; i < buildingModules.Count; i++)
+            {
+                if (buildingModules[i] is TModule candidate && candidate.IsEnabled)
+                {
+                    results.Add(candidate);
+                }
+            }
+
+            return results;
+        }
+
+        protected void AppendBuildingModuleDetailSections(ref List<BuildingDetailSection> sections)
+        {
+            if (buildingModules == null)
+            {
+                return;
+            }
+
+            for (var i = 0; i < buildingModules.Count; i++)
+            {
+                var module = buildingModules[i];
+                if (module == null || !module.IsEnabled)
+                {
+                    continue;
+                }
+
+                module.AppendDetailSections(this, ref sections);
+            }
+        }
+
         private void ResolveView()
         {
             if (view != null)
@@ -431,6 +571,23 @@ namespace Landsong.BuildingSystem
         private void NormalizeBuildingActionPower()
         {
             buildingActionPower = Mathf.Max(0, buildingActionPower);
+        }
+
+        protected void NormalizeBuildingModules()
+        {
+            buildingModules ??= new List<BuildingModuleBase>();
+
+            for (var i = buildingModules.Count - 1; i >= 0; i--)
+            {
+                var module = buildingModules[i];
+                if (module == null)
+                {
+                    buildingModules.RemoveAt(i);
+                    continue;
+                }
+
+                module.Normalize();
+            }
         }
 
         private void WarnIfMissingClickCollider()
@@ -769,7 +926,9 @@ namespace Landsong.BuildingSystem
         /// </summary>
         public virtual BuildingDetailInfo GetDetailInfo()
         {
-            return BuildingDetailInfo.Empty;
+            List<BuildingDetailSection> sections = null;
+            AppendBuildingModuleDetailSections(ref sections);
+            return sections == null ? BuildingDetailInfo.Empty : new BuildingDetailInfo(sections);
         }
         #endregion
 

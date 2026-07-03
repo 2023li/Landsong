@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using Landsong.BuildingSystem;
 using Landsong.DynastySystem;
 using Landsong.GameEventSystem;
@@ -19,8 +20,14 @@ namespace Landsong
     }
 
     [DisallowMultipleComponent]
-    public sealed class GameSystem : MonoSingleton<GameSystem>, IBuildingJobAttractionPenaltyProvider
+    public sealed class GameSystem : MonoSingleton<GameSystem>, IBuildingJobAttractionModifierProvider
     {
+        private static readonly IReadOnlyList<BuildingJobAttractionModifier> EmptyJobAttractionModifiers =
+            Array.Empty<BuildingJobAttractionModifier>();
+
+        private readonly List<BuildingInventorySlotCapacityModule> inventorySlotCapacityModules =
+            new List<BuildingInventorySlotCapacityModule>();
+
         [Header("Inventory")]
         [SerializeField, LabelText("物品目录")] private ItemCatalog itemCatalog;
         [SerializeField, LabelText("库存格子数量"), Min(0)] private int inventorySlotCount = 24;
@@ -69,9 +76,9 @@ namespace Landsong
 
         public event Action<GameSystem, GameOverReason> GameEnded;
 
-        public float GetJobAttractionPenalty(BuildingBase building)
+        public IReadOnlyList<BuildingJobAttractionModifier> GetJobAttractionModifiers(BuildingBase building)
         {
-            return 0f;
+            return EmptyJobAttractionModifiers;
         }
 
         protected override void Init()
@@ -192,6 +199,7 @@ namespace Landsong
 
             Buildings.RegisterBuilding(building);
             building.Initialize();
+            RefreshInventorySlotCapacity();
         }
 
         public void UnregisterBuilding(BuildingBase building)
@@ -204,6 +212,7 @@ namespace Landsong
             Dynasty?.UnregisterPalace(building);
             Dynasty?.RemovePopulationContribution(building);
             Buildings?.UnregisterBuilding(building);
+            RefreshInventorySlotCapacity();
 
             if (building.IsRegistered)
             {
@@ -213,7 +222,83 @@ namespace Landsong
 
         private void CreateInventoryService()
         {
-            Inventory = new InventoryService(itemCatalog, inventorySlotCount, startingItems);
+            Inventory = new InventoryService(itemCatalog, CalculateTargetInventorySlotCount(), startingItems);
+        }
+
+        private void RefreshInventorySlotCapacity()
+        {
+            if (Inventory == null)
+            {
+                return;
+            }
+
+            var targetSlotCount = CalculateTargetInventorySlotCount();
+            var currentSlotCount = Inventory.SlotCount;
+            if (targetSlotCount == currentSlotCount)
+            {
+                return;
+            }
+
+            if (targetSlotCount < currentSlotCount && !CanShrinkInventoryTo(targetSlotCount))
+            {
+                return;
+            }
+
+            Inventory.SetSlotCount(targetSlotCount);
+        }
+
+        private int CalculateTargetInventorySlotCount()
+        {
+            return Mathf.Max(0, inventorySlotCount) + CalculateBuildingInventorySlotCapacity();
+        }
+
+        private int CalculateBuildingInventorySlotCapacity()
+        {
+            var buildings = Buildings == null ? null : Buildings.Buildings;
+            if (buildings == null || buildings.Count == 0)
+            {
+                return 0;
+            }
+
+            var total = 0;
+            for (var i = 0; i < buildings.Count; i++)
+            {
+                var building = buildings[i];
+                if (building == null || !building.isActiveAndEnabled || building.IsDemolishing)
+                {
+                    continue;
+                }
+
+                inventorySlotCapacityModules.Clear();
+                building.GetModules(inventorySlotCapacityModules);
+                for (var j = 0; j < inventorySlotCapacityModules.Count; j++)
+                {
+                    total += inventorySlotCapacityModules[j].ProvidedSlotCount;
+                }
+            }
+
+            inventorySlotCapacityModules.Clear();
+            return Mathf.Max(0, total);
+        }
+
+        private bool CanShrinkInventoryTo(int targetSlotCount)
+        {
+            var inventory = Inventory == null ? null : Inventory.Inventory;
+            if (inventory == null || targetSlotCount >= inventory.SlotCount)
+            {
+                return true;
+            }
+
+            var slots = inventory.Slots;
+            for (var i = Mathf.Max(0, targetSlotCount); i < slots.Count; i++)
+            {
+                if (slots[i] != null && !slots[i].IsEmpty)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private void CreateDynastyService()

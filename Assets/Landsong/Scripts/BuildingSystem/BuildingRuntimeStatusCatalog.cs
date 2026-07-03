@@ -21,8 +21,8 @@ namespace Landsong.BuildingSystem
         public const string BS_原木存入失败 = "wood_storage_failed";
         public const string BS_工人不足 = "insufficient_workers";
         public const string BS_缺工 = "worker_shortage";
-        public const string BS_补贴不足 = "subsidy_payment_failed";
         public const string BS_招工金币不足 = "recruit_gold_missing";
+        public const string BS_补贴金币不足 = "subsidy_gold_missing";
         public const string BS_道路不通 = "road_blocked";
 
         private static readonly HashSet<string> AbnormalStatusIds =
@@ -41,8 +41,8 @@ namespace Landsong.BuildingSystem
                 BS_原木存入失败,
                 BS_工人不足,
                 BS_缺工,
-                BS_补贴不足,
                 BS_招工金币不足,
+                BS_补贴金币不足,
                 BS_道路不通
             };
 

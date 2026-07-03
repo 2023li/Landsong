@@ -37,15 +37,21 @@ namespace Landsong.GameEventSystem
     {
         public const string GE_人口衰减 = "population_decayed";
         public const string GE_工人离职 = "worker_resigned";
-        public const string GE_补贴不足 = "subsidy_payment_failed";
         public const string GE_可用人口不足 = "no_available_population";
+        public const string GE_自动补贴减少 = "subsidy_auto_decreased";
+        public const string GE_自动补贴增加 = "subsidy_auto_increased";
+        public const string GE_补贴金币不足 = "subsidy_gold_missing";
+        public const string GE_招工未完全补满 = "recruit_partially_done";
 
         private static readonly GameEventDefinition[] DefaultDefinitions =
         {
             new GameEventDefinition(GE_人口衰减, "人口衰减"),
             new GameEventDefinition(GE_工人离职, "工人离职"),
-            new GameEventDefinition(GE_补贴不足, "补贴不足"),
-            new GameEventDefinition(GE_可用人口不足, "可用人口不足")
+            new GameEventDefinition(GE_可用人口不足, "可用人口不足"),
+            new GameEventDefinition(GE_自动补贴减少, "自动补贴减少"),
+            new GameEventDefinition(GE_自动补贴增加, "自动补贴增加"),
+            new GameEventDefinition(GE_补贴金币不足, "补贴金币不足"),
+            new GameEventDefinition(GE_招工未完全补满, "招工未完全补满")
         };
 
         public static IReadOnlyList<GameEventDefinition> Definitions => DefaultDefinitions;

@@ -208,6 +208,8 @@ MonoBehaviour:
     y: 0
   gridOccupancyId: 
   isResourceProviderPoint: 0
+  buildingModules:
+  - rid: 5711026153326903379
   doubleClickInterval: 0.3
   playClickScaleFeedback: 1
   clickScaleMultiplier: 1.12
@@ -218,11 +220,8 @@ MonoBehaviour:
   autoRepair: 0
   autpUpgrade: 1
   maxWorkers: 3
-  baseJobAttraction: 35
-  subsidyGoldPerTurn: 0
+  baseJobAttraction: 55
   singleRecruitCost: 10
-  populationSearchRadius: 10
-  populationDensityAttractionMultiplier: 300
   woodItemId: "\u539F\u6728"
   goldItemId: "\u91D1\u5E01"
   minimumWorkersForProduction: 2
@@ -237,12 +236,9 @@ MonoBehaviour:
   populationCellCount: 0
   populationDensity: 0
   populationAttractionBonus: 0
-  externalAttractionPenalty: 0
-  lastPaidSubsidyGold: 0
+  globalAttractionModifierTotal: 0
   lastProducedWood: 0
   lastTurnRecruitedWorker: 0
-  lastTurnWorkerResigned: 0
-  lastTurnSubsidyPaymentFailed: 0
   lastTurnNoAvailablePopulation: 0
   lastAbnormalStatusId: 
   lastAbnormalStatusText: 
@@ -255,6 +251,12 @@ MonoBehaviour:
     - rid: 5711026153326903378
       type: {class: GameCondition_True, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
       data: 
+    - rid: 5711026153326903379
+      type: {class: BuildingNearbyPopulationJobAttractionModule, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        enabled: 1
+        populationSearchRadius: 10
+        attractionPerNearbyPopulation: 1.6666666
 --- !u!61 &1444196072812716139
 BoxCollider2D:
   m_ObjectHideFlags: 0

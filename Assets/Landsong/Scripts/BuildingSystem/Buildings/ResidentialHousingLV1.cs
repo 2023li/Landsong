@@ -21,12 +21,6 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
     private const string StatusInvalidTaxItem = BuildingRuntimeStatusCatalog.BS_税收配置异常;
     private const string StatusTaxRewardFailed = BuildingRuntimeStatusCatalog.BS_税收存入失败;
 
-    private static readonly IReadOnlyList<BuildingResourceChange> EmptyResourceChanges =
-        Array.Empty<BuildingResourceChange>();
-
-    private static readonly IReadOnlyList<BuildingRuntimeStatus> EmptyRuntimeStatuses =
-        Array.Empty<BuildingRuntimeStatus>();
-
     [TitleGroup("人口")]
     [SerializeField, Min(1)] private int initialPopulationContribution = 2;
 
@@ -565,31 +559,15 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
         NormalizeConfiguration();
     }
 
-    private static bool HasUsableItemId(string itemId)
-    {
-        return !string.IsNullOrWhiteSpace(itemId);
-    }
-
-    private static string NormalizeItemId(string itemId, string fallback)
-    {
-        return string.IsNullOrWhiteSpace(itemId) ? fallback : itemId.Trim();
-    }
-
-    private static IReadOnlyList<BuildingResourceChange> CreateResourceChanges(string itemId, int amount)
-    {
-        var change = new BuildingResourceChange(itemId, amount);
-        return change.IsValid ? new[] { change } : EmptyResourceChanges;
-    }
-
     private IReadOnlyList<BuildingRuntimeStatus> CreateRuntimeStatuses()
     {
         List<BuildingRuntimeStatus> statuses = null;
 
-        AddRuntimeStatus(ref statuses, isAbandoned
+        AppendRuntimeStatus(ref statuses, isAbandoned
             ? new BuildingRuntimeStatus(StatusAbandoned, "荒废")
             : default);
 
-        AddRuntimeStatus(ref statuses, consecutiveConsumptionFailures > 0
+        AppendRuntimeStatus(ref statuses, consecutiveConsumptionFailures > 0
             ? new BuildingRuntimeStatus(
                 StatusConsumptionFailed,
                 "消耗失败",
@@ -597,7 +575,7 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
                 consumptionFailureDecayThreshold)
             : default);
 
-        AddRuntimeStatus(ref statuses, ShouldAddLastAbnormalStatus()
+        AppendRuntimeStatus(ref statuses, ShouldAddLastAbnormalStatus()
             ? new BuildingRuntimeStatus(lastAbnormalStatusId, lastAbnormalStatusText)
             : default);
 
@@ -630,36 +608,6 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
 
         return consecutiveConsumptionFailures <= 0
                || !string.Equals(lastAbnormalStatusId, StatusConsumptionFailed, StringComparison.Ordinal);
-    }
-
-    private void SendBuildingEvent(string eventTypeId, string message)
-    {
-        GameSystem?.Events?.AddMessage(GameEventMessage.ForBuildingEvent(
-            eventTypeId,
-            this,
-            message,
-            GetEventTurnNumber()));
-    }
-
-    private int GetEventTurnNumber()
-    {
-        if (GameSystem == null)
-        {
-            return 0;
-        }
-
-        return GameSystem.IsAdvancingTurn ? GameSystem.CurrentTurn + 1 : GameSystem.CurrentTurn;
-    }
-
-    private static void AddRuntimeStatus(ref List<BuildingRuntimeStatus> statuses, BuildingRuntimeStatus status)
-    {
-        if (!status.IsValid)
-        {
-            return;
-        }
-
-        statuses ??= new List<BuildingRuntimeStatus>();
-        statuses.Add(status);
     }
 
     private IReadOnlyList<BuildingDetailSection> CreateDetailSections()
@@ -704,35 +652,6 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
     private static string FormatActionCost(int actionCost)
     {
         return actionCost < 0 ? "无" : actionCost.ToString();
-    }
-
-    private static string FormatResourceChanges(IReadOnlyList<BuildingResourceChange> changes)
-    {
-        if (changes == null || changes.Count == 0)
-        {
-            return "无";
-        }
-
-        var builder = new System.Text.StringBuilder();
-        for (var i = 0; i < changes.Count; i++)
-        {
-            var change = changes[i];
-            if (!change.IsValid)
-            {
-                continue;
-            }
-
-            if (builder.Length > 0)
-            {
-                builder.Append("，");
-            }
-
-            builder.Append(change.ItemId);
-            builder.Append(" x");
-            builder.Append(change.Amount);
-        }
-
-        return builder.Length == 0 ? "无" : builder.ToString();
     }
 
     [Serializable]

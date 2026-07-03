@@ -66,6 +66,28 @@ GameSystem.NextTurn()
 
 注意：这个接口本身不生产任何资源，也不修改库存。它只是资源连接判定的标记点。
 
+## 建筑模块
+
+`BuildingBase` 持有 `建筑模块` 列表，用来承载“不是所有建筑都需要，但需要统一查询入口”的能力配置。
+
+当前模块：
+
+- `BuildingNearbyPopulationJobAttractionModule`：岗位建筑使用，配置 `人口搜索半径` 和 `附近每人口就业吸引力`。
+- `BuildingInventorySlotCapacityModule`：库存容量建筑使用，配置 `提供库存格数`。
+
+当前使用：
+
+- `LumberCabinLV1.prefab` 添加 `BuildingNearbyPopulationJobAttractionModule`，岗位系统从模块读取附近人口影响。
+- `PlayerHomeLV1.prefab` 添加 `BuildingInventorySlotCapacityModule`，`GameSystem` 汇总所有已存在建筑的库存模块，计算库存总格数。
+
+库存总格数：
+
+```text
+库存总格数 = GameSystem.基础库存格数 + Sum(所有启用库存模块.提供库存格数)
+```
+
+当目标库存格数变小时，如果将被移除的尾部格子里还有物品，`GameSystem` 会暂时保留当前库存格数，避免直接丢失物品。
+
 ## IBuildingResourceConsumptionSource
 
 职责：让建筑把“预计每回合会消耗什么”和“上回合实际消耗了什么”暴露给 UI 或统计系统。
@@ -160,7 +182,7 @@ GameSystem.NextTurn()
 
 数据写入点：
 
-- `LumberCabinLV1.OnTurn()` 会先尝试支付补贴、计算岗位状态、处理招工或离职，再调用 `TryProduceWood()`。
+- `LumberCabinLV1.OnTurn()` 会先计算岗位状态、处理招工或离职，再调用 `TryProduceWood()`。
 - `inventory.TryAddItem(woodItemId, productionAmount)` 成功时：
   - 设置 `lastProducedWood`。
   - 设置 `lastResourceProductions = CreateResourceChanges(woodItemId, productionAmount)`。
@@ -202,8 +224,6 @@ GameSystem.NextTurn()
 
 - `currentWorkers < minimumWorkersForProduction` -> `工人不足`
 - `currentWorkers < stableWorkers` -> `缺工`
-- `lastTurnWorkerResigned` -> `工人离职`
-- `lastTurnSubsidyPaymentFailed` -> `补贴不足`
 - `lastTurnNoAvailablePopulation` -> `可用人口不足`
 - `lastAbnormalStatusId`、`lastAbnormalStatusText` -> 最近一次异常
 
@@ -227,14 +247,14 @@ GameSystem.NextTurn()
 
 属性：
 
-- `GetsOveriewMessage()`：完整概览短文本，例如 `人口 4/5`、`岗位 补贴 0，工人 2/3，吸引力 35`。
+- `GetsOveriewMessage()`：完整概览短文本，例如 `人口 4/5`、`工人 2/3`。
 
 当前实现：
 
 - `ResidentialHousingLV1`
   - `GetsOveriewMessage()`: `人口 {currentPopulation}/{maxPopulationContribution}`
 - `LumberCabinLV1`
-  - `GetsOveriewMessage()`: `岗位 补贴 {subsidyGoldPerTurn}，工人 {currentWorkers}/{stableWorkers}，吸引力 {rawJobAttraction}`
+  - `GetsOveriewMessage()`: `工人 {currentWorkers}/{stableWorkers}`
 - 其他建筑
   - 当前返回空字符串，保持原先没有概览接口时的展示行为。
 
@@ -291,13 +311,14 @@ GameSystem.NextTurn()
 | 建筑 | 入口 | 数据来源 | 数据去处 |
 | --- | --- | --- | --- |
 | `PlayerHomeLV1` | `BuildingBase.IsResourceProviderPoint` | `isResourceProviderPoint` 序列化字段 | 住宅资源连接判定 |
+| `PlayerHomeLV1` | `BuildingInventorySlotCapacityModule` | `providedSlotCount` 模块字段 | `GameSystem` 汇总后调整库存格数 |
 | `ResidentialHousingLV1` | `IBuildingResourceConsumptionSource` | `foodItemId`、`currentPopulation`、荒废状态、库存扣减结果 | 库存 `TryRemoveItem`、详情 UI、失败状态 |
 | `ResidentialHousingLV1` | `IBuildingTaxSource` | `taxItemId`、`currentPopulation`、满人口状态、税收进度、库存写入结果 | 库存 `TryAddItem`、详情 UI、失败状态 |
 | `ResidentialHousingLV1` | `BuildingBase.GetRuntimeStatuses()` | 荒废、人口衰减、连续消耗失败、最近异常 | 状态概览、Marker、消息栏、事件消息、详情 UI |
 | `ResidentialHousingLV1` | `BuildingBase.GetsOveriewMessage()` | `currentPopulation`、`maxPopulationContribution` | 状态概览、选中概览、消息栏、详情 UI |
 | `LumberCabinLV1` | `IBuildingResourceProductionSource` | `woodItemId`、工人数量、生产阈值、库存写入结果 | 库存 `TryAddItem`、详情 UI、失败状态 |
-| `LumberCabinLV1` | `BuildingBase.GetRuntimeStatuses()` | 工人数量、稳定工人、补贴支付、可用人口、最近异常 | 状态概览、Marker、消息栏、事件消息、详情 UI |
-| `LumberCabinLV1` | `BuildingBase.GetsOveriewMessage()` | 补贴、当前工人、稳定工人、岗位吸引力 | 状态概览、选中概览、消息栏、详情 UI |
+| `LumberCabinLV1` | `BuildingBase.GetRuntimeStatuses()` | 工人数量、稳定工人、可用人口、最近异常 | 状态概览、Marker、消息栏、事件消息、详情 UI |
+| `LumberCabinLV1` | `BuildingBase.GetsOveriewMessage()` | 当前工人、稳定工人 | 状态概览、选中概览、消息栏、详情 UI |
 
 ## 与详情接口的关系
 

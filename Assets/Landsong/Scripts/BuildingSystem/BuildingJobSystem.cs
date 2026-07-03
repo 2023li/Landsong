@@ -16,15 +16,79 @@ namespace Landsong.BuildingSystem
         int CurrentWorkers { get; }
         int MaxWorkers { get; }
         int StableWorkers { get; }
-        int SubsidyGoldPerTurn { get; }
         float RawJobAttraction { get; }
         float JobAttraction { get; }
-        void SetSubsidyGoldPerTurn(int amount);
     }
 
-    public interface IBuildingJobAttractionPenaltyProvider
+    public readonly struct BuildingWorkforceAttractionFactor
     {
-        float GetJobAttractionPenalty(BuildingBase building);
+        public BuildingWorkforceAttractionFactor(string label, float value)
+        {
+            Label = string.IsNullOrWhiteSpace(label) ? string.Empty : label.Trim();
+            Value = value;
+        }
+
+        public string Label { get; }
+        public float Value { get; }
+        public bool IsValid => !string.IsNullOrWhiteSpace(Label) || !Mathf.Approximately(Value, 0f);
+    }
+
+    public interface IBuildingWorkforceFundingSource : IBuildingJobSource
+    {
+        bool AutoFullWorkerSubsidyEnabled { get; }
+        int TargetStableWorkers { get; }
+        int TargetSubsidyGoldPerTurn { get; }
+        int PaidSubsidyGoldThisTurn { get; }
+        int MissingWorkersToFull { get; }
+        int RecruitToFullWorkerCount { get; }
+        int RecruitToFullCost { get; }
+        float JobAttractionWithoutSubsidy { get; }
+        float SubsidyAttractionPerGold { get; }
+        float SubsidyAttractionBonus { get; }
+        float TargetSubsidyAttractionBonus { get; }
+        float PreviewJobAttractionWithTargetSubsidy { get; }
+        float FullWorkerRequiredAttraction { get; }
+        float JobAttractionGapToFullWorkers { get; }
+        IReadOnlyList<BuildingWorkforceAttractionFactor> WorkforceAttractionFactors { get; }
+
+        void SetAutoFullWorkerSubsidyEnabled(bool enabled);
+        void SetTargetStableWorkers(int targetStableWorkers);
+        bool TryRecruitToFull();
+    }
+
+    public readonly struct BuildingJobAttractionModifier
+    {
+        public BuildingJobAttractionModifier(
+            string id,
+            string displayName,
+            float value,
+            string sourceType = null,
+            string description = null)
+        {
+            Id = NormalizeText(id);
+            DisplayName = NormalizeText(displayName);
+            Value = value;
+            SourceType = NormalizeText(sourceType);
+            Description = NormalizeText(description);
+        }
+
+        public string Id { get; }
+        public string DisplayName { get; }
+        public float Value { get; }
+        public string SourceType { get; }
+        public string Description { get; }
+        public string DisplayText => string.IsNullOrWhiteSpace(DisplayName) ? Id : DisplayName;
+        public bool IsValid => !Mathf.Approximately(Value, 0f) || !string.IsNullOrWhiteSpace(DisplayText);
+
+        private static string NormalizeText(string value)
+        {
+            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+        }
+    }
+
+    public interface IBuildingJobAttractionModifierProvider
+    {
+        IReadOnlyList<BuildingJobAttractionModifier> GetJobAttractionModifiers(BuildingBase building);
     }
 
     public readonly struct BuildingJobCalculationInput
@@ -35,9 +99,9 @@ namespace Landsong.BuildingSystem
             float baseAttraction,
             int nearbyPopulation,
             int populationCellCount,
-            float populationDensityAttractionMultiplier,
-            int subsidyGoldPerTurn,
-            float externalAttractionPenalty,
+            float attractionPerNearbyPopulation,
+            IReadOnlyList<BuildingJobAttractionModifier> globalAttractionModifiers,
+            float subsidyAttractionBonus,
             int singleRecruitCost)
         {
             var normalizedMaxWorkers = Mathf.Max(0, maxWorkers);
@@ -47,9 +111,9 @@ namespace Landsong.BuildingSystem
             BaseAttraction = Mathf.Max(0f, baseAttraction);
             NearbyPopulation = Mathf.Max(0, nearbyPopulation);
             PopulationCellCount = Mathf.Max(0, populationCellCount);
-            PopulationDensityAttractionMultiplier = Mathf.Max(0f, populationDensityAttractionMultiplier);
-            SubsidyGoldPerTurn = Mathf.Max(0, subsidyGoldPerTurn);
-            ExternalAttractionPenalty = Mathf.Max(0f, externalAttractionPenalty);
+            AttractionPerNearbyPopulation = Mathf.Max(0f, attractionPerNearbyPopulation);
+            GlobalAttractionModifiers = NormalizeModifiers(globalAttractionModifiers);
+            SubsidyAttractionBonus = Mathf.Max(0f, subsidyAttractionBonus);
             SingleRecruitCost = Mathf.Max(0, singleRecruitCost);
         }
 
@@ -58,10 +122,34 @@ namespace Landsong.BuildingSystem
         public float BaseAttraction { get; }
         public int NearbyPopulation { get; }
         public int PopulationCellCount { get; }
-        public float PopulationDensityAttractionMultiplier { get; }
-        public int SubsidyGoldPerTurn { get; }
-        public float ExternalAttractionPenalty { get; }
+        public float AttractionPerNearbyPopulation { get; }
+        public IReadOnlyList<BuildingJobAttractionModifier> GlobalAttractionModifiers { get; }
+        public float SubsidyAttractionBonus { get; }
         public int SingleRecruitCost { get; }
+
+        private static IReadOnlyList<BuildingJobAttractionModifier> NormalizeModifiers(
+            IReadOnlyList<BuildingJobAttractionModifier> modifiers)
+        {
+            if (modifiers == null || modifiers.Count == 0)
+            {
+                return Array.Empty<BuildingJobAttractionModifier>();
+            }
+
+            List<BuildingJobAttractionModifier> normalized = null;
+            for (var i = 0; i < modifiers.Count; i++)
+            {
+                var modifier = modifiers[i];
+                if (!modifier.IsValid)
+                {
+                    continue;
+                }
+
+                normalized ??= new List<BuildingJobAttractionModifier>(modifiers.Count);
+                normalized.Add(modifier);
+            }
+
+            return normalized == null ? Array.Empty<BuildingJobAttractionModifier>() : normalized.ToArray();
+        }
     }
 
     public readonly struct BuildingJobCalculation
@@ -73,19 +161,22 @@ namespace Landsong.BuildingSystem
             var baseAttraction = input.BaseAttraction;
             var nearbyPopulation = input.NearbyPopulation;
             var populationCellCount = input.PopulationCellCount;
-            var populationDensityAttractionMultiplier = input.PopulationDensityAttractionMultiplier;
-            var subsidyGoldPerTurn = input.SubsidyGoldPerTurn;
-            var externalAttractionPenalty = input.ExternalAttractionPenalty;
+            var attractionPerNearbyPopulation = input.AttractionPerNearbyPopulation;
+            var globalAttractionModifiers = input.GlobalAttractionModifiers;
+            var subsidyAttractionBonus = input.SubsidyAttractionBonus;
             var singleRecruitCost = input.SingleRecruitCost;
             var populationDensity = populationCellCount <= 0 ? 0f : nearbyPopulation / (float)populationCellCount;
-            var populationAttractionBonus = populationDensity * populationDensityAttractionMultiplier;
-            var perWorkerSubsidy = maxWorkers <= 0 ? 0f : subsidyGoldPerTurn / (float)maxWorkers;
-            var subsidyBonus = Mathf.Clamp(perWorkerSubsidy * 5f, 0f, 100f);
-            var rawAttraction = baseAttraction + populationAttractionBonus + subsidyBonus - externalAttractionPenalty;
+            var populationAttractionBonus = nearbyPopulation * attractionPerNearbyPopulation;
+            var globalAttractionModifierTotal =
+                BuildingJobSystem.CalculateGlobalAttractionModifierTotal(globalAttractionModifiers);
+            var rawAttraction = baseAttraction
+                                + populationAttractionBonus
+                                + globalAttractionModifierTotal
+                                + subsidyAttractionBonus;
             var attraction = Mathf.Clamp(rawAttraction, 0f, 100f);
             var stableWorkers = maxWorkers <= 0
                 ? 0
-                : Mathf.Clamp(Mathf.FloorToInt(attraction * (maxWorkers + 1) / 100f), 0, maxWorkers);
+                : BuildingJobSystem.CalculateStableWorkers(maxWorkers, attraction);
             var missingStableWorkers = Mathf.Max(0, stableWorkers - currentWorkers);
             var missingMaxWorkers = Mathf.Max(0, maxWorkers - currentWorkers);
             var workerShortageRatio = maxWorkers <= 0 ? 0f : (stableWorkers - currentWorkers) / (float)maxWorkers;
@@ -102,14 +193,13 @@ namespace Landsong.BuildingSystem
             BaseAttraction = baseAttraction;
             NearbyPopulation = nearbyPopulation;
             PopulationCellCount = populationCellCount;
-            SubsidyGoldPerTurn = subsidyGoldPerTurn;
-            ExternalAttractionPenalty = externalAttractionPenalty;
+            AttractionPerNearbyPopulation = attractionPerNearbyPopulation;
+            GlobalAttractionModifiers = globalAttractionModifiers ?? Array.Empty<BuildingJobAttractionModifier>();
+            GlobalAttractionModifierTotal = globalAttractionModifierTotal;
+            SubsidyAttractionBonus = subsidyAttractionBonus;
             SingleRecruitCost = singleRecruitCost;
             PopulationDensity = populationDensity;
-            PopulationDensityAttractionMultiplier = populationDensityAttractionMultiplier;
             PopulationAttractionBonus = populationAttractionBonus;
-            PerWorkerSubsidy = perWorkerSubsidy;
-            SubsidyBonus = subsidyBonus;
             RawAttraction = rawAttraction;
             Attraction = attraction;
             StableWorkers = stableWorkers;
@@ -129,12 +219,11 @@ namespace Landsong.BuildingSystem
         public int NearbyPopulation { get; }
         public int PopulationCellCount { get; }
         public float PopulationDensity { get; }
-        public float PopulationDensityAttractionMultiplier { get; }
+        public float AttractionPerNearbyPopulation { get; }
         public float PopulationAttractionBonus { get; }
-        public int SubsidyGoldPerTurn { get; }
-        public float PerWorkerSubsidy { get; }
-        public float SubsidyBonus { get; }
-        public float ExternalAttractionPenalty { get; }
+        public IReadOnlyList<BuildingJobAttractionModifier> GlobalAttractionModifiers { get; }
+        public float GlobalAttractionModifierTotal { get; }
+        public float SubsidyAttractionBonus { get; }
         public float RawAttraction { get; }
         public float Attraction { get; }
         public int StableWorkers { get; }
@@ -150,23 +239,106 @@ namespace Landsong.BuildingSystem
 
     public static class BuildingJobSystem
     {
-        public const float DefaultPopulationDensityAttractionMultiplier = 300f;
+        public const float DefaultAttractionPerNearbyPopulation = 25f / 15f;
+
+        private static readonly IReadOnlyList<BuildingJobAttractionModifier> EmptyAttractionModifiers =
+            Array.Empty<BuildingJobAttractionModifier>();
 
         public static BuildingJobCalculation Calculate(BuildingJobCalculationInput input)
         {
             return new BuildingJobCalculation(input);
         }
 
-        public static float ResolveExternalAttractionPenalty(
-            BuildingBase source,
-            IBuildingJobAttractionPenaltyProvider penaltyProvider)
+        public static int CalculateStableWorkers(int maxWorkers, float attraction)
         {
-            if (source == null || penaltyProvider == null)
+            maxWorkers = Mathf.Max(0, maxWorkers);
+            if (maxWorkers <= 0)
+            {
+                return 0;
+            }
+
+            return Mathf.Clamp(Mathf.FloorToInt(Mathf.Clamp(attraction, 0f, 100f) * (maxWorkers + 1) / 100f), 0, maxWorkers);
+        }
+
+        public static float CalculateRequiredAttractionForStableWorkers(int maxWorkers, int targetStableWorkers)
+        {
+            maxWorkers = Mathf.Max(0, maxWorkers);
+            if (maxWorkers <= 0)
             {
                 return 0f;
             }
 
-            return Mathf.Max(0f, penaltyProvider.GetJobAttractionPenalty(source));
+            targetStableWorkers = Mathf.Clamp(targetStableWorkers, 0, maxWorkers);
+            return targetStableWorkers <= 0 ? 0f : targetStableWorkers * 100f / (maxWorkers + 1);
+        }
+
+        public static float CalculateFullWorkerRequiredAttraction(int maxWorkers)
+        {
+            return CalculateRequiredAttractionForStableWorkers(maxWorkers, Mathf.Max(0, maxWorkers));
+        }
+
+        public static float CalculateSubsidyAttractionPerGold(int maxWorkers)
+        {
+            maxWorkers = Mathf.Max(0, maxWorkers);
+            return maxWorkers <= 0 ? 0f : 100f / maxWorkers;
+        }
+
+        public static int CalculateRequiredSubsidyGoldForTargetStableWorkers(
+            int maxWorkers,
+            float baseAttractionWithoutSubsidy,
+            int targetStableWorkers)
+        {
+            var subsidyAttractionPerGold = CalculateSubsidyAttractionPerGold(maxWorkers);
+            if (subsidyAttractionPerGold <= 0f)
+            {
+                return 0;
+            }
+
+            var requiredAttraction = CalculateRequiredAttractionForStableWorkers(maxWorkers, targetStableWorkers);
+            var attractionGap = Mathf.Max(0f, requiredAttraction - Mathf.Clamp(baseAttractionWithoutSubsidy, 0f, 100f));
+            return Mathf.CeilToInt(attractionGap / subsidyAttractionPerGold);
+        }
+
+        public static float CalculateAttractionWithSubsidy(
+            float baseAttractionWithoutSubsidy,
+            int paidSubsidyGold,
+            int maxWorkers)
+        {
+            var subsidyAttraction = Mathf.Max(0, paidSubsidyGold) * CalculateSubsidyAttractionPerGold(maxWorkers);
+            return Mathf.Clamp(baseAttractionWithoutSubsidy + subsidyAttraction, 0f, 100f);
+        }
+
+        public static IReadOnlyList<BuildingJobAttractionModifier> ResolveGlobalAttractionModifiers(
+            BuildingBase source,
+            IBuildingJobAttractionModifierProvider modifierProvider)
+        {
+            if (source == null || modifierProvider == null)
+            {
+                return EmptyAttractionModifiers;
+            }
+
+            return modifierProvider.GetJobAttractionModifiers(source) ?? EmptyAttractionModifiers;
+        }
+
+        public static float CalculateGlobalAttractionModifierTotal(
+            IReadOnlyList<BuildingJobAttractionModifier> modifiers)
+        {
+            if (modifiers == null || modifiers.Count == 0)
+            {
+                return 0f;
+            }
+
+            var total = 0f;
+            for (var i = 0; i < modifiers.Count; i++)
+            {
+                var modifier = modifiers[i];
+                if (modifier.IsValid)
+                {
+                    total += modifier.Value;
+                }
+            }
+
+            return total;
         }
 
         public static int CountPopulationCells(BuildingBase source, int radius)
@@ -300,12 +472,11 @@ namespace Landsong.BuildingSystem
             builder.AppendLine($"附近人口: {calculation.NearbyPopulation}");
             builder.AppendLine($"人口密度格子数: {calculation.PopulationCellCount}");
             builder.AppendLine($"人口密度: {calculation.PopulationDensity:0.####}");
-            builder.AppendLine($"人口密度吸引力倍率: {calculation.PopulationDensityAttractionMultiplier:0.##}");
-            builder.AppendLine($"人口吸引力加成: {calculation.PopulationAttractionBonus:0.##}");
-            builder.AppendLine($"每回合补贴: {calculation.SubsidyGoldPerTurn}");
-            builder.AppendLine($"人均补贴: {calculation.PerWorkerSubsidy:0.##}");
-            builder.AppendLine($"补贴加成: {calculation.SubsidyBonus:0.##}");
-            builder.AppendLine($"外部吸引力惩罚: {calculation.ExternalAttractionPenalty:0.##}");
+            builder.AppendLine($"附近每人口就业吸引力: {calculation.AttractionPerNearbyPopulation:0.##}");
+            builder.AppendLine($"附近人口增益: {calculation.PopulationAttractionBonus:0.##}");
+            builder.AppendLine($"全局修正合计: {calculation.GlobalAttractionModifierTotal:+0.##;-0.##;0}");
+            AppendGlobalModifierDebugText(builder, calculation.GlobalAttractionModifiers);
+            builder.AppendLine($"补贴就业吸引力: {calculation.SubsidyAttractionBonus:0.##}");
             builder.AppendLine($"原始岗位吸引力: {calculation.RawAttraction:0.##}");
             builder.AppendLine($"岗位吸引力: {calculation.Attraction:0.##}");
             builder.AppendLine($"缺工比例: {calculation.WorkerShortageRatio:0.##}");
@@ -315,6 +486,30 @@ namespace Landsong.BuildingSystem
             builder.AppendLine($"单人招工费用: {calculation.SingleRecruitCost}");
             builder.Append($"立即招工费用: {calculation.ImmediateRecruitCost}");
             return builder.ToString();
+        }
+
+        private static void AppendGlobalModifierDebugText(
+            StringBuilder builder,
+            IReadOnlyList<BuildingJobAttractionModifier> modifiers)
+        {
+            if (builder == null || modifiers == null || modifiers.Count == 0)
+            {
+                return;
+            }
+
+            for (var i = 0; i < modifiers.Count; i++)
+            {
+                var modifier = modifiers[i];
+                if (!modifier.IsValid)
+                {
+                    continue;
+                }
+
+                var displayName = string.IsNullOrWhiteSpace(modifier.DisplayText)
+                    ? "未命名修正"
+                    : modifier.DisplayText;
+                builder.AppendLine($"  {displayName}: {modifier.Value:+0.##;-0.##;0}");
+            }
         }
 
         private static bool CanUseNeighbor(BuildingBase source, BuildingBase building)

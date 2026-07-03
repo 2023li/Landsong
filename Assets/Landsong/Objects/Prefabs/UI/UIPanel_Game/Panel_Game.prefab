@@ -15548,7 +15548,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2261760500626979874}
-  - component: {fileID: 6141963660727904571}
   m_Layer: 5
   m_Name: "\u2014\u2014\u2014\u2014\u8BE6\u60C5\u5F39\u7A97\u2014\u2014\u2014\u2014"
   m_TagString: Untagged
@@ -15577,24 +15576,6 @@ RectTransform:
   m_AnchoredPosition: {x: -776, y: 251}
   m_SizeDelta: {x: 300, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &6141963660727904571
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8701356779075147579}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4a8183cf77bbc2041be5279df36534ed, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Landsong.UISystem.GamePanel_BuildingDetaiPopup
-  root: {fileID: 8701356779075147579}
-  titleLabel: {fileID: 2772892486505787908}
-  statusLabel: {fileID: 3246806945845483130}
-  closeButton: {fileID: 341027838723154009}
-  sectionRoot: {fileID: 1364521038336512036}
-  sectionPrefab: {fileID: 6609733721012975059, guid: fe60a9567330c3f458911503735c02b4, type: 3}
 --- !u!1 &8723778084774500473
 GameObject:
   m_ObjectHideFlags: 0
