@@ -77,12 +77,39 @@ public class GamePanel_HUD : MonoBehaviour
 
     #endregion
 
-    [SerializeField] private Button btn_建造;
-    [SerializeField] private Button btn_仓库;
-    [SerializeField] private Button btn_概览;
-    [SerializeField] private Button btn_下回合;
+    #region 左下角
+    [SerializeField, FoldoutGroup("左下角")] private RectTransform rt_左下角;
+    [SerializeField, FoldoutGroup("左下角")] private Button btn_建造;
+    [SerializeField, FoldoutGroup("左下角")] private Button btn_仓库;
+    [SerializeField, FoldoutGroup("左下角")] private Button btn_概览;
+
     [SerializeField] private GameObject go_回合处理显示;
     [SerializeField, Min(0f)] private float minimumTurnProcessingDisplaySeconds = 1f;
+
+    #endregion
+
+
+
+
+    #region 右下角
+    [SerializeField, FoldoutGroup("右下角")] private RectTransform rt_右下角;
+    [SerializeField, FoldoutGroup("右下角")] private Button btn_下回合;
+
+    #endregion
+
+
+    #region
+    [SerializeField] private RectTransform rt_事件栏;
+    #endregion
+
+    [SerializeField, Min(0f)] private float panelMotionDuration = 0.18f;
+    [SerializeField, Min(0f)] private float panelHiddenPadding = 48f;
+
+    private bool hasCachedPanelPositions;
+    private Vector2 leftPanelVisiblePosition;
+    private Vector2 rightPanelVisiblePosition;
+    private Vector2 eventPanelVisiblePosition;
+    private Coroutine panelMotionRoutine;
 
     private void BindButtons()
     {
@@ -410,11 +437,130 @@ public class GamePanel_HUD : MonoBehaviour
 
     public void Show()
     {
-        gameObject.SetActive(true);
+        if (!gameObject.activeSelf)
+        {
+            gameObject.SetActive(true);
+        }
+
+        CachePanelPositions();
+        MoveHudPanels(true);
+        RefreshTopBar();
+        RefreshBottomBar();
+
     }
     public void Hide()
     {
-        gameObject.SetActive(false);
+        //rt_左下角 向左移动隐藏
+        //rt_右下角 向右移动隐藏
+        //rt_事件栏 向右移动隐藏
+        CachePanelPositions();
+        MoveHudPanels(false);
+        HideBottomBar();
+    }
+
+    private void CachePanelPositions()
+    {
+        if (hasCachedPanelPositions)
+        {
+            return;
+        }
+
+        if (rt_左下角 != null)
+        {
+            leftPanelVisiblePosition = rt_左下角.anchoredPosition;
+        }
+
+        if (rt_右下角 != null)
+        {
+            rightPanelVisiblePosition = rt_右下角.anchoredPosition;
+        }
+
+        if (rt_事件栏 != null)
+        {
+            eventPanelVisiblePosition = rt_事件栏.anchoredPosition;
+        }
+
+        hasCachedPanelPositions = true;
+    }
+
+    private void MoveHudPanels(bool visible)
+    {
+        if (panelMotionRoutine != null)
+        {
+            StopCoroutine(panelMotionRoutine);
+            panelMotionRoutine = null;
+        }
+
+        Vector2 leftTarget = visible
+            ? leftPanelVisiblePosition
+            : leftPanelVisiblePosition + Vector2.left * GetHideDistance(rt_左下角);
+        Vector2 rightTarget = visible
+            ? rightPanelVisiblePosition
+            : rightPanelVisiblePosition + Vector2.right * GetHideDistance(rt_右下角);
+        Vector2 eventTarget = visible
+            ? eventPanelVisiblePosition
+            : eventPanelVisiblePosition + Vector2.right * GetHideDistance(rt_事件栏);
+
+        if (!isActiveAndEnabled || panelMotionDuration <= 0f)
+        {
+            SetAnchoredPosition(rt_左下角, leftTarget);
+            SetAnchoredPosition(rt_右下角, rightTarget);
+            SetAnchoredPosition(rt_事件栏, eventTarget);
+            return;
+        }
+
+        panelMotionRoutine = StartCoroutine(MoveHudPanelsRoutine(leftTarget, rightTarget, eventTarget));
+    }
+
+    private IEnumerator MoveHudPanelsRoutine(Vector2 leftTarget, Vector2 rightTarget, Vector2 eventTarget)
+    {
+        Vector2 leftStart = GetAnchoredPosition(rt_左下角);
+        Vector2 rightStart = GetAnchoredPosition(rt_右下角);
+        Vector2 eventStart = GetAnchoredPosition(rt_事件栏);
+
+        float elapsed = 0f;
+        while (elapsed < panelMotionDuration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = Mathf.Clamp01(elapsed / panelMotionDuration);
+            t = 1f - Mathf.Pow(1f - t, 3f);
+
+            SetAnchoredPosition(rt_左下角, Vector2.Lerp(leftStart, leftTarget, t));
+            SetAnchoredPosition(rt_右下角, Vector2.Lerp(rightStart, rightTarget, t));
+            SetAnchoredPosition(rt_事件栏, Vector2.Lerp(eventStart, eventTarget, t));
+            yield return null;
+        }
+
+        SetAnchoredPosition(rt_左下角, leftTarget);
+        SetAnchoredPosition(rt_右下角, rightTarget);
+        SetAnchoredPosition(rt_事件栏, eventTarget);
+        panelMotionRoutine = null;
+    }
+
+    private float GetHideDistance(RectTransform target)
+    {
+        if (target == null)
+        {
+            return panelHiddenPadding;
+        }
+
+        float width = Mathf.Abs(target.rect.width);
+        RectTransform parent = target.parent as RectTransform;
+        float parentHint = parent == null ? 0f : Mathf.Abs(parent.rect.width) * 0.25f;
+        return Mathf.Max(width, parentHint, 100f) + panelHiddenPadding;
+    }
+
+    private static Vector2 GetAnchoredPosition(RectTransform target)
+    {
+        return target == null ? Vector2.zero : target.anchoredPosition;
+    }
+
+    private static void SetAnchoredPosition(RectTransform target, Vector2 position)
+    {
+        if (target != null)
+        {
+            target.anchoredPosition = position;
+        }
     }
 
     #region 底部栏

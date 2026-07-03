@@ -4,6 +4,8 @@ using Moyo.Unity;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
+
+
 public class UIPanel_Game : UIPanelBase
 {
     [SerializeField] private RectTransform gameMarkRoot;
@@ -15,13 +17,13 @@ public class UIPanel_Game : UIPanelBase
 
     [SerializeField] private GamePanel_BuildingEventMessageList buildingEventMessageList;
     [SerializeField] private GamePanel_SelectedBuildingOverview selectedBuildingOverview;
-    [SerializeField] private GamePanel_BuildingDetaiPopup buildingDetailPopup;
+    [SerializeField] private Popup_BuildingDetails buildingDetailPopup;
     [SerializeField] private GamePanel_BuildingSelectionView buildingSelectionView;
 
     public RectTransform GameMarkRoot => gameMarkRoot;
     public GamePanel_BuildingEventMessageList BuildingEventMessageList => buildingEventMessageList;
     public GamePanel_SelectedBuildingOverview SelectedBuildingOverview => selectedBuildingOverview;
-    public GamePanel_BuildingDetaiPopup BuildingDetailPopup => buildingDetailPopup;
+    public Popup_BuildingDetails BuildingDetailPopup => buildingDetailPopup;
     public GamePanel_BuildingSelectionView BuildingSelectionView => buildingSelectionView;
     public GamePanel_BuildingPlacementControls BuildingPlacementControls => buildingPlacementControls;
 
@@ -37,6 +39,9 @@ public class UIPanel_Game : UIPanelBase
 
     public void Show_HUD()
     {
+        GetReference();
+        HideAllPanels();
+
         if (hudPanel != null)
         {
             hudPanel.Show();
@@ -47,8 +52,12 @@ public class UIPanel_Game : UIPanelBase
         }
     }
 
+
     public void Show_Inventory()
     {
+        GetReference();
+        HideAllPanels();
+
         if (inventoryPanel != null)
         {
             inventoryPanel.Show();
@@ -60,12 +69,20 @@ public class UIPanel_Game : UIPanelBase
     }
     internal void Hide_Inventory()
     {
-        inventoryPanel.Hide();
+        if (inventoryPanel != null)
+        {
+            inventoryPanel.Hide();
+        }
+
+        Show_HUD();
     }
 
 
     public void Show_Building()
     {
+        GetReference();
+        HideAllPanels();
+
         if (buildingPanel != null)
         {
             buildingPanel.Show();
@@ -77,8 +94,11 @@ public class UIPanel_Game : UIPanelBase
     }
     public void Hide_Building()
     {
+        if (buildingPanel != null)
+        {
+            buildingPanel.Hide();
+        }
 
-        buildingPanel.Hide();
         Show_HUD();
 
     }
@@ -87,12 +107,36 @@ public class UIPanel_Game : UIPanelBase
 
     internal void Show_Overview()
     {
-        buildingStatusOverview.Show();
+        GetReference();
+        HideAllPanels();
+
+        if (buildingStatusOverview != null)
+        {
+            buildingStatusOverview.Show();
+        }
+        else
+        {
+            Debug.LogWarning($"{nameof(UIPanel_Game)} has no building status overview assigned.", this);
+        }
     }
 
     internal void Hide_Overview()
     {
-        buildingStatusOverview.Hide();
+        if (buildingStatusOverview != null)
+        {
+            buildingStatusOverview.Hide();
+        }
+
+        Show_HUD();
+    }
+
+    private void HideAllPanels()
+    {
+        hudPanel?.Hide();
+        inventoryPanel?.Hide();
+        buildingPanel?.Hide();
+        buildingStatusOverview?.Hide();
+        buildingDetailPopup?.Hide();
     }
 
 
@@ -133,15 +177,19 @@ public class UIPanel_Game : UIPanelBase
         }
         if (buildingDetailPopup == null)
         {
-            buildingDetailPopup = GetComponentInChildren<GamePanel_BuildingDetaiPopup>(true);
+            buildingDetailPopup = GetComponentInChildren<Popup_BuildingDetails>(true);
         }
         if (buildingSelectionView == null)
         {
             buildingSelectionView = GetComponentInChildren<GamePanel_BuildingSelectionView>(true);
         }
+        if (buildingSelectionView == null)
+        {
+            buildingSelectionView = gameObject.AddComponent<GamePanel_BuildingSelectionView>();
+        }
         if (buildingStatusOverview == null)
         {
-            buildingStatusOverview = GetComponentInChildren<GamePanel_BuildingStatusOverview>();
+            buildingStatusOverview = GetComponentInChildren<GamePanel_BuildingStatusOverview>(true);
         }
     }
 }

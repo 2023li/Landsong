@@ -19,7 +19,7 @@ namespace Landsong
     }
 
     [DisallowMultipleComponent]
-    public sealed class GameSystem : MonoSingleton<GameSystem>
+    public sealed class GameSystem : MonoSingleton<GameSystem>, IBuildingJobAttractionPenaltyProvider
     {
         [Header("Inventory")]
         [SerializeField, LabelText("物品目录")] private ItemCatalog itemCatalog;
@@ -68,6 +68,11 @@ namespace Landsong
         public bool IsGameOver { get; private set; }
 
         public event Action<GameSystem, GameOverReason> GameEnded;
+
+        public float GetJobAttractionPenalty(BuildingBase building)
+        {
+            return 0f;
+        }
 
         protected override void Init()
         {

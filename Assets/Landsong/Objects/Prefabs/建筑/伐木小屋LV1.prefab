@@ -222,9 +222,7 @@ MonoBehaviour:
   subsidyGoldPerTurn: 0
   singleRecruitCost: 10
   populationSearchRadius: 10
-  jobCompetitionSearchRadius: 10
-  competitionPenaltyPerCompetingJob: 2
-  maxCompetitionPenalty: 60
+  populationDensityAttractionMultiplier: 300
   woodItemId: "\u539F\u6728"
   goldItemId: "\u91D1\u5E01"
   minimumWorkersForProduction: 2
@@ -238,8 +236,8 @@ MonoBehaviour:
   nearbyPopulation: 0
   populationCellCount: 0
   populationDensity: 0
-  nearbyCompetingJobs: 0
-  competitionPenalty: 0
+  populationAttractionBonus: 0
+  externalAttractionPenalty: 0
   lastPaidSubsidyGold: 0
   lastProducedWood: 0
   lastTurnRecruitedWorker: 0

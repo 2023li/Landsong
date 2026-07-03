@@ -1,26 +1,34 @@
 using System.Collections;
 using Landsong.BuildingSystem;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace Landsong.UISystem
 {
     public sealed class GamePanel_BuildingSelectionView : MonoBehaviour
     {
         [SerializeField] private GamePanel_SelectedBuildingOverview selectedOverview;
-        [SerializeField] private GamePanel_BuildingDetaiPopup detailPopup;
+        [SerializeField] private Popup_BuildingDetails detailPopup;
+        [SerializeField] private Transform detailPopupRoot;
 
         private Landsong.GameSystem gameSystem;
         private BuildingSelectionController selectionController;
         private BuildingSelectionController subscribedSelectionController;
         private bool subscribedToSelection;
         private Coroutine delayedResolveCoroutine;
+        private Coroutine detailPopupLoadCoroutine;
+        private Popup_BuildingDetails loadedDefaultDetailPopup;
+        private AsyncOperationHandle<GameObject> defaultDetailPopupHandle;
+        private bool hasDefaultDetailPopupHandle;
+        private BuildingBase pendingDetailBuilding;
 
         private BuildingBase SelectedBuilding => selectionController == null ? null : selectionController.SelectedBuilding;
 
         private void Reset()
         {
             selectedOverview = GetComponentInChildren<GamePanel_SelectedBuildingOverview>(true);
-            detailPopup = GetComponentInChildren<GamePanel_BuildingDetaiPopup>(true);
+            detailPopup = GetComponentInChildren<Popup_BuildingDetails>(true);
         }
 
         private void OnEnable()
@@ -34,8 +42,26 @@ namespace Landsong.UISystem
         private void OnDisable()
         {
             StopDelayedResolve();
+            StopDetailPopupLoad();
             UnsubscribeSelection();
             ClearSelectionViews();
+        }
+
+        private void OnDestroy()
+        {
+            StopDetailPopupLoad();
+
+            if (loadedDefaultDetailPopup != null)
+            {
+                Destroy(loadedDefaultDetailPopup.gameObject);
+                loadedDefaultDetailPopup = null;
+            }
+
+            if (hasDefaultDetailPopupHandle)
+            {
+                Addressables.Release(defaultDetailPopupHandle);
+                hasDefaultDetailPopupHandle = false;
+            }
         }
 
         public void OpenSelectedBuildingDetail()
@@ -47,7 +73,7 @@ namespace Landsong.UISystem
                 return;
             }
 
-            detailPopup?.ShowBuilding(selectedBuilding);
+            ShowDetailPopup(selectedBuilding);
         }
 
         private void ResolveReferences()
@@ -75,6 +101,11 @@ namespace Landsong.UISystem
             {
                 detailPopup = gamePanel.BuildingDetailPopup;
             }
+
+            if (detailPopupRoot == null)
+            {
+                detailPopupRoot = gamePanel.transform;
+            }
         }
 
         private void RefreshSelectionViews()
@@ -91,11 +122,43 @@ namespace Landsong.UISystem
             {
                 detailPopup.ShowBuilding(selectedBuilding);
             }
+            else if (pendingDetailBuilding != null)
+            {
+                pendingDetailBuilding = selectedBuilding;
+            }
         }
 
         private void ClearSelectionViews()
         {
             selectedOverview?.Hide();
+            HideDetailPopup();
+        }
+
+        private void ShowDetailPopup(BuildingBase targetBuilding)
+        {
+            if (!CanShowBuilding(targetBuilding))
+            {
+                HideDetailPopup();
+                return;
+            }
+
+            if (detailPopup != null)
+            {
+                pendingDetailBuilding = null;
+                detailPopup.ShowBuilding(targetBuilding);
+                return;
+            }
+
+            pendingDetailBuilding = targetBuilding;
+            if (detailPopupLoadCoroutine == null)
+            {
+                detailPopupLoadCoroutine = StartCoroutine(LoadDefaultDetailPopupRoutine());
+            }
+        }
+
+        private void HideDetailPopup()
+        {
+            pendingDetailBuilding = null;
             detailPopup?.Hide();
         }
 
@@ -149,16 +212,16 @@ namespace Landsong.UISystem
         {
             if (!CanShowBuilding(building))
             {
-                detailPopup?.Hide();
+                HideDetailPopup();
                 return;
             }
 
-            detailPopup?.ShowBuilding(building);
+            ShowDetailPopup(building);
         }
 
         private void QueueDelayedResolveIfNeeded()
         {
-            if (selectionController != null && selectedOverview != null && detailPopup != null)
+            if (selectionController != null && selectedOverview != null)
             {
                 return;
             }
@@ -193,6 +256,82 @@ namespace Landsong.UISystem
 
             StopCoroutine(delayedResolveCoroutine);
             delayedResolveCoroutine = null;
+        }
+
+        private IEnumerator LoadDefaultDetailPopupRoutine()
+        {
+            AsyncOperationHandle<GameObject> handle =
+                Addressables.LoadAssetAsync<GameObject>(BuildingBase.DefaultDetailPanelAddressKey);
+            defaultDetailPopupHandle = handle;
+            hasDefaultDetailPopupHandle = true;
+
+            yield return handle;
+            detailPopupLoadCoroutine = null;
+
+            if (handle.Status != AsyncOperationStatus.Succeeded || handle.Result == null)
+            {
+                Debug.LogWarning(
+                    $"无法加载建筑详情栏 Addressables 资源：{BuildingBase.DefaultDetailPanelAddressKey}",
+                    this);
+                Addressables.Release(handle);
+                hasDefaultDetailPopupHandle = false;
+                yield break;
+            }
+
+            Transform parent = ResolveDetailPopupRoot();
+            GameObject instance = Instantiate(handle.Result, parent);
+            loadedDefaultDetailPopup = instance.GetComponentInChildren<Popup_BuildingDetails>(true);
+            detailPopup = loadedDefaultDetailPopup;
+
+            if (detailPopup == null)
+            {
+                Debug.LogWarning(
+                    $"建筑详情栏资源 '{BuildingBase.DefaultDetailPanelAddressKey}' 缺少 {nameof(Popup_BuildingDetails)} 组件。",
+                    instance);
+                Destroy(instance);
+                Addressables.Release(handle);
+                hasDefaultDetailPopupHandle = false;
+                yield break;
+            }
+
+            detailPopup.Hide();
+
+            BuildingBase targetBuilding = pendingDetailBuilding;
+            pendingDetailBuilding = null;
+            if (CanShowBuilding(targetBuilding))
+            {
+                detailPopup.ShowBuilding(targetBuilding);
+            }
+        }
+
+        private Transform ResolveDetailPopupRoot()
+        {
+            if (detailPopupRoot != null)
+            {
+                return detailPopupRoot;
+            }
+
+            UIPanel_Game gamePanel = GetComponentInParent<UIPanel_Game>(true);
+            detailPopupRoot = gamePanel == null ? transform : gamePanel.transform;
+            return detailPopupRoot;
+        }
+
+        private void StopDetailPopupLoad()
+        {
+            if (detailPopupLoadCoroutine == null)
+            {
+                return;
+            }
+
+            StopCoroutine(detailPopupLoadCoroutine);
+            detailPopupLoadCoroutine = null;
+            pendingDetailBuilding = null;
+
+            if (hasDefaultDetailPopupHandle && !defaultDetailPopupHandle.IsDone)
+            {
+                Addressables.Release(defaultDetailPopupHandle);
+                hasDefaultDetailPopupHandle = false;
+            }
         }
 
         private static bool CanShowBuilding(BuildingBase building)

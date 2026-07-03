@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Landsong.GridSystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using static UnityEditorInternal.ReorderableList;
 
 namespace Landsong.BuildingSystem
 {
@@ -20,6 +21,10 @@ namespace Landsong.BuildingSystem
     /// </summary>
     public abstract class BuildingBase : MonoBehaviour
     {
+        public static readonly string DefaultDetailPanelAddressKey = "Popup_GeneralBuildingDetails";
+
+
+
         private static readonly IReadOnlyList<BuildingRuntimeStatus> EmptyRuntimeStatuses =
             Array.Empty<BuildingRuntimeStatus>();
 

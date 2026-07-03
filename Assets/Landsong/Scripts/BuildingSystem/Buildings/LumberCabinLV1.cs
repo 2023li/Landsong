@@ -41,13 +41,8 @@ public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingResourc
     [SerializeField, Min(0)] private int populationSearchRadius = 10;
 
     [TitleGroup("岗位")]
-    [SerializeField, Min(0)] private int jobCompetitionSearchRadius = 10;
-
-    [TitleGroup("岗位")]
-    [SerializeField, Min(0f)] private float competitionPenaltyPerCompetingJob = 2f;
-
-    [TitleGroup("岗位")]
-    [SerializeField, Min(0f)] private float maxCompetitionPenalty = 60f;
+    [SerializeField, Min(0f)] private float populationDensityAttractionMultiplier =
+        BuildingJobSystem.DefaultPopulationDensityAttractionMultiplier;
 
     [TitleGroup("产出")]
     [SerializeField] private string woodItemId = DefaultWoodItemId;
@@ -89,10 +84,10 @@ public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingResourc
     [SerializeField, ReadOnly] private float populationDensity;
 
     [TitleGroup("运行时")]
-    [SerializeField, ReadOnly] private int nearbyCompetingJobs;
+    [SerializeField, ReadOnly] private float populationAttractionBonus;
 
     [TitleGroup("运行时")]
-    [SerializeField, ReadOnly] private float competitionPenalty;
+    [SerializeField, ReadOnly] private float externalAttractionPenalty;
 
     [TitleGroup("运行时")]
     [SerializeField, ReadOnly] private int lastPaidSubsidyGold;
@@ -127,8 +122,8 @@ public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingResourc
     public int NearbyPopulation => nearbyPopulation;
     public int PopulationCellCount => populationCellCount;
     public float PopulationDensity => populationDensity;
-    public int NearbyCompetingJobs => nearbyCompetingJobs;
-    public float CompetitionPenalty => competitionPenalty;
+    public float PopulationAttractionBonus => populationAttractionBonus;
+    public float ExternalAttractionPenalty => externalAttractionPenalty;
     public int LastPaidSubsidyGold => lastPaidSubsidyGold;
     public int LastProducedWood => lastProducedWood;
     public BuildingJobCalculation LastJobCalculation => lastJobCalculation;
@@ -420,11 +415,9 @@ public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingResourc
 
         populationCellCount = BuildingJobSystem.CountPopulationCells(this, populationSearchRadius);
         nearbyPopulation = BuildingJobSystem.CountNearbyPopulation(this, buildings, populationSearchRadius);
-        nearbyCompetingJobs = BuildingJobSystem.CountNearbyCompetingJobs(this, buildings, jobCompetitionSearchRadius);
-        competitionPenalty = BuildingJobSystem.CalculateCompetitionPenalty(
-            nearbyCompetingJobs,
-            competitionPenaltyPerCompetingJob,
-            maxCompetitionPenalty);
+        externalAttractionPenalty = BuildingJobSystem.ResolveExternalAttractionPenalty(
+            this,
+            GameSystem);
 
         lastJobCalculation = BuildingJobSystem.Calculate(new BuildingJobCalculationInput(
             maxWorkers,
@@ -432,14 +425,16 @@ public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingResourc
             baseJobAttraction,
             nearbyPopulation,
             populationCellCount,
+            populationDensityAttractionMultiplier,
             Mathf.Max(0, effectiveSubsidyGoldPerTurn),
-            competitionPenalty,
+            externalAttractionPenalty,
             singleRecruitCost));
 
         stableWorkers = lastJobCalculation.StableWorkers;
         rawJobAttraction = lastJobCalculation.RawAttraction;
         jobAttraction = lastJobCalculation.Attraction;
         populationDensity = lastJobCalculation.PopulationDensity;
+        populationAttractionBonus = lastJobCalculation.PopulationAttractionBonus;
     }
 
     private int GetAvailablePopulation()
@@ -542,9 +537,7 @@ public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingResourc
         subsidyGoldPerTurn = Mathf.Max(0, subsidyGoldPerTurn);
         singleRecruitCost = Mathf.Max(0, singleRecruitCost);
         populationSearchRadius = Mathf.Max(0, populationSearchRadius);
-        jobCompetitionSearchRadius = Mathf.Max(0, jobCompetitionSearchRadius);
-        competitionPenaltyPerCompetingJob = Mathf.Max(0f, competitionPenaltyPerCompetingJob);
-        maxCompetitionPenalty = Mathf.Max(0f, maxCompetitionPenalty);
+        populationDensityAttractionMultiplier = Mathf.Max(0f, populationDensityAttractionMultiplier);
         minimumWorkersForProduction = Mathf.Clamp(minimumWorkersForProduction, 1, maxWorkers);
         fullProductionWorkers = Mathf.Clamp(fullProductionWorkers, minimumWorkersForProduction, maxWorkers);
         baseProductionAmount = Mathf.Max(0, baseProductionAmount);
@@ -632,8 +625,8 @@ public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingResourc
                     new BuildingDetailRow("岗位吸引力", jobAttraction.ToString("0.##")),
                     new BuildingDetailRow("附近人口", nearbyPopulation.ToString()),
                     new BuildingDetailRow("人口密度", populationDensity.ToString("0.####")),
-                    new BuildingDetailRow("附近竞争岗位", nearbyCompetingJobs.ToString()),
-                    new BuildingDetailRow("竞争惩罚", competitionPenalty.ToString("0.##"))
+                    new BuildingDetailRow("人口吸引力加成", populationAttractionBonus.ToString("0.##")),
+                    new BuildingDetailRow("外部吸引力惩罚", externalAttractionPenalty.ToString("0.##"))
                 }),
             new BuildingDetailSection(
                 "产出",
@@ -650,6 +643,7 @@ public class LumberCabinLV1 : BuildingBase, IBuildingJobSource, IBuildingResourc
                 new[]
                 {
                     new BuildingDetailRow("基础吸引力", lastJobCalculation.BaseAttraction.ToString("0.##")),
+                    new BuildingDetailRow("人口密度倍率", lastJobCalculation.PopulationDensityAttractionMultiplier.ToString("0.##")),
                     new BuildingDetailRow("人均补贴", lastJobCalculation.PerWorkerSubsidy.ToString("0.##")),
                     new BuildingDetailRow("补贴加成", lastJobCalculation.SubsidyBonus.ToString("0.##")),
                     new BuildingDetailRow("缺工比例", lastJobCalculation.WorkerShortageRatio.ToString("0.##")),

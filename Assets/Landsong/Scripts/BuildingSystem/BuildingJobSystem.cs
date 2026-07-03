@@ -19,6 +19,12 @@ namespace Landsong.BuildingSystem
         int SubsidyGoldPerTurn { get; }
         float RawJobAttraction { get; }
         float JobAttraction { get; }
+        void SetSubsidyGoldPerTurn(int amount);
+    }
+
+    public interface IBuildingJobAttractionPenaltyProvider
+    {
+        float GetJobAttractionPenalty(BuildingBase building);
     }
 
     public readonly struct BuildingJobCalculationInput
@@ -29,8 +35,9 @@ namespace Landsong.BuildingSystem
             float baseAttraction,
             int nearbyPopulation,
             int populationCellCount,
+            float populationDensityAttractionMultiplier,
             int subsidyGoldPerTurn,
-            float competitionPenalty,
+            float externalAttractionPenalty,
             int singleRecruitCost)
         {
             var normalizedMaxWorkers = Mathf.Max(0, maxWorkers);
@@ -40,8 +47,9 @@ namespace Landsong.BuildingSystem
             BaseAttraction = Mathf.Max(0f, baseAttraction);
             NearbyPopulation = Mathf.Max(0, nearbyPopulation);
             PopulationCellCount = Mathf.Max(0, populationCellCount);
+            PopulationDensityAttractionMultiplier = Mathf.Max(0f, populationDensityAttractionMultiplier);
             SubsidyGoldPerTurn = Mathf.Max(0, subsidyGoldPerTurn);
-            CompetitionPenalty = Mathf.Max(0f, competitionPenalty);
+            ExternalAttractionPenalty = Mathf.Max(0f, externalAttractionPenalty);
             SingleRecruitCost = Mathf.Max(0, singleRecruitCost);
         }
 
@@ -50,8 +58,9 @@ namespace Landsong.BuildingSystem
         public float BaseAttraction { get; }
         public int NearbyPopulation { get; }
         public int PopulationCellCount { get; }
+        public float PopulationDensityAttractionMultiplier { get; }
         public int SubsidyGoldPerTurn { get; }
-        public float CompetitionPenalty { get; }
+        public float ExternalAttractionPenalty { get; }
         public int SingleRecruitCost { get; }
     }
 
@@ -64,13 +73,15 @@ namespace Landsong.BuildingSystem
             var baseAttraction = input.BaseAttraction;
             var nearbyPopulation = input.NearbyPopulation;
             var populationCellCount = input.PopulationCellCount;
+            var populationDensityAttractionMultiplier = input.PopulationDensityAttractionMultiplier;
             var subsidyGoldPerTurn = input.SubsidyGoldPerTurn;
-            var competitionPenalty = input.CompetitionPenalty;
+            var externalAttractionPenalty = input.ExternalAttractionPenalty;
             var singleRecruitCost = input.SingleRecruitCost;
             var populationDensity = populationCellCount <= 0 ? 0f : nearbyPopulation / (float)populationCellCount;
+            var populationAttractionBonus = populationDensity * populationDensityAttractionMultiplier;
             var perWorkerSubsidy = maxWorkers <= 0 ? 0f : subsidyGoldPerTurn / (float)maxWorkers;
             var subsidyBonus = Mathf.Clamp(perWorkerSubsidy * 5f, 0f, 100f);
-            var rawAttraction = baseAttraction + populationDensity * 30f + subsidyBonus - competitionPenalty;
+            var rawAttraction = baseAttraction + populationAttractionBonus + subsidyBonus - externalAttractionPenalty;
             var attraction = Mathf.Clamp(rawAttraction, 0f, 100f);
             var stableWorkers = maxWorkers <= 0
                 ? 0
@@ -92,9 +103,11 @@ namespace Landsong.BuildingSystem
             NearbyPopulation = nearbyPopulation;
             PopulationCellCount = populationCellCount;
             SubsidyGoldPerTurn = subsidyGoldPerTurn;
-            CompetitionPenalty = competitionPenalty;
+            ExternalAttractionPenalty = externalAttractionPenalty;
             SingleRecruitCost = singleRecruitCost;
             PopulationDensity = populationDensity;
+            PopulationDensityAttractionMultiplier = populationDensityAttractionMultiplier;
+            PopulationAttractionBonus = populationAttractionBonus;
             PerWorkerSubsidy = perWorkerSubsidy;
             SubsidyBonus = subsidyBonus;
             RawAttraction = rawAttraction;
@@ -116,10 +129,12 @@ namespace Landsong.BuildingSystem
         public int NearbyPopulation { get; }
         public int PopulationCellCount { get; }
         public float PopulationDensity { get; }
+        public float PopulationDensityAttractionMultiplier { get; }
+        public float PopulationAttractionBonus { get; }
         public int SubsidyGoldPerTurn { get; }
         public float PerWorkerSubsidy { get; }
         public float SubsidyBonus { get; }
-        public float CompetitionPenalty { get; }
+        public float ExternalAttractionPenalty { get; }
         public float RawAttraction { get; }
         public float Attraction { get; }
         public int StableWorkers { get; }
@@ -135,9 +150,23 @@ namespace Landsong.BuildingSystem
 
     public static class BuildingJobSystem
     {
+        public const float DefaultPopulationDensityAttractionMultiplier = 300f;
+
         public static BuildingJobCalculation Calculate(BuildingJobCalculationInput input)
         {
             return new BuildingJobCalculation(input);
+        }
+
+        public static float ResolveExternalAttractionPenalty(
+            BuildingBase source,
+            IBuildingJobAttractionPenaltyProvider penaltyProvider)
+        {
+            if (source == null || penaltyProvider == null)
+            {
+                return 0f;
+            }
+
+            return Mathf.Max(0f, penaltyProvider.GetJobAttractionPenalty(source));
         }
 
         public static int CountPopulationCells(BuildingBase source, int radius)
@@ -199,48 +228,6 @@ namespace Landsong.BuildingSystem
             }
 
             return population;
-        }
-
-        public static int CountNearbyCompetingJobs(
-            BuildingBase source,
-            IReadOnlyList<BuildingBase> buildings,
-            int radius)
-        {
-            if (source == null || buildings == null || !source.HasPlacement)
-            {
-                return 0;
-            }
-
-            radius = Mathf.Max(0, radius);
-            var jobCount = 0;
-            for (var i = 0; i < buildings.Count; i++)
-            {
-                var building = buildings[i];
-                if (!CanUseNeighbor(source, building) || building is not IBuildingJobSource jobSource)
-                {
-                    continue;
-                }
-
-                if (GetFootprintManhattanDistance(source, building) > radius)
-                {
-                    continue;
-                }
-
-                jobCount += Mathf.Max(0, jobSource.MaxWorkers);
-            }
-
-            return jobCount;
-        }
-
-        public static float CalculateCompetitionPenalty(
-            int competingJobs,
-            float penaltyPerCompetingJob,
-            float maxCompetitionPenalty)
-        {
-            return Mathf.Clamp(
-                Mathf.Max(0, competingJobs) * Mathf.Max(0f, penaltyPerCompetingJob),
-                0f,
-                Mathf.Max(0f, maxCompetitionPenalty));
         }
 
         public static int CountCurrentWorkers(IReadOnlyList<BuildingBase> buildings)
@@ -313,10 +300,12 @@ namespace Landsong.BuildingSystem
             builder.AppendLine($"附近人口: {calculation.NearbyPopulation}");
             builder.AppendLine($"人口密度格子数: {calculation.PopulationCellCount}");
             builder.AppendLine($"人口密度: {calculation.PopulationDensity:0.####}");
+            builder.AppendLine($"人口密度吸引力倍率: {calculation.PopulationDensityAttractionMultiplier:0.##}");
+            builder.AppendLine($"人口吸引力加成: {calculation.PopulationAttractionBonus:0.##}");
             builder.AppendLine($"每回合补贴: {calculation.SubsidyGoldPerTurn}");
             builder.AppendLine($"人均补贴: {calculation.PerWorkerSubsidy:0.##}");
             builder.AppendLine($"补贴加成: {calculation.SubsidyBonus:0.##}");
-            builder.AppendLine($"竞争惩罚: {calculation.CompetitionPenalty:0.##}");
+            builder.AppendLine($"外部吸引力惩罚: {calculation.ExternalAttractionPenalty:0.##}");
             builder.AppendLine($"原始岗位吸引力: {calculation.RawAttraction:0.##}");
             builder.AppendLine($"岗位吸引力: {calculation.Attraction:0.##}");
             builder.AppendLine($"缺工比例: {calculation.WorkerShortageRatio:0.##}");

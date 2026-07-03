@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Landsong.BuildingSystem;
 using Landsong.InventorySystem;
@@ -23,6 +24,9 @@ namespace Landsong.UISystem
         [ShowInInspector, ReadOnly, LabelText("库存服务")] private InventoryService inventory;
         [ShowInInspector, ReadOnly, LabelText("建筑服务")] private BuildingService buildings;
 
+
+
+        [SerializeField, LabelText("建筑栏Root")] private RectTransform rt_建筑栏Root;
         [SerializeField, LabelText("关闭按钮")] private Button closeButton;
         [SerializeField, LabelText("分类按钮根节点")] private Transform categoryButtonRoot;
         [SerializeField, LabelText("分类按钮预制体")] private GamePanel_BuildingCategoryButton categoryButtonPrefab;
@@ -55,6 +59,8 @@ namespace Landsong.UISystem
         [SerializeField, LabelText("自动查找建造放置控制器")] private bool discoverPlacementControllerOnEnable = true;
         [SerializeField, LabelText("建造放置控制器")] private BuildingPlacementController placementController;
         [SerializeField, LabelText("建筑选择事件")] private BuildingPrefabEvent buildingSelected = new BuildingPrefabEvent();
+        [SerializeField, LabelText("面板移动时长"), Min(0f)] private float panelMotionDuration = 0.18f;
+        [SerializeField, LabelText("隐藏偏移余量"), Min(0f)] private float panelHiddenPadding = 48f;
 
         private readonly List<GamePanel_BuildingCategoryButton> categoryButtons = new List<GamePanel_BuildingCategoryButton>();
         private readonly List<GamePanel_BuildingItem> buildingItems = new List<GamePanel_BuildingItem>();
@@ -64,6 +70,9 @@ namespace Landsong.UISystem
         private BuildingPlacementController subscribedPlacementController;
         private bool subscribedToInventory;
         private bool subscribedToBuildings;
+        private bool hasCachedPanelPosition;
+        private Vector2 buildingPanelVisiblePosition;
+        private Coroutine panelMotionRoutine;
 
         public BuildingPrefabEvent BuildingSelected => buildingSelected;
         public BuildingCategory SelectedCategory => selectedCategory;
@@ -110,6 +119,7 @@ namespace Landsong.UISystem
 
         private void OnDisable()
         {
+            panelMotionRoutine = null;
             UnsubscribeRuntimeChanges();
             UnsubscribePlacementController();
         }
@@ -118,10 +128,105 @@ namespace Landsong.UISystem
         public void Show()
         {
             gameObject.SetActive(true);
+            //激活对象 然后rt_建筑栏Root从下方进入屏幕
+            CachePanelPosition();
+            MoveBuildingPanel(true, false);
         }
         public void Hide()
         {
-            gameObject.SetActive(false);
+            //rt_建筑栏Root 向下移除屏幕 之后取消激活对象
+            CachePanelPosition();
+            MoveBuildingPanel(false, true);
+        }
+
+        private void CachePanelPosition()
+        {
+            if (hasCachedPanelPosition)
+            {
+                return;
+            }
+
+            if (rt_建筑栏Root != null)
+            {
+                buildingPanelVisiblePosition = rt_建筑栏Root.anchoredPosition;
+            }
+
+            hasCachedPanelPosition = true;
+        }
+
+        private void MoveBuildingPanel(bool visible, bool deactivateWhenHidden)
+        {
+            if (panelMotionRoutine != null)
+            {
+                StopCoroutine(panelMotionRoutine);
+                panelMotionRoutine = null;
+            }
+
+            Vector2 target = visible
+                ? buildingPanelVisiblePosition
+                : buildingPanelVisiblePosition + Vector2.down * GetHideDistance(rt_建筑栏Root);
+
+            if (!isActiveAndEnabled || panelMotionDuration <= 0f)
+            {
+                SetAnchoredPosition(rt_建筑栏Root, target);
+                if (deactivateWhenHidden)
+                {
+                    gameObject.SetActive(false);
+                }
+
+                return;
+            }
+
+            panelMotionRoutine = StartCoroutine(MoveBuildingPanelRoutine(target, deactivateWhenHidden));
+        }
+
+        private IEnumerator MoveBuildingPanelRoutine(Vector2 target, bool deactivateWhenHidden)
+        {
+            Vector2 start = GetAnchoredPosition(rt_建筑栏Root);
+            float elapsed = 0f;
+
+            while (elapsed < panelMotionDuration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float t = Mathf.Clamp01(elapsed / panelMotionDuration);
+                t = 1f - Mathf.Pow(1f - t, 3f);
+                SetAnchoredPosition(rt_建筑栏Root, Vector2.Lerp(start, target, t));
+                yield return null;
+            }
+
+            SetAnchoredPosition(rt_建筑栏Root, target);
+            panelMotionRoutine = null;
+
+            if (deactivateWhenHidden)
+            {
+                gameObject.SetActive(false);
+            }
+        }
+
+        private float GetHideDistance(RectTransform target)
+        {
+            if (target == null)
+            {
+                return panelHiddenPadding;
+            }
+
+            float height = Mathf.Abs(target.rect.height);
+            RectTransform parent = target.parent as RectTransform;
+            float parentHint = parent == null ? 0f : Mathf.Abs(parent.rect.height) * 0.25f;
+            return Mathf.Max(height, parentHint, 100f) + panelHiddenPadding;
+        }
+
+        private static Vector2 GetAnchoredPosition(RectTransform target)
+        {
+            return target == null ? Vector2.zero : target.anchoredPosition;
+        }
+
+        private static void SetAnchoredPosition(RectTransform target, Vector2 position)
+        {
+            if (target != null)
+            {
+                target.anchoredPosition = position;
+            }
         }
 
         private void HandleCloseButtonClicked()
