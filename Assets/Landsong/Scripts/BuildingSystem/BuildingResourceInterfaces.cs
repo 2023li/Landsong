@@ -35,6 +35,22 @@ namespace Landsong.BuildingSystem
     }
 
     /// <summary>
+    /// 向科技系统暴露建筑每回合提供的科技点。
+    /// </summary>
+    public interface IBuildingTechnologyPointSource
+    {
+        /// <summary>
+        /// 当前状态下预计每回合会提供的科技点。
+        /// </summary>
+        int CurrentTechnologyPointsPerTurn { get; }
+
+        /// <summary>
+        /// 上一次回合实际成功提供的科技点。
+        /// </summary>
+        int LastTechnologyPoints { get; }
+    }
+
+    /// <summary>
     /// 向 UI 或统计系统暴露建筑的生产产出信息。
     /// </summary>
     public interface IBuildingResourceProductionSource

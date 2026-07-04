@@ -8,6 +8,7 @@ namespace Landsong.UISystem
 {
     public sealed class GamePanel_TechnologyNodeItem : MonoBehaviour
     {
+        [SerializeField] private TechnologyDefinition definition;
         [SerializeField] private Button button;
         [SerializeField] private Image iconImage;
         [SerializeField] private TMP_Text nameLabel;
@@ -15,7 +16,6 @@ namespace Landsong.UISystem
         [SerializeField] private TMP_Text statusLabel;
         [SerializeField] private GameObject selectedRoot;
 
-        private TechnologyDefinition definition;
         private TechnologyService technology;
         private Action<TechnologyDefinition> clicked;
 
@@ -39,13 +39,8 @@ namespace Landsong.UISystem
             }
         }
 
-        public void Bind(
-            TechnologyDefinition targetDefinition,
-            TechnologyService targetTechnology,
-            Action<TechnologyDefinition> onClicked,
-            bool selected)
+        public void Bind(TechnologyService targetTechnology, Action<TechnologyDefinition> onClicked, bool selected)
         {
-            definition = targetDefinition;
             technology = targetTechnology;
             clicked = onClicked;
             SetSelected(selected);
@@ -66,9 +61,9 @@ namespace Landsong.UISystem
 
             if (definition == null)
             {
-                SetText(nameLabel, string.Empty);
+                SetText(nameLabel, gameObject.name);
                 SetText(costLabel, string.Empty);
-                SetText(statusLabel, string.Empty);
+                SetText(statusLabel, "未配置科技");
                 if (button != null)
                 {
                     button.interactable = false;
@@ -100,23 +95,44 @@ namespace Landsong.UISystem
                 return "未初始化";
             }
 
-            if (technology.IsUnlocked(definition.TechnologyId))
+            if (technology.IsCurrentResearch(definition))
             {
-                return "已解锁";
+                return definition.AllowRepeatResearch && technology.IsUnlocked(definition.TechnologyId)
+                    ? $"重复中 {FormatResearchProgress()}"
+                    : $"研究中 {FormatResearchProgress()}";
             }
 
-            if (technology.CanUnlock(definition, out var reason))
+            if (technology.IsUnlocked(definition.TechnologyId) && !definition.AllowRepeatResearch)
             {
-                return "可解锁";
+                return "已研究";
+            }
+
+            if (technology.CanStartResearch(definition, out var reason))
+            {
+                return definition.AllowRepeatResearch && technology.IsUnlocked(definition.TechnologyId)
+                    ? "可重复研究"
+                    : "可研究";
             }
 
             return reason switch
             {
-                TechnologyUnlockFailureReason.PrerequisitesLocked => "前置未完成",
-                TechnologyUnlockFailureReason.InsufficientPoints => "科技点不足",
-                TechnologyUnlockFailureReason.AlreadyUnlocked => "已解锁",
-                _ => "不可解锁"
+                TechnologyResearchFailureReason.PrerequisitesLocked => "前置未完成",
+                TechnologyResearchFailureReason.AlreadyUnlocked => "已研究",
+                TechnologyResearchFailureReason.InvalidTechnology => "配置无效",
+                _ => "不可研究"
             };
+        }
+
+        private string FormatResearchProgress()
+        {
+            if (definition == null)
+            {
+                return "0/0";
+            }
+
+            var progress = technology == null ? 0 : technology.GetResearchProgress(definition);
+            var required = Mathf.Max(0, definition.SciencePointCost);
+            return required <= 0 ? "无需科技点" : $"{progress}/{required}";
         }
 
         private void ResolveReferences()

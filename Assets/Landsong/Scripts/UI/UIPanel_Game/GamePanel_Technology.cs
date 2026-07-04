@@ -1,6 +1,6 @@
-using System;
 using System.Collections.Generic;
 using Landsong.TechnologySystem;
+using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -9,16 +9,33 @@ namespace Landsong.UISystem
 {
     public sealed class GamePanel_Technology : MonoBehaviour
     {
-        [SerializeField] private Button closeButton;
-        [SerializeField] private TMP_Text pointsLabel;
-        [SerializeField] private Transform nodeRoot;
-        [SerializeField] private GamePanel_TechnologyNodeItem nodeItemPrefab;
-        [SerializeField] private TMP_Text detailNameLabel;
-        [SerializeField] private TMP_Text detailDescriptionLabel;
-        [SerializeField] private TMP_Text detailCostLabel;
-        [SerializeField] private TMP_Text detailPrerequisitesLabel;
-        [SerializeField] private TMP_Text detailStatusLabel;
-        [SerializeField] private Button unlockButton;
+        [SerializeField, LabelText("关闭按钮")]
+        [Tooltip("点击后关闭科技面板并返回 HUD。")]
+        private Button closeButton;
+
+        [SerializeField, LabelText("科技节点根节点")]
+        [Tooltip("手动摆放的 GamePanel_TechnologyNodeItem 会从这个节点下扫描。为空时扫描当前面板自身。")]
+        private Transform nodeRoot;
+
+        [SerializeField, LabelText("详情-科技名称文本")]
+        [Tooltip("显示当前选中科技节点的名称。")]
+        private TMP_Text detailNameLabel;
+
+        [SerializeField, LabelText("详情-科技描述文本")]
+        [Tooltip("显示当前选中科技节点的描述。")]
+        private TMP_Text detailDescriptionLabel;
+
+        [SerializeField, LabelText("详情-研究需求文本")]
+        [Tooltip("显示当前选中科技节点完成研究需要累计注入的科技点。")]
+        private TMP_Text detailCostLabel;
+
+        [SerializeField, LabelText("详情-前置科技文本")]
+        [Tooltip("显示当前选中科技节点依赖的前置科技列表。")]
+        private TMP_Text detailPrerequisitesLabel;
+
+        [SerializeField, LabelText("详情-研究状态文本")]
+        [Tooltip("显示当前选中科技节点是否可研究、研究中、已研究或前置科技未完成。")]
+        private TMP_Text detailStatusLabel;
 
         private readonly List<GamePanel_TechnologyNodeItem> nodeItems = new List<GamePanel_TechnologyNodeItem>();
         private UIPanel_Game gamePanel;
@@ -68,7 +85,6 @@ namespace Landsong.UISystem
         public void Refresh()
         {
             ResolveRuntime();
-            RefreshPoints();
             RefreshNodes();
             RefreshDetail();
         }
@@ -99,12 +115,6 @@ namespace Landsong.UISystem
                 closeButton.onClick.RemoveListener(HandleCloseClicked);
                 closeButton.onClick.AddListener(HandleCloseClicked);
             }
-
-            if (unlockButton != null)
-            {
-                unlockButton.onClick.RemoveListener(HandleUnlockClicked);
-                unlockButton.onClick.AddListener(HandleUnlockClicked);
-            }
         }
 
         private void UnbindButtons()
@@ -112,11 +122,6 @@ namespace Landsong.UISystem
             if (closeButton != null)
             {
                 closeButton.onClick.RemoveListener(HandleCloseClicked);
-            }
-
-            if (unlockButton != null)
-            {
-                unlockButton.onClick.RemoveListener(HandleUnlockClicked);
             }
         }
 
@@ -143,34 +148,41 @@ namespace Landsong.UISystem
             subscribedToTechnology = false;
         }
 
-        private void RefreshPoints()
-        {
-            SetText(pointsLabel, technology == null ? "0" : technology.SciencePoints.ToString());
-        }
-
         private void RefreshNodes()
         {
-            var definitions = GetDefinitions();
-            EnsureNodeItems(definitions.Count);
+            CollectExistingNodeItems();
 
+            var selectedNodeExists = false;
+            TechnologyDefinition firstDefinition = null;
             for (var i = 0; i < nodeItems.Count; i++)
             {
                 var item = nodeItems[i];
-                var hasDefinition = i < definitions.Count;
-                item.gameObject.SetActive(hasDefinition);
+                var definition = item == null ? null : item.Definition;
 
-                if (!hasDefinition)
+                if (definition == null)
                 {
                     continue;
                 }
 
-                var definition = definitions[i];
-                if (selectedDefinition == null)
+                firstDefinition ??= definition;
+                if (definition == selectedDefinition)
                 {
-                    selectedDefinition = definition;
+                    selectedNodeExists = true;
                 }
+            }
 
-                item.Bind(definition, technology, HandleNodeClicked, definition == selectedDefinition);
+            if (!selectedNodeExists)
+            {
+                selectedDefinition = firstDefinition;
+            }
+
+            for (var i = 0; i < nodeItems.Count; i++)
+            {
+                var item = nodeItems[i];
+                if (item != null)
+                {
+                    item.Bind(technology, HandleNodeClicked, item.Definition != null && item.Definition == selectedDefinition);
+                }
             }
         }
 
@@ -183,40 +195,14 @@ namespace Landsong.UISystem
                 SetText(detailCostLabel, string.Empty);
                 SetText(detailPrerequisitesLabel, string.Empty);
                 SetText(detailStatusLabel, technology == null ? "科技服务未初始化" : "没有可显示的科技节点");
-                SetUnlockButtonInteractable(false);
                 return;
             }
 
             SetText(detailNameLabel, selectedDefinition.DisplayName);
             SetText(detailDescriptionLabel, selectedDefinition.Description);
-            SetText(detailCostLabel, $"消耗：{selectedDefinition.SciencePointCost} 科技点");
+            SetText(detailCostLabel, $"研究需求：{selectedDefinition.SciencePointCost} 科技点");
             SetText(detailPrerequisitesLabel, FormatPrerequisites(selectedDefinition));
             SetText(detailStatusLabel, FormatSelectedStatus());
-            SetUnlockButtonInteractable(technology != null && technology.CanUnlock(selectedDefinition, out _));
-        }
-
-        private IReadOnlyList<TechnologyDefinition> GetDefinitions()
-        {
-            if (technology != null && technology.Catalog != null)
-            {
-                return technology.Catalog.Definitions;
-            }
-
-            var gameSystem = Landsong.GameSystem.Instance;
-            return gameSystem == null || gameSystem.TechnologyCatalog == null
-                ? Array.Empty<TechnologyDefinition>()
-                : gameSystem.TechnologyCatalog.Definitions;
-        }
-
-        private void EnsureNodeItems(int requiredCount)
-        {
-            CollectExistingNodeItems();
-
-            while (nodeItems.Count < requiredCount && nodeItemPrefab != null && nodeRoot != null)
-            {
-                var item = Instantiate(nodeItemPrefab, nodeRoot);
-                nodeItems.Add(item);
-            }
         }
 
         private void CollectExistingNodeItems()
@@ -226,6 +212,7 @@ namespace Landsong.UISystem
                 return;
             }
 
+            nodeItems.Clear();
             var existingItems = nodeRoot.GetComponentsInChildren<GamePanel_TechnologyNodeItem>(true);
             for (var i = 0; i < existingItems.Length; i++)
             {
@@ -244,24 +231,51 @@ namespace Landsong.UISystem
                 return "科技服务未初始化";
             }
 
-            if (technology.IsUnlocked(selectedDefinition.TechnologyId))
+            if (technology.IsCurrentResearch(selectedDefinition))
             {
-                return "已解锁";
+                return selectedDefinition.AllowRepeatResearch && technology.IsUnlocked(selectedDefinition.TechnologyId)
+                    ? $"重复研究中：{FormatResearchProgress(selectedDefinition)}"
+                    : $"研究中：{FormatResearchProgress(selectedDefinition)}";
             }
 
-            if (technology.CanUnlock(selectedDefinition, out var reason))
+            if (technology.IsUnlocked(selectedDefinition.TechnologyId) && !selectedDefinition.AllowRepeatResearch)
             {
-                return "可解锁";
+                return "已研究";
+            }
+
+            if (technology.CanStartResearch(selectedDefinition, out var reason))
+            {
+                if (selectedDefinition.AllowRepeatResearch && technology.IsUnlocked(selectedDefinition.TechnologyId))
+                {
+                    return technology.HasCurrentResearch
+                        ? "可重复研究，点击节点切换当前研究"
+                        : "可重复研究，点击节点开始研究";
+                }
+
+                return technology.HasCurrentResearch
+                    ? "可研究，点击节点切换当前研究"
+                    : "可研究，点击节点开始研究";
             }
 
             return reason switch
             {
-                TechnologyUnlockFailureReason.PrerequisitesLocked => "前置科技未完成",
-                TechnologyUnlockFailureReason.InsufficientPoints => "科技点不足",
-                TechnologyUnlockFailureReason.AlreadyUnlocked => "已解锁",
-                TechnologyUnlockFailureReason.InvalidTechnology => "科技配置无效",
-                _ => "不可解锁"
+                TechnologyResearchFailureReason.PrerequisitesLocked => "前置科技未完成",
+                TechnologyResearchFailureReason.AlreadyUnlocked => "已研究",
+                TechnologyResearchFailureReason.InvalidTechnology => "科技配置无效",
+                _ => "不可研究"
             };
+        }
+
+        private string FormatResearchProgress(TechnologyDefinition definition)
+        {
+            if (definition == null)
+            {
+                return "0/0";
+            }
+
+            var progress = technology == null ? 0 : technology.GetResearchProgress(definition);
+            var required = Mathf.Max(0, definition.SciencePointCost);
+            return required <= 0 ? "无需科技点" : $"{progress}/{required}";
         }
 
         private static string FormatPrerequisites(TechnologyDefinition definition)
@@ -285,29 +299,17 @@ namespace Landsong.UISystem
             return names.Count == 0 ? "前置：无" : $"前置：{string.Join("、", names)}";
         }
 
-        private void SetUnlockButtonInteractable(bool interactable)
-        {
-            if (unlockButton != null)
-            {
-                unlockButton.interactable = interactable;
-            }
-        }
-
         private void HandleNodeClicked(TechnologyDefinition definition)
         {
             selectedDefinition = definition;
-            Refresh();
-        }
 
-        private void HandleUnlockClicked()
-        {
-            if (technology == null || selectedDefinition == null)
+            if (technology != null
+                && selectedDefinition != null
+                && technology.CanStartResearch(selectedDefinition, out _))
             {
-                RefreshDetail();
-                return;
+                technology.TryStartResearch(selectedDefinition);
             }
 
-            technology.TryUnlock(selectedDefinition);
             Refresh();
         }
 

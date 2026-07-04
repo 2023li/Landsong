@@ -64,10 +64,13 @@ namespace Landsong.BuildingSystem
         [Tooltip("两次点击间隔小于等于该值时，第二次点击视为双击。")]
         [SerializeField, Min(0.05f)] private float doubleClickInterval = 0.3f;
 
-        [Header("Click Feedback")]
-        [SerializeField, LabelText("点击时播放缩放反馈")] private bool playClickScaleFeedback = true;
-        [SerializeField, LabelText("点击缩放倍率"), Min(1f)] private float clickScaleMultiplier = 1.12f;
-        [SerializeField, LabelText("点击缩放时长"), Min(0f)] private float clickScaleDuration = 0.18f;
+        //点击回调
+        //是否播放点击缩放反馈
+        private bool playClickScaleFeedback = true;
+        //点击缩放倍率
+        private float clickScaleMultiplier = 1.12f;
+        //点击缩放时长
+        private float clickScaleDuration = 0.18f;
 
         [Header("Click Audio")]
         [SerializeField, LabelText("点击时音效")] private AudioClip clickSound;

@@ -14,8 +14,10 @@ namespace Landsong.TechnologySystem
         [SerializeField, LabelText("科技ID")] private string technologyId;
         [SerializeField, LabelText("显示名称")] private string displayName;
         [SerializeField, TextArea, LabelText("描述")] private string description;
-        [SerializeField, Min(0), LabelText("科技点消耗")] private int sciencePointCost = 1;
+        [SerializeField, Min(0), LabelText("研究需求科技点")] private int sciencePointCost = 1;
+        [SerializeField, LabelText("允许重复研究")] private bool allowRepeatResearch;
         [SerializeField, LabelText("前置科技")] private TechnologyDefinition[] prerequisites = Array.Empty<TechnologyDefinition>();
+        [SerializeReference, LabelText("研究完成效果")] private TechnologyEffect[] completionEffects = Array.Empty<TechnologyEffect>();
         [SerializeField, LabelText("编辑器节点位置")] private Vector2 graphPosition;
 
         public Sprite Icon => icon;
@@ -23,7 +25,9 @@ namespace Landsong.TechnologySystem
         public string DisplayName => string.IsNullOrWhiteSpace(displayName) ? name : displayName;
         public string Description => description;
         public int SciencePointCost => Mathf.Max(0, sciencePointCost);
+        public bool AllowRepeatResearch => allowRepeatResearch;
         public IReadOnlyList<TechnologyDefinition> Prerequisites => prerequisites ?? Array.Empty<TechnologyDefinition>();
+        public IReadOnlyList<TechnologyEffect> CompletionEffects => completionEffects ?? Array.Empty<TechnologyEffect>();
         public Vector2 GraphPosition => graphPosition;
         public bool HasIcon => icon != null;
         public bool IsValid => !string.IsNullOrWhiteSpace(technologyId);
@@ -40,6 +44,11 @@ namespace Landsong.TechnologySystem
             description = NormalizeOptionalText(description);
             sciencePointCost = Mathf.Max(0, sciencePointCost);
             prerequisites ??= Array.Empty<TechnologyDefinition>();
+            completionEffects ??= Array.Empty<TechnologyEffect>();
+            for (var i = 0; i < completionEffects.Length; i++)
+            {
+                completionEffects[i]?.Normalize();
+            }
         }
 
         private static string NormalizeOptionalText(string text)

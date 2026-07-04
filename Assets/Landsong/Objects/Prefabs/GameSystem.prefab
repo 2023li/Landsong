@@ -66,7 +66,8 @@ MonoBehaviour:
   startingPopulation: 0
   endGameWhenNoPalaceAtTurnEnd: 1
   technologyCatalog: {fileID: 11400000, guid: c7df39e2d8b94d23a30cae82e311b25b, type: 2}
-  startingTechnologyPoints: 0
+  startingResearchTechnology: {fileID: 0}
+  startingResearchProgress: 0
   startingUnlockedTechnologies: []
   buildingCatalog: {fileID: 11400000, guid: 8344cbee3c103ae4ca387a12fc3f7082, type: 2}
   buildingSelection: {fileID: 0}

@@ -1,4 +1,5 @@
 using System;
+using Landsong.TechnologySystem;
 
 namespace Landsong.ConditionSystem
 {
@@ -42,11 +43,13 @@ namespace Landsong.ConditionSystem
     [Serializable]
     public sealed class GameCondition_TechnologyUnlocked : GameCondition
     {
-        public string TechnologyId;
+        public TechnologyDefinition TechnologyDefinition;
 
         public override bool IsMet(GameSystem context)
         {
-            return context != null && context.IsTechnologyUnlocked(TechnologyId);
+            return context != null
+                   && TechnologyDefinition != null
+                   && context.IsTechnologyUnlocked(TechnologyDefinition.TechnologyId);
         }
     }
 

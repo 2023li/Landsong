@@ -14,7 +14,9 @@ public sealed class TechnologyEditorWindow : EditorWindow
     }
 
     private const string DefaultCatalogFolder = "Assets/Landsong/Objects/SO";
+    private const string DefaultCatalogPath = "Assets/Landsong/Objects/SO/TechnologyCatalog.asset";
     private const string DefaultTechnologyFolder = "Assets/Landsong/Objects/SO/Technology";
+    private const string CatalogEditorPrefsKey = "Landsong.TechnologyEditorWindow.CatalogPath";
     private const float GraphWidth = 1800f;
     private const float GraphHeight = 1000f;
     private const float NodeWidth = 190f;
@@ -33,6 +35,13 @@ public sealed class TechnologyEditorWindow : EditorWindow
     private TechnologyDefinition connectionSource;
     private GraphConnectionMode connectionMode;
     private Vector2 dragOffset;
+    private Rect graphVisibleRect;
+
+    private readonly Dictionary<TechnologyDefinition, int> graphIndexByDefinition =
+        new Dictionary<TechnologyDefinition, int>();
+
+    private readonly Dictionary<TechnologyDefinition, Rect> graphRectsByDefinition =
+        new Dictionary<TechnologyDefinition, Rect>();
 
     [MenuItem("Landsong/Technology/Technology Editor")]
     private static void Open()
@@ -40,6 +49,11 @@ public sealed class TechnologyEditorWindow : EditorWindow
         var window = GetWindow<TechnologyEditorWindow>("Technology Editor");
         window.minSize = new Vector2(920f, 560f);
         window.Show();
+    }
+
+    private void OnEnable()
+    {
+        RestoreLastCatalog();
     }
 
     private void OnGUI()
@@ -66,7 +80,16 @@ public sealed class TechnologyEditorWindow : EditorWindow
     {
         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
         EditorGUILayout.BeginHorizontal();
-        catalog = (TechnologyCatalog)EditorGUILayout.ObjectField("Catalog", catalog, typeof(TechnologyCatalog), false);
+        EditorGUI.BeginChangeCheck();
+        var selectedCatalog = (TechnologyCatalog)EditorGUILayout.ObjectField(
+            "Catalog",
+            catalog,
+            typeof(TechnologyCatalog),
+            false);
+        if (EditorGUI.EndChangeCheck())
+        {
+            SetCatalog(selectedCatalog);
+        }
 
         if (GUILayout.Button("Create Catalog", GUILayout.Width(120f)))
         {
@@ -76,6 +99,14 @@ public sealed class TechnologyEditorWindow : EditorWindow
         if (catalog != null && GUILayout.Button("Ping", GUILayout.Width(60f)))
         {
             EditorGUIUtility.PingObject(catalog);
+        }
+
+        using (new EditorGUI.DisabledScope(catalog == null))
+        {
+            if (GUILayout.Button("保存", GUILayout.Width(70f)))
+            {
+                SaveTechnologyTree();
+            }
         }
 
         EditorGUILayout.EndHorizontal();
@@ -139,7 +170,8 @@ public sealed class TechnologyEditorWindow : EditorWindow
                 continue;
             }
 
-            var label = $"{definition.DisplayName}  [{definition.SciencePointCost}]";
+            var repeatLabel = definition.AllowRepeatResearch ? " 可重复" : string.Empty;
+            var label = $"{definition.DisplayName}  [需求 {definition.SciencePointCost}{repeatLabel}]";
             var wasSelected = selectedDefinition == definition;
             if (GUILayout.Toggle(wasSelected, label, "Button") && !wasSelected)
             {
@@ -183,7 +215,9 @@ public sealed class TechnologyEditorWindow : EditorWindow
             EditorGUILayout.PropertyField(serializedDefinition.FindProperty("displayName"));
             EditorGUILayout.PropertyField(serializedDefinition.FindProperty("description"));
             EditorGUILayout.PropertyField(serializedDefinition.FindProperty("sciencePointCost"));
+            EditorGUILayout.PropertyField(serializedDefinition.FindProperty("allowRepeatResearch"));
             EditorGUILayout.PropertyField(serializedDefinition.FindProperty("prerequisites"), true);
+            EditorGUILayout.PropertyField(serializedDefinition.FindProperty("completionEffects"), true);
             EditorGUILayout.PropertyField(serializedDefinition.FindProperty("graphPosition"));
 
             if (serializedDefinition.ApplyModifiedProperties())
@@ -211,20 +245,29 @@ public sealed class TechnologyEditorWindow : EditorWindow
         var graphRect = EditorGUILayout.GetControlRect(false, 420f, GUILayout.ExpandWidth(true));
         GUI.Box(graphRect, GUIContent.none);
 
+        BuildGraphCache(definitions);
         graphScroll = GUI.BeginScrollView(graphRect, graphScroll, new Rect(0f, 0f, GraphWidth, GraphHeight));
-        DrawGraphConnections(definitions);
-        DrawPendingConnection(definitions);
+        graphVisibleRect = new Rect(graphScroll.x, graphScroll.y, graphRect.width, graphRect.height);
+
+        if (Event.current.type == EventType.Repaint)
+        {
+            DrawGraphConnections(definitions);
+            DrawPendingConnection();
+        }
 
         for (var i = 0; i < definitions.Count; i++)
         {
             var definition = definitions[i];
-            if (definition != null)
+            if (definition != null
+                && TryGetGraphNodeRect(definition, out var nodeRect)
+                && IsNodeVisible(nodeRect))
             {
-                DrawGraphNode(definitions, definition, i);
+                DrawGraphNode(definition, nodeRect);
             }
         }
 
         GUI.EndScrollView();
+        HandleGraphMouseMove();
     }
 
     private void DrawGraphConnectionToolbar()
@@ -282,40 +325,42 @@ public sealed class TechnologyEditorWindow : EditorWindow
             for (var j = 0; j < prerequisites.Count; j++)
             {
                 var prerequisite = prerequisites[j];
-                var prerequisiteIndex = IndexOfDefinition(definitions, prerequisite);
-                if (prerequisiteIndex < 0)
+                if (!TryGetGraphNodeRect(prerequisite, out var fromRect)
+                    || !TryGetGraphNodeRect(definition, out var toRect)
+                    || !IsConnectionVisible(fromRect, toRect))
                 {
                     continue;
                 }
 
-                var fromRect = GetNodeRect(prerequisite, prerequisiteIndex);
-                var toRect = GetNodeRect(definition, i);
+                var highlight = selectedDefinition == definition
+                                || selectedDefinition == prerequisite
+                                || connectionSource == definition
+                                || connectionSource == prerequisite;
                 DrawConnectionLine(
                     GetRectEdgePoint(fromRect, toRect.center),
                     GetRectEdgePoint(toRect, fromRect.center),
-                    new Color(0.45f, 0.6f, 0.75f, 0.75f),
-                    2f);
+                    highlight ? new Color(0.55f, 0.8f, 1f, 0.95f) : new Color(0.45f, 0.6f, 0.75f, 0.65f),
+                    highlight ? 2.5f : 1.5f,
+                    highlight);
             }
         }
 
         Handles.EndGUI();
     }
 
-    private void DrawPendingConnection(IReadOnlyList<TechnologyDefinition> definitions)
+    private void DrawPendingConnection()
     {
         if (connectionMode == GraphConnectionMode.None || connectionSource == null || Event.current == null)
         {
             return;
         }
 
-        var sourceIndex = IndexOfDefinition(definitions, connectionSource);
-        if (sourceIndex < 0)
+        if (!TryGetGraphNodeRect(connectionSource, out var sourceRect))
         {
             connectionSource = null;
             return;
         }
 
-        var sourceRect = GetNodeRect(connectionSource, sourceIndex);
         var mousePosition = Event.current.mousePosition;
 
         Handles.BeginGUI();
@@ -325,13 +370,13 @@ public sealed class TechnologyEditorWindow : EditorWindow
             connectionMode == GraphConnectionMode.AddPrerequisite
                 ? new Color(0.35f, 0.9f, 0.55f, 0.9f)
                 : new Color(1f, 0.45f, 0.25f, 0.9f),
-            3f);
+            3f,
+            true);
         Handles.EndGUI();
     }
 
-    private void DrawGraphNode(IReadOnlyList<TechnologyDefinition> definitions, TechnologyDefinition definition, int index)
+    private void DrawGraphNode(TechnologyDefinition definition, Rect nodeRect)
     {
-        var nodeRect = GetNodeRect(definition, index);
         HandleNodeInput(definition, nodeRect);
 
         var selected = selectedDefinition == definition;
@@ -352,7 +397,8 @@ public sealed class TechnologyEditorWindow : EditorWindow
         GUI.Label(idRect, definition.TechnologyId, EditorStyles.miniLabel);
 
         var costRect = new Rect(nodeRect.x + 8f, nodeRect.y + 52f, nodeRect.width - 16f, 18f);
-        GUI.Label(costRect, $"{definition.SciencePointCost} 科技点", EditorStyles.miniBoldLabel);
+        var repeatLabel = definition.AllowRepeatResearch ? " / 可重复" : string.Empty;
+        GUI.Label(costRect, $"需求 {definition.SciencePointCost} 科技点{repeatLabel}", EditorStyles.miniBoldLabel);
     }
 
     private void HandleNodeInput(TechnologyDefinition definition, Rect nodeRect)
@@ -412,13 +458,20 @@ public sealed class TechnologyEditorWindow : EditorWindow
             return;
         }
 
+        var completedConnection = false;
         if (connectionMode == GraphConnectionMode.AddPrerequisite)
         {
-            AddPrerequisite(definition, connectionSource);
+            completedConnection = AddPrerequisite(definition, connectionSource);
         }
         else if (connectionMode == GraphConnectionMode.RemovePrerequisite)
         {
-            RemovePrerequisite(definition, connectionSource);
+            completedConnection = RemovePrerequisite(definition, connectionSource);
+        }
+
+        if (completedConnection)
+        {
+            SetConnectionMode(GraphConnectionMode.None);
+            return;
         }
 
         connectionSource = null;
@@ -444,8 +497,93 @@ public sealed class TechnologyEditorWindow : EditorWindow
         var path = AssetDatabase.GenerateUniqueAssetPath($"{DefaultCatalogFolder}/TechnologyCatalog.asset");
         AssetDatabase.CreateAsset(asset, path);
         AssetDatabase.SaveAssets();
-        catalog = asset;
+        SetCatalog(asset);
         EditorGUIUtility.PingObject(catalog);
+    }
+
+    private void SetCatalog(TechnologyCatalog newCatalog)
+    {
+        if (catalog == newCatalog)
+        {
+            return;
+        }
+
+        catalog = newCatalog;
+        selectedDefinition = null;
+        connectionSource = null;
+        connectionMode = GraphConnectionMode.None;
+        draggingDefinition = null;
+        wantsMouseMove = false;
+
+        if (catalog == null)
+        {
+            EditorPrefs.DeleteKey(CatalogEditorPrefsKey);
+            return;
+        }
+
+        var catalogPath = AssetDatabase.GetAssetPath(catalog);
+        if (!string.IsNullOrWhiteSpace(catalogPath))
+        {
+            EditorPrefs.SetString(CatalogEditorPrefsKey, catalogPath);
+        }
+    }
+
+    private void RestoreLastCatalog()
+    {
+        if (catalog != null)
+        {
+            return;
+        }
+
+        var savedPath = EditorPrefs.GetString(CatalogEditorPrefsKey, DefaultCatalogPath);
+        var restoredCatalog = AssetDatabase.LoadAssetAtPath<TechnologyCatalog>(savedPath);
+        if (restoredCatalog == null)
+        {
+            restoredCatalog = AssetDatabase.LoadAssetAtPath<TechnologyCatalog>(DefaultCatalogPath);
+        }
+
+        if (restoredCatalog == null)
+        {
+            restoredCatalog = FindFirstCatalogAsset();
+        }
+
+        SetCatalog(restoredCatalog);
+    }
+
+    private static TechnologyCatalog FindFirstCatalogAsset()
+    {
+        var guids = AssetDatabase.FindAssets("t:TechnologyCatalog", new[] { DefaultCatalogFolder });
+        if (guids == null || guids.Length == 0)
+        {
+            return null;
+        }
+
+        var path = AssetDatabase.GUIDToAssetPath(guids[0]);
+        return AssetDatabase.LoadAssetAtPath<TechnologyCatalog>(path);
+    }
+
+    private void SaveTechnologyTree()
+    {
+        if (catalog == null)
+        {
+            return;
+        }
+
+        if (!ValidateTechnologyNodeIds(catalog.Definitions, out var errorMessage, out var invalidDefinition))
+        {
+            selectedDefinition = invalidDefinition;
+            EditorUtility.DisplayDialog("科技树保存失败", errorMessage, "确定");
+            Repaint();
+            return;
+        }
+
+        catalog.RebuildIndex();
+        EditorUtility.SetDirty(catalog);
+
+        var renamedCount = RenameTechnologyDefinitionAssets(catalog.Definitions);
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+        Debug.Log($"科技树已保存。同步重命名科技节点 SO：{renamedCount} 个。", this);
     }
 
     private void CreateTechnologyNode()
@@ -493,28 +631,52 @@ public sealed class TechnologyEditorWindow : EditorWindow
         return new Rect(position.x, position.y, NodeWidth, NodeHeight);
     }
 
-    private static Vector2 GetNodeCenter(TechnologyDefinition definition, int index)
+    private void BuildGraphCache(IReadOnlyList<TechnologyDefinition> definitions)
     {
-        var position = GetGraphPosition(definition, index);
-        return new Vector2(position.x + NodeWidth * 0.5f, position.y + NodeHeight * 0.5f);
-    }
-
-    private static int IndexOfDefinition(IReadOnlyList<TechnologyDefinition> definitions, TechnologyDefinition definition)
-    {
-        if (definition == null)
-        {
-            return -1;
-        }
+        graphIndexByDefinition.Clear();
+        graphRectsByDefinition.Clear();
 
         for (var i = 0; i < definitions.Count; i++)
         {
-            if (definitions[i] == definition)
+            var definition = definitions[i];
+            if (definition == null || graphIndexByDefinition.ContainsKey(definition))
             {
-                return i;
+                continue;
             }
-        }
 
-        return -1;
+            graphIndexByDefinition.Add(definition, i);
+            graphRectsByDefinition.Add(definition, GetNodeRect(definition, i));
+        }
+    }
+
+    private bool TryGetGraphNodeRect(TechnologyDefinition definition, out Rect nodeRect)
+    {
+        nodeRect = default;
+        return definition != null && graphRectsByDefinition.TryGetValue(definition, out nodeRect);
+    }
+
+    private bool IsNodeVisible(Rect nodeRect)
+    {
+        return ExpandRect(graphVisibleRect, 96f).Overlaps(nodeRect);
+    }
+
+    private bool IsConnectionVisible(Rect fromRect, Rect toRect)
+    {
+        var connectionBounds = Rect.MinMaxRect(
+            Mathf.Min(fromRect.xMin, toRect.xMin),
+            Mathf.Min(fromRect.yMin, toRect.yMin),
+            Mathf.Max(fromRect.xMax, toRect.xMax),
+            Mathf.Max(fromRect.yMax, toRect.yMax));
+        return ExpandRect(graphVisibleRect, 160f).Overlaps(connectionBounds);
+    }
+
+    private static Rect ExpandRect(Rect rect, float padding)
+    {
+        rect.xMin -= padding;
+        rect.xMax += padding;
+        rect.yMin -= padding;
+        rect.yMax += padding;
+        return rect;
     }
 
     private static void SetGraphPosition(TechnologyDefinition definition, Vector2 position)
@@ -528,11 +690,11 @@ public sealed class TechnologyEditorWindow : EditorWindow
         EditorUtility.SetDirty(definition);
     }
 
-    private void AddPrerequisite(TechnologyDefinition targetDefinition, TechnologyDefinition prerequisiteDefinition)
+    private bool AddPrerequisite(TechnologyDefinition targetDefinition, TechnologyDefinition prerequisiteDefinition)
     {
         if (targetDefinition == null || prerequisiteDefinition == null || targetDefinition == prerequisiteDefinition)
         {
-            return;
+            return false;
         }
 
         if (DependsOn(prerequisiteDefinition, targetDefinition, new HashSet<TechnologyDefinition>()))
@@ -541,7 +703,7 @@ public sealed class TechnologyEditorWindow : EditorWindow
                 "无法添加依赖",
                 $"添加 {prerequisiteDefinition.DisplayName} -> {targetDefinition.DisplayName} 会形成循环依赖。",
                 "确定");
-            return;
+            return false;
         }
 
         var serializedDefinition = new SerializedObject(targetDefinition);
@@ -551,7 +713,7 @@ public sealed class TechnologyEditorWindow : EditorWindow
         {
             if (prerequisitesProperty.GetArrayElementAtIndex(i).objectReferenceValue == prerequisiteDefinition)
             {
-                return;
+                return false;
             }
         }
 
@@ -564,13 +726,14 @@ public sealed class TechnologyEditorWindow : EditorWindow
         targetDefinition.Normalize();
         EditorUtility.SetDirty(targetDefinition);
         AssetDatabase.SaveAssets();
+        return true;
     }
 
-    private void RemovePrerequisite(TechnologyDefinition targetDefinition, TechnologyDefinition prerequisiteDefinition)
+    private bool RemovePrerequisite(TechnologyDefinition targetDefinition, TechnologyDefinition prerequisiteDefinition)
     {
         if (targetDefinition == null || prerequisiteDefinition == null)
         {
-            return;
+            return false;
         }
 
         var serializedDefinition = new SerializedObject(targetDefinition);
@@ -594,8 +757,148 @@ public sealed class TechnologyEditorWindow : EditorWindow
             targetDefinition.Normalize();
             EditorUtility.SetDirty(targetDefinition);
             AssetDatabase.SaveAssets();
-            return;
+            return true;
         }
+
+        return false;
+    }
+
+    private static bool ValidateTechnologyNodeIds(
+        IReadOnlyList<TechnologyDefinition> definitions,
+        out string errorMessage,
+        out TechnologyDefinition invalidDefinition)
+    {
+        errorMessage = string.Empty;
+        invalidDefinition = null;
+
+        if (definitions == null)
+        {
+            return true;
+        }
+
+        var definitionsById = new Dictionary<string, TechnologyDefinition>(StringComparer.Ordinal);
+        for (var i = 0; i < definitions.Count; i++)
+        {
+            var definition = definitions[i];
+            if (definition == null)
+            {
+                continue;
+            }
+
+            var technologyId = NormalizeTechnologyId(definition.TechnologyId);
+            if (string.IsNullOrEmpty(technologyId))
+            {
+                invalidDefinition = definition;
+                errorMessage = $"科技节点“{definition.DisplayName}”的节点 ID 为空。";
+                return false;
+            }
+
+            if (definitionsById.TryGetValue(technologyId, out var existingDefinition))
+            {
+                invalidDefinition = definition;
+                errorMessage =
+                    $"节点 ID 重复：{technologyId}\n"
+                    + $"已有节点：{existingDefinition.DisplayName}\n"
+                    + $"重复节点：{definition.DisplayName}";
+                return false;
+            }
+
+            definitionsById.Add(technologyId, definition);
+        }
+
+        return true;
+    }
+
+    private static int RenameTechnologyDefinitionAssets(IReadOnlyList<TechnologyDefinition> definitions)
+    {
+        if (definitions == null)
+        {
+            return 0;
+        }
+
+        var renamedCount = 0;
+        var reservedPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        for (var i = 0; i < definitions.Count; i++)
+        {
+            var definition = definitions[i];
+            if (definition == null)
+            {
+                continue;
+            }
+
+            definition.Normalize();
+            EditorUtility.SetDirty(definition);
+
+            var currentPath = AssetDatabase.GetAssetPath(definition);
+            if (string.IsNullOrWhiteSpace(currentPath))
+            {
+                continue;
+            }
+
+            var desiredName = MakeSafeFileName(definition.TechnologyId);
+            var finalName = GetAvailableAssetName(currentPath, desiredName, reservedPaths);
+            var targetPath = BuildAssetPathWithFileName(currentPath, finalName);
+            reservedPaths.Add(targetPath);
+
+            if (string.Equals(
+                    System.IO.Path.GetFileNameWithoutExtension(currentPath),
+                    finalName,
+                    StringComparison.Ordinal))
+            {
+                definition.name = finalName;
+                continue;
+            }
+
+            var renameError = AssetDatabase.RenameAsset(currentPath, finalName);
+            if (!string.IsNullOrEmpty(renameError))
+            {
+                Debug.LogWarning($"重命名科技节点 SO 失败：{currentPath} -> {finalName}\n{renameError}");
+                continue;
+            }
+
+            definition.name = finalName;
+            renamedCount++;
+        }
+
+        return renamedCount;
+    }
+
+    private static string GetAvailableAssetName(
+        string currentPath,
+        string desiredName,
+        HashSet<string> reservedPaths)
+    {
+        var safeDesiredName = MakeSafeFileName(desiredName);
+        for (var i = 0; i < 1000; i++)
+        {
+            var candidateName = i == 0 ? safeDesiredName : $"{safeDesiredName}_{i + 1}";
+            var candidatePath = BuildAssetPathWithFileName(currentPath, candidateName);
+            if (reservedPaths != null && reservedPaths.Contains(candidatePath))
+            {
+                continue;
+            }
+
+            var existingAsset = AssetDatabase.LoadMainAssetAtPath(candidatePath);
+            if (existingAsset == null
+                || string.Equals(
+                    NormalizeAssetPath(AssetDatabase.GetAssetPath(existingAsset)),
+                    NormalizeAssetPath(currentPath),
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return candidateName;
+            }
+        }
+
+        return $"{safeDesiredName}_{Guid.NewGuid():N}";
+    }
+
+    private static string BuildAssetPathWithFileName(string currentPath, string fileNameWithoutExtension)
+    {
+        var directory = NormalizeAssetPath(System.IO.Path.GetDirectoryName(currentPath));
+        var extension = System.IO.Path.GetExtension(currentPath);
+        return string.IsNullOrWhiteSpace(directory)
+            ? $"{fileNameWithoutExtension}{extension}"
+            : $"{directory}/{fileNameWithoutExtension}{extension}";
     }
 
     private void SetConnectionMode(GraphConnectionMode newMode)
@@ -603,7 +906,21 @@ public sealed class TechnologyEditorWindow : EditorWindow
         connectionMode = newMode;
         connectionSource = null;
         draggingDefinition = null;
+        wantsMouseMove = connectionMode != GraphConnectionMode.None;
         Repaint();
+    }
+
+    private void HandleGraphMouseMove()
+    {
+        if (connectionMode == GraphConnectionMode.None || connectionSource == null || Event.current == null)
+        {
+            return;
+        }
+
+        if (Event.current.type == EventType.MouseMove)
+        {
+            Repaint();
+        }
     }
 
     private string GetConnectionModeHint()
@@ -648,10 +965,15 @@ public sealed class TechnologyEditorWindow : EditorWindow
         return false;
     }
 
-    private static void DrawConnectionLine(Vector2 from, Vector2 to, Color color, float thickness)
+    private static void DrawConnectionLine(Vector2 from, Vector2 to, Color color, float thickness, bool drawArrow)
     {
         Handles.color = color;
         Handles.DrawAAPolyLine(thickness, from, to);
+
+        if (!drawArrow)
+        {
+            return;
+        }
 
         var direction = to - from;
         if (direction.sqrMagnitude < 0.01f)
@@ -723,12 +1045,19 @@ public sealed class TechnologyEditorWindow : EditorWindow
     private static string MakeSafeFileName(string value)
     {
         var invalidChars = System.IO.Path.GetInvalidFileNameChars();
-        var safeName = value;
+        var safeName = value ?? string.Empty;
         for (var i = 0; i < invalidChars.Length; i++)
         {
             safeName = safeName.Replace(invalidChars[i], '_');
         }
 
         return string.IsNullOrWhiteSpace(safeName) ? "TechnologyDefinition" : safeName;
+    }
+
+    private static string NormalizeAssetPath(string assetPath)
+    {
+        return string.IsNullOrWhiteSpace(assetPath)
+            ? string.Empty
+            : assetPath.Replace('\\', '/');
     }
 }

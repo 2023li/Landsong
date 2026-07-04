@@ -30,6 +30,7 @@ namespace Landsong
             new List<BuildingInventorySlotCapacityModule>();
         private readonly HashSet<string> unlockedTechnologies =
             new HashSet<string>(StringComparer.Ordinal);
+        private int pendingTechnologyPointsThisTurn;
 
         [Header("Inventory")]
         [SerializeField, LabelText("物品目录")] private ItemCatalog itemCatalog;
@@ -42,7 +43,8 @@ namespace Landsong
 
         [Header("Technology")]
         [SerializeField, LabelText("科技目录")] private TechnologyCatalog technologyCatalog;
-        [SerializeField, LabelText("初始科技点"), Min(0)] private int startingTechnologyPoints;
+        [SerializeField, LabelText("初始当前研究科技")] private TechnologyDefinition startingResearchTechnology;
+        [SerializeField, LabelText("初始当前研究进度"), Min(0)] private int startingResearchProgress;
         [SerializeField, LabelText("初始已解锁科技")] private string[] startingUnlockedTechnologies = Array.Empty<string>();
 
         [Header("Scene Systems")]
@@ -87,7 +89,17 @@ namespace Landsong
 
         public event Action<GameSystem, GameOverReason> GameEnded;
 
-        public int SciencePoints => Technology == null ? startingTechnologyPoints : Technology.SciencePoints;
+        public string CurrentResearchTechnologyId =>
+            Technology == null
+                ? (startingResearchTechnology == null ? string.Empty : startingResearchTechnology.TechnologyId)
+                : Technology.CurrentResearchTechnologyId;
+
+        public int CurrentResearchProgress =>
+            Technology == null ? startingResearchProgress : Technology.CurrentResearchProgress;
+
+        public int CurrentResearchRequiredPoints =>
+            Technology == null || !Technology.HasCurrentResearch ? 0 : Technology.CurrentResearchRequiredPoints;
+
         public IReadOnlyCollection<string> UnlockedTechnologies =>
             Technology == null ? unlockedTechnologies : Technology.UnlockedTechnologyIds;
 
@@ -121,7 +133,7 @@ namespace Landsong
         {
             inventorySlotCount = Mathf.Max(0, inventorySlotCount);
             startingPopulation = Mathf.Max(0, startingPopulation);
-            startingTechnologyPoints = Mathf.Max(0, startingTechnologyPoints);
+            startingResearchProgress = Mathf.Max(0, startingResearchProgress);
             startingTurn = Mathf.Max(1, startingTurn);
             turnBuildingsPerFrame = Mathf.Max(1, turnBuildingsPerFrame);
 
@@ -186,6 +198,7 @@ namespace Landsong
             {
                 var unlocked = Technology.UnlockForFree(technologyId);
                 MirrorUnlockedTechnologiesFromService();
+                SyncStartingResearchFromService();
                 return unlocked;
             }
 
@@ -197,50 +210,30 @@ namespace Landsong
             return unlockedTechnologies.Add(technologyId.Trim());
         }
 
-        public bool TryUnlockTechnology(string technologyId)
+        public bool TryStartTechnologyResearch(string technologyId)
         {
             if (Technology == null)
             {
                 CreateTechnologyService();
             }
 
-            var unlocked = Technology != null && Technology.TryUnlock(technologyId);
+            var started = Technology != null && Technology.TryStartResearch(technologyId);
             MirrorUnlockedTechnologiesFromService();
-            return unlocked;
+            SyncStartingResearchFromService();
+            return started;
         }
 
-        public bool TryUnlockTechnology(TechnologyDefinition definition)
+        public bool TryStartTechnologyResearch(TechnologyDefinition definition)
         {
             if (Technology == null)
             {
                 CreateTechnologyService();
             }
 
-            var unlocked = Technology != null && Technology.TryUnlock(definition);
+            var started = Technology != null && Technology.TryStartResearch(definition);
             MirrorUnlockedTechnologiesFromService();
-            return unlocked;
-        }
-
-        public void AddTechnologyPoints(int amount)
-        {
-            if (Technology == null)
-            {
-                CreateTechnologyService();
-            }
-
-            Technology?.AddSciencePoints(amount);
-            startingTechnologyPoints = Technology == null ? startingTechnologyPoints : Technology.SciencePoints;
-        }
-
-        public void SetTechnologyPoints(int amount)
-        {
-            if (Technology == null)
-            {
-                CreateTechnologyService();
-            }
-
-            Technology?.SetSciencePoints(amount);
-            startingTechnologyPoints = Technology == null ? Mathf.Max(0, amount) : Technology.SciencePoints;
+            SyncStartingResearchFromService();
+            return started;
         }
 
         public List<string> CaptureUnlockedTechnologies()
@@ -260,7 +253,10 @@ namespace Landsong
 
             return new TechnologySaveData
             {
-                SciencePoints = Mathf.Max(0, startingTechnologyPoints),
+                CurrentResearchTechnologyId = startingResearchTechnology == null
+                    ? string.Empty
+                    : startingResearchTechnology.TechnologyId,
+                CurrentResearchProgress = Mathf.Max(0, startingResearchProgress),
                 UnlockedTechnologyIds = CaptureUnlockedTechnologies()
             };
         }
@@ -278,7 +274,6 @@ namespace Landsong
                 RestoreTechnologyData(
                     new TechnologySaveData
                     {
-                        SciencePoints = Technology.SciencePoints,
                         UnlockedTechnologyIds = new List<string>(technologies)
                     },
                     null);
@@ -309,7 +304,10 @@ namespace Landsong
             {
                 technologyData = new TechnologySaveData
                 {
-                    SciencePoints = startingTechnologyPoints,
+                    CurrentResearchTechnologyId = startingResearchTechnology == null
+                        ? string.Empty
+                        : startingResearchTechnology.TechnologyId,
+                    CurrentResearchProgress = Mathf.Max(0, startingResearchProgress),
                     UnlockedTechnologyIds = fallbackUnlockedTechnologies == null
                         ? new List<string>(startingUnlockedTechnologies ?? Array.Empty<string>())
                         : new List<string>(fallbackUnlockedTechnologies)
@@ -317,7 +315,7 @@ namespace Landsong
             }
 
             Technology?.RestoreSaveData(technologyData, null);
-            startingTechnologyPoints = Technology == null ? 0 : Technology.SciencePoints;
+            SyncStartingResearchFromService();
             MirrorUnlockedTechnologiesFromService();
         }
 
@@ -348,8 +346,13 @@ namespace Landsong
 
         private void CreateTechnologyService()
         {
-            Technology = new TechnologyService(technologyCatalog, startingUnlockedTechnologies, startingTechnologyPoints);
+            Technology = new TechnologyService(
+                technologyCatalog,
+                startingUnlockedTechnologies,
+                startingResearchTechnology == null ? null : startingResearchTechnology.TechnologyId,
+                startingResearchProgress);
             MirrorUnlockedTechnologiesFromService();
+            SyncStartingResearchFromService();
         }
 
         private void MirrorUnlockedTechnologiesFromService()
@@ -367,6 +370,18 @@ namespace Landsong
                     unlockedTechnologies.Add(technologyId.Trim());
                 }
             }
+        }
+
+        private void SyncStartingResearchFromService()
+        {
+            if (Technology == null)
+            {
+                startingResearchProgress = Mathf.Max(0, startingResearchProgress);
+                return;
+            }
+
+            startingResearchTechnology = Technology.CurrentResearchDefinition;
+            startingResearchProgress = Technology.CurrentResearchProgress;
         }
 
         public void RegisterBuilding(BuildingBase building)
@@ -592,10 +607,15 @@ namespace Landsong
         {
             if (Turn != null)
             {
+                Turn.BeforeTurnAdvanced -= HandleBeforeTurnAdvanced;
                 Turn.TurnAdvanced -= HandleTurnAdvanced;
+                Turn.BuildingTechnologyPointsProvided -= HandleBuildingTechnologyPointsProvided;
             }
 
             Turn = new TurnService(startingTurn);
+            pendingTechnologyPointsThisTurn = 0;
+            Turn.BeforeTurnAdvanced += HandleBeforeTurnAdvanced;
+            Turn.BuildingTechnologyPointsProvided += HandleBuildingTechnologyPointsProvided;
             Turn.TurnAdvanced += HandleTurnAdvanced;
         }
 
@@ -662,8 +682,27 @@ namespace Landsong
                 this);
         }
 
+        private void HandleBeforeTurnAdvanced(TurnService turn)
+        {
+            pendingTechnologyPointsThisTurn = 0;
+        }
+
+        private void HandleBuildingTechnologyPointsProvided(
+            TurnService turn,
+            BuildingTechnologyPointsProvidedEvent technologyPointsEvent)
+        {
+            if (!technologyPointsEvent.IsValid)
+            {
+                return;
+            }
+
+            pendingTechnologyPointsThisTurn += technologyPointsEvent.Points;
+        }
+
         private void HandleTurnAdvanced(TurnService turn, TurnAdvanceSummary summary)
         {
+            ApplyTechnologyResearchPoints(summary.ToTurn);
+
             if (!endGameWhenNoPalaceAtTurnEnd || IsGameOver)
             {
                 return;
@@ -681,6 +720,79 @@ namespace Landsong
             }
 
             EndGame(GameOverReason.NoPalace);
+        }
+
+        private void ApplyTechnologyResearchPoints(int turnNumber)
+        {
+            if (Technology == null)
+            {
+                CreateTechnologyService();
+            }
+
+            if (Technology == null)
+            {
+                pendingTechnologyPointsThisTurn = 0;
+                return;
+            }
+
+            var result = Technology.ApplyResearchPoints(pendingTechnologyPointsThisTurn);
+            pendingTechnologyPointsThisTurn = 0;
+            SyncStartingResearchFromService();
+            MirrorUnlockedTechnologiesFromService();
+
+            if (!result.Completed || result.Technology == null)
+            {
+                return;
+            }
+
+            if (Events == null)
+            {
+                CreateGameEventService();
+            }
+
+            var effectMessage = ApplyTechnologyCompletionEffects(result.Technology);
+            var message = string.IsNullOrWhiteSpace(effectMessage)
+                ? $"科技研究完成：{result.Technology.DisplayName}"
+                : $"科技研究完成：{result.Technology.DisplayName}（{effectMessage}）";
+
+            Events?.AddMessage(
+                GameEventMessage.ForGame(
+                    GameEventCatalog.GE_科技研究完成,
+                    message,
+                    turnNumber));
+        }
+
+        private string ApplyTechnologyCompletionEffects(TechnologyDefinition technology)
+        {
+            if (technology == null)
+            {
+                return string.Empty;
+            }
+
+            var effects = technology.CompletionEffects;
+            if (effects == null || effects.Count == 0)
+            {
+                return string.Empty;
+            }
+
+            var messages = new List<string>();
+            for (var i = 0; i < effects.Count; i++)
+            {
+                var effect = effects[i];
+                if (effect == null)
+                {
+                    continue;
+                }
+
+                effect.Normalize();
+                var result = effect.Apply(this, technology);
+                if (result.Applied && result.HasMessage)
+                {
+                    messages.Add(result.Message);
+                }
+            }
+
+            return messages.Count == 0 ? string.Empty : string.Join("，", messages);
         }
 
         public bool EndGame(GameOverReason reason)

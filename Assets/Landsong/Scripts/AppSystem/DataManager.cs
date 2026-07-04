@@ -1331,7 +1331,6 @@ public class GameData
         {
             TechnologyData = new TechnologySaveData
             {
-                SciencePoints = 0,
                 UnlockedTechnologyIds = new List<string>(UnlockedTechnologies)
             };
             TechnologyData.Validate();

@@ -8,6 +8,8 @@ namespace Landsong.TurnSystem
     public sealed class TurnService
     {
         private readonly List<BuildingBase> buildings = new List<BuildingBase>();
+        private readonly List<BuildingTechnologyPointModule> technologyPointModules =
+            new List<BuildingTechnologyPointModule>();
         private readonly HashSet<BuildingBase> registeredBuildings = new HashSet<BuildingBase>();
 
         public TurnService(int startingTurn = 1)
@@ -18,6 +20,7 @@ namespace Landsong.TurnSystem
         public event Action<TurnService> BeforeTurnAdvanced;
         public event Action<TurnService, TurnAdvanceSummary> TurnAdvanced;
         public event Action<TurnService, BuildingResourceProvidedEvent> BuildingResourceProvided;
+        public event Action<TurnService, BuildingTechnologyPointsProvidedEvent> BuildingTechnologyPointsProvided;
 
         public int CurrentTurn { get; private set; }
         public bool IsAdvancingTurn { get; private set; }
@@ -160,6 +163,7 @@ namespace Landsong.TurnSystem
                 return;
             }
 
+            ResetProvidedTechnologyPoints(building);
             var succeeded = building.ProcessTurn();
             if (!succeeded)
             {
@@ -169,6 +173,7 @@ namespace Landsong.TurnSystem
 
             summary.OperatingConsumed++;
             NotifyProvidedResources(building);
+            NotifyProvidedTechnologyPoints(building);
         }
 
         private void NotifyProvidedResources(BuildingBase building)
@@ -207,6 +212,54 @@ namespace Landsong.TurnSystem
                 BuildingResourceProvided?.Invoke(this, new BuildingResourceProvidedEvent(building, resource));
             }
         }
+
+        private void ResetProvidedTechnologyPoints(BuildingBase building)
+        {
+            if (building == null)
+            {
+                return;
+            }
+
+            technologyPointModules.Clear();
+            building.GetModules(technologyPointModules);
+            for (var i = 0; i < technologyPointModules.Count; i++)
+            {
+                technologyPointModules[i].ClearLastTechnologyPoints();
+            }
+
+            technologyPointModules.Clear();
+        }
+
+        private void NotifyProvidedTechnologyPoints(BuildingBase building)
+        {
+            if (building == null)
+            {
+                return;
+            }
+
+            var points = 0;
+            if (building is IBuildingTechnologyPointSource technologyPointSource)
+            {
+                points += Math.Max(0, technologyPointSource.LastTechnologyPoints);
+            }
+
+            technologyPointModules.Clear();
+            building.GetModules(technologyPointModules);
+            for (var i = 0; i < technologyPointModules.Count; i++)
+            {
+                points += technologyPointModules[i].ProvideTechnologyPointsForTurn();
+            }
+
+            technologyPointModules.Clear();
+            if (points <= 0)
+            {
+                return;
+            }
+
+            BuildingTechnologyPointsProvided?.Invoke(
+                this,
+                new BuildingTechnologyPointsProvidedEvent(building, points));
+        }
     }
 
     [Serializable]
@@ -223,6 +276,20 @@ namespace Landsong.TurnSystem
         public string ItemId => Resource.ItemId;
         public int Amount => Resource.Amount;
         public bool IsValid => Building != null && Resource.IsValid;
+    }
+
+    [Serializable]
+    public readonly struct BuildingTechnologyPointsProvidedEvent
+    {
+        public BuildingTechnologyPointsProvidedEvent(BuildingBase building, int points)
+        {
+            Building = building;
+            Points = Math.Max(0, points);
+        }
+
+        public BuildingBase Building { get; }
+        public int Points { get; }
+        public bool IsValid => Building != null && Points > 0;
     }
 
     [Serializable]

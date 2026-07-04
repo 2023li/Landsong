@@ -99,6 +99,53 @@ namespace Landsong.BuildingSystem
     }
 
     [Serializable]
+    public sealed class BuildingTechnologyPointModule : BuildingModuleBase, IBuildingTechnologyPointSource
+    {
+        [SerializeField, LabelText("提供科技点/回合"), Min(0)]
+        [PropertyTooltip("该建筑每次成功完成回合处理后，注入当前研究的科技点。")]
+        private int providedTechnologyPointsPerTurn = 1;
+
+        private int lastTechnologyPoints;
+
+        public int CurrentTechnologyPointsPerTurn => Mathf.Max(0, providedTechnologyPointsPerTurn);
+        public int LastTechnologyPoints => Mathf.Max(0, lastTechnologyPoints);
+
+        public override void Normalize()
+        {
+            providedTechnologyPointsPerTurn = Mathf.Max(0, providedTechnologyPointsPerTurn);
+            lastTechnologyPoints = Mathf.Max(0, lastTechnologyPoints);
+        }
+
+        public int ProvideTechnologyPointsForTurn()
+        {
+            lastTechnologyPoints = CurrentTechnologyPointsPerTurn;
+            return lastTechnologyPoints;
+        }
+
+        public void ClearLastTechnologyPoints()
+        {
+            lastTechnologyPoints = 0;
+        }
+
+        public override void AppendFunctionBlockEntries(
+            BuildingBase building,
+            ref List<BuildingFunctionBlockEntry> entries)
+        {
+            if (!IsEnabled || CurrentTechnologyPointsPerTurn <= 0)
+            {
+                return;
+            }
+
+            AddFunctionBlockEntry(
+                ref entries,
+                new BuildingFunctionBlockEntry(
+                    BuildingFunctionBlockGroup.功能性,
+                    "研究点/回合",
+                    CurrentTechnologyPointsPerTurn));
+        }
+    }
+
+    [Serializable]
     public sealed class BuildingLevelUpgradeModule : BuildingModuleBase
     {
         [SerializeField, LabelText("自动升级")]
