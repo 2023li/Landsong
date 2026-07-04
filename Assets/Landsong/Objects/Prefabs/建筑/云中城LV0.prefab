@@ -235,4 +235,3 @@ MonoBehaviour:
   doubleClickInterval: 0.3
   view: {fileID: 8436318151880140692}
   autoRepair: 0
-  autpUpgrade: 1

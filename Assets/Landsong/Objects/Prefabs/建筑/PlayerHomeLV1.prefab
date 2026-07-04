@@ -213,7 +213,6 @@ MonoBehaviour:
   doubleClickSound: {fileID: 0}
   view: {fileID: 6492560851725062278}
   autoRepair: 0
-  autpUpgrade: 1
   isResourceProviderPoint: 1
   buildingModules:
   - rid: 5711026153326903377

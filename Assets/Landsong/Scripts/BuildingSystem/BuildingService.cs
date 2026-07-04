@@ -151,6 +151,30 @@ namespace Landsong.BuildingSystem
         public bool TryReplace(BuildingBase sourceBuilding, BuildingBase replacementPrefab, out BuildingBase replacement)
         {
             replacement = null;
+            if (!CanReplace(sourceBuilding, replacementPrefab))
+            {
+                return false;
+            }
+
+            var gridMap = sourceBuilding.GridMap;
+            var origin = sourceBuilding.GridPosition;
+            var rotation = sourceBuilding.transform.rotation;
+            var parent = sourceBuilding.transform.parent;
+
+            sourceBuilding.ClearPlacement();
+            if (!TryPlace(replacementPrefab, gridMap, origin, rotation, parent, out replacement))
+            {
+                UnityEngine.Object.Destroy(sourceBuilding.gameObject);
+                return false;
+            }
+
+            replacement.ReceiveReplacementStateFrom(sourceBuilding);
+            UnityEngine.Object.Destroy(sourceBuilding.gameObject);
+            return true;
+        }
+
+        public bool CanReplace(BuildingBase sourceBuilding, BuildingBase replacementPrefab, bool logWarning = true)
+        {
             if (sourceBuilding == null || !CanUseBuildingPrefab(replacementPrefab))
             {
                 return false;
@@ -158,29 +182,32 @@ namespace Landsong.BuildingSystem
 
             if (!sourceBuilding.HasPlacement || sourceBuilding.GridMap == null)
             {
-                Debug.LogWarning($"Cannot replace building '{sourceBuilding.name}' because it has no grid placement.", sourceBuilding);
+                if (logWarning)
+                {
+                    Debug.LogWarning($"Cannot replace building '{sourceBuilding.name}' because it has no grid placement.", sourceBuilding);
+                }
+
                 return false;
             }
 
             var replacementDefinition = replacementPrefab.Definition;
             var gridMap = sourceBuilding.GridMap;
             var origin = sourceBuilding.GridPosition;
-            var rotation = sourceBuilding.transform.rotation;
-            var parent = sourceBuilding.transform.parent;
             var ignoredOccupantId = sourceBuilding.GridOccupancyId;
 
             if (!gridMap.CanOccupy(origin, replacementDefinition.Size, replacementDefinition.RequiredTerrainKeys, out var failureReason, ignoredOccupantId))
             {
-                Debug.LogWarning(
-                    $"Cannot replace building '{sourceBuilding.name}' with '{replacementDefinition.DisplayName}' at {origin}: {failureReason}.",
-                    sourceBuilding);
+                if (logWarning)
+                {
+                    Debug.LogWarning(
+                        $"Cannot replace building '{sourceBuilding.name}' with '{replacementDefinition.DisplayName}' at {origin}: {failureReason}.",
+                        sourceBuilding);
+                }
+
                 return false;
             }
 
-            sourceBuilding.ClearPlacement();
-            UnityEngine.Object.Destroy(sourceBuilding.gameObject);
-
-            return TryPlace(replacementPrefab, gridMap, origin, rotation, parent, out replacement);
+            return true;
         }
 
         public void Demolish(BuildingBase building)

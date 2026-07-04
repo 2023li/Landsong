@@ -112,14 +112,9 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
     public IReadOnlyList<BuildingResourceChange> CurrentTaxRewards =>
         HasReachedMaxPopulation ? CreateResourceChanges(taxItemId, currentPopulation) : EmptyResourceChanges;
     public IReadOnlyList<BuildingResourceChange> LastTaxRewards => lastTaxRewards;
-    public override string GetBaseInfo()
+    public override string GetOverviewInfo()
     {
         return $"人口 {currentPopulation}/{maxPopulationContribution}";
-    }
-
-    public override BuildingDetailInfo GetDetailInfo()
-    {
-        return new BuildingDetailInfo(CreateDetailSections());
     }
 
     public override IReadOnlyList<BuildingFunctionBlockEntry> GetFunctionBlockEntries()
@@ -132,7 +127,7 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
             AddFunctionBlockEntry(
                 ref entries,
                 new BuildingFunctionBlockEntry(
-                    BuildingFunctionBlockGroup.Resource,
+                    BuildingFunctionBlockGroup.资源组,
                     foodItemId,
                     -foodAmount,
                     new BuildingFunctionBlockSidebarRow(
@@ -639,50 +634,6 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
 
         return consecutiveConsumptionFailures <= 0
                || !string.Equals(lastAbnormalStatusId, StatusConsumptionFailed, StringComparison.Ordinal);
-    }
-
-    private IReadOnlyList<BuildingDetailSection> CreateDetailSections()
-    {
-        BuildingDetailSection[] sections =
-        {
-            new BuildingDetailSection(
-                "基础信息",
-                new[]
-                {
-                    new BuildingDetailRow("人口", $"{currentPopulation}/{maxPopulationContribution}"),
-                    new BuildingDetailRow("初始人口", initialPopulationContribution.ToString()),
-                    new BuildingDetailRow("荒废", isAbandoned ? "是" : "否")
-                }),
-            new BuildingDetailSection(
-                "运营消耗",
-                new[]
-                {
-                    new BuildingDetailRow("消耗物品", foodItemId),
-                    new BuildingDetailRow("当前预计消耗", $"{foodItemId} x{GetCurrentFoodConsumptionAmount()}"),
-                    new BuildingDetailRow("上回合实际消耗", FormatResourceChanges(lastResourceConsumptions)),
-                    new BuildingDetailRow("成长进度", $"{growthConsumptionProgress}/{growthIntervalTurns}"),
-                    new BuildingDetailRow("连续消耗失败", $"{consecutiveConsumptionFailures}/{consumptionFailureDecayThreshold}"),
-                    new BuildingDetailRow("建筑行动力", BuildingActionPower.ToString()),
-                    new BuildingDetailRow("上次资源连接", lastTurnHadResourceProvider ? "成功" : "失败"),
-                    new BuildingDetailRow("上次行动力消耗", FormatActionCost(lastResourceProviderActionCost))
-                }),
-            new BuildingDetailSection(
-                "税收",
-                new[]
-                {
-                    new BuildingDetailRow("税收物品", taxItemId),
-                    new BuildingDetailRow("税收进度", $"{taxConsumptionProgress}/{taxIntervalTurns}"),
-                    new BuildingDetailRow("当前预计税收", HasReachedMaxPopulation ? $"{taxItemId} x{currentPopulation}" : "无"),
-                    new BuildingDetailRow("上回合实际税收", FormatResourceChanges(lastTaxRewards))
-                })
-        };
-
-        return sections;
-    }
-
-    private static string FormatActionCost(int actionCost)
-    {
-        return actionCost < 0 ? "无" : actionCost.ToString();
     }
 
     [Serializable]

@@ -103,6 +103,7 @@ GameObject go_工人详情触发区
 ```text
 info_岗位 -> BuildingDetailsBlock_Workforce
 info_功能 -> BuildingDetailsBlock_Function
+info_等级 -> BuildingDetailsBlock_Level
 info_产出 -> BuildingDetailsProductionBlock
 info_库存 -> BuildingDetailsStorageBlock
 info_消耗 -> BuildingDetailsConsumptionBlock
@@ -209,24 +210,25 @@ UI 模块脚本负责把结构化数据转成当前界面的表现：
 
 也就是说，交互块中的最终显示文本应由 UI 负责。
 
-### `GetBaseInfo()` 和 `GetDetailInfo()` 的例外
+### `GetOverviewInfo()` 与详情块
 
-项目里已经存在两类通用详情数据：
+当前建筑概览数据入口是：
 
 ```text
-BuildingBase.GetBaseInfo()
-BuildingBase.GetDetailInfo()
+BuildingBase.GetOverviewInfo()
 ```
 
-它们用于列表、选中栏、通用详情行等“只读信息”。这里允许建筑返回已经格式化的短文本或 `BuildingDetailRow`，因为这些内容本身就是建筑提供给通用信息面板的展示资料。
+它用于列表、选中栏、底栏、详情弹窗标题区等位置的一行短摘要。
 
-但不要把它们当成交互模块的数据源。
+`GetDetailInfo()` 已不再作为当前详情栏的数据源。当前详情栏中的“岗位”“功能”本身就是详细信息块；更具体的解释写入各块的侧边栏。
 
 推荐边界：
 
-- `GetBaseInfo()`：短摘要，可以是字符串。
-- `GetDetailInfo()`：只读详情，可以是 `BuildingDetailSection -> BuildingDetailRow`。
-- 交互模块：读取能力接口的数值和状态，由 UI 模块自己拼接显示文本。
+- `GetOverviewInfo()`：一行短摘要，可以是字符串。
+- 岗位详情：由 `IBuildingWorkforceFundingSource` 和 `BuildingDetailsBlock_Workforce` 承载。
+- 功能详情：由 `GetFunctionBlockEntries()`、`BuildingFunctionBlockEntry`、`BuildingFunctionBlockSidebarRow` 承载。
+- 等级详情：由 `BuildingLevelUpgradeModule` 和 `BuildingDetailsBlock_Level` 承载。
+- 新类型详情：新增独立详情块，而不是恢复通用 `GetDetailInfo()`。
 
 ## 功能块数据接口
 

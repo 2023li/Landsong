@@ -4,6 +4,7 @@ using Landsong;
 using Landsong.BuildingSystem;
 using Landsong.DynastySystem;
 using Landsong.InventorySystem;
+using Landsong.TechnologySystem;
 using Landsong.TurnSystem;
 using Landsong.UISystem;
 using Sirenix.OdinInspector;
@@ -17,9 +18,11 @@ public class GamePanel_HUD : MonoBehaviour
     private GameSystem gameSystem;
     private DynastyService dynasty;
     private InventoryService inventory;
+    private TechnologyService technology;
     private TurnService turn;
     private bool subscribedToDynasty;
     private bool subscribedToInventory;
+    private bool subscribedToTechnology;
     private bool subscribedToTurn;
     private bool subscribedToBuildingSelection;
     private BuildingSelectionController subscribedBuildingSelection;
@@ -70,6 +73,7 @@ public class GamePanel_HUD : MonoBehaviour
     [SerializeField] private TMP_Text txt_Population;
     //金币 从仓库获取 Item_金币的数量
     [SerializeField] private TMP_Text txt_Gold;
+    [SerializeField] private TMP_Text txt_TechnologyPoints;
 
     [SerializeField] private TMP_Text txt_TurnCount;
 
@@ -81,6 +85,7 @@ public class GamePanel_HUD : MonoBehaviour
     [SerializeField, FoldoutGroup("左下角")] private RectTransform rt_左下角;
     [SerializeField, FoldoutGroup("左下角")] private Button btn_建造;
     [SerializeField, FoldoutGroup("左下角")] private Button btn_仓库;
+    [SerializeField, FoldoutGroup("左下角")] private Button btn_科技;
     [SerializeField, FoldoutGroup("左下角")] private Button btn_概览;
 
     [SerializeField] private GameObject go_回合处理显示;
@@ -140,6 +145,13 @@ public class GamePanel_HUD : MonoBehaviour
         }
 
 
+        if (btn_科技 != null)
+        {
+            btn_科技.onClick.RemoveListener(gamePanel.Show_Technology);
+            btn_科技.onClick.AddListener(gamePanel.Show_Technology);
+        }
+
+
         if (btn_概览 != null)
         {
             btn_概览.onClick.RemoveListener(gamePanel.Show_Overview);
@@ -173,6 +185,11 @@ public class GamePanel_HUD : MonoBehaviour
             btn_仓库.onClick.RemoveListener(gamePanel.Show_Inventory);
         }
 
+        if (gamePanel != null && btn_科技 != null)
+        {
+            btn_科技.onClick.RemoveListener(gamePanel.Show_Technology);
+        }
+
         if (gamePanel != null && btn_概览 != null)
         {
             btn_概览.onClick.RemoveListener(gamePanel.Show_Overview);
@@ -189,6 +206,7 @@ public class GamePanel_HUD : MonoBehaviour
         gameSystem = GameSystem.Instance;
         dynasty = gameSystem == null ? null : gameSystem.Dynasty;
         inventory = gameSystem == null ? null : gameSystem.Inventory;
+        technology = gameSystem == null ? null : gameSystem.Technology;
         turn = gameSystem == null ? null : gameSystem.Turn;
     }
 
@@ -196,6 +214,7 @@ public class GamePanel_HUD : MonoBehaviour
     {
         SubscribeDynasty();
         SubscribeInventory();
+        SubscribeTechnology();
         SubscribeTurn();
     }
 
@@ -203,6 +222,7 @@ public class GamePanel_HUD : MonoBehaviour
     {
         UnsubscribeDynasty();
         UnsubscribeInventory();
+        UnsubscribeTechnology();
         UnsubscribeTurn();
     }
 
@@ -254,6 +274,31 @@ public class GamePanel_HUD : MonoBehaviour
         subscribedToInventory = false;
     }
 
+    private void SubscribeTechnology()
+    {
+        if (subscribedToTechnology || technology == null)
+        {
+            return;
+        }
+
+        technology.SciencePointsChanged += HandleTechnologyPointsChanged;
+        technology.StateChanged += HandleTechnologyChanged;
+        subscribedToTechnology = true;
+    }
+
+    private void UnsubscribeTechnology()
+    {
+        if (!subscribedToTechnology || technology == null)
+        {
+            subscribedToTechnology = false;
+            return;
+        }
+
+        technology.SciencePointsChanged -= HandleTechnologyPointsChanged;
+        technology.StateChanged -= HandleTechnologyChanged;
+        subscribedToTechnology = false;
+    }
+
     private void SubscribeTurn()
     {
         if (subscribedToTurn || turn == null)
@@ -284,6 +329,7 @@ public class GamePanel_HUD : MonoBehaviour
         RefreshStage();
         RefreshPopulation();
         RefreshGold();
+        RefreshTechnologyPoints();
         RefreshTurnCount();
         RefreshTurnControls();
     }
@@ -307,6 +353,14 @@ public class GamePanel_HUD : MonoBehaviour
             ? 0
             : inventory.GetQuantity(itemId);
         txt_Gold.text = quantity.ToString();
+    }
+
+    private void RefreshTechnologyPoints()
+    {
+        if (txt_TechnologyPoints != null)
+        {
+            txt_TechnologyPoints.text = technology == null ? "0" : technology.SciencePoints.ToString();
+        }
     }
 
     private void RefreshTurnCount()
@@ -425,6 +479,18 @@ public class GamePanel_HUD : MonoBehaviour
     {
         inventory = changedInventory;
         RefreshGold();
+    }
+
+    private void HandleTechnologyPointsChanged(TechnologyService changedTechnology)
+    {
+        technology = changedTechnology;
+        RefreshTechnologyPoints();
+    }
+
+    private void HandleTechnologyChanged(TechnologyService changedTechnology)
+    {
+        technology = changedTechnology;
+        RefreshTechnologyPoints();
     }
 
     private static void SetActive(GameObject target, bool active)

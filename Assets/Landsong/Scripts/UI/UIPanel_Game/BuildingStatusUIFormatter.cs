@@ -35,7 +35,7 @@ namespace Landsong.UISystem
             var statuses = GetRuntimeStatuses(building);
             var hasAbnormalStatus = BuildingRuntimeStatusCatalog.HasAbnormalStatus(statuses);
             var statusText = hasAbnormalStatus ? FormatAbnormalStatuses(statuses) : normalStatusText;
-            var baseInfoText = building == null ? string.Empty : building.GetBaseInfo() ?? string.Empty;
+            var baseInfoText = building == null ? string.Empty : building.GetOverviewInfo() ?? string.Empty;
 
             return new BuildingStatusDisplayData(
                 buildingName,

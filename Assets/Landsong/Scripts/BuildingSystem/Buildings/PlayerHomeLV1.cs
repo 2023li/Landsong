@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Landsong.BuildingSystem;
 using UnityEngine;
 
@@ -11,9 +12,9 @@ public class PlayerHomeLV1 : BuildingBase
         EnsureInventorySlotCapacity();
     }
 
-    public override string GetBaseInfo()
+    public override string GetOverviewInfo()
     {
-        return $"仓库 +{InventorySlotCapacity}格 xxx";
+        return $"仓库 +{InventorySlotCapacity}格";
     }
 
     protected override void OnRegistered()
@@ -31,17 +32,19 @@ public class PlayerHomeLV1 : BuildingBase
        return true;
     }
 
- 
+   
 
+
+    //拆除
     protected override void OnDemolished()
     {
         GameSystem?.Dynasty?.UnregisterPalace(this);
     }
 
+    //点击
     protected override void OnClicked()
     {
-        base.OnClicked();
-        Debug.Log("1");
+       
 
     }
 

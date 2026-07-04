@@ -21,6 +21,7 @@ public class Popup_BuildingDetails : MonoBehaviour
     [SerializeField] private GameObject prefab_内容文本;
     [SerializeField] private BuildingDetailsBlock_Workforce block_岗位;
     [SerializeField] private BuildingDetailsBlock_Function block_功能;
+    [SerializeField] private BuildingDetailsBlock_Level block_等级;
 
     private readonly List<GameObject> activeContentItems = new List<GameObject>();
     private readonly List<GameObject> activeSidebarItems = new List<GameObject>();
@@ -32,6 +33,7 @@ public class Popup_BuildingDetails : MonoBehaviour
     {
         ResolveWorkforceBlock();
         ResolveFunctionBlock();
+        ResolveLevelBlock();
 
         if (btn_关闭弹窗 != null)
         {
@@ -87,6 +89,11 @@ public class Popup_BuildingDetails : MonoBehaviour
             block_功能.Unbind();
         }
 
+        if (block_等级 != null)
+        {
+            block_等级.Unbind();
+        }
+
         SetText(txt_建筑名称, string.Empty);
         SetText(txt_建筑描述, string.Empty);
         SetIcon(null);
@@ -108,6 +115,7 @@ public class Popup_BuildingDetails : MonoBehaviour
         SetIcon(building.Definition == null ? null : building.Definition.Icon);
         RefreshWorkforceBlock(building);
         RefreshFunctionBlock(building);
+        RefreshLevelBlock(building);
         ClearContentRoot();
     }
 
@@ -182,6 +190,30 @@ public class Popup_BuildingDetails : MonoBehaviour
         block_岗位.Unbind();
     }
 
+    private void ResolveLevelBlock()
+    {
+        if (block_等级 == null)
+        {
+            block_等级 = GetComponentInChildren<BuildingDetailsBlock_Level>(true);
+        }
+
+        if (block_等级 == null)
+        {
+            var levelBlockRoot = FindChildByName(transform, "info_等级");
+            if (levelBlockRoot != null)
+            {
+                block_等级 = levelBlockRoot.gameObject.AddComponent<BuildingDetailsBlock_Level>();
+            }
+        }
+
+        if (block_等级 == null)
+        {
+            return;
+        }
+
+        block_等级.Initialize(this);
+    }
+
     private void RefreshFunctionBlock(BuildingBase targetBuilding)
     {
         if (block_功能 == null)
@@ -196,6 +228,22 @@ public class Popup_BuildingDetails : MonoBehaviour
         }
 
         block_功能.Unbind();
+    }
+
+    private void RefreshLevelBlock(BuildingBase targetBuilding)
+    {
+        if (block_等级 == null)
+        {
+            return;
+        }
+
+        if (block_等级.CanShow(targetBuilding))
+        {
+            block_等级.Bind(targetBuilding);
+            return;
+        }
+
+        block_等级.Unbind();
     }
 
     private void UnsubscribeBuilding()

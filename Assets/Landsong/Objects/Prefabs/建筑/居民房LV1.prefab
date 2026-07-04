@@ -77,7 +77,6 @@ MonoBehaviour:
   doubleClickSound: {fileID: 0}
   view: {fileID: 0}
   autoRepair: 0
-  autpUpgrade: 1
   initialPopulationContribution: 2
   maxPopulationContribution: 5
   foodItemId: "\u852C\u83DC"

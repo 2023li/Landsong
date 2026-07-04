@@ -5,6 +5,7 @@ using Landsong.BuildingSystem;
 using Landsong.DynastySystem;
 using Landsong.GameEventSystem;
 using Landsong.InventorySystem;
+using Landsong.TechnologySystem;
 using Landsong.TurnSystem;
 using Moyo.Unity;
 using Sirenix.OdinInspector;
@@ -27,6 +28,8 @@ namespace Landsong
 
         private readonly List<BuildingInventorySlotCapacityModule> inventorySlotCapacityModules =
             new List<BuildingInventorySlotCapacityModule>();
+        private readonly HashSet<string> unlockedTechnologies =
+            new HashSet<string>(StringComparer.Ordinal);
 
         [Header("Inventory")]
         [SerializeField, LabelText("物品目录")] private ItemCatalog itemCatalog;
@@ -37,12 +40,14 @@ namespace Landsong
         [SerializeField, LabelText("初始人口"), Min(0)] private int startingPopulation;
         [SerializeField, LabelText("回合结束时无王宫则结束游戏")] private bool endGameWhenNoPalaceAtTurnEnd = true;
 
+        [Header("Technology")]
+        [SerializeField, LabelText("科技目录")] private TechnologyCatalog technologyCatalog;
+        [SerializeField, LabelText("初始科技点"), Min(0)] private int startingTechnologyPoints;
+        [SerializeField, LabelText("初始已解锁科技")] private string[] startingUnlockedTechnologies = Array.Empty<string>();
+
         [Header("Scene Systems")]
         [SerializeField, LabelText("建筑目录")] private BuildingCatalog buildingCatalog;
         [SerializeField, LabelText("建筑选择控制器")] private BuildingSelectionController buildingSelection;
-
-        [Header("Building Runtime")]
-        [SerializeField, LabelText("初始已解锁科技")] private string[] startingUnlockedTechnologies = Array.Empty<string>();
 
         [ShowInInspector, ReadOnly, LabelText("库存服务")]
         public InventoryService Inventory { get; private set; }
@@ -59,11 +64,17 @@ namespace Landsong
         [ShowInInspector, ReadOnly, LabelText("事件服务")]
         public GameEventService Events { get; private set; }
 
+        [ShowInInspector, ReadOnly, LabelText("科技服务")]
+        public TechnologyService Technology { get; private set; }
+
         [ShowInInspector, ReadOnly, LabelText("当前建筑选择控制器")]
         public BuildingSelectionController BuildingSelection => buildingSelection;
 
         [ShowInInspector, ReadOnly, LabelText("建筑目录")]
         public BuildingCatalog BuildingCatalog => buildingCatalog;
+
+        [ShowInInspector, ReadOnly, LabelText("科技目录")]
+        public TechnologyCatalog TechnologyCatalog => technologyCatalog;
 
         [ShowInInspector, ReadOnly, LabelText("当前人口")]
         public int Population => Dynasty == null ? startingPopulation : Dynasty.Population;
@@ -76,6 +87,10 @@ namespace Landsong
 
         public event Action<GameSystem, GameOverReason> GameEnded;
 
+        public int SciencePoints => Technology == null ? startingTechnologyPoints : Technology.SciencePoints;
+        public IReadOnlyCollection<string> UnlockedTechnologies =>
+            Technology == null ? unlockedTechnologies : Technology.UnlockedTechnologyIds;
+
         public IReadOnlyList<BuildingJobAttractionModifier> GetJobAttractionModifiers(BuildingBase building)
         {
             return EmptyJobAttractionModifiers;
@@ -83,6 +98,7 @@ namespace Landsong
 
         protected override void Init()
         {
+            CreateTechnologyService();
             CreateInventoryService();
             CreateDynastyService();
             CreateTurnService();
@@ -105,6 +121,7 @@ namespace Landsong
         {
             inventorySlotCount = Mathf.Max(0, inventorySlotCount);
             startingPopulation = Mathf.Max(0, startingPopulation);
+            startingTechnologyPoints = Mathf.Max(0, startingTechnologyPoints);
             startingTurn = Mathf.Max(1, startingTurn);
             turnBuildingsPerFrame = Mathf.Max(1, turnBuildingsPerFrame);
 
@@ -146,6 +163,164 @@ namespace Landsong
             buildingCatalog = newBuildingCatalog;
         }
 
+        public void SetTechnologyCatalog(TechnologyCatalog newTechnologyCatalog)
+        {
+            technologyCatalog = newTechnologyCatalog;
+            Technology?.SetCatalog(technologyCatalog);
+        }
+
+        public bool IsTechnologyUnlocked(string technologyId)
+        {
+            if (Technology != null)
+            {
+                return Technology.IsUnlocked(technologyId);
+            }
+
+            return !string.IsNullOrWhiteSpace(technologyId)
+                   && unlockedTechnologies.Contains(technologyId.Trim());
+        }
+
+        public bool UnlockTechnology(string technologyId)
+        {
+            if (Technology != null)
+            {
+                var unlocked = Technology.UnlockForFree(technologyId);
+                MirrorUnlockedTechnologiesFromService();
+                return unlocked;
+            }
+
+            if (string.IsNullOrWhiteSpace(technologyId))
+            {
+                return false;
+            }
+
+            return unlockedTechnologies.Add(technologyId.Trim());
+        }
+
+        public bool TryUnlockTechnology(string technologyId)
+        {
+            if (Technology == null)
+            {
+                CreateTechnologyService();
+            }
+
+            var unlocked = Technology != null && Technology.TryUnlock(technologyId);
+            MirrorUnlockedTechnologiesFromService();
+            return unlocked;
+        }
+
+        public bool TryUnlockTechnology(TechnologyDefinition definition)
+        {
+            if (Technology == null)
+            {
+                CreateTechnologyService();
+            }
+
+            var unlocked = Technology != null && Technology.TryUnlock(definition);
+            MirrorUnlockedTechnologiesFromService();
+            return unlocked;
+        }
+
+        public void AddTechnologyPoints(int amount)
+        {
+            if (Technology == null)
+            {
+                CreateTechnologyService();
+            }
+
+            Technology?.AddSciencePoints(amount);
+            startingTechnologyPoints = Technology == null ? startingTechnologyPoints : Technology.SciencePoints;
+        }
+
+        public void SetTechnologyPoints(int amount)
+        {
+            if (Technology == null)
+            {
+                CreateTechnologyService();
+            }
+
+            Technology?.SetSciencePoints(amount);
+            startingTechnologyPoints = Technology == null ? Mathf.Max(0, amount) : Technology.SciencePoints;
+        }
+
+        public List<string> CaptureUnlockedTechnologies()
+        {
+            var source = Technology == null ? unlockedTechnologies : Technology.UnlockedTechnologyIds;
+            var captured = new List<string>(source);
+            captured.Sort(StringComparer.Ordinal);
+            return captured;
+        }
+
+        public TechnologySaveData CaptureTechnologyData()
+        {
+            if (Technology != null)
+            {
+                return Technology.CaptureSaveData();
+            }
+
+            return new TechnologySaveData
+            {
+                SciencePoints = Mathf.Max(0, startingTechnologyPoints),
+                UnlockedTechnologyIds = CaptureUnlockedTechnologies()
+            };
+        }
+
+        public void RestoreUnlockedTechnologies(IReadOnlyList<string> technologies)
+        {
+            if (Technology != null)
+            {
+                if (technologies == null)
+                {
+                    RestoreTechnologyData(null, null);
+                    return;
+                }
+
+                RestoreTechnologyData(
+                    new TechnologySaveData
+                    {
+                        SciencePoints = Technology.SciencePoints,
+                        UnlockedTechnologyIds = new List<string>(technologies)
+                    },
+                    null);
+                return;
+            }
+
+            unlockedTechnologies.Clear();
+            if (technologies == null)
+            {
+                InitializeUnlockedTechnologies();
+                return;
+            }
+
+            for (var i = 0; i < technologies.Count; i++)
+            {
+                UnlockTechnology(technologies[i]);
+            }
+        }
+
+        public void RestoreTechnologyData(TechnologySaveData technologyData, IReadOnlyList<string> fallbackUnlockedTechnologies)
+        {
+            if (Technology == null)
+            {
+                CreateTechnologyService();
+            }
+
+            if (technologyData == null)
+            {
+                technologyData = new TechnologySaveData
+                {
+                    SciencePoints = startingTechnologyPoints,
+                    UnlockedTechnologyIds = fallbackUnlockedTechnologies == null
+                        ? new List<string>(startingUnlockedTechnologies ?? Array.Empty<string>())
+                        : new List<string>(fallbackUnlockedTechnologies)
+                };
+            }
+
+            Technology?.RestoreSaveData(technologyData, null);
+            startingTechnologyPoints = Technology == null ? 0 : Technology.SciencePoints;
+            MirrorUnlockedTechnologiesFromService();
+        }
+
         internal void RestoreCurrentTurn(int currentTurn)
         {
             if (Turn == null)
@@ -155,6 +330,43 @@ namespace Landsong
 
             Turn.SetCurrentTurn(currentTurn);
             startingTurn = Turn.CurrentTurn;
+        }
+
+        private void InitializeUnlockedTechnologies()
+        {
+            unlockedTechnologies.Clear();
+            if (startingUnlockedTechnologies == null)
+            {
+                return;
+            }
+
+            for (var i = 0; i < startingUnlockedTechnologies.Length; i++)
+            {
+                UnlockTechnology(startingUnlockedTechnologies[i]);
+            }
+        }
+
+        private void CreateTechnologyService()
+        {
+            Technology = new TechnologyService(technologyCatalog, startingUnlockedTechnologies, startingTechnologyPoints);
+            MirrorUnlockedTechnologiesFromService();
+        }
+
+        private void MirrorUnlockedTechnologiesFromService()
+        {
+            if (Technology == null)
+            {
+                return;
+            }
+
+            unlockedTechnologies.Clear();
+            foreach (var technologyId in Technology.UnlockedTechnologyIds)
+            {
+                if (!string.IsNullOrWhiteSpace(technologyId))
+                {
+                    unlockedTechnologies.Add(technologyId.Trim());
+                }
+            }
         }
 
         public void RegisterBuilding(BuildingBase building)

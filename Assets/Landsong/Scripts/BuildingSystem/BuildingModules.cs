@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Landsong.ConditionSystem;
+using Landsong.InventorySystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -16,29 +18,10 @@ namespace Landsong.BuildingSystem
         {
         }
 
-        public virtual void AppendDetailSections(BuildingBase building, ref List<BuildingDetailSection> sections)
-        {
-        }
-
         public virtual void AppendFunctionBlockEntries(
             BuildingBase building,
             ref List<BuildingFunctionBlockEntry> entries)
         {
-        }
-
-        protected static void AddDetailSection(
-            ref List<BuildingDetailSection> sections,
-            string title,
-            IReadOnlyList<BuildingDetailRow> rows)
-        {
-            var section = new BuildingDetailSection(title, rows);
-            if (!section.IsValid)
-            {
-                return;
-            }
-
-            sections ??= new List<BuildingDetailSection>();
-            sections.Add(section);
         }
 
         protected static void AddFunctionBlockEntry(
@@ -76,22 +59,6 @@ namespace Landsong.BuildingSystem
             attractionPerNearbyPopulation = Mathf.Max(0f, attractionPerNearbyPopulation);
         }
 
-        public override void AppendDetailSections(BuildingBase building, ref List<BuildingDetailSection> sections)
-        {
-            if (!IsEnabled)
-            {
-                return;
-            }
-
-            AddDetailSection(
-                ref sections,
-                "岗位人口模块",
-                new[]
-                {
-                    new BuildingDetailRow("人口搜索半径", PopulationSearchRadius.ToString()),
-                    new BuildingDetailRow("附近每人口就业吸引力", AttractionPerNearbyPopulation.ToString("0.##"))
-                });
-        }
     }
 
     [Serializable]
@@ -113,22 +80,6 @@ namespace Landsong.BuildingSystem
             providedSlotCount = Mathf.Max(0, providedSlotCount);
         }
 
-        public override void AppendDetailSections(BuildingBase building, ref List<BuildingDetailSection> sections)
-        {
-            if (!IsEnabled)
-            {
-                return;
-            }
-
-            AddDetailSection(
-                ref sections,
-                "库存模块",
-                new[]
-                {
-                    new BuildingDetailRow("提供库存格数", ProvidedSlotCount.ToString())
-                });
-        }
-
         public override void AppendFunctionBlockEntries(
             BuildingBase building,
             ref List<BuildingFunctionBlockEntry> entries)
@@ -141,9 +92,160 @@ namespace Landsong.BuildingSystem
             AddFunctionBlockEntry(
                 ref entries,
                 new BuildingFunctionBlockEntry(
-                    BuildingFunctionBlockGroup.Functionality,
+                    BuildingFunctionBlockGroup.功能性,
                     "库存格",
                     ProvidedSlotCount));
+        }
+    }
+
+    [Serializable]
+    public sealed class BuildingLevelUpgradeModule : BuildingModuleBase
+    {
+        [SerializeField, LabelText("自动升级")]
+        private bool autoUpgradeEnabled = true;
+
+        [SerializeField, LabelText("当前经验"), Min(0)]
+        private int currentExperience;
+
+        [SerializeField, LabelText("升级所需经验"), Min(1)]
+        private int requiredExperience = 10;
+
+        [SerializeField, LabelText("升级目标预制体")]
+        private BuildingBase upgradeTargetPrefab;
+
+        [SerializeReference, LabelText("升级条件")]
+        private GameCondition upgradeCondition;
+
+        [SerializeField, LabelText("升级消耗")]
+        private BuildingCost[] upgradeCosts = Array.Empty<BuildingCost>();
+
+        public bool AutoUpgradeEnabled => autoUpgradeEnabled;
+        public int CurrentExperience => Mathf.Max(0, currentExperience);
+        public int RequiredExperience => Mathf.Max(1, requiredExperience);
+        public BuildingBase UpgradeTargetPrefab => upgradeTargetPrefab;
+        public GameCondition UpgradeCondition => upgradeCondition;
+        public IReadOnlyList<BuildingCost> UpgradeCosts => upgradeCosts ?? Array.Empty<BuildingCost>();
+        public float ExperienceProgress => Mathf.Clamp01(CurrentExperience / (float)RequiredExperience);
+        public bool IsReadyToUpgrade => CurrentExperience >= RequiredExperience;
+        public bool HasUpgradeCosts => HasAnyValidCost(UpgradeCosts);
+
+        public override void Normalize()
+        {
+            currentExperience = Mathf.Max(0, currentExperience);
+            requiredExperience = Mathf.Max(1, requiredExperience);
+            NormalizeCosts();
+        }
+
+        public void SetAutoUpgradeEnabled(bool enabled)
+        {
+            autoUpgradeEnabled = enabled;
+        }
+
+        public void SetExperience(int experience)
+        {
+            currentExperience = Mathf.Clamp(experience, 0, RequiredExperience);
+        }
+
+        public void AddExperience(int experience)
+        {
+            if (experience <= 0)
+            {
+                return;
+            }
+
+            SetExperience(CurrentExperience + experience);
+        }
+
+        public bool CanUpgrade(BuildingBase building)
+        {
+            return building != null
+                   && IsReadyToUpgrade
+                   && upgradeTargetPrefab != null
+                   && upgradeTargetPrefab.HasDefinition
+                   && building.GameSystem != null
+                   && building.GameSystem.Buildings != null
+                   && IsUpgradeConditionMet(building)
+                   && building.GameSystem.Buildings.CanReplace(building, upgradeTargetPrefab, false)
+                   && CanAffordUpgradeCosts(building);
+        }
+
+        public bool TryUpgrade(BuildingBase building)
+        {
+            if (!CanUpgrade(building))
+            {
+                return false;
+            }
+
+            if (!TrySpendUpgradeCosts(building))
+            {
+                return false;
+            }
+
+            return building.GameSystem.Buildings.TryReplace(building, upgradeTargetPrefab, out _);
+        }
+
+        public bool TryAutoUpgrade(BuildingBase building)
+        {
+            return autoUpgradeEnabled && TryUpgrade(building);
+        }
+
+        public bool CanAffordUpgradeCosts(BuildingBase building)
+        {
+            if (!HasUpgradeCosts)
+            {
+                return true;
+            }
+
+            var inventory = building == null || building.GameSystem == null ? null : building.GameSystem.Inventory;
+            return inventory != null && inventory.CanAffordBuildingCosts(UpgradeCosts);
+        }
+
+        private bool TrySpendUpgradeCosts(BuildingBase building)
+        {
+            if (!HasUpgradeCosts)
+            {
+                return true;
+            }
+
+            var inventory = building == null || building.GameSystem == null ? null : building.GameSystem.Inventory;
+            return inventory != null && inventory.TrySpendBuildingCosts(UpgradeCosts);
+        }
+
+        private bool IsUpgradeConditionMet(BuildingBase building)
+        {
+            return upgradeCondition == null || upgradeCondition.IsMet(building.GameSystem);
+        }
+
+        private void NormalizeCosts()
+        {
+            if (upgradeCosts == null)
+            {
+                upgradeCosts = Array.Empty<BuildingCost>();
+                return;
+            }
+
+            for (var i = 0; i < upgradeCosts.Length; i++)
+            {
+                upgradeCosts[i] = upgradeCosts[i].Normalized();
+            }
+        }
+
+        private static bool HasAnyValidCost(IReadOnlyList<BuildingCost> costs)
+        {
+            if (costs == null)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < costs.Count; i++)
+            {
+                if (costs[i].IsValid)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

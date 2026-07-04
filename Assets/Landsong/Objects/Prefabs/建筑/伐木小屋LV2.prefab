@@ -145,7 +145,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 168180407083656401}
-  - component: {fileID: 8349078219009942974}
+  - component: {fileID: -853592870941896526}
   m_Layer: 0
   m_Name: "\u4F10\u6728\u5C0F\u5C4BLV2"
   m_TagString: Untagged
@@ -169,7 +169,7 @@ Transform:
   - {fileID: 5388435542453692768}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &8349078219009942974
+--- !u!114 &-853592870941896526
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -178,33 +178,94 @@ MonoBehaviour:
   m_GameObject: {fileID: 6703632062659975338}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7c6b496b47af1cb43a132606260349e5, type: 3}
+  m_Script: {fileID: 11500000, guid: 95246d642ce11414c869594c1c19b636, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::LumberCabinLV2
+  m_EditorClassIdentifier: Assembly-CSharp::LumberCabin
   definition:
-    buildingId: 伐木小屋LV2
-    displayName: ""
-    category: 0
-    icon: {fileID: 0}
+    buildingId: "\u4F10\u6728\u5C0F\u5C4BLV2"
+    displayName: "\u4F10\u6728\u5C0F\u5C4BLV2"
+    category: 2
+    icon: {fileID: 21300000, guid: 9c8fc0ff8df72df4aa5cbf158be39ecc, type: 3}
     size: {x: 1, y: 1}
     ignoreTerrainRequirement: 0
     requiredTerrainKeys:
-    - land
+    - "\u9646\u5730"
+    movementResistance: 0
     placementCosts: []
     visibleCondition:
-      rid: -2
+      rid: 5711026220397232211
     availableCondition:
-      rid: -2
+      rid: 5711026220397232212
     buildMenuSortOrder: 0
     maxBuildCount: 0
-    buildLimitGroupId: ""
+    buildLimitGroupId: 
     isDevelopmentCompleted: 0
+    useUniqueDetailPanel: 0
+    uniqueDetailPanel: {fileID: 0}
   hasGridPosition: 0
   gridPosition:
     x: 0
     y: 0
   gridOccupancyId: 
+  isResourceProviderPoint: 0
+  buildingModules: []
+  buildingActionPower: 100
   doubleClickInterval: 0.3
+  playClickScaleFeedback: 1
+  clickScaleMultiplier: 1.12
+  clickScaleDuration: 0.18
+  clickSound: {fileID: 0}
+  doubleClickSound: {fileID: 0}
   view: {fileID: 8101096818963731134}
   autoRepair: 0
-  autpUpgrade: 1
+  maxWorkers: 5
+  initialWorkersOnPlaced: 2
+  baseJobAttraction: 55
+  singleRecruitCost: 10
+  autoFullWorkerSubsidyEnabled: 0
+  targetStableWorkers: 0
+  woodItemId: "\u539F\u6728"
+  goldItemId: "\u91D1\u5E01"
+  productionIntervalTurns: 3
+  workerProductionTiers:
+  - minimumWorkers: 2
+    productionAmount: 1
+  - minimumWorkers: 3
+    productionAmount: 2
+  - minimumWorkers: 5
+    productionAmount: 4
+  currentWorkers: 0
+  stableWorkers: 0
+  stableWorkersWithoutSubsidy: 0
+  rawJobAttraction: 0
+  jobAttraction: 0
+  jobAttractionWithoutSubsidy: 0
+  nearbyPopulation: 0
+  populationCellCount: 0
+  lastPopulationSearchRadius: 0
+  lastAttractionPerNearbyPopulation: 0
+  populationDensity: 0
+  populationAttractionBonus: 0
+  globalAttractionModifierTotal: 0
+  subsidyAttractionPerGold: 0
+  subsidyAttractionBonus: 0
+  targetSubsidyAttractionBonus: 0
+  targetSubsidyGoldPerTurn: 0
+  paidSubsidyGoldThisTurn: 0
+  lastProducedWood: 0
+  productionProgress: 0
+  initialWorkersGranted: 0
+  lastTurnRecruitedWorker: 0
+  lastTurnSubsidyGoldMissing: 0
+  lastTurnNoAvailablePopulation: 0
+  lastAbnormalStatusId: 
+  lastAbnormalStatusText: 
+  references:
+    version: 2
+    RefIds:
+    - rid: 5711026220397232211
+      type: {class: GameCondition_False, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
+      data: 
+    - rid: 5711026220397232212
+      type: {class: GameCondition_False, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
+      data: 

@@ -201,7 +201,6 @@ MonoBehaviour:
     y: 0
   gridOccupancyId: 
   autoRepair: 0
-  autpUpgrade: 1
 --- !u!114 &6737454680123311691
 MonoBehaviour:
   m_ObjectHideFlags: 0

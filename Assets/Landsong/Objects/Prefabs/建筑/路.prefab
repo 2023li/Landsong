@@ -171,7 +171,6 @@ MonoBehaviour:
   doubleClickSound: {fileID: 0}
   view: {fileID: 0}
   autoRepair: 0
-  autpUpgrade: 1
   references:
     version: 2
     RefIds:

@@ -71,7 +71,6 @@ MonoBehaviour:
   doubleClickInterval: 0.3
   view: {fileID: 2551919506911812701}
   autoRepair: 0
-  autpUpgrade: 1
   populationContribution: 3
 --- !u!1 &2002129951321630064
 GameObject:

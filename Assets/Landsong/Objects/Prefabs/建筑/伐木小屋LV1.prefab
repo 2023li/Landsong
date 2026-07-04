@@ -145,8 +145,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8695873954480700809}
-  - component: {fileID: 1451453777161291500}
   - component: {fileID: 1444196072812716139}
+  - component: {fileID: 12218147606298111}
   m_Layer: 0
   m_Name: "\u4F10\u6728\u5C0F\u5C4BLV1"
   m_TagString: Untagged
@@ -170,93 +170,6 @@ Transform:
   - {fileID: 6753342318133473843}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1451453777161291500
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5076905444672905058}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 95246d642ce11414c869594c1c19b636, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::LumberCabinLV1
-  definition:
-    buildingId: "\u4F10\u6728\u5C0F\u5C4BLV1"
-    displayName: "\u4F10\u6728\u5C0F\u5C4BLV1"
-    category: 2
-    icon: {fileID: 21300000, guid: 5895c2374555bbe4b9fe06ae5fbacdaa, type: 3}
-    size: {x: 1, y: 1}
-    ignoreTerrainRequirement: 0
-    requiredTerrainKeys:
-    - "\u9646\u5730"
-    placementCosts:
-    - itemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
-      amount: 20
-    visibleCondition:
-      rid: 5711026153326903377
-    availableCondition:
-      rid: 5711026153326903378
-    buildMenuSortOrder: 0
-    maxBuildCount: 0
-    buildLimitGroupId: 
-    isDevelopmentCompleted: 1
-  hasGridPosition: 0
-  gridPosition:
-    x: 0
-    y: 0
-  gridOccupancyId: 
-  isResourceProviderPoint: 0
-  buildingModules:
-  - rid: 5711026153326903379
-  doubleClickInterval: 0.3
-  playClickScaleFeedback: 1
-  clickScaleMultiplier: 1.12
-  clickScaleDuration: 0.18
-  clickSound: {fileID: 0}
-  doubleClickSound: {fileID: 0}
-  view: {fileID: 6895812447475439656}
-  autoRepair: 0
-  autpUpgrade: 1
-  maxWorkers: 3
-  baseJobAttraction: 55
-  singleRecruitCost: 10
-  woodItemId: "\u539F\u6728"
-  goldItemId: "\u91D1\u5E01"
-  minimumWorkersForProduction: 2
-  fullProductionWorkers: 3
-  baseProductionAmount: 1
-  fullProductionAmount: 2
-  currentWorkers: 0
-  stableWorkers: 0
-  rawJobAttraction: 0
-  jobAttraction: 0
-  nearbyPopulation: 0
-  populationCellCount: 0
-  populationDensity: 0
-  populationAttractionBonus: 0
-  globalAttractionModifierTotal: 0
-  lastProducedWood: 0
-  lastTurnRecruitedWorker: 0
-  lastTurnNoAvailablePopulation: 0
-  lastAbnormalStatusId: 
-  lastAbnormalStatusText: 
-  references:
-    version: 2
-    RefIds:
-    - rid: 5711026153326903377
-      type: {class: GameCondition_True, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
-      data: 
-    - rid: 5711026153326903378
-      type: {class: GameCondition_True, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
-      data: 
-    - rid: 5711026153326903379
-      type: {class: BuildingNearbyPopulationJobAttractionModule, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
-      data:
-        enabled: 1
-        populationSearchRadius: 10
-        attractionPerNearbyPopulation: 1.6666666
 --- !u!61 &1444196072812716139
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -303,3 +216,120 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 0.5821692, y: 0.5670931}
   m_EdgeRadius: 0
+--- !u!114 &12218147606298111
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5076905444672905058}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 95246d642ce11414c869594c1c19b636, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LumberCabin
+  definition:
+    buildingId: "\u4F10\u6728\u5C0F\u5C4BLV1"
+    displayName: 
+    category: 2
+    icon: {fileID: 21300000, guid: 5895c2374555bbe4b9fe06ae5fbacdaa, type: 3}
+    size: {x: 1, y: 1}
+    ignoreTerrainRequirement: 0
+    requiredTerrainKeys:
+    - "\u9646\u5730"
+    movementResistance: 0
+    placementCosts: []
+    visibleCondition:
+      rid: -2
+    availableCondition:
+      rid: -2
+    buildMenuSortOrder: 0
+    maxBuildCount: 0
+    buildLimitGroupId: 
+    isDevelopmentCompleted: 1
+    useUniqueDetailPanel: 0
+    uniqueDetailPanel: {fileID: 0}
+  hasGridPosition: 0
+  gridPosition:
+    x: 0
+    y: 0
+  gridOccupancyId: 
+  isResourceProviderPoint: 0
+  buildingModules:
+  - rid: 5711026220397232207
+  - rid: 5711026220397232208
+  buildingActionPower: 100
+  doubleClickInterval: 0.3
+  playClickScaleFeedback: 1
+  clickScaleMultiplier: 1.12
+  clickScaleDuration: 0.18
+  clickSound: {fileID: 0}
+  doubleClickSound: {fileID: 0}
+  view: {fileID: 6895812447475439656}
+  autoRepair: 0
+  maxWorkers: 3
+  initialWorkersOnPlaced: 2
+  baseJobAttraction: 55
+  singleRecruitCost: 10
+  autoFullWorkerSubsidyEnabled: 0
+  targetStableWorkers: 0
+  woodItemId: "\u539F\u6728"
+  goldItemId: "\u91D1\u5E01"
+  productionIntervalTurns: 3
+  workerProductionTiers:
+  - minimumWorkers: 2
+    productionAmount: 1
+  - minimumWorkers: 3
+    productionAmount: 2
+  currentWorkers: 0
+  stableWorkers: 0
+  stableWorkersWithoutSubsidy: 0
+  rawJobAttraction: 0
+  jobAttraction: 0
+  jobAttractionWithoutSubsidy: 0
+  nearbyPopulation: 0
+  populationCellCount: 0
+  lastPopulationSearchRadius: 0
+  lastAttractionPerNearbyPopulation: 0
+  populationDensity: 0
+  populationAttractionBonus: 0
+  globalAttractionModifierTotal: 0
+  subsidyAttractionPerGold: 0
+  subsidyAttractionBonus: 0
+  targetSubsidyAttractionBonus: 0
+  targetSubsidyGoldPerTurn: 0
+  paidSubsidyGoldThisTurn: 0
+  lastProducedWood: 0
+  productionProgress: 0
+  initialWorkersGranted: 0
+  lastTurnRecruitedWorker: 0
+  lastTurnSubsidyGoldMissing: 0
+  lastTurnNoAvailablePopulation: 0
+  lastAbnormalStatusId: 
+  lastAbnormalStatusText: 
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 5711026220397232207
+      type: {class: BuildingNearbyPopulationJobAttractionModule, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        enabled: 1
+        populationSearchRadius: 10
+        attractionPerNearbyPopulation: 1.6666666
+    - rid: 5711026220397232208
+      type: {class: BuildingLevelUpgradeModule, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        enabled: 1
+        autoUpgradeEnabled: 1
+        currentExperience: 0
+        requiredExperience: 10
+        upgradeTargetPrefab: {fileID: -853592870941896526, guid: 4aba2e27877a1a149b22d64ff0955d88, type: 3}
+        upgradeCondition:
+          rid: 5711026220397232209
+        upgradeCosts: []
+    - rid: 5711026220397232209
+      type: {class: GameCondition_TechnologyUnlocked, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
+      data:
+        TechnologyId: 

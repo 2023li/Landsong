@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3b70d7f4d394dd9a76b0bc2e5c6a101, type: 3}
+  m_Name: "TechnologyDefinition_\u6D4B\u8BD5\u8282\u70B9_\u9AD8\u7EA7\u4F10\u6728"
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.TechnologySystem.TechnologyDefinition
+  icon: {fileID: 0}
+  technologyId: "\u6D4B\u8BD5\u8282\u70B9_\u9AD8\u7EA7\u4F10\u6728"
+  displayName: "\u9AD8\u7EA7\u4F10\u6728"
+  description: "\u89E3\u9501\u4F10\u6728\u5C0F\u5C4BLV1\u5347\u7EA7\u5230LV2\u3002"
+  sciencePointCost: 5
+  prerequisites:
+  - {fileID: 11400000, guid: bd13b1fc3bb1e134d9e40a6e591a1057, type: 2}
+  graphPosition: {x: 46.000046, y: 112}

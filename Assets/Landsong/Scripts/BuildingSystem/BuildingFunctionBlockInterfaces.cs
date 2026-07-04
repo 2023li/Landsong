@@ -5,8 +5,14 @@ namespace Landsong.BuildingSystem
 {
     public enum BuildingFunctionBlockGroup
     {
-        Resource,
-        Functionality
+        /// <summary>
+        /// 显示在资源组这一行
+        /// </summary>
+        资源组,
+        /// <summary>
+        /// 显示在功能性这一行   
+        /// </summary>
+        功能性
     }
 
     public readonly struct BuildingFunctionBlockSidebarRow

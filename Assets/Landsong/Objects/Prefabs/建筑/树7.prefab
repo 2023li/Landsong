@@ -211,7 +211,6 @@ MonoBehaviour:
   doubleClickInterval: 0.3
   view: {fileID: 0}
   autoRepair: 0
-  autpUpgrade: 1
   minHealth: 3
   maxHealth: 6
   damagePerDoubleClick: 1

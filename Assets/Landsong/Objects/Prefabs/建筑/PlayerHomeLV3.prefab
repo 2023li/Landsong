@@ -71,7 +71,6 @@ MonoBehaviour:
   doubleClickInterval: 0.3
   view: {fileID: 8632157653192013249}
   autoRepair: 0
-  autpUpgrade: 1
 --- !u!1 &8736932954006692257
 GameObject:
   m_ObjectHideFlags: 0

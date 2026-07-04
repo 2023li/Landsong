@@ -11,6 +11,7 @@ public class UIPanel_Game : UIPanelBase
     [SerializeField] private RectTransform gameMarkRoot;
     [SerializeField] private GamePanel_HUD hudPanel;
     [SerializeField] private GamePanel_Inventory inventoryPanel;
+    [SerializeField] private GamePanel_Technology technologyPanel;
     [SerializeField] private GamePanel_Building buildingPanel;
     [SerializeField] private GamePanel_BuildingPlacementControls buildingPlacementControls;
     [SerializeField] private GamePanel_BuildingStatusOverview buildingStatusOverview;
@@ -26,6 +27,7 @@ public class UIPanel_Game : UIPanelBase
     public Popup_BuildingDetails BuildingDetailPopup => buildingDetailPopup;
     public GamePanel_BuildingSelectionView BuildingSelectionView => buildingSelectionView;
     public GamePanel_BuildingPlacementControls BuildingPlacementControls => buildingPlacementControls;
+    public GamePanel_Technology TechnologyPanel => technologyPanel;
 
     private void Reset()
     {
@@ -72,6 +74,31 @@ public class UIPanel_Game : UIPanelBase
         if (inventoryPanel != null)
         {
             inventoryPanel.Hide();
+        }
+
+        Show_HUD();
+    }
+
+    public void Show_Technology()
+    {
+        GetReference();
+        HideAllPanels();
+
+        if (technologyPanel != null)
+        {
+            technologyPanel.Show();
+        }
+        else
+        {
+            Debug.LogWarning($"{nameof(UIPanel_Game)} has no technology panel assigned.", this);
+        }
+    }
+
+    internal void Hide_Technology()
+    {
+        if (technologyPanel != null)
+        {
+            technologyPanel.Hide();
         }
 
         Show_HUD();
@@ -134,6 +161,7 @@ public class UIPanel_Game : UIPanelBase
     {
         hudPanel?.Hide();
         inventoryPanel?.Hide();
+        technologyPanel?.Hide();
         buildingPanel?.Hide();
         buildingStatusOverview?.Hide();
         buildingDetailPopup?.Hide();
@@ -156,6 +184,11 @@ public class UIPanel_Game : UIPanelBase
         if (inventoryPanel == null)
         {
             inventoryPanel = GetComponentInChildren<GamePanel_Inventory>(true);
+        }
+
+        if (technologyPanel == null)
+        {
+            technologyPanel = GetComponentInChildren<GamePanel_Technology>(true);
         }
 
         if (buildingPanel == null)

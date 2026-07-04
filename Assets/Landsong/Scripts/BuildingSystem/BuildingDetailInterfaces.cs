@@ -3,56 +3,6 @@ using System.Collections.Generic;
 namespace Landsong.BuildingSystem
 {
     /// <summary>
-    /// 建筑详情面板的完整结构化信息。
-    /// </summary>
-    public readonly struct BuildingDetailInfo
-    {
-        private static readonly IReadOnlyList<BuildingDetailSection> EmptySections = System.Array.Empty<BuildingDetailSection>();
-
-        public static BuildingDetailInfo Empty { get; } = new BuildingDetailInfo(EmptySections);
-
-        public BuildingDetailInfo(IReadOnlyList<BuildingDetailSection> sections)
-        {
-            Sections = sections ?? EmptySections;
-        }
-
-        /// <summary>
-        /// 建筑详情面板中的分组数据。
-        /// </summary>
-        public IReadOnlyList<BuildingDetailSection> Sections { get; }
-
-        public bool IsValid
-        {
-            get
-            {
-                if (Sections == null)
-                {
-                    return false;
-                }
-
-                for (int i = 0; i < Sections.Count; i++)
-                {
-                    IReadOnlyList<BuildingDetailRow> rows = Sections[i].Rows;
-                    if (rows == null)
-                    {
-                        continue;
-                    }
-
-                    for (int j = 0; j < rows.Count; j++)
-                    {
-                        if (rows[j].IsValid)
-                        {
-                            return true;
-                        }
-                    }
-                }
-
-                return false;
-            }
-        }
-    }
-
-    /// <summary>
     /// 建筑详情面板中的一个信息分组。
     /// </summary>
     public readonly struct BuildingDetailSection

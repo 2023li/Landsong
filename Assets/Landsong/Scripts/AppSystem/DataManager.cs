@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Landsong.BuildingSystem;
 using Landsong.GridSystem;
 using Landsong.InventorySystem;
+using Landsong.TechnologySystem;
 using Moyo.Unity;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -688,10 +689,15 @@ public class DataManager : MonoSingleton<DataManager>
         }
 
         Landsong.GameSystem gameSystem = UnityEngine.Object.FindFirstObjectByType<Landsong.GameSystem>(FindObjectsInactive.Include);
-        if (gameSystem != null && gameSystem.Inventory != null)
+        if (gameSystem != null)
         {
-            gameData.InventoryData = gameSystem.Inventory.CaptureSaveData();
             gameData.CurrentTurn = gameSystem.CurrentTurn;
+            gameData.TechnologyData = gameSystem.CaptureTechnologyData();
+            gameData.UnlockedTechnologies = gameSystem.CaptureUnlockedTechnologies();
+            if (gameSystem.Inventory != null)
+            {
+                gameData.InventoryData = gameSystem.Inventory.CaptureSaveData();
+            }
         }
 
         if (gameSystem != null && gameSystem.Buildings != null)
@@ -742,6 +748,7 @@ public class DataManager : MonoSingleton<DataManager>
         OnRuntimeDataRestoreStarted?.Invoke(gameData);
 
         gameSystem.RestoreCurrentTurn(gameData.CurrentTurn);
+        gameSystem.RestoreTechnologyData(gameData.TechnologyData, gameData.UnlockedTechnologies);
 
         if (gameSystem.Inventory != null && gameData.InventoryData != null)
         {
@@ -1192,6 +1199,10 @@ public class GameData
 
     public InventorySaveData InventoryData;
 
+    public TechnologySaveData TechnologyData;
+
+    public List<string> UnlockedTechnologies;
+
     public List<BuildingInstanceSaveData> BuildingInstances;
 
     public static GameData CreateDefault()
@@ -1212,6 +1223,8 @@ public class GameData
             CurrentTurn = 1,
             WorldSeed = 0,
             InventoryData = null,
+            TechnologyData = null,
+            UnlockedTechnologies = null,
             BuildingInstances = null
         };
     }
@@ -1259,6 +1272,8 @@ public class GameData
 
         CurrentTurn = Mathf.Max(1, CurrentTurn);
         TotalPlayTimeSeconds = Mathf.Max(0f, TotalPlayTimeSeconds);
+        NormalizeUnlockedTechnologies();
+        NormalizeTechnologyData();
 
         if (BuildingInstances != null)
         {
@@ -1273,6 +1288,53 @@ public class GameData
 
                 building.Validate();
             }
+        }
+    }
+
+    private void NormalizeUnlockedTechnologies()
+    {
+        if (UnlockedTechnologies == null)
+        {
+            return;
+        }
+
+        HashSet<string> seen = new HashSet<string>(StringComparer.Ordinal);
+        for (var i = UnlockedTechnologies.Count - 1; i >= 0; i--)
+        {
+            var technologyId = string.IsNullOrWhiteSpace(UnlockedTechnologies[i])
+                ? string.Empty
+                : UnlockedTechnologies[i].Trim();
+            if (string.IsNullOrWhiteSpace(technologyId) || !seen.Add(technologyId))
+            {
+                UnlockedTechnologies.RemoveAt(i);
+                continue;
+            }
+
+            UnlockedTechnologies[i] = technologyId;
+        }
+    }
+
+    private void NormalizeTechnologyData()
+    {
+        if (TechnologyData != null)
+        {
+            TechnologyData.Validate();
+            if (UnlockedTechnologies == null)
+            {
+                UnlockedTechnologies = new List<string>(TechnologyData.UnlockedTechnologyIds);
+            }
+
+            return;
+        }
+
+        if (UnlockedTechnologies != null)
+        {
+            TechnologyData = new TechnologySaveData
+            {
+                SciencePoints = 0,
+                UnlockedTechnologyIds = new List<string>(UnlockedTechnologies)
+            };
+            TechnologyData.Validate();
         }
     }
 }

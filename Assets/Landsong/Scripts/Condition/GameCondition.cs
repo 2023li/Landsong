@@ -39,5 +39,16 @@ namespace Landsong.ConditionSystem
         }
     }
 
+    [Serializable]
+    public sealed class GameCondition_TechnologyUnlocked : GameCondition
+    {
+        public string TechnologyId;
+
+        public override bool IsMet(GameSystem context)
+        {
+            return context != null && context.IsTechnologyUnlocked(TechnologyId);
+        }
+    }
+
    
 }

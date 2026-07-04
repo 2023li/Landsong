@@ -57,7 +57,7 @@ GameSystem
 - 管理初始化、注册、放置、拆除、销毁清理。
 - 提供 `OnInitialized()`、`OnRegistered()`、`OnPlaced()`、`OnTurn()` 等生命周期入口。
 - 统一点击和双击入口。
-- 提供 `GetBaseInfo()`、`GetDetailInfo()`、`GetRuntimeStatuses()` 等 UI 读取入口。
+- 提供 `GetOverviewInfo()`、`GetRuntimeStatuses()`、`GetFunctionBlockEntries()` 等 UI 读取入口。
 - 持有 `buildingModules`，并提供 `TryGetModule<T>()`、`GetModules<T>()`。
 - 放置所有建筑都可能需要的极少数通用字段，例如 `IsResourceProviderPoint`、`BuildingActionPower`。
 
@@ -79,7 +79,7 @@ GameSystem
 - 每回合业务流程。
 - 存档数据结构和恢复逻辑。
 - 对库存、王朝、事件服务的业务调用。
-- 自定义详情段和运行状态。
+- 自定义概览、功能块数据、侧边栏说明和运行状态。
 
 不适合放：
 
@@ -240,17 +240,18 @@ UI 不应该反推建筑业务规则。
 UI 应读取：
 
 - `BuildingBase.Definition`
-- `BuildingBase.GetBaseInfo()`
-- `BuildingBase.GetDetailInfo()`
+- `BuildingBase.GetOverviewInfo()`
 - `BuildingBase.GetRuntimeStatuses()`
-- 资源接口暴露的只读结果
+- `BuildingBase.GetFunctionBlockEntries()`
+- 能力接口或建筑模块暴露的只读结果
 
-建筑详情可以有两层：
+建筑详情由详情块承载：
 
-- 建筑子类重写 `GetDetailInfo()`，显示本建筑核心详情。
-- 模块通过 `AppendDetailSections()` 补充模块配置详情。
+- 岗位块读取 `IBuildingWorkforceFundingSource`。
+- 功能块读取 `GetFunctionBlockEntries()`。
+- 更具体的说明放入侧边栏结构化行。
 
-例如 `LumberCabinLV1` 的岗位详情来自建筑子类，岗位人口模块可以追加“岗位人口模块”配置段。
+不再使用 `GetDetailInfo()` 作为通用详情数据源。新增人口、税收、维护等详情时，应新增独立详情块或扩展现有功能块，而不是让 UI 读取一份通用明细表。
 
 ## 放置与注册流程
 
@@ -291,6 +292,7 @@ GamePanel_Building / 建造按钮
 
 - 附近每人口提供就业吸引力：模块。
 - 提供库存格数：模块，聚合在 `GameSystem`。
+- 建筑升级经验、升级消耗和自动升级：模块，显示在 `BuildingDetailsBlock_Level`，由 `BuildingBase.ProcessTurn()` 在回合成功后统一尝试自动升级。
 - 资源连接点：当前在 `BuildingBase`，因为它是简单、高频、基础的建筑标记，并且已有 prefab 字段需要稳定。
 - 伐木小屋生产原木：`LumberCabinLV1` 子类。
 - 住宅消耗食物和增长人口：`ResidentialHousingLV1` 子类。
@@ -304,7 +306,7 @@ GamePanel_Building / 建造按钮
 3. 如果只是调整可选能力参数，优先添加建筑模块。
 4. 如果需要每回合行为，在建筑子类中实现 `OnTurn()`。
 5. 如果需要 UI 展示通用横向数据，实现对应只读接口。
-6. 如果需要详情栏，优先重写 `GetDetailInfo()`，并让模块补充自己的配置段。
+6. 如果需要详情栏，优先接入现有详情块；新增详情类型时创建独立详情块。
 7. 如果涉及跨建筑聚合，把聚合放到服务或静态系统中，不要放到 UI。
 8. 最后把 prefab 加入 `BuildingCatalog`。
 
@@ -316,7 +318,9 @@ GamePanel_Building / 建造按钮
 - 标记 `[Serializable]`。
 - 字段用 `[SerializeField]`，通过只读属性向外暴露。
 - 在 `Normalize()` 中归一化检查器输入。
-- 如果需要显示到详情栏，实现 `AppendDetailSections()`。
+- 如果需要显示到功能块，实现 `AppendFunctionBlockEntries()`。
+- 如果需要专门交互 UI，新增独立详情块。
+- 如果模块有运行时状态，例如当前经验，后续需要明确纳入建筑存档或模块存档。
 - 模块不直接调用 `InventoryService`、`DynastyService`、`TurnService`。
 - 模块不保存运行时流程状态，除非未来明确引入模块生命周期和存档约定。
 

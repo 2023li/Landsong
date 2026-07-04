@@ -19,7 +19,7 @@ public class ResidentialHousingLV4 : BuildingBase
         return true;
     }
 
-    public override string GetBaseInfo()
+    public override string GetOverviewInfo()
     {
         return $"人口 {populationContribution}";
     }

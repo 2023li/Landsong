@@ -93,7 +93,7 @@ namespace Landsong.BuildingSystem.Buildings
             exp = Mathf.Clamp(housingData.Exp, 0, RequiredExp);
         }
 
-        public override string GetBaseInfo()
+        public override string GetOverviewInfo()
         {
             return $"施工 {exp}/{RequiredExp}";
         }

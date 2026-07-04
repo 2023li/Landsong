@@ -216,7 +216,6 @@ MonoBehaviour:
   doubleClickSound: {fileID: 0}
   view: {fileID: 4269690486657159540}
   autoRepair: 0
-  autpUpgrade: 1
   firstTurnCost:
     itemDefinition: {fileID: 11400000, guid: 83207646c27978649aad0c621fe5e93d, type: 2}
     amount: 10

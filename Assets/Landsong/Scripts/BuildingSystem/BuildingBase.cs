@@ -13,7 +13,9 @@ namespace Landsong.BuildingSystem
     [Serializable]
     public abstract class BuildingDataBase
     {
-
+        public bool HasLevelUpgradeModuleData;
+        public bool LevelUpgradeAutoUpgradeEnabled;
+        public int LevelUpgradeCurrentExperience;
     }
 
     /// <summary>
@@ -253,6 +255,17 @@ namespace Landsong.BuildingSystem
             NotifyStateChanged();
         }
 
+        internal void ReceiveReplacementStateFrom(BuildingBase sourceBuilding)
+        {
+            if (sourceBuilding == null)
+            {
+                return;
+            }
+
+            OnReceiveReplacementState(sourceBuilding);
+            NotifyStateChanged();
+        }
+
         internal void ClearPlacement()
         {
             if (!hasGridPosition)
@@ -321,19 +334,80 @@ namespace Landsong.BuildingSystem
             }
 
             bool succeeded = OnTurn();
+            if (succeeded && TryProcessLevelAutoUpgrade())
+            {
+                return true;
+            }
+
             NotifyStateChanged();
             return succeeded;
         }
 
+        private bool TryProcessLevelAutoUpgrade()
+        {
+            return TryGetModule<BuildingLevelUpgradeModule>(out var levelModule)
+                   && levelModule.TryAutoUpgrade(this);
+        }
+
         public BuildingDataBase CaptureSaveData()
         {
-            return CaptureBuildingData();
+            var data = CaptureBuildingData();
+            if (data == null && HasCommonSaveData())
+            {
+                data = new CommonBuildingData();
+            }
+
+            if (data != null)
+            {
+                CaptureCommonSaveData(data);
+            }
+
+            return data;
         }
 
         public void RestoreSaveData(BuildingDataBase data)
         {
             RestoreBuildingData(data);
+            RestoreCommonSaveData(data);
             NotifyStateChanged();
+        }
+
+        private bool HasCommonSaveData()
+        {
+            return TryGetModule<BuildingLevelUpgradeModule>(out _);
+        }
+
+        private void CaptureCommonSaveData(BuildingDataBase data)
+        {
+            if (data == null)
+            {
+                return;
+            }
+
+            if (TryGetModule<BuildingLevelUpgradeModule>(out var levelModule))
+            {
+                data.HasLevelUpgradeModuleData = true;
+                data.LevelUpgradeAutoUpgradeEnabled = levelModule.AutoUpgradeEnabled;
+                data.LevelUpgradeCurrentExperience = levelModule.CurrentExperience;
+            }
+        }
+
+        private void RestoreCommonSaveData(BuildingDataBase data)
+        {
+            if (data == null
+                || !data.HasLevelUpgradeModuleData
+                || !TryGetModule<BuildingLevelUpgradeModule>(out var levelModule))
+            {
+                return;
+            }
+
+            levelModule.SetAutoUpgradeEnabled(data.LevelUpgradeAutoUpgradeEnabled);
+            levelModule.SetExperience(data.LevelUpgradeCurrentExperience);
+        }
+
+        [Serializable]
+        private sealed class CommonBuildingData : BuildingDataBase
+        {
         }
 
         public void Demolish()
@@ -411,8 +485,6 @@ namespace Landsong.BuildingSystem
         #region 游戏内容字段
         [SerializeField, LabelText("自动修复")]
         public bool autoRepair = false;
-        [SerializeField, LabelText("自动升级")]
-        public bool autpUpgrade = true;
         #endregion
 
         protected void NotifyStateChanged()
@@ -525,8 +597,7 @@ namespace Landsong.BuildingSystem
             return results;
         }
 
-        protected TModule EnsureBuildingModule<TModule>()
-            where TModule : BuildingModuleBase, new()
+        protected TModule EnsureBuildingModule<TModule>() where TModule : BuildingModuleBase, new()
         {
             buildingModules ??= new List<BuildingModuleBase>();
             for (var i = 0; i < buildingModules.Count; i++)
@@ -542,25 +613,6 @@ namespace Landsong.BuildingSystem
             module.Normalize();
             buildingModules.Add(module);
             return module;
-        }
-
-        protected void AppendBuildingModuleDetailSections(ref List<BuildingDetailSection> sections)
-        {
-            if (buildingModules == null)
-            {
-                return;
-            }
-
-            for (var i = 0; i < buildingModules.Count; i++)
-            {
-                var module = buildingModules[i];
-                if (module == null || !module.IsEnabled)
-                {
-                    continue;
-                }
-
-                module.AppendDetailSections(this, ref sections);
-            }
         }
 
         protected void AppendBuildingModuleFunctionBlockEntries(ref List<BuildingFunctionBlockEntry> entries)
@@ -601,11 +653,7 @@ namespace Landsong.BuildingSystem
             }
         }
 
-        protected static void AppendResourceFunctionBlockEntries(
-            ref List<BuildingFunctionBlockEntry> entries,
-            IReadOnlyList<BuildingResourceChange> changes,
-            int sign,
-            IReadOnlyList<BuildingFunctionBlockSidebarRow> sidebarRows = null)
+        protected static void AppendResourceFunctionBlockEntries(ref List<BuildingFunctionBlockEntry> entries,IReadOnlyList<BuildingResourceChange> changes,int sign,IReadOnlyList<BuildingFunctionBlockSidebarRow> sidebarRows = null)
         {
             if (changes == null)
             {
@@ -623,7 +671,7 @@ namespace Landsong.BuildingSystem
 
                 entries ??= new List<BuildingFunctionBlockEntry>();
                 entries.Add(new BuildingFunctionBlockEntry(
-                    BuildingFunctionBlockGroup.Resource,
+                    BuildingFunctionBlockGroup.资源组,
                     change.ItemId,
                     change.Amount * sign,
                     sidebarRows));
@@ -794,6 +842,10 @@ namespace Landsong.BuildingSystem
         }
 
         protected virtual void RestoreBuildingData(BuildingDataBase data)
+        {
+        }
+
+        protected virtual void OnReceiveReplacementState(BuildingBase sourceBuilding)
         {
         }
 
@@ -1018,19 +1070,9 @@ namespace Landsong.BuildingSystem
         /// <summary>
         /// 建筑在列表、选中栏、底栏中使用的一行基础摘要。
         /// </summary>
-        public virtual string GetBaseInfo()
+        public virtual string GetOverviewInfo()
         {
             return string.Empty;
-        }
-
-        /// <summary>
-        /// 建筑详情面板使用的结构化详情信息。具体建筑可按自身数据重写。
-        /// </summary>
-        public virtual BuildingDetailInfo GetDetailInfo()
-        {
-            List<BuildingDetailSection> sections = null;
-            AppendBuildingModuleDetailSections(ref sections);
-            return sections == null ? BuildingDetailInfo.Empty : new BuildingDetailInfo(sections);
         }
 
         public virtual IReadOnlyList<BuildingFunctionBlockEntry> GetFunctionBlockEntries()

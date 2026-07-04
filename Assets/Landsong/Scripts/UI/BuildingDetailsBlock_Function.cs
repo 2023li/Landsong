@@ -55,8 +55,8 @@ public sealed class BuildingDetailsBlock_Function : MonoBehaviour
         }
 
         RebuildAggregatedEntries();
-        SetText(txt_资源, BuildGroupSummary(BuildingFunctionBlockGroup.Resource));
-        SetText(txt_功能性, BuildGroupSummary(BuildingFunctionBlockGroup.Functionality));
+        SetText(txt_资源, BuildGroupSummary(BuildingFunctionBlockGroup.资源组));
+        SetText(txt_功能性, BuildGroupSummary(BuildingFunctionBlockGroup.功能性));
 
         if (detailSidebarVisible)
         {
@@ -204,12 +204,12 @@ public sealed class BuildingDetailsBlock_Function : MonoBehaviour
 
     private static string GetGroupLabel(BuildingFunctionBlockGroup group)
     {
-        return group == BuildingFunctionBlockGroup.Functionality ? "功能性" : "资源";
+        return group == BuildingFunctionBlockGroup.功能性 ? "功能性" : "资源";
     }
 
     private static string FormatSummaryEntry(AggregatedEntry entry)
     {
-        var includePositiveSign = entry.Group == BuildingFunctionBlockGroup.Functionality;
+        var includePositiveSign = entry.Group == BuildingFunctionBlockGroup.功能性;
         return FormatSignedAmount(entry.Amount, entry.DisplayName, includePositiveSign);
     }
 
