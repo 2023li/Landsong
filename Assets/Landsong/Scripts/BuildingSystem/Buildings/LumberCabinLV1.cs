@@ -142,7 +142,8 @@ public class LumberCabinLV1 : BuildingBase, IBuildingWorkforceFundingSource, IBu
     public int PaidSubsidyGoldThisTurn => paidSubsidyGoldThisTurn;
     public int MissingWorkersToFull => Mathf.Max(0, maxWorkers - currentWorkers);
     public int RecruitToFullWorkerCount => CalculateRecruitToFullWorkerCount();
-    public int RecruitToFullCost => CalculateImmediateRecruitCost(RecruitToFullWorkerCount);
+    public int RecruitToFullCost => CalculateRecruitWorkerCost();
+    public bool CanRecruitToFull => CalculateCanRecruitToFull();
     public float RawJobAttraction => rawJobAttraction;
     public float JobAttraction => jobAttraction;
     public float JobAttractionWithoutSubsidy => jobAttractionWithoutSubsidy;
@@ -327,10 +328,16 @@ public class LumberCabinLV1 : BuildingBase, IBuildingWorkforceFundingSource, IBu
         }
 
         RecalculateJobState();
-        var missingWorkers = Mathf.Max(0, maxWorkers - currentWorkers);
-        if (missingWorkers <= 0)
+        if (currentWorkers >= maxWorkers)
         {
-            return true;
+            NotifyStateChanged();
+            return false;
+        }
+
+        if (currentWorkers + 1 > stableWorkers)
+        {
+            NotifyStateChanged();
+            return false;
         }
 
         var availablePopulation = GetAvailablePopulation();
@@ -342,11 +349,9 @@ public class LumberCabinLV1 : BuildingBase, IBuildingWorkforceFundingSource, IBu
             return false;
         }
 
-        var recruitLimitByPopulation = Mathf.Min(missingWorkers, availablePopulation);
-        var recruitCount = CalculateAffordableRecruitCount(inventory, recruitLimitByPopulation);
-        var populationLimited = recruitLimitByPopulation < missingWorkers;
-        var goldLimited = recruitCount < recruitLimitByPopulation;
-        if (recruitCount <= 0)
+        const int recruitCount = 1;
+        var recruitCost = CalculateImmediateRecruitCost(recruitCount);
+        if (recruitCost > 0 && inventory.GetQuantity(goldItemId) < recruitCost)
         {
             SetLastAbnormalStatus(StatusRecruitGoldMissing, "招工金币不足");
             SendBuildingEvent(GameEventCatalog.GE_招工未完全补满, "招工金币不足，未能补满工人");
@@ -354,7 +359,6 @@ public class LumberCabinLV1 : BuildingBase, IBuildingWorkforceFundingSource, IBu
             return false;
         }
 
-        var recruitCost = CalculateImmediateRecruitCost(recruitCount);
         if (recruitCost > 0 && !inventory.TryRemoveItem(goldItemId, recruitCost))
         {
             SetLastAbnormalStatus(StatusRecruitGoldMissing, "招工金币不足");
@@ -363,14 +367,7 @@ public class LumberCabinLV1 : BuildingBase, IBuildingWorkforceFundingSource, IBu
         }
 
         currentWorkers += recruitCount;
-        lastTurnRecruitedWorker = recruitCount > 0;
-        lastTurnNoAvailablePopulation = populationLimited;
-        if (recruitCount < missingWorkers)
-        {
-            SendBuildingEvent(
-                GameEventCatalog.GE_招工未完全补满,
-                CreatePartialRecruitMessage(recruitCount, populationLimited, goldLimited));
-        }
+        lastTurnRecruitedWorker = true;
 
         RecalculateJobState();
         RefreshDynastyEmployedPopulation();
@@ -626,8 +623,12 @@ public class LumberCabinLV1 : BuildingBase, IBuildingWorkforceFundingSource, IBu
 
     private int CalculateRecruitToFullWorkerCount()
     {
-        var missingWorkers = Mathf.Max(0, maxWorkers - currentWorkers);
-        if (missingWorkers <= 0)
+        if (currentWorkers >= maxWorkers)
+        {
+            return 0;
+        }
+
+        if (currentWorkers + 1 > stableWorkers)
         {
             return 0;
         }
@@ -638,38 +639,35 @@ public class LumberCabinLV1 : BuildingBase, IBuildingWorkforceFundingSource, IBu
             return 0;
         }
 
+        return 1;
+    }
+
+    private int CalculateRecruitWorkerCost()
+    {
+        return currentWorkers >= maxWorkers ? 0 : CalculateImmediateRecruitCost(1);
+    }
+
+    private bool CalculateCanRecruitToFull()
+    {
+        var recruitCount = CalculateRecruitToFullWorkerCount();
+        if (recruitCount <= 0)
+        {
+            return false;
+        }
+
+        if (currentWorkers + recruitCount > stableWorkers)
+        {
+            return false;
+        }
+
         var inventory = GameSystem == null ? null : GameSystem.Inventory;
         if (inventory == null || !HasUsableItemId(goldItemId))
         {
-            return 0;
+            return false;
         }
 
-        return CalculateAffordableRecruitCount(inventory, Mathf.Min(missingWorkers, availablePopulation));
-    }
-
-    private int CalculateAffordableRecruitCount(InventoryService inventory, int maxRecruitCount)
-    {
-        maxRecruitCount = Mathf.Clamp(maxRecruitCount, 0, Mathf.Max(0, maxWorkers - currentWorkers));
-        if (maxRecruitCount <= 0)
-        {
-            return 0;
-        }
-
-        if (inventory == null || !HasUsableItemId(goldItemId))
-        {
-            return 0;
-        }
-
-        var gold = inventory.GetQuantity(goldItemId);
-        for (var count = maxRecruitCount; count >= 1; count--)
-        {
-            if (CalculateImmediateRecruitCost(count) <= gold)
-            {
-                return count;
-            }
-        }
-
-        return 0;
+        var recruitCost = CalculateRecruitWorkerCost();
+        return recruitCost <= 0 || inventory.GetQuantity(goldItemId) >= recruitCost;
     }
 
     private static string CreatePartialRecruitMessage(

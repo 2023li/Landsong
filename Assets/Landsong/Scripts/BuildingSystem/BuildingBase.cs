@@ -20,7 +20,7 @@ namespace Landsong.BuildingSystem
     /// 建筑 prefab 根节点上的运行时基类。
     /// BuildingDefinition 是 prefab 上的静态配置数据；具体建筑等级通过继承本类实现生命周期。
     /// </summary>
-    public abstract class BuildingBase : MonoBehaviour
+    public abstract class BuildingBase : MonoBehaviour, IBuildingFunctionBlockSource
     {
         public static readonly string DefaultDetailPanelAddressKey = "Popup_GeneralBuildingDetails";
 
@@ -31,6 +31,9 @@ namespace Landsong.BuildingSystem
 
         protected static readonly IReadOnlyList<BuildingResourceChange> EmptyResourceChanges =
             Array.Empty<BuildingResourceChange>();
+
+        protected static readonly IReadOnlyList<BuildingFunctionBlockEntry> EmptyFunctionBlockEntries =
+            Array.Empty<BuildingFunctionBlockEntry>();
 
         private static readonly IReadOnlyList<BuildingModuleBase> EmptyBuildingModules =
             Array.Empty<BuildingModuleBase>();
@@ -522,6 +525,25 @@ namespace Landsong.BuildingSystem
             return results;
         }
 
+        protected TModule EnsureBuildingModule<TModule>()
+            where TModule : BuildingModuleBase, new()
+        {
+            buildingModules ??= new List<BuildingModuleBase>();
+            for (var i = 0; i < buildingModules.Count; i++)
+            {
+                if (buildingModules[i] is TModule candidate && candidate.IsEnabled)
+                {
+                    candidate.Normalize();
+                    return candidate;
+                }
+            }
+
+            var module = new TModule();
+            module.Normalize();
+            buildingModules.Add(module);
+            return module;
+        }
+
         protected void AppendBuildingModuleDetailSections(ref List<BuildingDetailSection> sections)
         {
             if (buildingModules == null)
@@ -539,6 +561,86 @@ namespace Landsong.BuildingSystem
 
                 module.AppendDetailSections(this, ref sections);
             }
+        }
+
+        protected void AppendBuildingModuleFunctionBlockEntries(ref List<BuildingFunctionBlockEntry> entries)
+        {
+            if (buildingModules == null)
+            {
+                return;
+            }
+
+            for (var i = 0; i < buildingModules.Count; i++)
+            {
+                var module = buildingModules[i];
+                if (module == null || !module.IsEnabled)
+                {
+                    continue;
+                }
+
+                module.AppendFunctionBlockEntries(this, ref entries);
+            }
+        }
+
+        protected void AppendDefaultResourceFunctionBlockEntries(ref List<BuildingFunctionBlockEntry> entries)
+        {
+            if (this is IBuildingResourceConsumptionSource consumptionSource)
+            {
+                AppendResourceFunctionBlockEntries(
+                    ref entries,
+                    consumptionSource.CurrentResourceConsumptions,
+                    -1);
+            }
+
+            if (this is IBuildingResourceProductionSource productionSource)
+            {
+                AppendResourceFunctionBlockEntries(
+                    ref entries,
+                    productionSource.CurrentResourceProductions,
+                    1);
+            }
+        }
+
+        protected static void AppendResourceFunctionBlockEntries(
+            ref List<BuildingFunctionBlockEntry> entries,
+            IReadOnlyList<BuildingResourceChange> changes,
+            int sign,
+            IReadOnlyList<BuildingFunctionBlockSidebarRow> sidebarRows = null)
+        {
+            if (changes == null)
+            {
+                return;
+            }
+
+            sign = sign < 0 ? -1 : 1;
+            for (var i = 0; i < changes.Count; i++)
+            {
+                var change = changes[i];
+                if (!change.IsValid)
+                {
+                    continue;
+                }
+
+                entries ??= new List<BuildingFunctionBlockEntry>();
+                entries.Add(new BuildingFunctionBlockEntry(
+                    BuildingFunctionBlockGroup.Resource,
+                    change.ItemId,
+                    change.Amount * sign,
+                    sidebarRows));
+            }
+        }
+
+        protected static void AddFunctionBlockEntry(
+            ref List<BuildingFunctionBlockEntry> entries,
+            BuildingFunctionBlockEntry entry)
+        {
+            if (!entry.IsValid)
+            {
+                return;
+            }
+
+            entries ??= new List<BuildingFunctionBlockEntry>();
+            entries.Add(entry);
         }
 
         private void ResolveView()
@@ -929,6 +1031,14 @@ namespace Landsong.BuildingSystem
             List<BuildingDetailSection> sections = null;
             AppendBuildingModuleDetailSections(ref sections);
             return sections == null ? BuildingDetailInfo.Empty : new BuildingDetailInfo(sections);
+        }
+
+        public virtual IReadOnlyList<BuildingFunctionBlockEntry> GetFunctionBlockEntries()
+        {
+            List<BuildingFunctionBlockEntry> entries = null;
+            AppendDefaultResourceFunctionBlockEntries(ref entries);
+            AppendBuildingModuleFunctionBlockEntries(ref entries);
+            return entries == null ? EmptyFunctionBlockEntries : entries;
         }
         #endregion
 

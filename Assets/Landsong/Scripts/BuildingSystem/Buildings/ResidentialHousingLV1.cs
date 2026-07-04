@@ -122,6 +122,30 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
         return new BuildingDetailInfo(CreateDetailSections());
     }
 
+    public override IReadOnlyList<BuildingFunctionBlockEntry> GetFunctionBlockEntries()
+    {
+        List<BuildingFunctionBlockEntry> entries = null;
+        var foodAmount = GetCurrentFoodConsumptionAmount();
+        if (!isAbandoned && foodAmount > 0)
+        {
+            var foodConsumptionPerPopulation = GetFoodConsumptionPerPopulation();
+            AddFunctionBlockEntry(
+                ref entries,
+                new BuildingFunctionBlockEntry(
+                    BuildingFunctionBlockGroup.Resource,
+                    foodItemId,
+                    -foodAmount,
+                    new BuildingFunctionBlockSidebarRow(
+                        "每人口消耗",
+                        $"{foodConsumptionPerPopulation}{foodItemId}",
+                        -foodConsumptionPerPopulation,
+                        true)));
+        }
+
+        AppendBuildingModuleFunctionBlockEntries(ref entries);
+        return entries == null ? EmptyFunctionBlockEntries : entries;
+    }
+
     public override IReadOnlyList<BuildingRuntimeStatus> GetRuntimeStatuses()
     {
         return CreateRuntimeStatuses();
@@ -457,6 +481,13 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
     private int GetCurrentFoodConsumptionAmount()
     {
         return Mathf.Max(0, currentPopulation);
+    }
+
+    private int GetFoodConsumptionPerPopulation()
+    {
+        return currentPopulation <= 0
+            ? 0
+            : Mathf.CeilToInt(GetCurrentFoodConsumptionAmount() / (float)currentPopulation);
     }
 
     private bool RegisterConsumptionFailure(string statusId, string statusText, string warningMessage = null)

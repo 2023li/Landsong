@@ -20,6 +20,12 @@ namespace Landsong.BuildingSystem
         {
         }
 
+        public virtual void AppendFunctionBlockEntries(
+            BuildingBase building,
+            ref List<BuildingFunctionBlockEntry> entries)
+        {
+        }
+
         protected static void AddDetailSection(
             ref List<BuildingDetailSection> sections,
             string title,
@@ -33,6 +39,19 @@ namespace Landsong.BuildingSystem
 
             sections ??= new List<BuildingDetailSection>();
             sections.Add(section);
+        }
+
+        protected static void AddFunctionBlockEntry(
+            ref List<BuildingFunctionBlockEntry> entries,
+            BuildingFunctionBlockEntry entry)
+        {
+            if (!entry.IsValid)
+            {
+                return;
+            }
+
+            entries ??= new List<BuildingFunctionBlockEntry>();
+            entries.Add(entry);
         }
     }
 
@@ -84,6 +103,11 @@ namespace Landsong.BuildingSystem
 
         public int ProvidedSlotCount => Mathf.Max(0, providedSlotCount);
 
+        public void SetProvidedSlotCount(int slotCount)
+        {
+            providedSlotCount = Mathf.Max(0, slotCount);
+        }
+
         public override void Normalize()
         {
             providedSlotCount = Mathf.Max(0, providedSlotCount);
@@ -103,6 +127,23 @@ namespace Landsong.BuildingSystem
                 {
                     new BuildingDetailRow("提供库存格数", ProvidedSlotCount.ToString())
                 });
+        }
+
+        public override void AppendFunctionBlockEntries(
+            BuildingBase building,
+            ref List<BuildingFunctionBlockEntry> entries)
+        {
+            if (!IsEnabled)
+            {
+                return;
+            }
+
+            AddFunctionBlockEntry(
+                ref entries,
+                new BuildingFunctionBlockEntry(
+                    BuildingFunctionBlockGroup.Functionality,
+                    "库存格",
+                    ProvidedSlotCount));
         }
     }
 }

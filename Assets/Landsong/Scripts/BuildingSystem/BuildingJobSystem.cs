@@ -42,6 +42,7 @@ namespace Landsong.BuildingSystem
         int MissingWorkersToFull { get; }
         int RecruitToFullWorkerCount { get; }
         int RecruitToFullCost { get; }
+        bool CanRecruitToFull { get; }
         float JobAttractionWithoutSubsidy { get; }
         float SubsidyAttractionPerGold { get; }
         float SubsidyAttractionBonus { get; }

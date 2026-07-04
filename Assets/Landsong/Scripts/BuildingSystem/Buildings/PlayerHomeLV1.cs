@@ -3,8 +3,22 @@ using UnityEngine;
 
 public class PlayerHomeLV1 : BuildingBase
 {
+    private const int InventorySlotCapacity = 5;
+
+    protected override void Awake()
+    {
+        base.Awake();
+        EnsureInventorySlotCapacity();
+    }
+
+    public override string GetBaseInfo()
+    {
+        return $"仓库 +{InventorySlotCapacity}格 xxx";
+    }
+
     protected override void OnRegistered()
     {
+        EnsureInventorySlotCapacity();
         GameSystem?.Dynasty?.RegisterPalace(this);
     }
 
@@ -29,5 +43,11 @@ public class PlayerHomeLV1 : BuildingBase
         base.OnClicked();
         Debug.Log("1");
 
+    }
+
+    private void EnsureInventorySlotCapacity()
+    {
+        var module = EnsureBuildingModule<BuildingInventorySlotCapacityModule>();
+        module.SetProvidedSlotCount(InventorySlotCapacity);
     }
 }
