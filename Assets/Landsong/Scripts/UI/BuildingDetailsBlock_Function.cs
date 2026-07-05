@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public sealed class BuildingDetailsBlock_Function : MonoBehaviour
+public sealed class BuildingDetailsBlock_Function : BuildingDetailsBlockBase
 {
     [SerializeField] private TMP_Text txt_资源;
     [SerializeField] private TMP_Text txt_功能性;
@@ -21,19 +21,19 @@ public sealed class BuildingDetailsBlock_Function : MonoBehaviour
     private bool detailTriggerBound;
     private bool detailSidebarVisible;
 
-    public bool CanShow(BuildingBase targetBuilding)
+    public override bool CanShow(BuildingBase targetBuilding)
     {
         return HasAnyEntry(targetBuilding);
     }
 
-    public void Initialize(Popup_BuildingDetails detailOwner)
+    public override void Initialize(Popup_BuildingDetails detailOwner)
     {
         owner = detailOwner;
         ResolveTextFields();
         BindDetailTrigger();
     }
 
-    public void Bind(BuildingBase targetBuilding)
+    public override void Bind(BuildingBase targetBuilding)
     {
         building = targetBuilding;
         if (!HasAnyEntry(building))
@@ -46,7 +46,7 @@ public sealed class BuildingDetailsBlock_Function : MonoBehaviour
         Refresh();
     }
 
-    public void Refresh()
+    public override void Refresh()
     {
         if (!CollectEntries())
         {
@@ -64,7 +64,7 @@ public sealed class BuildingDetailsBlock_Function : MonoBehaviour
         }
     }
 
-    public void Unbind()
+    public override void Unbind()
     {
         building = null;
         sourceEntries.Clear();

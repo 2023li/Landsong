@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Landsong.BuildingSystem;
 using Landsong.UISystem;
@@ -19,9 +20,7 @@ public class Popup_BuildingDetails : MonoBehaviour
     [SerializeField] private RectTransform root_内容栏;
     [SerializeField] private GameObject prefab_标题;
     [SerializeField] private GameObject prefab_内容文本;
-    [SerializeField] private BuildingDetailsBlock_Workforce block_岗位;
-    [SerializeField] private BuildingDetailsBlock_Function block_功能;
-    [SerializeField] private BuildingDetailsBlock_Level block_等级;
+    [SerializeField] private BuildingDetailsBlockBase[] detailBlocks = Array.Empty<BuildingDetailsBlockBase>();
 
     private readonly List<GameObject> activeContentItems = new List<GameObject>();
     private readonly List<GameObject> activeSidebarItems = new List<GameObject>();
@@ -31,9 +30,7 @@ public class Popup_BuildingDetails : MonoBehaviour
 
     private void Awake()
     {
-        ResolveWorkforceBlock();
-        ResolveFunctionBlock();
-        ResolveLevelBlock();
+        ResolveDetailBlocks();
 
         if (btn_关闭弹窗 != null)
         {
@@ -79,20 +76,7 @@ public class Popup_BuildingDetails : MonoBehaviour
     {
         UnsubscribeBuilding();
         building = null;
-        if (block_岗位 != null)
-        {
-            block_岗位.Unbind();
-        }
-
-        if (block_功能 != null)
-        {
-            block_功能.Unbind();
-        }
-
-        if (block_等级 != null)
-        {
-            block_等级.Unbind();
-        }
+        UnbindDetailBlocks();
 
         SetText(txt_建筑名称, string.Empty);
         SetText(txt_建筑描述, string.Empty);
@@ -113,9 +97,7 @@ public class Popup_BuildingDetails : MonoBehaviour
         SetText(txt_建筑名称, displayData.BuildingName);
         SetText(txt_建筑描述, BuildDescriptionText(building, displayData));
         SetIcon(building.Definition == null ? null : building.Definition.Icon);
-        RefreshWorkforceBlock(building);
-        RefreshFunctionBlock(building);
-        RefreshLevelBlock(building);
+        RefreshDetailBlocks(building);
         ClearContentRoot();
     }
 
@@ -135,115 +117,98 @@ public class Popup_BuildingDetails : MonoBehaviour
         }
     }
 
-    private void ResolveWorkforceBlock()
+    private void ResolveDetailBlocks()
     {
-        if (block_岗位 == null)
-        {
-            block_岗位 = GetComponentInChildren<BuildingDetailsBlock_Workforce>(true);
-        }
+        EnsureFallbackBlockComponent<BuildingDetailsBlock_Function>("info_功能");
+        EnsureFallbackBlockComponent<BuildingDetailsBlock_Level>("info_等级");
 
-        if (block_岗位 == null)
-        {
-            return;
-        }
+        var resolvedBlocks = new List<BuildingDetailsBlockBase>();
+        AddDetailBlocks(detailBlocks, resolvedBlocks);
+        AddDetailBlocks(GetComponentsInChildren<BuildingDetailsBlockBase>(true), resolvedBlocks);
+        detailBlocks = resolvedBlocks.ToArray();
 
-        block_岗位.Initialize(this);
-    }
-
-    private void ResolveFunctionBlock()
-    {
-        if (block_功能 == null)
+        for (var i = 0; i < detailBlocks.Length; i++)
         {
-            block_功能 = GetComponentInChildren<BuildingDetailsBlock_Function>(true);
-        }
-
-        if (block_功能 == null)
-        {
-            var functionBlockRoot = FindChildByName(transform, "info_功能");
-            if (functionBlockRoot != null)
+            if (detailBlocks[i] != null)
             {
-                block_功能 = functionBlockRoot.gameObject.AddComponent<BuildingDetailsBlock_Function>();
+                detailBlocks[i].Initialize(this);
             }
         }
-
-        if (block_功能 == null)
-        {
-            return;
-        }
-
-        block_功能.Initialize(this);
     }
 
-    private void RefreshWorkforceBlock(BuildingBase targetBuilding)
+    private void EnsureFallbackBlockComponent<TBlock>(string childName)
+        where TBlock : BuildingDetailsBlockBase
     {
-        if (block_岗位 == null)
+        if (GetComponentInChildren<TBlock>(true) != null)
         {
             return;
         }
 
-        if (block_岗位.CanShow(targetBuilding))
+        var blockRoot = FindChildByName(transform, childName);
+        if (blockRoot != null)
         {
-            block_岗位.Bind(targetBuilding);
-            return;
+            blockRoot.gameObject.AddComponent<TBlock>();
         }
-
-        block_岗位.Unbind();
     }
 
-    private void ResolveLevelBlock()
+    private static void AddDetailBlocks(
+        IReadOnlyList<BuildingDetailsBlockBase> source,
+        List<BuildingDetailsBlockBase> target)
     {
-        if (block_等级 == null)
+        if (source == null || target == null)
         {
-            block_等级 = GetComponentInChildren<BuildingDetailsBlock_Level>(true);
+            return;
         }
 
-        if (block_等级 == null)
+        for (var i = 0; i < source.Count; i++)
         {
-            var levelBlockRoot = FindChildByName(transform, "info_等级");
-            if (levelBlockRoot != null)
+            var block = source[i];
+            if (block != null && !target.Contains(block))
             {
-                block_等级 = levelBlockRoot.gameObject.AddComponent<BuildingDetailsBlock_Level>();
+                target.Add(block);
             }
         }
-
-        if (block_等级 == null)
-        {
-            return;
-        }
-
-        block_等级.Initialize(this);
     }
 
-    private void RefreshFunctionBlock(BuildingBase targetBuilding)
+    private void RefreshDetailBlocks(BuildingBase targetBuilding)
     {
-        if (block_功能 == null)
+        if (detailBlocks == null)
         {
             return;
         }
 
-        if (block_功能.CanShow(targetBuilding))
+        for (var i = 0; i < detailBlocks.Length; i++)
         {
-            block_功能.Bind(targetBuilding);
-            return;
-        }
+            var block = detailBlocks[i];
+            if (block == null)
+            {
+                continue;
+            }
 
-        block_功能.Unbind();
+            if (block.CanShow(targetBuilding))
+            {
+                block.Bind(targetBuilding);
+                continue;
+            }
+
+            block.Unbind();
+        }
     }
 
-    private void RefreshLevelBlock(BuildingBase targetBuilding)
+    private void UnbindDetailBlocks()
     {
-        if (block_等级 == null)
+        if (detailBlocks == null)
         {
             return;
         }
 
-        if (block_等级.CanShow(targetBuilding))
+        for (var i = 0; i < detailBlocks.Length; i++)
         {
-            block_等级.Bind(targetBuilding);
-            return;
+            if (detailBlocks[i] != null)
+            {
+                detailBlocks[i].Unbind();
+            }
         }
-
-        block_等级.Unbind();
     }
 
     private void UnsubscribeBuilding()

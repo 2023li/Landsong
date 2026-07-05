@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public sealed class BuildingDetailsBlock_Workforce : MonoBehaviour
+public sealed class BuildingDetailsBlock_Workforce : BuildingDetailsBlockBase
 {
     [SerializeField] private Toggle tgl_自动补贴满岗位;
     [SerializeField] private Button btn_目标稳定工人上一档;
@@ -23,12 +23,12 @@ public sealed class BuildingDetailsBlock_Workforce : MonoBehaviour
     private bool workerDetailTriggerBound;
     private bool workerDetailSidebarVisible;
 
-    public bool CanShow(BuildingBase targetBuilding)
+    public override bool CanShow(BuildingBase targetBuilding)
     {
         return targetBuilding is IBuildingWorkforceFundingSource;
     }
 
-    public void Initialize(
+    public override void Initialize(
         Popup_BuildingDetails detailOwner)
     {
         owner = detailOwner;
@@ -37,7 +37,7 @@ public sealed class BuildingDetailsBlock_Workforce : MonoBehaviour
         BindWorkerDetailTrigger();
     }
 
-    public void Bind(BuildingBase targetBuilding)
+    public override void Bind(BuildingBase targetBuilding)
     {
         workforceFundingSource = targetBuilding as IBuildingWorkforceFundingSource;
         if (workforceFundingSource == null)
@@ -50,7 +50,7 @@ public sealed class BuildingDetailsBlock_Workforce : MonoBehaviour
         Refresh();
     }
 
-    public void Refresh()
+    public override void Refresh()
     {
         if (workforceFundingSource == null)
         {
@@ -79,7 +79,7 @@ public sealed class BuildingDetailsBlock_Workforce : MonoBehaviour
         }
     }
 
-    public void Unbind()
+    public override void Unbind()
     {
         workforceFundingSource = null;
         workerDetailSidebarVisible = false;

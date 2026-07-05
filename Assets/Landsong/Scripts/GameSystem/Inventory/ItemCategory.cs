@@ -1,5 +1,6 @@
 namespace Landsong.InventorySystem
 {
+    
     public enum ItemCategory
     {
         None = 0,

@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public sealed class BuildingDetailsBlock_Level : MonoBehaviour
+public sealed class BuildingDetailsBlock_Level : BuildingDetailsBlockBase
 {
     [SerializeField] private Toggle tgl_自动升级;
     [SerializeField] private Slider sld_经验进度;
@@ -17,19 +17,19 @@ public sealed class BuildingDetailsBlock_Level : MonoBehaviour
     private bool suppressCallback;
     private bool listenersBound;
 
-    public bool CanShow(BuildingBase targetBuilding)
+    public override bool CanShow(BuildingBase targetBuilding)
     {
         return targetBuilding != null
                && targetBuilding.TryGetModule<BM_等级升级>(out _);
     }
 
-    public void Initialize(Popup_BuildingDetails detailOwner)
+    public override void Initialize(Popup_BuildingDetails detailOwner)
     {
         ResolveFields();
         BindListeners();
     }
 
-    public void Bind(BuildingBase targetBuilding)
+    public override void Bind(BuildingBase targetBuilding)
     {
         building = targetBuilding;
         if (building == null || !building.TryGetModule(out levelModule))
@@ -42,7 +42,7 @@ public sealed class BuildingDetailsBlock_Level : MonoBehaviour
         Refresh();
     }
 
-    public void Refresh()
+    public override void Refresh()
     {
         if (levelModule == null)
         {
@@ -74,7 +74,7 @@ public sealed class BuildingDetailsBlock_Level : MonoBehaviour
         }
     }
 
-    public void Unbind()
+    public override void Unbind()
     {
         building = null;
         levelModule = null;
