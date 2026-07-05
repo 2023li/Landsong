@@ -1,53 +1,347 @@
 # AI_添加建筑规则
 
-这份文档给后续 AI 修改 Landsong 建筑系统时使用。它不是玩家教程，而是代码入口、架构边界和禁止事项清单。
+本文档给后续 AI / 开发者修改 Landsong 建筑系统时使用。它不是玩家教程，而是**当前仓库实现下的入口索引、职责边界、修改约束与交付清单**。
+
+如果旧文档、历史讨论、旧脚本命名与当前实现冲突，以**仓库当前代码和 Prefab 配置**为准。
+
+## 目的
+
+- 为新增建筑、扩展建筑玩法、修复建筑逻辑提供统一入口。
+- 约束“什么放到 `BuildingBase`、什么放到 `BuildingDefinition`、什么做成模块、什么留在具体建筑脚本”。
+- 避免修改时破坏 `SerializeReference` 模块列表、Prefab 绑定、存档恢复和运行时替换流程。
+
+## 前置条件
+
+开始修改前，至少先阅读这些入口文件：
+
+- `Assets/Landsong/Scripts/BuildingSystem/BuildingBase.cs`
+- `Assets/Landsong/Scripts/BuildingSystem/BuildingDefinition.cs`
+- `Assets/Landsong/Scripts/BuildingSystem/BuildingModules.cs`
+- `Assets/Landsong/Scripts/BuildingSystem/BuildingService.cs`
+- `Assets/Landsong/Scripts/BuildingSystem/BuildingAvailabilityEvaluator.cs`
+- `Assets/Landsong/Scripts/BuildingSystem/BuildingPlacementController.cs`
+- `Assets/Landsong/Scripts/BuildingSystem/BuildingJobSystem.cs`
+- `Assets/Landsong/Scripts/BuildingSystem/BuildingResourceInterfaces.cs`
+- `Assets/Landsong/Scripts/BuildingSystem/BuildingFunctionBlockInterfaces.cs`
+- `Assets/Landsong/Scripts/BuildingSystem/BuildingRuntimeStatusCatalog.cs`
+- `Assets/Landsong/Scripts/BuildingSystem/BuildingSaveDataRegistry.cs`
+
+如果要改具体建筑，再补读对应脚本和 Prefab，例如：
+
+- `Assets/Landsong/Scripts/BuildingSystem/Buildings/LumberCabin.cs`
+- `Assets/Landsong/Scripts/BuildingSystem/Buildings/ResidentialHousingLV0.cs`
+- `Assets/Landsong/Scripts/BuildingSystem/Buildings/ResidentialHousingLV1.cs`
+- `Assets/Landsong/Scripts/BuildingSystem/Buildings/PlayerHomeLV1.cs`
+- `Assets/Landsong/Scripts/BuildingSystem/Buildings/FishingHutBuilding.cs`
 
 ## 最高优先级规则
 
-1. 先读本文件，再读 `Document/建筑扩展规则README.md` 和 `Document/建筑创建完整教程README.md`。如果文档和旧脚本冲突，以文档和当前架构入口为准。
-2. 不要把 `LumberCabin` 当作 `IBuildingWorkforceFundingSource` 的最终实现规范；它只能作为 API 调用形式参考。
-3. 不需要旧兼容时，删除旧 API、旧字段、旧存档分支和无消费者接口，不要保留兼容壳。
-4. 不要为某一个具体建筑把字段塞进 `BuildingBase` 或 `BuildingDefinition`。通用能力做模块，独有行为写具体建筑脚本。
-5. 不要通过重命名已有 `BuildingModuleBase` 子类来做检查器中文显示。`SerializeReference` 会记录托管类型名，直接改类名会破坏 prefab 引用。现有模块用 `ModuleDisplayName` 和 `ModuleDescription` 显示中文名称与说明。
-6. 没有用户明确要求时，不改 prefab、scene、ScriptableObject 资产。代码修改后把需要手工配置的 prefab 字段写清楚。
-7. 源码编译通过不等于 Unity 检查器、prefab、运行时交互都正确。涉及 Odin 绘制、SerializeReference、prefab 字段时，要提示需要 Unity Editor 验证。
+### 不要误判当前架构
 
-## 核心入口
+当前项目不是“纯继承”也不是“纯组件化”，而是三层组合：
 
-| 目标 | 入口 |
-| --- | --- |
-| 建筑运行时基类 | `Assets/Landsong/Scripts/BuildingSystem/BuildingBase.cs` |
-| 建筑静态配置 | `Assets/Landsong/Scripts/BuildingSystem/BuildingDefinition.cs` |
-| 建筑模块 | `Assets/Landsong/Scripts/BuildingSystem/BuildingModules.cs` |
-| 建筑放置、替换、升级替换 | `Assets/Landsong/Scripts/BuildingSystem/BuildingService.cs` |
-| 玩家放置输入和预览 | `Assets/Landsong/Scripts/BuildingSystem/BuildingPlacementController.cs` |
-| 建筑目录 | `Assets/Landsong/Scripts/BuildingSystem/BuildingCatalog.cs` |
-| 回合推进 | `Assets/Landsong/Scripts/GameSystem/TurnService.cs` |
-| 库存服务 | `Assets/Landsong/Scripts/GameSystem/Inventory/InventoryService.cs` |
-| 建造/升级成本扣除扩展 | `Assets/Landsong/Scripts/GameSystem/Inventory/InventoryBuildingCostExtensions.cs` |
-| 资源产出/消耗/税收/科技点接口 | `Assets/Landsong/Scripts/BuildingSystem/BuildingResourceInterfaces.cs` |
-| 工人、岗位、补贴接口 | `Assets/Landsong/Scripts/BuildingSystem/BuildingJobSystem.cs` |
-| 详情面板功能块数据结构 | `Assets/Landsong/Scripts/BuildingSystem/BuildingFunctionBlockInterfaces.cs` |
-| 建筑异常状态 ID | `Assets/Landsong/Scripts/BuildingSystem/BuildingRuntimeStatusCatalog.cs` |
-| 建筑存档类型注册 | `Assets/Landsong/Scripts/BuildingSystem/BuildingSaveDataRegistry.cs` |
-| 科技服务总入口 | `Assets/Landsong/Scripts/GameSystem/GameSystem.cs` |
+- `BuildingBase`：统一生命周期、放置状态、模块入口、公共存档、公共 UI 入口。
+- `BuildingDefinition`：Prefab 级静态定义。
+- `BM_*` 模块：多个建筑可复用、但不是所有建筑都需要的能力。
+- 具体建筑脚本：真正的每回合玩法逻辑。
 
-## 新建筑创建流程
+### 不要把特例字段塞进 `BuildingBase` 或 `BuildingDefinition`
 
-1. 判断建筑是否需要独有逻辑。
-   - 只有静态配置不同：优先复用已有脚本和模块。
-   - 有独立回合、工人、产出、升级、存档、详情 UI：创建新的 `BuildingBase` 子类。
-2. 在 prefab 根节点上挂具体建筑脚本。
-3. 在 prefab 的 `definition` 中配置静态数据：建筑 ID、显示名、分类、图标、占地、地形要求、移动阻力、放置成本、菜单显示条件、数量限制、专属详情面板。
-4. 把运行时状态写在具体建筑脚本或模块中，不写进 `BuildingDefinition`。
-5. 可复用能力抽成 `BuildingModuleBase` 子类，并挂到 `BuildingBase` 的 `buildingModules` 列表。
-6. 有存档状态时，创建继承 `BuildingDataBase` 的数据类，并添加稳定的 `[BuildingDataTypeId("building.xxx")]`。
-7. 需要在详情面板显示产出、消耗、功能、状态时，实现对应接口或重写 `GetFunctionBlockEntries()` / `GetRuntimeStatuses()`。
-8. 把 prefab 加入 `BuildingCatalog`，建造菜单只从目录和 `BuildingDefinition` 读取。
+下列内容通常不应该放进 `BuildingBase` / `BuildingDefinition`：
 
-## BuildingDefinition 规则
+- 当前工人数
+- 当前人口
+- 当前经验
+- 当前生产进度
+- 当前作物
+- 连续失败次数
+- 上回合异常状态
+- 自动开关的建筑实例状态
 
-`BuildingDefinition` 只放 prefab 级静态配置：
+这些都属于**具体建筑运行时状态**，应留在建筑脚本或模块状态中。
+
+### 不要绕过 `BuildingService`
+
+运行时放置、替换、拆除、批量道路放置统一走：
+
+- `BuildingService.TryPlace(...)`
+- `BuildingService.TryPlaceBatch(...)`
+- `BuildingService.TryReplace(...)`
+- `BuildingService.Demolish(...)`
+- `BuildingService.Remove(...)`
+
+不要在建筑脚本里手写：
+
+- `Instantiate(newPrefab)` 然后自己占格
+- `Destroy(oldBuilding)` 再手工补注册
+- 直接改 Grid 占用状态
+
+### 不要重命名已有模块类型
+
+`buildingModules` 使用的是 `SerializeReference`。  
+模块状态恢复还会通过模块托管类型名进行匹配。
+
+因此：
+
+- **不要通过重命名模块类来做中文显示**
+- **不要随意改已有模块的 C# 全名**
+- 如果必须改，必须同步处理旧 Prefab 和存档迁移
+
+### 不要假设存在 `ModuleDisplayName`
+
+当前 `BuildingModuleBase` 只有这些稳定入口：
+
+- `IsEnabled`
+- `ModuleDescription`
+- `Normalize()`
+- `AppendFunctionBlockEntries(...)`
+- `ToString()` 返回类型名
+
+当前代码里**没有** `ModuleDisplayName` 属性。  
+如果要改善检查器可读性，请优先通过：
+
+- 类名本身
+- `ModuleDescription`
+- 字段的 `[LabelText("中文名")]`
+- 文档与注释
+
+而不是凭空使用不存在的 API。
+
+### 没有明确要求时，不直接改资产
+
+没有用户明确要求时，不主动改这些资产：
+
+- Prefab
+- Scene
+- ScriptableObject
+- Catalog 资产
+- Addressables 配置
+
+如果确实需要代码新增字段，请在交付说明里写清楚需要在 Unity Editor 手工补哪些绑定。
+
+## 核心实现细节
+
+### 建筑生命周期
+
+建筑真正的运行时入口在 `BuildingBase`：
+
+```mermaid
+flowchart TD
+    A[Prefab 实例创建] --> B[BuildingBase.Start]
+    B --> C[GameSystem.RegisterBuilding]
+    C --> D[BuildingBase.Initialize]
+    D --> E[OnInitialized]
+    D --> F[OnRegistered]
+    D --> G{已有 Placement?}
+    G -->|是| H[OnPlaced]
+```
+
+关键点：
+
+- `Start()` 默认会调用 `Landsong.GameSystem.Instance.RegisterBuilding(this)`。
+- `Initialize()` 会设置 `GameSystem`、标记已初始化，并触发 `OnInitialized / OnRegistered / OnPlaced`。
+- `SetPlacement(...)` 只写放置信息，不负责注册。
+- `ProcessTurn()` 是统一回合入口；`OnTurn()` 成功后会尝试自动升级。
+- `OnDestroy()` 会清理占格并注销建筑，业务拆除逻辑应写在 `OnDemolished()`。
+
+### 放置、替换与拆除
+
+放置主流程：
+
+```mermaid
+flowchart TD
+    A[BuildingPlacementController] --> B[BuildingService.TryPlace]
+    B --> C[GridMap.CanOccupy]
+    B --> D[GridMap.TryOccupy]
+    B --> E[Instantiate Prefab]
+    B --> F[building.SetPlacement]
+    B --> G[building.gameObject.SetActive true]
+    G --> H[BuildingBase.Start]
+    H --> I[GameSystem.RegisterBuilding]
+```
+
+替换主流程：
+
+```mermaid
+flowchart TD
+    A[源建筑] --> B[BuildingService.TryReplace]
+    B --> C[ClearPlacement]
+    B --> D[TryPlace 新 Prefab]
+    D --> E[ReceiveReplacementStateFrom]
+    E --> F[Destroy 旧建筑]
+```
+
+约束：
+
+- 等级升级本质上是**替换 Prefab**，不是在同一实例里硬切“当前等级”。
+- 施工态建筑升级成完工建筑，也应优先复用替换流程。
+
+### 回合与模块数据流
+
+当前回合职责分配：
+
+- 具体建筑脚本负责 `OnTurn()` 的业务逻辑。
+- `BM_资源产出` 负责周期、产量表、上回合产出记录。
+- `BM_等级升级` 负责升级条件、升级成本、目标 Prefab 与自动升级。
+- `BM_科技点产出` 负责保存每回合科技点数值和上回合结果。
+- `BuildingJobSystem` 负责岗位吸引力与稳定工人数公式。
+- `BuildingAvailabilityEvaluator` 负责建造菜单可见/可用状态。
+
+### 存档规则
+
+所有有运行时状态的建筑，都应通过 `CaptureBuildingData()` / `RestoreBuildingData(...)` 保存自身状态。
+
+同时，`BuildingBase` 已经会统一保存这些公共模块状态：
+
+- `BM_等级升级`
+- `BM_资源产出`
+- 所有实现 `IBuildingModuleStateSerializer` 的模块状态
+
+新增建筑数据类时：
+
+```csharp
+[Serializable]
+[BuildingDataTypeId("building.example")]
+private sealed class ExampleBuildingData : BuildingDataBase
+{
+    public int CurrentProgress;
+    public bool AutoEnabled;
+}
+```
+
+规则：
+
+- `BuildingDataTypeId` 必须是**稳定字符串**。
+- 不要用类名当存档 ID。
+- 不要把可由 Prefab 静态配置重建出来的内容重复存档。
+
+### UI 数据出口
+
+建筑详情和状态读取统一来自以下入口：
+
+- `GetOverviewInfo()`
+- `GetRuntimeStatuses()`
+- `GetFunctionBlockEntries()`
+- `IBuildingResourceConsumptionSource`
+- `IBuildingResourceProductionSource`
+- `IBuildingTaxSource`
+- `IBuildingTechnologyPointSource`
+- `IBuildingWorkforceFundingSource`
+
+不要在 UI 层硬写：
+
+```csharp
+if (building is LumberCabin) { ... }
+else if (building is ResidentialHousingLV1) { ... }
+```
+
+应由建筑脚本或模块把结构化数据准备好。
+
+## 现有模块说明
+
+### `BM_资源产出`
+
+用途：
+
+- 按工人数和产量表决定每次产出多少资源
+- 维护生产周期 `productionIntervalTurns`
+- 保存 `productionProgress`
+- 暴露 `CurrentResourceProductions / LastResourceProductions`
+
+适合场景：
+
+- 伐木
+- 捕鱼
+- 农田成熟收获
+- 工坊生产
+
+### `BM_附近人口岗位吸引`
+
+用途：
+
+- 为岗位建筑提供“附近人口带来的就业吸引力加成”
+
+当前字段：
+
+- `populationSearchRadius`
+- `attractionPerNearbyPopulation`
+
+### `BM_库存格容量`
+
+用途：
+
+- 建筑存在时提供额外容量
+- 由 `GameSystem` 聚合后影响全局库存格数
+
+### `BM_科技点产出`
+
+用途：
+
+- 建筑成功完成回合后提供科技点
+- 记录上回合科技点
+- 自带模块状态序列化
+
+### `BM_等级升级`
+
+用途：
+
+- 保存升级经验
+- 检查升级条件与升级消耗
+- 使用目标 Prefab 替换当前建筑
+
+关键参数：
+
+- `autoUpgradeEnabled`
+- `currentExperience`
+- `requiredExperience`
+- `upgradeTargetPrefab`
+- `upgradeCondition`
+- `upgradeCosts`
+
+## 具体建筑实现模式
+
+### 只需要静态差异
+
+如果新建筑只是这些东西不同：
+
+- 名字
+- 图标
+- 尺寸
+- 建造成本
+- 菜单分类
+- 模块参数
+
+优先做法：
+
+- 复用现有脚本
+- 改 Prefab 上的 `BuildingDefinition`
+- 改 `buildingModules` 参数
+
+例如当前伐木小屋 LV1 / LV2 就更接近这种模式。
+
+### 需要独立回合逻辑
+
+如果新建筑有这些差异：
+
+- 独立消耗/生产规则
+- 独立人口/岗位/税收逻辑
+- 独立异常状态
+- 独立运行时存档
+- 独立详情面板说明
+
+应创建新的 `BuildingBase` 子类。
+
+例如：
+
+- `ResidentialHousingLV1`
+- `LumberCabin`
+- `FishingHutBuilding`
+
+## 配置参数清单
+
+### `BuildingDefinition` 应配置什么
+
+必须优先检查这些项：
 
 - `buildingId`
 - `displayName`
@@ -62,293 +356,149 @@
 - `buildMenuSortOrder`
 - `maxBuildCount`
 - `buildLimitGroupId`
+- `isDevelopmentCompleted`
+- `useUniqueDetailPanel`
 - `uniqueDetailPanel`
 
-不要放这些内容：
+### 建筑 Prefab 上常见运行时参数
 
-- 当前工人数
-- 当前经验
-- 当前种植作物
-- 当前冷却回合
-- 上回合产出
-- 自动收获开关
-- 运行时警告状态
-- 具体建筑的 UI 文案拼接
+视建筑脚本而定，常见参数包括：
 
-## BuildingBase 规则
+- `maxWorkers`
+- `initialWorkersOnPlaced`
+- `baseJobAttraction`
+- `singleRecruitCost`
+- `foodItemId`
+- `growthIntervalTurns`
+- `taxIntervalTurns`
+- `consumptionFailureDecayThreshold`
+- `isResourceProviderPoint`
+- `buildingActionPower`
 
-具体建筑脚本继承 `BuildingBase`，重点实现这些方法：
+## 示例
 
-- `OnPlaced()`：建筑完成放置并拥有格子位置后触发。
-- `OnTurn()`：每回合逻辑。返回 `true` 表示本回合执行成功，返回 `false` 表示本回合失败但不阻断整个回合推进。
-- `CaptureBuildingData()`：保存具体建筑运行时状态。
-- `RestoreBuildingData(BuildingDataBase data)`：恢复具体建筑运行时状态。
-- `GetOverviewInfo()`：建筑列表、选中栏、底栏的一行摘要。
-- `GetRuntimeStatuses()`：建筑异常状态。
-- `GetFunctionBlockEntries()`：详情面板顶部功能块和右侧行数据。
-
-注意：
-
-- `ProcessTurn()` 已经负责调用 `OnTurn()`，成功后尝试 `BuildingLevelUpgradeModule` 自动升级，并最终 `NotifyStateChanged()`。
-- 子类在非回合流程中修改运行时状态后，需要调用 `NotifyStateChanged()`。该方法是 `protected`，模块不能直接调用。
-- 子类重写 `Start()` 时必须调用 `base.Start()`，否则建筑不会正确注册到 `GameSystem`。
-- 不要绕过 `BuildingService` 自己实例化、占格或替换建筑。
-
-## BuildingModule 规则
-
-模块用于表达“多个建筑可复用的能力”，不是 MonoBehaviour。
-
-模块必须满足：
-
-- 继承 `BuildingModuleBase`。
-- 使用 `[Serializable]`。
-- 只保存该能力自己的配置和轻量运行时状态。
-- 实现 `Normalize()` 修正非法值。
-- 通过 `ModuleDisplayName` 返回检查器中文名，例如 `BM_科技点产出`。
-- 通过 `ModuleDescription` 返回模块作用说明。
-- 需要显示到详情功能块时，重写 `AppendFunctionBlockEntries(BuildingBase building, ref List<BuildingFunctionBlockEntry> entries)`。
-
-模块默认没有完整生命周期。当前基础模块只提供：
-
-- `Normalize()`
-- `AppendFunctionBlockEntries(...)`
-- `IsEnabled`
-
-如果模块需要参与回合、保存、恢复，必须由拥有它的 `BuildingBase` 子类显式调用模块方法，并在建筑数据类中保存模块状态，除非后续架构已经增加了统一模块生命周期。
-
-现有模块：
-
-- `BuildingNearbyPopulationJobAttractionModule`：检查器显示 `BM_附近人口岗位吸引`。
-- `BuildingInventorySlotCapacityModule`：检查器显示 `BM_库存格容量`。
-- `BuildingTechnologyPointModule`：检查器显示 `BM_科技点产出`。
-- `BuildingLevelUpgradeModule`：检查器显示 `BM_等级升级`。
-
-新增模块示例：
+### 新增一个“生产型岗位建筑”的推荐写法
 
 ```csharp
-[Serializable]
-public sealed class BuildingCropPlantingModule : BuildingModuleBase
+public sealed class ExampleWorkshop : BuildingBase, IBuildingWorkforceFundingSource
 {
-    [SerializeField, LabelText("成熟回合数"), Min(1)]
-    private int matureTurns = 3;
-
-    public override string ModuleDisplayName => "BM_种植";
-    public override string ModuleDescription => "保存种植配置，提供播种、成熟、收获、铲除相关能力。";
-
-    public int MatureTurns => Mathf.Max(1, matureTurns);
-
-    public override void Normalize()
+    protected override void OnRegistered()
     {
-        matureTurns = Mathf.Max(1, matureTurns);
+        RecalculateState();
+    }
+
+    protected override void OnPlaced()
+    {
+        RecalculateState();
+    }
+
+    protected override bool OnTurn()
+    {
+        var inventory = GameSystem?.Inventory;
+        if (inventory == null)
+        {
+            return false;
+        }
+
+        RecalculateState();
+
+        var result = EnsureBuildingModule<BM_资源产出>()
+            .TryAdvanceProductionCycle(this, inventory, CurrentWorkers, MaxWorkers);
+
+        if (result.ProducedResources && TryGetModule<BM_等级升级>(out var levelModule))
+        {
+            levelModule.AddExperience(1);
+        }
+
+        return result.Succeeded;
     }
 }
 ```
 
-## 回合与产出规则
+### 新增一个“施工态 -> 完工态”建筑
 
-回合入口是 `TurnService`：
+参考 `ResidentialHousingLV0`：
 
-- `TurnService.NextTurn(...)` 和 `NextTurnRoutine(...)` 会快照当前建筑列表。
-- 每个建筑由 `ProcessBuildingTurn(...)` 调用 `building.ProcessTurn()`。
-- 建筑未初始化、正在拆除或为空会计入 `Skipped`。
-- `OnTurn()` 返回 `false` 会计入 `Failed`。
-- `OnTurn()` 返回 `true` 会计入 `OperatingConsumed`，并触发资源和科技点事件。
+- 保存施工经验
+- 每回合扣一段材料
+- 达到阈值后调用 `BuildingService.TryReplace(...)`
+- 不要在同一个实例里把脚本切成 LV1
 
-建筑产出资源时：
+## 编辑器与使用步骤
 
-- 实现 `IBuildingResourceProductionSource`。
-- `CurrentResourceProductions` 表示当前预期产出。
-- `LastResourceProductions` 表示上一次成功产出。
-- 使用 `GameSystem.Inventory.TryAddItem(itemId, amount)` 增加库存。
-- 库存写入失败时返回 `false` 或记录异常状态，具体取决于建筑规则。
+### 新建筑接入步骤
 
-建筑消耗资源时：
+1. 复制一个最接近的建筑 Prefab。
+2. 决定是复用现有脚本，还是创建新的 `BuildingBase` 子类。
+3. 填写 `BuildingDefinition`。
+4. 配置 `buildingModules`。
+5. 如果有运行时状态，补 `BuildingDataBase` 数据类和 `[BuildingDataTypeId(...)]`。
+6. 确保 `GetOverviewInfo()`、`GetRuntimeStatuses()`、`GetFunctionBlockEntries()` 能提供 UI 所需信息。
+7. 把 Prefab 加入 `BuildingCatalog.asset`。
+8. 在 Unity Editor 验证：
+   - 放置是否成功
+   - 详情面板是否正常
+   - 模块是否仍可在 Inspector 中显示
+   - 存档恢复是否正常
+   - 升级替换是否保留需要的状态
 
-- 实现 `IBuildingResourceConsumptionSource`。
-- 使用 `GameSystem.Inventory.HasItem(...)`、`TryRemoveItem(...)`、`TryRemoveItems(...)`。
-- `BuildingCost[]` 类型成本用 `CanAffordBuildingCosts(...)` 和 `TrySpendBuildingCosts(...)`。
+## 排错
 
-科技点不要由建筑直接写入科技服务。需要每回合科技点时，使用或确保存在 `BuildingTechnologyPointModule`，回合系统会在建筑成功处理后收集。
+### 建筑放不下
 
-## 工人规则
+先查：
 
-需要工人 UI、岗位吸引、补贴或稳定工人数时，建筑实现 `IBuildingWorkforceFundingSource`。
+- `BuildingDefinition.size`
+- `requiredTerrainKeys`
+- `movementResistance`
+- `GridMap.CanOccupy(...)`
+- `BuildingService.TryPlace(...)` 返回的失败原因
 
-工人相关逻辑入口：
+### 建筑能显示但不能建造
 
-- `IBuildingJobSource`
-- `IBuildingWorkforceFundingSource`
-- `BuildingJobSystem.Calculate(...)`
-- `BuildingDetailsBlock_Workforce`
-- `BuildingNearbyPopulationJobAttractionModule`
+先查：
 
-工人数不足需要警告时，优先使用 `BuildingRuntimeStatusCatalog.BS_工人不足` 或 `BS_缺工`，不要新增重复含义的状态 ID。
+- `visibleCondition`
+- `availableCondition`
+- `isDevelopmentCompleted`
+- `maxBuildCount / buildLimitGroupId`
+- `placementCosts`
+- `BuildingAvailabilityEvaluator`
 
-## 升级规则
+### 模块丢失或 Prefab 打开报错
 
-可升级建筑优先使用 `BuildingLevelUpgradeModule`：
+先查：
 
-- 当前经验：`CurrentExperience`
-- 所需经验：`RequiredExperience`
-- 自动升级开关：`AutoUpgradeEnabled`
-- 升级目标 prefab：`UpgradeTargetPrefab`
-- 升级条件：`UpgradeCondition`
-- 升级成本：`UpgradeCosts`
+- 最近是否改过模块类名
+- 最近是否改过模块所在命名空间
+- 最近是否从 `SerializeReference` 列表删除过类型
 
-成功产出后加经验：
+### 升级没有触发
 
-```csharp
-if (TryGetModule<BuildingLevelUpgradeModule>(out var levelModule))
-{
-    levelModule.AddExperience(1);
-}
-```
+先查：
 
-升级本质是建筑替换：
+- 是否真的在成功产出后增加了经验
+- `BM_等级升级.requiredExperience`
+- `upgradeTargetPrefab`
+- `upgradeCondition`
+- `upgradeCosts`
+- `BuildingService.CanReplace(...)`
 
-- 不要在同一个实例上硬切等级状态。
-- LV1 和 LV2 行为明显不同、最大工人数不同、特殊产出不同，通常创建两个 prefab 和两个脚本，或一个基类加两个子类。
-- 使用 `BuildingService.TryReplace(...)` 或 `BuildingLevelUpgradeModule.TryUpgrade(...)` 完成替换。
+### 建筑详情不显示资源/功能块
 
-需要科技解锁条件时，优先使用条件系统中的科技解锁条件。直接查询时使用 `GameSystem.IsTechnologyUnlocked(string technologyId)`。
+先查：
 
-## 详情 UI 规则
+- 是否实现了对应接口
+- 是否重写了 `GetFunctionBlockEntries()`
+- 是否忘记调用 `AppendBuildingModuleFunctionBlockEntries(ref entries)`
 
-不要在 UI 层用建筑类型分支拼接业务数据。建筑或模块负责提供结构化数据。
+## 变更记录
 
-详情入口：
+### 2026-07-06
 
-- `BuildingBase.GetOverviewInfo()`
-- `BuildingBase.GetRuntimeStatuses()`
-- `BuildingBase.GetFunctionBlockEntries()`
-- `BuildingFunctionBlockEntry`
-- `BuildingFunctionBlockSidebarRow`
-- `BuildingDetailsBlock_Function`
-- `BuildingDetailsBlock_Workforce`
-
-功能块分组：
-
-- `BuildingFunctionBlockGroup.资源组`
-- `BuildingFunctionBlockGroup.功能性`
-
-如果建筑实现了 `IBuildingResourceProductionSource` 或 `IBuildingResourceConsumptionSource`，默认 `GetFunctionBlockEntries()` 会通过 `AppendDefaultResourceFunctionBlockEntries(...)` 输出资源变化。自定义行数据时可以创建带 `SidebarRows` 的 `BuildingFunctionBlockEntry`。
-
-## 运行状态规则
-
-异常状态统一走 `BuildingRuntimeStatus` 和 `BuildingRuntimeStatusCatalog`。
-
-常用状态：
-
-- `BS_库存缺失`
-- `BS_工人不足`
-- `BS_缺工`
-- `BS_招工金币不足`
-- `BS_补贴金币不足`
-- `BS_道路不通`
-- `BS_消耗失败`
-
-添加状态时：
-
-- 先查 `BuildingRuntimeStatusCatalog` 是否已有同义状态。
-- 只有 UI 需要统一识别的新异常才添加 catalog 常量。
-- 建筑本地临时状态可以在 `GetRuntimeStatuses()` 中按当前状态生成。
-
-## 存档规则
-
-有运行时状态的建筑必须提供数据类：
-
-```csharp
-[Serializable]
-[BuildingDataTypeId("building.example")]
-private sealed class ExampleBuildingData : BuildingDataBase
-{
-    public int CurrentProgress;
-    public bool AutoEnabled;
-}
-```
-
-规则：
-
-- `BuildingDataTypeId` 必须稳定，不要用 C# 类名或命名空间当作存档 ID。
-- 字段只保存恢复玩法所需的数据，不保存可由 prefab 配置重新计算的数据。
-- `BuildingBase` 已经统一保存 `BuildingLevelUpgradeModule` 的自动升级和经验。
-- 不需要旧兼容时，不写旧字段映射和旧 ID fallback。
-
-## 放置与目录规则
-
-放置统一走 `BuildingService.TryPlace(...)`：
-
-- 扣除放置成本。
-- 检查地形和占地。
-- 实例化 prefab。
-- 写入 grid 占用。
-- 注册建筑。
-
-替换统一走 `BuildingService.TryReplace(...)`：
-
-- 用于升级、形态变化、阶段替换。
-- 不要在建筑脚本里手动 `Instantiate` 新建筑再 `Destroy` 旧建筑。
-
-`BuildingPlacementController` 只处理玩家输入、预览、高亮和确认请求，不承载业务规则。
-
-新建筑进入建造菜单时，确认：
-
-- prefab `definition.BuildingId` 唯一且非空。
-- prefab `definition.Size` 正确。
-- prefab `definition.RequiredTerrainKeys` 正确。
-- prefab 已加入 `BuildingCatalog`。
-- 放置成本在 `definition.PlacementCosts`。
-- 运营、生产、升级成本不要放在 `PlacementCosts`。
-
-## 检查器与 Odin 规则
-
-`SerializeReference` 模块列表：
-
-- 不要为了中文显示重命名已有 C# 类型。
-- 用 `ModuleDisplayName`、`ModuleDescription` 和 `ToString()` 改善检查器显示。
-- 新模块字段用 `[LabelText("中文名")]` 和 `[PropertyTooltip("说明")]`。
-
-Odin 表格：
-
-- `TableList` 中的行类型不要随意加 `[InlineProperty]`，容易造成表头、单元格重叠。
-- 表格列字段用 `[LabelText("中文列名")]`。
-- 字段重命名但需要保留当前 prefab 数据时，用 `[FormerlySerializedAs("oldFieldName")]`。
-- 如果用户明确说不需要旧数据兼容，可以不加旧字段兼容。
-
-## 验证规则
-
-代码修改后至少运行：
-
-```powershell
-dotnet build Assembly-CSharp.csproj --no-restore
-```
-
-如果缺 restore 产物，再运行：
-
-```powershell
-dotnet build Assembly-CSharp.csproj
-```
-
-文档或纯注释修改不需要编译，但最终说明要写清楚“未运行编译，因为只改文档”。
-
-涉及这些内容时，需要 Unity Editor 侧继续确认：
-
-- prefab 字段绑定
-- `SerializeReference` 模块列表
-- Odin 检查器绘制
-- Addressables / Catalog 引用
-- UI prefab 显示
-- 场景初始建筑配置
-
-## 常见错误
-
-- 把当前工人数、成熟回合、经验写进 `BuildingDefinition`。
-- 在 `BuildingPlacementController` 里添加建筑业务规则。
-- 直接改已有模块 C# 类名导致 prefab 丢失 `SerializeReference`。
-- 建筑产出后没有更新 `LastResourceProductions`，导致回合事件和 UI 看不到上回合产出。
-- `OnTurn()` 失败仍然给经验、科技点或产物。
-- 存档数据类缺少 `[BuildingDataTypeId(...)]`。
-- 重写 `Start()` 不调用 `base.Start()`。
-- UI 层按建筑类型写 `if (building is XxxBuilding)` 拼接详情。
-- 为了一个建筑的独有逻辑污染 `BuildingBase`。
-- 只跑 `dotnet build` 就断言 prefab 和检查器已经正确。
+- 按当前 `main` 分支实现重写整份规则文档。
+- 删除对 `ModuleDisplayName` 的错误依赖说明。
+- 补充 `BuildingBase` 公共模块存档边界。
+- 明确 `ResidentialHousingLV0` 与 `ResidentialHousingLV1` 的职责分工。
+- 明确 `LumberCabin` 当前是共享脚本而非 `LumberCabinLV1/LV2` 两个类。
+- 补充 `BuildingAvailabilityEvaluator`、`BuildingCatalog.asset` 与 `GameSystem.prefab` 的接入要求。
