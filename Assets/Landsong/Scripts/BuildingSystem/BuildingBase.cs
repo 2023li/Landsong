@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Landsong.AudioSystem;
 using Landsong.GameEventSystem;
 using Landsong.GridSystem;
 using Sirenix.OdinInspector;
@@ -17,6 +18,7 @@ namespace Landsong.BuildingSystem
         public int LevelUpgradeCurrentExperience;
         public bool HasResourceProductionModuleData;
         public int ResourceProductionProgress;
+        public List<BuildingModuleStateEntry> ModuleStates;
     }
 
     /// <summary>
@@ -380,7 +382,8 @@ namespace Landsong.BuildingSystem
         private bool HasCommonSaveData()
         {
             return TryGetModule<BM_等级升级>(out _)
-                   || TryGetModule<BM_资源产出>(out _);
+                   || TryGetModule<BM_资源产出>(out _)
+                   || HasSerializableModuleState();
         }
 
         private void CaptureCommonSaveData(BuildingDataBase data)
@@ -402,6 +405,8 @@ namespace Landsong.BuildingSystem
                 data.HasResourceProductionModuleData = true;
                 data.ResourceProductionProgress = productionModule.ProductionProgress;
             }
+
+            data.ModuleStates = CaptureModuleStates();
         }
 
         private void RestoreCommonSaveData(BuildingDataBase data)
@@ -423,6 +428,152 @@ namespace Landsong.BuildingSystem
             {
                 productionModule.RestoreProductionProgress(data.ResourceProductionProgress);
             }
+
+            RestoreModuleStates(data.ModuleStates);
+        }
+
+        private bool HasSerializableModuleState()
+        {
+            if (buildingModules == null)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < buildingModules.Count; i++)
+            {
+                if (buildingModules[i] is IBuildingModuleStateSerializer && buildingModules[i].IsEnabled)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private List<BuildingModuleStateEntry> CaptureModuleStates()
+        {
+            if (buildingModules == null)
+            {
+                return null;
+            }
+
+            List<BuildingModuleStateEntry> states = null;
+            for (var i = 0; i < buildingModules.Count; i++)
+            {
+                var module = buildingModules[i];
+                if (module == null
+                    || !module.IsEnabled
+                    || module is not IBuildingModuleStateSerializer serializer)
+                {
+                    continue;
+                }
+
+                string json;
+                try
+                {
+                    if (!serializer.TryCaptureState(out json) || string.IsNullOrWhiteSpace(json))
+                    {
+                        continue;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogWarning($"采集建筑模块状态失败：{GetModuleStateTypeId(module)}\n{e.Message}", this);
+                    continue;
+                }
+
+                states ??= new List<BuildingModuleStateEntry>();
+                states.Add(new BuildingModuleStateEntry
+                {
+                    ModuleIndex = i,
+                    ModuleTypeId = GetModuleStateTypeId(module),
+                    Json = json
+                });
+            }
+
+            return states;
+        }
+
+        private void RestoreModuleStates(IReadOnlyList<BuildingModuleStateEntry> moduleStates)
+        {
+            if (moduleStates == null || moduleStates.Count == 0 || buildingModules == null)
+            {
+                return;
+            }
+
+            for (var i = 0; i < moduleStates.Count; i++)
+            {
+                var entry = moduleStates[i];
+                if (entry == null)
+                {
+                    continue;
+                }
+
+                entry.Normalize();
+                if (!entry.IsValid || !TryGetModuleStateSerializer(entry, out var serializer))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    serializer.RestoreState(entry.Json);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogWarning($"恢复建筑模块状态失败：{entry.ModuleTypeId}\n{e.Message}", this);
+                }
+            }
+        }
+
+        private bool TryGetModuleStateSerializer(
+            BuildingModuleStateEntry entry,
+            out IBuildingModuleStateSerializer serializer)
+        {
+            serializer = null;
+            if (entry == null || buildingModules == null)
+            {
+                return false;
+            }
+
+            if (entry.ModuleIndex >= 0
+                && entry.ModuleIndex < buildingModules.Count
+                && TryGetModuleStateSerializer(buildingModules[entry.ModuleIndex], entry.ModuleTypeId, out serializer))
+            {
+                return true;
+            }
+
+            for (var i = 0; i < buildingModules.Count; i++)
+            {
+                if (TryGetModuleStateSerializer(buildingModules[i], entry.ModuleTypeId, out serializer))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool TryGetModuleStateSerializer(
+            BuildingModuleBase module,
+            string moduleTypeId,
+            out IBuildingModuleStateSerializer serializer)
+        {
+            serializer = null;
+            if (module == null
+                || !module.IsEnabled
+                || !string.Equals(GetModuleStateTypeId(module), moduleTypeId, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            serializer = module as IBuildingModuleStateSerializer;
+            return serializer != null;
+        }
+
+        private static string GetModuleStateTypeId(BuildingModuleBase module)
+        {
+            return module == null ? string.Empty : module.GetType().FullName ?? module.GetType().Name;
         }
 
         [Serializable]
@@ -475,6 +626,7 @@ namespace Landsong.BuildingSystem
         {
             Clicked?.Invoke(this);
             PlayClickScaleFeedback();
+            PlayPointerClickSound(isDoubleClick);
             OnClicked();
 
             if (!isDoubleClick)
@@ -484,6 +636,17 @@ namespace Landsong.BuildingSystem
 
             DoubleClicked?.Invoke(this);
             OnDoubleClicked();
+        }
+
+        private void PlayPointerClickSound(bool isDoubleClick)
+        {
+            AudioClip clip = isDoubleClick && doubleClickSound != null ? doubleClickSound : clickSound;
+            if (clip == null)
+            {
+                return;
+            }
+
+            AudioPlayer.Instance.PlaySfx(clip);
         }
         #endregion
         //--------------------------------坐标读取------------------------------------------

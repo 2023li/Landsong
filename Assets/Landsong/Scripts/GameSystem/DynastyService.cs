@@ -21,24 +21,33 @@ namespace Landsong.DynastySystem
 
     public sealed class DynastyService
     {
+        public const string DefaultDynastyName = "无名王朝";
+
         private readonly Dictionary<BuildingBase, int> populationContributors = new Dictionary<BuildingBase, int>();
         private readonly HashSet<BuildingBase> palaces = new HashSet<BuildingBase>();
 
+        private string dynastyName = DefaultDynastyName;
         private int basePopulation;
         private int buildingPopulation;
         private int employedPopulation;
         private DynastyStage stage = DynastyStage.营地;
 
-        public DynastyService(int startingPopulation = 0, DynastyStage startingStage = DynastyStage.营地)
+        public DynastyService(
+            int startingPopulation = 0,
+            DynastyStage startingStage = DynastyStage.营地,
+            string startingDynastyName = DefaultDynastyName)
         {
+            dynastyName = NormalizeDynastyName(startingDynastyName);
             basePopulation = Mathf.Max(0, startingPopulation);
             stage = startingStage;
         }
 
+        public event Action<DynastyService> DynastyNameChanged;
         public event Action<DynastyService> PopulationChanged;
         public event Action<DynastyService> StageChanged;
         public event Action<DynastyService> PalaceStateChanged;
 
+        public string DynastyName => dynastyName;
         public DynastyStage Stage => stage;
         public int Population => basePopulation + buildingPopulation;
         public int EmployedPopulation => Mathf.Clamp(employedPopulation, 0, Population);
@@ -47,6 +56,18 @@ namespace Landsong.DynastySystem
         public int BuildingPopulation => buildingPopulation;
         public int PalaceCount => palaces.Count;
         public bool HasPalace => palaces.Count > 0;
+
+        public void SetDynastyName(string newName)
+        {
+            newName = NormalizeDynastyName(newName);
+            if (dynastyName == newName)
+            {
+                return;
+            }
+
+            dynastyName = newName;
+            DynastyNameChanged?.Invoke(this);
+        }
 
         public void SetStage(DynastyStage newStage)
         {
@@ -218,6 +239,11 @@ namespace Landsong.DynastySystem
             {
                 RemovePopulationContribution(building);
             }
+        }
+
+        public static string NormalizeDynastyName(string value)
+        {
+            return string.IsNullOrWhiteSpace(value) ? DefaultDynastyName : value.Trim();
         }
     }
 }

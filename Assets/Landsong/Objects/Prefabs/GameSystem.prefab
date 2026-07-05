@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 5898616053397243020}
   - component: {fileID: 7121184244509117702}
   - component: {fileID: 2710515743868066385}
+  - component: {fileID: 2403931408829785291}
   m_Layer: 0
   m_Name: GameSystem
   m_TagString: Untagged
@@ -163,3 +164,20 @@ MonoBehaviour:
   cameraController: {fileID: 0}
   updateSelectionOnWorldClick: 1
   selectionClickMaxMovementPixels: 8
+--- !u!114 &2403931408829785291
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6188720778481369210}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da67f94e60d54a7e9c735103bef8e669, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  playStartupBirdCall: 1
+  startupBirdCallClip: {fileID: 8300000, guid: 41c30371244903d41809b05d726bd536, type: 3}
+  startupBirdCallChannelKey: sfx.default
+  startupBirdCallVolumeScale: 1
+  startupBirdCallDelay: 0.25

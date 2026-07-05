@@ -125,12 +125,14 @@ namespace Landsong.BuildingSystem
 
             if (selectedBuilding == building)
             {
+                StoreLastSelectedBuilding(building);
                 RefreshSelectionVisuals();
                 return;
             }
 
             selectedBuilding = building;
             showReachableRange = false;
+            StoreLastSelectedBuilding(selectedBuilding);
             RefreshSelectionVisuals();
             SelectionChanged?.Invoke(selectedBuilding);
         }
@@ -899,6 +901,16 @@ namespace Landsong.BuildingSystem
         private static bool CanSelectBuilding(BuildingBase building)
         {
             return building != null && building.isActiveAndEnabled && !building.IsDemolishing;
+        }
+
+        private static void StoreLastSelectedBuilding(BuildingBase building)
+        {
+            if (building == null || !DataManager.TryGetInstance(out var dataManager))
+            {
+                return;
+            }
+
+            dataManager.SetLastSelectedBuilding(building);
         }
 
         private static bool IsScreenPositionInsideCamera(Camera sourceCamera, Vector3 screenPosition)

@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Landsong.BuildingSystem;
+using Landsong.DynastySystem;
 using Landsong.GridSystem;
 using Landsong.InventorySystem;
 using Landsong.TechnologySystem;
@@ -47,6 +48,8 @@ public class DataManager : MonoSingleton<DataManager>
     public event Action<GameData> OnRuntimeDataRestoreStarted;
 
     public event Action<GameData> OnRuntimeDataRestoreCompleted;
+
+    public event Action<AudioSaveData> OnAudioSettingsChanged;
 
     private string AppDataFilePath => IOManager.Instance.AppDataFilePath;
 
@@ -152,6 +155,7 @@ public class DataManager : MonoSingleton<DataManager>
 
         appData.Audio.BgmVolume = Mathf.Clamp01(volume);
         SaveAppData();
+        NotifyAudioSettingsChanged();
     }
 
     public void SetSfxVolume(float volume)
@@ -160,6 +164,43 @@ public class DataManager : MonoSingleton<DataManager>
 
         appData.Audio.SfxVolume = Mathf.Clamp01(volume);
         SaveAppData();
+        NotifyAudioSettingsChanged();
+    }
+
+    public void SetAmbienceVolume(float volume)
+    {
+        EnsureAppDataLoaded();
+
+        appData.Audio.AmbienceVolume = Mathf.Clamp01(volume);
+        SaveAppData();
+        NotifyAudioSettingsChanged();
+    }
+
+    public void SetAudioMasterVolume(float volume)
+    {
+        EnsureAppDataLoaded();
+
+        appData.Audio.MasterVolume = Mathf.Clamp01(volume);
+        SaveAppData();
+        NotifyAudioSettingsChanged();
+    }
+
+    public void SetAudioVolumeGroup(string volumeGroupKey, float volume)
+    {
+        EnsureAppDataLoaded();
+
+        appData.Audio.SetVolumeGroup(volumeGroupKey, volume);
+        SaveAppData();
+        NotifyAudioSettingsChanged();
+    }
+
+    public void SetAudioChannelVolume(string channelKey, float volume)
+    {
+        EnsureAppDataLoaded();
+
+        appData.Audio.SetChannelVolume(channelKey, volume);
+        SaveAppData();
+        NotifyAudioSettingsChanged();
     }
 
     public void SetMuted(bool muted)
@@ -168,6 +209,19 @@ public class DataManager : MonoSingleton<DataManager>
 
         appData.Audio.IsMuted = muted;
         SaveAppData();
+        NotifyAudioSettingsChanged();
+    }
+
+    private void NotifyAudioSettingsChanged()
+    {
+        if (appData == null)
+        {
+            return;
+        }
+
+        appData.Audio ??= AudioSaveData.CreateDefault();
+        appData.Audio.Validate();
+        OnAudioSettingsChanged?.Invoke(appData.Audio);
     }
 
     public void LoadGameDataIndex()
@@ -381,7 +435,7 @@ public class DataManager : MonoSingleton<DataManager>
         }
     }
 
-    public GameData CreateNewGame(string playerName, int worldSeed, string mapName = "")
+    public GameData CreateNewGame(string playerName, int worldSeed, string mapName = "", string dynastyName = "")
     {
         EnsureAppDataLoaded();
         EnsureGameDataIndexLoaded();
@@ -390,6 +444,10 @@ public class DataManager : MonoSingleton<DataManager>
         gameData.PlayerName = string.IsNullOrWhiteSpace(playerName) ? "Player" : playerName.Trim();
         gameData.WorldSeed = worldSeed;
         gameData.MapName = NormalizeOptionalText(mapName);
+        gameData.DynastyName = DynastyService.NormalizeDynastyName(dynastyName);
+        gameData.RoundCount = Mathf.Max(1, gameData.CurrentTurn);
+        gameData.SaveName = GameData.FormatDefaultSaveName(gameData.DynastyName, gameData.CurrentTurn);
+        gameData.Stage = DynastyStage.营地.ToString();
 
         CurrentGameData = gameData;
         SaveGameData(GameDataSaveMode.NewSave, false);
@@ -410,6 +468,57 @@ public class DataManager : MonoSingleton<DataManager>
     public void SaveNewGameData()
     {
         SaveGameData(GameDataSaveMode.NewSave);
+    }
+
+    public bool SetCurrentGameSaveName(string saveName)
+    {
+        if (CurrentGameData == null)
+        {
+            Debug.LogWarning("设置存档名称失败：CurrentGameData 为空。");
+            return false;
+        }
+
+        saveName = NormalizeRequiredText(saveName);
+        if (string.IsNullOrEmpty(saveName))
+        {
+            Debug.LogWarning("设置存档名称失败：存档名称不能为空。");
+            return false;
+        }
+
+        CurrentGameData.SaveName = saveName;
+        return true;
+    }
+
+    public string GetDefaultCurrentGameSaveName()
+    {
+        Landsong.GameSystem gameSystem = UnityEngine.Object.FindFirstObjectByType<Landsong.GameSystem>(FindObjectsInactive.Include);
+        if (gameSystem != null)
+        {
+            string runtimeDynastyName = gameSystem.Dynasty == null
+                ? CurrentGameData?.DynastyName
+                : gameSystem.Dynasty.DynastyName;
+            return GameData.FormatDefaultSaveName(runtimeDynastyName, gameSystem.CurrentTurn);
+        }
+
+        if (CurrentGameData == null)
+        {
+            return GameData.FormatDefaultSaveName(DynastyService.DefaultDynastyName, 1);
+        }
+
+        CurrentGameData.Validate();
+        return GameData.FormatDefaultSaveName(CurrentGameData.DynastyName, CurrentGameData.CurrentTurn);
+    }
+
+    public void SetLastSelectedBuilding(BuildingBase building)
+    {
+        if (CurrentGameData == null || !CanCaptureSoftBuildingReference(building))
+        {
+            return;
+        }
+
+        CurrentGameData.SoftData ??= GameSoftData.CreateDefault();
+        CurrentGameData.SoftData.LastSelectedBuilding = BuildingSoftReferenceSaveData.CreateFromBuilding(building);
+        CurrentGameData.SoftData.Validate();
     }
 
     public void QuickSaveGameData()
@@ -692,8 +801,15 @@ public class DataManager : MonoSingleton<DataManager>
         if (gameSystem != null)
         {
             gameData.CurrentTurn = gameSystem.CurrentTurn;
+            gameData.RoundCount = Mathf.Max(1, gameSystem.CurrentTurn);
             gameData.TechnologyData = gameSystem.CaptureTechnologyData();
             gameData.UnlockedTechnologies = gameSystem.CaptureUnlockedTechnologies();
+            if (gameSystem.Dynasty != null)
+            {
+                gameData.DynastyName = gameSystem.Dynasty.DynastyName;
+                gameData.Stage = gameSystem.Dynasty.Stage.ToString();
+            }
+
             if (gameSystem.Inventory != null)
             {
                 gameData.InventoryData = gameSystem.Inventory.CaptureSaveData();
@@ -704,6 +820,8 @@ public class DataManager : MonoSingleton<DataManager>
         {
             gameData.BuildingInstances = CaptureBuildingInstances(gameSystem.Buildings.Buildings);
         }
+
+        CaptureSoftData(gameData, gameSystem);
     }
 
     private bool RestoreCurrentRuntimeData(GameData gameData)
@@ -748,6 +866,7 @@ public class DataManager : MonoSingleton<DataManager>
         OnRuntimeDataRestoreStarted?.Invoke(gameData);
 
         gameSystem.RestoreCurrentTurn(gameData.CurrentTurn);
+        gameSystem.RestoreDynastyData(gameData.DynastyName, gameData.Stage);
         gameSystem.RestoreTechnologyData(gameData.TechnologyData, gameData.UnlockedTechnologies);
 
         if (gameSystem.Inventory != null && gameData.InventoryData != null)
@@ -789,6 +908,34 @@ public class DataManager : MonoSingleton<DataManager>
                && !building.IsDemolishing
                && building.HasDefinition
                && building.HasPlacement;
+    }
+
+    private static bool CanCaptureSoftBuildingReference(BuildingBase building)
+    {
+        return building != null
+               && building.isActiveAndEnabled
+               && !building.IsDemolishing
+               && building.HasDefinition;
+    }
+
+    private static void CaptureSoftData(GameData gameData, Landsong.GameSystem gameSystem)
+    {
+        if (gameData == null)
+        {
+            return;
+        }
+
+        gameData.SoftData ??= GameSoftData.CreateDefault();
+
+        var selectedBuilding = gameSystem == null || gameSystem.BuildingSelection == null
+            ? null
+            : gameSystem.BuildingSelection.SelectedBuilding;
+        if (CanCaptureSoftBuildingReference(selectedBuilding))
+        {
+            gameData.SoftData.LastSelectedBuilding = BuildingSoftReferenceSaveData.CreateFromBuilding(selectedBuilding);
+        }
+
+        gameData.SoftData.Validate();
     }
 
     private static void CaptureBuildingData(BuildingBase building, BuildingInstanceSaveData saveData)
@@ -1003,6 +1150,11 @@ public class DataManager : MonoSingleton<DataManager>
     {
         return string.IsNullOrWhiteSpace(text) ? string.Empty : text.Trim();
     }
+
+    private static string NormalizeRequiredText(string text)
+    {
+        return string.IsNullOrWhiteSpace(text) ? string.Empty : text.Trim();
+    }
 }
 
 [Serializable]
@@ -1062,7 +1214,11 @@ public class GameDataMeta
 {
     public string SaveGuid = string.Empty;
 
+    public string SaveName = string.Empty;
+
     public string PlayerName = "Player";
+
+    public string DynastyName = DynastyService.DefaultDynastyName;
 
     public string MapName = string.Empty;
 
@@ -1092,9 +1248,11 @@ public class GameDataMeta
         return new GameDataMeta
         {
             SaveGuid = gameData.SaveGuid,
+            SaveName = gameData.SaveName,
             PlayerName = gameData.PlayerName,
+            DynastyName = gameData.DynastyName,
             MapName = gameData.MapName,
-            RoundCount = gameData.RoundCount,
+            RoundCount = Mathf.Max(1, gameData.RoundCount > 0 ? gameData.RoundCount : gameData.CurrentTurn),
             Stage = gameData.Stage,
            
             CreatedAtUnixTime = gameData.CreatedAtUnixTime,
@@ -1112,10 +1270,17 @@ public class GameDataMeta
             SaveGuid = string.Empty;
         }
 
+        if (SaveName == null)
+        {
+            SaveName = string.Empty;
+        }
+
         if (PlayerName == null)
         {
             PlayerName = "Player";
         }
+
+        DynastyName = DynastyService.NormalizeDynastyName(DynastyName);
 
         if (MapName == null)
         {
@@ -1148,7 +1313,12 @@ public class GameDataMeta
         }
 
         CurrentTurn = Mathf.Max(1, CurrentTurn);
-        RoundCount = Mathf.Max(0, RoundCount);
+        RoundCount = Mathf.Max(1, RoundCount > 0 ? RoundCount : CurrentTurn);
+        if (string.IsNullOrWhiteSpace(SaveName))
+        {
+            SaveName = GameData.FormatDefaultSaveName(DynastyName, RoundCount);
+        }
+
         TotalPlayTimeSeconds = Mathf.Max(0f, TotalPlayTimeSeconds);
     }
 
@@ -1166,17 +1336,23 @@ public class GameDataMeta
 [Serializable]
 public class GameData
 {
+    public const string DefaultDynastyName = DynastyService.DefaultDynastyName;
+
     //data 版本号
-    public const int CurrentDataVersion = 2;
+    public const int CurrentDataVersion = 4;
 
     public int DataVersion = CurrentDataVersion;
 
     public string SaveGuid = string.Empty;
 
+    public string SaveName = string.Empty;
+
     public string PlayerName = "Player";
 
 
     //----------------新增字段------------------
+    public string DynastyName = DefaultDynastyName;
+
     public string MapName = string.Empty;
 
     public int RoundCount = 0;
@@ -1203,6 +1379,8 @@ public class GameData
 
     public List<BuildingInstanceSaveData> BuildingInstances;
 
+    public GameSoftData SoftData;
+
     public static GameData CreateDefault()
     {
         long now = DateTimeOffset.Now.ToUnixTimeSeconds();
@@ -1211,9 +1389,11 @@ public class GameData
         {
             DataVersion = CurrentDataVersion,
             SaveGuid = string.Empty,
+            SaveName = string.Empty,
             PlayerName = "Player",
+            DynastyName = DefaultDynastyName,
             MapName = string.Empty,
-            RoundCount = 0,
+            RoundCount = 1,
             Stage = string.Empty,
             CreatedAtUnixTime = now,
             LastSaveUnixTime = now,
@@ -1223,7 +1403,8 @@ public class GameData
             InventoryData = null,
             TechnologyData = null,
             UnlockedTechnologies = null,
-            BuildingInstances = null
+            BuildingInstances = null,
+            SoftData = GameSoftData.CreateDefault()
         };
     }
 
@@ -1239,10 +1420,17 @@ public class GameData
             SaveGuid = string.Empty;
         }
 
+        if (SaveName == null)
+        {
+            SaveName = string.Empty;
+        }
+
         if (PlayerName == null)
         {
             PlayerName = "Player";
         }
+
+        DynastyName = DynastyService.NormalizeDynastyName(DynastyName);
 
         if (MapName == null)
         {
@@ -1254,7 +1442,12 @@ public class GameData
             Stage = string.Empty;
         }
 
-        RoundCount = Mathf.Max(0, RoundCount);
+        CurrentTurn = Mathf.Max(1, CurrentTurn);
+        RoundCount = Mathf.Max(1, RoundCount > 0 ? RoundCount : CurrentTurn);
+        if (string.IsNullOrWhiteSpace(SaveName))
+        {
+            SaveName = FormatDefaultSaveName(DynastyName, CurrentTurn);
+        }
 
         long now = DateTimeOffset.Now.ToUnixTimeSeconds();
 
@@ -1268,10 +1461,11 @@ public class GameData
             LastSaveUnixTime = CreatedAtUnixTime;
         }
 
-        CurrentTurn = Mathf.Max(1, CurrentTurn);
         TotalPlayTimeSeconds = Mathf.Max(0f, TotalPlayTimeSeconds);
         NormalizeUnlockedTechnologies();
         NormalizeTechnologyData();
+        SoftData ??= GameSoftData.CreateDefault();
+        SoftData.Validate();
 
         if (BuildingInstances != null)
         {
@@ -1287,6 +1481,12 @@ public class GameData
                 building.Validate();
             }
         }
+    }
+
+    public static string FormatDefaultSaveName(string dynastyName, int turnCount)
+    {
+        dynastyName = DynastyService.NormalizeDynastyName(dynastyName);
+        return $"{dynastyName}-{Mathf.Max(1, turnCount)}";
     }
 
     private void NormalizeUnlockedTechnologies()
@@ -1332,6 +1532,87 @@ public class GameData
                 UnlockedTechnologyIds = new List<string>(UnlockedTechnologies)
             };
             TechnologyData.Validate();
+        }
+    }
+}
+
+[Serializable]
+public class GameSoftData
+{
+    public BuildingSoftReferenceSaveData LastSelectedBuilding = new BuildingSoftReferenceSaveData();
+
+    public static GameSoftData CreateDefault()
+    {
+        return new GameSoftData
+        {
+            LastSelectedBuilding = new BuildingSoftReferenceSaveData()
+        };
+    }
+
+    public void Validate()
+    {
+        LastSelectedBuilding ??= new BuildingSoftReferenceSaveData();
+        LastSelectedBuilding.Validate();
+    }
+}
+
+[Serializable]
+public class BuildingSoftReferenceSaveData
+{
+    public string BuildingId = string.Empty;
+
+    public bool HasOrigin;
+
+    public int OriginX;
+
+    public int OriginY;
+
+    public bool IsEmpty => string.IsNullOrWhiteSpace(BuildingId);
+
+    public GridPosition Origin => new GridPosition(OriginX, OriginY);
+
+    public static BuildingSoftReferenceSaveData CreateFromBuilding(BuildingBase building)
+    {
+        if (building == null || !building.HasDefinition)
+        {
+            return new BuildingSoftReferenceSaveData();
+        }
+
+        var saveData = new BuildingSoftReferenceSaveData
+        {
+            BuildingId = building.Definition.BuildingId,
+            HasOrigin = building.HasPlacement,
+            OriginX = building.HasPlacement ? building.Origin.X : 0,
+            OriginY = building.HasPlacement ? building.Origin.Y : 0
+        };
+        saveData.Validate();
+        return saveData;
+    }
+
+    public bool Matches(BuildingBase building)
+    {
+        if (building == null || !building.HasDefinition)
+        {
+            return false;
+        }
+
+        if (!string.Equals(BuildingId, building.Definition.BuildingId, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        return !HasOrigin
+               || (building.HasPlacement && building.Origin.X == OriginX && building.Origin.Y == OriginY);
+    }
+
+    public void Validate()
+    {
+        BuildingId = string.IsNullOrWhiteSpace(BuildingId) ? string.Empty : BuildingId.Trim();
+        if (string.IsNullOrEmpty(BuildingId))
+        {
+            HasOrigin = false;
+            OriginX = 0;
+            OriginY = 0;
         }
     }
 }
@@ -1454,25 +1735,204 @@ public class LocalizationSaveData
 [Serializable]
 public class AudioSaveData
 {
+    public const string MasterVolumeGroupKey = "master";
+    public const string MusicVolumeGroupKey = "music";
+    public const string LegacyBgmVolumeGroupKey = "bgm";
+    public const string AmbienceVolumeGroupKey = "ambience";
+    public const string SfxVolumeGroupKey = "sfx";
+
+    public float MasterVolume = 1f;
+
     public float BgmVolume = 1f;
+
+    public float AmbienceVolume = 1f;
 
     public float SfxVolume = 1f;
 
     public bool IsMuted;
 
+    public List<AudioKeyVolumeSaveData> VolumeGroups = new List<AudioKeyVolumeSaveData>();
+
+    public List<AudioKeyVolumeSaveData> ChannelVolumes = new List<AudioKeyVolumeSaveData>();
+
     public static AudioSaveData CreateDefault()
     {
         return new AudioSaveData
         {
+            MasterVolume = 1f,
             BgmVolume = 1f,
+            AmbienceVolume = 1f,
             SfxVolume = 1f,
-            IsMuted = false
+            IsMuted = false,
+            VolumeGroups = new List<AudioKeyVolumeSaveData>(),
+            ChannelVolumes = new List<AudioKeyVolumeSaveData>()
         };
     }
 
     public void Validate()
     {
+        MasterVolume = Mathf.Clamp01(MasterVolume);
         BgmVolume = Mathf.Clamp01(BgmVolume);
+        AmbienceVolume = Mathf.Clamp01(AmbienceVolume);
         SfxVolume = Mathf.Clamp01(SfxVolume);
+        VolumeGroups ??= new List<AudioKeyVolumeSaveData>();
+        ChannelVolumes ??= new List<AudioKeyVolumeSaveData>();
+        NormalizeVolumeList(VolumeGroups);
+        NormalizeVolumeList(ChannelVolumes);
+    }
+
+    public float GetVolumeGroup(string volumeGroupKey)
+    {
+        string key = NormalizeAudioKey(volumeGroupKey);
+        switch (key)
+        {
+            case MasterVolumeGroupKey:
+                return Mathf.Clamp01(MasterVolume);
+            case MusicVolumeGroupKey:
+            case LegacyBgmVolumeGroupKey:
+                return Mathf.Clamp01(BgmVolume);
+            case AmbienceVolumeGroupKey:
+                return Mathf.Clamp01(AmbienceVolume);
+            case SfxVolumeGroupKey:
+                return Mathf.Clamp01(SfxVolume);
+        }
+
+        return TryGetVolume(VolumeGroups, key, out float volume) ? volume : 1f;
+    }
+
+    public void SetVolumeGroup(string volumeGroupKey, float volume)
+    {
+        string key = NormalizeAudioKey(volumeGroupKey);
+        if (string.IsNullOrEmpty(key))
+        {
+            return;
+        }
+
+        volume = Mathf.Clamp01(volume);
+        switch (key)
+        {
+            case MasterVolumeGroupKey:
+                MasterVolume = volume;
+                return;
+            case MusicVolumeGroupKey:
+            case LegacyBgmVolumeGroupKey:
+                BgmVolume = volume;
+                return;
+            case AmbienceVolumeGroupKey:
+                AmbienceVolume = volume;
+                return;
+            case SfxVolumeGroupKey:
+                SfxVolume = volume;
+                return;
+        }
+
+        VolumeGroups ??= new List<AudioKeyVolumeSaveData>();
+        SetVolume(VolumeGroups, key, volume);
+    }
+
+    public float GetChannelVolume(string channelKey)
+    {
+        string key = NormalizeAudioKey(channelKey);
+        return TryGetVolume(ChannelVolumes, key, out float volume) ? volume : 1f;
+    }
+
+    public void SetChannelVolume(string channelKey, float volume)
+    {
+        string key = NormalizeAudioKey(channelKey);
+        if (string.IsNullOrEmpty(key))
+        {
+            return;
+        }
+
+        ChannelVolumes ??= new List<AudioKeyVolumeSaveData>();
+        SetVolume(ChannelVolumes, key, volume);
+    }
+
+    public static string NormalizeAudioKey(string key)
+    {
+        return string.IsNullOrWhiteSpace(key) ? string.Empty : key.Trim().ToLowerInvariant();
+    }
+
+    private static bool TryGetVolume(List<AudioKeyVolumeSaveData> volumes, string key, out float volume)
+    {
+        if (volumes != null)
+        {
+            for (int i = 0; i < volumes.Count; i++)
+            {
+                AudioKeyVolumeSaveData item = volumes[i];
+                if (item != null && item.Key == key)
+                {
+                    volume = Mathf.Clamp01(item.Volume);
+                    return true;
+                }
+            }
+        }
+
+        volume = 1f;
+        return false;
+    }
+
+    private static void SetVolume(List<AudioKeyVolumeSaveData> volumes, string key, float volume)
+    {
+        if (volumes == null)
+        {
+            return;
+        }
+
+        volume = Mathf.Clamp01(volume);
+        for (int i = 0; i < volumes.Count; i++)
+        {
+            AudioKeyVolumeSaveData item = volumes[i];
+            if (item != null && item.Key == key)
+            {
+                item.Volume = volume;
+                item.Validate();
+                return;
+            }
+        }
+
+        volumes.Add(new AudioKeyVolumeSaveData
+        {
+            Key = key,
+            Volume = volume
+        });
+    }
+
+    private static void NormalizeVolumeList(List<AudioKeyVolumeSaveData> volumes)
+    {
+        if (volumes == null)
+        {
+            return;
+        }
+
+        for (int i = volumes.Count - 1; i >= 0; i--)
+        {
+            AudioKeyVolumeSaveData item = volumes[i];
+            if (item == null)
+            {
+                volumes.RemoveAt(i);
+                continue;
+            }
+
+            item.Validate();
+            if (string.IsNullOrEmpty(item.Key))
+            {
+                volumes.RemoveAt(i);
+            }
+        }
+    }
+}
+
+[Serializable]
+public class AudioKeyVolumeSaveData
+{
+    public string Key = string.Empty;
+
+    public float Volume = 1f;
+
+    public void Validate()
+    {
+        Key = AudioSaveData.NormalizeAudioKey(Key);
+        Volume = Mathf.Clamp01(Volume);
     }
 }

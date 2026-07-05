@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Moyo.Unity;
 using UnityEngine;
@@ -47,10 +48,15 @@ namespace Landsong.InputSystem
         private readonly List<RaycastResult> uiRaycastResults = new List<RaycastResult>();
         private PointerEventData uiPointerEventData;
         private global::LSActionMap actionMap;
+        private bool subscribedToGamePlayActions;
 
         public bool IsCameraInputBlocked => cameraInputBlockers.Count > 0;
         public bool CanUseCameraInput => !IsCameraInputBlocked;
         public int ActiveTouchCount => CountActiveTouches();
+
+        public event Action OpenBuildingPanelRequested;
+        public event Action OpenInventoryPanelRequested;
+        public event Action BackRequested;
 
         private void OnEnable()
         {
@@ -59,11 +65,13 @@ namespace Landsong.InputSystem
 
         private void OnDisable()
         {
+            UnsubscribeGamePlayActions();
             actionMap?.Disable();
         }
 
         private void OnDestroy()
         {
+            UnsubscribeGamePlayActions();
             actionMap?.Disable();
             actionMap?.Dispose();
             actionMap = null;
@@ -283,12 +291,54 @@ namespace Landsong.InputSystem
         private void EnableGamePlayActions()
         {
             EnsureActionMap();
+            SubscribeGamePlayActions();
             actionMap?.GamePlay.Enable();
         }
 
         private void EnsureActionMap()
         {
             actionMap ??= new global::LSActionMap();
+        }
+
+        private void SubscribeGamePlayActions()
+        {
+            if (actionMap == null || subscribedToGamePlayActions)
+            {
+                return;
+            }
+
+            actionMap.GamePlay.OpenBuildingPanel.performed += HandleOpenBuildingPanelPerformed;
+            actionMap.GamePlay.OpenInventoryPanel.performed += HandleOpenInventoryPanelPerformed;
+            actionMap.GamePlay.Back.performed += HandleBackPerformed;
+            subscribedToGamePlayActions = true;
+        }
+
+        private void UnsubscribeGamePlayActions()
+        {
+            if (actionMap == null || !subscribedToGamePlayActions)
+            {
+                return;
+            }
+
+            actionMap.GamePlay.OpenBuildingPanel.performed -= HandleOpenBuildingPanelPerformed;
+            actionMap.GamePlay.OpenInventoryPanel.performed -= HandleOpenInventoryPanelPerformed;
+            actionMap.GamePlay.Back.performed -= HandleBackPerformed;
+            subscribedToGamePlayActions = false;
+        }
+
+        private void HandleOpenBuildingPanelPerformed(InputAction.CallbackContext context)
+        {
+            OpenBuildingPanelRequested?.Invoke();
+        }
+
+        private void HandleOpenInventoryPanelPerformed(InputAction.CallbackContext context)
+        {
+            OpenInventoryPanelRequested?.Invoke();
+        }
+
+        private void HandleBackPerformed(InputAction.CallbackContext context)
+        {
+            BackRequested?.Invoke();
         }
 
         private static bool IsUiRaycastResult(RaycastResult result)
@@ -362,7 +412,7 @@ namespace Landsong.InputSystem
 
             foreach (var blocker in blockers)
             {
-                if (blocker is Object unityObject && unityObject == null)
+                if (blocker is UnityEngine.Object unityObject && unityObject == null)
                 {
                     staleBlockers.Add(blocker);
                 }

@@ -53,3 +53,11 @@ MonoBehaviour:
     canCloseByBack: 1
     blurPreviousOnOpen: 0
     hideSameLayerPanels: 1
+  - panelId: UIPanel_SaveConfirmation
+    addressableKey: UIPanel_SaveConfirmation
+    layer: 2
+    cachePolicy: 1
+    destroyOnSceneChange: 0
+    canCloseByBack: 1
+    blurPreviousOnOpen: 0
+    hideSameLayerPanels: 0

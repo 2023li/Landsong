@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Threading.Tasks;
+using Landsong.BuildingSystem;
+using Landsong.CameraSystem;
 using Landsong.GridSystem;
 using Moyo.Unity;
 using UnityEngine;
@@ -87,8 +89,12 @@ public class LoadScene_Game : SceneLoadingPipeline
     public override IEnumerator OnTargetSceneLoaded()
     {
         SpawnCurrentMap();
+        RefreshCameraViewBounds();
 
         yield return DataManager.Instance.RestoreCurrentGameDataToRuntimeRoutine(RestoreBuildingsPerFrame);
+
+        RefreshCameraViewBounds();
+        FocusCameraOnLoadTarget();
 
         yield return LSSceneTask.WaitForTask(UIManager.Instance.PreloadAsync<UIPanel_Game>());
     }
@@ -175,6 +181,116 @@ public class LoadScene_Game : SceneLoadingPipeline
 
         GridMapBehaviour mapInstance = UnityEngine.Object.Instantiate(mapData.Map);
         mapInstance.name = mapData.DisplayName;
+    }
+
+    private void RefreshCameraViewBounds()
+    {
+        var cameraController = UnityEngine.Object.FindFirstObjectByType<CameraController>(FindObjectsInactive.Include);
+        cameraController?.RefreshGridMapViewBounds();
+    }
+
+    private void FocusCameraOnLoadTarget()
+    {
+        var cameraController = UnityEngine.Object.FindFirstObjectByType<CameraController>(FindObjectsInactive.Include);
+        cameraController?.RefreshGridMapViewBounds();
+
+        if (!TryResolveLoadFocusBuilding(cameraController, out var focusBuilding))
+        {
+            return;
+        }
+
+        cameraController?.SnapToBuilding(focusBuilding);
+
+        var selectionController = UnityEngine.Object.FindFirstObjectByType<BuildingSelectionController>(FindObjectsInactive.Include);
+        if (selectionController != null && selectionController.isActiveAndEnabled)
+        {
+            selectionController.SelectBuilding(focusBuilding);
+        }
+    }
+
+    private static bool TryResolveLoadFocusBuilding(CameraController cameraController, out BuildingBase building)
+    {
+        building = null;
+
+        var gameData = DataManager.Instance.CurrentGameData;
+        var lastSelectedBuilding = gameData == null ? null : gameData.SoftData?.LastSelectedBuilding;
+        if (lastSelectedBuilding != null && !lastSelectedBuilding.IsEmpty && TryFindBuilding(lastSelectedBuilding, out building))
+        {
+            return true;
+        }
+
+        var defaultFocusBuildingId = cameraController == null ? "PlayerHomeLV1" : cameraController.DefaultFocusBuildingId;
+        return TryFindBuildingById(defaultFocusBuildingId, out building);
+    }
+
+    private static bool TryFindBuilding(BuildingSoftReferenceSaveData softReference, out BuildingBase building)
+    {
+        building = null;
+        if (softReference == null || softReference.IsEmpty)
+        {
+            return false;
+        }
+
+        softReference.Validate();
+        return TryFindBuildingInternal(softReference.Matches, out building);
+    }
+
+    private static bool TryFindBuildingById(string buildingId, out BuildingBase building)
+    {
+        building = null;
+        buildingId = string.IsNullOrWhiteSpace(buildingId) ? string.Empty : buildingId.Trim();
+        if (string.IsNullOrEmpty(buildingId))
+        {
+            return false;
+        }
+
+        return TryFindBuildingInternal(
+            candidate => candidate.HasDefinition
+                         && string.Equals(candidate.Definition.BuildingId, buildingId, StringComparison.Ordinal),
+            out building);
+    }
+
+    private static bool TryFindBuildingInternal(Predicate<BuildingBase> predicate, out BuildingBase building)
+    {
+        building = null;
+        if (predicate == null)
+        {
+            return false;
+        }
+
+        if (Landsong.GameSystem.TryGetInstance(out var gameSystem) && gameSystem.Buildings != null)
+        {
+            var buildings = gameSystem.Buildings.Buildings;
+            for (var i = 0; i < buildings.Count; i++)
+            {
+                var candidate = buildings[i];
+                if (CanFocusBuilding(candidate) && predicate(candidate))
+                {
+                    building = candidate;
+                    return true;
+                }
+            }
+        }
+
+        var sceneBuildings = UnityEngine.Object.FindObjectsByType<BuildingBase>(
+            FindObjectsInactive.Exclude,
+            FindObjectsSortMode.None);
+        for (var i = 0; i < sceneBuildings.Length; i++)
+        {
+            var candidate = sceneBuildings[i];
+            if (CanFocusBuilding(candidate) && predicate(candidate))
+            {
+                building = candidate;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool CanFocusBuilding(BuildingBase building)
+    {
+        return building != null && building.isActiveAndEnabled && !building.IsDemolishing && building.HasDefinition;
     }
 
     private void SubscribeLoadingProgress()

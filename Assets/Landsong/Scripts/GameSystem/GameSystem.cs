@@ -39,6 +39,7 @@ namespace Landsong
         [SerializeField, LabelText("初始物品")] private ItemAmount[] startingItems = Array.Empty<ItemAmount>();
 
         [Header("Dynasty")]
+        [SerializeField, LabelText("初始王朝名称")] private string startingDynastyName = DynastyService.DefaultDynastyName;
         [SerializeField, LabelText("初始人口"), Min(0)] private int startingPopulation;
         [SerializeField, LabelText("回合结束时无王宫则结束游戏")] private bool endGameWhenNoPalaceAtTurnEnd = true;
 
@@ -81,6 +82,9 @@ namespace Landsong
 
         [ShowInInspector, ReadOnly, LabelText("当前人口")]
         public int Population => Dynasty == null ? startingPopulation : Dynasty.Population;
+
+        [ShowInInspector, ReadOnly, LabelText("王朝名称")]
+        public string DynastyName => Dynasty == null ? startingDynastyName : Dynasty.DynastyName;
 
         [ShowInInspector, ReadOnly, LabelText("拥有王宫")]
         public bool HasPalace => Dynasty != null && Dynasty.HasPalace;
@@ -132,6 +136,7 @@ namespace Landsong
 
         private void OnValidate()
         {
+            startingDynastyName = DynastyService.NormalizeDynastyName(startingDynastyName);
             inventorySlotCount = Mathf.Max(0, inventorySlotCount);
             startingPopulation = Mathf.Max(0, startingPopulation);
             startingResearchProgress = Mathf.Max(0, startingResearchProgress);
@@ -339,6 +344,33 @@ namespace Landsong
 
             Turn.SetCurrentTurn(currentTurn);
             startingTurn = Turn.CurrentTurn;
+        }
+
+        internal void RestoreDynastyData(string dynastyName, string stageName)
+        {
+            if (Dynasty == null)
+            {
+                CreateDynastyService();
+            }
+
+            Dynasty.SetDynastyName(dynastyName);
+            startingDynastyName = Dynasty.DynastyName;
+
+            if (TryParseDynastyStage(stageName, out var restoredStage))
+            {
+                Dynasty.SetStage(restoredStage);
+            }
+        }
+
+        private static bool TryParseDynastyStage(string stageName, out DynastyStage stage)
+        {
+            if (string.IsNullOrWhiteSpace(stageName))
+            {
+                stage = DynastyStage.营地;
+                return false;
+            }
+
+            return Enum.TryParse(stageName.Trim(), out stage);
         }
 
         private void InitializeUnlockedTechnologies()
@@ -555,7 +587,7 @@ namespace Landsong
 
         private void CreateDynastyService()
         {
-            Dynasty = new DynastyService(startingPopulation);
+            Dynasty = new DynastyService(startingPopulation, DynastyStage.营地, startingDynastyName);
             IsGameOver = false;
         }
 

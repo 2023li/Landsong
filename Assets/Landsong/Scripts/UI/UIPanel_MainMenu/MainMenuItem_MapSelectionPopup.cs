@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using Landsong.AppSystem;
+using Landsong.DynastySystem;
 using Sirenix.OdinInspector;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
@@ -23,9 +25,11 @@ public class MainMenuItem_MapSelectionPopup : MonoBehaviour
     [SerializeField] private Button closeButton;
 
     private readonly List<MainMenuItem_MapDataView> mapDataViews = new List<MainMenuItem_MapDataView>();
+    private MapDataCatalog.MapData pendingMapData;
 
     internal void Hide()
     {
+        HideDynastyNamePopup();
         gameObject.SetActive(false);
     }
 
@@ -47,7 +51,10 @@ public class MainMenuItem_MapSelectionPopup : MonoBehaviour
         }
 
         closeButton.onClick.AddListener(Hide);
+        btn_Pop确认.onClick.AddListener(ConfirmDynastyName);
+        btn_Pop取消.onClick.AddListener(CancelDynastyName);
         HideTemplate();
+        HideDynastyNamePopup();
     }
 
     private void OnDestroy()
@@ -55,6 +62,16 @@ public class MainMenuItem_MapSelectionPopup : MonoBehaviour
         if (closeButton != null)
         {
             closeButton.onClick.RemoveListener(Hide);
+        }
+
+        if (btn_Pop确认 != null)
+        {
+            btn_Pop确认.onClick.RemoveListener(ConfirmDynastyName);
+        }
+
+        if (btn_Pop取消 != null)
+        {
+            btn_Pop取消.onClick.RemoveListener(CancelDynastyName);
         }
     }
 
@@ -75,8 +92,6 @@ public class MainMenuItem_MapSelectionPopup : MonoBehaviour
             CreateMapDataView(mapData);
             createdCount++;
         }
-
-      
     }
 
     private void HideTemplate()
@@ -100,7 +115,7 @@ public class MainMenuItem_MapSelectionPopup : MonoBehaviour
             return;
         }
 
-        AppManager.Instance.StartNewGame(mapData);
+        ShowDynastyNamePopup(mapData);
     }
 
     private void ClearMapDataViews()
@@ -155,14 +170,97 @@ public class MainMenuItem_MapSelectionPopup : MonoBehaviour
             isValid = false;
         }
 
-       
-
         if (closeButton == null)
         {
             Debug.LogError("地图选择弹窗配置错误：closeButton 未绑定。", this);
             isValid = false;
         }
 
+        if (pop_弹窗 == null)
+        {
+            Debug.LogError("地图选择弹窗配置错误：pop_弹窗 未绑定。", this);
+            isValid = false;
+        }
+
+        if (btn_Pop确认 == null)
+        {
+            Debug.LogError("地图选择弹窗配置错误：btn_Pop确认 未绑定。", this);
+            isValid = false;
+        }
+
+        if (btn_Pop取消 == null)
+        {
+            Debug.LogError("地图选择弹窗配置错误：btn_Pop取消 未绑定。", this);
+            isValid = false;
+        }
+
+        if (ipt_名称输入框 == null)
+        {
+            Debug.LogError("地图选择弹窗配置错误：ipt_名称输入框 未绑定。", this);
+            isValid = false;
+        }
+
+        if (dynastyNameCatalog == null)
+        {
+            Debug.LogError("地图选择弹窗配置错误：dynastyNameCatalog 未绑定。", this);
+            isValid = false;
+        }
+
         return isValid;
     }
+
+
+    #region 弹窗
+    [SerializeField,FoldoutGroup("取名弹窗")] private GameObject pop_弹窗;
+    [SerializeField, FoldoutGroup("取名弹窗")] private Button btn_Pop确认;
+    [SerializeField, FoldoutGroup("取名弹窗")] private Button btn_Pop取消;
+    [SerializeField, FoldoutGroup("取名弹窗")] private TMP_InputField ipt_名称输入框;
+    [SerializeField, FoldoutGroup("取名弹窗")] private DynastyNameCatalog dynastyNameCatalog;
+
+    private void ShowDynastyNamePopup(MapDataCatalog.MapData mapData)
+    {
+        pendingMapData = mapData;
+        ipt_名称输入框.text = GetRandomDynastyName();
+        pop_弹窗.SetActive(true);
+        ipt_名称输入框.Select();
+        ipt_名称输入框.ActivateInputField();
+    }
+
+    private void HideDynastyNamePopup()
+    {
+        pendingMapData = null;
+
+        if (pop_弹窗 != null)
+        {
+            pop_弹窗.SetActive(false);
+        }
+    }
+
+    private void ConfirmDynastyName()
+    {
+        if (pendingMapData == null || !pendingMapData.IsValid)
+        {
+            Debug.LogWarning("开始新游戏失败：没有选择有效地图。", this);
+            HideDynastyNamePopup();
+            return;
+        }
+
+        MapDataCatalog.MapData selectedMapData = pendingMapData;
+        string dynastyName = DynastyService.NormalizeDynastyName(ipt_名称输入框.text);
+        HideDynastyNamePopup();
+        AppManager.Instance.StartNewGame(selectedMapData, dynastyName);
+    }
+
+    private void CancelDynastyName()
+    {
+        HideDynastyNamePopup();
+    }
+
+    private string GetRandomDynastyName()
+    {
+        return dynastyNameCatalog == null
+            ? DynastyService.DefaultDynastyName
+            : dynastyNameCatalog.GetRandomName(DynastyService.DefaultDynastyName);
+    }
+    #endregion
 }

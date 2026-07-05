@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using Landsong.AudioSystem;
 using Landsong.AppSystem;
 
 using Moyo.Unity;
@@ -53,6 +54,7 @@ public class AppBoot : MonoBehaviour
         _ = AppManager.Instance;
         IOManager.Instance.Initialize();
         DataManager.Instance.Initialize();
+        AudioPlayer.Instance.Initialize();
         GameLocalizationManager.Instance.Initialize();
     }
 

@@ -148,6 +148,11 @@ namespace Landsong.AppSystem
 
         internal void StartNewGame(MapDataCatalog.MapData map)
         {
+            StartNewGame(map, string.Empty);
+        }
+
+        internal void StartNewGame(MapDataCatalog.MapData map, string dynastyName)
+        {
             if (map == null || !map.IsValid)
             {
                 Debug.LogWarning("开始新游戏失败：没有选择有效地图。", this);
@@ -160,7 +165,11 @@ namespace Landsong.AppSystem
             }
 
             int worldSeed = UnityEngine.Random.Range(1, int.MaxValue);
-            GameData gameData = DataManager.Instance.CreateNewGame(DefaultPlayerName, worldSeed, map.DisplayName);
+            GameData gameData = DataManager.Instance.CreateNewGame(
+                DefaultPlayerName,
+                worldSeed,
+                map.DisplayName,
+                dynastyName);
 
             if (gameData == null)
             {

@@ -25,6 +25,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 62339640b18d08d4ea1e352438aa4da8
+    m_Address: UIPanel_SaveConfirmation
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 69f4857c976d8354f8ed492e371b19d2
     m_Address: UIPanel_Setting
     m_ReadOnly: 0

@@ -44,12 +44,16 @@ namespace Landsong.CameraSystem
         [SerializeField, LabelText("最大透视视野"), Range(1f, 179f)] private float maxFieldOfView = 80f;
 
         [Header("视野边界")]
+        [SerializeField, LabelText("根据地图自适应视野范围")] private bool fitViewBoundsToGridMap = true;
+        [SerializeField, LabelText("地图视野边界填充"), MinValue(0f)] private Vector2 gridMapViewBoundsPadding = Vector2.one;
+        [SerializeField, LabelText("允许最大缩放适配地图")] private bool expandMaxOrthographicSizeToGridMap = true;
         [SerializeField, LabelText("限制视野范围")] private bool constrainViewToBounds = true;
         [SerializeField, LabelText("边界最小坐标")] private Vector2 viewBoundsMin = new Vector2(-50f, -50f);
         [SerializeField, LabelText("边界最大坐标")] private Vector2 viewBoundsMax = new Vector2(50f, 50f);
         [SerializeField, LabelText("缩放适配边界")] private bool limitZoomToBounds = true;
 
         [Header("定位")]
+        [SerializeField, LabelText("默认定位建筑 ID")] private string defaultFocusBuildingId = "PlayerHomeLV1";
         [SerializeField, LabelText("平滑定位")] private bool smoothFocus = true;
         [SerializeField, LabelText("定位速度"), Min(0.01f)] private float focusLerpSpeed = 8f;
         [SerializeField, LabelText("手动输入取消定位")] private bool cancelFocusOnManualInput = true;
@@ -70,11 +74,15 @@ namespace Landsong.CameraSystem
         private float lastPublishedOrthographicSize;
         private float lastPublishedFieldOfView;
         private bool hasPublishedCameraState;
+        private GridMapBehaviour appliedGridMapBoundsSource;
+        private BoundsInt appliedGridMapCellBounds;
+        private float appliedGridMapBoundsAspect = -1f;
 
         public static event Action<CameraController> AnyCameraViewChanged;
         public event Action<CameraController> CameraViewChanged;
         public Camera SourceCamera => sourceCamera;
         public bool HasFocusTarget => hasFocusTarget;
+        public string DefaultFocusBuildingId => NormalizeBuildingId(defaultFocusBuildingId);
 
         private Transform CameraTransform => sourceCamera == null ? transform : sourceCamera.transform;
 
@@ -124,6 +132,7 @@ namespace Landsong.CameraSystem
         private void Awake()
         {
             ResolveSceneReferences();
+            RefreshGridMapViewBounds();
             ClampZoomToViewBounds();
             ClampCameraToViewBounds();
         }
@@ -131,6 +140,7 @@ namespace Landsong.CameraSystem
         private void Update()
         {
             ResolveSceneReferences();
+            RefreshGridMapViewBoundsIfNeeded();
             if (sourceCamera == null)
             {
                 return;
@@ -167,6 +177,10 @@ namespace Landsong.CameraSystem
 
         private void OnValidate()
         {
+            defaultFocusBuildingId = NormalizeBuildingId(defaultFocusBuildingId);
+            gridMapViewBoundsPadding = new Vector2(
+                Mathf.Max(0f, gridMapViewBoundsPadding.x),
+                Mathf.Max(0f, gridMapViewBoundsPadding.y));
             NormalizeViewBounds();
             minOrthographicSize = Mathf.Max(0.01f, minOrthographicSize);
             maxOrthographicSize = Mathf.Max(minOrthographicSize, maxOrthographicSize);
@@ -176,6 +190,39 @@ namespace Landsong.CameraSystem
             pinchZoomSensitivity = Mathf.Max(0.01f, pinchZoomSensitivity);
             focusLerpSpeed = Mathf.Max(0.01f, focusLerpSpeed);
             keyboardPanSpeed = Mathf.Max(0f, keyboardPanSpeed);
+        }
+
+        public bool RefreshGridMapViewBounds()
+        {
+            if (!fitViewBoundsToGridMap)
+            {
+                return false;
+            }
+
+            ResolveSceneReferences();
+            if (gridMap == null || !TryGetGridMapViewBounds(gridMap, out var boundsMin, out var boundsMax))
+            {
+                return false;
+            }
+
+            viewBoundsMin = boundsMin;
+            viewBoundsMax = boundsMax;
+            NormalizeViewBounds();
+
+            if (expandMaxOrthographicSizeToGridMap && sourceCamera != null && sourceCamera.orthographic)
+            {
+                maxOrthographicSize = Mathf.Max(
+                    minOrthographicSize,
+                    maxOrthographicSize,
+                    GetMaxOrthographicSizeInsideBounds(GetNormalizedViewBoundsSize(), sourceCamera.aspect));
+            }
+
+            appliedGridMapBoundsSource = gridMap;
+            appliedGridMapCellBounds = gridMap.BaseCellBounds;
+            appliedGridMapBoundsAspect = sourceCamera == null ? -1f : sourceCamera.aspect;
+            ClampZoomToViewBounds();
+            ClampCameraToViewBounds();
+            return true;
         }
 
         [Button("定位到建筑")]
@@ -720,12 +767,112 @@ namespace Landsong.CameraSystem
             return min <= max ? Mathf.Clamp(value, min, max) : fallback;
         }
 
+        private void RefreshGridMapViewBoundsIfNeeded()
+        {
+            if (!fitViewBoundsToGridMap || gridMap == null)
+            {
+                return;
+            }
+
+            var cellBounds = gridMap.BaseCellBounds;
+            var aspect = sourceCamera == null ? -1f : sourceCamera.aspect;
+            if (appliedGridMapBoundsSource == gridMap
+                && appliedGridMapCellBounds.Equals(cellBounds)
+                && Mathf.Abs(appliedGridMapBoundsAspect - aspect) <= 0.001f)
+            {
+                return;
+            }
+
+            RefreshGridMapViewBounds();
+        }
+
+        private bool TryGetGridMapViewBounds(GridMapBehaviour targetGridMap, out Vector2 boundsMin, out Vector2 boundsMax)
+        {
+            boundsMin = default;
+            boundsMax = default;
+
+            if (targetGridMap == null)
+            {
+                return false;
+            }
+
+            var cellBounds = targetGridMap.BaseCellBounds;
+            if (cellBounds.size.x <= 0 || cellBounds.size.y <= 0)
+            {
+                return false;
+            }
+
+            var layout = targetGridMap.IsInitialized ? targetGridMap.Layout : targetGridMap.CreateLayoutSnapshot();
+            if (layout == null)
+            {
+                return false;
+            }
+
+            var planeMode = targetGridMap.PlaneMode;
+            var firstCorner = true;
+            IncludeGridMapCorner(layout.GridToWorldPoint(cellBounds.xMin, cellBounds.yMin), planeMode, ref boundsMin, ref boundsMax, ref firstCorner);
+            IncludeGridMapCorner(layout.GridToWorldPoint(cellBounds.xMax, cellBounds.yMin), planeMode, ref boundsMin, ref boundsMax, ref firstCorner);
+            IncludeGridMapCorner(layout.GridToWorldPoint(cellBounds.xMax, cellBounds.yMax), planeMode, ref boundsMin, ref boundsMax, ref firstCorner);
+            IncludeGridMapCorner(layout.GridToWorldPoint(cellBounds.xMin, cellBounds.yMax), planeMode, ref boundsMin, ref boundsMax, ref firstCorner);
+
+            var padding = new Vector2(Mathf.Max(0f, gridMapViewBoundsPadding.x), Mathf.Max(0f, gridMapViewBoundsPadding.y));
+            boundsMin -= padding;
+            boundsMax += padding;
+            return boundsMax.x > boundsMin.x && boundsMax.y > boundsMin.y;
+        }
+
+        private static void IncludeGridMapCorner(
+            Vector3 worldPosition,
+            GridPlaneMode planeMode,
+            ref Vector2 boundsMin,
+            ref Vector2 boundsMax,
+            ref bool firstCorner)
+        {
+            var point = ProjectToMovementPlane(worldPosition, planeMode);
+            if (firstCorner)
+            {
+                boundsMin = point;
+                boundsMax = point;
+                firstCorner = false;
+                return;
+            }
+
+            boundsMin = Vector2.Min(boundsMin, point);
+            boundsMax = Vector2.Max(boundsMax, point);
+        }
+
+        private static Vector2 ProjectToMovementPlane(Vector3 worldPosition, GridPlaneMode planeMode)
+        {
+            switch (planeMode)
+            {
+                case GridPlaneMode.XZ:
+                case GridPlaneMode.IsometricDiamondXZ:
+                    return new Vector2(worldPosition.x, worldPosition.z);
+                case GridPlaneMode.XY:
+                case GridPlaneMode.IsometricDiamondXY:
+                default:
+                    return new Vector2(worldPosition.x, worldPosition.y);
+            }
+        }
+
+        private static float GetMaxOrthographicSizeInsideBounds(Vector2 boundsSize, float aspect)
+        {
+            var maxByHeight = Mathf.Max(0.01f, boundsSize.y * 0.5f);
+            var maxByWidth = Mathf.Max(0.01f, boundsSize.x * 0.5f / Mathf.Max(0.01f, aspect));
+            return Mathf.Min(maxByHeight, maxByWidth);
+        }
+
         private void NormalizeViewBounds()
         {
             var min = Vector2.Min(viewBoundsMin, viewBoundsMax);
             var max = Vector2.Max(viewBoundsMin, viewBoundsMax);
             viewBoundsMin = min;
             viewBoundsMax = max;
+        }
+
+        private static string NormalizeBuildingId(string buildingId)
+        {
+            return string.IsNullOrWhiteSpace(buildingId) ? string.Empty : buildingId.Trim();
         }
 
         private bool TryGetWorldPointOnMovementPlane(Vector2 screenPosition, out Vector3 worldPosition)

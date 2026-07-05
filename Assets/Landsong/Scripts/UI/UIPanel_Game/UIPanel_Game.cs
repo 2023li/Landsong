@@ -1,4 +1,6 @@
 using System;
+using System.Threading.Tasks;
+using Landsong.InputSystem;
 using Landsong.UISystem;
 using Moyo.Unity;
 using Sirenix.OdinInspector;
@@ -15,11 +17,14 @@ public class UIPanel_Game : UIPanelBase
     [SerializeField] private GamePanel_Building buildingPanel;
     [SerializeField] private GamePanel_BuildingPlacementControls buildingPlacementControls;
     [SerializeField] private GamePanel_BuildingStatusOverview buildingStatusOverview;
+    [SerializeField] private GamePanel_Pause pausePanel;
 
     [SerializeField] private GamePanel_BuildingEventMessageList buildingEventMessageList;
     [SerializeField] private GamePanel_SelectedBuildingOverview selectedBuildingOverview;
     [SerializeField] private Popup_BuildingDetails buildingDetailPopup;
     [SerializeField] private GamePanel_BuildingSelectionView buildingSelectionView;
+
+    private InputController subscribedInputController;
 
     public RectTransform GameMarkRoot => gameMarkRoot;
     public GamePanel_BuildingEventMessageList BuildingEventMessageList => buildingEventMessageList;
@@ -28,6 +33,7 @@ public class UIPanel_Game : UIPanelBase
     public GamePanel_BuildingSelectionView BuildingSelectionView => buildingSelectionView;
     public GamePanel_BuildingPlacementControls BuildingPlacementControls => buildingPlacementControls;
     public GamePanel_Technology TechnologyPanel => technologyPanel;
+    public GamePanel_Pause PausePanel => pausePanel;
 
     private void Reset()
     {
@@ -37,6 +43,31 @@ public class UIPanel_Game : UIPanelBase
     private void Awake()
     {
         GetReference();
+    }
+
+    private void OnDestroy()
+    {
+        UnsubscribeInputController();
+    }
+
+    public override Task OnCreateAsync()
+    {
+        GetReference();
+        SubscribeInputController();
+        return base.OnCreateAsync();
+    }
+
+    public override Task OnOpenAsync(object args)
+    {
+        GetReference();
+        SubscribeInputController();
+        return base.OnOpenAsync(args);
+    }
+
+    public override Task OnReleaseAsync()
+    {
+        UnsubscribeInputController();
+        return base.OnReleaseAsync();
     }
 
     public void Show_HUD()
@@ -168,6 +199,7 @@ public class UIPanel_Game : UIPanelBase
         buildingPanel?.Hide();
         buildingStatusOverview?.Hide();
         buildingDetailPopup?.Hide();
+        pausePanel?.Hide();
     }
 
 
@@ -227,5 +259,90 @@ public class UIPanel_Game : UIPanelBase
         {
             buildingStatusOverview = GetComponentInChildren<GamePanel_BuildingStatusOverview>(true);
         }
+
+        if (pausePanel == null)
+        {
+            pausePanel = GetComponentInChildren<GamePanel_Pause>(true);
+        }
+    }
+
+    private void SubscribeInputController()
+    {
+        var inputController = InputController.Instance;
+        if (subscribedInputController == inputController)
+        {
+            return;
+        }
+
+        UnsubscribeInputController();
+
+        if (inputController == null)
+        {
+            return;
+        }
+
+        inputController.OpenBuildingPanelRequested += HandleOpenBuildingPanelRequested;
+        inputController.OpenInventoryPanelRequested += HandleOpenInventoryPanelRequested;
+        inputController.BackRequested += HandleBackRequested;
+        subscribedInputController = inputController;
+    }
+
+    private void UnsubscribeInputController()
+    {
+        if (subscribedInputController == null)
+        {
+            return;
+        }
+
+        subscribedInputController.OpenBuildingPanelRequested -= HandleOpenBuildingPanelRequested;
+        subscribedInputController.OpenInventoryPanelRequested -= HandleOpenInventoryPanelRequested;
+        subscribedInputController.BackRequested -= HandleBackRequested;
+        subscribedInputController = null;
+    }
+
+    private void HandleOpenBuildingPanelRequested()
+    {
+        Show_Building();
+    }
+
+    private void HandleOpenInventoryPanelRequested()
+    {
+        Show_Inventory();
+    }
+
+    private void HandleBackRequested()
+    {
+        if (pausePanel != null && pausePanel.IsVisible)
+        {
+            Hide_Pause();
+            return;
+        }
+
+        Show_Pause();
+    }
+
+    internal void Show_Pause()
+    {
+        GetReference();
+        HideAllPanels();
+
+        if (pausePanel != null)
+        {
+            pausePanel.Show();
+        }
+        else
+        {
+            Debug.LogWarning($"{nameof(UIPanel_Game)} has no pause panel assigned.", this);
+        }
+    }
+
+    internal void Hide_Pause()
+    {
+        if (pausePanel != null)
+        {
+            pausePanel.Hide();
+        }
+
+        Show_HUD();
     }
 }

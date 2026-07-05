@@ -7,6 +7,12 @@ using UnityEngine;
 
 namespace Landsong.BuildingSystem
 {
+    public interface IBuildingModuleStateSerializer
+    {
+        bool TryCaptureState(out string json);
+        void RestoreState(string json);
+    }
+
     [Serializable]
     public abstract class BuildingModuleBase
     {
@@ -609,8 +615,14 @@ namespace Landsong.BuildingSystem
     }
 
     [Serializable]
-    public sealed class BM_科技点产出 : BuildingModuleBase, IBuildingTechnologyPointSource
+    public sealed class BM_科技点产出 : BuildingModuleBase, IBuildingTechnologyPointSource, IBuildingModuleStateSerializer
     {
+        [Serializable]
+        private sealed class TechnologyPointState
+        {
+            public int LastTechnologyPoints;
+        }
+
         [SerializeField, LabelText("提供科技点/回合"), Min(0)]
         [PropertyTooltip("该建筑每次成功完成回合处理后，注入当前研究的科技点。")]
         private int providedTechnologyPointsPerTurn = 1;
@@ -641,6 +653,27 @@ namespace Landsong.BuildingSystem
         public void ClearLastTechnologyPoints()
         {
             lastTechnologyPoints = 0;
+        }
+
+        public bool TryCaptureState(out string json)
+        {
+            json = JsonUtility.ToJson(new TechnologyPointState
+            {
+                LastTechnologyPoints = LastTechnologyPoints
+            });
+            return !string.IsNullOrWhiteSpace(json);
+        }
+
+        public void RestoreState(string json)
+        {
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                ClearLastTechnologyPoints();
+                return;
+            }
+
+            var state = JsonUtility.FromJson<TechnologyPointState>(json);
+            lastTechnologyPoints = Mathf.Max(0, state == null ? 0 : state.LastTechnologyPoints);
         }
 
         public override void AppendFunctionBlockEntries(
