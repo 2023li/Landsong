@@ -5,7 +5,6 @@ using Landsong.BuildingSystem.Buildings;
 using Landsong.CameraSystem;
 using Landsong.GridSystem;
 using Landsong.InputSystem;
-using Landsong.InventorySystem;
 using Landsong.UISystem;
 using Moyo.Unity;
 using UnityEngine;
@@ -48,8 +47,6 @@ namespace Landsong.BuildingSystem
         private readonly List<Vector3Int> highlightedFootprintCells = new List<Vector3Int>();
         private readonly HashSet<Vector3Int> highlightedBuildableAreaCellSet = new HashSet<Vector3Int>();
         private readonly List<GridPosition> currentRoadPath = new List<GridPosition>();
-        private readonly List<GridPosition> roadPathCandidateA = new List<GridPosition>();
-        private readonly List<GridPosition> roadPathCandidateB = new List<GridPosition>();
         private Tilemap activeHighlightTilemap;
         private BuildingDefinition highlightedBuildableAreaDefinition;
         private InputController inputController;
@@ -307,17 +304,7 @@ namespace Landsong.BuildingSystem
                 yield break;
             }
 
-            var gameSystem = Landsong.GameSystem.Instance;
-            var inventory = gameSystem == null ? null : gameSystem.Inventory;
-            if (!CanSpendPlacementCosts(definition, inventory))
-            {
-                Debug.LogWarning($"Cannot place building '{definition.DisplayName}' because placement costs are missing.", buildingPrefab);
-                isConfirming = false;
-                RefreshCurrentPlacementState();
-                yield break;
-            }
-
-            var buildingService = gameSystem == null ? null : gameSystem.Buildings;
+            var buildingService = ResolveRuntimeBuildingService();
             if (buildingService == null)
             {
                 Debug.LogWarning($"Cannot place building '{definition.DisplayName}' because BuildingService is missing.", buildingPrefab);
@@ -326,17 +313,18 @@ namespace Landsong.BuildingSystem
                 yield break;
             }
 
-            if (!buildingService.TryPlace(buildingPrefab, gridMap, origin, placedBuildingRoot, out var placedBuilding))
+            var request = new BuildingPlacementRequest(
+                buildingPrefab,
+                gridMap,
+                origin,
+                Quaternion.identity,
+                placedBuildingRoot,
+                1,
+                true,
+                true);
+            var result = buildingService.TryPlace(request, out _);
+            if (!result.Succeeded)
             {
-                isConfirming = false;
-                RefreshCurrentPlacementState();
-                yield break;
-            }
-
-            if (!SpendPlacementCosts(definition, inventory))
-            {
-                Debug.LogWarning($"Cannot place building '{definition.DisplayName}' because placement costs could not be spent.", buildingPrefab);
-                buildingService.Remove(placedBuilding);
                 isConfirming = false;
                 RefreshCurrentPlacementState();
                 yield break;
@@ -358,28 +346,7 @@ namespace Landsong.BuildingSystem
             }
 
             var definition = buildingPrefab.Definition;
-            if (roadPath == null || roadPath.Count == 0 || !CanPlaceRoadPath(roadPath, definition))
-            {
-                Debug.LogWarning($"Cannot place road '{definition.DisplayName}' because the selected path is invalid.", this);
-                isConfirming = false;
-                RefreshCurrentPlacementState();
-                yield break;
-            }
-
-            var roadOriginsToPlace = new List<GridPosition>(roadPath.Count);
-            CollectRoadOriginsToPlace(roadPath, definition, roadOriginsToPlace);
-
-            var gameSystem = Landsong.GameSystem.Instance;
-            var inventory = gameSystem == null ? null : gameSystem.Inventory;
-            if (!CanSpendPlacementCosts(definition, inventory, roadOriginsToPlace.Count))
-            {
-                Debug.LogWarning($"Cannot place road '{definition.DisplayName}' because placement costs are missing.", buildingPrefab);
-                isConfirming = false;
-                RefreshCurrentPlacementState();
-                yield break;
-            }
-
-            var buildingService = gameSystem == null ? null : gameSystem.Buildings;
+            var buildingService = ResolveRuntimeBuildingService();
             if (buildingService == null)
             {
                 Debug.LogWarning($"Cannot place road '{definition.DisplayName}' because BuildingService is missing.", buildingPrefab);
@@ -388,125 +355,40 @@ namespace Landsong.BuildingSystem
                 yield break;
             }
 
-            var placedBuildings = new List<BuildingBase>(roadOriginsToPlace.Count);
-            for (var i = 0; i < roadOriginsToPlace.Count; i++)
+            if (roadPath == null
+                || roadPath.Count == 0
+                || !BuildingRoadPlacementPlanner.CanPlaceRoadPath(gridMap, buildingService.Buildings, roadPath, definition))
             {
-                if (!buildingService.TryPlace(buildingPrefab, gridMap, roadOriginsToPlace[i], placedBuildingRoot, out var placedBuilding))
-                {
-                    RollbackPlacedBuildings(buildingService, placedBuildings);
-                    isConfirming = false;
-                    RefreshCurrentPlacementState();
-                    yield break;
-                }
-
-                placedBuildings.Add(placedBuilding);
+                Debug.LogWarning($"Cannot place road '{definition.DisplayName}' because the selected path is invalid.", this);
+                isConfirming = false;
+                RefreshCurrentPlacementState();
+                yield break;
             }
 
-            if (!SpendPlacementCosts(definition, inventory, roadOriginsToPlace.Count))
+            var roadOriginsToPlace = new List<GridPosition>(roadPath.Count);
+            BuildingRoadPlacementPlanner.CollectRoadOriginsToPlace(
+                gridMap,
+                buildingService.Buildings,
+                roadPath,
+                definition,
+                roadOriginsToPlace);
+
+            var result = buildingService.TryPlaceBatch(
+                buildingPrefab,
+                gridMap,
+                roadOriginsToPlace,
+                placedBuildingRoot,
+                out _,
+                true,
+                true);
+            if (!result.Succeeded)
             {
-                Debug.LogWarning($"Cannot place road '{definition.DisplayName}' because placement costs could not be spent.", buildingPrefab);
-                RollbackPlacedBuildings(buildingService, placedBuildings);
                 isConfirming = false;
                 RefreshCurrentPlacementState();
                 yield break;
             }
 
             CancelPlacement();
-        }
-
-        private static void RollbackPlacedBuildings(BuildingService buildingService, IReadOnlyList<BuildingBase> placedBuildings)
-        {
-            if (buildingService == null || placedBuildings == null)
-            {
-                return;
-            }
-
-            for (var i = placedBuildings.Count - 1; i >= 0; i--)
-            {
-                buildingService.Remove(placedBuildings[i]);
-            }
-        }
-
-        private static bool CanSpendPlacementCosts(BuildingDefinition definition, InventoryService inventory)
-        {
-            return CanSpendPlacementCosts(definition, inventory, 1);
-        }
-
-        private static bool CanSpendPlacementCosts(BuildingDefinition definition, InventoryService inventory, int multiplier)
-        {
-            if (multiplier <= 0)
-            {
-                return true;
-            }
-
-            if (definition == null || !HasAnyValidCost(definition.PlacementCosts))
-            {
-                return true;
-            }
-
-            var normalizedMultiplier = multiplier;
-            IEnumerable<BuildingCost> costs = normalizedMultiplier <= 1
-                ? definition.PlacementCosts
-                : RepeatPlacementCosts(definition.PlacementCosts, normalizedMultiplier);
-            return inventory != null && inventory.CanAffordBuildingCosts(costs);
-        }
-
-        private static bool SpendPlacementCosts(BuildingDefinition definition, InventoryService inventory)
-        {
-            return SpendPlacementCosts(definition, inventory, 1);
-        }
-
-        private static bool SpendPlacementCosts(BuildingDefinition definition, InventoryService inventory, int multiplier)
-        {
-            if (multiplier <= 0)
-            {
-                return true;
-            }
-
-            if (definition == null || !HasAnyValidCost(definition.PlacementCosts))
-            {
-                return true;
-            }
-
-            var normalizedMultiplier = multiplier;
-            IEnumerable<BuildingCost> costs = normalizedMultiplier <= 1
-                ? definition.PlacementCosts
-                : RepeatPlacementCosts(definition.PlacementCosts, normalizedMultiplier);
-            return inventory != null && inventory.TrySpendBuildingCosts(costs);
-        }
-
-        private static bool HasAnyValidCost(IReadOnlyList<BuildingCost> costs)
-        {
-            if (costs == null)
-            {
-                return false;
-            }
-
-            for (var i = 0; i < costs.Count; i++)
-            {
-                if (costs[i].IsValid)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private static IEnumerable<BuildingCost> RepeatPlacementCosts(IReadOnlyList<BuildingCost> costs, int multiplier)
-        {
-            if (costs == null || multiplier <= 0)
-            {
-                yield break;
-            }
-
-            for (var repeatIndex = 0; repeatIndex < multiplier; repeatIndex++)
-            {
-                for (var i = 0; i < costs.Count; i++)
-                {
-                    yield return costs[i];
-                }
-            }
         }
 
         private void UpdateDemolitionSelection()
@@ -799,7 +681,15 @@ namespace Landsong.BuildingSystem
             }
 
             var activeDefinition = activeBuildingPrefab.Definition;
-            SelectRoadPath(roadStartOrigin, roadEndOrigin, activeDefinition, currentRoadPath, out currentCanPlace);
+            var buildingService = ResolveRuntimeBuildingService();
+            BuildingRoadPlacementPlanner.SelectRoadPath(
+                gridMap,
+                buildingService == null ? null : buildingService.Buildings,
+                roadStartOrigin,
+                roadEndOrigin,
+                activeDefinition,
+                currentRoadPath,
+                out currentCanPlace);
 
             var headPosition = gridMap.GetFootprintCenter(roadStartOrigin, activeDefinition.Size);
             var tailPosition = gridMap.GetFootprintCenter(roadEndOrigin, activeDefinition.Size);
@@ -934,77 +824,25 @@ namespace Landsong.BuildingSystem
         {
             var definition = buildingPrefab.Definition;
             var isRoadPlacement = IsRoadPlacementPrefab(buildingPrefab);
-            ghostInstance = CreateGhostInstance(
+            ghostInstance = BuildingPlacementPreviewFactory.Create(
                 buildingPrefab,
+                previewRoot == null ? transform : previewRoot,
                 isRoadPlacement ? $"{definition.DisplayName}_PlacementHeadGhost" : $"{definition.DisplayName}_PlacementGhost",
                 out ghostView);
 
             if (isRoadPlacement)
             {
-                roadTailGhostInstance = CreateGhostInstance(
+                roadTailGhostInstance = BuildingPlacementPreviewFactory.Create(
                     buildingPrefab,
+                    previewRoot == null ? transform : previewRoot,
                     $"{definition.DisplayName}_PlacementTailGhost",
                     out roadTailGhostView);
             }
         }
 
-        private GameObject CreateGhostInstance(BuildingBase buildingPrefab, string ghostName, out BuildingView view)
-        {
-            var parent = previewRoot == null ? transform : previewRoot;
-            var definition = buildingPrefab.Definition;
-            var instance = Instantiate(buildingPrefab.gameObject, parent);
-            instance.name = ghostName;
-            instance.SetActive(false);
-
-            var ghostBuilding = instance.GetComponentInChildren<BuildingBase>(true);
-            DisablePreviewBuildingRuntime(instance);
-            view = ghostBuilding == null ? instance.GetComponentInChildren<BuildingView>(true) : ghostBuilding.View;
-            if (view == null)
-            {
-                Debug.LogWarning($"Building preview '{definition.DisplayName}' has no BuildingView.", instance);
-                return instance;
-            }
-
-            if (!view.SetPlacementPreview(true))
-            {
-                Debug.LogWarning(
-                    $"Building preview '{definition.DisplayName}' cannot play preview animation key '{view.PlacementPreviewAnimationKey}'.",
-                    view);
-            }
-
-            return instance;
-        }
-
         private void DestroyGhost(ref GameObject instance, ref BuildingView view)
         {
-            if (instance == null)
-            {
-                view = null;
-                return;
-            }
-
-            if (view != null)
-            {
-                view.SetPlacementPreview(false);
-            }
-
-            Destroy(instance);
-            instance = null;
-            view = null;
-        }
-
-        private static void DisablePreviewBuildingRuntime(GameObject previewInstance)
-        {
-            if (previewInstance == null)
-            {
-                return;
-            }
-
-            var buildings = previewInstance.GetComponentsInChildren<BuildingBase>(true);
-            for (var i = 0; i < buildings.Length; i++)
-            {
-                buildings[i].enabled = false;
-            }
+            BuildingPlacementPreviewFactory.Destroy(ref instance, ref view);
         }
 
         private void PreparePlacementControls()
@@ -1154,7 +992,12 @@ namespace Landsong.BuildingSystem
             for (var i = 0; i < currentRoadPath.Count; i++)
             {
                 var origin = currentRoadPath[i];
-                var canPlaceCell = IsRoadPathOriginValid(origin, definition);
+                var buildingService = ResolveRuntimeBuildingService();
+                var canPlaceCell = BuildingRoadPlacementPlanner.IsRoadPathOriginValid(
+                    gridMap,
+                    buildingService == null ? null : buildingService.Buildings,
+                    origin,
+                    definition);
                 var isEndpoint = i == 0 || i == currentRoadPath.Count - 1;
                 var highlightTile = GetRoadPathHighlightTile(isEndpoint, canPlaceCell);
                 if (highlightTile == null)
@@ -1273,192 +1116,6 @@ namespace Landsong.BuildingSystem
             return definition != null
                    && gridMap != null
                    && gridMap.CanOccupy(position, Vector2Int.one, definition.RequiredTerrainKeys, out _);
-        }
-
-        private void SelectRoadPath(
-            GridPosition start,
-            GridPosition end,
-            BuildingDefinition definition,
-            List<GridPosition> selectedPath,
-            out bool canPlace)
-        {
-            selectedPath.Clear();
-            canPlace = false;
-
-            if (definition == null || gridMap == null)
-            {
-                return;
-            }
-
-            BuildSingleTurnRoadPath(start, end, true, roadPathCandidateA);
-            BuildSingleTurnRoadPath(start, end, false, roadPathCandidateB);
-
-            var invalidHorizontalFirstCells = CountInvalidRoadPathCells(roadPathCandidateA, definition);
-            var invalidVerticalFirstCells = CountInvalidRoadPathCells(roadPathCandidateB, definition);
-
-            var useHorizontalFirst = invalidHorizontalFirstCells == 0
-                                     || (invalidVerticalFirstCells != 0
-                                         && invalidHorizontalFirstCells <= invalidVerticalFirstCells);
-            var selectedCandidate = useHorizontalFirst ? roadPathCandidateA : roadPathCandidateB;
-            var selectedInvalidCells = useHorizontalFirst ? invalidHorizontalFirstCells : invalidVerticalFirstCells;
-
-            selectedPath.AddRange(selectedCandidate);
-            canPlace = selectedPath.Count > 0 && selectedInvalidCells == 0;
-        }
-
-        private bool CanPlaceRoadPath(IReadOnlyList<GridPosition> roadPath, BuildingDefinition definition)
-        {
-            return roadPath != null
-                   && roadPath.Count > 0
-                   && CountInvalidRoadPathCells(roadPath, definition) == 0;
-        }
-
-        private int CountInvalidRoadPathCells(IReadOnlyList<GridPosition> roadPath, BuildingDefinition definition)
-        {
-            if (roadPath == null || roadPath.Count == 0 || definition == null || gridMap == null)
-            {
-                return int.MaxValue;
-            }
-
-            var invalidCells = 0;
-            for (var i = 0; i < roadPath.Count; i++)
-            {
-                if (!IsRoadPathOriginValid(roadPath[i], definition))
-                {
-                    invalidCells++;
-                }
-            }
-
-            return invalidCells;
-        }
-
-        private void CollectRoadOriginsToPlace(
-            IReadOnlyList<GridPosition> roadPath,
-            BuildingDefinition definition,
-            List<GridPosition> output)
-        {
-            output.Clear();
-            if (roadPath == null || definition == null)
-            {
-                return;
-            }
-
-            for (var i = 0; i < roadPath.Count; i++)
-            {
-                var origin = roadPath[i];
-                if (IsExistingRoadAt(origin, definition))
-                {
-                    continue;
-                }
-
-                output.Add(origin);
-            }
-        }
-
-        private bool IsRoadPathOriginValid(GridPosition origin, BuildingDefinition definition)
-        {
-            if (definition == null || gridMap == null)
-            {
-                return false;
-            }
-
-            return gridMap.CanOccupy(origin, definition.Size, definition.RequiredTerrainKeys, out _)
-                   || IsExistingRoadAt(origin, definition);
-        }
-
-        private bool IsExistingRoadAt(GridPosition origin, BuildingDefinition definition)
-        {
-            if (definition == null || gridMap == null)
-            {
-                return false;
-            }
-
-            var footprint = new GridFootprint(origin, definition.Size);
-            foreach (var position in footprint.Positions())
-            {
-                if (!TryGetExistingRoadAt(position, out _))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        private bool TryGetExistingRoadAt(GridPosition position, out RoadBuilding road)
-        {
-            road = null;
-            if (gridMap == null || !gridMap.TryGetOccupantId(position, out var occupantId) || string.IsNullOrWhiteSpace(occupantId))
-            {
-                return false;
-            }
-
-            var gameSystem = Landsong.GameSystem.Instance;
-            var buildingService = gameSystem == null ? null : gameSystem.Buildings;
-            var buildings = buildingService == null ? null : buildingService.Buildings;
-            if (buildings == null)
-            {
-                return false;
-            }
-
-            for (var i = 0; i < buildings.Count; i++)
-            {
-                if (buildings[i] is not RoadBuilding candidate
-                    || !candidate.HasPlacement
-                    || candidate.GridMap != gridMap
-                    || candidate.IsDemolishing
-                    || !string.Equals(candidate.GridOccupancyId, occupantId, System.StringComparison.Ordinal))
-                {
-                    continue;
-                }
-
-                road = candidate;
-                return true;
-            }
-
-            return false;
-        }
-
-        private static void BuildSingleTurnRoadPath(
-            GridPosition start,
-            GridPosition end,
-            bool horizontalFirst,
-            List<GridPosition> output)
-        {
-            output.Clear();
-
-            var corner = horizontalFirst
-                ? new GridPosition(end.X, start.Y)
-                : new GridPosition(start.X, end.Y);
-
-            AppendGridLine(start, corner, output, false);
-            AppendGridLine(corner, end, output, true);
-        }
-
-        private static void AppendGridLine(GridPosition from, GridPosition to, List<GridPosition> output, bool skipFirst)
-        {
-            var x = from.X;
-            var y = from.Y;
-            if (!skipFirst)
-            {
-                output.Add(new GridPosition(x, y));
-            }
-
-            var stepX = to.X.CompareTo(from.X);
-            var stepY = to.Y.CompareTo(from.Y);
-            while (x != to.X || y != to.Y)
-            {
-                if (x != to.X)
-                {
-                    x += stepX;
-                }
-                else
-                {
-                    y += stepY;
-                }
-
-                output.Add(new GridPosition(x, y));
-            }
         }
 
         private Vector3Int GridPositionToHighlightTilemapCell(GridPosition position)
@@ -1624,6 +1281,12 @@ namespace Landsong.BuildingSystem
             }
 
             gameSystem = Landsong.GameSystem.Instance;
+            return gameSystem == null ? null : gameSystem.Buildings;
+        }
+
+        private static BuildingService ResolveRuntimeBuildingService()
+        {
+            var gameSystem = Landsong.GameSystem.Instance;
             return gameSystem == null ? null : gameSystem.Buildings;
         }
 

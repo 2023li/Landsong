@@ -804,8 +804,14 @@ public class DataManager : MonoSingleton<DataManager>
             return;
         }
 
-        saveData.BuildingDataType = data.GetType().AssemblyQualifiedName;
-        saveData.BuildingDataJson = JsonUtility.ToJson(data);
+        var typeId = BuildingSaveDataRegistry.GetTypeId(data);
+        if (string.IsNullOrWhiteSpace(typeId))
+        {
+            return;
+        }
+
+        saveData.BuildingStateTypeId = typeId;
+        saveData.BuildingStateJson = JsonUtility.ToJson(data);
     }
 
     private void RestoreBuildingInstances(GameData gameData, Landsong.GameSystem gameSystem)
@@ -947,29 +953,21 @@ public class DataManager : MonoSingleton<DataManager>
     private static BuildingDataBase RestoreBuildingData(BuildingInstanceSaveData saveData)
     {
         if (saveData == null
-            || string.IsNullOrWhiteSpace(saveData.BuildingDataType)
-            || string.IsNullOrWhiteSpace(saveData.BuildingDataJson))
+            || string.IsNullOrWhiteSpace(saveData.BuildingStateTypeId)
+            || string.IsNullOrWhiteSpace(saveData.BuildingStateJson))
         {
             return null;
         }
 
-        var dataType = Type.GetType(saveData.BuildingDataType);
-        if (dataType == null)
+        if (!BuildingSaveDataRegistry.TryCreate(saveData.BuildingStateTypeId, out var data))
         {
-            Debug.LogWarning($"恢复建筑数据失败：找不到数据类型 {saveData.BuildingDataType}");
-            return null;
-        }
-
-        if (!typeof(BuildingDataBase).IsAssignableFrom(dataType))
-        {
-            Debug.LogWarning($"恢复建筑数据失败：{saveData.BuildingDataType} 不是 BuildingDataBase。");
+            Debug.LogWarning($"恢复建筑数据失败：找不到数据类型 ID {saveData.BuildingStateTypeId}");
             return null;
         }
 
         try
         {
-            var data = (BuildingDataBase)Activator.CreateInstance(dataType, true);
-            JsonUtility.FromJsonOverwrite(saveData.BuildingDataJson, data);
+            JsonUtility.FromJsonOverwrite(saveData.BuildingStateJson, data);
             return data;
         }
         catch (Exception e)
@@ -998,7 +996,7 @@ public class DataManager : MonoSingleton<DataManager>
             UnityEngine.Object.Destroy(building.gameObject);
         }
 
-        gameSystem?.Turn?.ClearBuildings();
+        gameSystem?.Buildings?.ClearBuildings();
     }
 
     private static string NormalizeOptionalText(string text)
@@ -1355,9 +1353,9 @@ public class BuildingInstanceSaveData
 
     public float RotationW = 1f;
 
-    public string BuildingDataType = string.Empty;
+    public string BuildingStateTypeId = string.Empty;
 
-    public string BuildingDataJson = string.Empty;
+    public string BuildingStateJson = string.Empty;
 
     public bool IsValid => !string.IsNullOrWhiteSpace(BuildingId);
 
@@ -1382,16 +1380,16 @@ public class BuildingInstanceSaveData
             RotationY = rotation.y,
             RotationZ = rotation.z,
             RotationW = rotation.w,
-            BuildingDataType = string.Empty,
-            BuildingDataJson = string.Empty
+            BuildingStateTypeId = string.Empty,
+            BuildingStateJson = string.Empty
         };
     }
 
     public void Validate()
     {
         BuildingId = string.IsNullOrWhiteSpace(BuildingId) ? string.Empty : BuildingId.Trim();
-        BuildingDataType = string.IsNullOrWhiteSpace(BuildingDataType) ? string.Empty : BuildingDataType.Trim();
-        BuildingDataJson ??= string.Empty;
+        BuildingStateTypeId = string.IsNullOrWhiteSpace(BuildingStateTypeId) ? string.Empty : BuildingStateTypeId.Trim();
+        BuildingStateJson ??= string.Empty;
 
         if (Mathf.Approximately(RotationX, 0f)
             && Mathf.Approximately(RotationY, 0f)

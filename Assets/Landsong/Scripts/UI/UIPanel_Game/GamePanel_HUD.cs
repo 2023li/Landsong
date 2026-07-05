@@ -4,6 +4,7 @@ using Landsong;
 using Landsong.BuildingSystem;
 using Landsong.DynastySystem;
 using Landsong.InventorySystem;
+using Landsong.TechnologySystem;
 using Landsong.TurnSystem;
 using Landsong.UISystem;
 using Sirenix.OdinInspector;
@@ -17,9 +18,11 @@ public class GamePanel_HUD : MonoBehaviour
     private GameSystem gameSystem;
     private DynastyService dynasty;
     private InventoryService inventory;
+    private TechnologyService technology;
     private TurnService turn;
     private bool subscribedToDynasty;
     private bool subscribedToInventory;
+    private bool subscribedToTechnology;
     private bool subscribedToTurn;
     private bool subscribedToBuildingSelection;
     private BuildingSelectionController subscribedBuildingSelection;
@@ -81,12 +84,25 @@ public class GamePanel_HUD : MonoBehaviour
     [SerializeField, FoldoutGroup("左下角")] private RectTransform rt_左下角;
     [SerializeField, FoldoutGroup("左下角")] private Button btn_建造;
     [SerializeField, FoldoutGroup("左下角")] private Button btn_仓库;
-    [SerializeField, FoldoutGroup("左下角")] private Button btn_科技;
+
     [SerializeField, FoldoutGroup("左下角")] private Button btn_概览;
 
     [SerializeField] private GameObject go_回合处理显示;
     [SerializeField, Min(0f)] private float minimumTurnProcessingDisplaySeconds = 1f;
 
+    #endregion
+
+    #region 科技
+    //打开科技面板
+    [SerializeField, FoldoutGroup("科技栏")] private Button btn_科技;
+    //当前研究进度Sld
+    [SerializeField, FoldoutGroup("科技栏")] private Slider sld_当前科技进度;
+    //当前科技图标
+    [SerializeField, FoldoutGroup("科技栏")] private Image img_当前科技图标;
+    //科技进度文本
+    [SerializeField, FoldoutGroup("科技栏")] private TMP_Text txt_科技进度;
+    //正在研究的科技名称
+    [SerializeField, FoldoutGroup("科技栏")] private TMP_Text txt_当前科技名称;
     #endregion
 
 
@@ -99,7 +115,7 @@ public class GamePanel_HUD : MonoBehaviour
     #endregion
 
 
-    #region
+    #region 事件栏
     [SerializeField] private RectTransform rt_事件栏;
     #endregion
 
@@ -145,6 +161,10 @@ public class GamePanel_HUD : MonoBehaviour
         {
             btn_科技.onClick.RemoveListener(gamePanel.Show_Technology);
             btn_科技.onClick.AddListener(gamePanel.Show_Technology);
+        }
+        else
+        {
+            Debug.LogWarning($"{nameof(GamePanel_HUD)} has no technology button assigned.", this);
         }
 
 
@@ -202,6 +222,7 @@ public class GamePanel_HUD : MonoBehaviour
         gameSystem = GameSystem.Instance;
         dynasty = gameSystem == null ? null : gameSystem.Dynasty;
         inventory = gameSystem == null ? null : gameSystem.Inventory;
+        technology = gameSystem == null ? null : gameSystem.Technology;
         turn = gameSystem == null ? null : gameSystem.Turn;
     }
 
@@ -209,6 +230,7 @@ public class GamePanel_HUD : MonoBehaviour
     {
         SubscribeDynasty();
         SubscribeInventory();
+        SubscribeTechnology();
         SubscribeTurn();
     }
 
@@ -216,6 +238,7 @@ public class GamePanel_HUD : MonoBehaviour
     {
         UnsubscribeDynasty();
         UnsubscribeInventory();
+        UnsubscribeTechnology();
         UnsubscribeTurn();
     }
 
@@ -267,6 +290,29 @@ public class GamePanel_HUD : MonoBehaviour
         subscribedToInventory = false;
     }
 
+    private void SubscribeTechnology()
+    {
+        if (subscribedToTechnology || technology == null)
+        {
+            return;
+        }
+
+        technology.StateChanged += HandleTechnologyChanged;
+        subscribedToTechnology = true;
+    }
+
+    private void UnsubscribeTechnology()
+    {
+        if (!subscribedToTechnology || technology == null)
+        {
+            subscribedToTechnology = false;
+            return;
+        }
+
+        technology.StateChanged -= HandleTechnologyChanged;
+        subscribedToTechnology = false;
+    }
+
     private void SubscribeTurn()
     {
         if (subscribedToTurn || turn == null)
@@ -297,6 +343,7 @@ public class GamePanel_HUD : MonoBehaviour
         RefreshStage();
         RefreshPopulation();
         RefreshGold();
+        RefreshTechnology();
         RefreshTurnCount();
         RefreshTurnControls();
     }
@@ -320,6 +367,79 @@ public class GamePanel_HUD : MonoBehaviour
             ? 0
             : inventory.GetQuantity(itemId);
         txt_Gold.text = quantity.ToString();
+    }
+
+    private void RefreshTechnology()
+    {
+        if (technology == null)
+        {
+            SetCurrentTechnologyIcon(null);
+            SetSlider01(sld_当前科技进度, 0f);
+            SetText(txt_当前科技名称, "科技未初始化");
+            SetText(txt_科技进度, "0/0");
+            return;
+        }
+
+        var definition = technology.CurrentResearchDefinition;
+        if (definition == null)
+        {
+            SetCurrentTechnologyIcon(null);
+            SetSlider01(sld_当前科技进度, 0f);
+            SetText(txt_当前科技名称, FormatNoCurrentResearchName());
+            SetText(txt_科技进度, technology.HasResearchQueue ? "等待中" : "0/0");
+            return;
+        }
+
+        var required = Mathf.Max(0, technology.CurrentResearchRequiredPoints);
+        var progress = Mathf.Max(0, technology.CurrentResearchProgress);
+        var progress01 = required <= 0 ? 1f : Mathf.Clamp01(progress / (float)required);
+
+        SetCurrentTechnologyIcon(definition);
+        SetSlider01(sld_当前科技进度, progress01);
+        SetText(txt_当前科技名称, definition.DisplayName);
+        SetText(txt_科技进度, required <= 0 ? "无需科技点" : $"{Mathf.Min(progress, required)}/{required}");
+    }
+
+    private string FormatNoCurrentResearchName()
+    {
+        if (technology == null || !technology.HasResearchQueue)
+        {
+            return "未选择科技";
+        }
+
+        var queuedTechnologyIds = technology.ResearchQueueTechnologyIds;
+        if (queuedTechnologyIds.Count <= 0
+            || technology.Catalog == null
+            || !technology.Catalog.TryGetDefinition(queuedTechnologyIds[0], out var queuedDefinition)
+            || queuedDefinition == null)
+        {
+            return "等待研发队列";
+        }
+
+        return $"等待：{queuedDefinition.DisplayName}";
+    }
+
+    private void SetCurrentTechnologyIcon(TechnologyDefinition definition)
+    {
+        if (img_当前科技图标 == null)
+        {
+            return;
+        }
+
+        img_当前科技图标.sprite = definition == null ? null : definition.Icon;
+        img_当前科技图标.enabled = definition != null && definition.HasIcon;
+    }
+
+    private static void SetSlider01(Slider slider, float value)
+    {
+        if (slider == null)
+        {
+            return;
+        }
+
+        slider.minValue = 0f;
+        slider.maxValue = 1f;
+        slider.value = Mathf.Clamp01(value);
     }
 
     private void RefreshTurnCount()
@@ -346,7 +466,6 @@ public class GamePanel_HUD : MonoBehaviour
             return;
         }
 
-        BeginTurnProcessingDisplay();
         gameSystem.NextTurn();
     }
 
@@ -440,11 +559,25 @@ public class GamePanel_HUD : MonoBehaviour
         RefreshGold();
     }
 
+    private void HandleTechnologyChanged(TechnologyService changedTechnology)
+    {
+        technology = changedTechnology;
+        RefreshTechnology();
+    }
+
     private static void SetActive(GameObject target, bool active)
     {
         if (target != null)
         {
             target.SetActive(active);
+        }
+    }
+
+    private static void SetText(TMP_Text target, string text)
+    {
+        if (target != null)
+        {
+            target.text = text ?? string.Empty;
         }
     }
 

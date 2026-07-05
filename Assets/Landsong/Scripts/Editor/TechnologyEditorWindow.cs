@@ -17,16 +17,20 @@ public sealed class TechnologyEditorWindow : EditorWindow
     private const string DefaultCatalogPath = "Assets/Landsong/Objects/SO/TechnologyCatalog.asset";
     private const string DefaultTechnologyFolder = "Assets/Landsong/Objects/SO/Technology";
     private const string CatalogEditorPrefsKey = "Landsong.TechnologyEditorWindow.CatalogPath";
-    private const float GraphWidth = 1800f;
+    private const float MinGraphWidth = 3000f;
     private const float GraphHeight = 1000f;
+    private const float GraphHorizontalExpansionPadding = 900f;
     private const float NodeWidth = 190f;
     private const float NodeHeight = 82f;
+    private const string DefaultNewTechnologyId = "TN_R_L_";
+    private const string TechnologyNodeIdPrefix = "TN";
+    private const string TechnologyNodeIdFormatHint = "节点 ID 必须符合 TN_行_列_节点名称，例如 TN_3_1_启蒙。";
 
     private TechnologyCatalog catalog;
     private TechnologyDefinition selectedDefinition;
     private TechnologyDefinition definitionToAdd;
     private string searchText = string.Empty;
-    private string newTechnologyId = "新科技";
+    private string newTechnologyId = DefaultNewTechnologyId;
     private string technologyFolder = DefaultTechnologyFolder;
     private Vector2 listScroll;
     private Vector2 inspectorScroll;
@@ -36,6 +40,8 @@ public sealed class TechnologyEditorWindow : EditorWindow
     private GraphConnectionMode connectionMode;
     private Vector2 dragOffset;
     private Rect graphVisibleRect;
+    private float currentGraphContentWidth = MinGraphWidth;
+    private bool hasUnsavedTechnologyTreeChanges;
 
     private readonly Dictionary<TechnologyDefinition, int> graphIndexByDefinition =
         new Dictionary<TechnologyDefinition, int>();
@@ -53,7 +59,24 @@ public sealed class TechnologyEditorWindow : EditorWindow
 
     private void OnEnable()
     {
+        saveChangesMessage = "科技树有未保存的修改。";
         RestoreLastCatalog();
+    }
+
+    public override void SaveChanges()
+    {
+        if (!SaveTechnologyTree())
+        {
+            return;
+        }
+
+        base.SaveChanges();
+    }
+
+    public override void DiscardChanges()
+    {
+        SetUnsavedChanges(false);
+        base.DiscardChanges();
     }
 
     private void OnGUI()
@@ -88,7 +111,10 @@ public sealed class TechnologyEditorWindow : EditorWindow
             false);
         if (EditorGUI.EndChangeCheck())
         {
-            SetCatalog(selectedCatalog);
+            if (ConfirmSaveOrDiscardUnsavedChanges())
+            {
+                SetCatalog(selectedCatalog);
+            }
         }
 
         if (GUILayout.Button("Create Catalog", GUILayout.Width(120f)))
@@ -117,6 +143,7 @@ public sealed class TechnologyEditorWindow : EditorWindow
         if (catalog != null && GUILayout.Button("Load Folder", GUILayout.Width(110f)))
         {
             catalog.EditorLoadDefinitionsFromFolder(technologyFolder);
+            MarkUnsavedChanges();
             Repaint();
         }
 
@@ -146,6 +173,7 @@ public sealed class TechnologyEditorWindow : EditorWindow
                 catalog.EditorAddDefinition(definitionToAdd);
                 selectedDefinition = definitionToAdd;
                 definitionToAdd = null;
+                MarkUnsavedChanges();
                 Repaint();
             }
         }
@@ -188,6 +216,7 @@ public sealed class TechnologyEditorWindow : EditorWindow
             {
                 catalog.EditorRemoveDefinition(selectedDefinition);
                 selectedDefinition = null;
+                MarkUnsavedChanges();
                 Repaint();
             }
         }
@@ -225,6 +254,7 @@ public sealed class TechnologyEditorWindow : EditorWindow
                 selectedDefinition.Normalize();
                 EditorUtility.SetDirty(selectedDefinition);
                 catalog.RebuildIndex();
+                MarkUnsavedChanges();
             }
 
             EditorGUILayout.Space(6f);
@@ -246,7 +276,11 @@ public sealed class TechnologyEditorWindow : EditorWindow
         GUI.Box(graphRect, GUIContent.none);
 
         BuildGraphCache(definitions);
-        graphScroll = GUI.BeginScrollView(graphRect, graphScroll, new Rect(0f, 0f, GraphWidth, GraphHeight));
+        currentGraphContentWidth = CalculateGraphContentWidth(graphRect.width);
+        graphScroll = GUI.BeginScrollView(
+            graphRect,
+            graphScroll,
+            new Rect(0f, 0f, currentGraphContentWidth, GraphHeight));
         graphVisibleRect = new Rect(graphScroll.x, graphScroll.y, graphRect.width, graphRect.height);
 
         if (Event.current.type == EventType.Repaint)
@@ -492,6 +526,11 @@ public sealed class TechnologyEditorWindow : EditorWindow
 
     private void CreateCatalogAsset()
     {
+        if (!ConfirmSaveOrDiscardUnsavedChanges())
+        {
+            return;
+        }
+
         EnsureAssetFolder(DefaultCatalogFolder);
         var asset = CreateInstance<TechnologyCatalog>();
         var path = AssetDatabase.GenerateUniqueAssetPath($"{DefaultCatalogFolder}/TechnologyCatalog.asset");
@@ -518,6 +557,7 @@ public sealed class TechnologyEditorWindow : EditorWindow
         if (catalog == null)
         {
             EditorPrefs.DeleteKey(CatalogEditorPrefsKey);
+            SetUnsavedChanges(false);
             return;
         }
 
@@ -526,6 +566,48 @@ public sealed class TechnologyEditorWindow : EditorWindow
         {
             EditorPrefs.SetString(CatalogEditorPrefsKey, catalogPath);
         }
+
+        SetUnsavedChanges(false);
+    }
+
+    private void MarkUnsavedChanges()
+    {
+        SetUnsavedChanges(true);
+    }
+
+    private void SetUnsavedChanges(bool unsaved)
+    {
+        hasUnsavedTechnologyTreeChanges = unsaved;
+        hasUnsavedChanges = unsaved;
+        saveChangesMessage = "科技树有未保存的修改。";
+    }
+
+    private bool ConfirmSaveOrDiscardUnsavedChanges()
+    {
+        if (!hasUnsavedTechnologyTreeChanges)
+        {
+            return true;
+        }
+
+        var choice = EditorUtility.DisplayDialogComplex(
+            "科技树未保存",
+            "科技树有未保存的修改。是否先保存？",
+            "保存",
+            "取消",
+            "不保存");
+
+        if (choice == 0)
+        {
+            return SaveTechnologyTree();
+        }
+
+        if (choice == 1)
+        {
+            return false;
+        }
+
+        SetUnsavedChanges(false);
+        return true;
     }
 
     private void RestoreLastCatalog()
@@ -562,11 +644,11 @@ public sealed class TechnologyEditorWindow : EditorWindow
         return AssetDatabase.LoadAssetAtPath<TechnologyCatalog>(path);
     }
 
-    private void SaveTechnologyTree()
+    private bool SaveTechnologyTree()
     {
         if (catalog == null)
         {
-            return;
+            return false;
         }
 
         if (!ValidateTechnologyNodeIds(catalog.Definitions, out var errorMessage, out var invalidDefinition))
@@ -574,7 +656,7 @@ public sealed class TechnologyEditorWindow : EditorWindow
             selectedDefinition = invalidDefinition;
             EditorUtility.DisplayDialog("科技树保存失败", errorMessage, "确定");
             Repaint();
-            return;
+            return false;
         }
 
         catalog.RebuildIndex();
@@ -583,7 +665,9 @@ public sealed class TechnologyEditorWindow : EditorWindow
         var renamedCount = RenameTechnologyDefinitionAssets(catalog.Definitions);
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
+        SetUnsavedChanges(false);
         Debug.Log($"科技树已保存。同步重命名科技节点 SO：{renamedCount} 个。", this);
+        return true;
     }
 
     private void CreateTechnologyNode()
@@ -593,7 +677,7 @@ public sealed class TechnologyEditorWindow : EditorWindow
         var normalizedId = NormalizeTechnologyId(newTechnologyId);
         if (string.IsNullOrEmpty(normalizedId))
         {
-            normalizedId = "NewTechnology";
+            normalizedId = DefaultNewTechnologyId;
         }
 
         var asset = CreateInstance<TechnologyDefinition>();
@@ -611,6 +695,8 @@ public sealed class TechnologyEditorWindow : EditorWindow
         AssetDatabase.SaveAssets();
         catalog.EditorAddDefinition(asset);
         selectedDefinition = asset;
+        newTechnologyId = DefaultNewTechnologyId;
+        MarkUnsavedChanges();
         EditorGUIUtility.PingObject(asset);
     }
 
@@ -655,6 +741,19 @@ public sealed class TechnologyEditorWindow : EditorWindow
         return definition != null && graphRectsByDefinition.TryGetValue(definition, out nodeRect);
     }
 
+    private float CalculateGraphContentWidth(float visibleWidth)
+    {
+        var width = Mathf.Max(MinGraphWidth, visibleWidth);
+        width = Mathf.Max(width, graphScroll.x + visibleWidth + GraphHorizontalExpansionPadding);
+
+        foreach (var nodeRect in graphRectsByDefinition.Values)
+        {
+            width = Mathf.Max(width, nodeRect.xMax + GraphHorizontalExpansionPadding);
+        }
+
+        return width;
+    }
+
     private bool IsNodeVisible(Rect nodeRect)
     {
         return ExpandRect(graphVisibleRect, 96f).Overlaps(nodeRect);
@@ -679,15 +778,17 @@ public sealed class TechnologyEditorWindow : EditorWindow
         return rect;
     }
 
-    private static void SetGraphPosition(TechnologyDefinition definition, Vector2 position)
+    private void SetGraphPosition(TechnologyDefinition definition, Vector2 position)
     {
         var serializedDefinition = new SerializedObject(definition);
         var graphPositionProperty = serializedDefinition.FindProperty("graphPosition");
+        var maxX = Mathf.Max(0f, currentGraphContentWidth - NodeWidth);
         graphPositionProperty.vector2Value = new Vector2(
-            Mathf.Clamp(position.x, 0f, GraphWidth - NodeWidth),
+            Mathf.Clamp(position.x, 0f, maxX),
             Mathf.Clamp(position.y, 0f, GraphHeight - NodeHeight));
         serializedDefinition.ApplyModifiedPropertiesWithoutUndo();
         EditorUtility.SetDirty(definition);
+        MarkUnsavedChanges();
     }
 
     private bool AddPrerequisite(TechnologyDefinition targetDefinition, TechnologyDefinition prerequisiteDefinition)
@@ -725,7 +826,7 @@ public sealed class TechnologyEditorWindow : EditorWindow
         serializedDefinition.ApplyModifiedPropertiesWithoutUndo();
         targetDefinition.Normalize();
         EditorUtility.SetDirty(targetDefinition);
-        AssetDatabase.SaveAssets();
+        MarkUnsavedChanges();
         return true;
     }
 
@@ -756,7 +857,7 @@ public sealed class TechnologyEditorWindow : EditorWindow
             serializedDefinition.ApplyModifiedPropertiesWithoutUndo();
             targetDefinition.Normalize();
             EditorUtility.SetDirty(targetDefinition);
-            AssetDatabase.SaveAssets();
+            MarkUnsavedChanges();
             return true;
         }
 
@@ -793,6 +894,13 @@ public sealed class TechnologyEditorWindow : EditorWindow
                 return false;
             }
 
+            if (!ValidateTechnologyNodeIdFormat(technologyId, out var idFormatError))
+            {
+                invalidDefinition = definition;
+                errorMessage = $"科技节点“{definition.DisplayName}”的节点 ID 不合法：{technologyId}\n{idFormatError}";
+                return false;
+            }
+
             if (definitionsById.TryGetValue(technologyId, out var existingDefinition))
             {
                 invalidDefinition = definition;
@@ -804,6 +912,50 @@ public sealed class TechnologyEditorWindow : EditorWindow
             }
 
             definitionsById.Add(technologyId, definition);
+        }
+
+        return true;
+    }
+
+    private static bool ValidateTechnologyNodeIdFormat(string technologyId, out string errorMessage)
+    {
+        errorMessage = string.Empty;
+        if (string.IsNullOrWhiteSpace(technologyId))
+        {
+            errorMessage = TechnologyNodeIdFormatHint;
+            return false;
+        }
+
+        var parts = technologyId.Trim().Split('_');
+        if (parts.Length < 4)
+        {
+            errorMessage = TechnologyNodeIdFormatHint;
+            return false;
+        }
+
+        if (!string.Equals(parts[0], TechnologyNodeIdPrefix, StringComparison.Ordinal))
+        {
+            errorMessage = $"节点 ID 必须以 {TechnologyNodeIdPrefix}_ 开头。{TechnologyNodeIdFormatHint}";
+            return false;
+        }
+
+        if (!int.TryParse(parts[1], out var row) || row <= 0)
+        {
+            errorMessage = "节点 ID 的行号必须是大于 0 的整数。";
+            return false;
+        }
+
+        if (!int.TryParse(parts[2], out var column) || column <= 0)
+        {
+            errorMessage = "节点 ID 的列号必须是大于 0 的整数。";
+            return false;
+        }
+
+        var nodeName = string.Join("_", parts, 3, parts.Length - 3).Trim();
+        if (string.IsNullOrWhiteSpace(nodeName))
+        {
+            errorMessage = "节点 ID 的节点名称不能为空。";
+            return false;
         }
 
         return true;

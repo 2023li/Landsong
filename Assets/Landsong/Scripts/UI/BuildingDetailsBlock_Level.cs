@@ -13,14 +13,14 @@ public sealed class BuildingDetailsBlock_Level : MonoBehaviour
     [SerializeField] private TMP_Text txt_升级消耗;
 
     private BuildingBase building;
-    private BuildingLevelUpgradeModule levelModule;
+    private BM_等级升级 levelModule;
     private bool suppressCallback;
     private bool listenersBound;
 
     public bool CanShow(BuildingBase targetBuilding)
     {
         return targetBuilding != null
-               && targetBuilding.TryGetModule<BuildingLevelUpgradeModule>(out _);
+               && targetBuilding.TryGetModule<BM_等级升级>(out _);
     }
 
     public void Initialize(Popup_BuildingDetails detailOwner)

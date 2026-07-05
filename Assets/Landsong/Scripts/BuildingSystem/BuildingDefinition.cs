@@ -5,7 +5,6 @@ using Landsong.ConditionSystem;
 using Landsong.GridSystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Landsong.BuildingSystem
 {
@@ -94,7 +93,6 @@ namespace Landsong.BuildingSystem
         [TitleGroup("附件")]
         [SerializeField]
         [LabelText("使用专用的详情面板")]
-        [FormerlySerializedAs("UseUniqueDetailPanel")]
         private bool useUniqueDetailPanel = false;
 
         [LabelText("专属的详情面板")]

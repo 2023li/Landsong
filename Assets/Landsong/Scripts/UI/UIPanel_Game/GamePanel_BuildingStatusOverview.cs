@@ -44,7 +44,7 @@ namespace Landsong.UISystem
 
         private void Awake()
         {
-            btn_关闭.onClick.AddListener(Hide);
+            btn_关闭.onClick.AddListener(gamePanel.Hide_Overview);
         }
 
         private void OnDisable()

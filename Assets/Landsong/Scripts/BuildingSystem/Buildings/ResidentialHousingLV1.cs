@@ -637,6 +637,7 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
     }
 
     [Serializable]
+    [BuildingDataTypeId("building.residential_housing.lv1")]
     private sealed class ResidentialHousingLV1Data : BuildingDataBase
     {
         public int CurrentPopulation;

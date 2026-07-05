@@ -15,6 +15,8 @@ namespace Landsong.UISystem
         [SerializeField] private TMP_Text costLabel;
         [SerializeField] private TMP_Text statusLabel;
         [SerializeField] private GameObject selectedRoot;
+        [SerializeField] private GameObject currentResearchRoot;
+        [SerializeField] private GameObject queuedResearchRoot;
 
         private TechnologyService technology;
         private Action<TechnologyDefinition> clicked;
@@ -39,6 +41,18 @@ namespace Landsong.UISystem
             }
         }
 
+        private void OnValidate()
+        {
+            ResolveReferences();
+            Refresh();
+        }
+
+        public void SetDefinition(TechnologyDefinition newDefinition)
+        {
+            definition = newDefinition;
+            Refresh();
+        }
+
         public void Bind(TechnologyService targetTechnology, Action<TechnologyDefinition> onClicked, bool selected)
         {
             technology = targetTechnology;
@@ -55,15 +69,39 @@ namespace Landsong.UISystem
             }
         }
 
+        public void SetCurrentResearch(bool currentResearch)
+        {
+            if (currentResearchRoot != null)
+            {
+                currentResearchRoot.SetActive(currentResearch);
+            }
+        }
+
+        public void SetQueuedResearch(bool queuedResearch)
+        {
+            if (queuedResearchRoot != null)
+            {
+                queuedResearchRoot.SetActive(queuedResearch);
+            }
+        }
+
         public void Refresh()
         {
             ResolveReferences();
 
             if (definition == null)
             {
+                SetCurrentResearch(false);
+                SetQueuedResearch(false);
                 SetText(nameLabel, gameObject.name);
                 SetText(costLabel, string.Empty);
                 SetText(statusLabel, "未配置科技");
+                if (iconImage != null)
+                {
+                    iconImage.sprite = null;
+                    iconImage.enabled = false;
+                }
+
                 if (button != null)
                 {
                     button.interactable = false;
@@ -72,6 +110,9 @@ namespace Landsong.UISystem
                 return;
             }
 
+            var isCurrentResearch = technology != null && technology.IsCurrentResearch(definition);
+            SetCurrentResearch(isCurrentResearch);
+            SetQueuedResearch(!isCurrentResearch && technology != null && technology.IsQueuedResearch(definition));
             SetText(nameLabel, definition.DisplayName);
             SetText(costLabel, $"{definition.SciencePointCost} 科技点");
             SetText(statusLabel, FormatStatus());
@@ -100,6 +141,11 @@ namespace Landsong.UISystem
                 return definition.AllowRepeatResearch && technology.IsUnlocked(definition.TechnologyId)
                     ? $"重复中 {FormatResearchProgress()}"
                     : $"研究中 {FormatResearchProgress()}";
+            }
+
+            if (technology.IsQueuedResearch(definition))
+            {
+                return "队列中";
             }
 
             if (technology.IsUnlocked(definition.TechnologyId) && !definition.AllowRepeatResearch)

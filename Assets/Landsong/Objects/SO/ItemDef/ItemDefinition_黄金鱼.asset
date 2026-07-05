@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f82a98a2ca34cb18716745704baeb28, type: 3}
+  m_Name: "ItemDefinition_\u9EC4\u91D1\u9C7C"
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.InventorySystem.ItemDefinition
+  icon: {fileID: 21300000, guid: 069d738ab1b187d468c9f08a84d301e1, type: 3}
+  itemId: "\u9EC4\u91D1\u9C7C"
+  displayName: "\u9EC4\u91D1\u9C7C"
+  description: 
+  category: 0
+  stackable: 1
+  maxStackSize: 99999
+  baseValue: 0
+  addressableKey: 
+  tags: []

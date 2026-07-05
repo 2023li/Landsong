@@ -43,6 +43,8 @@ namespace Landsong.GameEventSystem
         public const string GE_补贴金币不足 = "subsidy_gold_missing";
         public const string GE_招工未完全补满 = "recruit_partially_done";
         public const string GE_科技研究完成 = "technology_research_completed";
+        public const string GE_未选择研发节点 = "technology_research_not_selected";
+        public const string GE_科技自动重复研发 = "technology_repeat_research_continued";
 
         private static readonly GameEventDefinition[] DefaultDefinitions =
         {
@@ -53,7 +55,9 @@ namespace Landsong.GameEventSystem
             new GameEventDefinition(GE_自动补贴增加, "自动补贴增加"),
             new GameEventDefinition(GE_补贴金币不足, "补贴金币不足"),
             new GameEventDefinition(GE_招工未完全补满, "招工未完全补满"),
-            new GameEventDefinition(GE_科技研究完成, "科技研究完成")
+            new GameEventDefinition(GE_科技研究完成, "科技研究完成"),
+            new GameEventDefinition(GE_未选择研发节点, "未选择研发"),
+            new GameEventDefinition(GE_科技自动重复研发, "科技自动重复研发")
         };
 
         public static IReadOnlyList<GameEventDefinition> Definitions => DefaultDefinitions;

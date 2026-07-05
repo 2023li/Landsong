@@ -11,7 +11,7 @@ namespace Landsong.TechnologySystem
         [PreviewField(72)]
         [SerializeField, LabelText("图标")] private Sprite icon;
 
-        [SerializeField, LabelText("科技ID")] private string technologyId;
+        [SerializeField, LabelText("科技ID")] private string technologyId = "TN_R_L_";
         [SerializeField, LabelText("显示名称")] private string displayName;
         [SerializeField, TextArea, LabelText("描述")] private string description;
         [SerializeField, Min(0), LabelText("研究需求科技点")] private int sciencePointCost = 1;

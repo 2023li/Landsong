@@ -226,7 +226,7 @@ MonoBehaviour:
       type: {class: GameCondition_False, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
       data: 
     - rid: 5711026153326903377
-      type: {class: BuildingInventorySlotCapacityModule, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      type: {class: BM_库存格容量, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
       data:
         enabled: 1
         providedSlotCount: 5

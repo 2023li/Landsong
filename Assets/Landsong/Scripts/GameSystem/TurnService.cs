@@ -7,10 +7,11 @@ namespace Landsong.TurnSystem
 {
     public sealed class TurnService
     {
-        private readonly List<BuildingBase> buildings = new List<BuildingBase>();
-        private readonly List<BuildingTechnologyPointModule> technologyPointModules =
-            new List<BuildingTechnologyPointModule>();
-        private readonly HashSet<BuildingBase> registeredBuildings = new HashSet<BuildingBase>();
+        private static readonly IReadOnlyList<BuildingBase> EmptyBuildings = Array.Empty<BuildingBase>();
+        private readonly List<BM_科技点产出> technologyPointModules =
+            new List<BM_科技点产出>();
+        private readonly List<BM_资源产出> resourceProductionModules =
+            new List<BM_资源产出>();
 
         public TurnService(int startingTurn = 1)
         {
@@ -24,34 +25,6 @@ namespace Landsong.TurnSystem
 
         public int CurrentTurn { get; private set; }
         public bool IsAdvancingTurn { get; private set; }
-        public IReadOnlyList<BuildingBase> Buildings => buildings;
-
-        public void RegisterBuilding(BuildingBase building)
-        {
-            if (building == null || !registeredBuildings.Add(building))
-            {
-                return;
-            }
-
-            buildings.Add(building);
-        }
-
-        public bool UnregisterBuilding(BuildingBase building)
-        {
-            if (building == null || !registeredBuildings.Remove(building))
-            {
-                return false;
-            }
-
-            buildings.Remove(building);
-            return true;
-        }
-
-        public void ClearBuildings()
-        {
-            buildings.Clear();
-            registeredBuildings.Clear();
-        }
 
         public void SetCurrentTurn(int currentTurn)
         {
@@ -59,22 +32,7 @@ namespace Landsong.TurnSystem
             CurrentTurn = Math.Max(1, currentTurn);
         }
 
-        private void RemoveMissingBuildings()
-        {
-            var removed = buildings.RemoveAll(building => building == null);
-            if (removed <= 0)
-            {
-                return;
-            }
-
-            registeredBuildings.Clear();
-            foreach (var building in buildings)
-            {
-                registeredBuildings.Add(building);
-            }
-        }
-
-        public TurnAdvanceSummary NextTurn()
+        public TurnAdvanceSummary NextTurn(IReadOnlyList<BuildingBase> runtimeBuildings)
         {
             ThrowIfAdvancing();
 
@@ -82,11 +40,11 @@ namespace Landsong.TurnSystem
             try
             {
                 var summary = BeginTurnAdvance();
-                var snapshot = buildings.ToArray();
+                var snapshot = CreateBuildingSnapshot(runtimeBuildings);
 
-                foreach (var building in snapshot)
+                for (var i = 0; i < snapshot.Length; i++)
                 {
-                    ProcessBuildingTurn(building, ref summary);
+                    ProcessBuildingTurn(snapshot[i], ref summary);
                 }
 
                 CompleteTurnAdvance(summary);
@@ -98,7 +56,10 @@ namespace Landsong.TurnSystem
             }
         }
 
-        public IEnumerator NextTurnRoutine(int buildingsPerFrame, Action<TurnAdvanceSummary> completed = null)
+        public IEnumerator NextTurnRoutine(
+            IReadOnlyList<BuildingBase> runtimeBuildings,
+            int buildingsPerFrame,
+            Action<TurnAdvanceSummary> completed = null)
         {
             ThrowIfAdvancing();
 
@@ -108,7 +69,7 @@ namespace Landsong.TurnSystem
                 buildingsPerFrame = Math.Max(1, buildingsPerFrame);
 
                 var summary = BeginTurnAdvance();
-                var snapshot = buildings.ToArray();
+                var snapshot = CreateBuildingSnapshot(runtimeBuildings);
                 var processedThisFrame = 0;
 
                 for (var i = 0; i < snapshot.Length; i++)
@@ -145,7 +106,6 @@ namespace Landsong.TurnSystem
         private TurnAdvanceSummary BeginTurnAdvance()
         {
             BeforeTurnAdvanced?.Invoke(this);
-            RemoveMissingBuildings();
             return new TurnAdvanceSummary(CurrentTurn, CurrentTurn + 1);
         }
 
@@ -155,9 +115,21 @@ namespace Landsong.TurnSystem
             TurnAdvanced?.Invoke(this, summary);
         }
 
+        private static BuildingBase[] CreateBuildingSnapshot(IReadOnlyList<BuildingBase> runtimeBuildings)
+        {
+            runtimeBuildings ??= EmptyBuildings;
+            var snapshot = new BuildingBase[runtimeBuildings.Count];
+            for (var i = 0; i < runtimeBuildings.Count; i++)
+            {
+                snapshot[i] = runtimeBuildings[i];
+            }
+
+            return snapshot;
+        }
+
         private void ProcessBuildingTurn(BuildingBase building, ref TurnAdvanceSummary summary)
         {
-            if (building == null || !registeredBuildings.Contains(building) || !building.IsInitialized)
+            if (building == null || building.IsDemolishing || !building.IsInitialized)
             {
                 summary.Skipped++;
                 return;
@@ -187,6 +159,15 @@ namespace Landsong.TurnSystem
             {
                 NotifyProvidedResources(building, productionSource.LastResourceProductions);
             }
+
+            resourceProductionModules.Clear();
+            building.GetModules(resourceProductionModules);
+            for (var i = 0; i < resourceProductionModules.Count; i++)
+            {
+                NotifyProvidedResources(building, resourceProductionModules[i].LastResourceProductions);
+            }
+
+            resourceProductionModules.Clear();
 
             if (building is IBuildingTaxSource taxSource)
             {

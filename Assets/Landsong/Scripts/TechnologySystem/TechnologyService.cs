@@ -65,6 +65,7 @@ namespace Landsong.TechnologySystem
         public List<TechnologyResearchProgressSaveData> ResearchProgresses =
             new List<TechnologyResearchProgressSaveData>();
         public List<string> UnlockedTechnologyIds = new List<string>();
+        public List<string> ResearchQueueTechnologyIds = new List<string>();
 
         public void Validate()
         {
@@ -72,6 +73,7 @@ namespace Landsong.TechnologySystem
             CurrentResearchProgress = Math.Max(0, CurrentResearchProgress);
             LastTurnResearchPoints = Math.Max(0, LastTurnResearchPoints);
             NormalizeUnlockedTechnologies();
+            NormalizeResearchQueue();
             NormalizeResearchProgresses();
         }
 
@@ -157,6 +159,28 @@ namespace Landsong.TechnologySystem
                     Progress = Math.Max(0, progress)
                 });
         }
+
+        private void NormalizeResearchQueue()
+        {
+            if (ResearchQueueTechnologyIds == null)
+            {
+                ResearchQueueTechnologyIds = new List<string>();
+                return;
+            }
+
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            for (var i = ResearchQueueTechnologyIds.Count - 1; i >= 0; i--)
+            {
+                var technologyId = NormalizeTechnologyId(ResearchQueueTechnologyIds[i]);
+                if (string.IsNullOrEmpty(technologyId) || !seen.Add(technologyId))
+                {
+                    ResearchQueueTechnologyIds.RemoveAt(i);
+                    continue;
+                }
+
+                ResearchQueueTechnologyIds[i] = technologyId;
+            }
+        }
     }
 
     public sealed class TechnologyService
@@ -164,6 +188,7 @@ namespace Landsong.TechnologySystem
         private readonly HashSet<string> unlockedTechnologyIds = new HashSet<string>(StringComparer.Ordinal);
         private readonly Dictionary<string, int> researchProgressByTechnologyId =
             new Dictionary<string, int>(StringComparer.Ordinal);
+        private readonly List<string> researchQueueTechnologyIds = new List<string>();
 
         private TechnologyCatalog catalog;
         private string currentResearchTechnologyId = string.Empty;
@@ -187,12 +212,15 @@ namespace Landsong.TechnologySystem
 
         public TechnologyCatalog Catalog => catalog;
         public IReadOnlyCollection<string> UnlockedTechnologyIds => unlockedTechnologyIds;
+        public IReadOnlyList<string> ResearchQueueTechnologyIds => researchQueueTechnologyIds;
         public string CurrentResearchTechnologyId => currentResearchTechnologyId;
         public TechnologyDefinition CurrentResearchDefinition => GetDefinition(currentResearchTechnologyId);
         public int CurrentResearchProgress => GetResearchProgress(currentResearchTechnologyId);
         public int CurrentResearchRequiredPoints => GetRequiredResearchPoints(CurrentResearchDefinition);
         public int LastTurnResearchPoints => lastTurnResearchPoints;
         public bool HasCurrentResearch => CurrentResearchDefinition != null;
+        public bool HasResearchQueue => researchQueueTechnologyIds.Count > 0;
+        public bool HasResearchPlan => HasCurrentResearch || HasResearchQueue;
         public float CurrentResearchProgress01 =>
             CurrentResearchRequiredPoints <= 0
                 ? 0f
@@ -212,6 +240,7 @@ namespace Landsong.TechnologySystem
                 currentResearchTechnologyId = string.Empty;
             }
 
+            RemoveInvalidQueuedResearch();
             StateChanged?.Invoke(this);
         }
 
@@ -226,6 +255,30 @@ namespace Landsong.TechnologySystem
             return definition != null
                    && !string.IsNullOrWhiteSpace(currentResearchTechnologyId)
                    && string.Equals(definition.TechnologyId, currentResearchTechnologyId, StringComparison.Ordinal);
+        }
+
+        public bool IsQueuedResearch(TechnologyDefinition definition)
+        {
+            if (definition == null)
+            {
+                return false;
+            }
+
+            var technologyId = TechnologySaveData.NormalizeTechnologyId(definition.TechnologyId);
+            if (string.IsNullOrEmpty(technologyId))
+            {
+                return false;
+            }
+
+            for (var i = 0; i < researchQueueTechnologyIds.Count; i++)
+            {
+                if (string.Equals(researchQueueTechnologyIds[i], technologyId, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public bool CanStartResearch(string technologyId, out TechnologyResearchFailureReason failureReason)
@@ -285,6 +338,69 @@ namespace Landsong.TechnologySystem
 
         public bool TryStartResearch(TechnologyDefinition definition)
         {
+            researchQueueTechnologyIds.Clear();
+            return TryStartResearchInternal(definition, true);
+        }
+
+        public bool TryQueueResearchPath(TechnologyDefinition targetDefinition)
+        {
+            if (targetDefinition == null || !targetDefinition.IsValid)
+            {
+                return false;
+            }
+
+            var researchPath = new List<TechnologyDefinition>();
+            var visited = new HashSet<string>(StringComparer.Ordinal);
+            CollectResearchPath(targetDefinition, researchPath, visited, true);
+            researchPath.Sort(CompareTechnologyDefinitionsByNodeId);
+            if (researchPath.Count == 0)
+            {
+                return false;
+            }
+
+            var currentResearchInPath = false;
+            researchQueueTechnologyIds.Clear();
+            for (var i = 0; i < researchPath.Count; i++)
+            {
+                var definition = researchPath[i];
+                var technologyId = TechnologySaveData.NormalizeTechnologyId(definition.TechnologyId);
+                if (string.IsNullOrEmpty(technologyId))
+                {
+                    continue;
+                }
+
+                if (string.Equals(currentResearchTechnologyId, technologyId, StringComparison.Ordinal))
+                {
+                    currentResearchInPath = true;
+                    continue;
+                }
+
+                if (!ContainsQueuedTechnology(technologyId))
+                {
+                    researchQueueTechnologyIds.Add(technologyId);
+                }
+            }
+
+            if (researchQueueTechnologyIds.Count == 0)
+            {
+                StateChanged?.Invoke(this);
+                return currentResearchInPath || IsCurrentResearch(targetDefinition);
+            }
+
+            if (!currentResearchInPath)
+            {
+                TryStartNextQueuedResearch();
+            }
+            else
+            {
+                StateChanged?.Invoke(this);
+            }
+
+            return true;
+        }
+
+        private bool TryStartResearchInternal(TechnologyDefinition definition, bool notifyWhenAlreadyCurrent)
+        {
             if (!CanStartResearch(definition, out _))
             {
                 return false;
@@ -293,6 +409,11 @@ namespace Landsong.TechnologySystem
             var technologyId = TechnologySaveData.NormalizeTechnologyId(definition.TechnologyId);
             if (string.Equals(currentResearchTechnologyId, technologyId, StringComparison.Ordinal))
             {
+                if (notifyWhenAlreadyCurrent)
+                {
+                    StateChanged?.Invoke(this);
+                }
+
                 return true;
             }
 
@@ -306,6 +427,88 @@ namespace Landsong.TechnologySystem
             CurrentResearchChanged?.Invoke(this);
             StateChanged?.Invoke(this);
             return true;
+        }
+
+        private bool TryStartNextQueuedResearch()
+        {
+            while (researchQueueTechnologyIds.Count > 0)
+            {
+                var technologyId = researchQueueTechnologyIds[0];
+                researchQueueTechnologyIds.RemoveAt(0);
+
+                var definition = GetDefinition(technologyId);
+                if (definition == null)
+                {
+                    continue;
+                }
+
+                if (IsUnlocked(technologyId) && !definition.AllowRepeatResearch)
+                {
+                    continue;
+                }
+
+                if (!CanStartResearch(definition, out _))
+                {
+                    researchQueueTechnologyIds.Insert(0, technologyId);
+                    StateChanged?.Invoke(this);
+                    return false;
+                }
+
+                if (GetRequiredResearchPoints(definition) <= 0)
+                {
+                    UnlockForFree(technologyId);
+                    continue;
+                }
+
+                return TryStartResearchInternal(definition, false);
+            }
+
+            StateChanged?.Invoke(this);
+            return false;
+        }
+
+        private void CollectResearchPath(
+            TechnologyDefinition definition,
+            List<TechnologyDefinition> researchPath,
+            HashSet<string> visited,
+            bool isTarget)
+        {
+            if (definition == null || !definition.IsValid)
+            {
+                return;
+            }
+
+            var technologyId = TechnologySaveData.NormalizeTechnologyId(definition.TechnologyId);
+            if (string.IsNullOrEmpty(technologyId) || !visited.Add(technologyId))
+            {
+                return;
+            }
+
+            var prerequisites = definition.Prerequisites;
+            for (var i = 0; i < prerequisites.Count; i++)
+            {
+                CollectResearchPath(prerequisites[i], researchPath, visited, false);
+            }
+
+            if (IsUnlocked(technologyId) && (!definition.AllowRepeatResearch || !isTarget))
+            {
+                return;
+            }
+
+            researchPath.Add(definition);
+        }
+
+        private bool ContainsQueuedTechnology(string technologyId)
+        {
+            for (var i = 0; i < researchQueueTechnologyIds.Count; i++)
+            {
+                if (string.Equals(researchQueueTechnologyIds[i], technologyId, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public TechnologyResearchAppliedResult ApplyResearchPoints(int amount)
@@ -336,7 +539,6 @@ namespace Landsong.TechnologySystem
             {
                 researchProgressByTechnologyId.Remove(technologyId);
                 var unlockedForFirstTime = unlockedTechnologyIds.Add(technologyId);
-                currentResearchTechnologyId = string.Empty;
 
                 var completedResult = new TechnologyResearchAppliedResult(
                     definition,
@@ -351,6 +553,17 @@ namespace Landsong.TechnologySystem
                 if (unlockedForFirstTime)
                 {
                     TechnologyUnlocked?.Invoke(this, technologyId);
+                }
+
+                if (definition.AllowRepeatResearch && researchQueueTechnologyIds.Count == 0)
+                {
+                    currentResearchTechnologyId = technologyId;
+                    EnsureResearchProgress(technologyId);
+                }
+                else
+                {
+                    currentResearchTechnologyId = string.Empty;
+                    TryStartNextQueuedResearch();
                 }
 
                 CurrentResearchChanged?.Invoke(this);
@@ -417,6 +630,7 @@ namespace Landsong.TechnologySystem
                 CurrentResearchProgress = CurrentResearchProgress,
                 LastTurnResearchPoints = lastTurnResearchPoints,
                 UnlockedTechnologyIds = new List<string>(unlockedTechnologyIds),
+                ResearchQueueTechnologyIds = new List<string>(researchQueueTechnologyIds),
                 ResearchProgresses = new List<TechnologyResearchProgressSaveData>()
             };
 
@@ -444,6 +658,7 @@ namespace Landsong.TechnologySystem
         {
             unlockedTechnologyIds.Clear();
             researchProgressByTechnologyId.Clear();
+            researchQueueTechnologyIds.Clear();
             currentResearchTechnologyId = string.Empty;
             lastTurnResearchPoints = 0;
 
@@ -454,10 +669,16 @@ namespace Landsong.TechnologySystem
                 AddUnlockedTechnologyIds(saveData.UnlockedTechnologyIds);
                 RestoreResearchProgresses(saveData.ResearchProgresses);
                 RestoreCurrentResearch(saveData.CurrentResearchTechnologyId, saveData.CurrentResearchProgress);
+                RestoreResearchQueue(saveData.ResearchQueueTechnologyIds);
             }
             else
             {
                 AddUnlockedTechnologyIds(fallbackUnlockedTechnologyIds);
+            }
+
+            if (!HasCurrentResearch)
+            {
+                TryStartNextQueuedResearch();
             }
 
             CurrentResearchChanged?.Invoke(this);
@@ -507,6 +728,33 @@ namespace Landsong.TechnologySystem
             }
         }
 
+        private void RestoreResearchQueue(IEnumerable<string> queueTechnologyIds)
+        {
+            if (queueTechnologyIds == null)
+            {
+                return;
+            }
+
+            foreach (var technologyId in queueTechnologyIds)
+            {
+                var normalizedId = TechnologySaveData.NormalizeTechnologyId(technologyId);
+                if (string.IsNullOrEmpty(normalizedId)
+                    || ContainsQueuedTechnology(normalizedId)
+                    || string.Equals(normalizedId, currentResearchTechnologyId, StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                var definition = GetDefinition(normalizedId);
+                if (definition == null || IsUnlocked(normalizedId) && !definition.AllowRepeatResearch)
+                {
+                    continue;
+                }
+
+                researchQueueTechnologyIds.Add(normalizedId);
+            }
+        }
+
         private void EnsureResearchProgress(string technologyId)
         {
             var normalizedId = TechnologySaveData.NormalizeTechnologyId(technologyId);
@@ -535,6 +783,84 @@ namespace Landsong.TechnologySystem
         {
             var definition = GetDefinition(technologyId);
             return definition != null && definition.AllowRepeatResearch;
+        }
+
+        private void RemoveInvalidQueuedResearch()
+        {
+            for (var i = researchQueueTechnologyIds.Count - 1; i >= 0; i--)
+            {
+                var technologyId = researchQueueTechnologyIds[i];
+                var definition = GetDefinition(technologyId);
+                if (definition == null || IsUnlocked(technologyId) && !definition.AllowRepeatResearch)
+                {
+                    researchQueueTechnologyIds.RemoveAt(i);
+                }
+            }
+        }
+
+        private static int CompareTechnologyDefinitionsByNodeId(
+            TechnologyDefinition left,
+            TechnologyDefinition right)
+        {
+            if (ReferenceEquals(left, right))
+            {
+                return 0;
+            }
+
+            if (left == null)
+            {
+                return 1;
+            }
+
+            if (right == null)
+            {
+                return -1;
+            }
+
+            var leftId = TechnologySaveData.NormalizeTechnologyId(left.TechnologyId);
+            var rightId = TechnologySaveData.NormalizeTechnologyId(right.TechnologyId);
+            var leftHasPosition = TryParseTechnologyNodePosition(leftId, out var leftRow, out var leftColumn);
+            var rightHasPosition = TryParseTechnologyNodePosition(rightId, out var rightRow, out var rightColumn);
+            if (leftHasPosition && rightHasPosition)
+            {
+                var rowComparison = leftRow.CompareTo(rightRow);
+                if (rowComparison != 0)
+                {
+                    return rowComparison;
+                }
+
+                var columnComparison = leftColumn.CompareTo(rightColumn);
+                if (columnComparison != 0)
+                {
+                    return columnComparison;
+                }
+            }
+            else if (leftHasPosition)
+            {
+                return -1;
+            }
+            else if (rightHasPosition)
+            {
+                return 1;
+            }
+
+            return string.Compare(leftId, rightId, StringComparison.Ordinal);
+        }
+
+        private static bool TryParseTechnologyNodePosition(string technologyId, out int row, out int column)
+        {
+            row = 0;
+            column = 0;
+            if (string.IsNullOrWhiteSpace(technologyId))
+            {
+                return false;
+            }
+
+            var parts = technologyId.Trim().Split('_');
+            return parts.Length >= 3
+                   && string.Equals(parts[0], "TN", StringComparison.Ordinal)
+                   && int.TryParse(parts[1], out row)
+                   && int.TryParse(parts[2], out column);
         }
 
         private static int GetRequiredResearchPoints(TechnologyDefinition definition)

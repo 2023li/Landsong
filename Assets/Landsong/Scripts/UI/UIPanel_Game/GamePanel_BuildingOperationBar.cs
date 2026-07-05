@@ -2,7 +2,6 @@ using System;
 using Landsong.BuildingSystem;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace Landsong.UISystem
@@ -11,12 +10,12 @@ namespace Landsong.UISystem
     {
         [SerializeField] private GameObject root;
 
-        [SerializeField, FormerlySerializedAs("button")] private Button detailButton;
-        [SerializeField, FormerlySerializedAs("label")] private TMP_Text detailLabel;
+        [SerializeField] private Button detailButton;
+        [SerializeField] private TMP_Text detailLabel;
         [SerializeField] private Button reachableRangeButton;
         [SerializeField] private TMP_Text reachableRangeLabel;
 
-        [SerializeField, FormerlySerializedAs("defaultText")] private string detailText = "详情";
+        [SerializeField] private string detailText = "详情";
         [SerializeField] private string showReachableRangeText = "可达";
         [SerializeField] private string hideReachableRangeText = "隐藏";
 

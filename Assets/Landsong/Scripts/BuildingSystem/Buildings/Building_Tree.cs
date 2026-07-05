@@ -120,6 +120,7 @@ namespace Landsong.BuildingSystem
         }
 
         [Serializable]
+        [BuildingDataTypeId("building.tree")]
         private sealed class TreeData : BuildingDataBase
         {
             public int CurrentHealth;

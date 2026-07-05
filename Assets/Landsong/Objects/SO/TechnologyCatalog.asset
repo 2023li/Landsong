@@ -16,4 +16,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 9a0f6a8451e34c80ac55c4dfe537b407, type: 2}
   - {fileID: 11400000, guid: 006213b12ed0bbc4091a2f3c95bc2f65, type: 2}
   - {fileID: 11400000, guid: dcd01ab1673e38748ace913b29c49655, type: 2}
+  - {fileID: 11400000, guid: bd13b1fc3bb1e134d9e40a6e591a1057, type: 2}
+  - {fileID: 11400000, guid: f781232eb061b7e4099bf4f2eff53c98, type: 2}
+  - {fileID: 11400000, guid: 342fa6b729cdf5c47bb162f923bc11f8, type: 2}
   folderPath: Assets/Landsong/Objects/SO/Technology

@@ -8,22 +8,35 @@ namespace Moyo.Unity
 
         private static T instance;
 
+        public static bool TryGetInstance(out T singleton)
+        {
+            if (instance != null)
+            {
+                singleton = instance;
+                return true;
+            }
+
+            singleton = FindFirstObjectByType<T>(FindObjectsInactive.Include);
+            if (singleton == null)
+            {
+                return false;
+            }
+
+            instance = singleton;
+            return true;
+        }
+
         public static T Instance
         {
             get
             {
-                if (instance == null)
+                if (!TryGetInstance(out var singleton))
                 {
-                    instance = FindFirstObjectByType<T>(FindObjectsInactive.Include);
-
-                    if (instance == null)
-                    {
-                        GameObject obj = new GameObject(typeof(T).Name);
-                        instance = obj.AddComponent<T>();
-                    }
+                    GameObject obj = new GameObject(typeof(T).Name);
+                    singleton = obj.AddComponent<T>();
                 }
 
-                return instance;
+                return singleton;
             }
         }
 

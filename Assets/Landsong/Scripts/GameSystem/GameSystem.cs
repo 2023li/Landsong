@@ -26,11 +26,12 @@ namespace Landsong
         private static readonly IReadOnlyList<BuildingJobAttractionModifier> EmptyJobAttractionModifiers =
             Array.Empty<BuildingJobAttractionModifier>();
 
-        private readonly List<BuildingInventorySlotCapacityModule> inventorySlotCapacityModules =
-            new List<BuildingInventorySlotCapacityModule>();
+        private readonly List<BM_库存格容量> inventorySlotCapacityModules =
+            new List<BM_库存格容量>();
         private readonly HashSet<string> unlockedTechnologies =
             new HashSet<string>(StringComparer.Ordinal);
         private int pendingTechnologyPointsThisTurn;
+        private int turnWithMissingResearchWarning = -1;
 
         [Header("Inventory")]
         [SerializeField, LabelText("物品目录")] private ItemCatalog itemCatalog;
@@ -218,6 +219,11 @@ namespace Landsong
             }
 
             var started = Technology != null && Technology.TryStartResearch(technologyId);
+            if (started)
+            {
+                ClearMissingResearchWarning();
+            }
+
             MirrorUnlockedTechnologiesFromService();
             SyncStartingResearchFromService();
             return started;
@@ -231,6 +237,11 @@ namespace Landsong
             }
 
             var started = Technology != null && Technology.TryStartResearch(definition);
+            if (started)
+            {
+                ClearMissingResearchWarning();
+            }
+
             MirrorUnlockedTechnologiesFromService();
             SyncStartingResearchFromService();
             return started;
@@ -346,13 +357,27 @@ namespace Landsong
 
         private void CreateTechnologyService()
         {
+            if (Technology != null)
+            {
+                Technology.CurrentResearchChanged -= HandleCurrentResearchChanged;
+            }
+
             Technology = new TechnologyService(
                 technologyCatalog,
                 startingUnlockedTechnologies,
                 startingResearchTechnology == null ? null : startingResearchTechnology.TechnologyId,
                 startingResearchProgress);
+            Technology.CurrentResearchChanged += HandleCurrentResearchChanged;
             MirrorUnlockedTechnologiesFromService();
             SyncStartingResearchFromService();
+        }
+
+        private void HandleCurrentResearchChanged(TechnologyService changedTechnology)
+        {
+            if (changedTechnology != null && changedTechnology.HasCurrentResearch)
+            {
+                ClearMissingResearchWarning();
+            }
         }
 
         private void MirrorUnlockedTechnologiesFromService()
@@ -563,14 +588,24 @@ namespace Landsong
                 CreateTurnService();
             }
 
+            if (Buildings == null)
+            {
+                CreateBuildingService();
+            }
+
             if (turnAdvanceCoroutine != null || Turn.IsAdvancingTurn)
+            {
+                return;
+            }
+
+            if (Application.isPlaying && ShouldCancelNextTurnForMissingResearch())
             {
                 return;
             }
 
             if (!Application.isPlaying)
             {
-                LogTurnSummary(Turn.NextTurn());
+                LogTurnSummary(Turn.NextTurn(Buildings.Buildings));
                 return;
             }
 
@@ -585,6 +620,7 @@ namespace Landsong
             try
             {
                 yield return turn.NextTurnRoutine(
+                    Buildings == null ? null : Buildings.Buildings,
                     turnBuildingsPerFrame,
                     result =>
                     {
@@ -701,6 +737,7 @@ namespace Landsong
 
         private void HandleTurnAdvanced(TurnService turn, TurnAdvanceSummary summary)
         {
+            ClearMissingResearchWarning();
             ApplyTechnologyResearchPoints(summary.ToTurn);
 
             if (!endGameWhenNoPalaceAtTurnEnd || IsGameOver)
@@ -760,6 +797,15 @@ namespace Landsong
                     GameEventCatalog.GE_科技研究完成,
                     message,
                     turnNumber));
+
+            if (result.Technology.AllowRepeatResearch && Technology.IsCurrentResearch(result.Technology))
+            {
+                Events?.AddMessage(
+                    GameEventMessage.ForGame(
+                        GameEventCatalog.GE_科技自动重复研发,
+                        $"科技已自动继续重复研发：{result.Technology.DisplayName}",
+                        turnNumber));
+            }
         }
 
         private string ApplyTechnologyCompletionEffects(TechnologyDefinition technology)
@@ -793,6 +839,48 @@ namespace Landsong
             }
 
             return messages.Count == 0 ? string.Empty : string.Join("，", messages);
+        }
+
+        private bool ShouldCancelNextTurnForMissingResearch()
+        {
+            if (Technology == null)
+            {
+                CreateTechnologyService();
+            }
+
+            if (Technology != null && Technology.HasResearchPlan)
+            {
+                ClearMissingResearchWarning();
+                return false;
+            }
+
+            if (turnWithMissingResearchWarning == CurrentTurn)
+            {
+                return false;
+            }
+
+            turnWithMissingResearchWarning = CurrentTurn;
+            AddMissingResearchWarningEvent();
+            return true;
+        }
+
+        private void AddMissingResearchWarningEvent()
+        {
+            if (Events == null)
+            {
+                CreateGameEventService();
+            }
+
+            Events?.AddMessage(
+                GameEventMessage.ForGame(
+                    GameEventCatalog.GE_未选择研发节点,
+                    "未选择研发节点：本次下回合已取消；再次点击下一回合将继续。",
+                    CurrentTurn));
+        }
+
+        private void ClearMissingResearchWarning()
+        {
+            turnWithMissingResearchWarning = -1;
         }
 
         public bool EndGame(GameOverReason reason)

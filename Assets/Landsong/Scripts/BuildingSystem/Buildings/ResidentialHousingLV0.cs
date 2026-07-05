@@ -133,6 +133,7 @@ namespace Landsong.BuildingSystem.Buildings
         }
 
         [Serializable]
+        [BuildingDataTypeId("building.residential_housing.lv0")]
         private sealed class ResidentialHousingLV0Data : BuildingDataBase
         {
             public int Exp;

@@ -5,7 +5,6 @@ using Landsong.GameEventSystem;
 using Landsong.GridSystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
-using static UnityEditorInternal.ReorderableList;
 
 namespace Landsong.BuildingSystem
 {
@@ -16,12 +15,15 @@ namespace Landsong.BuildingSystem
         public bool HasLevelUpgradeModuleData;
         public bool LevelUpgradeAutoUpgradeEnabled;
         public int LevelUpgradeCurrentExperience;
+        public bool HasResourceProductionModuleData;
+        public int ResourceProductionProgress;
     }
 
     /// <summary>
     /// 建筑 prefab 根节点上的运行时基类。
     /// BuildingDefinition 是 prefab 上的静态配置数据；具体建筑等级通过继承本类实现生命周期。
     /// </summary>
+    [RequireComponent(typeof(BoxCollider2D))]
     public abstract class BuildingBase : MonoBehaviour, IBuildingFunctionBlockSource
     {
         public static readonly string DefaultDetailPanelAddressKey = "Popup_GeneralBuildingDetails";
@@ -61,8 +63,8 @@ namespace Landsong.BuildingSystem
         [Tooltip("建筑用于寻路和范围判断的行动力。普通格默认消耗 10 点，道路等地形由 GridMapBehaviour 配置。")]
         [SerializeField, Min(0)] private int buildingActionPower = 100;
 
-        [Tooltip("两次点击间隔小于等于该值时，第二次点击视为双击。")]
-        [SerializeField, Min(0.05f)] private float doubleClickInterval = 0.3f;
+
+        private float doubleClickInterval = 0.3f;
 
         //点击回调
         //是否播放点击缩放反馈
@@ -348,7 +350,7 @@ namespace Landsong.BuildingSystem
 
         private bool TryProcessLevelAutoUpgrade()
         {
-            return TryGetModule<BuildingLevelUpgradeModule>(out var levelModule)
+            return TryGetModule<BM_等级升级>(out var levelModule)
                    && levelModule.TryAutoUpgrade(this);
         }
 
@@ -377,7 +379,8 @@ namespace Landsong.BuildingSystem
 
         private bool HasCommonSaveData()
         {
-            return TryGetModule<BuildingLevelUpgradeModule>(out _);
+            return TryGetModule<BM_等级升级>(out _)
+                   || TryGetModule<BM_资源产出>(out _);
         }
 
         private void CaptureCommonSaveData(BuildingDataBase data)
@@ -387,28 +390,43 @@ namespace Landsong.BuildingSystem
                 return;
             }
 
-            if (TryGetModule<BuildingLevelUpgradeModule>(out var levelModule))
+            if (TryGetModule<BM_等级升级>(out var levelModule))
             {
                 data.HasLevelUpgradeModuleData = true;
                 data.LevelUpgradeAutoUpgradeEnabled = levelModule.AutoUpgradeEnabled;
                 data.LevelUpgradeCurrentExperience = levelModule.CurrentExperience;
             }
+
+            if (TryGetModule<BM_资源产出>(out var productionModule))
+            {
+                data.HasResourceProductionModuleData = true;
+                data.ResourceProductionProgress = productionModule.ProductionProgress;
+            }
         }
 
         private void RestoreCommonSaveData(BuildingDataBase data)
         {
-            if (data == null
-                || !data.HasLevelUpgradeModuleData
-                || !TryGetModule<BuildingLevelUpgradeModule>(out var levelModule))
+            if (data == null)
             {
                 return;
             }
 
-            levelModule.SetAutoUpgradeEnabled(data.LevelUpgradeAutoUpgradeEnabled);
-            levelModule.SetExperience(data.LevelUpgradeCurrentExperience);
+            if (data.HasLevelUpgradeModuleData
+                && TryGetModule<BM_等级升级>(out var levelModule))
+            {
+                levelModule.SetAutoUpgradeEnabled(data.LevelUpgradeAutoUpgradeEnabled);
+                levelModule.SetExperience(data.LevelUpgradeCurrentExperience);
+            }
+
+            if (data.HasResourceProductionModuleData
+                && TryGetModule<BM_资源产出>(out var productionModule))
+            {
+                productionModule.RestoreProductionProgress(data.ResourceProductionProgress);
+            }
         }
 
         [Serializable]
+        [BuildingDataTypeId("building.common")]
         private sealed class CommonBuildingData : BuildingDataBase
         {
         }

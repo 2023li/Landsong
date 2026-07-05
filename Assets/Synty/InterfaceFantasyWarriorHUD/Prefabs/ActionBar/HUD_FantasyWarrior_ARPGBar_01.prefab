@@ -625,6 +625,10 @@ PrefabInstance:
       propertyPath: m_HorizontalAlignment
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 7980170689800973879, guid: 10b369200a4505640bea81594ae56cb8, type: 3}
+      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
+      value: 1801810542
+      objectReference: {fileID: 0}
     - target: {fileID: 7997306272064920525, guid: 10b369200a4505640bea81594ae56cb8, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
@@ -852,6 +856,10 @@ PrefabInstance:
       propertyPath: m_text
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 6363749343266442180, guid: f335118366fa56f4e9623de43d61ab19, type: 3}
+      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
+      value: 1801810542
+      objectReference: {fileID: 0}
     - target: {fileID: 7007681242674040492, guid: f335118366fa56f4e9623de43d61ab19, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -993,6 +1001,10 @@ PrefabInstance:
     - target: {fileID: 6363749343266442180, guid: f335118366fa56f4e9623de43d61ab19, type: 3}
       propertyPath: m_text
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6363749343266442180, guid: f335118366fa56f4e9623de43d61ab19, type: 3}
+      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
+      value: 1801810542
       objectReference: {fileID: 0}
     - target: {fileID: 7007681242674040492, guid: f335118366fa56f4e9623de43d61ab19, type: 3}
       propertyPath: m_Pivot.x
@@ -1224,6 +1236,14 @@ PrefabInstance:
       propertyPath: m_Color.r
       value: 0.8773585
       objectReference: {fileID: 0}
+    - target: {fileID: 9181317176690065525, guid: f99f6347495599d4abe676276d8ccb59, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9181317176690065525, guid: f99f6347495599d4abe676276d8ccb59, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1289,6 +1309,10 @@ PrefabInstance:
     - target: {fileID: 6363749343266442180, guid: f335118366fa56f4e9623de43d61ab19, type: 3}
       propertyPath: m_text
       value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6363749343266442180, guid: f335118366fa56f4e9623de43d61ab19, type: 3}
+      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
+      value: 1801810542
       objectReference: {fileID: 0}
     - target: {fileID: 7007681242674040492, guid: f335118366fa56f4e9623de43d61ab19, type: 3}
       propertyPath: m_Pivot.x
@@ -1532,6 +1556,14 @@ PrefabInstance:
       propertyPath: m_Color.r
       value: 0.66180134
       objectReference: {fileID: 0}
+    - target: {fileID: 9181317176690065525, guid: f99f6347495599d4abe676276d8ccb59, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9181317176690065525, guid: f99f6347495599d4abe676276d8ccb59, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1589,6 +1621,10 @@ PrefabInstance:
     - target: {fileID: 6363749343266442180, guid: f335118366fa56f4e9623de43d61ab19, type: 3}
       propertyPath: m_text
       value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6363749343266442180, guid: f335118366fa56f4e9623de43d61ab19, type: 3}
+      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
+      value: 1801810542
       objectReference: {fileID: 0}
     - target: {fileID: 7007681242674040492, guid: f335118366fa56f4e9623de43d61ab19, type: 3}
       propertyPath: m_Pivot.x
@@ -1747,6 +1783,10 @@ PrefabInstance:
     - target: {fileID: 6363749343266442180, guid: f335118366fa56f4e9623de43d61ab19, type: 3}
       propertyPath: m_text
       value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 6363749343266442180, guid: f335118366fa56f4e9623de43d61ab19, type: 3}
+      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
+      value: 1801810542
       objectReference: {fileID: 0}
     - target: {fileID: 7007681242674040492, guid: f335118366fa56f4e9623de43d61ab19, type: 3}
       propertyPath: m_Pivot.x

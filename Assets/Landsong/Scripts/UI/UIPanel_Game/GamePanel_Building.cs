@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Landsong.BuildingSystem;
 using Landsong.InventorySystem;
+using Landsong.TechnologySystem;
 using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
@@ -23,6 +24,7 @@ namespace Landsong.UISystem
         [ShowInInspector, ReadOnly, LabelText("游戏系统")] private Landsong.GameSystem gameSystem;
         [ShowInInspector, ReadOnly, LabelText("库存服务")] private InventoryService inventory;
         [ShowInInspector, ReadOnly, LabelText("建筑服务")] private BuildingService buildings;
+        [ShowInInspector, ReadOnly, LabelText("科技服务")] private TechnologyService technology;
 
 
 
@@ -70,6 +72,7 @@ namespace Landsong.UISystem
         private BuildingPlacementController subscribedPlacementController;
         private bool subscribedToInventory;
         private bool subscribedToBuildings;
+        private bool subscribedToTechnology;
         private bool hasCachedPanelPosition;
         private Vector2 buildingPanelVisiblePosition;
         private Coroutine panelMotionRoutine;
@@ -128,6 +131,7 @@ namespace Landsong.UISystem
         public void Show()
         {
             gameObject.SetActive(true);
+            RefreshFromGameSystem();
             //激活对象 然后rt_建筑栏Root从下方进入屏幕
             CachePanelPosition();
             MoveBuildingPanel(true, false);
@@ -282,6 +286,7 @@ namespace Landsong.UISystem
             buildingCatalog = gameSystem == null ? null : gameSystem.BuildingCatalog;
             inventory = gameSystem == null ? null : gameSystem.Inventory;
             buildings = gameSystem == null ? null : gameSystem.Buildings;
+            technology = gameSystem == null ? null : gameSystem.Technology;
         }
 
         private void ResolvePlacementController()
@@ -884,12 +889,14 @@ namespace Landsong.UISystem
         {
             SubscribeInventory();
             SubscribeBuildings();
+            SubscribeTechnology();
         }
 
         private void UnsubscribeRuntimeChanges()
         {
             UnsubscribeInventory();
             UnsubscribeBuildings();
+            UnsubscribeTechnology();
         }
 
         private void HandleInventoryChanged(InventoryService changedInventory)
@@ -899,6 +906,35 @@ namespace Landsong.UISystem
 
         private void HandleBuildingsChanged(BuildingService changedBuildings)
         {
+            Refresh();
+        }
+
+        private void SubscribeTechnology()
+        {
+            if (subscribedToTechnology || technology == null)
+            {
+                return;
+            }
+
+            technology.StateChanged += HandleTechnologyChanged;
+            subscribedToTechnology = true;
+        }
+
+        private void UnsubscribeTechnology()
+        {
+            if (!subscribedToTechnology || technology == null)
+            {
+                subscribedToTechnology = false;
+                return;
+            }
+
+            technology.StateChanged -= HandleTechnologyChanged;
+            subscribedToTechnology = false;
+        }
+
+        private void HandleTechnologyChanged(TechnologyService changedTechnology)
+        {
+            technology = changedTechnology;
             Refresh();
         }
     }

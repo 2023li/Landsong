@@ -238,6 +238,11 @@ namespace Landsong.UISystem
                     : $"研究中：{FormatResearchProgress(selectedDefinition)}";
             }
 
+            if (technology.IsQueuedResearch(selectedDefinition))
+            {
+                return "已加入研发队列";
+            }
+
             if (technology.IsUnlocked(selectedDefinition.TechnologyId) && !selectedDefinition.AllowRepeatResearch)
             {
                 return "已研究";
@@ -259,7 +264,7 @@ namespace Landsong.UISystem
 
             return reason switch
             {
-                TechnologyResearchFailureReason.PrerequisitesLocked => "前置科技未完成",
+                TechnologyResearchFailureReason.PrerequisitesLocked => "前置科技未完成，点击节点加入研发队列",
                 TechnologyResearchFailureReason.AlreadyUnlocked => "已研究",
                 TechnologyResearchFailureReason.InvalidTechnology => "科技配置无效",
                 _ => "不可研究"
@@ -304,10 +309,9 @@ namespace Landsong.UISystem
             selectedDefinition = definition;
 
             if (technology != null
-                && selectedDefinition != null
-                && technology.CanStartResearch(selectedDefinition, out _))
+                && selectedDefinition != null)
             {
-                technology.TryStartResearch(selectedDefinition);
+                technology.TryQueueResearchPath(selectedDefinition);
             }
 
             Refresh();

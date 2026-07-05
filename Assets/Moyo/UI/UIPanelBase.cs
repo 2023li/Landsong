@@ -85,24 +85,24 @@ namespace Moyo.Unity
         private async Task ReopenThroughManagerThenDestroySelfAsync()
         {
             var waitFrame = 0;
+            UIManager manager = null;
 
-            while (UIManager.Instance == null && waitFrame < 120)
+            while (waitFrame < 120 && !UIManager.TryGetInstance(out manager))
             {
                 waitFrame++;
                 await Task.Yield();
 
-                if (this == null)
+                if (this == null || !Application.isPlaying)
                 {
                     return;
                 }
             }
 
-            if (this == null)
+            if (this == null || !Application.isPlaying)
             {
                 return;
             }
 
-            var manager = UIManager.Instance;
             if (manager == null)
             {
                 Debug.LogError($"场景中存在未通过 UIManager 打开的 Panel：{PanelId}，但场景中没有 UIManager。", this);

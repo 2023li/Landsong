@@ -230,7 +230,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LumberCabin
   definition:
     buildingId: "\u4F10\u6728\u5C0F\u5C4BLV1"
-    displayName: 
+    displayName: "\u4F10\u6728\u5C0F\u5C4BLV1"
     category: 2
     icon: {fileID: 21300000, guid: 5895c2374555bbe4b9fe06ae5fbacdaa, type: 3}
     size: {x: 1, y: 1}
@@ -240,9 +240,9 @@ MonoBehaviour:
     movementResistance: 0
     placementCosts: []
     visibleCondition:
-      rid: -2
+      rid: 5711026220397232215
     availableCondition:
-      rid: -2
+      rid: 5711026220397232216
     buildMenuSortOrder: 0
     maxBuildCount: 0
     buildLimitGroupId: 
@@ -259,10 +259,6 @@ MonoBehaviour:
   - rid: 5711026220397232207
   - rid: 5711026220397232208
   buildingActionPower: 100
-  doubleClickInterval: 0.3
-  playClickScaleFeedback: 1
-  clickScaleMultiplier: 1.12
-  clickScaleDuration: 0.18
   clickSound: {fileID: 0}
   doubleClickSound: {fileID: 0}
   view: {fileID: 6895812447475439656}
@@ -277,10 +273,10 @@ MonoBehaviour:
   goldItemId: "\u91D1\u5E01"
   productionIntervalTurns: 3
   workerProductionTiers:
-  - minimumWorkers: 2
-    productionAmount: 1
-  - minimumWorkers: 3
-    productionAmount: 2
+  - "\u5DE5\u4EBA": 2
+    "\u4EA7\u91CF": 1
+  - "\u5DE5\u4EBA": 3
+    "\u4EA7\u91CF": 2
   currentWorkers: 0
   stableWorkers: 0
   stableWorkersWithoutSubsidy: 0
@@ -310,16 +306,14 @@ MonoBehaviour:
   references:
     version: 2
     RefIds:
-    - rid: -2
-      type: {class: , ns: , asm: }
     - rid: 5711026220397232207
-      type: {class: BuildingNearbyPopulationJobAttractionModule, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      type: {class: BM_附近人口岗位吸引, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
       data:
         enabled: 1
         populationSearchRadius: 10
         attractionPerNearbyPopulation: 1.6666666
     - rid: 5711026220397232208
-      type: {class: BuildingLevelUpgradeModule, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      type: {class: BM_等级升级, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
       data:
         enabled: 1
         autoUpgradeEnabled: 1
@@ -328,8 +322,18 @@ MonoBehaviour:
         upgradeTargetPrefab: {fileID: -853592870941896526, guid: 4aba2e27877a1a149b22d64ff0955d88, type: 3}
         upgradeCondition:
           rid: 5711026220397232209
-        upgradeCosts: []
+        upgradeCosts:
+        - itemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+          amount: 30
     - rid: 5711026220397232209
       type: {class: GameCondition_TechnologyUnlocked, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
       data:
-        TechnologyId: 
+        TechnologyDefinition: {fileID: 11400000, guid: 006213b12ed0bbc4091a2f3c95bc2f65, type: 2}
+    - rid: 5711026220397232215
+      type: {class: GameCondition_TechnologyUnlocked, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
+      data:
+        TechnologyDefinition: {fileID: 11400000, guid: 006213b12ed0bbc4091a2f3c95bc2f65, type: 2}
+    - rid: 5711026220397232216
+      type: {class: GameCondition_TechnologyUnlocked, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
+      data:
+        TechnologyDefinition: {fileID: 11400000, guid: 006213b12ed0bbc4091a2f3c95bc2f65, type: 2}

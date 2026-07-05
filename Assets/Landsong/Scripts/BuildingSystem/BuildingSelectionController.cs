@@ -9,7 +9,6 @@ using Moyo.Unity;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.Serialization;
 using UnityEngine.Tilemaps;
 
 namespace Landsong.BuildingSystem
@@ -17,7 +16,7 @@ namespace Landsong.BuildingSystem
     [DisallowMultipleComponent]
     public sealed class BuildingSelectionController : MonoSingleton<BuildingSelectionController>
     {
-        [SerializeField, Required, FormerlySerializedAs("detailMarkerPrefab"), LabelText("操作条预制体")]
+        [SerializeField, Required, LabelText("操作条预制体")]
         private GamePanel_BuildingOperationBar operationBarPrefab;
 
         [FoldoutGroup("选填")]
@@ -27,13 +26,13 @@ namespace Landsong.BuildingSystem
         [SerializeField] private TileBase reachableRangeHighlightTile;
 
         [FoldoutGroup("选填")]
-        [SerializeField, FormerlySerializedAs("detailMarkerWorldOffset")] private Vector3 operationBarWorldOffset = new Vector3(0f, -0.75f, 0f);
+        [SerializeField] private Vector3 operationBarWorldOffset = new Vector3(0f, -0.75f, 0f);
 
         [FoldoutGroup("选填")]
-        [SerializeField, FormerlySerializedAs("detailMarkerScreenOffset")] private Vector2 operationBarScreenOffset;
+        [SerializeField] private Vector2 operationBarScreenOffset;
 
         [FoldoutGroup("选填")]
-        [SerializeField, FormerlySerializedAs("hideMarkerWhenOffscreen")] private bool hideOperationBarWhenOffscreen = true;
+        [SerializeField] private bool hideOperationBarWhenOffscreen = true;
 
         [FoldoutGroup("选填")]
         [SerializeField] private CameraController cameraController;

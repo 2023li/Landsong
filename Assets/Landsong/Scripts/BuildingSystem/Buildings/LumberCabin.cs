@@ -6,45 +6,16 @@ using Landsong.InventorySystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-public class LumberCabin : BuildingBase, IBuildingWorkforceFundingSource, IBuildingResourceProductionSource
+public class LumberCabin : BuildingBase, IBuildingWorkforceFundingSource
 {
     private const string DefaultWoodItemId = "原木";
     private const string DefaultGoldItemId = "金币";
     private const string StatusMissingInventory = BuildingRuntimeStatusCatalog.BS_库存缺失;
-    private const string StatusInvalidWoodItem = BuildingRuntimeStatusCatalog.BS_原木配置异常;
     private const string StatusInvalidGoldItem = BuildingRuntimeStatusCatalog.BS_金币配置异常;
-    private const string StatusWoodStorageFailed = BuildingRuntimeStatusCatalog.BS_原木存入失败;
     private const string StatusInsufficientWorkers = BuildingRuntimeStatusCatalog.BS_工人不足;
     private const string StatusWorkerShortage = BuildingRuntimeStatusCatalog.BS_缺工;
     private const string StatusRecruitGoldMissing = BuildingRuntimeStatusCatalog.BS_招工金币不足;
     private const string StatusSubsidyGoldMissing = BuildingRuntimeStatusCatalog.BS_补贴金币不足;
-
-    [Serializable]
-    private struct WorkerProductionTier
-    {
-        [SerializeField, LabelText("最低工人数"), Min(1)]
-        private int minimumWorkers;
-
-        [SerializeField, LabelText("原木产量"), Min(0)]
-        private int productionAmount;
-
-        public WorkerProductionTier(int minimumWorkers, int productionAmount)
-        {
-            this.minimumWorkers = minimumWorkers;
-            this.productionAmount = productionAmount;
-        }
-
-        public int MinimumWorkers => Mathf.Max(1, minimumWorkers);
-        public int ProductionAmount => Mathf.Max(0, productionAmount);
-        public bool IsValid => ProductionAmount > 0;
-
-        public WorkerProductionTier Normalize(int maxWorkers)
-        {
-            return new WorkerProductionTier(
-                Mathf.Clamp(minimumWorkers, 1, Mathf.Max(1, maxWorkers)),
-                Mathf.Max(0, productionAmount));
-        }
-    }
 
     [TitleGroup("岗位")]
     [SerializeField, LabelText("最大岗位"), Min(1)] private int maxWorkers = 3;
@@ -67,21 +38,7 @@ public class LumberCabin : BuildingBase, IBuildingWorkforceFundingSource, IBuild
     [SerializeField, LabelText("目标稳定工人"), Min(0)] private int targetStableWorkers;
 
     [TitleGroup("产出")]
-    [SerializeField] private string woodItemId = DefaultWoodItemId;
-
-    [TitleGroup("产出")]
     [SerializeField] private string goldItemId = DefaultGoldItemId;
-
-    [TitleGroup("产出")]
-    [SerializeField, LabelText("生产周期回合"), Min(1)] private int productionIntervalTurns = 3;
-
-    [TitleGroup("产出")]
-    [SerializeField, LabelText("工人数产量表")]
-    private WorkerProductionTier[] workerProductionTiers =
-    {
-        new WorkerProductionTier(2, 1),
-        new WorkerProductionTier(3, 2)
-    };
 
     [TitleGroup("运行时")]
     [SerializeField, ReadOnly] private int currentWorkers;
@@ -138,12 +95,6 @@ public class LumberCabin : BuildingBase, IBuildingWorkforceFundingSource, IBuild
     [SerializeField, ReadOnly] private int paidSubsidyGoldThisTurn;
 
     [TitleGroup("运行时")]
-    [SerializeField, ReadOnly] private int lastProducedWood;
-
-    [TitleGroup("运行时")]
-    [SerializeField, ReadOnly] private int productionProgress;
-
-    [TitleGroup("运行时")]
     [SerializeField, ReadOnly] private bool initialWorkersGranted;
 
     [TitleGroup("运行时")]
@@ -165,7 +116,6 @@ public class LumberCabin : BuildingBase, IBuildingWorkforceFundingSource, IBuild
     private BuildingJobCalculation lastJobCalculationWithoutSubsidy;
     private readonly List<BuildingWorkforceAttractionFactor> workforceAttractionFactors =
         new List<BuildingWorkforceAttractionFactor>();
-    private IReadOnlyList<BuildingResourceChange> lastResourceProductions = EmptyResourceChanges;
     private bool hasCalculatedSubsidyTarget;
 
     public int CurrentWorkers => currentWorkers;
@@ -200,15 +150,9 @@ public class LumberCabin : BuildingBase, IBuildingWorkforceFundingSource, IBuild
     public float FullWorkerRequiredAttraction => BuildingJobSystem.CalculateFullWorkerRequiredAttraction(maxWorkers);
     public float JobAttractionGapToFullWorkers =>
         Mathf.Max(0f, FullWorkerRequiredAttraction - jobAttractionWithoutSubsidy);
-    public int LastProducedWood => lastProducedWood;
-    public int ProductionIntervalTurns => productionIntervalTurns;
-    public int ProductionProgress => productionProgress;
     public BuildingJobCalculation LastJobCalculation => lastJobCalculation;
     public IReadOnlyList<BuildingWorkforceAttractionFactor> WorkforceAttractionFactors =>
         BuildWorkforceAttractionFactors();
-    public IReadOnlyList<BuildingResourceChange> CurrentResourceProductions =>
-        CreateResourceChanges(woodItemId, GetCurrentWoodProductionAmount());
-    public IReadOnlyList<BuildingResourceChange> LastResourceProductions => lastResourceProductions;
 
     public override string GetOverviewInfo()
     {
@@ -218,18 +162,6 @@ public class LumberCabin : BuildingBase, IBuildingWorkforceFundingSource, IBuild
     public override IReadOnlyList<BuildingFunctionBlockEntry> GetFunctionBlockEntries()
     {
         List<BuildingFunctionBlockEntry> entries = null;
-        var productionAmount = GetCurrentWoodProductionAmount();
-        if (productionAmount > 0)
-        {
-            AddFunctionBlockEntry(
-                ref entries,
-                new BuildingFunctionBlockEntry(
-                    BuildingFunctionBlockGroup.资源组,
-                    woodItemId,
-                    productionAmount,
-                    BuildProductionSidebarRows()));
-        }
-
         AppendBuildingModuleFunctionBlockEntries(ref entries);
         return entries == null ? EmptyFunctionBlockEntries : entries;
     }
@@ -280,9 +212,22 @@ public class LumberCabin : BuildingBase, IBuildingWorkforceFundingSource, IBuild
         ProcessWorkerTurn();
         RecalculateJobState();
 
-        var produced = TryAdvanceProductionCycle(inventory);
+        var productionResult = EnsureResourceProductionModule()
+            .TryAdvanceProductionCycle(this, inventory, currentWorkers, maxWorkers);
+        if (!productionResult.Succeeded)
+        {
+            SetLastAbnormalStatus(
+                productionResult.FailureStatusId,
+                productionResult.FailureStatusText);
+        }
+
+        if (productionResult.ProducedResources)
+        {
+            AddProductionExperience();
+        }
+
         RefreshDynastyEmployedPopulation();
-        return produced;
+        return productionResult.Succeeded;
     }
 
     protected override BuildingDataBase CaptureBuildingData()
@@ -292,8 +237,6 @@ public class LumberCabin : BuildingBase, IBuildingWorkforceFundingSource, IBuild
             CurrentWorkers = currentWorkers,
             AutoFullWorkerSubsidyEnabled = autoFullWorkerSubsidyEnabled,
             TargetStableWorkers = targetStableWorkers,
-            LastProducedWood = lastProducedWood,
-            ProductionProgress = productionProgress,
             InitialWorkersGranted = initialWorkersGranted,
             LastTurnRecruitedWorker = lastTurnRecruitedWorker,
             LastTurnSubsidyGoldMissing = lastTurnSubsidyGoldMissing,
@@ -313,8 +256,6 @@ public class LumberCabin : BuildingBase, IBuildingWorkforceFundingSource, IBuild
         currentWorkers = cabinData.CurrentWorkers;
         autoFullWorkerSubsidyEnabled = cabinData.AutoFullWorkerSubsidyEnabled;
         targetStableWorkers = cabinData.TargetStableWorkers;
-        lastProducedWood = cabinData.LastProducedWood;
-        productionProgress = cabinData.ProductionProgress;
         initialWorkersGranted = true;
         lastTurnRecruitedWorker = cabinData.LastTurnRecruitedWorker;
         lastTurnSubsidyGoldMissing = cabinData.LastTurnSubsidyGoldMissing;
@@ -346,7 +287,7 @@ public class LumberCabin : BuildingBase, IBuildingWorkforceFundingSource, IBuild
         currentWorkers = Mathf.Clamp(sourceCabin.currentWorkers, 0, maxWorkers);
         autoFullWorkerSubsidyEnabled = sourceCabin.autoFullWorkerSubsidyEnabled;
         targetStableWorkers = Mathf.Clamp(sourceCabin.targetStableWorkers, 0, maxWorkers);
-        productionProgress = 0;
+        EnsureResourceProductionModule().RestoreProductionProgress(0);
         initialWorkersGranted = true;
         ClearLastTurnState();
         NormalizeConfiguration();
@@ -540,53 +481,9 @@ public class LumberCabin : BuildingBase, IBuildingWorkforceFundingSource, IBuild
         }
     }
 
-    private bool TryAdvanceProductionCycle(InventoryService inventory)
-    {
-        var productionAmount = GetCurrentWoodProductionAmount();
-        if (productionAmount <= 0)
-        {
-            SetLastAbnormalStatus(StatusInsufficientWorkers, "工人不足");
-            return false;
-        }
-
-        productionProgress = Mathf.Min(productionIntervalTurns, productionProgress + 1);
-        if (productionProgress < productionIntervalTurns)
-        {
-            return true;
-        }
-
-        if (!TryProduceWood(inventory, productionAmount))
-        {
-            return false;
-        }
-
-        productionProgress = 0;
-        AddProductionExperience();
-        return true;
-    }
-
-    private bool TryProduceWood(InventoryService inventory, int productionAmount)
-    {
-        if (!HasUsableItemId(woodItemId))
-        {
-            SetLastAbnormalStatus(StatusInvalidWoodItem, "原木配置异常");
-            return false;
-        }
-
-        if (!inventory.TryAddItem(woodItemId, productionAmount))
-        {
-            SetLastAbnormalStatus(StatusWoodStorageFailed, "原木存入失败");
-            return false;
-        }
-
-        lastProducedWood = productionAmount;
-        lastResourceProductions = CreateResourceChanges(woodItemId, productionAmount);
-        return true;
-    }
-
     private void AddProductionExperience()
     {
-        if (TryGetModule<BuildingLevelUpgradeModule>(out var levelModule))
+        if (TryGetModule<BM_等级升级>(out var levelModule))
         {
             levelModule.AddExperience(1);
         }
@@ -598,7 +495,7 @@ public class LumberCabin : BuildingBase, IBuildingWorkforceFundingSource, IBuild
             ? null
             : GameSystem.Buildings.Buildings;
 
-        var populationModule = TryGetModule<BuildingNearbyPopulationJobAttractionModule>(out var module)
+        var populationModule = TryGetModule<BM_附近人口岗位吸引>(out var module)
             ? module
             : null;
         lastPopulationSearchRadius = populationModule == null ? 0 : populationModule.PopulationSearchRadius;
@@ -792,11 +689,6 @@ public class LumberCabin : BuildingBase, IBuildingWorkforceFundingSource, IBuild
         return $"只招到 {recruitedWorkers} 名工人：{reasonText}";
     }
 
-    private int GetCurrentWoodProductionAmount()
-    {
-        return GetProductionAmountForWorkers(currentWorkers);
-    }
-
     private IReadOnlyList<BuildingRuntimeStatus> CreateRuntimeStatuses()
     {
         List<BuildingRuntimeStatus> statuses = null;
@@ -847,13 +739,12 @@ public class LumberCabin : BuildingBase, IBuildingWorkforceFundingSource, IBuild
     private void ClearLastTurnState()
     {
         paidSubsidyGoldThisTurn = 0;
-        lastProducedWood = 0;
         lastTurnRecruitedWorker = false;
         lastTurnSubsidyGoldMissing = false;
         lastTurnNoAvailablePopulation = false;
         lastAbnormalStatusId = string.Empty;
         lastAbnormalStatusText = string.Empty;
-        lastResourceProductions = EmptyResourceChanges;
+        EnsureResourceProductionModule().ClearLastResourceProductions();
     }
 
     private void ClearRecruitAttemptState()
@@ -871,12 +762,9 @@ public class LumberCabin : BuildingBase, IBuildingWorkforceFundingSource, IBuild
         baseJobAttraction = Mathf.Max(0f, baseJobAttraction);
         singleRecruitCost = Mathf.Max(0, singleRecruitCost);
         NormalizeBuildingModules();
+        EnsureResourceProductionModule();
         targetStableWorkers = Mathf.Clamp(targetStableWorkers, 0, maxWorkers);
-        productionIntervalTurns = Mathf.Max(1, productionIntervalTurns);
-        productionProgress = Mathf.Clamp(productionProgress, 0, productionIntervalTurns);
-        NormalizeWorkerProductionTiers();
         currentWorkers = Mathf.Clamp(currentWorkers, 0, maxWorkers);
-        woodItemId = NormalizeItemId(woodItemId, DefaultWoodItemId);
         goldItemId = NormalizeItemId(goldItemId, DefaultGoldItemId);
     }
 
@@ -910,106 +798,23 @@ public class LumberCabin : BuildingBase, IBuildingWorkforceFundingSource, IBuild
         lastTurnRecruitedWorker = true;
     }
 
-    private void NormalizeWorkerProductionTiers()
-    {
-        if (workerProductionTiers == null || workerProductionTiers.Length == 0)
-        {
-            workerProductionTiers = new[]
-            {
-                new WorkerProductionTier(2, 1),
-                new WorkerProductionTier(Mathf.Min(3, maxWorkers), 2)
-            };
-        }
-
-        for (var i = 0; i < workerProductionTiers.Length; i++)
-        {
-            workerProductionTiers[i] = workerProductionTiers[i].Normalize(maxWorkers);
-        }
-
-        Array.Sort(
-            workerProductionTiers,
-            (a, b) => a.MinimumWorkers == b.MinimumWorkers
-                ? a.ProductionAmount.CompareTo(b.ProductionAmount)
-                : a.MinimumWorkers.CompareTo(b.MinimumWorkers));
-    }
-
     private int GetMinimumWorkersForProduction()
     {
-        var minimumWorkers = maxWorkers;
-        var hasValidTier = false;
-        for (var i = 0; i < workerProductionTiers.Length; i++)
-        {
-            var tier = workerProductionTiers[i];
-            if (!tier.IsValid)
-            {
-                continue;
-            }
-
-            minimumWorkers = Mathf.Min(minimumWorkers, tier.MinimumWorkers);
-            hasValidTier = true;
-        }
-
-        return hasValidTier ? minimumWorkers : maxWorkers;
+        return EnsureResourceProductionModule().GetMinimumWorkersForProduction(maxWorkers);
     }
 
-    private int GetProductionAmountForWorkers(int workers)
+    private BM_资源产出 EnsureResourceProductionModule()
     {
-        var amount = 0;
-        for (var i = 0; i < workerProductionTiers.Length; i++)
-        {
-            var tier = workerProductionTiers[i];
-            if (!tier.IsValid || workers < tier.MinimumWorkers)
+        var module = EnsureBuildingModule<BM_资源产出>();
+        module.EnsureSingleOutput(
+            DefaultWoodItemId,
+            3,
+            new[]
             {
-                continue;
-            }
-
-            amount = tier.ProductionAmount;
-        }
-
-        return amount;
-    }
-
-    private IReadOnlyList<BuildingFunctionBlockSidebarRow> BuildProductionSidebarRows()
-    {
-        return new[]
-        {
-            new BuildingFunctionBlockSidebarRow(
-                "生产周期",
-                $"{productionProgress}/{productionIntervalTurns}"),
-            new BuildingFunctionBlockSidebarRow(
-                "产量规则",
-                FormatProductionTiers())
-        };
-    }
-
-    private string FormatProductionTiers()
-    {
-        if (workerProductionTiers == null || workerProductionTiers.Length == 0)
-        {
-            return "无";
-        }
-
-        var builder = new System.Text.StringBuilder();
-        for (var i = 0; i < workerProductionTiers.Length; i++)
-        {
-            var tier = workerProductionTiers[i];
-            if (!tier.IsValid)
-            {
-                continue;
-            }
-
-            if (builder.Length > 0)
-            {
-                builder.Append("，");
-            }
-
-            builder.Append(tier.MinimumWorkers);
-            builder.Append("工人=");
-            builder.Append(tier.ProductionAmount);
-            builder.Append(woodItemId);
-        }
-
-        return builder.Length == 0 ? "无" : builder.ToString();
+                new WorkerProductionTier(2, 1),
+                new WorkerProductionTier(3, 2)
+            });
+        return module;
     }
 
     protected virtual void OnValidate()
@@ -1065,13 +870,12 @@ public class LumberCabin : BuildingBase, IBuildingWorkforceFundingSource, IBuild
     }
 
     [Serializable]
+    [BuildingDataTypeId("building.lumber_cabin")]
     private sealed class LumberCabinLV1Data : BuildingDataBase
     {
         public int CurrentWorkers;
         public bool AutoFullWorkerSubsidyEnabled;
         public int TargetStableWorkers;
-        public int LastProducedWood;
-        public int ProductionProgress;
         public bool InitialWorkersGranted;
         public bool LastTurnRecruitedWorker;
         public bool LastTurnSubsidyGoldMissing;
@@ -1080,5 +884,3 @@ public class LumberCabin : BuildingBase, IBuildingWorkforceFundingSource, IBuild
         public string LastAbnormalStatusText;
     }
 }
-
-

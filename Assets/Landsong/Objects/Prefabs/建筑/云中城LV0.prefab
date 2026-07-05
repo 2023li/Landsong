@@ -210,28 +210,47 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CloudspirePalaceLV0
   definition:
-    buildingId: 云中城LV0
-    displayName: ""
-    category: 0
-    icon: {fileID: 0}
+    buildingId: "\u4E91\u4E2D\u57CELV0"
+    displayName: 
+    category: 128
+    icon: {fileID: 21300000, guid: 3d61119749eda504b8f28793d24ae8a7, type: 3}
     size: {x: 1, y: 1}
     ignoreTerrainRequirement: 0
     requiredTerrainKeys:
     - land
+    movementResistance: 0
     placementCosts: []
     visibleCondition:
-      rid: -2
+      rid: 5711026220397232213
     availableCondition:
-      rid: -2
+      rid: 5711026220397232214
     buildMenuSortOrder: 0
     maxBuildCount: 0
-    buildLimitGroupId: ""
-    isDevelopmentCompleted: 0
+    buildLimitGroupId: 
+    isDevelopmentCompleted: 1
+    useUniqueDetailPanel: 0
+    uniqueDetailPanel: {fileID: 0}
   hasGridPosition: 0
   gridPosition:
     x: 0
     y: 0
   gridOccupancyId: 
+  isResourceProviderPoint: 0
+  buildingModules: []
+  buildingActionPower: 100
   doubleClickInterval: 0.3
+  clickSound: {fileID: 0}
+  doubleClickSound: {fileID: 0}
   view: {fileID: 8436318151880140692}
   autoRepair: 0
+  references:
+    version: 2
+    RefIds:
+    - rid: 5711026220397232213
+      type: {class: GameCondition_TechnologyUnlocked, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
+      data:
+        TechnologyDefinition: {fileID: 11400000, guid: 9a0f6a8451e34c80ac55c4dfe537b407, type: 2}
+    - rid: 5711026220397232214
+      type: {class: GameCondition_TechnologyUnlocked, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
+      data:
+        TechnologyDefinition: {fileID: 11400000, guid: 9a0f6a8451e34c80ac55c4dfe537b407, type: 2}
