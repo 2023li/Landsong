@@ -1,338 +1,519 @@
 # 建筑架构 README
 
-本文档说明当前项目中的建筑架构，以及 `BuildingBase` 继承体系和 `BuildingModuleBase` 模块体系的职责边界。
+本文档说明 Landsong 当前建筑系统的实际架构。  
+它关注的是：
 
-结论：模块架构和当前建筑继承基类架构不冲突。它们不是两套互相替代的架构，而是分层关系：
+- 运行时入口在哪里
+- 静态配置放哪里
+- 模块负责什么
+- 具体建筑脚本负责什么
+- 放置、回合、升级、存档、UI 各自的边界是什么
 
-- `BuildingBase` 和建筑子类负责“这个建筑是什么、怎么活、每回合做什么”。
-- `BuildingModuleBase` 负责“这个建筑额外挂了哪些可选能力参数”。
-- `BuildingService`、`TurnService`、`GameSystem` 负责跨建筑管理、回合推进和全局聚合。
+## 目的
+
+- 统一“建筑系统”的架构认知。
+- 减少新增建筑时把字段放错层、把逻辑写错位置的问题。
+- 为后续扩展建筑、模块、详情 UI 和存档提供一致参考。
+
+## 前置条件
+
+阅读本文前，建议至少了解这些文件：
+
+- `BuildingBase.cs`
+- `BuildingDefinition.cs`
+- `BuildingModules.cs`
+- `BuildingService.cs`
+- `BuildingAvailabilityEvaluator.cs`
+- `BuildingPlacementController.cs`
+- `BuildingJobSystem.cs`
+- `BuildingSaveDataRegistry.cs`
+- 代表性建筑脚本：
+  - `LumberCabin.cs`
+  - `ResidentialHousingLV0.cs`
+  - `ResidentialHousingLV1.cs`
+  - `PlayerHomeLV1.cs`
+  - `FishingHutBuilding.cs`
 
 ## 当前核心结构
 
-```text
-BuildingCatalog
-  -> BuildingBase prefab
-      -> BuildingDefinition 静态建筑数据
-      -> BuildingBase 通用生命周期/放置/点击/UI/模块入口
-      -> 具体建筑子类 具体业务与运行时状态
-      -> BuildingModuleBase[] 可选能力模块
+```mermaid
+flowchart TD
+    A[BuildingCatalog.asset] --> B[建筑 Prefab]
+    B --> C[BuildingDefinition]
+    B --> D[BuildingBase]
+    D --> E[具体建筑脚本]
+    D --> F[buildingModules]
+    F --> G[BM_资源产出]
+    F --> H[BM_附近人口岗位吸引]
+    F --> I[BM_库存格容量]
+    F --> J[BM_科技点产出]
+    F --> K[BM_等级升级]
 
-GameSystem
-  -> InventoryService
-  -> DynastyService
-  -> TurnService
-  -> BuildingService
-  -> GameEventService
+    L[GameSystem.prefab] --> M[Landsong.GameSystem]
+    L --> N[BuildingPlacementController]
+
+    M --> O[InventoryService]
+    M --> P[DynastyService]
+    M --> Q[BuildingService]
+    M --> R[TurnService]
+    M --> S[GameEventService]
 ```
+
+当前项目的建筑系统是：
+
+- 以 `BuildingBase` 为统一运行时入口
+- 以 `BuildingDefinition` 为静态定义
+- 以 `BM_*` 模块承载可复用能力
+- 以具体建筑脚本承载玩法逻辑
+- 以服务层承载跨建筑聚合和全局流程
+
+结论：
+
+- **继承式运行时 + 模块化能力配置 + Prefab 参数化**
+- 不是“二选一”的架构，而是分层组合
 
 ## 职责边界
 
-### BuildingDefinition
+### `BuildingDefinition`
 
-`BuildingDefinition` 是 prefab 上的静态配置数据。
+定位：
 
-适合放：
-
-- 建筑 ID、显示名、分类、图标。
-- 占地尺寸、地形要求、移动阻力。
-- 建造成本、建造菜单显示条件、可用条件。
-- 最大建造数量和数量限制分组。
-- 详情面板 prefab 选择。
-
-不适合放：
-
-- 当前工人数、当前人口、生产进度等运行时状态。
-- 每回合逻辑。
-- 会随着建筑实例变化的状态。
-
-### BuildingBase
-
-`BuildingBase` 是所有建筑 prefab 根节点上的运行时基类，是建筑实例的统一入口。
-
-当前负责：
-
-- 持有 `BuildingDefinition`。
-- 持有格子坐标、占地 ID、`GridMap` 引用。
-- 管理初始化、注册、放置、拆除、销毁清理。
-- 提供 `OnInitialized()`、`OnRegistered()`、`OnPlaced()`、`OnTurn()` 等生命周期入口。
-- 统一点击和双击入口。
-- 提供 `GetOverviewInfo()`、`GetRuntimeStatuses()`、`GetFunctionBlockEntries()` 等 UI 读取入口。
-- 持有 `buildingModules`，并提供 `TryGetModule<T>()`、`GetModules<T>()`。
-- 放置所有建筑都可能需要的极少数通用字段，例如 `IsResourceProviderPoint`、`BuildingActionPower`。
-
-`BuildingBase` 不应该承载所有可选玩法字段。否则每个建筑都会暴露岗位、库存、税收、生产、住宅等无关字段，基类会快速膨胀。
-
-### 具体建筑子类
-
-具体建筑子类描述“这个等级的建筑如何运行”。
-
-当前例子：
-
-- `LumberCabinLV1`：岗位、招工、产出原木、岗位详情。
-- `ResidentialHousingLV1`：人口、食物消耗、税收、荒废、资源连接检查。
-- `PlayerHomeLV1`：王宫注册、资源点标记、通过模块提供库存格数。
+- Prefab 级静态定义
+- 只描述“这个建筑是什么”
 
 适合放：
 
-- 建筑独有的运行时状态。
-- 每回合业务流程。
-- 存档数据结构和恢复逻辑。
-- 对库存、王朝、事件服务的业务调用。
-- 自定义概览、功能块数据、侧边栏说明和运行状态。
+- `buildingId`
+- `displayName`
+- `category`
+- `icon`
+- `size`
+- `requiredTerrainKeys`
+- `movementResistance`
+- `placementCosts`
+- `visibleCondition`
+- `availableCondition`
+- `buildMenuSortOrder`
+- `maxBuildCount`
+- `buildLimitGroupId`
+- `isDevelopmentCompleted`
+- `uniqueDetailPanel`
 
 不适合放：
 
-- 跨建筑通用聚合逻辑。
-- 与某个建筑无关的全局数值系统。
-- 只是用于多个建筑复用的配置字段。
+- 当前工人
+- 当前人口
+- 当前经验
+- 当前生产进度
+- 上回合产出
+- 是否荒废
+- 是否自动升级
+- 任何会随“建筑实例”变化的状态
 
-### BuildingModuleBase
+### `BuildingBase`
 
-`BuildingModuleBase` 是建筑上的可选能力模块。它通过 `BuildingBase` 的 `buildingModules` 列表挂在 prefab 上。
+定位：
 
-当前模块：
+- 所有建筑实例的统一运行时入口
 
-- `BuildingNearbyPopulationJobAttractionModule`
-  - 配置 `人口搜索半径`。
-  - 配置 `附近每人口就业吸引力`。
-  - 由岗位建筑读取，用于计算附近人口增益。
+当前已经承担的职责：
 
-- `BuildingInventorySlotCapacityModule`
-  - 配置 `提供库存格数`。
-  - 由 `GameSystem` 汇总所有建筑模块后调整库存容量。
+- 持有 `BuildingDefinition`
+- 持有格子放置信息与占地 ID
+- 持有 `buildingModules`
+- 注册到 `GameSystem`
+- 处理 `Initialize()`
+- 驱动 `OnInitialized / OnRegistered / OnPlaced / OnTurn`
+- 提供 `CaptureSaveData / RestoreSaveData`
+- 聚合模块状态存档
+- 提供 `GetOverviewInfo / GetRuntimeStatuses / GetFunctionBlockEntries`
+- 处理公共状态，例如道路不通
+- 统一点击/双击分发
+
+不应该继续膨胀成：
+
+- 所有建筑共享的大杂烩字段仓库
+- 各种具体建筑独有状态的承载者
+
+### `BuildingModuleBase`
+
+定位：
+
+- 多种建筑可复用、但不是所有建筑都需要的能力层
+
+当前特点：
+
+- 使用 `SerializeReference` 挂在 `buildingModules`
+- 不是 `MonoBehaviour`
+- 没有独立 `Update()` / `Start()`
+- 默认只提供：
+  - `Normalize()`
+  - `AppendFunctionBlockEntries(...)`
+  - `ModuleDescription`
 
 适合放：
 
-- 不是所有建筑都需要的能力配置。
-- 多种建筑未来可能复用的字段。
-- 可以被建筑子类或服务读取的只读能力数据。
-- 简单的归一化和详情展示。
+- 可复用能力配置
+- 可复用说明数据
+- 可复用的小型状态
+- 可以由建筑脚本显式调用的能力逻辑
 
 不适合放：
 
-- 独立 Unity 生命周期。模块不是 `MonoBehaviour`，没有 `Start()`、`Update()`。
-- 隐式修改全局服务。模块本身不应该直接扣库存、加人口、推进回合。
-- 大型业务流程。业务流程应在具体建筑子类或服务中显式执行。
+- 全局服务聚合
+- 建筑独有的整套玩法状态机
+- 隐式修改库存 / 王朝 / 场景对象的大流程
 
-如果未来确实需要模块拥有回合行为，不要让模块私自模拟生命周期。应该在 `BuildingBase` 增加明确的模块生命周期钩子，例如 `OnBuildingRegistered`、`OnBuildingTurn`，并统一规定调用顺序。
+### 具体建筑脚本
 
-## 模块和继承为什么不冲突
+定位：
 
-继承解决的是“建筑类型差异”：
+- 描述“这个建筑怎么运作”
 
-```text
-伐木小屋怎么招工、怎么产出
-住宅怎么消耗食物、怎么增长人口
-王宫怎么注册为核心建筑
-```
+适合放：
 
-模块解决的是“可选能力配置”：
+- `OnTurn()` 的业务逻辑
+- 独有运行时状态
+- 对库存 / 王朝 / 事件系统的调用
+- 独有异常状态
+- 建筑自己的存档数据
+- 建筑自己的概览信息和功能块逻辑
 
-```text
-这个建筑是否受附近人口影响岗位吸引力
-这个建筑是否提供库存格数
-```
+当前典型类：
 
-两者可以组合：
+- `ResidentialHousingLV0`
+- `ResidentialHousingLV1`
+- `LumberCabin`
+- `FishingHutBuilding`
+- `PlayerHomeLV1`
 
-```text
-LumberCabinLV1
-  -> 继承 BuildingBase，拥有伐木小屋自己的回合逻辑
-  -> 挂 BuildingNearbyPopulationJobAttractionModule，配置岗位人口影响参数
+## 现有模块体系
 
-PlayerHomeLV1
-  -> 继承 BuildingBase，拥有王宫注册逻辑
-  -> 挂 BuildingInventorySlotCapacityModule，配置提供库存格数
-```
+### `BM_资源产出`
 
-冲突只会在职责混用时出现，例如：
+职责：
 
-- 建筑子类和模块都试图决定同一段回合流程。
-- 模块绕过建筑子类直接改库存、人口、事件。
-- 某个字段既在子类中配置，又在模块中配置，运行时不知道以谁为准。
+- 周期型资源生产
+- 多个产出项
+- 工人数 -> 产量表映射
+- 当前预期产出
+- 上次成功产出
+- 生产进度
 
-当前实现没有这个冲突：模块只提供配置和详情段，具体业务仍由建筑子类或服务显式读取模块后执行。
+最适合：
 
-## 服务边界
+- 伐木
+- 捕鱼
+- 工坊
+- 农田成熟
 
-### BuildingService
+### `BM_附近人口岗位吸引`
 
-`BuildingService` 是建筑运行时列表、放置、拆除、替换和建造可用性判断的入口。
+职责：
 
-负责：
+- 给岗位建筑提供“周围人口”的吸引力加成
 
-- 通过 `TryPlace()` 实例化建筑 prefab。
-- 调用 `GridMap` 占格。
-- 写入 `BuildingBase.SetPlacement()`。
-- 注册和注销建筑到 `TurnService`。
-- 发出 `BuildingsChanged`。
-- 计算建筑数量限制和可用性。
+依赖：
+
+- `BuildingJobSystem.CountNearbyPopulation(...)`
+
+### `BM_库存格容量`
+
+职责：
+
+- 建筑存在时提供额外库存格数
+
+依赖：
+
+- `GameSystem` 聚合所有已注册建筑模块
+
+### `BM_科技点产出`
+
+职责：
+
+- 建筑成功完成回合后提供科技点
+- 保存上回合科技点结果
+- 支持模块状态序列化
+
+### `BM_等级升级`
+
+职责：
+
+- 保存升级经验
+- 判断升级条件
+- 扣升级成本
+- 执行建筑替换
+
+## 服务层边界
+
+### `BuildingService`
+
+职责：
+
+- 放置
+- 批量放置
+- 替换
+- 拆除
+- 删除
+- 成本判定
+- 建筑列表管理
+- 数量限制统计
 
 不负责：
 
-- 具体建筑每回合产出。
-- UI 展示格式。
-- 直接修改库存或人口。
+- 具体建筑每回合产出
+- 人口增长
+- 税收
+- UI 拼装
 
-### TurnService
+### `BuildingAvailabilityEvaluator`
 
-`TurnService` 持有当前运行时建筑列表，并在推进回合时调用建筑。
+职责：
 
-流程：
+- 把建筑在建造菜单中的状态统一为：
+  - 是否可见
+  - 是否开发完成
+  - 是否解锁
+  - 是否达到数量上限
+  - 是否有材料
 
-```text
-GameSystem.NextTurn()
-  -> TurnService.NextTurn() / NextTurnRoutine()
-  -> BuildingBase.ProcessTurn()
-  -> 具体建筑 OnTurn()
-  -> BuildingBase.NotifyStateChanged()
+结论：
+
+- 建造菜单层不要再重复手写一遍可建造判断。
+
+### `BuildingPlacementController`
+
+职责：
+
+- 玩家输入
+- 预览
+- 高亮
+- 确认放置
+- 取消放置
+- 批量道路放置
+
+不负责：
+
+- 建筑业务规则本身
+- 人口/岗位/生产逻辑
+- 升级逻辑
+
+### `BuildingJobSystem`
+
+职责：
+
+- 岗位吸引力与稳定工人数公式
+- 可用人口计算
+- 建筑之间的 Manhattan 距离
+- 附近人口统计
+- 补贴相关推导
+
+它是**纯计算/统计层**，适合持续扩展公式，但不适合直接持有建筑实例状态。
+
+## 关键流程
+
+### 放置流程
+
+```mermaid
+flowchart TD
+    A[建造按钮 / Build UI] --> B[BuildingPlacementController]
+    B --> C[BuildingService.TryPlace]
+    C --> D[GridMap.CanOccupy]
+    C --> E[GridMap.TryOccupy]
+    C --> F[Instantiate Prefab]
+    F --> G[BuildingBase.SetPlacement]
+    G --> H[BuildingBase.Start]
+    H --> I[GameSystem.RegisterBuilding]
+    I --> J[BuildingBase.Initialize]
+    J --> K[OnInitialized]
+    J --> L[OnRegistered]
+    J --> M[OnPlaced]
 ```
 
-`TurnService` 不理解每种建筑的细节，只关心建筑是否成功执行本回合，以及是否通过资源接口暴露了上回合产出。
+### 回合流程
 
-### GameSystem
-
-`GameSystem` 是场景级服务组合根。
-
-当前负责：
-
-- 创建 `InventoryService`、`DynastyService`、`TurnService`、`BuildingService`、`GameEventService`。
-- 注册和注销建筑。
-- 提供全局岗位吸引力修正接口。
-- 汇总库存容量模块：
-
-```text
-库存总格数 = 基础库存格数 + Sum(所有启用 BuildingInventorySlotCapacityModule.提供库存格数)
+```mermaid
+flowchart TD
+    A[TurnService / GameSystem] --> B[BuildingBase.ProcessTurn]
+    B --> C[具体建筑 OnTurn]
+    C --> D{是否成功}
+    D -->|成功| E[尝试 BM_等级升级.TryAutoUpgrade]
+    D -->|失败| F[返回 false]
+    E --> G[NotifyStateChanged]
 ```
 
-`GameSystem` 做库存容量聚合是合理的，因为库存容量是跨建筑全局结果，不属于某一个建筑独自拥有。
+### 存档流程
 
-## 接口边界
-
-接口用于“让其他系统读取某类建筑数据”，不是用来驱动建筑生命周期。
-
-当前接口：
-
-- `IBuildingPopulationSource`
-  - 暴露当前人口。
-  - 被岗位系统统计可用人口、附近人口。
-
-- `IBuildingJobSource`
-  - 暴露岗位相关运行结果。
-  - 用于岗位统计和调试。
-
-- `IBuildingResourceConsumptionSource`
-  - 暴露预计消耗和上回合消耗。
-
-- `IBuildingTaxSource`
-  - 暴露预计税收和上回合税收。
-
-- `IBuildingResourceProductionSource`
-  - 暴露预计产出和上回合产出。
-
-接口适合横向读取。模块适合挂载可选配置。建筑子类适合执行业务。
-
-## UI 边界
-
-UI 不应该反推建筑业务规则。
-
-UI 应读取：
-
-- `BuildingBase.Definition`
-- `BuildingBase.GetOverviewInfo()`
-- `BuildingBase.GetRuntimeStatuses()`
-- `BuildingBase.GetFunctionBlockEntries()`
-- 能力接口或建筑模块暴露的只读结果
-
-建筑详情由详情块承载：
-
-- 岗位块读取 `IBuildingWorkforceFundingSource`。
-- 功能块读取 `GetFunctionBlockEntries()`。
-- 更具体的说明放入侧边栏结构化行。
-
-不再使用 `GetDetailInfo()` 作为通用详情数据源。新增人口、税收、维护等详情时，应新增独立详情块或扩展现有功能块，而不是让 UI 读取一份通用明细表。
-
-## 放置与注册流程
-
-运行时建造的主流程：
-
-```text
-GamePanel_Building / 建造按钮
-  -> BuildingPlacementController
-  -> BuildingService.TryPlace(prefab, gridMap, origin, parent, out building)
-      -> GridMap.CanOccupy()
-      -> GridMap.TryOccupy()
-      -> Instantiate(prefab)
-      -> building.SetPlacement(origin, occupancyId, gridMap)
-      -> building.gameObject.SetActive(true)
-  -> BuildingBase.Start()
-      -> GameSystem.RegisterBuilding(this)
-      -> BuildingService.RegisterBuilding()
-      -> building.Initialize()
-      -> OnInitialized()
-      -> OnRegistered()
-      -> OnPlaced()
+```mermaid
+flowchart TD
+    A[BuildingBase.CaptureSaveData] --> B[CaptureBuildingData]
+    A --> C[CaptureCommonSaveData]
+    C --> D[BM_等级升级]
+    C --> E[BM_资源产出]
+    C --> F[IBuildingModuleStateSerializer]
 ```
 
-场景初始建筑可能通过 `InitialBuildingPlacement` 先写入占格和 `SetPlacement()`，再走 `BuildingBase.Start()` 注册。无论入口如何，真实运行都应回到 `BuildingBase` 和 `GameSystem.RegisterBuilding()`。
+## 共享脚本 + Prefab 参数化的现状
 
-## 新能力放在哪里
+当前仓库已经证明“一个脚本服务多个等级 Prefab”的路线是可行的。
 
-| 需求 | 推荐位置 | 原因 |
-| --- | --- | --- |
-| 所有建筑都需要的身份、生命周期、放置、点击、UI 基础入口 | `BuildingBase` | 统一入口，避免重复 |
-| 某个建筑等级独有的每回合行为和状态 | 具体建筑子类 | 行为和状态属于该建筑 |
-| 多个建筑可复用、但不是所有建筑都需要的检查器配置 | `BuildingModuleBase` 派生模块 | 可选组合，避免基类膨胀 |
-| 多种建筑都要被 UI 或统计系统横向读取的一类结果 | 接口 | 只读契约，低耦合 |
-| 跨建筑聚合、全局计算、列表管理、放置管理 | 服务或静态系统 | 不属于单个建筑实例 |
-| 纯公式、无 Unity 状态的计算 | 静态系统类 | 易复用、易测试 |
+### 典型案例：`LumberCabin`
 
-当前例子：
+- `伐木小屋LV1.prefab` 与 `伐木小屋LV2.prefab` 都使用 `LumberCabin`
+- LV1 / LV2 的差异主要来自：
+  - `maxWorkers`
+  - 初始工人数
+  - `BM_资源产出` 配置
+  - `BM_等级升级` 配置
+  - `BuildingDefinition`
 
-- 附近每人口提供就业吸引力：模块。
-- 提供库存格数：模块，聚合在 `GameSystem`。
-- 建筑升级经验、升级消耗和自动升级：模块，显示在 `BuildingDetailsBlock_Level`，由 `BuildingBase.ProcessTurn()` 在回合成功后统一尝试自动升级。
-- 资源连接点：当前在 `BuildingBase`，因为它是简单、高频、基础的建筑标记，并且已有 prefab 字段需要稳定。
-- 伐木小屋生产原木：`LumberCabinLV1` 子类。
-- 住宅消耗食物和增长人口：`ResidentialHousingLV1` 子类。
-- 岗位公式：`BuildingJobSystem` 静态系统。
-- 建筑可建造数量限制：`BuildingService` / `BuildingAvailabilityEvaluator`。
+这说明：
 
-## 新建筑接入建议
+- 当等级差异以“参数变化”为主时，优先共享脚本。
+- 当等级差异在“玩法状态机和业务流程”上已经明显分叉时，再考虑拆成不同脚本。
 
-1. 创建建筑 prefab，并挂具体 `BuildingBase` 子类。
-2. 在 prefab 上填写 `BuildingDefinition`。
-3. 如果只是调整可选能力参数，优先添加建筑模块。
-4. 如果需要每回合行为，在建筑子类中实现 `OnTurn()`。
-5. 如果需要 UI 展示通用横向数据，实现对应只读接口。
-6. 如果需要详情栏，优先接入现有详情块；新增详情类型时创建独立详情块。
-7. 如果涉及跨建筑聚合，把聚合放到服务或静态系统中，不要放到 UI。
-8. 最后把 prefab 加入 `BuildingCatalog`。
+### 典型案例：住宅
 
-## 模块使用约定
+住宅当前是两种路线并存：
 
-新增模块时遵守以下规则：
+- `ResidentialHousingLV0`：施工态，独立脚本
+- `ResidentialHousingLV1`：完成态，独立脚本
+- `ResidentialHousingLV2/LV3/LV4`：简化人口贡献脚本
 
-- 模块类继承 `BuildingModuleBase`。
-- 标记 `[Serializable]`。
-- 字段用 `[SerializeField]`，通过只读属性向外暴露。
-- 在 `Normalize()` 中归一化检查器输入。
-- 如果需要显示到功能块，实现 `AppendFunctionBlockEntries()`。
-- 如果需要专门交互 UI，新增独立详情块。
-- 如果模块有运行时状态，例如当前经验，后续需要明确纳入建筑存档或模块存档。
-- 模块不直接调用 `InventoryService`、`DynastyService`、`TurnService`。
-- 模块不保存运行时流程状态，除非未来明确引入模块生命周期和存档约定。
+这说明：
 
-## 当前架构判断
+- 当阶段行为完全不同，拆脚本是合理的。
+- 但后续如果希望 LV2+ 和 LV1 共享完整运营逻辑，仍然有整理空间。
 
-当前项目仍然是“继承式建筑运行时架构”，模块只是挂在 `BuildingBase` 上的轻量组合层。
+## 配置资产边界
 
-这个方向适合当前阶段：
+### `BuildingCatalog.asset`
 
-- 建筑数量还不大，具体建筑子类能清晰表达业务。
-- 已有 UI、放置、回合、存档都围绕 `BuildingBase`。
-- 模块可以解决可选字段越来越多导致的基类膨胀。
-- 服务层可以继续承接跨建筑聚合，避免 UI 或单个建筑承担全局责任。
+职责：
 
-需要警惕的是：如果之后模块越来越像“行为组件”，就必须补齐明确的模块生命周期、执行顺序和存档机制。否则模块只应保持为可选配置和只读能力数据。
+- 建筑目录索引
+- 供建造菜单和运行时按 `buildingId` 查找 Prefab
+
+要求：
+
+- 新建筑接入后应加入 Catalog
+- `buildingId` 必须唯一
+
+### `GameSystem.prefab`
+
+职责：
+
+- 场景级服务组合根
+- 当前已经绑定：
+  - `itemCatalog`
+  - `technologyCatalog`
+  - `buildingCatalog`
+  - `BuildingPlacementController`
+
+结论：
+
+- 新建筑逻辑大多数无需改场景，只需要：
+  - 配好 Prefab
+  - 加到 Catalog
+  - 让现有放置流程可以找到它
+
+## 新能力放哪里
+
+| 需求 | 推荐位置 |
+| --- | --- |
+| 所有建筑都要共享的生命周期、放置、模块入口 | `BuildingBase` |
+| Prefab 级静态字段 | `BuildingDefinition` |
+| 多种建筑共用的能力配置 | `BuildingModuleBase` 子类 |
+| 具体建筑独有的回合行为 | 具体建筑脚本 |
+| 跨建筑的统计与公式 | 静态系统 / 服务层 |
+| UI 横向读取的数据契约 | 接口 |
+
+实际判断标准：
+
+- **如果只是“这个能力很多建筑会复用”**，优先模块。
+- **如果是“这个建筑怎么活”**，优先具体建筑脚本。
+- **如果是“整个游戏怎么算”**，优先服务或静态系统。
+
+## 示例
+
+### 适合做模块的能力
+
+- 周期性资源产出
+- 额外库存格
+- 科技点产出
+- 升级经验与替换目标
+- 周边人口岗位加成
+
+### 不适合做模块、而更适合放到建筑脚本里的能力
+
+- 住宅的食物消耗失败 -> 人口衰减 -> 荒废状态机
+- 捕鱼小屋的特殊捕获联动
+- 皇宫的王朝注册
+- 树木的双击受伤和倒下掉落
+
+## 编辑器与使用步骤
+
+### 新建筑接入的架构流程
+
+1. 决定是**共享脚本**还是**新脚本**。
+2. 配置 `BuildingDefinition`。
+3. 配置 `buildingModules`。
+4. 如果需要运行时状态，补 `BuildingDataBase` 数据类。
+5. 接好 UI 输出入口：
+   - `GetOverviewInfo`
+   - `GetRuntimeStatuses`
+   - `GetFunctionBlockEntries`
+6. 加入 `BuildingCatalog.asset`。
+7. 在 Unity Editor 验证：
+   - 放置
+   - 回合
+   - 详情面板
+   - 存档恢复
+   - 升级替换
+
+## 排错
+
+### 字段越加越多，不知道放哪里
+
+先问自己三件事：
+
+1. 这是静态配置还是实例状态？
+2. 是不是很多建筑都可能复用？
+3. 它是“数据”还是“流程”？
+
+如果答案分别是：
+
+- 静态配置 -> `BuildingDefinition`
+- 多建筑复用 -> 模块
+- 建筑独有流程 -> 具体建筑脚本
+- 全局聚合/公式 -> 服务或静态系统
+
+### UI 开始出现大量 `if (building is Xxx)` 分支
+
+说明架构正在退化。  
+应回退到：
+
+- 接口
+- `GetFunctionBlockEntries()`
+- `GetRuntimeStatuses()`
+- 模块附加功能块
+
+### 存档恢复后状态丢失
+
+优先检查：
+
+- 是否写了 `CaptureBuildingData / RestoreBuildingData`
+- 是否补了 `[BuildingDataTypeId(...)]`
+- 模块状态是否应实现 `IBuildingModuleStateSerializer`
+- 是否依赖了没有纳入存档的模块运行时字段
+
+## 变更记录
+
+### 2026-07-06
+
+- 按当前仓库真实实现重写架构说明。
+- 明确当前是“继承 + 模块 + Prefab 参数化”的混合架构。
+- 补充 `BuildingAvailabilityEvaluator`、`BuildingCatalog.asset`、`GameSystem.prefab` 的角色。
+- 补充 `BuildingBase` 公共模块存档边界。
+- 补充共享脚本 `LumberCabin` 的实际用法。
+- 修正旧版本中对模块显示 API 的过时描述。
