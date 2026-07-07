@@ -28,10 +28,16 @@ namespace Landsong.BuildingSystem
         private sealed class CropDefinition
         {
             [SerializeField, LabelText("作物ID")]
+            [PropertyTooltip("稳定玩法ID，用于种植、存档和代码查找。不要用会频繁改动的显示文案；推荐格式如 crop.vegetable。")]
             private string cropId;
 
             [SerializeField, LabelText("显示名")]
+            [PropertyTooltip("玩家界面显示的作物名称。留空时会回退显示作物ID。")]
             private string displayName;
+
+            [SerializeField, LabelText("作物图标")]
+            [PropertyTooltip("作物选择面板中显示的图标。可为空，UI会隐藏图标。")]
+            private Sprite icon;
 
             [SerializeField, LabelText("成熟回合"), Min(1)]
             private int growTurns = 3;
@@ -44,6 +50,7 @@ namespace Landsong.BuildingSystem
 
             public string CropId => string.IsNullOrWhiteSpace(cropId) ? string.Empty : cropId.Trim();
             public string DisplayName => string.IsNullOrWhiteSpace(displayName) ? CropId : displayName.Trim();
+            public Sprite Icon => icon;
             public int GrowTurns => Mathf.Max(1, growTurns);
             public IReadOnlyList<BuildingCost> PlantCosts => plantCosts ?? Array.Empty<BuildingCost>();
             public IReadOnlyList<CropHarvestReward> HarvestRewards => harvestRewards ?? Array.Empty<CropHarvestReward>();
@@ -70,7 +77,7 @@ namespace Landsong.BuildingSystem
 
             public BuildingCropOption ToOption()
             {
-                return new BuildingCropOption(CropId, DisplayName, GrowTurns);
+                return new BuildingCropOption(CropId, DisplayName, GrowTurns, Icon);
             }
         }
 

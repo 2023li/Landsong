@@ -1,4 +1,5 @@
 using System;
+using Landsong.BuildingSystem;
 using Landsong.InventorySystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -59,6 +60,29 @@ namespace Landsong.TechnologySystem
             }
 
             return new TechnologyEffectApplyResult(true, $"{itemDefinition.DisplayName}+{added}");
+        }
+    }
+
+    [Serializable]
+    public sealed class TechnologyEffect_UnlockBuildingBlueprint : TechnologyEffect
+    {
+        [SerializeField, LabelText("建筑蓝图")]
+        private BuildingBase buildingPrefab;
+
+        public BuildingBase BuildingPrefab => buildingPrefab;
+
+        public override TechnologyEffectApplyResult Apply(GameSystem context, TechnologyDefinition technology)
+        {
+            if (context == null || buildingPrefab == null || !buildingPrefab.HasDefinition)
+            {
+                return new TechnologyEffectApplyResult(false, string.Empty);
+            }
+
+            var definition = buildingPrefab.Definition;
+            var unlocked = context.UnlockBuildingBlueprint(definition.BuildingId);
+            return new TechnologyEffectApplyResult(
+                unlocked,
+                unlocked ? $"蓝图解锁：{definition.DisplayName}" : $"蓝图已解锁：{definition.DisplayName}");
         }
     }
 }

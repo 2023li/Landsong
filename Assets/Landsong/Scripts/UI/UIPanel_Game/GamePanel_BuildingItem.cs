@@ -138,7 +138,8 @@ namespace Landsong.UISystem
                                  && definition.HasBuildCountLimit
                                  && availability.IsVisible
                                  && availability.IsDevelopmentCompleted
-                                 && availability.IsUnlocked;
+                                 && availability.IsUnlocked
+                                 && availability.IsBlueprintUnlocked;
             数量限制.gameObject.SetActive(showCountLimit);
 
             if (!showCountLimit)

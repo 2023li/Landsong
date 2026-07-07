@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Landsong.BuildingSystem;
+using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -7,14 +8,14 @@ using UnityEngine.UI;
 
 public sealed class BuildingDetailsBlock_Workforce : BuildingDetailsBlockBase
 {
-    [SerializeField] private Toggle tgl_自动补贴满岗位;
-    [SerializeField] private Button btn_目标稳定工人上一档;
-    [SerializeField] private TMP_Text txt_当前工人;
-    [SerializeField] private Button btn_目标稳定工人下一档;
-    [SerializeField] private TMP_Text txt_当前补贴金币;
-    [SerializeField] private Button btn_招募工人;
-    [SerializeField] private TMP_Text txt_招募消耗;
-    [SerializeField] private GameObject go_工人详情触发区;
+    [SerializeField, LabelText("自动补贴满岗位开关")] private Toggle tgl_自动补贴满岗位;
+    [SerializeField, LabelText("目标稳定工人上一档按钮")] private Button btn_目标稳定工人上一档;
+    [SerializeField, LabelText("当前工人文本")] private TMP_Text txt_当前工人;
+    [SerializeField, LabelText("目标稳定工人下一档按钮")] private Button btn_目标稳定工人下一档;
+    [SerializeField, LabelText("当前补贴金币文本")] private TMP_Text txt_当前补贴金币;
+    [SerializeField, LabelText("招募工人按钮")] private Button btn_招募工人;
+    [SerializeField, LabelText("招募消耗文本")] private TMP_Text txt_招募消耗;
+    [SerializeField, LabelText("工人详情触发区")] private GameObject go_工人详情触发区;
 
     private Popup_BuildingDetails owner;
     private IBuildingWorkforceFundingSource workforceFundingSource;

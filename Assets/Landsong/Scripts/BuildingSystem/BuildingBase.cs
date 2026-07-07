@@ -185,11 +185,11 @@ namespace Landsong.BuildingSystem
 
         private void OnValidate()
         {
-            EnsureDefinition();
-            ResolveView();
-            NormalizeClickFeedback();
-            NormalizeBuildingActionPower();
-            NormalizeBuildingModules();
+            //EnsureDefinition();
+            //ResolveView();
+            //NormalizeClickFeedback();
+            //NormalizeBuildingActionPower();
+            //NormalizeBuildingModules();
         }
 
         protected virtual void Awake()

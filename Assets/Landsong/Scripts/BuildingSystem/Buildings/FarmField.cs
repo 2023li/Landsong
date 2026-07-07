@@ -61,91 +61,91 @@ namespace Landsong.BuildingSystem.Buildings
         private int stableWorkers;
 
         [TitleGroup("运行时")]
-        [SerializeField, ReadOnly]
+        [SerializeField, ReadOnly, LabelText("无补贴稳定工人")]
         private int stableWorkersWithoutSubsidy;
 
         [TitleGroup("运行时")]
-        [SerializeField, ReadOnly]
+        [SerializeField, ReadOnly, LabelText("原始岗位吸引力")]
         private float rawJobAttraction;
 
         [TitleGroup("运行时")]
-        [SerializeField, ReadOnly]
+        [SerializeField, ReadOnly, LabelText("岗位吸引力")]
         private float jobAttraction;
 
         [TitleGroup("运行时")]
-        [SerializeField, ReadOnly]
+        [SerializeField, ReadOnly, LabelText("无补贴岗位吸引力")]
         private float jobAttractionWithoutSubsidy;
 
         [TitleGroup("运行时")]
-        [SerializeField, ReadOnly]
+        [SerializeField, ReadOnly, LabelText("附近人口")]
         private int nearbyPopulation;
 
         [TitleGroup("运行时")]
-        [SerializeField, ReadOnly]
+        [SerializeField, ReadOnly, LabelText("人口搜索格数")]
         private int populationCellCount;
 
         [TitleGroup("运行时")]
-        [SerializeField, ReadOnly]
+        [SerializeField, ReadOnly, LabelText("上次人口搜索半径")]
         private int lastPopulationSearchRadius;
 
         [TitleGroup("运行时")]
-        [SerializeField, ReadOnly]
+        [SerializeField, ReadOnly, LabelText("上次附近每人口吸引力")]
         private float lastAttractionPerNearbyPopulation;
 
         [TitleGroup("运行时")]
-        [SerializeField, ReadOnly]
+        [SerializeField, ReadOnly, LabelText("人口密度")]
         private float populationDensity;
 
         [TitleGroup("运行时")]
-        [SerializeField, ReadOnly]
+        [SerializeField, ReadOnly, LabelText("附近人口吸引力加成")]
         private float populationAttractionBonus;
 
         [TitleGroup("运行时")]
-        [SerializeField, ReadOnly]
+        [SerializeField, ReadOnly, LabelText("全局吸引力修正合计")]
         private float globalAttractionModifierTotal;
 
         [TitleGroup("运行时")]
-        [SerializeField, ReadOnly]
+        [SerializeField, ReadOnly, LabelText("每金币补贴吸引力")]
         private float subsidyAttractionPerGold;
 
         [TitleGroup("运行时")]
-        [SerializeField, ReadOnly]
+        [SerializeField, ReadOnly, LabelText("本回合补贴吸引力")]
         private float subsidyAttractionBonus;
 
         [TitleGroup("运行时")]
-        [SerializeField, ReadOnly]
+        [SerializeField, ReadOnly, LabelText("目标补贴吸引力")]
         private float targetSubsidyAttractionBonus;
 
         [TitleGroup("运行时")]
-        [SerializeField, ReadOnly]
+        [SerializeField, ReadOnly, LabelText("目标补贴金币/回合")]
         private int targetSubsidyGoldPerTurn;
 
         [TitleGroup("运行时")]
-        [SerializeField, ReadOnly]
+        [SerializeField, ReadOnly, LabelText("本回合已支付补贴金币")]
         private int paidSubsidyGoldThisTurn;
 
         [TitleGroup("运行时")]
-        [SerializeField, ReadOnly]
+        [SerializeField, ReadOnly, LabelText("已发放初始工人")]
         private bool initialWorkersGranted;
 
         [TitleGroup("运行时")]
-        [SerializeField, ReadOnly]
+        [SerializeField, ReadOnly, LabelText("上回合招到工人")]
         private bool lastTurnRecruitedWorker;
 
         [TitleGroup("运行时")]
-        [SerializeField, ReadOnly]
+        [SerializeField, ReadOnly, LabelText("上回合补贴金币不足")]
         private bool lastTurnSubsidyGoldMissing;
 
         [TitleGroup("运行时")]
-        [SerializeField, ReadOnly]
+        [SerializeField, ReadOnly, LabelText("上回合可用人口不足")]
         private bool lastTurnNoAvailablePopulation;
 
         [TitleGroup("运行时")]
-        [SerializeField, ReadOnly]
+        [SerializeField, ReadOnly, LabelText("上次异常状态ID")]
         private string lastAbnormalStatusId = string.Empty;
 
         [TitleGroup("运行时")]
-        [SerializeField, ReadOnly]
+        [SerializeField, ReadOnly, LabelText("上次异常状态文本")]
         private string lastAbnormalStatusText = string.Empty;
 
         private readonly List<BuildingWorkforceAttractionFactor> workforceAttractionFactors =

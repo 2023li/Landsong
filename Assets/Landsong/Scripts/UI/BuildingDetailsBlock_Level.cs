@@ -1,16 +1,17 @@
 using System.Collections.Generic;
 using Landsong.BuildingSystem;
+using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public sealed class BuildingDetailsBlock_Level : BuildingDetailsBlockBase
 {
-    [SerializeField] private Toggle tgl_自动升级;
-    [SerializeField] private Slider sld_经验进度;
-    [SerializeField] private TMP_Text txt_经验;
-    [SerializeField] private Button btn_升级;
-    [SerializeField] private TMP_Text txt_升级消耗;
+    [SerializeField, LabelText("自动升级开关")] private Toggle tgl_自动升级;
+    [SerializeField, LabelText("经验进度条")] private Slider sld_经验进度;
+    [SerializeField, LabelText("经验文本")] private TMP_Text txt_经验;
+    [SerializeField, LabelText("升级按钮")] private Button btn_升级;
+    [SerializeField, LabelText("升级消耗文本")] private TMP_Text txt_升级消耗;
 
     private BuildingBase building;
     private BM_等级升级 levelModule;

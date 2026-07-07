@@ -1,19 +1,22 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Landsong.BuildingSystem
 {
     public readonly struct BuildingCropOption
     {
-        public BuildingCropOption(string cropId, string displayName, int growTurns)
+        public BuildingCropOption(string cropId, string displayName, int growTurns, Sprite icon = null)
         {
             CropId = string.IsNullOrWhiteSpace(cropId) ? string.Empty : cropId.Trim();
             DisplayName = string.IsNullOrWhiteSpace(displayName) ? CropId : displayName.Trim();
             GrowTurns = growTurns < 1 ? 1 : growTurns;
+            Icon = icon;
         }
 
         public string CropId { get; }
         public string DisplayName { get; }
         public int GrowTurns { get; }
+        public Sprite Icon { get; }
         public bool IsValid => !string.IsNullOrWhiteSpace(CropId);
     }
 

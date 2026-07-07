@@ -1,21 +1,24 @@
 using System.Collections.Generic;
 using Landsong.BuildingSystem;
+using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public sealed class BuildingDetailsBlock_CropField : BuildingDetailsBlockBase
 {
-    [SerializeField] private TMP_Text txt_作物状态;
-    [SerializeField] private TMP_Text txt_成熟回合;
-    [SerializeField] private TMP_Text txt_自动收获;
-    [SerializeField] private Button btn_选择作物;
-    [SerializeField] private GameObject go_作物选择面板;
-    [SerializeField] private RectTransform root_作物选项;
-    [SerializeField] private Button prefab_作物选项按钮;
-    [SerializeField] private Button btn_收获;
-    [SerializeField] private Button btn_铲除;
-    [SerializeField] private Toggle tgl_自动收获;
+    [SerializeField, LabelText("作物状态文本")] private TMP_Text txt_作物状态;
+    [SerializeField, LabelText("成熟回合文本")] private TMP_Text txt_成熟回合;
+    [SerializeField, LabelText("自动收获文本")] private TMP_Text txt_自动收获;
+    [SerializeField, LabelText("选择作物按钮")] private Button btn_选择作物;
+    [SerializeField, LabelText("作物选择面板")] private GameObject go_作物选择面板;
+    [SerializeField, LabelText("作物选项根节点")] private RectTransform root_作物选项;
+    [SerializeField, LabelText("作物选项按钮预制体")]
+    [PropertyTooltip("直接第一个子对象必须挂 Image 作为图标，直接第二个子对象必须挂 TMP_Text 作为名称。")]
+    private Button prefab_作物选项按钮;
+    [SerializeField, LabelText("收获按钮")] private Button btn_收获;
+    [SerializeField, LabelText("铲除按钮")] private Button btn_铲除;
+    [SerializeField, LabelText("自动收获开关")] private Toggle tgl_自动收获;
 
     private readonly List<GameObject> activeCropOptionItems = new List<GameObject>();
     private Popup_BuildingDetails owner;
@@ -275,13 +278,35 @@ public sealed class BuildingDetailsBlock_CropField : BuildingDetailsBlockBase
         item.onClick.AddListener(() => HandleCropOptionClicked(cropId));
         item.interactable = cropActions != null && cropActions.CanPlant(cropId);
 
-        var texts = item.GetComponentsInChildren<TMP_Text>(true);
-        if (texts == null || texts.Length == 0)
+        BindCropOptionIcon(item.transform, option.Icon);
+        BindCropOptionName(item.transform, option);
+    }
+
+    private static void BindCropOptionIcon(Transform optionRoot, Sprite icon)
+    {
+        var iconImage = optionRoot != null && optionRoot.childCount > 0
+            ? optionRoot.GetChild(0).GetComponent<Image>()
+            : null;
+
+        if (iconImage == null)
         {
             return;
         }
 
-        texts[0].text = $"{option.DisplayName}（{option.GrowTurns}回合）";
+        iconImage.sprite = icon;
+        iconImage.enabled = icon != null;
+    }
+
+    private static void BindCropOptionName(Transform optionRoot, BuildingCropOption option)
+    {
+        var nameText = optionRoot != null && optionRoot.childCount > 1
+            ? optionRoot.GetChild(1).GetComponent<TMP_Text>()
+            : null;
+
+        if (nameText != null)
+        {
+            nameText.text = $"{option.DisplayName}（{option.GrowTurns}回合）";
+        }
     }
 
     private void ClearCropOptions()

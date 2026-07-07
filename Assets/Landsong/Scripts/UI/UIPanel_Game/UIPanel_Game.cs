@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Landsong;
 using Landsong.InputSystem;
 using Landsong.UISystem;
 using Moyo.Unity;
@@ -17,6 +18,10 @@ public class UIPanel_Game : UIPanelBase
     [SerializeField] private GamePanel_Building buildingPanel;
     [SerializeField] private GamePanel_BuildingPlacementControls buildingPlacementControls;
     [SerializeField] private GamePanel_BuildingStatusOverview buildingStatusOverview;
+    [SerializeField] private GamePanel_Quest questPanel;
+    [SerializeField] private GamePanel_Expedition expeditionPanel;
+    [SerializeField] private GamePanel_Talent talentPanel;
+    [SerializeField] private GamePanel_Inheritance inheritancePanel;
     [SerializeField] private GamePanel_Pause pausePanel;
 
     [SerializeField] private GamePanel_BuildingEventMessageList buildingEventMessageList;
@@ -33,6 +38,10 @@ public class UIPanel_Game : UIPanelBase
     public GamePanel_BuildingSelectionView BuildingSelectionView => buildingSelectionView;
     public GamePanel_BuildingPlacementControls BuildingPlacementControls => buildingPlacementControls;
     public GamePanel_Technology TechnologyPanel => technologyPanel;
+    public GamePanel_Quest QuestPanel => questPanel;
+    public GamePanel_Expedition ExpeditionPanel => expeditionPanel;
+    public GamePanel_Talent TalentPanel => talentPanel;
+    public GamePanel_Inheritance InheritancePanel => inheritancePanel;
     public GamePanel_Pause PausePanel => pausePanel;
 
     private void Reset()
@@ -135,6 +144,121 @@ public class UIPanel_Game : UIPanelBase
         Show_HUD();
     }
 
+    public void Show_Quest()
+    {
+        GetReference();
+        HideAllPanels();
+
+        if (questPanel != null)
+        {
+            questPanel.Show();
+        }
+        else
+        {
+            Debug.LogWarning($"{nameof(UIPanel_Game)} has no quest panel assigned.", this);
+        }
+    }
+
+    public void Show_Quest(GameQuestState focusedQuest)
+    {
+        GetReference();
+        HideAllPanels();
+
+        if (questPanel != null)
+        {
+            questPanel.Show(focusedQuest);
+        }
+        else
+        {
+            Debug.LogWarning($"{nameof(UIPanel_Game)} has no quest panel assigned.", this);
+        }
+    }
+
+    internal void Hide_Quest()
+    {
+        if (questPanel != null)
+        {
+            questPanel.Hide();
+        }
+
+        Show_HUD();
+    }
+
+    public void Show_Expedition()
+    {
+        GetReference();
+        HideAllPanels();
+
+        if (expeditionPanel != null)
+        {
+            expeditionPanel.Show();
+        }
+        else
+        {
+            Debug.LogWarning($"{nameof(UIPanel_Game)} has no expedition panel assigned.", this);
+        }
+    }
+
+    internal void Hide_Expedition()
+    {
+        if (expeditionPanel != null)
+        {
+            expeditionPanel.Hide();
+        }
+
+        Show_HUD();
+    }
+
+    public void Show_Talent()
+    {
+        GetReference();
+        HideAllPanels();
+
+        if (talentPanel != null)
+        {
+            talentPanel.Show();
+        }
+        else
+        {
+            Debug.LogWarning($"{nameof(UIPanel_Game)} has no talent panel assigned.", this);
+        }
+    }
+
+    internal void Hide_Talent()
+    {
+        if (talentPanel != null)
+        {
+            talentPanel.Hide();
+        }
+
+        Show_HUD();
+    }
+
+    public void Show_Inheritance()
+    {
+        GetReference();
+        HideAllPanels();
+
+        if (inheritancePanel != null)
+        {
+            inheritancePanel.Show();
+        }
+        else
+        {
+            Debug.LogWarning($"{nameof(UIPanel_Game)} has no inheritance panel assigned.", this);
+        }
+    }
+
+    internal void Hide_Inheritance()
+    {
+        if (inheritancePanel != null)
+        {
+            inheritancePanel.Hide();
+        }
+
+        Show_HUD();
+    }
+
 
     public void Show_Building()
     {
@@ -198,6 +322,10 @@ public class UIPanel_Game : UIPanelBase
         technologyPanel?.Hide();
         buildingPanel?.Hide();
         buildingStatusOverview?.Hide();
+        questPanel?.Hide();
+        expeditionPanel?.Hide();
+        talentPanel?.Hide();
+        inheritancePanel?.Hide();
         buildingDetailPopup?.Hide();
         pausePanel?.Hide();
     }
@@ -258,6 +386,26 @@ public class UIPanel_Game : UIPanelBase
         if (buildingStatusOverview == null)
         {
             buildingStatusOverview = GetComponentInChildren<GamePanel_BuildingStatusOverview>(true);
+        }
+
+        if (questPanel == null)
+        {
+            questPanel = GetComponentInChildren<GamePanel_Quest>(true);
+        }
+
+        if (expeditionPanel == null)
+        {
+            expeditionPanel = GetComponentInChildren<GamePanel_Expedition>(true);
+        }
+
+        if (talentPanel == null)
+        {
+            talentPanel = GetComponentInChildren<GamePanel_Talent>(true);
+        }
+
+        if (inheritancePanel == null)
+        {
+            inheritancePanel = GetComponentInChildren<GamePanel_Inheritance>(true);
         }
 
         if (pausePanel == null)

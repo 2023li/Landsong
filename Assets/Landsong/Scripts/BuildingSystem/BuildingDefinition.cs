@@ -62,12 +62,12 @@ namespace Landsong.BuildingSystem
 
         [TitleGroup("建造菜单")]
         [LabelText("显示条件")]
-        [PropertyTooltip("为空时视为通过。需要显式默认通过时可配置 GameCondition_True。")]
+        [PropertyTooltip("None/空引用表示无显示条件，默认显示。配置条件且不满足时，该建筑从建造菜单隐藏。")]
         [SerializeReference] private GameCondition visibleCondition;
 
         [TitleGroup("建造菜单")]
         [LabelText("可用条件")]
-        [PropertyTooltip("为空时视为通过。需要显式默认通过时可配置 GameCondition_True。")]
+        [PropertyTooltip("None/空引用表示无可用条件，默认可用。配置条件且不满足时，该建筑仍可显示但不可建造。")]
         [SerializeReference] private GameCondition availableCondition;
 
         [TitleGroup("建造菜单")]

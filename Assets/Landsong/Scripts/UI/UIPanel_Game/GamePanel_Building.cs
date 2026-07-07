@@ -73,6 +73,7 @@ namespace Landsong.UISystem
         private bool subscribedToInventory;
         private bool subscribedToBuildings;
         private bool subscribedToTechnology;
+        private bool subscribedToBlueprints;
         private bool hasCachedPanelPosition;
         private Vector2 buildingPanelVisiblePosition;
         private Coroutine panelMotionRoutine;
@@ -797,6 +798,7 @@ namespace Landsong.UISystem
             return availability.FirstUnavailableReason switch
             {
                 BuildingUnavailableReason.Locked => "未解锁",
+                BuildingUnavailableReason.BlueprintLocked => "未获得蓝图",
                 BuildingUnavailableReason.DevelopmentIncomplete => "建筑未开发完成",
                 BuildingUnavailableReason.BuildLimitReached => "数量已达上限",
                 BuildingUnavailableReason.MissingMaterials => "材料不足",
@@ -890,6 +892,7 @@ namespace Landsong.UISystem
             SubscribeInventory();
             SubscribeBuildings();
             SubscribeTechnology();
+            SubscribeBlueprints();
         }
 
         private void UnsubscribeRuntimeChanges()
@@ -897,6 +900,7 @@ namespace Landsong.UISystem
             UnsubscribeInventory();
             UnsubscribeBuildings();
             UnsubscribeTechnology();
+            UnsubscribeBlueprints();
         }
 
         private void HandleInventoryChanged(InventoryService changedInventory)
@@ -935,6 +939,35 @@ namespace Landsong.UISystem
         private void HandleTechnologyChanged(TechnologyService changedTechnology)
         {
             technology = changedTechnology;
+            Refresh();
+        }
+
+        private void SubscribeBlueprints()
+        {
+            if (subscribedToBlueprints || gameSystem == null)
+            {
+                return;
+            }
+
+            gameSystem.BuildingBlueprintsChanged += HandleBuildingBlueprintsChanged;
+            subscribedToBlueprints = true;
+        }
+
+        private void UnsubscribeBlueprints()
+        {
+            if (!subscribedToBlueprints || gameSystem == null)
+            {
+                subscribedToBlueprints = false;
+                return;
+            }
+
+            gameSystem.BuildingBlueprintsChanged -= HandleBuildingBlueprintsChanged;
+            subscribedToBlueprints = false;
+        }
+
+        private void HandleBuildingBlueprintsChanged(Landsong.GameSystem changedGameSystem)
+        {
+            gameSystem = changedGameSystem;
             Refresh();
         }
     }

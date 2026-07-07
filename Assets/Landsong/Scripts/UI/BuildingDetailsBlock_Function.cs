@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Landsong.BuildingSystem;
+using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -8,9 +9,9 @@ using UnityEngine.UI;
 
 public sealed class BuildingDetailsBlock_Function : BuildingDetailsBlockBase
 {
-    [SerializeField] private TMP_Text txt_资源;
-    [SerializeField] private TMP_Text txt_功能性;
-    [SerializeField] private GameObject go_功能详情触发区;
+    [SerializeField, LabelText("资源文本")] private TMP_Text txt_资源;
+    [SerializeField, LabelText("功能性文本")] private TMP_Text txt_功能性;
+    [SerializeField, LabelText("功能详情触发区")] private GameObject go_功能详情触发区;
 
     private readonly List<BuildingFunctionBlockEntry> sourceEntries = new List<BuildingFunctionBlockEntry>();
     private readonly List<AggregatedEntry> aggregatedEntries = new List<AggregatedEntry>();

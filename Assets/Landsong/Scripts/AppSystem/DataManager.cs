@@ -3,8 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using Landsong.BuildingSystem;
 using Landsong.DynastySystem;
+using Landsong.ExpeditionSystem;
 using Landsong.GridSystem;
+using Landsong.InheritanceSystem;
 using Landsong.InventorySystem;
+using Landsong.TalentSystem;
 using Landsong.TechnologySystem;
 using Moyo.Unity;
 using UnityEngine;
@@ -804,10 +807,16 @@ public class DataManager : MonoSingleton<DataManager>
             gameData.RoundCount = Mathf.Max(1, gameSystem.CurrentTurn);
             gameData.TechnologyData = gameSystem.CaptureTechnologyData();
             gameData.UnlockedTechnologies = gameSystem.CaptureUnlockedTechnologies();
+            gameData.QuestData = gameSystem.CaptureQuestData();
+            gameData.ExpeditionData = gameSystem.CaptureExpeditionData();
+            gameData.TalentData = gameSystem.CaptureTalentData();
+            gameData.RoyalInheritanceData = gameSystem.CaptureInheritanceData();
+            gameData.UnlockedBuildingBlueprintIds = gameSystem.CaptureUnlockedBuildingBlueprints();
             if (gameSystem.Dynasty != null)
             {
                 gameData.DynastyName = gameSystem.Dynasty.DynastyName;
                 gameData.Stage = gameSystem.Dynasty.Stage.ToString();
+                gameData.BasePopulation = gameSystem.Dynasty.BasePopulation;
             }
 
             if (gameSystem.Inventory != null)
@@ -832,6 +841,7 @@ public class DataManager : MonoSingleton<DataManager>
         }
 
         RestoreBuildingInstances(gameData, gameSystem);
+        gameSystem.EndQuestRuntimeRestore();
         OnRuntimeDataRestoreCompleted?.Invoke(gameData);
         return true;
     }
@@ -845,6 +855,7 @@ public class DataManager : MonoSingleton<DataManager>
         }
 
         yield return RestoreBuildingInstancesRoutine(gameData, gameSystem, buildingsPerFrame);
+        gameSystem.EndQuestRuntimeRestore();
         OnRuntimeDataRestoreCompleted?.Invoke(gameData);
     }
 
@@ -866,13 +877,20 @@ public class DataManager : MonoSingleton<DataManager>
         OnRuntimeDataRestoreStarted?.Invoke(gameData);
 
         gameSystem.RestoreCurrentTurn(gameData.CurrentTurn);
-        gameSystem.RestoreDynastyData(gameData.DynastyName, gameData.Stage);
+        gameSystem.RestoreDynastyData(gameData.DynastyName, gameData.Stage, gameData.BasePopulation);
         gameSystem.RestoreTechnologyData(gameData.TechnologyData, gameData.UnlockedTechnologies);
+        gameSystem.RestoreBuildingBlueprintData(gameData.UnlockedBuildingBlueprintIds);
 
         if (gameSystem.Inventory != null && gameData.InventoryData != null)
         {
             gameSystem.Inventory.RestoreSaveData(gameData.InventoryData);
         }
+
+        gameSystem.RestoreExpeditionData(gameData.ExpeditionData);
+        gameSystem.RestoreTalentData(gameData.TalentData);
+        gameSystem.RestoreInheritanceData(gameData.RoyalInheritanceData);
+        gameSystem.BeginQuestRuntimeRestore();
+        gameSystem.RestoreQuestData(gameData.QuestData);
 
         return true;
     }
@@ -1339,7 +1357,7 @@ public class GameData
     public const string DefaultDynastyName = DynastyService.DefaultDynastyName;
 
     //data 版本号
-    public const int CurrentDataVersion = 4;
+    public const int CurrentDataVersion = 8;
 
     public int DataVersion = CurrentDataVersion;
 
@@ -1359,6 +1377,8 @@ public class GameData
 
     public string Stage = string.Empty;
 
+    public int BasePopulation = -1;
+
 
 
     public long CreatedAtUnixTime;
@@ -1375,7 +1395,17 @@ public class GameData
 
     public TechnologySaveData TechnologyData;
 
+    public Landsong.QuestSaveData QuestData;
+
+    public ExpeditionSaveData ExpeditionData;
+
+    public TalentSaveData TalentData;
+
+    public RoyalInheritanceSaveData RoyalInheritanceData;
+
     public List<string> UnlockedTechnologies;
+
+    public List<string> UnlockedBuildingBlueprintIds;
 
     public List<BuildingInstanceSaveData> BuildingInstances;
 
@@ -1395,6 +1425,7 @@ public class GameData
             MapName = string.Empty,
             RoundCount = 1,
             Stage = string.Empty,
+            BasePopulation = -1,
             CreatedAtUnixTime = now,
             LastSaveUnixTime = now,
             TotalPlayTimeSeconds = 0f,
@@ -1402,7 +1433,12 @@ public class GameData
             WorldSeed = 0,
             InventoryData = null,
             TechnologyData = null,
+            QuestData = null,
+            ExpeditionData = null,
+            TalentData = null,
+            RoyalInheritanceData = null,
             UnlockedTechnologies = null,
+            UnlockedBuildingBlueprintIds = null,
             BuildingInstances = null,
             SoftData = GameSoftData.CreateDefault()
         };
@@ -1410,6 +1446,7 @@ public class GameData
 
     public void Validate()
     {
+        var loadedDataVersion = DataVersion;
         if (DataVersion < CurrentDataVersion)
         {
             DataVersion = CurrentDataVersion;
@@ -1442,6 +1479,10 @@ public class GameData
             Stage = string.Empty;
         }
 
+        BasePopulation = loadedDataVersion < 6 && BasePopulation <= 0
+            ? -1
+            : Mathf.Max(-1, BasePopulation);
+
         CurrentTurn = Mathf.Max(1, CurrentTurn);
         RoundCount = Mathf.Max(1, RoundCount > 0 ? RoundCount : CurrentTurn);
         if (string.IsNullOrWhiteSpace(SaveName))
@@ -1463,7 +1504,12 @@ public class GameData
 
         TotalPlayTimeSeconds = Mathf.Max(0f, TotalPlayTimeSeconds);
         NormalizeUnlockedTechnologies();
+        NormalizeUnlockedBuildingBlueprints();
         NormalizeTechnologyData();
+        NormalizeQuestData();
+        NormalizeExpeditionData();
+        NormalizeTalentData();
+        NormalizeRoyalInheritanceData();
         SoftData ??= GameSoftData.CreateDefault();
         SoftData.Validate();
 
@@ -1512,6 +1558,29 @@ public class GameData
         }
     }
 
+    private void NormalizeUnlockedBuildingBlueprints()
+    {
+        if (UnlockedBuildingBlueprintIds == null)
+        {
+            return;
+        }
+
+        HashSet<string> seen = new HashSet<string>(StringComparer.Ordinal);
+        for (var i = UnlockedBuildingBlueprintIds.Count - 1; i >= 0; i--)
+        {
+            var buildingId = string.IsNullOrWhiteSpace(UnlockedBuildingBlueprintIds[i])
+                ? string.Empty
+                : UnlockedBuildingBlueprintIds[i].Trim();
+            if (string.IsNullOrWhiteSpace(buildingId) || !seen.Add(buildingId))
+            {
+                UnlockedBuildingBlueprintIds.RemoveAt(i);
+                continue;
+            }
+
+            UnlockedBuildingBlueprintIds[i] = buildingId;
+        }
+    }
+
     private void NormalizeTechnologyData()
     {
         if (TechnologyData != null)
@@ -1533,6 +1602,26 @@ public class GameData
             };
             TechnologyData.Validate();
         }
+    }
+
+    private void NormalizeQuestData()
+    {
+        QuestData?.Validate();
+    }
+
+    private void NormalizeExpeditionData()
+    {
+        ExpeditionData?.Validate();
+    }
+
+    private void NormalizeTalentData()
+    {
+        TalentData?.Validate();
+    }
+
+    private void NormalizeRoyalInheritanceData()
+    {
+        RoyalInheritanceData?.Validate();
     }
 }
 

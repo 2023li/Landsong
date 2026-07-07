@@ -24,12 +24,14 @@ namespace Landsong.DynastySystem
         public const string DefaultDynastyName = "无名王朝";
 
         private readonly Dictionary<BuildingBase, int> populationContributors = new Dictionary<BuildingBase, int>();
+        private readonly Dictionary<string, int> externalEmploymentContributors = new Dictionary<string, int>(StringComparer.Ordinal);
         private readonly HashSet<BuildingBase> palaces = new HashSet<BuildingBase>();
 
         private string dynastyName = DefaultDynastyName;
         private int basePopulation;
         private int buildingPopulation;
         private int employedPopulation;
+        private int externalEmployedPopulation;
         private DynastyStage stage = DynastyStage.营地;
 
         public DynastyService(
@@ -49,11 +51,12 @@ namespace Landsong.DynastySystem
 
         public string DynastyName => dynastyName;
         public DynastyStage Stage => stage;
-        public int Population => basePopulation + buildingPopulation;
-        public int EmployedPopulation => Mathf.Clamp(employedPopulation, 0, Population);
+        public int Population => basePopulation + buildingPopulation + externalEmployedPopulation;
+        public int EmployedPopulation => Mathf.Clamp(employedPopulation + externalEmployedPopulation, 0, Population);
         public int AvailablePopulation => Mathf.Max(0, Population - EmployedPopulation);
         public int BasePopulation => basePopulation;
         public int BuildingPopulation => buildingPopulation;
+        public int ExternalEmployedPopulation => externalEmployedPopulation;
         public int PalaceCount => palaces.Count;
         public bool HasPalace => palaces.Count > 0;
 
@@ -128,6 +131,39 @@ namespace Landsong.DynastySystem
             }
 
             employedPopulation = population;
+            PopulationChanged?.Invoke(this);
+        }
+
+        public void SetExternalEmployedPopulation(string sourceId, int population)
+        {
+            sourceId = string.IsNullOrWhiteSpace(sourceId) ? string.Empty : sourceId.Trim();
+            if (string.IsNullOrWhiteSpace(sourceId))
+            {
+                return;
+            }
+
+            population = Mathf.Max(0, population);
+            externalEmploymentContributors.TryGetValue(sourceId, out var previousPopulation);
+            if (population <= 0)
+            {
+                if (!externalEmploymentContributors.Remove(sourceId))
+                {
+                    return;
+                }
+
+                externalEmployedPopulation = Mathf.Max(0, externalEmployedPopulation - previousPopulation);
+                PopulationChanged?.Invoke(this);
+                return;
+            }
+
+            if (previousPopulation == population)
+            {
+                return;
+            }
+
+            externalEmploymentContributors[sourceId] = population;
+            externalEmployedPopulation += population - previousPopulation;
+            externalEmployedPopulation = Mathf.Max(0, externalEmployedPopulation);
             PopulationChanged?.Invoke(this);
         }
 

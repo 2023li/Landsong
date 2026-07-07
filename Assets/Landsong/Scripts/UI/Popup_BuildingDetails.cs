@@ -2,25 +2,26 @@ using System;
 using System.Collections.Generic;
 using Landsong.BuildingSystem;
 using Landsong.UISystem;
+using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class Popup_BuildingDetails : MonoBehaviour
 {
-    [SerializeField] private GameObject go_详情侧边栏;
-    [SerializeField] private RectTransform root_详情侧边栏内容;
-    [SerializeField] private GameObject prefab_详情侧边栏文本;
+    [SerializeField, LabelText("详情侧边栏对象")] private GameObject go_详情侧边栏;
+    [SerializeField, LabelText("详情侧边栏内容根节点")] private RectTransform root_详情侧边栏内容;
+    [SerializeField, LabelText("详情侧边栏文本预制体")] private GameObject prefab_详情侧边栏文本;
 
-    [SerializeField] private TMP_Text txt_建筑名称;
-    [SerializeField] private TMP_Text txt_建筑描述;
-    [SerializeField] private Image img_建筑图标;
-    [SerializeField] private Button btn_关闭弹窗;
+    [SerializeField, LabelText("建筑名称文本")] private TMP_Text txt_建筑名称;
+    [SerializeField, LabelText("建筑描述文本")] private TMP_Text txt_建筑描述;
+    [SerializeField, LabelText("建筑图标")] private Image img_建筑图标;
+    [SerializeField, LabelText("关闭弹窗按钮")] private Button btn_关闭弹窗;
 
-    [SerializeField] private RectTransform root_内容栏;
-    [SerializeField] private GameObject prefab_标题;
-    [SerializeField] private GameObject prefab_内容文本;
-    [SerializeField] private BuildingDetailsBlockBase[] detailBlocks = Array.Empty<BuildingDetailsBlockBase>();
+    [SerializeField, LabelText("内容栏根节点")] private RectTransform root_内容栏;
+    [SerializeField, LabelText("标题预制体")] private GameObject prefab_标题;
+    [SerializeField, LabelText("内容文本预制体")] private GameObject prefab_内容文本;
+    [SerializeField, LabelText("详情块列表")] private BuildingDetailsBlockBase[] detailBlocks = Array.Empty<BuildingDetailsBlockBase>();
 
     private readonly List<GameObject> activeContentItems = new List<GameObject>();
     private readonly List<GameObject> activeSidebarItems = new List<GameObject>();
