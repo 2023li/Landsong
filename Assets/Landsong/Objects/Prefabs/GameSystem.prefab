@@ -64,12 +64,74 @@ MonoBehaviour:
     amount: 199
   - itemDefinition: {fileID: 11400000, guid: 6293531210d744e8b03f1b99017467c3, type: 2}
     amount: 199
+  startingDynastyName: "\u65E0\u540D\u738B\u671D"
   startingPopulation: 0
   endGameWhenNoPalaceAtTurnEnd: 1
   technologyCatalog: {fileID: 11400000, guid: c7df39e2d8b94d23a30cae82e311b25b, type: 2}
   startingResearchTechnology: {fileID: 0}
   startingResearchProgress: 0
   startingUnlockedTechnologies: []
+  startingQuests:
+  - questId: main_build_residential_houses_3
+    displayName: "\u5B89\u7F6E\u65B0\u6C11"
+    description: "\u4E3A\u65B0\u6765\u7684\u5C45\u6C11\u5EFA\u9020 3 \u5EA7\u5C45\u6C11\u623F\uFF0C\u8BA9\u738B\u671D\u6709\u8DB3\u591F\u7684\u5C45\u6240\u627F\u8F7D\u4EBA\u53E3\u589E\u957F\u3002"
+    category: 1
+    objectiveType: 1
+    turnLimit: 12
+    targetBuilding: {fileID: 8791965200104292625, guid: 5a2e56844bf1f09479a2a8a48ecfa705, type: 3}
+    targetBuildingCount: 3
+    requiredResources: []
+    rewards:
+    - itemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+      amount: 1000
+    runtimeGenerated: 0
+  - questId: main_build_farms_3
+    displayName: "\u6574\u5907\u7530\u57C2"
+    description: "\u5EFA\u9020 3 \u5EA7\u519C\u7530\uFF0C\u4E3A\u5C45\u6C11\u63D0\u4F9B\u7A33\u5B9A\u7684\u98DF\u7269\u6765\u6E90\u3002"
+    category: 1
+    objectiveType: 1
+    turnLimit: 10
+    targetBuilding: {fileID: 2027023451905461964, guid: 71d3910ce5890e845875aa6bd4154c0a, type: 3}
+    targetBuildingCount: 3
+    requiredResources: []
+    rewards:
+    - itemDefinition: {fileID: 11400000, guid: 3083d7b285a48b34384cf36253389185, type: 2}
+      amount: 500
+    runtimeGenerated: 0
+  randomQuestPool: []
+  runtimeExchangeQuestRules: []
+  startingRandomQuestCount: 1
+  maxActiveRandomQuests: 2
+  randomQuestRefreshIntervalTurns: 3
+  expeditionDestinationCatalog: {fileID: 0}
+  expeditionSubsidyGoldItemDefinition: {fileID: 0}
+  expeditionTeamCapacity: 3
+  startingUnlockedBuildingBlueprintIds: []
+  expeditionSubsidyPenaltyDurationTurns: 5
+  expeditionSubsidyPenaltyAttractionPerStack: 5
+  talentCatalog: {fileID: 0}
+  talentGoldItemDefinition: {fileID: 0}
+  talentRefreshGoldCost: 20
+  talentRefreshCardCount: 3
+  startingTalentSlots: []
+  royalTraitCatalog: {fileID: 0}
+  royalInheritanceConfig:
+    startingKing:
+      displayName:
+      age: 20
+      baseMaxLifespan: 80
+      traits: []
+    startingQueen:
+      displayName:
+      age: 20
+      baseMaxLifespan: 80
+      traits: []
+    legalHeirAge: 16
+    princeBaseMaxLifespan: 80
+    birthChancePerTurn: 0.08
+    maxChildren: 8
+    mutationChance: 0.03
+    mutationWeightMultiplier: 0.5
   buildingCatalog: {fileID: 11400000, guid: 8344cbee3c103ae4ca387a12fc3f7082, type: 2}
   buildingSelection: {fileID: 0}
   startingTurn: 1

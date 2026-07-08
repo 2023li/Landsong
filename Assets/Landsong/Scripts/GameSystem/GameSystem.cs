@@ -924,6 +924,17 @@ namespace Landsong
     {
         private static readonly IReadOnlyList<BuildingJobAttractionModifier> EmptyJobAttractionModifiers =
             Array.Empty<BuildingJobAttractionModifier>();
+        private const string InspectorInventory = "库存";
+        private const string InspectorDynasty = "王朝";
+        private const string InspectorTechnology = "科技";
+        private const string InspectorQuest = "任务";
+        private const string InspectorExpedition = "远征";
+        private const string InspectorTalent = "人才";
+        private const string InspectorInheritance = "继承";
+        private const string InspectorSceneSystems = "场景系统";
+        private const string InspectorRuntimeServices = "运行时服务";
+        private const string InspectorRuntimeStatus = "运行时状态";
+        private const string InspectorTurn = "回合";
 
         private readonly List<BM_库存格容量> inventorySlotCapacityModules =
             new List<BM_库存格容量>();
@@ -945,100 +956,92 @@ namespace Landsong
         private int nextRandomQuestRefreshTurn = 1;
         private int generatedRandomQuestSerial;
 
-        [Header("Inventory")]
-        [SerializeField, LabelText("物品目录")] private ItemCatalog itemCatalog;
-        [SerializeField, LabelText("库存格子数量"), Min(0)] private int inventorySlotCount = 24;
-        [SerializeField, LabelText("初始物品")] private ItemAmount[] startingItems = Array.Empty<ItemAmount>();
+        [SerializeField, FoldoutGroup(InspectorInventory), LabelText("物品目录")] private ItemCatalog itemCatalog;
+        [SerializeField, FoldoutGroup(InspectorInventory), LabelText("库存格子数量"), Min(0)] private int inventorySlotCount = 24;
+        [SerializeField, FoldoutGroup(InspectorInventory), LabelText("初始物品")] private ItemAmount[] startingItems = Array.Empty<ItemAmount>();
 
-        [Header("Dynasty")]
-        [SerializeField, LabelText("初始王朝名称")] private string startingDynastyName = DynastyService.DefaultDynastyName;
-        [SerializeField, LabelText("初始人口"), Min(0)] private int startingPopulation;
-        [SerializeField, LabelText("回合结束时无王宫则结束游戏")] private bool endGameWhenNoPalaceAtTurnEnd = true;
+        [SerializeField, FoldoutGroup(InspectorDynasty), LabelText("初始王朝名称")] private string startingDynastyName = DynastyService.DefaultDynastyName;
+        [SerializeField, FoldoutGroup(InspectorDynasty), LabelText("初始人口"), Min(0)] private int startingPopulation;
+        [SerializeField, FoldoutGroup(InspectorDynasty), LabelText("回合结束时无王宫则结束游戏")] private bool endGameWhenNoPalaceAtTurnEnd = true;
 
-        [Header("Technology")]
-        [SerializeField, LabelText("科技目录")] private TechnologyCatalog technologyCatalog;
-        [SerializeField, LabelText("初始当前研究科技")] private TechnologyDefinition startingResearchTechnology;
-        [SerializeField, LabelText("初始当前研究进度"), Min(0)] private int startingResearchProgress;
-        [SerializeField, LabelText("初始已解锁科技")] private string[] startingUnlockedTechnologies = Array.Empty<string>();
+        [SerializeField, FoldoutGroup(InspectorTechnology), LabelText("科技目录")] private TechnologyCatalog technologyCatalog;
+        [SerializeField, FoldoutGroup(InspectorTechnology), LabelText("初始当前研究科技")] private TechnologyDefinition startingResearchTechnology;
+        [SerializeField, FoldoutGroup(InspectorTechnology), LabelText("初始当前研究进度"), Min(0)] private int startingResearchProgress;
+        [SerializeField, FoldoutGroup(InspectorTechnology), LabelText("初始已解锁科技")] private string[] startingUnlockedTechnologies = Array.Empty<string>();
 
-        [Header("Quest")]
-        [SerializeField, LabelText("主线任务")] private GameQuestDefinition[] startingQuests = Array.Empty<GameQuestDefinition>();
-        [SerializeField, LabelText("随机任务池")] private GameQuestDefinition[] randomQuestPool = Array.Empty<GameQuestDefinition>();
-        [SerializeField, LabelText("运行时交换任务规则")] private RandomExchangeQuestRule[] runtimeExchangeQuestRules =
+        [SerializeField, FoldoutGroup(InspectorQuest), LabelText("主线任务")] private GameQuestDefinition[] startingQuests = Array.Empty<GameQuestDefinition>();
+        [SerializeField, FoldoutGroup(InspectorQuest), LabelText("随机任务池")] private GameQuestDefinition[] randomQuestPool = Array.Empty<GameQuestDefinition>();
+        [SerializeField, FoldoutGroup(InspectorQuest), LabelText("运行时交换任务规则")] private RandomExchangeQuestRule[] runtimeExchangeQuestRules =
             Array.Empty<RandomExchangeQuestRule>();
-        [SerializeField, LabelText("开局随机任务数量"), Min(0)] private int startingRandomQuestCount = 1;
-        [SerializeField, LabelText("随机任务同时存在上限"), Min(0)] private int maxActiveRandomQuests = 2;
-        [SerializeField, LabelText("随机任务补充间隔回合"), Min(1)] private int randomQuestRefreshIntervalTurns = 3;
+        [SerializeField, FoldoutGroup(InspectorQuest), LabelText("开局随机任务数量"), Min(0)] private int startingRandomQuestCount = 1;
+        [SerializeField, FoldoutGroup(InspectorQuest), LabelText("随机任务同时存在上限"), Min(0)] private int maxActiveRandomQuests = 2;
+        [SerializeField, FoldoutGroup(InspectorQuest), LabelText("随机任务补充间隔回合"), Min(1)] private int randomQuestRefreshIntervalTurns = 3;
 
-        [Header("Expedition")]
-        [SerializeField, LabelText("远征目的地目录")] private ExpeditionDestinationCatalog expeditionDestinationCatalog;
-        [SerializeField, LabelText("远征补贴金币物品")] private ItemDefinition expeditionSubsidyGoldItemDefinition;
-        [SerializeField, LabelText("远征队伍上限"), Min(1)] private int expeditionTeamCapacity = 3;
-        [SerializeField, LabelText("初始已解锁奇迹蓝图")] private string[] startingUnlockedBuildingBlueprintIds = Array.Empty<string>();
-        [SerializeField, LabelText("补贴不足惩罚持续回合"), Min(1)] private int expeditionSubsidyPenaltyDurationTurns = 5;
-        [SerializeField, LabelText("每层补贴不足惩罚岗位吸引力"), Min(0f)] private float expeditionSubsidyPenaltyAttractionPerStack = 5f;
+        [SerializeField, FoldoutGroup(InspectorExpedition), LabelText("远征目的地目录")] private ExpeditionDestinationCatalog expeditionDestinationCatalog;
+        [SerializeField, FoldoutGroup(InspectorExpedition), LabelText("远征补贴金币物品")] private ItemDefinition expeditionSubsidyGoldItemDefinition;
+        [SerializeField, FoldoutGroup(InspectorExpedition), LabelText("远征队伍上限"), Min(1)] private int expeditionTeamCapacity = 3;
+        [SerializeField, FoldoutGroup(InspectorExpedition), LabelText("初始已解锁奇迹蓝图")] private string[] startingUnlockedBuildingBlueprintIds = Array.Empty<string>();
+        [SerializeField, FoldoutGroup(InspectorExpedition), LabelText("补贴不足惩罚持续回合"), Min(1)] private int expeditionSubsidyPenaltyDurationTurns = 5;
+        [SerializeField, FoldoutGroup(InspectorExpedition), LabelText("每层补贴不足惩罚岗位吸引力"), Min(0f)] private float expeditionSubsidyPenaltyAttractionPerStack = 5f;
 
-        [Header("Talent")]
-        [SerializeField, LabelText("人才目录")] private TalentCatalog talentCatalog;
-        [SerializeField, LabelText("人才金币物品")] private ItemDefinition talentGoldItemDefinition;
-        [SerializeField, LabelText("刷新费用"), Min(0)] private int talentRefreshGoldCost = 20;
-        [SerializeField, LabelText("每次刷新卡数"), Min(1)] private int talentRefreshCardCount = 3;
-        [SerializeField, LabelText("初始人才槽")] private TalentSlotDefinition[] startingTalentSlots = Array.Empty<TalentSlotDefinition>();
+        [SerializeField, FoldoutGroup(InspectorTalent), LabelText("人才目录")] private TalentCatalog talentCatalog;
+        [SerializeField, FoldoutGroup(InspectorTalent), LabelText("人才金币物品")] private ItemDefinition talentGoldItemDefinition;
+        [SerializeField, FoldoutGroup(InspectorTalent), LabelText("刷新费用"), Min(0)] private int talentRefreshGoldCost = 20;
+        [SerializeField, FoldoutGroup(InspectorTalent), LabelText("每次刷新卡数"), Min(1)] private int talentRefreshCardCount = 3;
+        [SerializeField, FoldoutGroup(InspectorTalent), LabelText("初始人才槽")] private TalentSlotDefinition[] startingTalentSlots = Array.Empty<TalentSlotDefinition>();
 
-        [Header("Inheritance")]
-        [SerializeField, LabelText("王族特性目录")] private RoyalTraitCatalog royalTraitCatalog;
-        [SerializeField, LabelText("继承系统配置")] private RoyalInheritanceConfig royalInheritanceConfig = new RoyalInheritanceConfig();
+        [SerializeField, FoldoutGroup(InspectorInheritance), LabelText("王族特性目录")] private RoyalTraitCatalog royalTraitCatalog;
+        [SerializeField, FoldoutGroup(InspectorInheritance), LabelText("继承系统配置")] private RoyalInheritanceConfig royalInheritanceConfig = new RoyalInheritanceConfig();
 
-        [Header("Scene Systems")]
-        [SerializeField, LabelText("建筑目录")] private BuildingCatalog buildingCatalog;
-        [SerializeField, LabelText("建筑选择控制器")] private BuildingSelectionController buildingSelection;
+        [SerializeField, FoldoutGroup(InspectorSceneSystems), LabelText("建筑目录")] private BuildingCatalog buildingCatalog;
+        [SerializeField, FoldoutGroup(InspectorSceneSystems), LabelText("建筑选择控制器")] private BuildingSelectionController buildingSelection;
 
-        [ShowInInspector, ReadOnly, LabelText("库存服务")]
+        [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeServices), LabelText("库存服务")]
         public InventoryService Inventory { get; private set; }
 
-        [ShowInInspector, ReadOnly, LabelText("回合服务")]
+        [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeServices), LabelText("回合服务")]
         public TurnService Turn { get; private set; }
 
-        [ShowInInspector, ReadOnly, LabelText("王朝服务")]
+        [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeServices), LabelText("王朝服务")]
         public DynastyService Dynasty { get; private set; }
 
-        [ShowInInspector, ReadOnly, LabelText("建筑服务")]
+        [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeServices), LabelText("建筑服务")]
         public BuildingService Buildings { get; private set; }
 
-        [ShowInInspector, ReadOnly, LabelText("事件服务")]
+        [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeServices), LabelText("事件服务")]
         public GameEventService Events { get; private set; }
 
-        [ShowInInspector, ReadOnly, LabelText("科技服务")]
+        [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeServices), LabelText("科技服务")]
         public TechnologyService Technology { get; private set; }
 
-        [ShowInInspector, ReadOnly, LabelText("远征服务")]
+        [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeServices), LabelText("远征服务")]
         public ExpeditionService Expeditions { get; private set; }
 
-        [ShowInInspector, ReadOnly, LabelText("人才服务")]
+        [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeServices), LabelText("人才服务")]
         public TalentService Talents { get; private set; }
 
-        [ShowInInspector, ReadOnly, LabelText("继承服务")]
+        [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeServices), LabelText("继承服务")]
         public RoyalInheritanceService Inheritance { get; private set; }
 
-        [ShowInInspector, ReadOnly, LabelText("当前建筑选择控制器")]
+        [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeStatus), LabelText("当前建筑选择控制器")]
         public BuildingSelectionController BuildingSelection => buildingSelection;
 
-        [ShowInInspector, ReadOnly, LabelText("建筑目录")]
+        [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeStatus), LabelText("建筑目录")]
         public BuildingCatalog BuildingCatalog => buildingCatalog;
 
-        [ShowInInspector, ReadOnly, LabelText("科技目录")]
+        [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeStatus), LabelText("科技目录")]
         public TechnologyCatalog TechnologyCatalog => technologyCatalog;
 
-        [ShowInInspector, ReadOnly, LabelText("当前人口")]
+        [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeStatus), LabelText("当前人口")]
         public int Population => Dynasty == null ? startingPopulation : Dynasty.Population;
 
-        [ShowInInspector, ReadOnly, LabelText("王朝名称")]
+        [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeStatus), LabelText("王朝名称")]
         public string DynastyName => Dynasty == null ? startingDynastyName : Dynasty.DynastyName;
 
-        [ShowInInspector, ReadOnly, LabelText("拥有王宫")]
+        [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeStatus), LabelText("拥有王宫")]
         public bool HasPalace => Dynasty != null && Dynasty.HasPalace;
 
-        [ShowInInspector, ReadOnly, LabelText("游戏已结束")]
+        [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeStatus), LabelText("游戏已结束")]
         public bool IsGameOver { get; private set; }
 
         public event Action<GameSystem, GameOverReason> GameEnded;
@@ -3774,16 +3777,15 @@ namespace Landsong
 
         #region Turn
 
-        [Header("Turn")]
-        [SerializeField, LabelText("起始回合"), Min(1)] private int startingTurn = 1;
-        [SerializeField, LabelText("允许键盘推进回合")] private bool allowKeyboardNextTurn = true;
-        [SerializeField, LabelText("下一回合按键")] private Key nextTurnKey = Key.N;
-        [SerializeField, LabelText("每帧处理建筑数"), Min(1)] private int turnBuildingsPerFrame = 4;
-        [SerializeField, LabelText("输出回合日志")] private bool logTurnResult = true;
+        [SerializeField, FoldoutGroup(InspectorTurn), LabelText("起始回合"), Min(1)] private int startingTurn = 1;
+        [SerializeField, FoldoutGroup(InspectorTurn), LabelText("允许键盘推进回合")] private bool allowKeyboardNextTurn = true;
+        [SerializeField, FoldoutGroup(InspectorTurn), LabelText("下一回合按键")] private Key nextTurnKey = Key.N;
+        [SerializeField, FoldoutGroup(InspectorTurn), LabelText("每帧处理建筑数"), Min(1)] private int turnBuildingsPerFrame = 4;
+        [SerializeField, FoldoutGroup(InspectorTurn), LabelText("输出回合日志")] private bool logTurnResult = true;
 
         public int CurrentTurn => Turn == null ? startingTurn : Turn.CurrentTurn;
 
-        [ShowInInspector, ReadOnly, LabelText("正在推进回合")]
+        [ShowInInspector, ReadOnly, FoldoutGroup(InspectorTurn), LabelText("正在推进回合")]
         public bool IsAdvancingTurn => Turn != null && Turn.IsAdvancingTurn;
 
         private Coroutine turnAdvanceCoroutine;

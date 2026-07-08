@@ -10,7 +10,7 @@ namespace Landsong.InventorySystem
     {
         [PreviewField(72)]
         [SerializeField] private Sprite icon;
-
+     
         [SerializeField] private string itemId;
         [SerializeField] private string displayName;
         [SerializeField, TextArea] private string description;
