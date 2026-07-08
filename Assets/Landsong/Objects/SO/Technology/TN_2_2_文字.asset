@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a3b70d7f4d394dd9a76b0bc2e5c6a101, type: 3}
-  m_Name: "TN_2_2_\u542F\u8499"
+  m_Name: "TN_2_2_\u6587\u5B57"
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.TechnologySystem.TechnologyDefinition
   icon: {fileID: 0}
-  technologyId: "TN_2_2_\u542F\u8499"
+  technologyId: "TN_2_2_\u6587\u5B57"
   displayName: "\u65B0\u79D1\u62801"
   description: 
   sciencePointCost: 10
@@ -21,7 +21,7 @@ MonoBehaviour:
   prerequisites:
   - {fileID: 11400000, guid: 006213b12ed0bbc4091a2f3c95bc2f65, type: 2}
   completionEffects: []
-  graphPosition: {x: 561.3334, y: 3.333313}
+  graphPosition: {x: 366.33337, y: 207.33331}
   references:
     version: 2
     RefIds: []

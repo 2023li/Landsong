@@ -125,11 +125,12 @@ namespace Landsong.UISystem
                 return;
             }
 
-            SetText(titleLabel, quest.Definition.DisplayName);
+            SetText(titleLabel, FormatTitle(quest));
             SetText(descriptionLabel, quest.Definition.Description);
             SetText(statusLabel, FormatStatus(quest));
             SetText(deadlineLabel, FormatDeadline(quest));
             SetText(progressLabel, FormatProgress(quest));
+            ResourceRichTextFormatter.ApplySpriteAsset(resourceDetailsLabel);
             SetText(resourceDetailsLabel, FormatResourceDetails(quest));
             SetDetailsVisible(isSelected);
             SetActive(selectedRoot, isSelected);
@@ -172,7 +173,9 @@ namespace Landsong.UISystem
             }
 
             SetGameObjectActive(descriptionLabel, visible);
-            SetGameObjectActive(resourceDetailsLabel, visible && quest != null && quest.IsResourceSubmission);
+            SetGameObjectActive(
+                resourceDetailsLabel,
+                visible && quest != null && (quest.IsResourceSubmission || quest.Definition.HasRewards));
         }
 
         private static string FormatStatus(GameQuestState quest)
@@ -184,10 +187,20 @@ namespace Landsong.UISystem
 
             return quest.Status switch
             {
-                QuestStatus.Completed => "已完成",
-                QuestStatus.Failed => "已失败",
-                _ => "进行中"
+                QuestStatus.Completed => $"{quest.CategoryDisplayName} · 已完成",
+                QuestStatus.Failed => $"{quest.CategoryDisplayName} · 已失败",
+                _ => $"{quest.CategoryDisplayName} · 进行中"
             };
+        }
+
+        private static string FormatTitle(GameQuestState quest)
+        {
+            if (quest == null || quest.Definition == null)
+            {
+                return string.Empty;
+            }
+
+            return $"[{quest.CategoryDisplayName}] {quest.Definition.DisplayName}";
         }
 
         private static string FormatDeadline(GameQuestState quest)
@@ -233,18 +246,25 @@ namespace Landsong.UISystem
 
         private static string FormatResourceDetails(GameQuestState quest)
         {
-            if (quest == null || !quest.IsResourceSubmission)
-            {
-                return string.Empty;
-            }
-
-            var resources = quest.ResourceProgresses;
-            if (resources.Count == 0)
+            if (quest == null || quest.Definition == null)
             {
                 return string.Empty;
             }
 
             var builder = new StringBuilder();
+            AppendResourceDetails(builder, quest);
+            AppendRewardDetails(builder, quest);
+            return builder.ToString();
+        }
+
+        private static void AppendResourceDetails(StringBuilder builder, GameQuestState quest)
+        {
+            if (builder == null || quest == null || !quest.IsResourceSubmission)
+            {
+                return;
+            }
+
+            var resources = quest.ResourceProgresses;
             for (var i = 0; i < resources.Count; i++)
             {
                 var progress = resources[i];
@@ -258,20 +278,54 @@ namespace Landsong.UISystem
                     builder.AppendLine();
                 }
 
-                builder.Append(progress.DisplayName);
-                builder.Append("：");
-                builder.Append(progress.SubmittedAmount);
-                builder.Append("/");
-                builder.Append(progress.RequiredAmount);
+                builder.Append(
+                    ResourceRichTextFormatter.FormatProgress(
+                        progress.ItemDefinition,
+                        progress.ItemId,
+                        progress.DisplayName,
+                        progress.SubmittedAmount,
+                        progress.RequiredAmount,
+                        progress.InventoryAmount,
+                        quest.IsActive && progress.RemainingAmount > 0));
+            }
+        }
 
-                if (quest.IsActive && progress.RemainingAmount > 0)
-                {
-                    builder.Append("  库存 ");
-                    builder.Append(progress.InventoryAmount);
-                }
+        private static void AppendRewardDetails(StringBuilder builder, GameQuestState quest)
+        {
+            if (builder == null || quest == null || quest.Definition == null || !quest.Definition.HasRewards)
+            {
+                return;
             }
 
-            return builder.ToString();
+            if (builder.Length > 0)
+            {
+                builder.AppendLine();
+            }
+
+            builder.Append("奖励：");
+            var rewards = quest.Definition.Rewards;
+            var appendedAny = false;
+            for (var i = 0; i < rewards.Count; i++)
+            {
+                var reward = rewards[i].Normalized();
+                if (!reward.IsValid)
+                {
+                    continue;
+                }
+
+                if (appendedAny)
+                {
+                    builder.Append("，");
+                }
+
+                builder.Append(
+                    ResourceRichTextFormatter.FormatAmount(
+                        reward.ItemDefinition,
+                        reward.ItemId,
+                        reward.ItemDefinition == null ? reward.ItemId : reward.ItemDefinition.DisplayName,
+                        reward.Amount));
+                appendedAny = true;
+            }
         }
 
         private void SetIcon(Sprite sprite)

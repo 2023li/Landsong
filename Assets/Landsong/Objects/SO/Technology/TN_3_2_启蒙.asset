@@ -21,7 +21,7 @@ MonoBehaviour:
   prerequisites:
   - {fileID: 11400000, guid: 006213b12ed0bbc4091a2f3c95bc2f65, type: 2}
   completionEffects: []
-  graphPosition: {x: 564.66675, y: 150.66669}
+  graphPosition: {x: 371.66675, y: 371.6667}
   references:
     version: 2
     RefIds: []

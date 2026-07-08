@@ -22,7 +22,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: f781232eb061b7e4099bf4f2eff53c98, type: 2}
   - {fileID: 11400000, guid: dcd01ab1673e38748ace913b29c49655, type: 2}
   completionEffects: []
-  graphPosition: {x: 1275.9999, y: 162.66663}
+  graphPosition: {x: 1264.9999, y: 380.66663}
   references:
     version: 2
     RefIds: []

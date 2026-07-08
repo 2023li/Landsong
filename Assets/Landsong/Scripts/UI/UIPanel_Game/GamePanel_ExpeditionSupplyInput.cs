@@ -16,65 +16,64 @@ namespace Landsong.UISystem
         [SerializeField, LabelText("需求文本")] private TMP_Text requiredLabel;
         [SerializeField, LabelText("库存文本")] private TMP_Text availableLabel;
         [SerializeField, LabelText("加成文本")] private TMP_Text bonusLabel;
-        [SerializeField, LabelText("数量输入")] private TMP_InputField amountInput;
+        [SerializeField, LabelText("数量文本")] private TMP_Text amountLabel;
+        [SerializeField, LabelText("数量滑动条")] private Slider amountSlider;
 
         private ExpeditionSupplyOption option;
         private Action changed;
+        private int availableAmount;
 
         private void Reset()
         {
             icon = GetComponentInChildren<Image>(true);
-            amountInput = GetComponentInChildren<TMP_InputField>(true);
+            amountSlider = GetComponentInChildren<Slider>(true);
         }
 
         private void OnDestroy()
         {
-            if (amountInput != null)
+            if (amountSlider != null)
             {
-                amountInput.onValueChanged.RemoveListener(HandleAmountChanged);
+                amountSlider.onValueChanged.RemoveListener(HandleAmountChanged);
             }
         }
 
         public void Bind(ExpeditionSupplyOption sourceOption, InventoryService inventory, Action onChanged)
         {
-            if (amountInput != null)
+            if (amountSlider != null)
             {
-                amountInput.onValueChanged.RemoveListener(HandleAmountChanged);
+                amountSlider.onValueChanged.RemoveListener(HandleAmountChanged);
             }
 
             option = sourceOption;
             changed = onChanged;
-            if (amountInput != null)
-            {
-                amountInput.SetTextWithoutNotify(option == null ? "0" : option.RequiredAmount.ToString());
-            }
-
             Refresh(inventory);
 
-            if (amountInput != null)
+            if (amountSlider != null)
             {
-                amountInput.onValueChanged.AddListener(HandleAmountChanged);
+                amountSlider.onValueChanged.AddListener(HandleAmountChanged);
             }
         }
 
         public void Unbind()
         {
-            if (amountInput != null)
+            if (amountSlider != null)
             {
-                amountInput.onValueChanged.RemoveListener(HandleAmountChanged);
-                amountInput.SetTextWithoutNotify("0");
+                amountSlider.onValueChanged.RemoveListener(HandleAmountChanged);
+                amountSlider.SetValueWithoutNotify(0f);
             }
 
             option = null;
             changed = null;
+            availableAmount = 0;
             SetIcon(null);
             SetText(nameLabel, string.Empty);
             SetText(requiredLabel, string.Empty);
             SetText(availableLabel, string.Empty);
             SetText(bonusLabel, string.Empty);
+            SetText(amountLabel, string.Empty);
         }
 
-        public int Amount => ParseAmount();
+        public int Amount => amountSlider == null ? 0 : Mathf.RoundToInt(amountSlider.value);
         public ExpeditionSupplyOption Option => option;
 
         public bool TryCreateItemAmount(out ItemAmount itemAmount)
@@ -101,34 +100,68 @@ namespace Landsong.UISystem
             SetText(nameLabel, option.DisplayName);
             SetText(requiredLabel, option.RequiredAmount > 0 ? $"最低 {option.RequiredAmount}" : "可选");
 
-            var available = inventory == null || string.IsNullOrWhiteSpace(option.ItemId)
+            availableAmount = inventory == null || string.IsNullOrWhiteSpace(option.ItemId)
                 ? 0
                 : inventory.GetQuantity(option.ItemId);
-            SetText(availableLabel, $"库存 {available}");
+            SetText(availableLabel, $"库存 {availableAmount}");
 
-            var maxText = option.HasMaxAmount ? $"，最多 {option.MaxAmount}" : string.Empty;
-            SetText(bonusLabel, $"+{option.SuccessChancePerItem * 100f:0.#}%/个{maxText}");
+            RefreshSliderRange();
+            RefreshAmountText();
 
-            if (amountInput != null && string.IsNullOrWhiteSpace(amountInput.text))
-            {
-                amountInput.SetTextWithoutNotify(option.RequiredAmount.ToString());
-            }
+            var successText = option.SuccessChancePerItem > 0f
+                ? $"+{option.SuccessChancePerItem * 100f:0.#}%成功/额外"
+                : string.Empty;
+            var rewardText = option.RewardYieldBonusPerItem > 0f
+                ? $"+{option.RewardYieldBonusPerItem * 100f:0.#}%收益/额外"
+                : string.Empty;
+            var separator = !string.IsNullOrWhiteSpace(successText) && !string.IsNullOrWhiteSpace(rewardText)
+                ? "，"
+                : string.Empty;
+            SetText(
+                bonusLabel,
+                $"额外最多 {option.ExtraAmountLimit}{(string.IsNullOrWhiteSpace(successText + rewardText) ? string.Empty : "，")}{successText}{separator}{rewardText}");
         }
 
-        private int ParseAmount()
+        private void RefreshSliderRange()
         {
-            if (amountInput == null || string.IsNullOrWhiteSpace(amountInput.text))
+            if (amountSlider == null || option == null)
             {
-                return 0;
+                return;
             }
 
-            return int.TryParse(amountInput.text.Trim(), out var amount)
-                ? Mathf.Max(0, amount)
-                : 0;
+            var min = option.RequiredAmount;
+            var max = Mathf.Max(min, option.MaxAssignedAmount);
+            if (availableAmount > 0)
+            {
+                max = Mathf.Min(max, Mathf.Max(min, availableAmount));
+            }
+            else
+            {
+                max = min;
+            }
+
+            amountSlider.wholeNumbers = true;
+            amountSlider.minValue = min;
+            amountSlider.maxValue = max;
+            amountSlider.SetValueWithoutNotify(Mathf.Clamp(Mathf.RoundToInt(amountSlider.value), min, max));
         }
 
-        private void HandleAmountChanged(string _)
+        private void RefreshAmountText()
         {
+            if (option == null)
+            {
+                SetText(amountLabel, string.Empty);
+                return;
+            }
+
+            var amount = Amount;
+            var extra = option.GetExtraAssignedAmount(amount);
+            SetText(amountLabel, extra > 0 ? $"携带 {amount}（额外 {extra}）" : $"携带 {amount}");
+        }
+
+        private void HandleAmountChanged(float _)
+        {
+            RefreshAmountText();
             changed?.Invoke();
         }
 

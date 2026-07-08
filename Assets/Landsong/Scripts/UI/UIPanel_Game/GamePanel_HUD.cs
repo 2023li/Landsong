@@ -725,6 +725,13 @@ public class GamePanel_HUD : MonoBehaviour
 
     private static int CompareHudQuests(GameQuestState left, GameQuestState right)
     {
+        var leftCategoryPriority = GetHudQuestCategoryPriority(left);
+        var rightCategoryPriority = GetHudQuestCategoryPriority(right);
+        if (leftCategoryPriority != rightCategoryPriority)
+        {
+            return leftCategoryPriority.CompareTo(rightCategoryPriority);
+        }
+
         var leftDeadline = left == null ? int.MaxValue : left.DeadlineTurn;
         var rightDeadline = right == null ? int.MaxValue : right.DeadlineTurn;
         if (leftDeadline != rightDeadline)
@@ -743,6 +750,16 @@ public class GamePanel_HUD : MonoBehaviour
             left == null || left.Definition == null ? string.Empty : left.Definition.DisplayName,
             right == null || right.Definition == null ? string.Empty : right.Definition.DisplayName,
             StringComparison.Ordinal);
+    }
+
+    private static int GetHudQuestCategoryPriority(GameQuestState quest)
+    {
+        if (quest == null)
+        {
+            return int.MaxValue;
+        }
+
+        return quest.IsMainline ? 0 : 1;
     }
 
     private GamePanel_HUDQuestItem GetQuestItemFromPool()

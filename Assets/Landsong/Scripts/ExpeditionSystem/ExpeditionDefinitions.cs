@@ -19,7 +19,6 @@ namespace Landsong.ExpeditionSystem
     {
         None = 0,
         Hidden = 10,
-        WindowClosed = 20,
         ConditionLocked = 30,
         AlreadyCompleted = 40
     }
@@ -36,7 +35,8 @@ namespace Landsong.ExpeditionSystem
         RequiredSupplyMissing = 70,
         SupplyLimitExceeded = 80,
         InventoryMissing = 90,
-        InventoryRemoveFailed = 100
+        InventoryRemoveFailed = 100,
+        ActiveExpeditionLimitReached = 110
     }
 
     public enum ExpeditionClaimFailureReason
@@ -58,12 +58,15 @@ namespace Landsong.ExpeditionSystem
         [SerializeField, LabelText("最低携带数量"), Min(0)]
         private int requiredAmount;
 
-        [SerializeField, LabelText("计入加成上限"), Min(0)]
-        [PropertyTooltip("0 表示不限制携带数量。")]
+        [SerializeField, LabelText("额外物资上限"), Min(0)]
+        [PropertyTooltip("0 表示使用最低携带数量的 50%，非 0 时也不会超过最低携带数量的 50%。")]
         private int maxAmount;
 
-        [SerializeField, LabelText("每个物品成功率加成"), Range(0f, 1f)]
+        [SerializeField, LabelText("每个额外物品成功率加成"), Range(0f, 1f)]
         private float successChancePerItem;
+
+        [SerializeField, LabelText("每个额外物品收益率加成"), Range(0f, 1f)]
+        private float rewardYieldBonusPerItem;
 
         public ItemDefinition ItemDefinition => itemDefinition;
         public string ItemId => itemDefinition == null ? string.Empty : itemDefinition.ItemId;
@@ -71,26 +74,48 @@ namespace Landsong.ExpeditionSystem
         public Sprite Icon => itemDefinition == null ? null : itemDefinition.Icon;
         public int RequiredAmount => Mathf.Max(0, requiredAmount);
         public int MaxAmount => Mathf.Max(0, maxAmount);
-        public bool HasMaxAmount => MaxAmount > 0;
+        public int DefaultExtraAmountLimit => Mathf.FloorToInt(RequiredAmount * 0.5f);
+        public int ExtraAmountLimit => CalculateExtraAmountLimit();
+        public int MaxAssignedAmount => RequiredAmount + ExtraAmountLimit;
+        public bool HasExtraAmountLimit => ExtraAmountLimit > 0;
         public float SuccessChancePerItem => Mathf.Clamp01(successChancePerItem);
+        public float RewardYieldBonusPerItem => Mathf.Clamp01(rewardYieldBonusPerItem);
         public bool IsValid => itemDefinition != null && !string.IsNullOrWhiteSpace(ItemId);
 
         public void Normalize()
         {
             requiredAmount = Mathf.Max(0, requiredAmount);
             maxAmount = Mathf.Max(0, maxAmount);
-            if (maxAmount > 0 && maxAmount < requiredAmount)
+            var defaultExtraAmountLimit = Mathf.FloorToInt(requiredAmount * 0.5f);
+            if (maxAmount > defaultExtraAmountLimit)
             {
-                maxAmount = requiredAmount;
+                maxAmount = defaultExtraAmountLimit;
             }
 
             successChancePerItem = Mathf.Clamp01(successChancePerItem);
+            rewardYieldBonusPerItem = Mathf.Clamp01(rewardYieldBonusPerItem);
         }
 
         public int ClampAssignedAmount(int amount)
         {
             amount = Mathf.Max(0, amount);
-            return HasMaxAmount ? Mathf.Min(amount, MaxAmount) : amount;
+            return Mathf.Min(amount, MaxAssignedAmount);
+        }
+
+        public int GetExtraAssignedAmount(int amount)
+        {
+            return Mathf.Clamp(Mathf.Max(0, amount) - RequiredAmount, 0, ExtraAmountLimit);
+        }
+
+        private int CalculateExtraAmountLimit()
+        {
+            var defaultLimit = DefaultExtraAmountLimit;
+            if (MaxAmount <= 0)
+            {
+                return defaultLimit;
+            }
+
+            return Mathf.Min(MaxAmount, defaultLimit);
         }
     }
 
@@ -110,15 +135,7 @@ namespace Landsong.ExpeditionSystem
         [SerializeField, PreviewField(72), LabelText("图标")]
         private Sprite icon;
 
-        [TitleGroup("窗口与条件")]
-        [SerializeField, LabelText("最早可用回合"), Min(0)]
-        [PropertyTooltip("0 表示不限制最早回合。")]
-        private int earliestAvailableTurn;
-
-        [SerializeField, LabelText("最晚可用回合"), Min(0)]
-        [PropertyTooltip("0 表示不限制最晚回合。")]
-        private int latestAvailableTurn;
-
+        [TitleGroup("条件")]
         [SerializeField, LabelText("完成后仍可重复出发")]
         private bool repeatable = true;
 
@@ -174,8 +191,6 @@ namespace Landsong.ExpeditionSystem
             : displayName.Trim();
         public string Description => string.IsNullOrWhiteSpace(description) ? string.Empty : description.Trim();
         public Sprite Icon => icon;
-        public int EarliestAvailableTurn => Mathf.Max(0, earliestAvailableTurn);
-        public int LatestAvailableTurn => Mathf.Max(0, latestAvailableTurn);
         public bool Repeatable => repeatable;
         public GameCondition VisibleCondition => visibleCondition;
         public GameCondition AvailableCondition => availableCondition;
@@ -204,13 +219,6 @@ namespace Landsong.ExpeditionSystem
             destinationId = NormalizeId(destinationId);
             displayName = string.IsNullOrWhiteSpace(displayName) ? string.Empty : displayName.Trim();
             description = string.IsNullOrWhiteSpace(description) ? string.Empty : description.Trim();
-            earliestAvailableTurn = Mathf.Max(0, earliestAvailableTurn);
-            latestAvailableTurn = Mathf.Max(0, latestAvailableTurn);
-            if (latestAvailableTurn > 0 && earliestAvailableTurn > latestAvailableTurn)
-            {
-                latestAvailableTurn = earliestAvailableTurn;
-            }
-
             durationTurns = Mathf.Max(1, durationTurns);
             minPopulation = Mathf.Max(1, minPopulation);
             maxPopulation = Mathf.Max(0, maxPopulation);
@@ -238,17 +246,6 @@ namespace Landsong.ExpeditionSystem
             }
 
             blueprintRewards ??= Array.Empty<BuildingBase>();
-        }
-
-        public bool IsInTurnWindow(int currentTurn)
-        {
-            currentTurn = Mathf.Max(1, currentTurn);
-            if (EarliestAvailableTurn > 0 && currentTurn < EarliestAvailableTurn)
-            {
-                return false;
-            }
-
-            return LatestAvailableTurn <= 0 || currentTurn <= LatestAvailableTurn;
         }
 
         public bool TryGetSupplyOption(string itemId, out ExpeditionSupplyOption option)
@@ -287,10 +284,34 @@ namespace Landsong.ExpeditionSystem
                 }
 
                 assignedSupplyAmounts.TryGetValue(option.ItemId, out var amount);
-                chance += option.ClampAssignedAmount(amount) * option.SuccessChancePerItem;
+                chance += option.GetExtraAssignedAmount(amount) * option.SuccessChancePerItem;
             }
 
             return Mathf.Clamp(chance, 0f, MaxSuccessChance);
+        }
+
+        public float CalculateSupplyRewardYieldBonus(IReadOnlyDictionary<string, int> assignedSupplyAmounts)
+        {
+            if (assignedSupplyAmounts == null)
+            {
+                return 0f;
+            }
+
+            var bonus = 0f;
+            var options = SupplyOptions;
+            for (var i = 0; i < options.Count; i++)
+            {
+                var option = options[i];
+                if (option == null || !option.IsValid)
+                {
+                    continue;
+                }
+
+                assignedSupplyAmounts.TryGetValue(option.ItemId, out var amount);
+                bonus += option.GetExtraAssignedAmount(amount) * option.RewardYieldBonusPerItem;
+            }
+
+            return Mathf.Max(0f, bonus);
         }
 
         public int CalculateFailureSubsidyGold(int population)

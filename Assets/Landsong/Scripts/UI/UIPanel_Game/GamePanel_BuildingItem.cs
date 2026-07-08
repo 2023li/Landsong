@@ -1,13 +1,16 @@
 using System;
+using System.Collections.Generic;
 using Landsong.BuildingSystem;
+using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Landsong.UISystem
 {
     [DisallowMultipleComponent]
-    public sealed class GamePanel_BuildingItem : MonoBehaviour
+    public sealed class GamePanel_BuildingItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
         #region 状态
         //不可用时设置为true
@@ -23,6 +26,11 @@ namespace Landsong.UISystem
         [SerializeField] private TMP_Text 数量限制;
         #endregion
 
+        #region 消耗面板
+        [SerializeField,LabelText("消耗面板")] private RectTransform root_消耗面板;
+        [SerializeField,LabelText("消耗文本预制体")] private TMP_Text prefab_材料文本预制体;
+        #endregion
+
 
 
         [SerializeField] private Button button;
@@ -31,6 +39,7 @@ namespace Landsong.UISystem
         private BuildingBase buildingPrefab;
         private BuildingAvailability availability;
         private Action<BuildingBase> clicked;
+        private readonly List<TMP_Text> materialTextInstances = new List<TMP_Text>();
 
         private void Reset()
         {
@@ -46,12 +55,24 @@ namespace Landsong.UISystem
             }
         }
 
+        private void Awake()
+        {
+            HideCostPanel();
+        }
+
+        private void OnDisable()
+        {
+            HideCostPanel();
+        }
+
         private void OnDestroy()
         {
             if (button != null)
             {
                 button.onClick.RemoveListener(HandleClicked);
             }
+
+            ClearMaterialTextInstances();
         }
 
         public void Bind(
@@ -82,6 +103,7 @@ namespace Landsong.UISystem
             }
 
             RefreshState();
+            HideCostPanel();
         }
 
         public void Unbind()
@@ -103,6 +125,17 @@ namespace Landsong.UISystem
             }
 
             RefreshState();
+            HideCostPanel();
+        }
+
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            ShowCostPanel();
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            HideCostPanel();
         }
 
         private void RefreshState()
@@ -159,6 +192,82 @@ namespace Landsong.UISystem
         private void HandleClicked()
         {
             clicked?.Invoke(buildingPrefab);
+        }
+
+        private void ShowCostPanel()
+        {
+            if (root_消耗面板 == null)
+            {
+                return;
+            }
+
+            ClearMaterialTextInstances();
+            CreateMaterialTextInstances();
+            SetActive(root_消耗面板.gameObject, true);
+        }
+
+        private void HideCostPanel()
+        {
+            ClearMaterialTextInstances();
+            if (root_消耗面板 != null)
+            {
+                SetActive(root_消耗面板.gameObject, false);
+            }
+        }
+
+        private void CreateMaterialTextInstances()
+        {
+            if (prefab_材料文本预制体 == null)
+            {
+                return;
+            }
+
+            var definition = buildingPrefab == null ? null : buildingPrefab.Definition;
+            var costs = definition == null ? null : definition.PlacementCosts;
+            if (costs == null)
+            {
+                return;
+            }
+
+            for (var i = 0; i < costs.Count; i++)
+            {
+                var cost = costs[i];
+                if (!cost.IsValid)
+                {
+                    continue;
+                }
+
+                var text = Instantiate(prefab_材料文本预制体, root_消耗面板);
+                text.text = FormatMaterialCost(cost);
+                text.gameObject.SetActive(true);
+                materialTextInstances.Add(text);
+            }
+        }
+
+        private void ClearMaterialTextInstances()
+        {
+            for (var i = 0; i < materialTextInstances.Count; i++)
+            {
+                var text = materialTextInstances[i];
+                if (text != null)
+                {
+                    Destroy(text.gameObject);
+                }
+            }
+
+            materialTextInstances.Clear();
+        }
+
+        private static string FormatMaterialCost(BuildingCost cost)
+        {
+            var itemDefinition = cost.ItemDefinition;
+            var itemName = itemDefinition == null ? cost.ItemId : itemDefinition.DisplayName;
+            if (string.IsNullOrWhiteSpace(itemName))
+            {
+                itemName = "未命名材料";
+            }
+
+            return $"{itemName} x{cost.Amount}";
         }
 
         private static void SetActive(GameObject target, bool active)

@@ -45,7 +45,10 @@ namespace Landsong.ExpeditionSystem
         public int FailureSubsidyPaid;
         public int FailureSubsidyMissing;
         public int PenaltyStacksApplied;
+        public float RewardYieldMultiplier = 1f;
+        public float SupplyRewardYieldBonus;
         public List<ExpeditionItemStack> AssignedSupplies = new List<ExpeditionItemStack>();
+        public List<ExpeditionItemStack> ItemRewards = new List<ExpeditionItemStack>();
 
         public void Validate()
         {
@@ -59,6 +62,8 @@ namespace Landsong.ExpeditionSystem
             FailureSubsidyPaid = Mathf.Clamp(FailureSubsidyPaid, 0, FailureSubsidyRequired);
             FailureSubsidyMissing = Mathf.Max(0, FailureSubsidyMissing);
             PenaltyStacksApplied = Mathf.Max(0, PenaltyStacksApplied);
+            RewardYieldMultiplier = Mathf.Max(0f, RewardYieldMultiplier);
+            SupplyRewardYieldBonus = Mathf.Max(0f, SupplyRewardYieldBonus);
             AssignedSupplies ??= new List<ExpeditionItemStack>();
             for (var i = AssignedSupplies.Count - 1; i >= 0; i--)
             {
@@ -73,6 +78,23 @@ namespace Landsong.ExpeditionSystem
                 if (!stack.IsValid)
                 {
                     AssignedSupplies.RemoveAt(i);
+                }
+            }
+
+            ItemRewards ??= new List<ExpeditionItemStack>();
+            for (var i = ItemRewards.Count - 1; i >= 0; i--)
+            {
+                var stack = ItemRewards[i];
+                if (stack == null)
+                {
+                    ItemRewards.RemoveAt(i);
+                    continue;
+                }
+
+                stack.Validate();
+                if (!stack.IsValid)
+                {
+                    ItemRewards.RemoveAt(i);
                 }
             }
         }
@@ -129,6 +151,7 @@ namespace Landsong.ExpeditionSystem
     public sealed class ExpeditionState
     {
         private readonly List<ExpeditionItemStack> assignedSupplies = new List<ExpeditionItemStack>();
+        private readonly List<ExpeditionItemStack> itemRewards = new List<ExpeditionItemStack>();
 
         internal ExpeditionState(
             string expeditionId,
@@ -137,6 +160,7 @@ namespace Landsong.ExpeditionSystem
             int returnTurn,
             int assignedPopulation,
             float successChance,
+            float supplyRewardYieldBonus,
             IEnumerable<ExpeditionItemStack> supplies)
         {
             ExpeditionId = expeditionId;
@@ -147,6 +171,8 @@ namespace Landsong.ExpeditionSystem
             AssignedPopulation = Mathf.Max(0, assignedPopulation);
             SuccessChance = Mathf.Clamp01(successChance);
             Status = ExpeditionStatus.Active;
+            RewardYieldMultiplier = 1f;
+            SupplyRewardYieldBonus = Mathf.Max(0f, supplyRewardYieldBonus);
             AddSupplies(supplies);
         }
 
@@ -166,7 +192,10 @@ namespace Landsong.ExpeditionSystem
             FailureSubsidyPaid = saveData.FailureSubsidyPaid;
             FailureSubsidyMissing = saveData.FailureSubsidyMissing;
             PenaltyStacksApplied = saveData.PenaltyStacksApplied;
+            RewardYieldMultiplier = saveData.RewardYieldMultiplier <= 0f ? 1f : saveData.RewardYieldMultiplier;
+            SupplyRewardYieldBonus = Mathf.Max(0f, saveData.SupplyRewardYieldBonus);
             AddSupplies(saveData.AssignedSupplies);
+            AddItemRewards(saveData.ItemRewards);
         }
 
         public string ExpeditionId { get; }
@@ -182,11 +211,17 @@ namespace Landsong.ExpeditionSystem
         public int FailureSubsidyPaid { get; internal set; }
         public int FailureSubsidyMissing { get; internal set; }
         public int PenaltyStacksApplied { get; internal set; }
+        public float RewardYieldMultiplier { get; internal set; } = 1f;
+        public float SupplyRewardYieldBonus { get; }
         public IReadOnlyList<ExpeditionItemStack> AssignedSupplies => assignedSupplies;
+        public IReadOnlyList<ExpeditionItemStack> ItemRewards => itemRewards;
         public bool IsActive => Status == ExpeditionStatus.Active;
         public bool IsSucceeded => Status == ExpeditionStatus.Succeeded;
         public bool IsFailed => Status == ExpeditionStatus.Failed;
-        public bool HasPendingRewards => IsSucceeded && !RewardsClaimed && Definition != null && Definition.HasRewards;
+        public bool HasPendingRewards =>
+            IsSucceeded
+            && !RewardsClaimed
+            && (itemRewards.Count > 0 || Definition != null && Definition.HasRewards);
 
         public int GetRemainingTurns(int currentTurn)
         {
@@ -209,7 +244,10 @@ namespace Landsong.ExpeditionSystem
                 FailureSubsidyPaid = FailureSubsidyPaid,
                 FailureSubsidyMissing = FailureSubsidyMissing,
                 PenaltyStacksApplied = PenaltyStacksApplied,
-                AssignedSupplies = CaptureSupplies()
+                RewardYieldMultiplier = RewardYieldMultiplier,
+                SupplyRewardYieldBonus = SupplyRewardYieldBonus,
+                AssignedSupplies = CaptureSupplies(),
+                ItemRewards = CaptureItemRewards()
             };
         }
 
@@ -238,6 +276,34 @@ namespace Landsong.ExpeditionSystem
             }
         }
 
+        internal void SetItemRewards(IEnumerable<ExpeditionItemStack> rewards)
+        {
+            AddItemRewards(rewards);
+        }
+
+        private void AddItemRewards(IEnumerable<ExpeditionItemStack> rewards)
+        {
+            itemRewards.Clear();
+            if (rewards == null)
+            {
+                return;
+            }
+
+            foreach (var reward in rewards)
+            {
+                if (reward == null)
+                {
+                    continue;
+                }
+
+                reward.Validate();
+                if (reward.IsValid)
+                {
+                    itemRewards.Add(new ExpeditionItemStack(reward.ItemId, reward.Amount));
+                }
+            }
+        }
+
         private List<ExpeditionItemStack> CaptureSupplies()
         {
             var result = new List<ExpeditionItemStack>(assignedSupplies.Count);
@@ -247,6 +313,21 @@ namespace Landsong.ExpeditionSystem
                 if (supply != null && supply.IsValid)
                 {
                     result.Add(new ExpeditionItemStack(supply.ItemId, supply.Amount));
+                }
+            }
+
+            return result;
+        }
+
+        private List<ExpeditionItemStack> CaptureItemRewards()
+        {
+            var result = new List<ExpeditionItemStack>(itemRewards.Count);
+            for (var i = 0; i < itemRewards.Count; i++)
+            {
+                var reward = itemRewards[i];
+                if (reward != null && reward.IsValid)
+                {
+                    result.Add(new ExpeditionItemStack(reward.ItemId, reward.Amount));
                 }
             }
 
@@ -362,6 +443,7 @@ namespace Landsong.ExpeditionSystem
 
         private ExpeditionDestinationCatalog catalog;
         private ItemDefinition subsidyGoldItemDefinition;
+        private int maxActiveExpeditions;
         private int subsidyPenaltyStacks;
         private int subsidyPenaltyActiveUntilTurn;
 
@@ -369,11 +451,13 @@ namespace Landsong.ExpeditionSystem
             GameSystem context,
             ExpeditionDestinationCatalog catalog,
             ItemDefinition subsidyGoldItemDefinition,
+            int maxActiveExpeditions,
             ExpeditionSaveData saveData = null)
         {
             this.context = context;
             this.catalog = catalog;
             this.subsidyGoldItemDefinition = subsidyGoldItemDefinition;
+            this.maxActiveExpeditions = Mathf.Max(1, maxActiveExpeditions);
             RestoreSaveData(saveData);
         }
 
@@ -383,6 +467,9 @@ namespace Landsong.ExpeditionSystem
         public ExpeditionDestinationCatalog Catalog => catalog;
         public ItemDefinition SubsidyGoldItemDefinition => subsidyGoldItemDefinition;
         public int ActiveAssignedPopulation => CalculateActiveAssignedPopulation();
+        public int ActiveExpeditionCount => CalculateActiveExpeditionCount();
+        public int MaxActiveExpeditions => Mathf.Max(1, maxActiveExpeditions);
+        public bool HasAvailableExpeditionSlot => ActiveExpeditionCount < MaxActiveExpeditions;
         public int SubsidyPenaltyStacks => subsidyPenaltyStacks;
         public int SubsidyPenaltyActiveUntilTurn => subsidyPenaltyActiveUntilTurn;
         public bool IsSubsidyPenaltyActive => IsSubsidyPenaltyActiveAt(context == null ? 1 : context.CurrentTurn);
@@ -397,6 +484,12 @@ namespace Landsong.ExpeditionSystem
         public void SetSubsidyGoldItemDefinition(ItemDefinition itemDefinition)
         {
             subsidyGoldItemDefinition = itemDefinition;
+        }
+
+        public void SetMaxActiveExpeditions(int value)
+        {
+            maxActiveExpeditions = Mathf.Max(1, value);
+            NotifyChanged();
         }
 
         public IReadOnlyList<ExpeditionDestinationAvailability> GetDestinationAvailabilities(bool includeUnavailable)
@@ -444,11 +537,6 @@ namespace Landsong.ExpeditionSystem
                 return new ExpeditionDestinationAvailability(destination, false, false, ExpeditionDestinationUnavailableReason.Hidden);
             }
 
-            if (!destination.IsInTurnWindow(currentTurn))
-            {
-                return new ExpeditionDestinationAvailability(destination, true, false, ExpeditionDestinationUnavailableReason.WindowClosed);
-            }
-
             if (!destination.Repeatable && HasCompletedDestination(destination.DestinationId))
             {
                 return new ExpeditionDestinationAvailability(destination, true, false, ExpeditionDestinationUnavailableReason.AlreadyCompleted);
@@ -482,6 +570,12 @@ namespace Landsong.ExpeditionSystem
             if (!availability.IsAvailable)
             {
                 result = FailStart(ExpeditionStartFailureReason.DestinationUnavailable, destination, population, null, "远征目的地当前不可用。");
+                return false;
+            }
+
+            if (!HasAvailableExpeditionSlot)
+            {
+                result = FailStart(ExpeditionStartFailureReason.ActiveExpeditionLimitReached, destination, population, null, "远征队伍已满。");
                 return false;
             }
 
@@ -533,7 +627,9 @@ namespace Landsong.ExpeditionSystem
             }
 
             var currentTurn = context.CurrentTurn;
-            var successChance = destination.CalculateSuccessChance(population, BuildSupplyLookup(normalizedSupplies));
+            var supplyLookup = BuildSupplyLookup(normalizedSupplies);
+            var successChance = destination.CalculateSuccessChance(population, supplyLookup);
+            var supplyRewardYieldBonus = destination.CalculateSupplyRewardYieldBonus(supplyLookup);
             var expedition = new ExpeditionState(
                 Guid.NewGuid().ToString("N"),
                 destination,
@@ -541,6 +637,7 @@ namespace Landsong.ExpeditionSystem
                 currentTurn + destination.DurationTurns,
                 population,
                 successChance,
+                supplyRewardYieldBonus,
                 normalizedSupplies);
             expeditions.Add(expedition);
 
@@ -596,7 +693,7 @@ namespace Landsong.ExpeditionSystem
                 return false;
             }
 
-            if (expedition.RewardsClaimed || expedition.Definition == null || !expedition.Definition.HasRewards)
+            if (expedition.RewardsClaimed || !HasClaimableRewards(expedition))
             {
                 result = new ExpeditionClaimResult(false, ExpeditionClaimFailureReason.AlreadyClaimed, expedition, "远征奖励已领取。");
                 return false;
@@ -608,7 +705,7 @@ namespace Landsong.ExpeditionSystem
                 return false;
             }
 
-            if (!context.Inventory.CanAddItems(expedition.Definition.ItemRewards))
+            if (!CanAddRewardsToInventory(expedition))
             {
                 result = new ExpeditionClaimResult(false, ExpeditionClaimFailureReason.InventoryFull, expedition, "仓库空间不足，无法领取远征奖励。");
                 return false;
@@ -683,17 +780,19 @@ namespace Landsong.ExpeditionSystem
             {
                 expedition.Status = ExpeditionStatus.Succeeded;
                 context?.Dynasty?.AddPopulation(expedition.AssignedPopulation);
+                expedition.RewardYieldMultiplier = GetRewardYieldMultiplier(expedition);
+                expedition.SetItemRewards(BuildYieldedItemRewards(expedition.Definition, expedition.RewardYieldMultiplier));
 
                 var rewardsClaimed = false;
                 var rewardsPending = false;
-                if (expedition.Definition == null || !expedition.Definition.HasRewards)
+                if (!HasClaimableRewards(expedition))
                 {
                     expedition.RewardsClaimed = true;
                     rewardsClaimed = true;
                 }
                 else if (context != null
                          && context.Inventory != null
-                         && context.Inventory.CanAddItems(expedition.Definition.ItemRewards))
+                         && CanAddRewardsToInventory(expedition))
                 {
                     ClaimRewards(expedition);
                     rewardsClaimed = true;
@@ -776,18 +875,234 @@ namespace Landsong.ExpeditionSystem
 
         private void ClaimRewards(ExpeditionState expedition)
         {
-            if (expedition == null || expedition.Definition == null || expedition.RewardsClaimed)
+            if (expedition == null || expedition.RewardsClaimed)
             {
                 return;
             }
 
-            context?.Inventory?.TryAddItems(expedition.Definition.ItemRewards);
-            foreach (var buildingId in expedition.Definition.GetBlueprintRewardBuildingIds())
+            AddItemRewardsToInventory(expedition);
+            if (expedition.Definition != null)
             {
-                context?.UnlockBuildingBlueprint(buildingId);
+                foreach (var buildingId in expedition.Definition.GetBlueprintRewardBuildingIds())
+                {
+                    context?.UnlockBuildingBlueprint(buildingId);
+                }
             }
 
             expedition.RewardsClaimed = true;
+        }
+
+        private float GetRewardYieldMultiplier(ExpeditionState expedition = null)
+        {
+            var baseMultiplier = context == null ? 1f : context.ExpeditionRewardYieldMultiplier;
+            var supplyBonus = expedition == null ? 0f : expedition.SupplyRewardYieldBonus;
+            return Mathf.Max(0f, baseMultiplier + supplyBonus);
+        }
+
+        private List<ExpeditionItemStack> BuildYieldedItemRewards(
+            ExpeditionDestinationDefinition destination,
+            float rewardYieldMultiplier)
+        {
+            var results = new List<ExpeditionItemStack>();
+            if (destination == null || destination.ItemRewards == null)
+            {
+                return results;
+            }
+
+            rewardYieldMultiplier = Mathf.Max(0f, rewardYieldMultiplier);
+            var totals = new Dictionary<string, int>(StringComparer.Ordinal);
+            var rewards = destination.ItemRewards;
+            for (var i = 0; i < rewards.Count; i++)
+            {
+                var reward = rewards[i].Normalized();
+                if (!reward.IsValid)
+                {
+                    continue;
+                }
+
+                var amount = Mathf.RoundToInt(reward.Amount * rewardYieldMultiplier);
+                if (rewardYieldMultiplier > 0f && amount <= 0)
+                {
+                    amount = 1;
+                }
+
+                if (amount <= 0)
+                {
+                    continue;
+                }
+
+                if (!totals.ContainsKey(reward.ItemId))
+                {
+                    totals.Add(reward.ItemId, 0);
+                }
+
+                totals[reward.ItemId] += amount;
+            }
+
+            foreach (var entry in totals)
+            {
+                results.Add(new ExpeditionItemStack(entry.Key, entry.Value));
+            }
+
+            return results;
+        }
+
+        private bool HasClaimableRewards(ExpeditionState expedition)
+        {
+            return expedition != null
+                   && (HasItemRewards(expedition)
+                       || expedition.Definition != null && expedition.Definition.HasRewards);
+        }
+
+        private bool HasItemRewards(ExpeditionState expedition)
+        {
+            if (expedition == null)
+            {
+                return false;
+            }
+
+            var rewards = GetItemRewardsForClaim(expedition);
+            return rewards != null && rewards.Count > 0;
+        }
+
+        private bool CanAddRewardsToInventory(ExpeditionState expedition)
+        {
+            if (context == null || context.Inventory == null)
+            {
+                return false;
+            }
+
+            var rewards = GetItemRewardsForClaim(expedition);
+            if (rewards == null || rewards.Count == 0)
+            {
+                return true;
+            }
+
+            if (TryBuildItemAmounts(rewards, expedition.Definition, out var itemAmounts))
+            {
+                return context.Inventory.CanAddItems(itemAmounts);
+            }
+
+            for (var i = 0; i < rewards.Count; i++)
+            {
+                var reward = rewards[i];
+                if (reward != null && reward.IsValid && !context.Inventory.CanAddItem(reward.ItemId, reward.Amount))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private void AddItemRewardsToInventory(ExpeditionState expedition)
+        {
+            if (context == null || context.Inventory == null)
+            {
+                return;
+            }
+
+            var rewards = GetItemRewardsForClaim(expedition);
+            if (rewards == null || rewards.Count == 0)
+            {
+                return;
+            }
+
+            if (TryBuildItemAmounts(rewards, expedition.Definition, out var itemAmounts))
+            {
+                context.Inventory.TryAddItems(itemAmounts);
+                return;
+            }
+
+            for (var i = 0; i < rewards.Count; i++)
+            {
+                var reward = rewards[i];
+                if (reward != null && reward.IsValid)
+                {
+                    context.Inventory.TryAddItem(reward.ItemId, reward.Amount);
+                }
+            }
+        }
+
+        private IReadOnlyList<ExpeditionItemStack> GetItemRewardsForClaim(ExpeditionState expedition)
+        {
+            if (expedition == null)
+            {
+                return Array.Empty<ExpeditionItemStack>();
+            }
+
+            if (expedition.ItemRewards.Count > 0)
+            {
+                return expedition.ItemRewards;
+            }
+
+            return BuildYieldedItemRewards(
+                expedition.Definition,
+                expedition.RewardYieldMultiplier <= 0f ? 1f : expedition.RewardYieldMultiplier);
+        }
+
+        private bool TryBuildItemAmounts(
+            IReadOnlyList<ExpeditionItemStack> rewards,
+            ExpeditionDestinationDefinition destination,
+            out List<ItemAmount> itemAmounts)
+        {
+            itemAmounts = new List<ItemAmount>();
+            if (rewards == null)
+            {
+                return true;
+            }
+
+            for (var i = 0; i < rewards.Count; i++)
+            {
+                var reward = rewards[i];
+                if (reward == null || !reward.IsValid)
+                {
+                    continue;
+                }
+
+                var definition = ResolveRewardItemDefinition(reward.ItemId, destination);
+                if (definition == null)
+                {
+                    itemAmounts = null;
+                    return false;
+                }
+
+                itemAmounts.Add(new ItemAmount(definition, reward.Amount));
+            }
+
+            return true;
+        }
+
+        private ItemDefinition ResolveRewardItemDefinition(
+            string itemId,
+            ExpeditionDestinationDefinition destination)
+        {
+            itemId = ExpeditionDestinationDefinition.NormalizeId(itemId);
+            if (string.IsNullOrWhiteSpace(itemId))
+            {
+                return null;
+            }
+
+            if (destination != null)
+            {
+                var rewards = destination.ItemRewards;
+                for (var i = 0; i < rewards.Count; i++)
+                {
+                    var reward = rewards[i].Normalized();
+                    if (reward.ItemDefinition != null
+                        && string.Equals(reward.ItemId, itemId, StringComparison.Ordinal))
+                    {
+                        return reward.ItemDefinition;
+                    }
+                }
+            }
+
+            var catalog = context == null || context.Inventory == null
+                ? null
+                : context.Inventory.ItemCatalog;
+            return catalog != null && catalog.TryGetDefinition(itemId, out var definition)
+                ? definition
+                : null;
         }
 
         private List<ExpeditionItemStack> NormalizeAssignedSupplies(IEnumerable<ItemAmount> supplies)
@@ -869,10 +1184,10 @@ namespace Landsong.ExpeditionSystem
                     return false;
                 }
 
-                if (option.HasMaxAmount && supply.Amount > option.MaxAmount)
+                if (supply.Amount > option.MaxAssignedAmount)
                 {
                     failureReason = ExpeditionStartFailureReason.SupplyLimitExceeded;
-                    message = $"{option.DisplayName} 超过携带上限。";
+                    message = $"{option.DisplayName} 最多携带 {option.MaxAssignedAmount}。";
                     return false;
                 }
             }
@@ -1029,6 +1344,21 @@ namespace Landsong.ExpeditionSystem
                 if (expedition != null && expedition.IsActive)
                 {
                     total += expedition.AssignedPopulation;
+                }
+            }
+
+            return Mathf.Max(0, total);
+        }
+
+        private int CalculateActiveExpeditionCount()
+        {
+            var total = 0;
+            for (var i = 0; i < expeditions.Count; i++)
+            {
+                var expedition = expeditions[i];
+                if (expedition != null && expedition.IsActive)
+                {
+                    total++;
                 }
             }
 

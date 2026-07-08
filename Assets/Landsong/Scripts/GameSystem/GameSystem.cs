@@ -23,6 +23,12 @@ namespace Landsong
         SubmitResources = 2
     }
 
+    public enum QuestCategory
+    {
+        Mainline = 1,
+        Random = 2
+    }
+
     public enum QuestStatus
     {
         Active = 0,
@@ -36,6 +42,7 @@ namespace Landsong
         [SerializeField, LabelText("任务ID")] private string questId;
         [SerializeField, LabelText("任务名称")] private string displayName;
         [SerializeField, LabelText("任务描述"), TextArea] private string description;
+        [SerializeField, LabelText("任务机制")] private QuestCategory category = QuestCategory.Mainline;
         [SerializeField, LabelText("任务类型")] private QuestObjectiveType objectiveType = QuestObjectiveType.BuildBuildings;
         [SerializeField, LabelText("期限回合数"), Min(1)] private int turnLimit = 10;
 
@@ -43,12 +50,15 @@ namespace Landsong
         [SerializeField, LabelText("目标建筑数量"), Min(1)] private int targetBuildingCount = 1;
 
         [SerializeField, LabelText("提交资源")] private ItemAmount[] requiredResources = Array.Empty<ItemAmount>();
+        [SerializeField, LabelText("完成奖励")] private ItemAmount[] rewards = Array.Empty<ItemAmount>();
+        [SerializeField, HideInInspector] private bool runtimeGenerated;
 
         public string QuestId => NormalizeQuestId(questId);
         public string DisplayName => string.IsNullOrWhiteSpace(displayName)
             ? (string.IsNullOrWhiteSpace(QuestId) ? "未命名任务" : QuestId)
             : displayName.Trim();
         public string Description => string.IsNullOrWhiteSpace(description) ? string.Empty : description.Trim();
+        public QuestCategory Category => NormalizeQuestCategory(category);
         public QuestObjectiveType ObjectiveType => objectiveType;
         public int TurnLimit => Mathf.Max(1, turnLimit);
         public BuildingBase TargetBuilding => targetBuilding;
@@ -63,6 +73,9 @@ namespace Landsong
             : targetBuilding.Definition.Icon;
         public int TargetBuildingCount => Mathf.Max(1, targetBuildingCount);
         public IReadOnlyList<ItemAmount> RequiredResources => requiredResources ?? Array.Empty<ItemAmount>();
+        public IReadOnlyList<ItemAmount> Rewards => rewards ?? Array.Empty<ItemAmount>();
+        public bool IsRuntimeGenerated => runtimeGenerated;
+        public bool HasRewards => HasAnyReward();
         public bool IsValid => !string.IsNullOrWhiteSpace(QuestId) && HasValidObjective();
 
         public void Normalize()
@@ -70,24 +83,64 @@ namespace Landsong
             questId = NormalizeQuestId(questId);
             displayName = string.IsNullOrWhiteSpace(displayName) ? string.Empty : displayName.Trim();
             description = string.IsNullOrWhiteSpace(description) ? string.Empty : description.Trim();
+            category = NormalizeQuestCategory(category);
             turnLimit = Mathf.Max(1, turnLimit);
             targetBuildingCount = Mathf.Max(1, targetBuildingCount);
 
             if (requiredResources == null)
             {
                 requiredResources = Array.Empty<ItemAmount>();
-                return;
             }
 
             for (var i = 0; i < requiredResources.Length; i++)
             {
                 requiredResources[i] = requiredResources[i].Normalized();
             }
+
+            if (rewards == null)
+            {
+                rewards = Array.Empty<ItemAmount>();
+            }
+
+            for (var i = 0; i < rewards.Length; i++)
+            {
+                rewards[i] = rewards[i].Normalized();
+            }
+        }
+
+        public static GameQuestDefinition CreateRuntimeSubmitResourcesQuest(
+            string questId,
+            string displayName,
+            string description,
+            QuestCategory category,
+            int turnLimit,
+            IEnumerable<ItemAmount> requiredResources,
+            IEnumerable<ItemAmount> rewards)
+        {
+            var definition = new GameQuestDefinition
+            {
+                questId = NormalizeQuestId(questId),
+                displayName = string.IsNullOrWhiteSpace(displayName) ? string.Empty : displayName.Trim(),
+                description = string.IsNullOrWhiteSpace(description) ? string.Empty : description.Trim(),
+                category = NormalizeQuestCategory(category),
+                objectiveType = QuestObjectiveType.SubmitResources,
+                turnLimit = Mathf.Max(1, turnLimit),
+                requiredResources = CopyValidItemAmounts(requiredResources),
+                rewards = CopyValidItemAmounts(rewards),
+                runtimeGenerated = true
+            };
+            definition.Normalize();
+            return definition;
         }
 
         public static string NormalizeQuestId(string value)
         {
             return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+        }
+
+        public static QuestCategory NormalizeQuestCategory(QuestCategory value)
+        {
+            return value == QuestCategory.Random ? QuestCategory.Random : QuestCategory.Mainline;
         }
 
         private bool HasValidObjective()
@@ -117,6 +170,44 @@ namespace Landsong
 
             return false;
         }
+
+        private bool HasAnyReward()
+        {
+            if (rewards == null)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < rewards.Length; i++)
+            {
+                if (rewards[i].Normalized().IsValid)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static ItemAmount[] CopyValidItemAmounts(IEnumerable<ItemAmount> source)
+        {
+            if (source == null)
+            {
+                return Array.Empty<ItemAmount>();
+            }
+
+            var result = new List<ItemAmount>();
+            foreach (var item in source)
+            {
+                var normalized = item.Normalized();
+                if (normalized.IsValid)
+                {
+                    result.Add(normalized);
+                }
+            }
+
+            return result.ToArray();
+        }
     }
 
     [Serializable]
@@ -139,9 +230,15 @@ namespace Landsong
             new List<GameQuestResourceProgress>();
 
         public GameQuestState(GameQuestDefinition definition, int startedTurn)
+            : this(definition, startedTurn, definition == null ? QuestCategory.Mainline : definition.Category)
+        {
+        }
+
+        public GameQuestState(GameQuestDefinition definition, int startedTurn, QuestCategory category)
         {
             Definition = definition;
             QuestId = definition == null ? string.Empty : definition.QuestId;
+            Category = GameQuestDefinition.NormalizeQuestCategory(category);
             StartedTurn = Mathf.Max(1, startedTurn);
             DeadlineTurn = StartedTurn + Mathf.Max(1, definition == null ? 1 : definition.TurnLimit) - 1;
             Status = QuestStatus.Active;
@@ -149,6 +246,7 @@ namespace Landsong
 
         public GameQuestDefinition Definition { get; }
         public string QuestId { get; }
+        public QuestCategory Category { get; internal set; }
         public QuestStatus Status { get; internal set; }
         public int StartedTurn { get; internal set; }
         public int DeadlineTurn { get; internal set; }
@@ -160,6 +258,9 @@ namespace Landsong
         public bool IsActive => Status == QuestStatus.Active;
         public bool IsCompleted => Status == QuestStatus.Completed;
         public bool IsFailed => Status == QuestStatus.Failed;
+        public bool IsMainline => Category == QuestCategory.Mainline;
+        public bool IsRandom => Category == QuestCategory.Random;
+        public string CategoryDisplayName => IsRandom ? "随机" : "主线";
         public bool IsResourceSubmission => Definition != null && Definition.ObjectiveType == QuestObjectiveType.SubmitResources;
         public int TotalRequiredAmount => TargetAmount;
         public int TotalSubmittedAmount => CurrentAmount;
@@ -207,10 +308,14 @@ namespace Landsong
     public sealed class QuestSaveData
     {
         public List<QuestStateSaveData> Quests = new List<QuestStateSaveData>();
+        public int NextRandomQuestRefreshTurn = 1;
+        public int GeneratedRandomQuestSerial;
 
         public void Validate()
         {
             Quests ??= new List<QuestStateSaveData>();
+            NextRandomQuestRefreshTurn = Mathf.Max(1, NextRandomQuestRefreshTurn);
+            GeneratedRandomQuestSerial = Mathf.Max(0, GeneratedRandomQuestSerial);
             var seenQuestIds = new HashSet<string>(StringComparer.Ordinal);
             for (var i = Quests.Count - 1; i >= 0; i--)
             {
@@ -234,18 +339,22 @@ namespace Landsong
     public sealed class QuestStateSaveData
     {
         public string QuestId = string.Empty;
+        public QuestCategory Category = QuestCategory.Mainline;
         public QuestStatus Status = QuestStatus.Active;
         public int StartedTurn = 1;
         public int DeadlineTurn = 1;
         public List<QuestResourceSubmissionSaveData> SubmittedResources =
             new List<QuestResourceSubmissionSaveData>();
+        public QuestGeneratedDefinitionSaveData GeneratedDefinition;
 
         public void Validate()
         {
             QuestId = GameQuestDefinition.NormalizeQuestId(QuestId);
+            Category = GameQuestDefinition.NormalizeQuestCategory(Category);
             StartedTurn = Mathf.Max(1, StartedTurn);
             DeadlineTurn = Mathf.Max(StartedTurn, DeadlineTurn);
             SubmittedResources ??= new List<QuestResourceSubmissionSaveData>();
+            GeneratedDefinition?.Validate();
 
             var seenItemIds = new HashSet<string>(StringComparer.Ordinal);
             for (var i = SubmittedResources.Count - 1; i >= 0; i--)
@@ -279,6 +388,531 @@ namespace Landsong
         }
     }
 
+    [Serializable]
+    public sealed class QuestGeneratedDefinitionSaveData
+    {
+        public string QuestId = string.Empty;
+        public QuestCategory Category = QuestCategory.Random;
+        public string DisplayName = string.Empty;
+        public string Description = string.Empty;
+        public int TurnLimit = 1;
+        public List<QuestItemAmountSaveData> RequiredResources = new List<QuestItemAmountSaveData>();
+        public List<QuestItemAmountSaveData> Rewards = new List<QuestItemAmountSaveData>();
+
+        public bool IsValid => !string.IsNullOrWhiteSpace(QuestId) && HasValidRequiredResource();
+
+        public void Validate()
+        {
+            QuestId = GameQuestDefinition.NormalizeQuestId(QuestId);
+            Category = GameQuestDefinition.NormalizeQuestCategory(Category);
+            DisplayName = string.IsNullOrWhiteSpace(DisplayName) ? string.Empty : DisplayName.Trim();
+            Description = string.IsNullOrWhiteSpace(Description) ? string.Empty : Description.Trim();
+            TurnLimit = Mathf.Max(1, TurnLimit);
+            RequiredResources = NormalizeItemAmounts(RequiredResources);
+            Rewards = NormalizeItemAmounts(Rewards);
+        }
+
+        public static QuestGeneratedDefinitionSaveData FromDefinition(GameQuestDefinition definition)
+        {
+            if (definition == null)
+            {
+                return null;
+            }
+
+            var data = new QuestGeneratedDefinitionSaveData
+            {
+                QuestId = definition.QuestId,
+                Category = definition.Category,
+                DisplayName = definition.DisplayName,
+                Description = definition.Description,
+                TurnLimit = definition.TurnLimit,
+                RequiredResources = QuestItemAmountSaveData.FromItemAmounts(definition.RequiredResources),
+                Rewards = QuestItemAmountSaveData.FromItemAmounts(definition.Rewards)
+            };
+            data.Validate();
+            return data.IsValid ? data : null;
+        }
+
+        private bool HasValidRequiredResource()
+        {
+            if (RequiredResources == null)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < RequiredResources.Count; i++)
+            {
+                if (RequiredResources[i] != null && RequiredResources[i].IsValid)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static List<QuestItemAmountSaveData> NormalizeItemAmounts(
+            List<QuestItemAmountSaveData> source)
+        {
+            var result = new List<QuestItemAmountSaveData>();
+            if (source == null)
+            {
+                return result;
+            }
+
+            var amountsByItemId = new Dictionary<string, int>(StringComparer.Ordinal);
+            for (var i = 0; i < source.Count; i++)
+            {
+                var item = source[i];
+                if (item == null)
+                {
+                    continue;
+                }
+
+                item.Validate();
+                if (!item.IsValid)
+                {
+                    continue;
+                }
+
+                if (!amountsByItemId.ContainsKey(item.ItemId))
+                {
+                    amountsByItemId.Add(item.ItemId, 0);
+                }
+
+                amountsByItemId[item.ItemId] += item.Amount;
+            }
+
+            foreach (var pair in amountsByItemId)
+            {
+                result.Add(new QuestItemAmountSaveData
+                {
+                    ItemId = pair.Key,
+                    Amount = Mathf.Max(0, pair.Value)
+                });
+            }
+
+            return result;
+        }
+    }
+
+    [Serializable]
+    public sealed class QuestItemAmountSaveData
+    {
+        public string ItemId = string.Empty;
+        public int Amount;
+
+        public bool IsValid => !string.IsNullOrWhiteSpace(ItemId) && Amount > 0;
+
+        public void Validate()
+        {
+            ItemId = string.IsNullOrWhiteSpace(ItemId) ? string.Empty : ItemId.Trim();
+            Amount = Mathf.Max(0, Amount);
+        }
+
+        public static List<QuestItemAmountSaveData> FromItemAmounts(IReadOnlyList<ItemAmount> itemAmounts)
+        {
+            var result = new List<QuestItemAmountSaveData>();
+            if (itemAmounts == null)
+            {
+                return result;
+            }
+
+            for (var i = 0; i < itemAmounts.Count; i++)
+            {
+                var item = itemAmounts[i].Normalized();
+                if (!item.IsValid)
+                {
+                    continue;
+                }
+
+                result.Add(
+                    new QuestItemAmountSaveData
+                    {
+                        ItemId = item.ItemId,
+                        Amount = item.Amount
+                    });
+            }
+
+            return result;
+        }
+    }
+
+    [Serializable]
+    public sealed class QuestItemAmountRange
+    {
+        [SerializeField, LabelText("物品")] private ItemDefinition itemDefinition;
+        [SerializeField, LabelText("最小数量"), Min(1)] private int minAmount = 1;
+        [SerializeField, LabelText("最大数量"), Min(1)] private int maxAmount = 1;
+
+        public ItemDefinition ItemDefinition => itemDefinition;
+        public int MinAmount => Mathf.Max(1, minAmount);
+        public int MaxAmount => Mathf.Max(MinAmount, maxAmount);
+        public bool IsValid => itemDefinition != null
+                               && !string.IsNullOrWhiteSpace(itemDefinition.ItemId)
+                               && itemDefinition.BaseValue > 0
+                               && MaxAmount > 0;
+
+        public void Normalize()
+        {
+            minAmount = Mathf.Max(1, minAmount);
+            maxAmount = Mathf.Max(minAmount, maxAmount);
+        }
+
+        public ItemAmount Roll()
+        {
+            Normalize();
+            if (!IsValid)
+            {
+                return default;
+            }
+
+            var amount = MinAmount == MaxAmount
+                ? MinAmount
+                : UnityEngine.Random.Range(MinAmount, MaxAmount + 1);
+            return new ItemAmount(itemDefinition, amount);
+        }
+    }
+
+    [Serializable]
+    public sealed class RandomExchangeQuestRule
+    {
+        [SerializeField, LabelText("启用")] private bool enabled = true;
+        [SerializeField, LabelText("任务ID前缀")] private string questIdPrefix = "random_exchange";
+        [SerializeField, LabelText("请求者名称")] private string[] requesterNames = { "遥远的帝国" };
+        [SerializeField, LabelText("任务名称格式")] private string displayNameFormat = "{Requester}的交换请求";
+        [SerializeField, LabelText("任务描述格式"), TextArea]
+        private string descriptionFormat = "{Requester}派来一些使者，希望使用{RewardList}和你交换{RequiredList}。";
+        [SerializeField, LabelText("期限回合数"), Min(1)] private int turnLimit = 5;
+        [SerializeField, LabelText("需求种类数"), Min(1)] private int requiredLineCount = 1;
+        [SerializeField, LabelText("需求候选")] private QuestItemAmountRange[] requiredResourceCandidates =
+            Array.Empty<QuestItemAmountRange>();
+        [SerializeField, LabelText("奖励种类数"), Min(1)] private int rewardLineCount = 1;
+        [SerializeField, LabelText("奖励物品候选")] private ItemDefinition[] rewardCandidates =
+            Array.Empty<ItemDefinition>();
+        [SerializeField, LabelText("最低回报倍率"), Min(0.01f)] private float minRewardValueMultiplier = 1.5f;
+        [SerializeField, LabelText("最高回报倍率"), Min(0.01f)] private float maxRewardValueMultiplier = 3f;
+        [SerializeField, LabelText("高倍率稀有度"), Min(1f)] private float rewardMultiplierRarity = 2.25f;
+
+        public bool Enabled => enabled;
+        public string QuestIdPrefix => string.IsNullOrWhiteSpace(questIdPrefix)
+            ? "random_exchange"
+            : questIdPrefix.Trim();
+        public bool IsValid => enabled
+                               && HasValidCandidate(requiredResourceCandidates)
+                               && HasValidRewardCandidate(rewardCandidates);
+
+        public void Normalize()
+        {
+            questIdPrefix = string.IsNullOrWhiteSpace(questIdPrefix) ? "random_exchange" : questIdPrefix.Trim();
+            displayNameFormat = string.IsNullOrWhiteSpace(displayNameFormat)
+                ? "{Requester}的交换请求"
+                : displayNameFormat.Trim();
+            descriptionFormat = string.IsNullOrWhiteSpace(descriptionFormat)
+                ? "{Requester}派来一些使者，希望使用{RewardList}和你交换{RequiredList}。"
+                : descriptionFormat.Trim();
+            turnLimit = Mathf.Max(1, turnLimit);
+            requiredLineCount = Mathf.Max(1, requiredLineCount);
+            rewardLineCount = Mathf.Max(1, rewardLineCount);
+            minRewardValueMultiplier = Mathf.Max(0.01f, minRewardValueMultiplier);
+            maxRewardValueMultiplier = Mathf.Max(minRewardValueMultiplier, maxRewardValueMultiplier);
+            rewardMultiplierRarity = Mathf.Max(1f, rewardMultiplierRarity);
+            NormalizeCandidates(requiredResourceCandidates);
+
+            if (requesterNames == null || requesterNames.Length == 0)
+            {
+                requesterNames = new[] { "遥远的帝国" };
+                return;
+            }
+
+            for (var i = 0; i < requesterNames.Length; i++)
+            {
+                requesterNames[i] = string.IsNullOrWhiteSpace(requesterNames[i])
+                    ? string.Empty
+                    : requesterNames[i].Trim();
+            }
+        }
+
+        public GameQuestDefinition CreateDefinition(string questId)
+        {
+            Normalize();
+            if (!IsValid)
+            {
+                return null;
+            }
+
+            var requester = PickRequesterName();
+            var requiredResources = RollItemAmounts(requiredResourceCandidates, requiredLineCount);
+            var requiredValue = CalculateItemAmountsBaseValue(requiredResources);
+            var rewards = RollRewardItemAmounts(requiredValue);
+            if (requiredResources.Count == 0 || rewards.Count == 0)
+            {
+                return null;
+            }
+
+            var requiredList = FormatPlainItemAmountList(requiredResources);
+            var rewardList = FormatPlainItemAmountList(rewards);
+            var displayName = ApplyTextFormat(displayNameFormat, requester, requiredList, rewardList);
+            var description = ApplyTextFormat(descriptionFormat, requester, requiredList, rewardList);
+
+            return GameQuestDefinition.CreateRuntimeSubmitResourcesQuest(
+                questId,
+                displayName,
+                description,
+                QuestCategory.Random,
+                turnLimit,
+                requiredResources,
+                rewards);
+        }
+
+        private string PickRequesterName()
+        {
+            if (requesterNames == null || requesterNames.Length == 0)
+            {
+                return "遥远的帝国";
+            }
+
+            var candidates = new List<string>();
+            for (var i = 0; i < requesterNames.Length; i++)
+            {
+                if (!string.IsNullOrWhiteSpace(requesterNames[i]))
+                {
+                    candidates.Add(requesterNames[i].Trim());
+                }
+            }
+
+            return candidates.Count == 0
+                ? "遥远的帝国"
+                : candidates[UnityEngine.Random.Range(0, candidates.Count)];
+        }
+
+        private static List<ItemAmount> RollItemAmounts(QuestItemAmountRange[] candidates, int lineCount)
+        {
+            var result = new List<ItemAmount>();
+            if (candidates == null || candidates.Length == 0)
+            {
+                return result;
+            }
+
+            var available = new List<QuestItemAmountRange>();
+            for (var i = 0; i < candidates.Length; i++)
+            {
+                var candidate = candidates[i];
+                candidate?.Normalize();
+                if (candidate != null && candidate.IsValid)
+                {
+                    available.Add(candidate);
+                }
+            }
+
+            var targetCount = Mathf.Clamp(lineCount, 1, available.Count);
+            while (result.Count < targetCount && available.Count > 0)
+            {
+                var index = UnityEngine.Random.Range(0, available.Count);
+                var itemAmount = available[index].Roll();
+                available.RemoveAt(index);
+                if (itemAmount.IsValid)
+                {
+                    result.Add(itemAmount);
+                }
+            }
+
+            return result;
+        }
+
+        private static string ApplyTextFormat(
+            string format,
+            string requester,
+            string requiredList,
+            string rewardList)
+        {
+            return (string.IsNullOrWhiteSpace(format) ? string.Empty : format)
+                .Replace("{Requester}", requester ?? string.Empty)
+                .Replace("{RequiredList}", requiredList ?? string.Empty)
+                .Replace("{RewardList}", rewardList ?? string.Empty);
+        }
+
+        private static string FormatPlainItemAmountList(IReadOnlyList<ItemAmount> items)
+        {
+            if (items == null || items.Count == 0)
+            {
+                return string.Empty;
+            }
+
+            var parts = new List<string>();
+            for (var i = 0; i < items.Count; i++)
+            {
+                var item = items[i].Normalized();
+                if (!item.IsValid)
+                {
+                    continue;
+                }
+
+                var displayName = item.ItemDefinition == null
+                    ? item.ItemId
+                    : item.ItemDefinition.DisplayName;
+                parts.Add($"{item.Amount}{displayName}");
+            }
+
+            return string.Join("、", parts);
+        }
+
+        private List<ItemAmount> RollRewardItemAmounts(int requiredValue)
+        {
+            var result = new List<ItemAmount>();
+            if (requiredValue <= 0 || rewardCandidates == null || rewardCandidates.Length == 0)
+            {
+                return result;
+            }
+
+            var candidates = new List<ItemDefinition>();
+            for (var i = 0; i < rewardCandidates.Length; i++)
+            {
+                var candidate = rewardCandidates[i];
+                if (candidate != null
+                    && !string.IsNullOrWhiteSpace(candidate.ItemId)
+                    && candidate.BaseValue > 0)
+                {
+                    candidates.Add(candidate);
+                }
+            }
+
+            var targetCount = Mathf.Clamp(rewardLineCount, 1, candidates.Count);
+            if (targetCount <= 0)
+            {
+                return result;
+            }
+
+            var multiplier = RollRewardValueMultiplier();
+            var targetRewardValue = Mathf.Max(1, Mathf.RoundToInt(requiredValue * multiplier));
+            var selectedRewards = PickRewardDefinitions(candidates, targetCount);
+            if (selectedRewards.Count == 0)
+            {
+                return result;
+            }
+
+            var remainingValue = targetRewardValue;
+            for (var i = 0; i < selectedRewards.Count; i++)
+            {
+                var reward = selectedRewards[i];
+                if (reward == null || reward.BaseValue <= 0)
+                {
+                    continue;
+                }
+
+                var lineValue = i == selectedRewards.Count - 1
+                    ? remainingValue
+                    : Mathf.Max(1, Mathf.RoundToInt(targetRewardValue / (float)selectedRewards.Count));
+                var amount = Mathf.Max(1, Mathf.CeilToInt(lineValue / (float)reward.BaseValue));
+                result.Add(new ItemAmount(reward, amount));
+                remainingValue = Mathf.Max(1, remainingValue - amount * reward.BaseValue);
+            }
+
+            return result;
+        }
+
+        private float RollRewardValueMultiplier()
+        {
+            var t = Mathf.Pow(UnityEngine.Random.value, rewardMultiplierRarity);
+            return Mathf.Lerp(minRewardValueMultiplier, maxRewardValueMultiplier, t);
+        }
+
+        private static List<ItemDefinition> PickRewardDefinitions(List<ItemDefinition> candidates, int count)
+        {
+            var result = new List<ItemDefinition>();
+            if (candidates == null || candidates.Count == 0)
+            {
+                return result;
+            }
+
+            var available = new List<ItemDefinition>(candidates);
+            var targetCount = Mathf.Clamp(count, 1, available.Count);
+            while (result.Count < targetCount && available.Count > 0)
+            {
+                var index = UnityEngine.Random.Range(0, available.Count);
+                result.Add(available[index]);
+                available.RemoveAt(index);
+            }
+
+            return result;
+        }
+
+        private static int CalculateItemAmountsBaseValue(IReadOnlyList<ItemAmount> items)
+        {
+            if (items == null)
+            {
+                return 0;
+            }
+
+            var total = 0;
+            for (var i = 0; i < items.Count; i++)
+            {
+                var item = items[i].Normalized();
+                if (!item.IsValid || item.ItemDefinition == null || item.ItemDefinition.BaseValue <= 0)
+                {
+                    continue;
+                }
+
+                total += item.Amount * item.ItemDefinition.BaseValue;
+            }
+
+            return Mathf.Max(0, total);
+        }
+
+        private static bool HasValidCandidate(QuestItemAmountRange[] candidates)
+        {
+            if (candidates == null)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < candidates.Length; i++)
+            {
+                candidates[i]?.Normalize();
+                if (candidates[i] != null && candidates[i].IsValid)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool HasValidRewardCandidate(ItemDefinition[] candidates)
+        {
+            if (candidates == null)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < candidates.Length; i++)
+            {
+                var candidate = candidates[i];
+                if (candidate != null
+                    && !string.IsNullOrWhiteSpace(candidate.ItemId)
+                    && candidate.BaseValue > 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static void NormalizeCandidates(QuestItemAmountRange[] candidates)
+        {
+            if (candidates == null)
+            {
+                return;
+            }
+
+            for (var i = 0; i < candidates.Length; i++)
+            {
+                candidates[i]?.Normalize();
+            }
+        }
+    }
+
     public enum GameOverReason
     {
         None = 0,
@@ -308,6 +942,8 @@ namespace Landsong
         private bool questsInitialized;
         private bool suppressQuestInventoryRefresh;
         private bool suppressQuestRuntimeMessages;
+        private int nextRandomQuestRefreshTurn = 1;
+        private int generatedRandomQuestSerial;
 
         [Header("Inventory")]
         [SerializeField, LabelText("物品目录")] private ItemCatalog itemCatalog;
@@ -326,11 +962,18 @@ namespace Landsong
         [SerializeField, LabelText("初始已解锁科技")] private string[] startingUnlockedTechnologies = Array.Empty<string>();
 
         [Header("Quest")]
-        [SerializeField, LabelText("初始任务")] private GameQuestDefinition[] startingQuests = Array.Empty<GameQuestDefinition>();
+        [SerializeField, LabelText("主线任务")] private GameQuestDefinition[] startingQuests = Array.Empty<GameQuestDefinition>();
+        [SerializeField, LabelText("随机任务池")] private GameQuestDefinition[] randomQuestPool = Array.Empty<GameQuestDefinition>();
+        [SerializeField, LabelText("运行时交换任务规则")] private RandomExchangeQuestRule[] runtimeExchangeQuestRules =
+            Array.Empty<RandomExchangeQuestRule>();
+        [SerializeField, LabelText("开局随机任务数量"), Min(0)] private int startingRandomQuestCount = 1;
+        [SerializeField, LabelText("随机任务同时存在上限"), Min(0)] private int maxActiveRandomQuests = 2;
+        [SerializeField, LabelText("随机任务补充间隔回合"), Min(1)] private int randomQuestRefreshIntervalTurns = 3;
 
         [Header("Expedition")]
         [SerializeField, LabelText("远征目的地目录")] private ExpeditionDestinationCatalog expeditionDestinationCatalog;
         [SerializeField, LabelText("远征补贴金币物品")] private ItemDefinition expeditionSubsidyGoldItemDefinition;
+        [SerializeField, LabelText("远征队伍上限"), Min(1)] private int expeditionTeamCapacity = 3;
         [SerializeField, LabelText("初始已解锁奇迹蓝图")] private string[] startingUnlockedBuildingBlueprintIds = Array.Empty<string>();
         [SerializeField, LabelText("补贴不足惩罚持续回合"), Min(1)] private int expeditionSubsidyPenaltyDurationTurns = 5;
         [SerializeField, LabelText("每层补贴不足惩罚岗位吸引力"), Min(0f)] private float expeditionSubsidyPenaltyAttractionPerStack = 5f;
@@ -442,6 +1085,12 @@ namespace Landsong
             Expeditions == null ? 0 : Expeditions.SubsidyPenaltyStacks;
         public int ExpeditionSubsidyPenaltyActiveUntilTurn =>
             Expeditions == null ? 0 : Expeditions.SubsidyPenaltyActiveUntilTurn;
+        public int ActiveExpeditionTeamCount =>
+            Expeditions == null ? 0 : Expeditions.ActiveExpeditionCount;
+        public int ExpeditionTeamCapacity =>
+            Expeditions == null ? Mathf.Max(1, expeditionTeamCapacity) : Expeditions.MaxActiveExpeditions;
+        public float ExpeditionRewardYieldBonus => CalculateExpeditionRewardYieldBonus();
+        public float ExpeditionRewardYieldMultiplier => 1f + ExpeditionRewardYieldBonus;
 
         public IReadOnlyList<BuildingJobAttractionModifier> GetJobAttractionModifiers(BuildingBase building)
         {
@@ -462,6 +1111,37 @@ namespace Landsong
             return activeJobAttractionModifiers.Count == 0
                 ? EmptyJobAttractionModifiers
                 : activeJobAttractionModifiers.ToArray();
+        }
+
+        private float CalculateExpeditionRewardYieldBonus()
+        {
+            var buildings = Buildings == null ? null : Buildings.Buildings;
+            if (buildings == null || buildings.Count == 0)
+            {
+                return 0f;
+            }
+
+            var total = 0f;
+            for (var i = 0; i < buildings.Count; i++)
+            {
+                var building = buildings[i];
+                if (building == null || !building.isActiveAndEnabled || building.IsDemolishing)
+                {
+                    continue;
+                }
+
+                var modules = building.BuildingModules;
+                for (var j = 0; j < modules.Count; j++)
+                {
+                    if (modules[j] is IBuildingExpeditionRewardYieldSource source
+                        && modules[j].IsEnabled)
+                    {
+                        total += Mathf.Max(0f, source.ExpeditionRewardYieldBonus);
+                    }
+                }
+            }
+
+            return Mathf.Max(0f, total);
         }
 
         protected override void Init()
@@ -502,8 +1182,12 @@ namespace Landsong
             startingResearchProgress = Mathf.Max(0, startingResearchProgress);
             startingTurn = Mathf.Max(1, startingTurn);
             turnBuildingsPerFrame = Mathf.Max(1, turnBuildingsPerFrame);
+            expeditionTeamCapacity = Mathf.Max(1, expeditionTeamCapacity);
             expeditionSubsidyPenaltyDurationTurns = Mathf.Max(1, expeditionSubsidyPenaltyDurationTurns);
             expeditionSubsidyPenaltyAttractionPerStack = Mathf.Max(0f, expeditionSubsidyPenaltyAttractionPerStack);
+            startingRandomQuestCount = Mathf.Max(0, startingRandomQuestCount);
+            maxActiveRandomQuests = Mathf.Max(0, maxActiveRandomQuests);
+            randomQuestRefreshIntervalTurns = Mathf.Max(1, randomQuestRefreshIntervalTurns);
             talentRefreshGoldCost = Mathf.Max(0, talentRefreshGoldCost);
             talentRefreshCardCount = Mathf.Max(1, talentRefreshCardCount);
             royalInheritanceConfig ??= new RoyalInheritanceConfig();
@@ -562,6 +1246,8 @@ namespace Landsong
             }
 
             NormalizeStartingQuests();
+            NormalizeRandomQuestPool();
+            NormalizeRuntimeExchangeQuestRules();
         }
 
         [Button("重新初始化库存")]
@@ -1228,7 +1914,9 @@ namespace Landsong
         {
             var saveData = new QuestSaveData
             {
-                Quests = new List<QuestStateSaveData>()
+                Quests = new List<QuestStateSaveData>(),
+                NextRandomQuestRefreshTurn = Mathf.Max(1, nextRandomQuestRefreshTurn),
+                GeneratedRandomQuestSerial = Mathf.Max(0, generatedRandomQuestSerial)
             };
 
             for (var i = 0; i < quests.Count; i++)
@@ -1242,10 +1930,14 @@ namespace Landsong
                 var questData = new QuestStateSaveData
                 {
                     QuestId = quest.QuestId,
+                    Category = quest.Category,
                     Status = quest.Status,
                     StartedTurn = quest.StartedTurn,
                     DeadlineTurn = Mathf.Max(quest.StartedTurn, quest.DeadlineTurn),
-                    SubmittedResources = new List<QuestResourceSubmissionSaveData>()
+                    SubmittedResources = new List<QuestResourceSubmissionSaveData>(),
+                    GeneratedDefinition = quest.Definition.IsRuntimeGenerated
+                        ? QuestGeneratedDefinitionSaveData.FromDefinition(quest.Definition)
+                        : null
                 };
 
                 var resourceProgresses = quest.ResourceProgresses;
@@ -1377,40 +2069,22 @@ namespace Landsong
             questsInitialized = true;
             quests.Clear();
             NormalizeStartingQuests();
+            NormalizeRandomQuestPool();
+            NormalizeRuntimeExchangeQuestRules();
+            nextRandomQuestRefreshTurn = saveData == null
+                ? CurrentTurn + Mathf.Max(1, randomQuestRefreshIntervalTurns)
+                : Mathf.Max(1, saveData.NextRandomQuestRefreshTurn);
+            generatedRandomQuestSerial = saveData == null ? 0 : Mathf.Max(0, saveData.GeneratedRandomQuestSerial);
 
             var savedQuests = BuildSavedQuestLookup(saveData);
             var usedQuestIds = new HashSet<string>(StringComparer.Ordinal);
-            var definitions = startingQuests ?? Array.Empty<GameQuestDefinition>();
-            for (var i = 0; i < definitions.Length; i++)
+            AddQuestDefinitions(startingQuests, QuestCategory.Mainline, savedQuests, usedQuestIds, emitMessages);
+            AddSavedRandomQuests(savedQuests, usedQuestIds, emitMessages);
+            AddSavedGeneratedQuests(savedQuests, usedQuestIds, emitMessages);
+
+            if (saveData == null)
             {
-                var definition = definitions[i];
-                if (definition == null)
-                {
-                    continue;
-                }
-
-                definition.Normalize();
-                if (!definition.IsValid)
-                {
-                    Debug.LogWarning($"任务配置无效，已跳过：{definition.DisplayName}", this);
-                    continue;
-                }
-
-                if (!usedQuestIds.Add(definition.QuestId))
-                {
-                    Debug.LogWarning($"任务ID重复，已跳过后续配置：{definition.QuestId}", this);
-                    continue;
-                }
-
-                var quest = new GameQuestState(definition, CurrentTurn);
-                if (savedQuests.TryGetValue(definition.QuestId, out var savedQuest))
-                {
-                    ApplyQuestSaveData(quest, savedQuest);
-                }
-
-                RebuildQuestResourceProgresses(quest, savedQuest);
-                RefreshQuestProgress(quest, emitMessages);
-                quests.Add(quest);
+                EnsureRandomQuestCapacity(startingRandomQuestCount, usedQuestIds, false);
             }
 
             SubscribeQuestRuntimeServices();
@@ -1429,6 +2103,241 @@ namespace Landsong
             {
                 startingQuests[i]?.Normalize();
             }
+        }
+
+        private void NormalizeRandomQuestPool()
+        {
+            if (randomQuestPool == null)
+            {
+                randomQuestPool = Array.Empty<GameQuestDefinition>();
+                return;
+            }
+
+            for (var i = 0; i < randomQuestPool.Length; i++)
+            {
+                randomQuestPool[i]?.Normalize();
+            }
+        }
+
+        private void NormalizeRuntimeExchangeQuestRules()
+        {
+            if (runtimeExchangeQuestRules == null)
+            {
+                runtimeExchangeQuestRules = Array.Empty<RandomExchangeQuestRule>();
+                return;
+            }
+
+            for (var i = 0; i < runtimeExchangeQuestRules.Length; i++)
+            {
+                runtimeExchangeQuestRules[i]?.Normalize();
+            }
+        }
+
+        private void AddQuestDefinitions(
+            IReadOnlyList<GameQuestDefinition> definitions,
+            QuestCategory category,
+            IReadOnlyDictionary<string, QuestStateSaveData> savedQuests,
+            HashSet<string> usedQuestIds,
+            bool emitMessages)
+        {
+            if (definitions == null)
+            {
+                return;
+            }
+
+            for (var i = 0; i < definitions.Count; i++)
+            {
+                TryAddQuestDefinition(
+                    definitions[i],
+                    category,
+                    savedQuests,
+                    usedQuestIds,
+                    emitMessages,
+                    out _);
+            }
+        }
+
+        private void AddSavedRandomQuests(
+            IReadOnlyDictionary<string, QuestStateSaveData> savedQuests,
+            HashSet<string> usedQuestIds,
+            bool emitMessages)
+        {
+            if (savedQuests == null || savedQuests.Count == 0 || randomQuestPool == null)
+            {
+                return;
+            }
+
+            for (var i = 0; i < randomQuestPool.Length; i++)
+            {
+                var definition = randomQuestPool[i];
+                if (definition == null)
+                {
+                    continue;
+                }
+
+                definition.Normalize();
+                if (!savedQuests.ContainsKey(definition.QuestId))
+                {
+                    continue;
+                }
+
+                TryAddQuestDefinition(
+                    definition,
+                    QuestCategory.Random,
+                    savedQuests,
+                    usedQuestIds,
+                    emitMessages,
+                    out _);
+            }
+        }
+
+        private void AddSavedGeneratedQuests(
+            IReadOnlyDictionary<string, QuestStateSaveData> savedQuests,
+            HashSet<string> usedQuestIds,
+            bool emitMessages)
+        {
+            if (savedQuests == null || savedQuests.Count == 0)
+            {
+                return;
+            }
+
+            foreach (var pair in savedQuests)
+            {
+                var savedQuest = pair.Value;
+                if (savedQuest == null
+                    || savedQuest.GeneratedDefinition == null
+                    || usedQuestIds.Contains(savedQuest.QuestId))
+                {
+                    continue;
+                }
+
+                var definition = CreateGeneratedQuestDefinition(savedQuest.GeneratedDefinition);
+                if (definition == null)
+                {
+                    Debug.LogWarning($"运行时生成任务恢复失败，已跳过：{savedQuest.QuestId}", this);
+                    continue;
+                }
+
+                TryAddQuestDefinition(
+                    definition,
+                    definition.Category,
+                    savedQuests,
+                    usedQuestIds,
+                    emitMessages,
+                    out _);
+            }
+        }
+
+        private bool TryAddQuestDefinition(
+            GameQuestDefinition definition,
+            QuestCategory category,
+            IReadOnlyDictionary<string, QuestStateSaveData> savedQuests,
+            HashSet<string> usedQuestIds,
+            bool emitMessages,
+            out GameQuestState quest)
+        {
+            quest = null;
+            if (definition == null)
+            {
+                return false;
+            }
+
+            definition.Normalize();
+            if (!definition.IsValid)
+            {
+                Debug.LogWarning($"任务配置无效，已跳过：{definition.DisplayName}", this);
+                return false;
+            }
+
+            usedQuestIds ??= new HashSet<string>(StringComparer.Ordinal);
+            if (!usedQuestIds.Add(definition.QuestId))
+            {
+                Debug.LogWarning($"任务ID重复，已跳过后续配置：{definition.QuestId}", this);
+                return false;
+            }
+
+            QuestStateSaveData savedQuest = null;
+            if (savedQuests != null)
+            {
+                savedQuests.TryGetValue(definition.QuestId, out savedQuest);
+            }
+
+            quest = new GameQuestState(definition, CurrentTurn, category);
+            if (savedQuest != null)
+            {
+                ApplyQuestSaveData(quest, savedQuest, category);
+            }
+
+            RebuildQuestResourceProgresses(quest, savedQuest);
+            RefreshQuestProgress(quest, emitMessages);
+            quests.Add(quest);
+
+            return true;
+        }
+
+        private GameQuestDefinition CreateGeneratedQuestDefinition(QuestGeneratedDefinitionSaveData saveData)
+        {
+            if (saveData == null)
+            {
+                return null;
+            }
+
+            saveData.Validate();
+            if (!saveData.IsValid)
+            {
+                return null;
+            }
+
+            var requiredResources = BuildItemAmounts(saveData.RequiredResources);
+            if (requiredResources.Count == 0)
+            {
+                return null;
+            }
+
+            var rewards = BuildItemAmounts(saveData.Rewards);
+            return GameQuestDefinition.CreateRuntimeSubmitResourcesQuest(
+                saveData.QuestId,
+                saveData.DisplayName,
+                saveData.Description,
+                saveData.Category,
+                saveData.TurnLimit,
+                requiredResources,
+                rewards);
+        }
+
+        private List<ItemAmount> BuildItemAmounts(IReadOnlyList<QuestItemAmountSaveData> source)
+        {
+            var result = new List<ItemAmount>();
+            if (source == null)
+            {
+                return result;
+            }
+
+            for (var i = 0; i < source.Count; i++)
+            {
+                var item = source[i];
+                if (item == null)
+                {
+                    continue;
+                }
+
+                item.Validate();
+                if (!item.IsValid)
+                {
+                    continue;
+                }
+
+                var definition = FindItemDefinition(item.ItemId);
+                if (definition == null)
+                {
+                    Debug.LogWarning($"任务物品ID不存在，已跳过：{item.ItemId}", this);
+                    continue;
+                }
+
+                result.Add(new ItemAmount(definition, item.Amount));
+            }
+
+            return result;
         }
 
         private static Dictionary<string, QuestStateSaveData> BuildSavedQuestLookup(QuestSaveData saveData)
@@ -1457,7 +2366,218 @@ namespace Landsong
             return result;
         }
 
-        private static void ApplyQuestSaveData(GameQuestState quest, QuestStateSaveData saveData)
+        private bool EnsureRandomQuestCapacity(
+            int desiredActiveCount,
+            HashSet<string> usedQuestIds,
+            bool emitMessages)
+        {
+            var targetCount = Mathf.Clamp(desiredActiveCount, 0, Mathf.Max(0, maxActiveRandomQuests));
+            if (targetCount <= 0 || !HasAnyRandomQuestSource())
+            {
+                return false;
+            }
+
+            usedQuestIds ??= BuildCurrentQuestIdSet();
+            var activeRandomCount = CountActiveRandomQuests();
+            var addedAny = false;
+            while (activeRandomCount < targetCount)
+            {
+                var definition = PickRandomQuestDefinition(usedQuestIds);
+                if (definition == null)
+                {
+                    break;
+                }
+
+                if (!TryAddQuestDefinition(
+                        definition,
+                        QuestCategory.Random,
+                        null,
+                        usedQuestIds,
+                        false,
+                        out var quest))
+                {
+                    continue;
+                }
+
+                addedAny = true;
+                if (quest == null || !quest.IsActive)
+                {
+                    continue;
+                }
+
+                activeRandomCount++;
+                if (emitMessages)
+                {
+                    AddQuestMessage(
+                        GameEventCatalog.GE_随机任务出现,
+                        $"随机任务出现：{quest.Definition.DisplayName}");
+                }
+            }
+
+            return addedAny;
+        }
+
+        private GameQuestDefinition PickRandomQuestDefinition(HashSet<string> usedQuestIds)
+        {
+            var candidates = new List<GameQuestDefinition>();
+            if (randomQuestPool != null)
+            {
+                for (var i = 0; i < randomQuestPool.Length; i++)
+                {
+                    var definition = randomQuestPool[i];
+                    if (definition == null)
+                    {
+                        continue;
+                    }
+
+                    definition.Normalize();
+                    if (!definition.IsValid)
+                    {
+                        continue;
+                    }
+
+                    if (usedQuestIds != null && usedQuestIds.Contains(definition.QuestId))
+                    {
+                        continue;
+                    }
+
+                    candidates.Add(definition);
+                }
+            }
+
+            var exchangeRules = BuildValidRuntimeExchangeQuestRules();
+            var candidateCount = candidates.Count + exchangeRules.Count;
+            if (candidateCount == 0)
+            {
+                return null;
+            }
+
+            var index = UnityEngine.Random.Range(0, candidateCount);
+            if (index < candidates.Count)
+            {
+                return candidates[index];
+            }
+
+            var rule = exchangeRules[index - candidates.Count];
+            var questId = CreateRuntimeRandomQuestId(rule.QuestIdPrefix, usedQuestIds);
+            return rule.CreateDefinition(questId);
+        }
+
+        private List<RandomExchangeQuestRule> BuildValidRuntimeExchangeQuestRules()
+        {
+            var result = new List<RandomExchangeQuestRule>();
+            if (runtimeExchangeQuestRules == null)
+            {
+                return result;
+            }
+
+            for (var i = 0; i < runtimeExchangeQuestRules.Length; i++)
+            {
+                var rule = runtimeExchangeQuestRules[i];
+                rule?.Normalize();
+                if (rule != null && rule.IsValid)
+                {
+                    result.Add(rule);
+                }
+            }
+
+            return result;
+        }
+
+        private bool HasAnyRandomQuestSource()
+        {
+            if (randomQuestPool != null)
+            {
+                for (var i = 0; i < randomQuestPool.Length; i++)
+                {
+                    var definition = randomQuestPool[i];
+                    definition?.Normalize();
+                    if (definition != null && definition.IsValid)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return BuildValidRuntimeExchangeQuestRules().Count > 0;
+        }
+
+        private string CreateRuntimeRandomQuestId(string prefix, HashSet<string> usedQuestIds)
+        {
+            prefix = string.IsNullOrWhiteSpace(prefix) ? "random_exchange" : prefix.Trim();
+            for (var i = 0; i < 100; i++)
+            {
+                generatedRandomQuestSerial++;
+                var questId = $"{prefix}_{CurrentTurn}_{generatedRandomQuestSerial}";
+                if ((usedQuestIds == null || !usedQuestIds.Contains(questId)) && FindQuest(questId) == null)
+                {
+                    return questId;
+                }
+            }
+
+            return $"{prefix}_{Guid.NewGuid():N}";
+        }
+
+        private HashSet<string> BuildCurrentQuestIdSet()
+        {
+            var result = new HashSet<string>(StringComparer.Ordinal);
+            for (var i = 0; i < quests.Count; i++)
+            {
+                var quest = quests[i];
+                if (quest != null && !string.IsNullOrWhiteSpace(quest.QuestId))
+                {
+                    result.Add(quest.QuestId);
+                }
+            }
+
+            return result;
+        }
+
+        private int CountActiveRandomQuests()
+        {
+            var count = 0;
+            for (var i = 0; i < quests.Count; i++)
+            {
+                var quest = quests[i];
+                if (quest != null && quest.IsRandom && quest.IsActive)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        private void RefreshRandomQuestsForTurn(bool emitMessages)
+        {
+            if (maxActiveRandomQuests <= 0 || !HasAnyRandomQuestSource())
+            {
+                return;
+            }
+
+            var currentTurn = CurrentTurn;
+            if (nextRandomQuestRefreshTurn <= 0)
+            {
+                nextRandomQuestRefreshTurn = currentTurn;
+            }
+
+            if (currentTurn < nextRandomQuestRefreshTurn)
+            {
+                return;
+            }
+
+            var addedAny = EnsureRandomQuestCapacity(maxActiveRandomQuests, null, emitMessages);
+            nextRandomQuestRefreshTurn = currentTurn + Mathf.Max(1, randomQuestRefreshIntervalTurns);
+            if (addedAny)
+            {
+                NotifyQuestsChanged();
+            }
+        }
+
+        private static void ApplyQuestSaveData(
+            GameQuestState quest,
+            QuestStateSaveData saveData,
+            QuestCategory category)
         {
             if (quest == null || saveData == null)
             {
@@ -1465,6 +2585,7 @@ namespace Landsong
             }
 
             saveData.Validate();
+            quest.Category = GameQuestDefinition.NormalizeQuestCategory(category);
             quest.Status = saveData.Status;
             quest.StartedTurn = Mathf.Max(1, saveData.StartedTurn);
             quest.DeadlineTurn = Mathf.Max(quest.StartedTurn, saveData.DeadlineTurn);
@@ -1698,12 +2819,62 @@ namespace Landsong
             }
 
             quest.Status = QuestStatus.Completed;
+            var rewardText = ApplyQuestRewards(quest);
             if (emitMessage)
             {
+                var message = string.IsNullOrWhiteSpace(rewardText)
+                    ? $"任务完成：{quest.Definition.DisplayName}"
+                    : $"任务完成：{quest.Definition.DisplayName}（获得 {rewardText}）";
                 AddQuestMessage(
                     GameEventCatalog.GE_任务完成,
-                    $"任务完成：{quest.Definition.DisplayName}");
+                    message);
             }
+        }
+
+        private string ApplyQuestRewards(GameQuestState quest)
+        {
+            if (quest == null || quest.Definition == null || !quest.Definition.HasRewards)
+            {
+                return string.Empty;
+            }
+
+            if (Inventory == null)
+            {
+                CreateInventoryService();
+            }
+
+            if (Inventory == null)
+            {
+                return string.Empty;
+            }
+
+            var rewardLines = new List<string>();
+            var rewards = quest.Definition.Rewards;
+            for (var i = 0; i < rewards.Count; i++)
+            {
+                var reward = rewards[i].Normalized();
+                if (!reward.IsValid || reward.ItemDefinition == null)
+                {
+                    continue;
+                }
+
+                var added = Inventory.AddItem(reward.ItemDefinition, reward.Amount);
+                if (added <= 0)
+                {
+                    Debug.LogWarning($"任务奖励无法加入库存：{reward.ItemId} x{reward.Amount}", this);
+                    continue;
+                }
+
+                rewardLines.Add(FormatPlainItemAmount(reward.ItemDefinition, added));
+                if (added < reward.Amount)
+                {
+                    Debug.LogWarning(
+                        $"任务奖励只加入了部分数量：{reward.ItemId} {added}/{reward.Amount}",
+                        this);
+                }
+            }
+
+            return rewardLines.Count == 0 ? string.Empty : string.Join("，", rewardLines);
         }
 
         private void FailQuest(GameQuestState quest, bool emitMessage)
@@ -1760,6 +2931,16 @@ namespace Landsong
 
             var catalog = Inventory == null ? itemCatalog : Inventory.ItemCatalog;
             return catalog != null && catalog.TryGetDefinition(itemId, out var definition) ? definition : null;
+        }
+
+        private static string FormatPlainItemAmount(ItemDefinition definition, int amount)
+        {
+            if (definition == null)
+            {
+                return string.Empty;
+            }
+
+            return $"{definition.DisplayName} x{Mathf.Max(0, amount)}";
         }
 
         private void AddQuestMessage(string eventTypeId, string message)
@@ -1871,6 +3052,7 @@ namespace Landsong
         private void HandleQuestTurnAdvanced(TurnService changedTurn, TurnAdvanceSummary summary)
         {
             RefreshAllQuestProgress(true);
+            RefreshRandomQuestsForTurn(!suppressQuestRuntimeMessages);
         }
 
         private void NotifyQuestsChanged()
@@ -1885,6 +3067,7 @@ namespace Landsong
                 this,
                 expeditionDestinationCatalog,
                 expeditionSubsidyGoldItemDefinition,
+                expeditionTeamCapacity,
                 saveData);
             Expeditions.StateChanged += HandleExpeditionsChanged;
             SyncExpeditionPopulationEmployment();
@@ -1961,9 +3144,10 @@ namespace Landsong
 
             if (result.Succeeded)
             {
+                var rewardYieldText = $"收益率 {FormatRewardYieldPercent(expedition.RewardYieldMultiplier)}，";
                 var message = result.RewardsPending
-                    ? $"远征归来：{FormatExpeditionDestinationName(expedition)} 成功，人口已返还，仓库空间不足，奖励待领取。"
-                    : $"远征归来：{FormatExpeditionDestinationName(expedition)} 成功，人口已返还。";
+                    ? $"远征归来：{FormatExpeditionDestinationName(expedition)} 成功，人口已返还，{rewardYieldText}仓库空间不足，奖励待领取。"
+                    : $"远征归来：{FormatExpeditionDestinationName(expedition)} 成功，人口已返还，{rewardYieldText}奖励已结算。";
                 AddExpeditionMessage(
                     result.RewardsPending
                         ? GameEventCatalog.GE_远征奖励待领取
@@ -2361,6 +3545,11 @@ namespace Landsong
         private static string FormatPercent(float value)
         {
             return $"{Mathf.Clamp01(value) * 100f:0.#}%";
+        }
+
+        private static string FormatRewardYieldPercent(float value)
+        {
+            return $"{Mathf.Max(0f, value) * 100f:0.#}%";
         }
 
         private void InitializeUnlockedTechnologies()

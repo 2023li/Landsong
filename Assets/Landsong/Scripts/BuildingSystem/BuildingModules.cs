@@ -13,6 +13,11 @@ namespace Landsong.BuildingSystem
         void RestoreState(string json);
     }
 
+    public interface IBuildingExpeditionRewardYieldSource
+    {
+        float ExpeditionRewardYieldBonus { get; }
+    }
+
     [Serializable]
     public abstract class BuildingModuleBase
     {
@@ -611,6 +616,45 @@ namespace Landsong.BuildingSystem
                     BuildingFunctionBlockGroup.功能性,
                     "库存格",
                     ProvidedSlotCount));
+        }
+    }
+
+    [Serializable]
+    public sealed class BM_远征收益率 : BuildingModuleBase, IBuildingExpeditionRewardYieldSource
+    {
+        [SerializeField, LabelText("远征收益率加成"), Min(0f)]
+        [PropertyTooltip("0.1 表示远征成功物品奖励 +10%。")]
+        private float expeditionRewardYieldBonus = 0.1f;
+
+        public override string ModuleDescription => "为成功远征的物品奖励提供收益率加成。";
+        public float ExpeditionRewardYieldBonus => Mathf.Max(0f, expeditionRewardYieldBonus);
+
+        public override void Normalize()
+        {
+            expeditionRewardYieldBonus = Mathf.Max(0f, expeditionRewardYieldBonus);
+        }
+
+        public override void AppendFunctionBlockEntries(
+            BuildingBase building,
+            ref List<BuildingFunctionBlockEntry> entries)
+        {
+            var percent = Mathf.RoundToInt(ExpeditionRewardYieldBonus * 100f);
+            if (percent <= 0)
+            {
+                return;
+            }
+
+            AddFunctionBlockEntry(
+                ref entries,
+                new BuildingFunctionBlockEntry(
+                    BuildingFunctionBlockGroup.功能性,
+                    "远征收益率",
+                    percent,
+                    new BuildingFunctionBlockSidebarRow(
+                        "远征收益率",
+                        $"+{percent}%",
+                        ExpeditionRewardYieldBonus,
+                        true)));
         }
     }
 

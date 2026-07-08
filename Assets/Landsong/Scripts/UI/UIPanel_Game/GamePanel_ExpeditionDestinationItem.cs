@@ -10,70 +10,92 @@ namespace Landsong.UISystem
     [DisallowMultipleComponent]
     public sealed class GamePanel_ExpeditionDestinationItem : MonoBehaviour
     {
-        [SerializeField, LabelText("选择按钮")] private Button button;
-        [SerializeField, LabelText("图标")] private Image icon;
-        [SerializeField, LabelText("名称文本")] private TMP_Text titleLabel;
-        [SerializeField, LabelText("描述文本")] private TMP_Text descriptionLabel;
-        [SerializeField, LabelText("状态文本")] private TMP_Text statusLabel;
-        [SerializeField, LabelText("回合文本")] private TMP_Text turnWindowLabel;
-        [SerializeField, LabelText("选中根节点")] private GameObject selectedRoot;
-        [SerializeField, LabelText("不可用根节点")] private GameObject unavailableRoot;
+        [SerializeField] private TMP_Text txt_名称;
+        [SerializeField] private Image icon;
+        //如果已经结束 则是领取奖励
+        [SerializeField] private Button btn;
+        [SerializeField] private GameObject go_被选中;
+
+        //进行中设置为激活
+        [SerializeField, FoldoutGroup("进行状态")] private GameObject root_进行中;
+        [SerializeField, FoldoutGroup("进行状态")] private Slider sld_进度条;
+        [SerializeField, FoldoutGroup("进行状态")] private TMP_Text txt_进度文本;
+
+        //结束设置为激活
+        [SerializeField,FoldoutGroup("结束状态")] private GameObject root_结束;
+        [SerializeField, FoldoutGroup("结束状态")] private GameObject go_成功;
+        [SerializeField, FoldoutGroup("结束状态")] private GameObject go_失败;
 
         private ExpeditionDestinationAvailability availability;
+        private ExpeditionState expedition;
+        private int currentTurn = 1;
         private Action<ExpeditionDestinationDefinition> clicked;
+        private Action<ExpeditionState> claimClicked;
 
         private void Reset()
         {
-            button = GetComponent<Button>();
+            btn = GetComponent<Button>();
             icon = GetComponentInChildren<Image>(true);
         }
 
         private void OnDestroy()
         {
-            if (button != null)
+            if (btn != null)
             {
-                button.onClick.RemoveListener(HandleClicked);
+                btn.onClick.RemoveListener(HandleClicked);
             }
         }
 
         public void Bind(
             ExpeditionDestinationAvailability sourceAvailability,
             bool selected,
-            Action<ExpeditionDestinationDefinition> onClicked)
+            ExpeditionState sourceExpedition,
+            int sourceCurrentTurn,
+            Action<ExpeditionDestinationDefinition> onClicked,
+            Action<ExpeditionState> onClaimClicked)
         {
-            if (button != null)
+            if (btn != null)
             {
-                button.onClick.RemoveListener(HandleClicked);
+                btn.onClick.RemoveListener(HandleClicked);
             }
 
             availability = sourceAvailability;
+            expedition = sourceExpedition;
+            currentTurn = Mathf.Max(1, sourceCurrentTurn);
             clicked = onClicked;
+            claimClicked = onClaimClicked;
             Refresh(selected);
 
-            if (button != null)
+            if (btn != null)
             {
-                button.interactable = availability.Destination != null;
-                button.onClick.AddListener(HandleClicked);
+                btn.interactable = availability.Destination != null;
+                btn.onClick.AddListener(HandleClicked);
             }
         }
 
         public void Unbind()
         {
-            if (button != null)
+            if (btn != null)
             {
-                button.onClick.RemoveListener(HandleClicked);
-                button.interactable = false;
+                btn.onClick.RemoveListener(HandleClicked);
+                btn.interactable = false;
             }
 
             availability = default;
+            expedition = null;
+            currentTurn = 1;
             clicked = null;
+            claimClicked = null;
+
             SetIcon(null);
-            SetText(titleLabel, string.Empty);
-            SetText(descriptionLabel, string.Empty);
-            SetText(statusLabel, string.Empty);
-            SetText(turnWindowLabel, string.Empty);
-            SetActive(selectedRoot, false);
-            SetActive(unavailableRoot, false);
+            SetText(txt_名称, string.Empty);
+            SetText(txt_进度文本, string.Empty);
+            SetActive(go_被选中, false);
+            SetActive(root_进行中, false);
+            SetActive(root_结束, false);
+            SetActive(go_成功, false);
+            SetActive(go_失败, false);
+            SetProgress(0f, false);
         }
 
         private void Refresh(bool selected)
@@ -86,57 +108,53 @@ namespace Landsong.UISystem
             }
 
             SetIcon(destination.Icon);
-            SetText(titleLabel, destination.DisplayName);
-            SetText(descriptionLabel, destination.Description);
-            SetText(statusLabel, FormatStatus(availability));
-            SetText(turnWindowLabel, FormatTurnWindow(destination));
-            SetActive(selectedRoot, selected);
-            SetActive(unavailableRoot, !availability.IsAvailable);
+            SetText(txt_名称, destination.DisplayName);
+            SetActive(go_被选中, selected);
+            RefreshExpeditionState();
+        }
+
+        private void RefreshExpeditionState()
+        {
+            var isActive = expedition != null && expedition.IsActive;
+            var isEnded = expedition != null && !expedition.IsActive;
+
+            SetActive(root_进行中, isActive);
+            SetActive(root_结束, isEnded);
+            SetActive(go_成功, isEnded && expedition.IsSucceeded);
+            SetActive(go_失败, isEnded && expedition.IsFailed);
+            SetProgress(isActive ? CalculateProgress(expedition, currentTurn) : 0f, isActive);
+
+            if (!isActive)
+            {
+                SetText(txt_进度文本, string.Empty);
+                return;
+            }
+
+            var remaining = expedition.GetRemainingTurns(currentTurn);
+            SetText(txt_进度文本, $"第 {expedition.ReturnTurn} 回合归来，剩余 {remaining} 回合");
         }
 
         private void HandleClicked()
         {
+            if (expedition != null && expedition.HasPendingRewards)
+            {
+                claimClicked?.Invoke(expedition);
+                return;
+            }
+
             clicked?.Invoke(availability.Destination);
         }
 
-        private static string FormatStatus(ExpeditionDestinationAvailability availability)
+        private static float CalculateProgress(ExpeditionState expedition, int currentTurn)
         {
-            if (availability.IsAvailable)
+            if (expedition == null)
             {
-                return "可出发";
+                return 0f;
             }
 
-            return availability.Reason switch
-            {
-                ExpeditionDestinationUnavailableReason.WindowClosed => "不在窗口期",
-                ExpeditionDestinationUnavailableReason.ConditionLocked => "条件未满足",
-                ExpeditionDestinationUnavailableReason.AlreadyCompleted => "已完成",
-                _ => "不可用"
-            };
-        }
-
-        private static string FormatTurnWindow(ExpeditionDestinationDefinition destination)
-        {
-            if (destination == null)
-            {
-                return string.Empty;
-            }
-
-            var hasEarliest = destination.EarliestAvailableTurn > 0;
-            var hasLatest = destination.LatestAvailableTurn > 0;
-            if (!hasEarliest && !hasLatest)
-            {
-                return "常驻";
-            }
-
-            if (hasEarliest && hasLatest)
-            {
-                return $"第 {destination.EarliestAvailableTurn}-{destination.LatestAvailableTurn} 回合";
-            }
-
-            return hasEarliest
-                ? $"第 {destination.EarliestAvailableTurn} 回合后"
-                : $"截止第 {destination.LatestAvailableTurn} 回合";
+            var total = Mathf.Max(1, expedition.ReturnTurn - expedition.StartedTurn);
+            var elapsed = Mathf.Clamp(Mathf.Max(1, currentTurn) - expedition.StartedTurn, 0, total);
+            return Mathf.Clamp01(elapsed / (float)total);
         }
 
         private void SetIcon(Sprite sprite)
@@ -148,6 +166,19 @@ namespace Landsong.UISystem
 
             icon.sprite = sprite;
             icon.enabled = sprite != null;
+        }
+
+        private void SetProgress(float value, bool visible)
+        {
+            if (sld_进度条 == null)
+            {
+                return;
+            }
+
+            sld_进度条.gameObject.SetActive(visible);
+            sld_进度条.minValue = 0f;
+            sld_进度条.maxValue = 1f;
+            sld_进度条.value = Mathf.Clamp01(value);
         }
 
         private static void SetText(TMP_Text target, string text)

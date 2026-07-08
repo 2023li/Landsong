@@ -18,7 +18,7 @@ namespace Landsong.InventorySystem
         [SerializeField] private ItemCategory category = ItemCategory.None;
         [SerializeField] private bool stackable = true;
         [SerializeField, Min(1)] private int maxStackSize = 99;
-        [SerializeField, Min(0)] private int baseValue;
+        [SerializeField, Min(0)] private int baseValue=1;
         [SerializeField] private string addressableKey;
         [SerializeField] private string[] tags = Array.Empty<string>();
 

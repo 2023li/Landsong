@@ -20,7 +20,7 @@ MonoBehaviour:
   allowRepeatResearch: 0
   prerequisites: []
   completionEffects: []
-  graphPosition: {x: 187.33334, y: 149.33331}
+  graphPosition: {x: 0, y: 375.3333}
   references:
     version: 2
     RefIds: []

@@ -1,4 +1,5 @@
 using System;
+using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -15,8 +16,8 @@ namespace Landsong.UISystem
         [SerializeField] private TMP_Text statusLabel;
         [SerializeField] private Slider progressSlider;
         [SerializeField] private Image icon;
-        [SerializeField] private GameObject urgentRoot;
-        [SerializeField] private GameObject completableRoot;
+        [SerializeField,LabelText("紧急标记")] private GameObject urgentRoot;
+        [SerializeField,LabelText("可完成标记")] private GameObject completableRoot;
 
         private GameQuestState quest;
         private Action<GameQuestState> clicked;
@@ -45,7 +46,7 @@ namespace Landsong.UISystem
             quest = sourceQuest;
             clicked = onClicked;
 
-            SetText(titleLabel, quest == null || quest.Definition == null ? string.Empty : quest.Definition.DisplayName);
+            SetText(titleLabel, FormatTitle(quest));
             SetText(progressLabel, FormatProgress(quest));
             SetText(deadlineLabel, FormatDeadline(quest));
             SetText(statusLabel, FormatStatus(quest));
@@ -99,6 +100,16 @@ namespace Landsong.UISystem
                 QuestObjectiveType.SubmitResources => $"{quest.TotalSubmittedAmount}/{quest.TotalRequiredAmount}",
                 _ => $"{quest.CurrentAmount}/{quest.TargetAmount}"
             };
+        }
+
+        private static string FormatTitle(GameQuestState quest)
+        {
+            if (quest == null || quest.Definition == null)
+            {
+                return string.Empty;
+            }
+
+            return $"[{quest.CategoryDisplayName}] {quest.Definition.DisplayName}";
         }
 
         private static string FormatDeadline(GameQuestState quest)
