@@ -44,6 +44,7 @@ namespace Landsong.UISystem
 
         private void Awake()
         {
+            gamePanel = GetComponentInParent<UIPanel_Game>();
             btn_关闭.onClick.AddListener(gamePanel.Hide_Overview);
         }
 

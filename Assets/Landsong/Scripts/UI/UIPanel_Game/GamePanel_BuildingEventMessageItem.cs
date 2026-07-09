@@ -10,20 +10,11 @@ namespace Landsong.UISystem
     {
         [SerializeField] private Button button;
         [SerializeField] private Button deleteButton;
-        [SerializeField] private Button detailButton;
         [SerializeField] private TMP_Text messageLabel;
-        [SerializeField] private TMP_Text detailLabel;
-        [SerializeField] private GameObject detailRoot;
-        [SerializeField] private string detailButtonCollapsedText = "详细";
-        [SerializeField] private string detailButtonExpandedText = "收起";
-        [SerializeField, Min(1)] private int collapsedPreviewMaxLength = 28;
-        [SerializeField, Min(1f)] private float collapsedHeight = 100f;
-        [SerializeField, Min(1f)] private float expandedHeight = 160f;
 
         private GameEventMessage message;
         private Action<GameEventMessage> clicked;
         private Action<GameEventMessage> deleted;
-        private bool isExpanded;
 
         private void Reset()
         {
@@ -33,16 +24,13 @@ namespace Landsong.UISystem
 
         private void Awake()
         {
-            if (button == null)
-            {
-                button = GetComponent<Button>();
-            }
-
-            SetExpanded(false);
+            ResolveButton();
+            RefreshDeleteButton();
         }
 
         private void OnEnable()
         {
+            ResolveButton();
             if (button != null)
             {
                 button.onClick.AddListener(HandleClicked);
@@ -50,13 +38,10 @@ namespace Landsong.UISystem
 
             if (deleteButton != null)
             {
-                deleteButton.onClick.AddListener(HandleDeleteClicked);
+                deleteButton.onClick.AddListener(HandleDeleted);
             }
 
-            if (detailButton != null)
-            {
-                detailButton.onClick.AddListener(HandleDetailClicked);
-            }
+            RefreshDeleteButton();
         }
 
         private void OnDisable()
@@ -68,12 +53,7 @@ namespace Landsong.UISystem
 
             if (deleteButton != null)
             {
-                deleteButton.onClick.RemoveListener(HandleDeleteClicked);
-            }
-
-            if (detailButton != null)
-            {
-                detailButton.onClick.RemoveListener(HandleDetailClicked);
+                deleteButton.onClick.RemoveListener(HandleDeleted);
             }
         }
 
@@ -88,25 +68,15 @@ namespace Landsong.UISystem
 
             if (messageLabel != null)
             {
-                messageLabel.text = FormatCollapsedMessage(message);
+                messageLabel.text = FormatEventName(message);
             }
 
-            if (detailLabel != null)
+            if (button != null)
             {
-                detailLabel.text = FormatDetailMessage(message);
+                button.interactable = message.IsValid;
             }
 
-            if (deleteButton != null)
-            {
-                deleteButton.interactable = message.IsValid;
-            }
-
-            if (detailButton != null)
-            {
-                detailButton.interactable = message.IsValid;
-            }
-
-            SetExpanded(false);
+            RefreshDeleteButton();
         }
 
         public void Unbind()
@@ -114,29 +84,18 @@ namespace Landsong.UISystem
             message = default;
             clicked = null;
             deleted = null;
-            isExpanded = false;
 
             if (messageLabel != null)
             {
                 messageLabel.text = string.Empty;
             }
 
-            if (detailLabel != null)
+            if (button != null)
             {
-                detailLabel.text = string.Empty;
+                button.interactable = false;
             }
 
-            if (deleteButton != null)
-            {
-                deleteButton.interactable = false;
-            }
-
-            if (detailButton != null)
-            {
-                detailButton.interactable = false;
-            }
-
-            SetExpanded(false);
+            RefreshDeleteButton();
         }
 
         private void HandleClicked()
@@ -149,76 +108,45 @@ namespace Landsong.UISystem
             clicked?.Invoke(message);
         }
 
-        private void HandleDeleteClicked()
+        private void HandleDeleted()
         {
             if (!message.IsValid)
             {
                 return;
             }
+
+            Debug.Log("DD");
 
             deleted?.Invoke(message);
         }
 
-        private void HandleDetailClicked()
+        private void ResolveButton()
         {
-            if (!message.IsValid)
+            if (button == null)
             {
-                return;
-            }
-
-            SetExpanded(!isExpanded);
-        }
-
-        private void SetExpanded(bool expanded)
-        {
-            isExpanded = expanded;
-
-            if (detailRoot != null)
-            {
-                detailRoot.SetActive(isExpanded);
-            }
-
-            if (detailButton != null)
-            {
-                var buttonLabel = detailButton.GetComponentInChildren<TMP_Text>(true);
-                if (buttonLabel != null)
-                {
-                    buttonLabel.text = isExpanded ? detailButtonExpandedText : detailButtonCollapsedText;
-                }
-            }
-
-            if (transform is RectTransform rectTransform)
-            {
-                rectTransform.SetSizeWithCurrentAnchors(
-                    RectTransform.Axis.Vertical,
-                    isExpanded ? expandedHeight : collapsedHeight);
+                button = GetComponent<Button>();
             }
         }
 
-        private string FormatCollapsedMessage(GameEventMessage eventMessage)
+        private void RefreshDeleteButton()
         {
-            var text = eventMessage.Message;
-            if (string.IsNullOrWhiteSpace(text) || text.Length <= collapsedPreviewMaxLength)
+            if (deleteButton != null)
             {
-                return text;
+                var canDelete = message.IsValid && deleted != null;
+                deleteButton.gameObject.SetActive(canDelete);
+                deleteButton.interactable = canDelete;
             }
-
-            return $"{text.Substring(0, collapsedPreviewMaxLength)}...";
         }
 
-        private static string FormatDetailMessage(GameEventMessage eventMessage)
+        private static string FormatEventName(GameEventMessage eventMessage)
         {
             if (!eventMessage.IsValid)
             {
                 return string.Empty;
             }
 
-            var source = eventMessage.IsBuildingEvent && eventMessage.Building != null && eventMessage.Building.HasDefinition
-                ? eventMessage.Building.Definition.DisplayName
-                : string.Empty;
-            return string.IsNullOrWhiteSpace(source)
-                ? $"第 {eventMessage.Turn} 回合\n{eventMessage.Message}"
-                : $"第 {eventMessage.Turn} 回合\n{source}\n{eventMessage.Message}";
+            var displayName = GameEventCatalog.GetDisplayName(eventMessage.EventTypeId);
+            return string.IsNullOrWhiteSpace(displayName) ? eventMessage.EventTypeId : displayName;
         }
     }
 }

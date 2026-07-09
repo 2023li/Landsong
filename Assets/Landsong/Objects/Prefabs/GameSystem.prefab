@@ -72,31 +72,34 @@ MonoBehaviour:
   startingResearchProgress: 0
   startingUnlockedTechnologies: []
   startingQuests:
-  - questId: main_build_residential_houses_3
-    displayName: "\u5B89\u7F6E\u65B0\u6C11"
-    description: "\u4E3A\u65B0\u6765\u7684\u5C45\u6C11\u5EFA\u9020 3 \u5EA7\u5C45\u6C11\u623F\uFF0C\u8BA9\u738B\u671D\u6709\u8DB3\u591F\u7684\u5C45\u6240\u627F\u8F7D\u4EBA\u53E3\u589E\u957F\u3002"
-    category: 1
-    objectiveType: 1
-    turnLimit: 12
-    targetBuilding: {fileID: 8791965200104292625, guid: 5a2e56844bf1f09479a2a8a48ecfa705, type: 3}
-    targetBuildingCount: 3
-    requiredResources: []
-    rewards:
-    - itemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
-      amount: 1000
-    runtimeGenerated: 0
   - questId: main_build_farms_3
-    displayName: "\u6574\u5907\u7530\u57C2"
-    description: "\u5EFA\u9020 3 \u5EA7\u519C\u7530\uFF0C\u4E3A\u5C45\u6C11\u63D0\u4F9B\u7A33\u5B9A\u7684\u98DF\u7269\u6765\u6E90\u3002"
+    displayName: "\u6574\u5907\u7530\u5784"
+    description: "\u5148\u5EFA\u9020 3 \u5EA7\u519C\u7530\uFF0C\u4E3A\u540E\u7EED\u5C45\u6C11\u6269\u5F20\u51C6\u5907\u7A33\u5B9A\u7684\u98DF\u7269\u6765\u6E90\u3002"
     category: 1
     objectiveType: 1
     turnLimit: 10
+    prerequisiteQuestIds: []
     targetBuilding: {fileID: 2027023451905461964, guid: 71d3910ce5890e845875aa6bd4154c0a, type: 3}
     targetBuildingCount: 3
     requiredResources: []
     rewards:
     - itemDefinition: {fileID: 11400000, guid: 3083d7b285a48b34384cf36253389185, type: 2}
       amount: 500
+    runtimeGenerated: 0
+  - questId: main_build_residential_houses_3
+    displayName: "\u5B89\u7F6E\u65B0\u6C11"
+    description: "\u519C\u7530\u521D\u5177\u89C4\u6A21\u540E\uFF0C\u5EFA\u9020 3 \u5EA7\u5C45\u6C11\u623FLV0\uFF0C\u8BA9\u65B0\u6765\u7684\u5C45\u6C11\u6709\u53EF\u4EE5\u843D\u811A\u7684\u5C45\u6240\u3002"
+    category: 1
+    objectiveType: 1
+    turnLimit: 12
+    prerequisiteQuestIds:
+    - main_build_farms_3
+    targetBuilding: {fileID: 4732425292780895895, guid: fe7a88baee6ec2c4785fa2ea7cf9cd59, type: 3}
+    targetBuildingCount: 3
+    requiredResources: []
+    rewards:
+    - itemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+      amount: 1000
     runtimeGenerated: 0
   randomQuestPool: []
   runtimeExchangeQuestRules: []

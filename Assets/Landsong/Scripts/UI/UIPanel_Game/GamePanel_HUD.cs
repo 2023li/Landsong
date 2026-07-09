@@ -1,6 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using Landsong;
 using Landsong.BuildingSystem;
 using Landsong.DynastySystem;
@@ -25,13 +23,9 @@ public class GamePanel_HUD : MonoBehaviour
     private bool subscribedToInventory;
     private bool subscribedToTechnology;
     private bool subscribedToTurn;
-    private bool subscribedToQuests;
     private bool subscribedToBuildingSelection;
     private BuildingSelectionController subscribedBuildingSelection;
     private Coroutine turnProcessingDisplayRoutine;
-    private readonly List<GamePanel_HUDQuestItem> activeQuestItems = new List<GamePanel_HUDQuestItem>();
-    private readonly List<GamePanel_HUDQuestItem> questItemPool = new List<GamePanel_HUDQuestItem>();
-    private readonly List<GameQuestState> visibleHudQuests = new List<GameQuestState>();
 
     private void Awake()
     {
@@ -126,14 +120,6 @@ public class GamePanel_HUD : MonoBehaviour
 
     #region 事件栏
     [SerializeField] private RectTransform rt_事件栏;
-    #endregion
-
-    #region 任务追踪
-    [SerializeField, FoldoutGroup("任务追踪")] private RectTransform root_任务列表;
-    [SerializeField, FoldoutGroup("任务追踪")] private GamePanel_HUDQuestItem prefab_任务列表Item;
-    [SerializeField, FoldoutGroup("任务追踪")] private GameObject go_任务列表空状态;
-    [SerializeField, FoldoutGroup("任务追踪")] private TMP_Text txt_任务列表溢出;
-    [SerializeField, FoldoutGroup("任务追踪"), Min(1)] private int maxHudQuestItems = 3;
     #endregion
 
     [SerializeField, Min(0f)] private float panelMotionDuration = 0.18f;
@@ -293,7 +279,6 @@ public class GamePanel_HUD : MonoBehaviour
         SubscribeInventory();
         SubscribeTechnology();
         SubscribeTurn();
-        SubscribeQuests();
     }
 
     private void UnsubscribeRuntimeServices()
@@ -302,7 +287,6 @@ public class GamePanel_HUD : MonoBehaviour
         UnsubscribeInventory();
         UnsubscribeTechnology();
         UnsubscribeTurn();
-        UnsubscribeQuests();
     }
 
     private void SubscribeDynasty()
@@ -401,29 +385,6 @@ public class GamePanel_HUD : MonoBehaviour
         subscribedToTurn = false;
     }
 
-    private void SubscribeQuests()
-    {
-        if (subscribedToQuests || gameSystem == null)
-        {
-            return;
-        }
-
-        gameSystem.QuestsChanged += HandleQuestsChanged;
-        subscribedToQuests = true;
-    }
-
-    private void UnsubscribeQuests()
-    {
-        if (!subscribedToQuests || gameSystem == null)
-        {
-            subscribedToQuests = false;
-            return;
-        }
-
-        gameSystem.QuestsChanged -= HandleQuestsChanged;
-        subscribedToQuests = false;
-    }
-
     private void RefreshTopBar()
     {
         RefreshStage();
@@ -432,7 +393,6 @@ public class GamePanel_HUD : MonoBehaviour
         RefreshTechnology();
         RefreshTurnCount();
         RefreshTurnControls();
-        RefreshQuestTracker();
     }
 
     private void RefreshStage()
@@ -444,7 +404,7 @@ public class GamePanel_HUD : MonoBehaviour
     {
         txt_Population.text = dynasty == null
             ? "0/0"
-            : $"{dynasty.EmployedPopulation}/{dynasty.Population}";
+            : $"{dynasty.AvailablePopulation}/{dynasty.Population}";
     }
 
     private void RefreshGold()
@@ -652,12 +612,6 @@ public class GamePanel_HUD : MonoBehaviour
         RefreshTechnology();
     }
 
-    private void HandleQuestsChanged(GameSystem changedGameSystem)
-    {
-        gameSystem = changedGameSystem;
-        RefreshQuestTracker();
-    }
-
     private static void SetActive(GameObject target, bool active)
     {
         if (target != null)
@@ -672,142 +626,6 @@ public class GamePanel_HUD : MonoBehaviour
         {
             target.text = text ?? string.Empty;
         }
-    }
-
-    private void RefreshQuestTracker()
-    {
-        ReleaseActiveQuestItems();
-
-        if (gameSystem == null || root_任务列表 == null || prefab_任务列表Item == null)
-        {
-            SetActive(go_任务列表空状态, false);
-            SetText(txt_任务列表溢出, string.Empty);
-            return;
-        }
-
-        CollectVisibleHudQuests();
-        var visibleCount = visibleHudQuests.Count;
-        var renderCount = Mathf.Min(visibleCount, Mathf.Max(1, maxHudQuestItems));
-        for (var i = 0; i < renderCount; i++)
-        {
-            var item = GetQuestItemFromPool();
-            item.Bind(visibleHudQuests[i], HandleHudQuestClicked);
-            activeQuestItems.Add(item);
-        }
-
-        SetActive(go_任务列表空状态, visibleCount <= 0);
-        var overflowCount = Mathf.Max(0, visibleCount - renderCount);
-        SetText(txt_任务列表溢出, overflowCount > 0 ? $"还有 {overflowCount} 个任务" : string.Empty);
-    }
-
-    private void CollectVisibleHudQuests()
-    {
-        visibleHudQuests.Clear();
-        if (gameSystem == null)
-        {
-            return;
-        }
-
-        var quests = gameSystem.Quests;
-        for (var i = 0; i < quests.Count; i++)
-        {
-            var quest = quests[i];
-            if (quest == null || !quest.IsActive)
-            {
-                continue;
-            }
-
-            visibleHudQuests.Add(quest);
-        }
-
-        visibleHudQuests.Sort(CompareHudQuests);
-    }
-
-    private static int CompareHudQuests(GameQuestState left, GameQuestState right)
-    {
-        var leftCategoryPriority = GetHudQuestCategoryPriority(left);
-        var rightCategoryPriority = GetHudQuestCategoryPriority(right);
-        if (leftCategoryPriority != rightCategoryPriority)
-        {
-            return leftCategoryPriority.CompareTo(rightCategoryPriority);
-        }
-
-        var leftDeadline = left == null ? int.MaxValue : left.DeadlineTurn;
-        var rightDeadline = right == null ? int.MaxValue : right.DeadlineTurn;
-        if (leftDeadline != rightDeadline)
-        {
-            return leftDeadline.CompareTo(rightDeadline);
-        }
-
-        var leftCanSubmit = left != null && left.CanSubmitResources();
-        var rightCanSubmit = right != null && right.CanSubmitResources();
-        if (leftCanSubmit != rightCanSubmit)
-        {
-            return leftCanSubmit ? -1 : 1;
-        }
-
-        return string.Compare(
-            left == null || left.Definition == null ? string.Empty : left.Definition.DisplayName,
-            right == null || right.Definition == null ? string.Empty : right.Definition.DisplayName,
-            StringComparison.Ordinal);
-    }
-
-    private static int GetHudQuestCategoryPriority(GameQuestState quest)
-    {
-        if (quest == null)
-        {
-            return int.MaxValue;
-        }
-
-        return quest.IsMainline ? 0 : 1;
-    }
-
-    private GamePanel_HUDQuestItem GetQuestItemFromPool()
-    {
-        GamePanel_HUDQuestItem item;
-        var lastIndex = questItemPool.Count - 1;
-        if (lastIndex >= 0)
-        {
-            item = questItemPool[lastIndex];
-            questItemPool.RemoveAt(lastIndex);
-        }
-        else
-        {
-            item = Instantiate(prefab_任务列表Item);
-        }
-
-        item.transform.SetParent(root_任务列表, false);
-        item.gameObject.SetActive(true);
-        return item;
-    }
-
-    private void ReleaseActiveQuestItems()
-    {
-        for (var i = 0; i < activeQuestItems.Count; i++)
-        {
-            var item = activeQuestItems[i];
-            if (item == null)
-            {
-                continue;
-            }
-
-            item.Unbind();
-            item.gameObject.SetActive(false);
-            item.transform.SetParent(root_任务列表 == null ? transform : root_任务列表, false);
-            questItemPool.Add(item);
-        }
-
-        activeQuestItems.Clear();
-    }
-
-    private void HandleHudQuestClicked(GameQuestState quest)
-    {
-        if (gamePanel == null)
-        {
-            gamePanel = GetComponentInParent<UIPanel_Game>();
-        }
-
-        gamePanel?.Show_Quest(quest);
     }
 
     public void Show()

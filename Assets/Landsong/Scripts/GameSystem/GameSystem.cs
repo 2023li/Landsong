@@ -45,6 +45,7 @@ namespace Landsong
         [SerializeField, LabelText("任务机制")] private QuestCategory category = QuestCategory.Mainline;
         [SerializeField, LabelText("任务类型")] private QuestObjectiveType objectiveType = QuestObjectiveType.BuildBuildings;
         [SerializeField, LabelText("期限回合数"), Min(1)] private int turnLimit = 10;
+        [SerializeField, LabelText("前置任务ID")] private string[] prerequisiteQuestIds = Array.Empty<string>();
 
         [SerializeField, LabelText("目标建筑")] private BuildingBase targetBuilding;
         [SerializeField, LabelText("目标建筑数量"), Min(1)] private int targetBuildingCount = 1;
@@ -61,6 +62,7 @@ namespace Landsong
         public QuestCategory Category => NormalizeQuestCategory(category);
         public QuestObjectiveType ObjectiveType => objectiveType;
         public int TurnLimit => Mathf.Max(1, turnLimit);
+        public IReadOnlyList<string> PrerequisiteQuestIds => prerequisiteQuestIds ?? Array.Empty<string>();
         public BuildingBase TargetBuilding => targetBuilding;
         public string TargetBuildingId => targetBuilding == null || !targetBuilding.HasDefinition
             ? string.Empty
@@ -85,6 +87,7 @@ namespace Landsong
             description = string.IsNullOrWhiteSpace(description) ? string.Empty : description.Trim();
             category = NormalizeQuestCategory(category);
             turnLimit = Mathf.Max(1, turnLimit);
+            prerequisiteQuestIds = NormalizeQuestIds(prerequisiteQuestIds);
             targetBuildingCount = Mathf.Max(1, targetBuildingCount);
 
             if (requiredResources == null)
@@ -136,6 +139,29 @@ namespace Landsong
         public static string NormalizeQuestId(string value)
         {
             return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+        }
+
+        private static string[] NormalizeQuestIds(IEnumerable<string> values)
+        {
+            if (values == null)
+            {
+                return Array.Empty<string>();
+            }
+
+            var result = new List<string>();
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var value in values)
+            {
+                var questId = NormalizeQuestId(value);
+                if (string.IsNullOrWhiteSpace(questId) || !seen.Add(questId))
+                {
+                    continue;
+                }
+
+                result.Add(questId);
+            }
+
+            return result.Count == 0 ? Array.Empty<string>() : result.ToArray();
         }
 
         public static QuestCategory NormalizeQuestCategory(QuestCategory value)
@@ -2081,7 +2107,8 @@ namespace Landsong
 
             var savedQuests = BuildSavedQuestLookup(saveData);
             var usedQuestIds = new HashSet<string>(StringComparer.Ordinal);
-            AddQuestDefinitions(startingQuests, QuestCategory.Mainline, savedQuests, usedQuestIds, emitMessages);
+            AddSavedMainlineQuests(savedQuests, usedQuestIds, emitMessages);
+            UnlockAvailableMainlineQuests(usedQuestIds, emitMessages);
             AddSavedRandomQuests(savedQuests, usedQuestIds, emitMessages);
             AddSavedGeneratedQuests(savedQuests, usedQuestIds, emitMessages);
 
@@ -2136,28 +2163,112 @@ namespace Landsong
             }
         }
 
-        private void AddQuestDefinitions(
-            IReadOnlyList<GameQuestDefinition> definitions,
-            QuestCategory category,
+        private void AddSavedMainlineQuests(
             IReadOnlyDictionary<string, QuestStateSaveData> savedQuests,
             HashSet<string> usedQuestIds,
             bool emitMessages)
         {
-            if (definitions == null)
+            if (savedQuests == null || savedQuests.Count == 0 || startingQuests == null)
             {
                 return;
             }
 
-            for (var i = 0; i < definitions.Count; i++)
+            for (var i = 0; i < startingQuests.Length; i++)
             {
+                var definition = startingQuests[i];
+                if (definition == null)
+                {
+                    continue;
+                }
+
+                definition.Normalize();
+                if (!savedQuests.ContainsKey(definition.QuestId))
+                {
+                    continue;
+                }
+
                 TryAddQuestDefinition(
-                    definitions[i],
-                    category,
+                    definition,
+                    QuestCategory.Mainline,
                     savedQuests,
                     usedQuestIds,
                     emitMessages,
                     out _);
             }
+        }
+
+        private bool UnlockAvailableMainlineQuests(HashSet<string> usedQuestIds, bool emitMessages)
+        {
+            if (startingQuests == null || startingQuests.Length == 0)
+            {
+                return false;
+            }
+
+            usedQuestIds ??= BuildCurrentQuestIdSet();
+            var addedAny = false;
+            var addedThisPass = false;
+            do
+            {
+                addedThisPass = false;
+                for (var i = 0; i < startingQuests.Length; i++)
+                {
+                    var definition = startingQuests[i];
+                    if (definition == null)
+                    {
+                        continue;
+                    }
+
+                    definition.Normalize();
+                    if (string.IsNullOrWhiteSpace(definition.QuestId)
+                        || usedQuestIds.Contains(definition.QuestId)
+                        || !AreMainlinePrerequisitesCompleted(definition))
+                    {
+                        continue;
+                    }
+
+                    if (!TryAddQuestDefinition(
+                            definition,
+                            QuestCategory.Mainline,
+                            null,
+                            usedQuestIds,
+                            emitMessages,
+                            out _))
+                    {
+                        continue;
+                    }
+
+                    addedAny = true;
+                    addedThisPass = true;
+                }
+            }
+            while (addedThisPass);
+
+            return addedAny;
+        }
+
+        private bool AreMainlinePrerequisitesCompleted(GameQuestDefinition definition)
+        {
+            if (definition == null)
+            {
+                return false;
+            }
+
+            var prerequisites = definition.PrerequisiteQuestIds;
+            if (prerequisites == null || prerequisites.Count == 0)
+            {
+                return true;
+            }
+
+            for (var i = 0; i < prerequisites.Count; i++)
+            {
+                var prerequisiteQuestId = GameQuestDefinition.NormalizeQuestId(prerequisites[i]);
+                if (string.IsNullOrWhiteSpace(prerequisiteQuestId) || !IsQuestCompleted(prerequisiteQuestId))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private void AddSavedRandomQuests(
@@ -2259,6 +2370,11 @@ namespace Landsong
                 return false;
             }
 
+            if (FindQuest(definition.QuestId) != null)
+            {
+                return false;
+            }
+
             QuestStateSaveData savedQuest = null;
             if (savedQuests != null)
             {
@@ -2272,8 +2388,8 @@ namespace Landsong
             }
 
             RebuildQuestResourceProgresses(quest, savedQuest);
-            RefreshQuestProgress(quest, emitMessages);
             quests.Add(quest);
+            RefreshQuestProgress(quest, emitMessages);
 
             return true;
         }
@@ -2695,6 +2811,12 @@ namespace Landsong
             return null;
         }
 
+        private bool IsQuestCompleted(string questId)
+        {
+            var quest = FindQuest(questId);
+            return quest != null && quest.IsCompleted;
+        }
+
         private void RefreshAllQuestProgress(bool emitMessages)
         {
             var shouldEmitMessages = emitMessages && !suppressQuestRuntimeMessages;
@@ -2831,6 +2953,11 @@ namespace Landsong
                 AddQuestMessage(
                     GameEventCatalog.GE_任务完成,
                     message);
+            }
+
+            if (quest.IsMainline)
+            {
+                UnlockAvailableMainlineQuests(BuildCurrentQuestIdSet(), emitMessage);
             }
         }
 

@@ -28,6 +28,9 @@ namespace Landsong.UISystem
         [FoldoutGroup("选填")]
         [SerializeField] private CameraController cameraController;
 
+        [FoldoutGroup("选填")]
+        [SerializeField] private Popup_GameEventMessage eventMessagePopup;
+
         private readonly List<GamePanel_BuildingEventMessageItem> activeItems = new List<GamePanel_BuildingEventMessageItem>();
         private readonly List<GamePanel_BuildingEventMessageItem> itemPool = new List<GamePanel_BuildingEventMessageItem>();
         private Landsong.GameSystem gameSystem;
@@ -41,6 +44,7 @@ namespace Landsong.UISystem
         {
             itemRoot = transform;
             itemPrefab = GetComponentInChildren<GamePanel_BuildingEventMessageItem>(true);
+            eventMessagePopup = GetComponentInChildren<Popup_GameEventMessage>(true);
         }
 
         private void OnEnable()
@@ -137,6 +141,8 @@ namespace Landsong.UISystem
             {
                 cameraController = FindFirstObjectByType<CameraController>(FindObjectsInactive.Include);
             }
+
+            ResolveEventMessagePopup();
         }
 
         private GamePanel_BuildingEventMessageItem GetItemFromPool()
@@ -186,16 +192,13 @@ namespace Landsong.UISystem
 
             MessageClicked?.Invoke(this, message);
 
-            if (message.Clicked != null)
-            {
-                message.Clicked.Invoke(message);
-                return;
-            }
-
             if (message.IsBuildingEvent)
             {
                 HandleBuildingEventMessageClicked(message);
             }
+
+            message.Clicked?.Invoke(message);
+            ShowMessagePopup(message);
         }
 
         private void HandleMessageDeleted(GameEventMessage message)
@@ -224,6 +227,45 @@ namespace Landsong.UISystem
                 }
 
                 cameraController?.FocusOnBuilding(building);
+            }
+        }
+
+        private void ShowMessagePopup(GameEventMessage message)
+        {
+            ResolveEventMessagePopup();
+            if (eventMessagePopup == null)
+            {
+                Debug.LogWarning(
+                    $"{nameof(GamePanel_BuildingEventMessageList)} has no {nameof(Popup_GameEventMessage)} assigned.",
+                    this);
+                return;
+            }
+
+            eventMessagePopup.Show(message, HandleMessagePopupConfirmed);
+        }
+
+        private void HandleMessagePopupConfirmed(GameEventMessage message)
+        {
+            HandleMessageDeleted(message);
+        }
+
+        private void ResolveEventMessagePopup()
+        {
+            if (eventMessagePopup != null)
+            {
+                return;
+            }
+
+            eventMessagePopup = GetComponentInChildren<Popup_GameEventMessage>(true);
+            if (eventMessagePopup != null)
+            {
+                return;
+            }
+
+            var gamePanel = GetComponentInParent<UIPanel_Game>();
+            if (gamePanel != null)
+            {
+                eventMessagePopup = gamePanel.GetComponentInChildren<Popup_GameEventMessage>(true);
             }
         }
 
