@@ -425,7 +425,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.227451, g: 0.28627452, b: 0.3019608, a: 1}
+  m_Color: {r: 0.14509805, g: 0.38431373, b: 0.6039216, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 0
@@ -1213,6 +1213,10 @@ PrefabInstance:
     - target: {fileID: 357765916886682820, guid: 2d2bd86e7557a2a409affdaa04c4602d, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3126573335746087846, guid: 2d2bd86e7557a2a409affdaa04c4602d, type: 3}
+      propertyPath: m_text
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 5558605946666994549, guid: 2d2bd86e7557a2a409affdaa04c4602d, type: 3}
       propertyPath: m_Name

@@ -22,7 +22,8 @@ namespace Landsong.GameEventSystem
             GameEventMessageKind kind = GameEventMessageKind.Game,
             BuildingBase building = null,
             Action<GameEventMessage> clicked = null,
-            string eventId = null)
+            string eventId = null,
+            bool suppressDefaultPopup = false)
         {
             MessageId = Interlocked.Increment(ref nextMessageId);
             EventTypeId = GameEventCatalog.NormalizeEventTypeId(eventTypeId);
@@ -32,6 +33,7 @@ namespace Landsong.GameEventSystem
             Kind = kind;
             Building = building;
             Clicked = clicked;
+            SuppressDefaultPopup = suppressDefaultPopup;
         }
 
         public long MessageId { get; }
@@ -42,6 +44,7 @@ namespace Landsong.GameEventSystem
         public GameEventMessageKind Kind { get; }
         public BuildingBase Building { get; }
         public Action<GameEventMessage> Clicked { get; }
+        public bool SuppressDefaultPopup { get; }
         public bool IsBuildingEvent => Kind == GameEventMessageKind.Building && Building != null;
         public bool IsValid => MessageId > 0
                                && !string.IsNullOrWhiteSpace(EventTypeId)
@@ -58,7 +61,8 @@ namespace Landsong.GameEventSystem
             BuildingBase building,
             string message,
             int turn,
-            Action<GameEventMessage> clicked = null)
+            Action<GameEventMessage> clicked = null,
+            bool suppressDefaultPopup = false)
         {
             return new GameEventMessage(
                 eventTypeId,
@@ -66,14 +70,17 @@ namespace Landsong.GameEventSystem
                 turn,
                 GameEventMessageKind.Building,
                 building,
-                clicked);
+                clicked,
+                null,
+                suppressDefaultPopup);
         }
 
         public static GameEventMessage ForGame(
             string eventTypeId,
             string message,
             int turn,
-            Action<GameEventMessage> clicked = null)
+            Action<GameEventMessage> clicked = null,
+            bool suppressDefaultPopup = false)
         {
             return new GameEventMessage(
                 eventTypeId,
@@ -81,7 +88,9 @@ namespace Landsong.GameEventSystem
                 turn,
                 GameEventMessageKind.Game,
                 null,
-                clicked);
+                clicked,
+                null,
+                suppressDefaultPopup);
         }
     }
 }

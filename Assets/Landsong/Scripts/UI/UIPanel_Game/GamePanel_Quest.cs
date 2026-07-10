@@ -16,7 +16,6 @@ namespace Landsong.UISystem
         [SerializeField, LabelText("空任务提示根节点")] private GameObject emptyRoot;
         [SerializeField, LabelText("空任务提示文本")] private TMP_Text emptyLabel;
         [SerializeField, LabelText("显示已完成任务")] private bool showCompletedQuests = true;
-        [SerializeField, LabelText("显示已失败任务")] private bool showFailedQuests = true;
 
         private readonly List<GamePanel_QuestItem> activeItems = new List<GamePanel_QuestItem>();
         private readonly List<GamePanel_QuestItem> itemPool = new List<GamePanel_QuestItem>();
@@ -35,6 +34,11 @@ namespace Landsong.UISystem
         {
             ResolveReferences();
             BindButtons();
+
+            for (int i = 0; i < root_QuestItem.childCount; i++)
+            {
+                root_QuestItem.GetChild(i).gameObject.SetActive(false);
+            }
         }
 
         private void OnEnable()
@@ -107,7 +111,8 @@ namespace Landsong.UISystem
                     quest,
                     IsSelectedQuest(quest),
                     HandleQuestSelected,
-                    HandleSubmitClicked);
+                    HandleSubmitClicked,
+                    HandleAbandonClicked);
                 activeItems.Add(item);
                 visibleCount++;
             }
@@ -184,12 +189,17 @@ namespace Landsong.UISystem
                 return false;
             }
 
+            if (quest.IsRewardClaimed || quest.IsAbandoned)
+            {
+                return false;
+            }
+
             if (quest.IsCompleted && !showCompletedQuests)
             {
                 return false;
             }
 
-            return !quest.IsFailed || showFailedQuests;
+            return true;
         }
 
         private void EnsureSelectedQuest(IReadOnlyList<GameQuestState> quests)
@@ -300,7 +310,26 @@ namespace Landsong.UISystem
                 return;
             }
 
-            gameSystem.TrySubmitQuestResources(quest);
+            if (quest.CanClaimRewards)
+            {
+                gameSystem.TryClaimQuestRewards(quest);
+            }
+            else
+            {
+                gameSystem.TrySubmitQuestResources(quest);
+            }
+
+            Refresh();
+        }
+
+        private void HandleAbandonClicked(GameQuestState quest)
+        {
+            if (gameSystem == null || quest == null)
+            {
+                return;
+            }
+
+            gameSystem.TryAbandonQuest(quest);
             Refresh();
         }
 

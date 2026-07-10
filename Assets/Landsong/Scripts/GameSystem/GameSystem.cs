@@ -33,7 +33,9 @@ namespace Landsong
     {
         Active = 0,
         Completed = 1,
-        Failed = 2
+        Failed = 2,
+        RewardClaimed = 4,
+        Abandoned = 5
     }
 
     [Serializable]
@@ -284,6 +286,9 @@ namespace Landsong
         public bool IsActive => Status == QuestStatus.Active;
         public bool IsCompleted => Status == QuestStatus.Completed;
         public bool IsFailed => Status == QuestStatus.Failed;
+        public bool IsRewardClaimed => Status == QuestStatus.RewardClaimed;
+        public bool IsAbandoned => Status == QuestStatus.Abandoned;
+        public bool CanClaimRewards => IsCompleted;
         public bool IsMainline => Category == QuestCategory.Mainline;
         public bool IsRandom => Category == QuestCategory.Random;
         public string CategoryDisplayName => IsRandom ? "随机" : "主线";
@@ -294,6 +299,11 @@ namespace Landsong
 
         public int GetRemainingTurns(int currentTurn)
         {
+            if (StartedTurn <= 0 || DeadlineTurn <= 0)
+            {
+                return 0;
+            }
+
             return Mathf.Max(0, DeadlineTurn - Mathf.Max(1, currentTurn) + 1);
         }
 
@@ -333,12 +343,16 @@ namespace Landsong
     [Serializable]
     public sealed class QuestSaveData
     {
+        public const int CurrentVersion = 3;
+
+        public int Version;
         public List<QuestStateSaveData> Quests = new List<QuestStateSaveData>();
         public int NextRandomQuestRefreshTurn = 1;
         public int GeneratedRandomQuestSerial;
 
         public void Validate()
         {
+            Version = Mathf.Max(0, Version);
             Quests ??= new List<QuestStateSaveData>();
             NextRandomQuestRefreshTurn = Mathf.Max(1, NextRandomQuestRefreshTurn);
             GeneratedRandomQuestSerial = Mathf.Max(0, GeneratedRandomQuestSerial);
@@ -377,6 +391,7 @@ namespace Landsong
         {
             QuestId = GameQuestDefinition.NormalizeQuestId(QuestId);
             Category = GameQuestDefinition.NormalizeQuestCategory(Category);
+            Status = NormalizeQuestStatus(Status);
             StartedTurn = Mathf.Max(1, StartedTurn);
             DeadlineTurn = Mathf.Max(StartedTurn, DeadlineTurn);
             SubmittedResources ??= new List<QuestResourceSubmissionSaveData>();
@@ -398,6 +413,20 @@ namespace Landsong
                     SubmittedResources.RemoveAt(i);
                 }
             }
+        }
+
+        private static QuestStatus NormalizeQuestStatus(QuestStatus value)
+        {
+            return value switch
+            {
+                QuestStatus.Active => QuestStatus.Active,
+                QuestStatus.Completed => QuestStatus.Completed,
+                QuestStatus.Failed => QuestStatus.Failed,
+                QuestStatus.RewardClaimed => QuestStatus.RewardClaimed,
+                QuestStatus.Abandoned => QuestStatus.Abandoned,
+                (QuestStatus)3 => QuestStatus.Active,
+                _ => QuestStatus.Active
+            };
         }
     }
 
@@ -961,6 +990,7 @@ namespace Landsong
         private const string InspectorRuntimeServices = "运行时服务";
         private const string InspectorRuntimeStatus = "运行时状态";
         private const string InspectorTurn = "回合";
+        private const string GameplayDebugGoldItemId = "金币";
 
         private readonly List<BM_库存格容量> inventorySlotCapacityModules =
             new List<BM_库存格容量>();
@@ -1072,6 +1102,7 @@ namespace Landsong
 
         public event Action<GameSystem, GameOverReason> GameEnded;
         public event Action<GameSystem> QuestsChanged;
+        public event Action<GameSystem, GameQuestState> QuestEventClicked;
         public event Action<GameSystem> ExpeditionsChanged;
         public event Action<GameSystem> TalentsChanged;
         public event Action<GameSystem> InheritanceChanged;
@@ -1939,10 +1970,115 @@ namespace Landsong
             CreateQuestService();
         }
 
+        /// <summary>
+        /// Adds an item through the normal inventory service for the runtime gameplay debug panel.
+        /// The returned amount can be smaller than <paramref name="amount"/> when inventory capacity is insufficient.
+        /// </summary>
+        public int AddGameplayDebugItem(string itemId, int amount)
+        {
+            itemId = string.IsNullOrWhiteSpace(itemId) ? string.Empty : itemId.Trim();
+            amount = Mathf.Max(0, amount);
+            if (amount <= 0 || FindItemDefinition(itemId) == null)
+            {
+                return 0;
+            }
+
+            if (Inventory == null)
+            {
+                CreateInventoryService();
+            }
+
+            return Inventory == null ? 0 : Inventory.AddItem(itemId, amount);
+        }
+
+        public int AddGameplayDebugGold()
+        {
+            return AddGameplayDebugItem(GameplayDebugGoldItemId, 9999);
+        }
+
+        /// <summary>
+        /// Adds one eligible random quest through the normal quest creation path.
+        /// Random-quest capacity is respected. When the game has no configured random quest source,
+        /// a valid resource-exchange quest is generated from the item catalog for debugging.
+        /// </summary>
+        public bool TryAddGameplayDebugRandomQuest(out GameQuestState quest)
+        {
+            quest = null;
+            if (!questsInitialized)
+            {
+                CreateQuestService();
+            }
+
+            if (maxActiveRandomQuests <= 0
+                || CountActiveRandomQuests() >= maxActiveRandomQuests)
+            {
+                return false;
+            }
+
+            var usedQuestIds = BuildCurrentQuestIdSet();
+            var definition = PickRandomQuestDefinition(usedQuestIds)
+                             ?? CreateGameplayDebugRandomQuestDefinition(usedQuestIds);
+            if (definition == null
+                || !TryAddQuestDefinition(
+                    definition,
+                    QuestCategory.Random,
+                    null,
+                    usedQuestIds,
+                    true,
+                    out quest))
+            {
+                return false;
+            }
+
+            NotifyQuestsChanged();
+            return quest != null;
+        }
+
+        private GameQuestDefinition CreateGameplayDebugRandomQuestDefinition(HashSet<string> usedQuestIds)
+        {
+            var catalog = Inventory == null ? itemCatalog : Inventory.ItemCatalog;
+            var definitions = catalog == null ? null : catalog.Definitions;
+            if (definitions == null || definitions.Count == 0)
+            {
+                return null;
+            }
+
+            var candidates = new List<ItemDefinition>();
+            for (var i = 0; i < definitions.Count; i++)
+            {
+                var item = definitions[i];
+                if (item != null && !string.IsNullOrWhiteSpace(item.ItemId))
+                {
+                    candidates.Add(item);
+                }
+            }
+
+            if (candidates.Count == 0)
+            {
+                return null;
+            }
+
+            var requiredItem = candidates[UnityEngine.Random.Range(0, candidates.Count)];
+            var rewardItem = FindItemDefinition(GameplayDebugGoldItemId)
+                             ?? candidates[UnityEngine.Random.Range(0, candidates.Count)];
+            var requiredAmount = UnityEngine.Random.Range(10, 101);
+            var rewardAmount = Mathf.Max(1, requiredAmount * 2);
+            var questId = CreateRuntimeRandomQuestId("debug_random", usedQuestIds);
+            return GameQuestDefinition.CreateRuntimeSubmitResourcesQuest(
+                questId,
+                $"调试随机委托：交付{requiredItem.DisplayName}",
+                $"交付 {requiredItem.DisplayName} x{requiredAmount}，获得 {rewardItem.DisplayName} x{rewardAmount}。",
+                QuestCategory.Random,
+                8,
+                new[] { new ItemAmount(requiredItem, requiredAmount) },
+                new[] { new ItemAmount(rewardItem, rewardAmount) });
+        }
+
         public QuestSaveData CaptureQuestData()
         {
             var saveData = new QuestSaveData
             {
+                Version = QuestSaveData.CurrentVersion,
                 Quests = new List<QuestStateSaveData>(),
                 NextRandomQuestRefreshTurn = Mathf.Max(1, nextRandomQuestRefreshTurn),
                 GeneratedRandomQuestSerial = Mathf.Max(0, generatedRandomQuestSerial)
@@ -2035,7 +2171,6 @@ namespace Landsong
                 return false;
             }
 
-            var submittedLines = new List<string>();
             var totalSubmitted = 0;
             suppressQuestInventoryRefresh = true;
             try
@@ -2064,7 +2199,6 @@ namespace Landsong
 
                     progress.SubmittedAmount = Mathf.Min(progress.RequiredAmount, progress.SubmittedAmount + removed);
                     totalSubmitted += removed;
-                    submittedLines.Add($"{progress.DisplayName} x{removed}");
                 }
             }
             finally
@@ -2079,10 +2213,51 @@ namespace Landsong
                 return false;
             }
 
-            AddQuestMessage(
-                GameEventCatalog.GE_任务提交资源,
-                $"任务提交资源：{quest.Definition.DisplayName}（{string.Join("，", submittedLines)}）");
             RefreshQuestProgress(quest, true);
+            NotifyQuestsChanged();
+            return true;
+        }
+
+        public bool TryAbandonQuest(string questId)
+        {
+            return TryAbandonQuest(FindQuest(questId));
+        }
+
+        public bool TryAbandonQuest(GameQuestState quest)
+        {
+            if (quest == null || (!quest.IsActive && !quest.IsFailed))
+            {
+                return false;
+            }
+
+            quest.Status = QuestStatus.Abandoned;
+            NotifyQuestsChanged();
+            return true;
+        }
+
+        public bool TryClaimQuestRewards(string questId)
+        {
+            return TryClaimQuestRewards(FindQuest(questId));
+        }
+
+        public bool TryClaimQuestRewards(GameQuestState quest)
+        {
+            if (quest == null || !quest.CanClaimRewards)
+            {
+                return false;
+            }
+
+            if (!TryApplyQuestRewards(quest))
+            {
+                return false;
+            }
+
+            quest.Status = QuestStatus.RewardClaimed;
+            if (quest.IsMainline)
+            {
+                UnlockAvailableMainlineQuests(BuildCurrentQuestIdSet(), true);
+            }
+
             NotifyQuestsChanged();
             return true;
         }
@@ -2114,7 +2289,7 @@ namespace Landsong
 
             if (saveData == null)
             {
-                EnsureRandomQuestCapacity(startingRandomQuestCount, usedQuestIds, false);
+                EnsureRandomQuestCapacity(startingRandomQuestCount, usedQuestIds, emitMessages);
             }
 
             SubscribeQuestRuntimeServices();
@@ -2262,7 +2437,7 @@ namespace Landsong
             for (var i = 0; i < prerequisites.Count; i++)
             {
                 var prerequisiteQuestId = GameQuestDefinition.NormalizeQuestId(prerequisites[i]);
-                if (string.IsNullOrWhiteSpace(prerequisiteQuestId) || !IsQuestCompleted(prerequisiteQuestId))
+                if (string.IsNullOrWhiteSpace(prerequisiteQuestId) || !IsQuestRewardClaimed(prerequisiteQuestId))
                 {
                     return false;
                 }
@@ -2391,6 +2566,11 @@ namespace Landsong
             quests.Add(quest);
             RefreshQuestProgress(quest, emitMessages);
 
+            if (emitMessages && savedQuest == null)
+            {
+                AddNewQuestMessage(quest);
+            }
+
             return true;
         }
 
@@ -2478,6 +2658,13 @@ namespace Landsong
                 questData.Validate();
                 if (!string.IsNullOrWhiteSpace(questData.QuestId))
                 {
+                    if (saveData.Version < QuestSaveData.CurrentVersion
+                        && questData.Status == QuestStatus.Completed)
+                    {
+                        // 旧版本会在任务完成时自动发奖，恢复后不能重复领取。
+                        questData.Status = QuestStatus.RewardClaimed;
+                    }
+
                     result[questData.QuestId] = questData;
                 }
             }
@@ -2512,7 +2699,7 @@ namespace Landsong
                         QuestCategory.Random,
                         null,
                         usedQuestIds,
-                        false,
+                        emitMessages,
                         out var quest))
                 {
                     continue;
@@ -2525,12 +2712,6 @@ namespace Landsong
                 }
 
                 activeRandomCount++;
-                if (emitMessages)
-                {
-                    AddQuestMessage(
-                        GameEventCatalog.GE_随机任务出现,
-                        $"随机任务出现：{quest.Definition.DisplayName}");
-                }
             }
 
             return addedAny;
@@ -2703,8 +2884,14 @@ namespace Landsong
                 return;
             }
 
+            var wasPendingAcceptance = (int)saveData.Status == 3;
             saveData.Validate();
             quest.Category = GameQuestDefinition.NormalizeQuestCategory(category);
+            if (wasPendingAcceptance)
+            {
+                return;
+            }
+
             quest.Status = saveData.Status;
             quest.StartedTurn = Mathf.Max(1, saveData.StartedTurn);
             quest.DeadlineTurn = Mathf.Max(quest.StartedTurn, saveData.DeadlineTurn);
@@ -2811,10 +2998,10 @@ namespace Landsong
             return null;
         }
 
-        private bool IsQuestCompleted(string questId)
+        private bool IsQuestRewardClaimed(string questId)
         {
             var quest = FindQuest(questId);
-            return quest != null && quest.IsCompleted;
+            return quest != null && quest.IsRewardClaimed;
         }
 
         private void RefreshAllQuestProgress(bool emitMessages)
@@ -2852,7 +3039,7 @@ namespace Landsong
 
             if (IsQuestSatisfied(quest))
             {
-                CompleteQuest(quest, emitMessages);
+                CompleteQuest(quest);
                 return;
             }
 
@@ -2936,7 +3123,7 @@ namespace Landsong
             return quest.TargetAmount > 0 && quest.CurrentAmount >= quest.TargetAmount;
         }
 
-        private void CompleteQuest(GameQuestState quest, bool emitMessage)
+        private void CompleteQuest(GameQuestState quest)
         {
             if (quest == null || !quest.IsActive)
             {
@@ -2944,28 +3131,13 @@ namespace Landsong
             }
 
             quest.Status = QuestStatus.Completed;
-            var rewardText = ApplyQuestRewards(quest);
-            if (emitMessage)
-            {
-                var message = string.IsNullOrWhiteSpace(rewardText)
-                    ? $"任务完成：{quest.Definition.DisplayName}"
-                    : $"任务完成：{quest.Definition.DisplayName}（获得 {rewardText}）";
-                AddQuestMessage(
-                    GameEventCatalog.GE_任务完成,
-                    message);
-            }
-
-            if (quest.IsMainline)
-            {
-                UnlockAvailableMainlineQuests(BuildCurrentQuestIdSet(), emitMessage);
-            }
         }
 
-        private string ApplyQuestRewards(GameQuestState quest)
+        private bool TryApplyQuestRewards(GameQuestState quest)
         {
             if (quest == null || quest.Definition == null || !quest.Definition.HasRewards)
             {
-                return string.Empty;
+                return true;
             }
 
             if (Inventory == null)
@@ -2975,36 +3147,29 @@ namespace Landsong
 
             if (Inventory == null)
             {
-                return string.Empty;
+                return false;
             }
 
-            var rewardLines = new List<string>();
+            var validRewards = new List<ItemAmount>();
             var rewards = quest.Definition.Rewards;
             for (var i = 0; i < rewards.Count; i++)
             {
                 var reward = rewards[i].Normalized();
-                if (!reward.IsValid || reward.ItemDefinition == null)
+                if (!reward.IsValid)
                 {
                     continue;
                 }
 
-                var added = Inventory.AddItem(reward.ItemDefinition, reward.Amount);
-                if (added <= 0)
+                if (reward.ItemDefinition == null)
                 {
-                    Debug.LogWarning($"任务奖励无法加入库存：{reward.ItemId} x{reward.Amount}", this);
-                    continue;
+                    Debug.LogWarning($"任务奖励物品定义无效：{reward.ItemId} x{reward.Amount}", this);
+                    return false;
                 }
 
-                rewardLines.Add(FormatPlainItemAmount(reward.ItemDefinition, added));
-                if (added < reward.Amount)
-                {
-                    Debug.LogWarning(
-                        $"任务奖励只加入了部分数量：{reward.ItemId} {added}/{reward.Amount}",
-                        this);
-                }
+                validRewards.Add(reward);
             }
 
-            return rewardLines.Count == 0 ? string.Empty : string.Join("，", rewardLines);
+            return validRewards.Count == 0 || Inventory.TryAddItems(validRewards);
         }
 
         private void FailQuest(GameQuestState quest, bool emitMessage)
@@ -3063,24 +3228,44 @@ namespace Landsong
             return catalog != null && catalog.TryGetDefinition(itemId, out var definition) ? definition : null;
         }
 
-        private static string FormatPlainItemAmount(ItemDefinition definition, int amount)
+        private void AddNewQuestMessage(GameQuestState quest)
         {
-            if (definition == null)
+            if (quest == null || quest.Definition == null)
             {
-                return string.Empty;
+                return;
             }
 
-            return $"{definition.DisplayName} x{Mathf.Max(0, amount)}";
+            AddQuestMessage(
+                GameEventCatalog.GE_任务出现,
+                $"新任务：{quest.Definition.DisplayName}",
+                _ => HandleQuestEventClicked(quest.QuestId),
+                true);
         }
 
-        private void AddQuestMessage(string eventTypeId, string message)
+        private void HandleQuestEventClicked(string questId)
+        {
+            var quest = FindQuest(questId);
+            if (quest == null || quest.IsRewardClaimed || quest.IsAbandoned)
+            {
+                return;
+            }
+
+            QuestEventClicked?.Invoke(this, quest);
+        }
+
+        private void AddQuestMessage(
+            string eventTypeId,
+            string message,
+            Action<GameEventMessage> clicked = null,
+            bool suppressDefaultPopup = false)
         {
             if (Events == null)
             {
                 CreateGameEventService();
             }
 
-            Events?.AddMessage(GameEventMessage.ForGame(eventTypeId, message, CurrentTurn));
+            Events?.AddMessage(
+                GameEventMessage.ForGame(eventTypeId, message, CurrentTurn, clicked, suppressDefaultPopup));
         }
 
         private void RefreshQuestSubscriptions()

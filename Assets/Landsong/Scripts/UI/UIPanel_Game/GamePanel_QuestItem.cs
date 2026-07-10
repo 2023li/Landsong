@@ -1,5 +1,5 @@
 using System;
-using System.Text;
+using System.Collections.Generic;
 using Landsong;
 using Sirenix.OdinInspector;
 using TMPro;
@@ -12,24 +12,29 @@ namespace Landsong.UISystem
     public sealed class GamePanel_QuestItem : MonoBehaviour
     {
         [SerializeField, LabelText("选择按钮")] private Button selectButton;
-        [SerializeField, LabelText("提交按钮")] private Button submitButton;
-        [SerializeField, LabelText("提交按钮文本")] private TMP_Text submitButtonLabel;
+        [SerializeField, LabelText("任务操作按钮")] private Button submitButton;
+        [SerializeField, LabelText("任务操作按钮文本")] private TMP_Text submitButtonLabel;
+        [SerializeField, LabelText("放弃任务按钮")] private Button abandonButton;
+        [SerializeField, LabelText("放弃任务按钮文本")] private TMP_Text abandonButtonLabel;
         [SerializeField, LabelText("图标")] private Image icon;
         [SerializeField, LabelText("任务名称")] private TMP_Text titleLabel;
         [SerializeField, LabelText("任务描述")] private TMP_Text descriptionLabel;
-        [SerializeField, LabelText("状态文本")] private TMP_Text statusLabel;
         [SerializeField, LabelText("期限文本")] private TMP_Text deadlineLabel;
-        [SerializeField, LabelText("进度文本")] private TMP_Text progressLabel;
-        [SerializeField, LabelText("资源明细文本")] private TMP_Text resourceDetailsLabel;
-        [SerializeField, LabelText("进度条")] private Slider progressSlider;
+        [SerializeField, LabelText("任务要求根节点")] private RectTransform requirementRoot;
+        [SerializeField, LabelText("任务要求Item预制体")] private GamePanelItem_Quest_Requirement requirementItemPrefab;
+        [SerializeField, LabelText("任务操作根节点")] private GameObject actionRoot;
         [SerializeField, LabelText("详情根节点")] private GameObject detailsRoot;
         [SerializeField, LabelText("选中状态根节点")] private GameObject selectedRoot;
         [SerializeField, LabelText("已完成状态根节点")] private GameObject completedRoot;
-        [SerializeField, LabelText("已失败状态根节点")] private GameObject failedRoot;
 
         private GameQuestState quest;
         private Action<GameQuestState> selected;
         private Action<GameQuestState> submitClicked;
+        private Action<GameQuestState> abandoned;
+        private readonly List<GamePanelItem_Quest_Requirement> activeRequirementItems =
+            new List<GamePanelItem_Quest_Requirement>();
+        private readonly List<GamePanelItem_Quest_Requirement> requirementItemPool =
+            new List<GamePanelItem_Quest_Requirement>();
         private bool isSelected;
 
         private void Reset()
@@ -49,13 +54,19 @@ namespace Landsong.UISystem
             {
                 submitButton.onClick.RemoveListener(HandleSubmitClicked);
             }
+
+            if (abandonButton != null)
+            {
+                abandonButton.onClick.RemoveListener(HandleAbandoned);
+            }
         }
 
         public void Bind(
             GameQuestState sourceQuest,
             bool selectedState,
             Action<GameQuestState> onSelected,
-            Action<GameQuestState> onSubmitClicked)
+            Action<GameQuestState> onSubmitClicked,
+            Action<GameQuestState> onAbandoned)
         {
             if (selectButton != null)
             {
@@ -67,10 +78,16 @@ namespace Landsong.UISystem
                 submitButton.onClick.RemoveListener(HandleSubmitClicked);
             }
 
+            if (abandonButton != null)
+            {
+                abandonButton.onClick.RemoveListener(HandleAbandoned);
+            }
+
             quest = sourceQuest;
             isSelected = selectedState;
             selected = onSelected;
             submitClicked = onSubmitClicked;
+            abandoned = onAbandoned;
             Refresh();
 
             if (selectButton != null)
@@ -83,10 +100,17 @@ namespace Landsong.UISystem
             {
                 submitButton.onClick.AddListener(HandleSubmitClicked);
             }
+
+            if (abandonButton != null)
+            {
+                abandonButton.onClick.AddListener(HandleAbandoned);
+            }
         }
 
         public void Unbind()
         {
+            ReleaseActiveRequirementItems();
+
             if (selectButton != null)
             {
                 selectButton.onClick.RemoveListener(HandleSelected);
@@ -99,26 +123,33 @@ namespace Landsong.UISystem
                 submitButton.interactable = false;
             }
 
+            if (abandonButton != null)
+            {
+                abandonButton.onClick.RemoveListener(HandleAbandoned);
+                abandonButton.interactable = false;
+                abandonButton.gameObject.SetActive(false);
+            }
+
             quest = null;
             selected = null;
             submitClicked = null;
+            abandoned = null;
             isSelected = false;
             SetText(titleLabel, string.Empty);
             SetText(descriptionLabel, string.Empty);
-            SetText(statusLabel, string.Empty);
             SetText(deadlineLabel, string.Empty);
-            SetText(progressLabel, string.Empty);
-            SetText(resourceDetailsLabel, string.Empty);
+            SetActive(requirementRoot == null ? null : requirementRoot.gameObject, false);
+            SetActive(actionRoot, false);
             SetActive(detailsRoot, false);
             SetActive(selectedRoot, false);
             SetActive(completedRoot, false);
-            SetActive(failedRoot, false);
+            SetActive(submitButton == null ? null : submitButton.gameObject, false);
             SetIcon(null);
-            SetProgress(0f);
         }
 
         public void Refresh()
         {
+            ReleaseActiveRequirementItems();
             if (quest == null || quest.Definition == null)
             {
                 Unbind();
@@ -127,31 +158,47 @@ namespace Landsong.UISystem
 
             SetText(titleLabel, FormatTitle(quest));
             SetText(descriptionLabel, quest.Definition.Description);
-            SetText(statusLabel, FormatStatus(quest));
             SetText(deadlineLabel, FormatDeadline(quest));
-            SetText(progressLabel, FormatProgress(quest));
-            ResourceRichTextFormatter.ApplySpriteAsset(resourceDetailsLabel);
-            SetText(resourceDetailsLabel, FormatResourceDetails(quest));
+            RenderRequirements(quest);
             SetDetailsVisible(isSelected);
             SetActive(selectedRoot, isSelected);
             SetActive(completedRoot, quest.IsCompleted);
-            SetActive(failedRoot, quest.IsFailed);
             SetIcon(quest.Icon);
-            SetProgress(quest.Progress01);
-            RefreshSubmitButton();
+            RefreshActionButtons();
         }
 
-        private void RefreshSubmitButton()
+        private void RefreshActionButtons()
         {
-            if (submitButton == null)
+            var canSubmitResources = quest != null && quest.CanSubmitResources();
+            var canClaimRewards = quest != null && quest.CanClaimRewards;
+            var canAbandon = quest != null && (quest.IsActive || quest.IsFailed);
+            var showPrimaryAction = quest != null
+                                    && isSelected
+                                    && (canClaimRewards
+                                        || (quest.IsResourceSubmission && quest.IsActive));
+
+            if (submitButton != null)
             {
-                return;
+                submitButton.gameObject.SetActive(showPrimaryAction);
+                submitButton.interactable = canClaimRewards || canSubmitResources;
+
+                var actionLabel = canClaimRewards
+                    ? "领取奖励"
+                    : canSubmitResources
+                        ? "提交"
+                        : "资源不足";
+                SetText(submitButtonLabel, actionLabel);
             }
 
-            var canSubmit = quest != null && quest.CanSubmitResources();
-            submitButton.gameObject.SetActive(quest != null && isSelected && quest.IsResourceSubmission && quest.IsActive);
-            submitButton.interactable = canSubmit;
-            SetText(submitButtonLabel, canSubmit ? "提交" : "资源不足");
+            if (abandonButton != null)
+            {
+                var showAbandon = isSelected && canAbandon;
+                abandonButton.gameObject.SetActive(showAbandon);
+                abandonButton.interactable = canAbandon;
+                SetText(abandonButtonLabel, "放弃任务");
+            }
+
+            SetActive(actionRoot, isSelected && (showPrimaryAction || canAbandon));
         }
 
         private void HandleSelected()
@@ -164,6 +211,11 @@ namespace Landsong.UISystem
             submitClicked?.Invoke(quest);
         }
 
+        private void HandleAbandoned()
+        {
+            abandoned?.Invoke(quest);
+        }
+
         private void SetDetailsVisible(bool visible)
         {
             if (detailsRoot != null)
@@ -173,24 +225,7 @@ namespace Landsong.UISystem
             }
 
             SetGameObjectActive(descriptionLabel, visible);
-            SetGameObjectActive(
-                resourceDetailsLabel,
-                visible && quest != null && (quest.IsResourceSubmission || quest.Definition.HasRewards));
-        }
-
-        private static string FormatStatus(GameQuestState quest)
-        {
-            if (quest == null)
-            {
-                return string.Empty;
-            }
-
-            return quest.Status switch
-            {
-                QuestStatus.Completed => $"{quest.CategoryDisplayName} · 已完成",
-                QuestStatus.Failed => $"{quest.CategoryDisplayName} · 已失败",
-                _ => $"{quest.CategoryDisplayName} · 进行中"
-            };
+            SetActive(requirementRoot == null ? null : requirementRoot.gameObject, visible);
         }
 
         private static string FormatTitle(GameQuestState quest)
@@ -217,7 +252,7 @@ namespace Landsong.UISystem
 
             if (quest.IsFailed)
             {
-                return $"已超过期限：截止第 {quest.DeadlineTurn} 回合";
+                return "剩余 0 回合";
             }
 
             var gameSystem = GameSystem.Instance;
@@ -225,46 +260,39 @@ namespace Landsong.UISystem
             return $"截止第 {quest.DeadlineTurn} 回合，剩余 {quest.GetRemainingTurns(currentTurn)} 回合";
         }
 
-        private static string FormatProgress(GameQuestState quest)
+        private void RenderRequirements(GameQuestState sourceQuest)
         {
-            if (quest == null)
-            {
-                return string.Empty;
-            }
-
-            var targetName = string.IsNullOrWhiteSpace(quest.TargetDisplayName)
-                ? "目标"
-                : quest.TargetDisplayName;
-
-            return quest.Definition.ObjectiveType switch
-            {
-                QuestObjectiveType.BuildBuildings => $"建造 {targetName}：{quest.CurrentAmount}/{quest.TargetAmount}",
-                QuestObjectiveType.SubmitResources => $"提交 {targetName}：{quest.TotalSubmittedAmount}/{quest.TotalRequiredAmount}",
-                _ => $"{quest.CurrentAmount}/{quest.TargetAmount}"
-            };
-        }
-
-        private static string FormatResourceDetails(GameQuestState quest)
-        {
-            if (quest == null || quest.Definition == null)
-            {
-                return string.Empty;
-            }
-
-            var builder = new StringBuilder();
-            AppendResourceDetails(builder, quest);
-            AppendRewardDetails(builder, quest);
-            return builder.ToString();
-        }
-
-        private static void AppendResourceDetails(StringBuilder builder, GameQuestState quest)
-        {
-            if (builder == null || quest == null || !quest.IsResourceSubmission)
+            if (sourceQuest == null || sourceQuest.Definition == null)
             {
                 return;
             }
 
-            var resources = quest.ResourceProgresses;
+            switch (sourceQuest.Definition.ObjectiveType)
+            {
+                case QuestObjectiveType.BuildBuildings:
+                    AddBuildRequirement(sourceQuest);
+                    break;
+                case QuestObjectiveType.SubmitResources:
+                    AddResourceRequirements(sourceQuest);
+                    break;
+            }
+        }
+
+        private void AddBuildRequirement(GameQuestState sourceQuest)
+        {
+            var targetName = string.IsNullOrWhiteSpace(sourceQuest.TargetDisplayName)
+                ? "目标"
+                : sourceQuest.TargetDisplayName;
+            var targetAmount = Mathf.Max(1, sourceQuest.TargetAmount);
+            var currentAmount = Mathf.Clamp(sourceQuest.CurrentAmount, 0, targetAmount);
+            AddRequirement(
+                $"建造 {targetName}：{currentAmount}/{targetAmount}",
+                sourceQuest.IsCompleted || currentAmount >= targetAmount);
+        }
+
+        private void AddResourceRequirements(GameQuestState sourceQuest)
+        {
+            var resources = sourceQuest.ResourceProgresses;
             for (var i = 0; i < resources.Count; i++)
             {
                 var progress = resources[i];
@@ -273,59 +301,110 @@ namespace Landsong.UISystem
                     continue;
                 }
 
-                if (builder.Length > 0)
-                {
-                    builder.AppendLine();
-                }
-
-                builder.Append(
-                    ResourceRichTextFormatter.FormatProgress(
-                        progress.ItemDefinition,
-                        progress.ItemId,
-                        progress.DisplayName,
-                        progress.SubmittedAmount,
-                        progress.RequiredAmount,
-                        progress.InventoryAmount,
-                        quest.IsActive && progress.RemainingAmount > 0));
+                var text = "提交 " + ResourceRichTextFormatter.FormatProgress(
+                    progress.ItemDefinition,
+                    progress.ItemId,
+                    progress.DisplayName,
+                    Mathf.Clamp(progress.SubmittedAmount, 0, progress.RequiredAmount),
+                    Mathf.Max(0, progress.RequiredAmount),
+                    progress.InventoryAmount,
+                    false);
+                AddRequirement(text, sourceQuest.IsCompleted || progress.IsComplete);
             }
         }
 
-        private static void AppendRewardDetails(StringBuilder builder, GameQuestState quest)
+        private void AddRequirement(string requirementText, bool isCompleted)
         {
-            if (builder == null || quest == null || quest.Definition == null || !quest.Definition.HasRewards)
+            var item = GetRequirementItemFromPool();
+            if (item == null)
             {
                 return;
             }
 
-            if (builder.Length > 0)
+            item.Bind(requirementText, isCompleted);
+            activeRequirementItems.Add(item);
+        }
+
+        private GamePanelItem_Quest_Requirement GetRequirementItemFromPool()
+        {
+            EnsureRequirementItemPool();
+            if (requirementRoot == null)
             {
-                builder.AppendLine();
+                return null;
             }
 
-            builder.Append("奖励：");
-            var rewards = quest.Definition.Rewards;
-            var appendedAny = false;
-            for (var i = 0; i < rewards.Count; i++)
+            GamePanelItem_Quest_Requirement item;
+            var lastIndex = requirementItemPool.Count - 1;
+            if (lastIndex >= 0)
             {
-                var reward = rewards[i].Normalized();
-                if (!reward.IsValid)
+                item = requirementItemPool[lastIndex];
+                requirementItemPool.RemoveAt(lastIndex);
+            }
+            else if (requirementItemPrefab != null)
+            {
+                item = Instantiate(requirementItemPrefab, requirementRoot);
+            }
+            else
+            {
+                return null;
+            }
+
+            item.transform.SetParent(requirementRoot, false);
+            item.gameObject.SetActive(true);
+            return item;
+        }
+
+        private void EnsureRequirementItemPool()
+        {
+            if (requirementRoot == null)
+            {
+                return;
+            }
+
+            var items = requirementRoot.GetComponentsInChildren<GamePanelItem_Quest_Requirement>(true);
+            for (var i = 0; i < items.Length; i++)
+            {
+                var item = items[i];
+                if (item == null)
                 {
                     continue;
                 }
 
-                if (appendedAny)
+                if (activeRequirementItems.Contains(item) || requirementItemPool.Contains(item))
                 {
-                    builder.Append("，");
+                    continue;
                 }
 
-                builder.Append(
-                    ResourceRichTextFormatter.FormatAmount(
-                        reward.ItemDefinition,
-                        reward.ItemId,
-                        reward.ItemDefinition == null ? reward.ItemId : reward.ItemDefinition.DisplayName,
-                        reward.Amount));
-                appendedAny = true;
+                item.Clear();
+                item.gameObject.SetActive(false);
+                requirementItemPool.Add(item);
             }
+        }
+
+        private void ReleaseActiveRequirementItems()
+        {
+            for (var i = 0; i < activeRequirementItems.Count; i++)
+            {
+                var item = activeRequirementItems[i];
+                if (item == null)
+                {
+                    continue;
+                }
+
+                item.Clear();
+                item.gameObject.SetActive(false);
+                if (requirementRoot != null)
+                {
+                    item.transform.SetParent(requirementRoot, false);
+                }
+
+                if (!requirementItemPool.Contains(item))
+                {
+                    requirementItemPool.Add(item);
+                }
+            }
+
+            activeRequirementItems.Clear();
         }
 
         private void SetIcon(Sprite sprite)
@@ -337,18 +416,6 @@ namespace Landsong.UISystem
 
             icon.sprite = sprite;
             icon.enabled = sprite != null;
-        }
-
-        private void SetProgress(float value)
-        {
-            if (progressSlider == null)
-            {
-                return;
-            }
-
-            progressSlider.minValue = 0f;
-            progressSlider.maxValue = 1f;
-            progressSlider.value = Mathf.Clamp01(value);
         }
 
         private static void SetText(TMP_Text label, string value)

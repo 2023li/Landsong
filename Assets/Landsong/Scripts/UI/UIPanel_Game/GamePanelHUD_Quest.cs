@@ -11,11 +11,12 @@ namespace Landsong.UISystem
     public sealed class GamePanelHUD_Quest : MonoBehaviour
     {
         [SerializeField] private TMP_Text txt_任务名称;
+        [SerializeField] private TMP_Text txt_剩余回合数;
         [SerializeField] private Transform root_任务要求父对象;
         [SerializeField] private GameObject root_任务整体已完成;
-        [SerializeField] private GameObject root_任务整体已失败;
         [SerializeField, LabelText("任务要求Item预制体")] private GamePanelItem_Quest_Requirement prefab_任务要求Item;
         [SerializeField, LabelText("打开任务面板按钮")] private Button btn_打开任务面板;
+        [SerializeField, LabelText("领取奖励按钮")] private Button btn_领取奖励;
 
         private readonly List<GamePanelItem_Quest_Requirement> activeRequirementItems =
             new List<GamePanelItem_Quest_Requirement>();
@@ -39,6 +40,11 @@ namespace Landsong.UISystem
         {
             ResolveStaticReferences();
             BindButton();
+
+            for (int i = 0; i < root_任务要求父对象.childCount; i++)
+            {
+                root_任务要求父对象.GetChild(i).gameObject.SetActive(false);
+            }
         }
 
         private void OnEnable()
@@ -73,15 +79,17 @@ namespace Landsong.UISystem
             if (quest == null || quest.Definition == null)
             {
                 SetText(txt_任务名称, string.Empty);
+                SetText(txt_剩余回合数, string.Empty);
                 SetActive(root_任务整体已完成, false);
-                SetActive(root_任务整体已失败, false);
+                SetClaimButtonVisible(false);
                 SetButtonInteractable(false);
                 return;
             }
 
             SetText(txt_任务名称, quest.Definition.DisplayName);
-            SetActive(root_任务整体已完成, quest.IsCompleted);
-            SetActive(root_任务整体已失败, quest.IsFailed);
+            SetText(txt_剩余回合数, FormatRemainingTurns(quest));
+            SetActive(root_任务整体已完成, quest.CanClaimRewards);
+            SetClaimButtonVisible(quest.CanClaimRewards);
             SetButtonInteractable(true);
             RenderRequirements(quest);
         }
@@ -124,6 +132,12 @@ namespace Landsong.UISystem
 
             btn_打开任务面板.onClick.RemoveListener(HandleOpenQuestPanelClicked);
             btn_打开任务面板.onClick.AddListener(HandleOpenQuestPanelClicked);
+
+            if (btn_领取奖励 != null)
+            {
+                btn_领取奖励.onClick.RemoveListener(HandleClaimRewardsClicked);
+                btn_领取奖励.onClick.AddListener(HandleClaimRewardsClicked);
+            }
         }
 
         private void UnbindButton()
@@ -131,6 +145,11 @@ namespace Landsong.UISystem
             if (btn_打开任务面板 != null)
             {
                 btn_打开任务面板.onClick.RemoveListener(HandleOpenQuestPanelClicked);
+            }
+
+            if (btn_领取奖励 != null)
+            {
+                btn_领取奖励.onClick.RemoveListener(HandleClaimRewardsClicked);
             }
         }
 
@@ -143,6 +162,7 @@ namespace Landsong.UISystem
 
             UnsubscribeGameSystem();
             gameSystem.QuestsChanged += HandleQuestsChanged;
+            gameSystem.QuestEventClicked += HandleQuestEventClicked;
             subscribedGameSystem = gameSystem;
         }
 
@@ -154,6 +174,7 @@ namespace Landsong.UISystem
             }
 
             subscribedGameSystem.QuestsChanged -= HandleQuestsChanged;
+            subscribedGameSystem.QuestEventClicked -= HandleQuestEventClicked;
             subscribedGameSystem = null;
         }
 
@@ -161,6 +182,18 @@ namespace Landsong.UISystem
         {
             gameSystem = changedGameSystem;
             RefreshFromGameSystem();
+        }
+
+        private void HandleQuestEventClicked(GameSystem changedGameSystem, GameQuestState quest)
+        {
+            gameSystem = changedGameSystem;
+            if (quest == null)
+            {
+                return;
+            }
+
+            gamePanel = gamePanel == null ? GetComponentInParent<UIPanel_Game>() : gamePanel;
+            gamePanel?.Show_Quest(quest);
         }
 
         private GameQuestState SelectHudQuest()
@@ -191,22 +224,34 @@ namespace Landsong.UISystem
                 return selectedActiveQuest;
             }
 
-            GameQuestState selectedFinishedQuest = null;
+            GameQuestState selectedCompletedQuest = null;
+            GameQuestState selectedFailedQuest = null;
             for (var i = 0; i < quests.Count; i++)
             {
                 var quest = quests[i];
-                if (quest == null || (!quest.IsCompleted && !quest.IsFailed))
+                if (quest == null || quest.IsRewardClaimed || quest.IsAbandoned)
                 {
                     continue;
                 }
 
-                if (selectedFinishedQuest == null || CompareFinishedQuests(quest, selectedFinishedQuest) < 0)
+                if (quest.CanClaimRewards)
                 {
-                    selectedFinishedQuest = quest;
+                    if (selectedCompletedQuest == null || CompareFinishedQuests(quest, selectedCompletedQuest) < 0)
+                    {
+                        selectedCompletedQuest = quest;
+                    }
+                    continue;
+                }
+
+                if (quest.IsFailed
+                    && (selectedFailedQuest == null
+                        || CompareFinishedQuests(quest, selectedFailedQuest) < 0))
+                {
+                    selectedFailedQuest = quest;
                 }
             }
 
-            return selectedFinishedQuest;
+            return selectedCompletedQuest ?? selectedFailedQuest;
         }
 
         private void RenderRequirements(GameQuestState quest)
@@ -225,7 +270,7 @@ namespace Landsong.UISystem
                     AddResourceRequirements(quest);
                     break;
                 default:
-                    AddRequirement($"{quest.CurrentAmount}/{quest.TargetAmount}", quest.IsCompleted, quest.IsFailed);
+                    AddRequirement($"{quest.CurrentAmount}/{quest.TargetAmount}", quest.IsCompleted);
                     break;
             }
         }
@@ -238,8 +283,7 @@ namespace Landsong.UISystem
             var targetAmount = Mathf.Max(1, quest.TargetAmount);
             var currentAmount = Mathf.Clamp(quest.CurrentAmount, 0, targetAmount);
             var isCompleted = quest.IsCompleted || currentAmount >= targetAmount;
-            var isFailed = quest.IsFailed && !isCompleted;
-            AddRequirement($"建造 {targetName}：{currentAmount}/{targetAmount}", isCompleted, isFailed);
+            AddRequirement($"建造 {targetName}：{currentAmount}/{targetAmount}", isCompleted);
         }
 
         private void AddResourceRequirements(GameQuestState quest)
@@ -262,12 +306,11 @@ namespace Landsong.UISystem
                     progress.InventoryAmount,
                     false);
                 var isCompleted = quest.IsCompleted || progress.IsComplete;
-                var isFailed = quest.IsFailed && !isCompleted;
-                AddRequirement(text, isCompleted, isFailed);
+                AddRequirement(text, isCompleted);
             }
         }
 
-        private void AddRequirement(string requirementText, bool isCompleted, bool isFailed)
+        private void AddRequirement(string requirementText, bool isCompleted)
         {
             var item = GetRequirementItemFromPool();
             if (item == null)
@@ -275,7 +318,7 @@ namespace Landsong.UISystem
                 return;
             }
 
-            item.Bind(requirementText, isCompleted, isFailed);
+            item.Bind(requirementText, isCompleted);
             activeRequirementItems.Add(item);
         }
 
@@ -339,12 +382,33 @@ namespace Landsong.UISystem
             gamePanel?.Show_Quest(currentQuest);
         }
 
+        private void HandleClaimRewardsClicked()
+        {
+            if (gameSystem == null || currentQuest == null || !currentQuest.CanClaimRewards)
+            {
+                return;
+            }
+
+            gameSystem.TryClaimQuestRewards(currentQuest);
+        }
+
         private void SetButtonInteractable(bool interactable)
         {
             if (btn_打开任务面板 != null)
             {
                 btn_打开任务面板.interactable = interactable;
             }
+        }
+
+        private void SetClaimButtonVisible(bool visible)
+        {
+            if (btn_领取奖励 == null)
+            {
+                return;
+            }
+
+            btn_领取奖励.gameObject.SetActive(visible);
+            btn_领取奖励.interactable = visible;
         }
 
         private static int CompareActiveQuests(GameQuestState left, GameQuestState right)
@@ -427,6 +491,23 @@ namespace Landsong.UISystem
                 left == null || left.Definition == null ? string.Empty : left.Definition.DisplayName,
                 right == null || right.Definition == null ? string.Empty : right.Definition.DisplayName,
                 StringComparison.Ordinal);
+        }
+
+        private static string FormatRemainingTurns(GameQuestState quest)
+        {
+            if (quest == null)
+            {
+                return string.Empty;
+            }
+
+            if (quest.IsCompleted)
+            {
+                return "已完成";
+            }
+
+            var gameSystem = GameSystem.Instance;
+            var currentTurn = gameSystem == null ? quest.StartedTurn : gameSystem.CurrentTurn;
+            return $"剩余 {quest.GetRemainingTurns(currentTurn)} 回合";
         }
 
         private static void SetText(TMP_Text target, string value)

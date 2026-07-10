@@ -9,7 +9,6 @@ namespace Landsong.UISystem
     {
         [SerializeField] private TMP_Text txt_任务要求;
         [SerializeField, LabelText("已完成标记")] private GameObject 已完成标记;
-        [SerializeField, LabelText("已失败标记")] private GameObject 已失败标记;
 
         private void Reset()
         {
@@ -21,19 +20,17 @@ namespace Landsong.UISystem
             ResourceRichTextFormatter.ApplySpriteAsset(txt_任务要求);
         }
 
-        public void Bind(string requirementText, bool isCompleted, bool isFailed)
+        public void Bind(string requirementText, bool isCompleted)
         {
             ResourceRichTextFormatter.ApplySpriteAsset(txt_任务要求);
             SetText(txt_任务要求, requirementText);
             SetActive(已完成标记, isCompleted);
-            SetActive(已失败标记, isFailed && !isCompleted);
         }
 
         public void Clear()
         {
             SetText(txt_任务要求, string.Empty);
             SetActive(已完成标记, false);
-            SetActive(已失败标记, false);
         }
 
         private static void SetText(TMP_Text target, string value)

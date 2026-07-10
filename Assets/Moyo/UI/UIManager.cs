@@ -72,6 +72,7 @@ namespace Moyo.Unity
         private readonly Dictionary<string, HashSet<string>> hideOwnersByPanel = new();
 
         private bool isLoadingUIConfig;
+        private bool isShuttingDown;
 
         protected override void Init()
         {
@@ -83,12 +84,18 @@ namespace Moyo.Unity
 
         private void OnDestroy()
         {
+            isShuttingDown = true;
             SceneManager.activeSceneChanged -= HandleActiveSceneChanged;
+        }
+
+        private void OnApplicationQuit()
+        {
+            isShuttingDown = true;
         }
 
         private async void HandleActiveSceneChanged(Scene current, Scene next)
         {
-            if (!Application.isPlaying)
+            if (isShuttingDown || !Application.isPlaying)
             {
                 return;
             }
@@ -521,7 +528,7 @@ namespace Moyo.Unity
         /// </summary>
         public async Task<bool> ReopenUnmanagedScenePanelAsync(UIPanelBase unmanagedPanel)
         {
-            if (unmanagedPanel == null)
+            if (isShuttingDown || !Application.isPlaying || unmanagedPanel == null)
             {
                 return false;
             }

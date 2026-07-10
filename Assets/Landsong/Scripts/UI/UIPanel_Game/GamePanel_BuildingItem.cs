@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Landsong.BuildingSystem;
 using Sirenix.OdinInspector;
@@ -10,7 +11,8 @@ using UnityEngine.UI;
 namespace Landsong.UISystem
 {
     [DisallowMultipleComponent]
-    public sealed class GamePanel_BuildingItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+    public sealed class GamePanel_BuildingItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler,
+        IPointerDownHandler, IPointerUpHandler
     {
         #region 状态
         //不可用时设置为true
@@ -29,6 +31,7 @@ namespace Landsong.UISystem
         #region 消耗面板
         [SerializeField,LabelText("消耗面板")] private RectTransform root_消耗面板;
         [SerializeField,LabelText("消耗文本预制体")] private TMP_Text prefab_材料文本预制体;
+        [SerializeField, LabelText("长按显示延迟"), Min(0.05f)] private float longPressDuration = 0.45f;
         #endregion
 
 
@@ -40,6 +43,11 @@ namespace Landsong.UISystem
         private BuildingAvailability availability;
         private Action<BuildingBase> clicked;
         private readonly List<TMP_Text> materialTextInstances = new List<TMP_Text>();
+        private Coroutine longPressRoutine;
+        private bool pointerPressed;
+        private bool longPressTriggered;
+        private bool longPressPanelVisible;
+        private bool suppressNextClick;
 
         private void Reset()
         {
@@ -57,16 +65,24 @@ namespace Landsong.UISystem
 
         private void Awake()
         {
+            PrepareCostPanelRaycasts();
             HideCostPanel();
         }
 
         private void OnDisable()
         {
+            pointerPressed = false;
+            longPressTriggered = false;
+            longPressPanelVisible = false;
+            suppressNextClick = false;
+            CancelLongPress();
             HideCostPanel();
         }
 
         private void OnDestroy()
         {
+            CancelLongPress();
+
             if (button != null)
             {
                 button.onClick.RemoveListener(HandleClicked);
@@ -84,6 +100,12 @@ namespace Landsong.UISystem
             {
                 button.onClick.RemoveListener(HandleClicked);
             }
+
+            pointerPressed = false;
+            longPressTriggered = false;
+            longPressPanelVisible = false;
+            suppressNextClick = false;
+            CancelLongPress();
 
             buildingPrefab = sourceBuildingPrefab;
             availability = buildingAvailability;
@@ -108,6 +130,12 @@ namespace Landsong.UISystem
 
         public void Unbind()
         {
+            pointerPressed = false;
+            longPressTriggered = false;
+            longPressPanelVisible = false;
+            suppressNextClick = false;
+            CancelLongPress();
+
             buildingPrefab = null;
             availability = BuildingAvailability.Hidden(null, BuildingUnavailableReason.Hidden);
             clicked = null;
@@ -130,11 +158,55 @@ namespace Landsong.UISystem
 
         public void OnPointerEnter(PointerEventData eventData)
         {
+            if (IsTouchPointer(eventData))
+            {
+                return;
+            }
+
             ShowCostPanel();
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
+            if (longPressTriggered || longPressPanelVisible)
+            {
+                suppressNextClick = true;
+            }
+
+            pointerPressed = false;
+            longPressTriggered = false;
+            longPressPanelVisible = false;
+            CancelLongPress();
+            HideCostPanel();
+        }
+
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            pointerPressed = true;
+            longPressTriggered = false;
+            longPressPanelVisible = false;
+            suppressNextClick = false;
+            CancelLongPress();
+
+            if (IsTouchPointer(eventData))
+            {
+                longPressRoutine = StartCoroutine(ShowCostPanelAfterLongPress());
+            }
+        }
+
+        public void OnPointerUp(PointerEventData eventData)
+        {
+            pointerPressed = false;
+            CancelLongPress();
+
+            if (!longPressTriggered && !longPressPanelVisible)
+            {
+                return;
+            }
+
+            longPressTriggered = false;
+            longPressPanelVisible = false;
+            suppressNextClick = true;
             HideCostPanel();
         }
 
@@ -191,6 +263,12 @@ namespace Landsong.UISystem
 
         private void HandleClicked()
         {
+            if (suppressNextClick)
+            {
+                suppressNextClick = false;
+                return;
+            }
+
             clicked?.Invoke(buildingPrefab);
         }
 
@@ -201,8 +279,14 @@ namespace Landsong.UISystem
                 return;
             }
 
+            PrepareCostPanelRaycasts();
             ClearMaterialTextInstances();
-            CreateMaterialTextInstances();
+            if (CreateMaterialTextInstances() <= 0)
+            {
+                SetActive(root_消耗面板.gameObject, false);
+                return;
+            }
+
             SetActive(root_消耗面板.gameObject, true);
         }
 
@@ -215,20 +299,21 @@ namespace Landsong.UISystem
             }
         }
 
-        private void CreateMaterialTextInstances()
+        private int CreateMaterialTextInstances()
         {
             if (prefab_材料文本预制体 == null)
             {
-                return;
+                return 0;
             }
 
             var definition = buildingPrefab == null ? null : buildingPrefab.Definition;
             var costs = definition == null ? null : definition.PlacementCosts;
             if (costs == null)
             {
-                return;
+                return 0;
             }
 
+            var createdCount = 0;
             for (var i = 0; i < costs.Count; i++)
             {
                 var cost = costs[i];
@@ -239,9 +324,13 @@ namespace Landsong.UISystem
 
                 var text = Instantiate(prefab_材料文本预制体, root_消耗面板);
                 text.text = FormatMaterialCost(cost);
+                SetGraphicRaycasts(text.gameObject, false);
                 text.gameObject.SetActive(true);
                 materialTextInstances.Add(text);
+                createdCount++;
             }
+
+            return createdCount;
         }
 
         private void ClearMaterialTextInstances()
@@ -268,6 +357,107 @@ namespace Landsong.UISystem
             }
 
             return $"{itemName} x{cost.Amount}";
+        }
+
+        private IEnumerator ShowCostPanelAfterLongPress()
+        {
+            var delay = Mathf.Max(0.05f, longPressDuration);
+            var elapsed = 0f;
+            while (elapsed < delay)
+            {
+                if (!pointerPressed)
+                {
+                    longPressRoutine = null;
+                    yield break;
+                }
+
+                elapsed += Time.unscaledDeltaTime;
+                yield return null;
+            }
+
+            if (pointerPressed)
+            {
+                longPressTriggered = true;
+                ShowCostPanel();
+                longPressPanelVisible = root_消耗面板 != null && root_消耗面板.gameObject.activeSelf;
+            }
+
+            longPressRoutine = null;
+        }
+
+        private void CancelLongPress()
+        {
+            if (longPressRoutine == null)
+            {
+                return;
+            }
+
+            StopCoroutine(longPressRoutine);
+            longPressRoutine = null;
+        }
+
+        private void PrepareCostPanelRaycasts()
+        {
+            if (root_消耗面板 == null)
+            {
+                return;
+            }
+
+            SetGraphicRaycasts(root_消耗面板.gameObject, false);
+
+            if (prefab_材料文本预制体 == null)
+            {
+                HideBlankMaterialTemplateChildren();
+                return;
+            }
+
+            var templateTransform = prefab_材料文本预制体.transform;
+            if (templateTransform != null && templateTransform.IsChildOf(root_消耗面板))
+            {
+                prefab_材料文本预制体.gameObject.SetActive(false);
+                return;
+            }
+
+            HideBlankMaterialTemplateChildren();
+        }
+
+        private void HideBlankMaterialTemplateChildren()
+        {
+            if (root_消耗面板 == null)
+            {
+                return;
+            }
+
+            var texts = root_消耗面板.GetComponentsInChildren<TMP_Text>(true);
+            for (var i = 0; i < texts.Length; i++)
+            {
+                var text = texts[i];
+                if (text == null || materialTextInstances.Contains(text) || !string.IsNullOrEmpty(text.text))
+                {
+                    continue;
+                }
+
+                text.gameObject.SetActive(false);
+            }
+        }
+
+        private static void SetGraphicRaycasts(GameObject root, bool raycastTarget)
+        {
+            if (root == null)
+            {
+                return;
+            }
+
+            var graphics = root.GetComponentsInChildren<Graphic>(true);
+            for (var i = 0; i < graphics.Length; i++)
+            {
+                graphics[i].raycastTarget = raycastTarget;
+            }
+        }
+
+        private static bool IsTouchPointer(PointerEventData eventData)
+        {
+            return eventData != null && eventData.pointerId >= 0;
         }
 
         private static void SetActive(GameObject target, bool active)

@@ -45,6 +45,7 @@ namespace Landsong.GameEventSystem
         public const string GE_科技研究完成 = "technology_research_completed";
         public const string GE_未选择研发节点 = "technology_research_not_selected";
         public const string GE_科技自动重复研发 = "technology_repeat_research_continued";
+        public const string GE_任务出现 = "quest_added";
         public const string GE_任务完成 = "quest_completed";
         public const string GE_任务失败 = "quest_failed";
         public const string GE_任务提交资源 = "quest_resource_submitted";
@@ -87,6 +88,7 @@ namespace Landsong.GameEventSystem
             new GameEventDefinition(GE_科技研究完成, "科技研究完成"),
             new GameEventDefinition(GE_未选择研发节点, "未选择研发"),
             new GameEventDefinition(GE_科技自动重复研发, "科技自动重复研发"),
+            new GameEventDefinition(GE_任务出现, "新任务"),
             new GameEventDefinition(GE_任务完成, "任务完成"),
             new GameEventDefinition(GE_任务失败, "任务失败"),
             new GameEventDefinition(GE_任务提交资源, "任务提交资源"),

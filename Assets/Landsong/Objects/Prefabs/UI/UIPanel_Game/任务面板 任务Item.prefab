@@ -392,18 +392,15 @@ MonoBehaviour:
   selectButton: {fileID: 6302464871367149473}
   submitButton: {fileID: 1285200481328632768}
   submitButtonLabel: {fileID: 3267271745125283675}
+  abandonButton: {fileID: 2258770092022665572}
+  abandonButtonLabel: {fileID: 2146679737889269581}
   icon: {fileID: 1509640093823043631}
   titleLabel: {fileID: 4434475792828744413}
   descriptionLabel: {fileID: 5736003107842115659}
-  statusLabel: {fileID: 6356927290652807179}
   deadlineLabel: {fileID: 70069812718613778}
-  progressLabel: {fileID: 4119896304954428948}
-  resourceDetailsLabel: {fileID: 3472448502255862472}
-  progressSlider: {fileID: 3848169420534730062}
   detailsRoot: {fileID: 9135377222441692621}
   selectedRoot: {fileID: 5066353203282404408}
   completedRoot: {fileID: 6790083833781770332}
-  failedRoot: {fileID: 2655515997132786522}
 --- !u!1 &1434063366503949784
 GameObject:
   m_ObjectHideFlags: 0
@@ -1056,7 +1053,7 @@ GameObject:
   - component: {fileID: 2258770092022665572}
   - component: {fileID: 4749613293388636034}
   m_Layer: 0
-  m_Name: FailedRoot
+  m_Name: "btn_\u653E\u5F03\u4EFB\u52A1"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2659,7 +2656,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u5DF2\u5931\u8D25"
+  m_text: "\u653E\u5F03\u4EFB\u52A1"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 3afb4c0418f3b1a4092eaa4734edf2de, type: 2}
   m_sharedMaterial: {fileID: 2543768371350609851, guid: 3afb4c0418f3b1a4092eaa4734edf2de, type: 2}

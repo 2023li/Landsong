@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Landsong.BuildingSystem;
+using Landsong.InventorySystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -25,6 +26,11 @@ namespace Landsong.DebugSystem
         [BoxGroup("建筑调试"), SerializeField, LabelText("点击时输出建筑命中日志")] private bool logBuildingClickOnClick = true;
         [BoxGroup("建筑调试"), SerializeField, Min(1), LabelText("最大显示建筑命中数量")] private int maxDisplayedBuildingHits = 8;
 
+        [BoxGroup("Gameplay调试"), SerializeField, LabelText("启用 Gameplay 调试")] private bool gameplayDebug;
+        [BoxGroup("Gameplay调试"), SerializeField, LabelText("Gameplay 调试快捷键")] private Key toggleGameplayDebugKey = Key.F8;
+        [BoxGroup("Gameplay调试"), SerializeField, Min(1), LabelText("默认物资数量")] private int gameplayDebugItemQuantity = 100;
+        [BoxGroup("Gameplay调试"), SerializeField, LabelText("默认物资 ID")] private string gameplayDebugItemId = "木头";
+
         private static readonly Vector3[] RectWorldCorners = new Vector3[4];
 
         private readonly List<RaycastResult> uiRaycastResults = new List<RaycastResult>();
@@ -45,6 +51,8 @@ namespace Landsong.DebugSystem
         private int sampledRuntimeBuildingCount;
         private string sampledBuildingDebugNote;
         private bool hasSampledPointer;
+        private string gameplayDebugItemQuantityText = "100";
+        private string gameplayDebugStatus = string.Empty;
         private GUIStyle panelStyle;
         private GUIStyle lineStyle;
         private GUIStyle smallLabelStyle;
@@ -68,6 +76,7 @@ namespace Landsong.DebugSystem
 
         public static LSDebugManager Instance { get; private set; }
         public bool UiDebug => uiDebug;
+        public bool GameplayDebug => gameplayDebug;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void EnsureRuntimeInstance()
@@ -91,6 +100,11 @@ namespace Landsong.DebugSystem
             }
 
             Instance = this;
+            gameplayDebugItemQuantity = Mathf.Max(1, gameplayDebugItemQuantity);
+            gameplayDebugItemQuantityText = gameplayDebugItemQuantity.ToString();
+            gameplayDebugItemId = string.IsNullOrWhiteSpace(gameplayDebugItemId)
+                ? "木头"
+                : gameplayDebugItemId.Trim();
         }
 
         private void OnDestroy()
@@ -139,19 +153,27 @@ namespace Landsong.DebugSystem
 
         private void OnGUI()
         {
-            if (!uiDebug)
+            if (!uiDebug && !gameplayDebug)
             {
                 return;
             }
 
             EnsureGuiResources();
 
-            if (drawUiRaycastTargetRects)
+            if (uiDebug && drawUiRaycastTargetRects)
             {
                 DrawHighlightedGraphics();
             }
 
-            DrawUiDebugPanel();
+            if (uiDebug)
+            {
+                DrawUiDebugPanel();
+            }
+
+            if (gameplayDebug)
+            {
+                DrawGameplayDebugPanel();
+            }
         }
 
         public void SetUiDebugEnabled(bool enabled)
@@ -175,6 +197,16 @@ namespace Landsong.DebugSystem
             SetUiDebugEnabled(!uiDebug);
         }
 
+        public void SetGameplayDebugEnabled(bool enabled)
+        {
+            gameplayDebug = enabled;
+        }
+
+        public void ToggleGameplayDebug()
+        {
+            SetGameplayDebugEnabled(!gameplayDebug);
+        }
+
         private void HandleShortcut()
         {
             var keyboard = Keyboard.current;
@@ -188,6 +220,148 @@ namespace Landsong.DebugSystem
             {
                 ToggleUiDebug();
             }
+
+            var gameplayDebugKeyControl = keyboard[toggleGameplayDebugKey];
+            if (gameplayDebugKeyControl != null && gameplayDebugKeyControl.wasPressedThisFrame)
+            {
+                ToggleGameplayDebug();
+            }
+        }
+
+        private void DrawGameplayDebugPanel()
+        {
+            const float padding = 12f;
+            const float panelWidth = 440f;
+            const float panelHeight = 340f;
+            var width = Mathf.Min(panelWidth, Mathf.Max(220f, Screen.width - padding * 2f));
+            var rect = new Rect(Screen.width - width - padding, padding, width, panelHeight);
+
+            GUI.color = new Color(0f, 0f, 0f, 0.82f);
+            GUI.Box(rect, GUIContent.none, panelStyle);
+            GUI.color = Color.white;
+
+            GUILayout.BeginArea(new Rect(rect.x + 10f, rect.y + 10f, rect.width - 20f, rect.height - 20f));
+            GUILayout.Label($"Gameplay 调试: ON  {toggleGameplayDebugKey} 切换", smallLabelStyle);
+
+            var gameSystem = Landsong.GameSystem.Instance;
+            if (gameSystem == null)
+            {
+                GUILayout.Space(8f);
+                GUILayout.Label("当前场景没有 GameSystem。", lineStyle);
+                GUILayout.EndArea();
+                return;
+            }
+
+            var previousEnabled = GUI.enabled;
+            if (GUILayout.Button("添加 9999 金币", GUILayout.Height(30f)))
+            {
+                var added = gameSystem.AddGameplayDebugGold();
+                gameplayDebugStatus = added == 9999
+                    ? "已添加金币 x9999。"
+                    : $"金币仅添加 x{added}/9999：库存容量不足或金币未配置。";
+            }
+
+            GUILayout.Space(8f);
+            GUILayout.Label("指定物资", smallLabelStyle);
+            DrawGameplayDebugItemSelection(gameSystem);
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("数量", GUILayout.Width(36f));
+            gameplayDebugItemQuantityText = GUILayout.TextField(gameplayDebugItemQuantityText, GUILayout.Width(84f));
+            if (GUILayout.Button("添加物资", GUILayout.Height(24f)))
+            {
+                AddSelectedGameplayDebugItem(gameSystem);
+            }
+            GUILayout.EndHorizontal();
+
+            GUILayout.Space(8f);
+            if (GUILayout.Button("获取一个随机任务", GUILayout.Height(30f)))
+            {
+                if (gameSystem.TryAddGameplayDebugRandomQuest(out var quest))
+                {
+                    gameplayDebugStatus = $"已获取随机任务：{quest.Definition.DisplayName}。";
+                }
+                else
+                {
+                    gameplayDebugStatus = "获取随机任务失败：没有可用物资，或已达到同时存在上限。";
+                }
+            }
+
+            GUI.enabled = previousEnabled;
+            if (!string.IsNullOrWhiteSpace(gameplayDebugStatus))
+            {
+                GUILayout.Space(8f);
+                GUILayout.Label(gameplayDebugStatus, lineStyle);
+            }
+
+            GUILayout.EndArea();
+        }
+
+        private void DrawGameplayDebugItemSelection(Landsong.GameSystem gameSystem)
+        {
+            var catalog = gameSystem.Inventory == null ? null : gameSystem.Inventory.ItemCatalog;
+            var definitions = catalog == null ? null : catalog.Definitions;
+            if (definitions == null || definitions.Count == 0)
+            {
+                GUILayout.Label("物品目录未配置。", lineStyle);
+                return;
+            }
+
+            var validDefinitions = new List<ItemDefinition>();
+            for (var i = 0; i < definitions.Count; i++)
+            {
+                var definition = definitions[i];
+                if (definition != null && !string.IsNullOrWhiteSpace(definition.ItemId))
+                {
+                    validDefinitions.Add(definition);
+                }
+            }
+
+            if (validDefinitions.Count == 0)
+            {
+                GUILayout.Label("物品目录中没有有效物品。", lineStyle);
+                return;
+            }
+
+            var selectedIndex = 0;
+            var labels = new string[validDefinitions.Count];
+            for (var i = 0; i < validDefinitions.Count; i++)
+            {
+                labels[i] = validDefinitions[i].DisplayName;
+                if (string.Equals(validDefinitions[i].ItemId, gameplayDebugItemId, System.StringComparison.Ordinal))
+                {
+                    selectedIndex = i;
+                }
+            }
+
+            selectedIndex = GUILayout.SelectionGrid(selectedIndex, labels, 3, GUILayout.Height(52f));
+            gameplayDebugItemId = validDefinitions[selectedIndex].ItemId;
+            GUILayout.Label($"物资 ID：{gameplayDebugItemId}", lineStyle);
+        }
+
+        private void AddSelectedGameplayDebugItem(Landsong.GameSystem gameSystem)
+        {
+            if (!int.TryParse(gameplayDebugItemQuantityText, out var amount))
+            {
+                gameplayDebugStatus = "物资数量必须是正整数。";
+                return;
+            }
+
+            amount = Mathf.Max(1, amount);
+            gameplayDebugItemQuantity = amount;
+            gameplayDebugItemQuantityText = amount.ToString();
+
+            var catalog = gameSystem.Inventory == null ? null : gameSystem.Inventory.ItemCatalog;
+            if (catalog == null || !catalog.TryGetDefinition(gameplayDebugItemId, out var definition))
+            {
+                gameplayDebugStatus = "请选择物品目录中的有效物资。";
+                return;
+            }
+
+            var added = gameSystem.AddGameplayDebugItem(definition.ItemId, amount);
+            gameplayDebugStatus = added == amount
+                ? $"已添加 {definition.DisplayName} x{added}。"
+                : $"{definition.DisplayName} 仅添加 x{added}/{amount}：库存容量不足。";
         }
 
         private void SampleUiRaycasts()

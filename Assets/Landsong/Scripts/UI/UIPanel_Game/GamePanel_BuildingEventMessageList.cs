@@ -198,7 +198,10 @@ namespace Landsong.UISystem
             }
 
             message.Clicked?.Invoke(message);
-            ShowMessagePopup(message);
+            if (!message.SuppressDefaultPopup)
+            {
+                ShowMessagePopup(message);
+            }
         }
 
         private void HandleMessageDeleted(GameEventMessage message)
