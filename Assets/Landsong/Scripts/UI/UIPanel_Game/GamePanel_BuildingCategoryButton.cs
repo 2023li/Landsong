@@ -1,5 +1,6 @@
 using System;
 using Landsong.BuildingSystem;
+using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,6 +12,7 @@ namespace Landsong.UISystem
     {
         [SerializeField] private Button button;
         [SerializeField] private TMP_Text label;
+        [SerializeField, LabelText("选中标记")] private GameObject selectedMarker;
 
         private Action<BuildingCategory> clicked;
 
@@ -43,7 +45,10 @@ namespace Landsong.UISystem
             }
         }
 
-        public void Bind(BuildingCategory category, Action<BuildingCategory> onClicked)
+        public void Bind(
+            BuildingCategory category,
+            bool selected,
+            Action<BuildingCategory> onClicked)
         {
             Category = category;
             clicked = onClicked;
@@ -57,6 +62,16 @@ namespace Landsong.UISystem
             {
                 button.onClick.RemoveListener(HandleClicked);
                 button.onClick.AddListener(HandleClicked);
+            }
+
+            SetSelected(selected);
+        }
+
+        public void SetSelected(bool selected)
+        {
+            if (selectedMarker != null)
+            {
+                selectedMarker.SetActive(selected);
             }
         }
 

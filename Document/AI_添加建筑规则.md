@@ -29,7 +29,7 @@
 如果要改具体建筑，再补读对应脚本和 Prefab，例如：
 
 - `Assets/Landsong/Scripts/BuildingSystem/Buildings/LumberCabin.cs`
-- `Assets/Landsong/Scripts/BuildingSystem/Buildings/ResidentialHousingLV0.cs`
+- `Assets/Landsong/Scripts/BuildingSystem/Buildings/BuildingUnderConstruction.cs`
 - `Assets/Landsong/Scripts/BuildingSystem/Buildings/ResidentialHousingLV1.cs`
 - `Assets/Landsong/Scripts/BuildingSystem/Buildings/PlayerHomeLV1.cs`
 - `Assets/Landsong/Scripts/BuildingSystem/Buildings/FishingHutBuilding.cs`
@@ -185,7 +185,8 @@ flowchart TD
 
 - 具体建筑脚本负责 `OnTurn()` 的业务逻辑。
 - `BM_资源产出` 负责周期、产量表、上回合产出记录。
-- `BM_等级升级` 负责升级条件、升级成本、目标 Prefab 与自动升级。
+- `BM_施工材料消耗` 负责按施工阶段扣除材料并暴露本回合/上回合消耗。
+- `BM_等级升级` 负责施工或运营经验、升级条件、升级成本、目标 Prefab 与自动升级。
 - `BM_科技点产出` 负责保存每回合科技点数值和上回合结果。
 - `BuildingJobSystem` 负责岗位吸引力与稳定工人数公式。
 - `BuildingAvailabilityEvaluator` 负责建造菜单可见/可用状态。
@@ -300,6 +301,22 @@ else if (building is ResidentialHousingLV1) { ... }
 - `upgradeTargetPrefab`
 - `upgradeCondition`
 - `upgradeCosts`
+
+### `BM_施工材料消耗`
+
+用途：
+
+- 为通用在建建筑配置逐回合施工材料
+- 只在材料足够且成功扣除后允许施工进度前进
+- 暴露当前阶段预计消耗与上次成功消耗
+- 通过 `IBuildingModuleStateSerializer` 保存上次成功施工阶段
+
+关键约束：
+
+- 与 `BM_等级升级` 配合使用，每成功扣料一次增加 1 点升级经验
+- `turnCosts` 的阶段数至少应覆盖 `BM_等级升级.requiredExperience`
+- 施工材料放在本模块；完工瞬间仍需额外支付的费用才放在 `BM_等级升级.upgradeCosts`
+- 不要在具体建筑脚本里再保存一份施工进度
 
 ## 具体建筑实现模式
 
@@ -420,12 +437,14 @@ public sealed class ExampleWorkshop : BuildingBase, IBuildingWorkforceFundingSou
 
 ### 新增一个“施工态 -> 完工态”建筑
 
-参考 `ResidentialHousingLV0`：
+复用 `BuildingUnderConstruction`：
 
-- 保存施工经验
-- 每回合扣一段材料
-- 达到阈值后调用 `BuildingService.TryReplace(...)`
-- 不要在同一个实例里把脚本切成 LV1
+- 在在建 Prefab 上使用 `BuildingUnderConstruction`
+- 配置 `BM_施工材料消耗.turnCosts`
+- 配置 `BM_等级升级.requiredExperience` 与 `upgradeTargetPrefab`
+- 通常保持 `BM_等级升级.autoUpgradeEnabled = true`
+- 达到阈值后由 `BuildingBase.ProcessTurn()` 调用升级模块并走 `BuildingService.TryReplace(...)`
+- 不要为每种建筑新建 `XXX_LV0` 施工脚本，也不要在同一个实例里把脚本切成完工类型
 
 ## 编辑器与使用步骤
 
@@ -482,6 +501,7 @@ public sealed class ExampleWorkshop : BuildingBase, IBuildingWorkforceFundingSou
 
 - 是否真的在成功产出后增加了经验
 - `BM_等级升级.requiredExperience`
+- `BM_施工材料消耗.turnCosts` 是否覆盖全部施工阶段
 - `upgradeTargetPrefab`
 - `upgradeCondition`
 - `upgradeCosts`
@@ -502,6 +522,11 @@ public sealed class ExampleWorkshop : BuildingBase, IBuildingWorkforceFundingSou
 - 按当前 `main` 分支实现重写整份规则文档。
 - 删除对 `ModuleDisplayName` 的错误依赖说明。
 - 补充 `BuildingBase` 公共模块存档边界。
-- 明确 `ResidentialHousingLV0` 与 `ResidentialHousingLV1` 的职责分工。
+- 当时明确了居民房施工态与完工态的职责分工；该施工态实现现已由通用 `BuildingUnderConstruction` 取代。
 - 明确 `LumberCabin` 当前是共享脚本而非 `LumberCabinLV1/LV2` 两个类。
 - 补充 `BuildingAvailabilityEvaluator`、`BuildingCatalog.asset` 与 `GameSystem.prefab` 的接入要求。
+
+### 2026-07-10
+
+- 用通用 `BuildingUnderConstruction` 替代居民房专用 `ResidentialHousingLV0`。
+- 新增 `BM_施工材料消耗`，并明确它与 `BM_等级升级` 的施工职责边界。

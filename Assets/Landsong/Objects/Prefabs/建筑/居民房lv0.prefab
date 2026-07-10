@@ -181,7 +181,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7f112e29bf8fc044eb8a142b3bbf0921, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.Buildings.ResidentialHousingLV0
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.Buildings.BuildingUnderConstruction
   definition:
     buildingId: "\u5C45\u6C11\u623Flv0"
     displayName: "\u5C45\u6C11\u623F\uFF08\u5728\u5EFA\uFF09"
@@ -195,6 +195,10 @@ MonoBehaviour:
     placementCosts:
     - itemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
       amount: 30
+    - itemDefinition: {fileID: 11400000, guid: 52d28e7de1d658444b6a2fb735c56e85, type: 2}
+      amount: 1
+    - itemDefinition: {fileID: 11400000, guid: 6293531210d744e8b03f1b99017467c3, type: 2}
+      amount: 1
     visibleCondition:
       rid: 5711026153326903379
     availableCondition:
@@ -211,24 +215,14 @@ MonoBehaviour:
     y: 0
   gridOccupancyId: 
   isResourceProviderPoint: 0
-  buildingModules: []
+  buildingModules:
+  - rid: 5711026153326903381
+  - rid: 5711026153326903382
   buildingActionPower: 100
   clickSound: {fileID: 0}
   doubleClickSound: {fileID: 0}
   view: {fileID: 4269690486657159540}
   autoRepair: 0
-  firstTurnCost:
-    itemDefinition: {fileID: 11400000, guid: 83207646c27978649aad0c621fe5e93d, type: 2}
-    amount: 10
-  secondTurnCost:
-    itemDefinition: {fileID: 11400000, guid: 52d28e7de1d658444b6a2fb735c56e85, type: 2}
-    amount: 10
-  thirdTurnCost:
-    itemDefinition: {fileID: 11400000, guid: 6293531210d744e8b03f1b99017467c3, type: 2}
-    amount: 10
-  residentialHousingLv1Prefab: {fileID: 8791965200104292625, guid: 5a2e56844bf1f09479a2a8a48ecfa705, type: 3}
-  populationContribution: 0
-  exp: 0
   references:
     version: 2
     RefIds:
@@ -238,6 +232,31 @@ MonoBehaviour:
     - rid: 5711026153326903380
       type: {class: GameCondition_True, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
       data: 
+    - rid: 5711026153326903381
+      type: {class: BM_施工材料消耗, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        enabled: 1
+        turnCosts:
+        - costs:
+          - itemDefinition: {fileID: 11400000, guid: 83207646c27978649aad0c621fe5e93d, type: 2}
+            amount: 10
+        - costs:
+          - itemDefinition: {fileID: 11400000, guid: 52d28e7de1d658444b6a2fb735c56e85, type: 2}
+            amount: 10
+        - costs:
+          - itemDefinition: {fileID: 11400000, guid: 6293531210d744e8b03f1b99017467c3, type: 2}
+            amount: 10
+    - rid: 5711026153326903382
+      type: {class: BM_等级升级, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        enabled: 1
+        autoUpgradeEnabled: 1
+        currentExperience: 0
+        requiredExperience: 3
+        upgradeTargetPrefab: {fileID: 8791965200104292625, guid: 5a2e56844bf1f09479a2a8a48ecfa705, type: 3}
+        upgradeCondition:
+          rid: -2
+        upgradeCosts: []
 --- !u!61 &7314689994193135270
 BoxCollider2D:
   m_ObjectHideFlags: 0

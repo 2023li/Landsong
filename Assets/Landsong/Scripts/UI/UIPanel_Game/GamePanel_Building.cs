@@ -277,6 +277,7 @@ namespace Landsong.UISystem
         public void SelectCategory(BuildingCategory category)
         {
             selectedCategory = category;
+            RefreshCategoryButtonSelection();
             RebuildBuildingItems();
             RefreshInfoPanel();
         }
@@ -460,8 +461,20 @@ namespace Landsong.UISystem
             foreach (var category in categories)
             {
                 var button = Instantiate(categoryButtonPrefab, categoryButtonRoot);
-                button.Bind(category, SelectCategory);
+                button.Bind(category, category == selectedCategory, SelectCategory);
                 categoryButtons.Add(button);
+            }
+        }
+
+        private void RefreshCategoryButtonSelection()
+        {
+            for (var i = 0; i < categoryButtons.Count; i++)
+            {
+                var button = categoryButtons[i];
+                if (button != null)
+                {
+                    button.SetSelected(button.Category == selectedCategory);
+                }
             }
         }
 

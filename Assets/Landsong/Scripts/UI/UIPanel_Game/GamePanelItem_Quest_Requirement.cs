@@ -33,6 +33,14 @@ namespace Landsong.UISystem
             SetActive(已完成标记, false);
         }
 
+        public void SetTextAlignment(TextAlignmentOptions alignment)
+        {
+            if (txt_任务要求 != null)
+            {
+                txt_任务要求.alignment = alignment;
+            }
+        }
+
         private static void SetText(TMP_Text target, string value)
         {
             if (target != null)

@@ -158,7 +158,7 @@ namespace Landsong.UISystem
 
         public void OnPointerEnter(PointerEventData eventData)
         {
-            if (IsTouchPointer(eventData))
+            if (Application.isMobilePlatform)
             {
                 return;
             }
@@ -188,7 +188,7 @@ namespace Landsong.UISystem
             suppressNextClick = false;
             CancelLongPress();
 
-            if (IsTouchPointer(eventData))
+            if (Application.isMobilePlatform && IsTouchPointer(eventData))
             {
                 longPressRoutine = StartCoroutine(ShowCostPanelAfterLongPress());
             }
@@ -281,12 +281,14 @@ namespace Landsong.UISystem
 
             PrepareCostPanelRaycasts();
             ClearMaterialTextInstances();
-            if (CreateMaterialTextInstances() <= 0)
+            var materialCount = CreateMaterialTextInstances();
+            if (materialCount <= 0)
             {
                 SetActive(root_消耗面板.gameObject, false);
                 return;
             }
 
+            ConfigureCostPanelLayout();
             SetActive(root_消耗面板.gameObject, true);
         }
 
@@ -301,36 +303,88 @@ namespace Landsong.UISystem
 
         private int CreateMaterialTextInstances()
         {
-            if (prefab_材料文本预制体 == null)
+            if (prefab_材料文本预制体 == null || buildingPrefab == null)
             {
                 return 0;
             }
 
             var definition = buildingPrefab == null ? null : buildingPrefab.Definition;
-            var costs = definition == null ? null : definition.PlacementCosts;
-            if (costs == null)
+            var createdCount = 0;
+            createdCount += CreateCostSection(
+                "放置消耗",
+                definition == null ? null : definition.PlacementCosts);
+
+            IReadOnlyList<BuildingCost> constructionCosts = null;
+            if (buildingPrefab.TryGetModule<BM_施工材料消耗>(out var constructionCostModule))
+            {
+                constructionCosts = constructionCostModule.GetTotalConstructionCosts();
+            }
+
+            createdCount += CreateCostSection("施工消耗", constructionCosts);
+            return createdCount;
+        }
+
+        private int CreateCostSection(string title, IReadOnlyList<BuildingCost> costs)
+        {
+            var createdCount = 0;
+            createdCount += CreateMaterialTextInstance($"<b>{title}</b>");
+            createdCount += CreateMaterialTextInstance(string.Empty);
+
+            var materialCount = 0;
+            if (costs != null)
+            {
+                for (var i = 0; i < costs.Count; i++)
+                {
+                    var cost = costs[i];
+                    if (!cost.IsValid)
+                    {
+                        continue;
+                    }
+
+                    createdCount += CreateMaterialTextInstance(FormatMaterialCost(cost));
+                    materialCount++;
+                }
+            }
+
+            if (materialCount == 0)
+            {
+                createdCount += CreateMaterialTextInstance("无");
+                materialCount = 1;
+            }
+
+            if (materialCount % 2 != 0)
+            {
+                createdCount += CreateMaterialTextInstance(string.Empty);
+            }
+
+            return createdCount;
+        }
+
+        private int CreateMaterialTextInstance(string content)
+        {
+            if (prefab_材料文本预制体 == null || root_消耗面板 == null)
             {
                 return 0;
             }
 
-            var createdCount = 0;
-            for (var i = 0; i < costs.Count; i++)
-            {
-                var cost = costs[i];
-                if (!cost.IsValid)
-                {
-                    continue;
-                }
+            var text = Instantiate(prefab_材料文本预制体, root_消耗面板);
+            text.text = content ?? string.Empty;
+            SetGraphicRaycasts(text.gameObject, false);
+            text.gameObject.SetActive(true);
+            materialTextInstances.Add(text);
+            return 1;
+        }
 
-                var text = Instantiate(prefab_材料文本预制体, root_消耗面板);
-                text.text = FormatMaterialCost(cost);
-                SetGraphicRaycasts(text.gameObject, false);
-                text.gameObject.SetActive(true);
-                materialTextInstances.Add(text);
-                createdCount++;
+        private void ConfigureCostPanelLayout()
+        {
+            if (root_消耗面板 == null
+                || !root_消耗面板.TryGetComponent<GridLayoutGroup>(out var gridLayout))
+            {
+                return;
             }
 
-            return createdCount;
+            gridLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            gridLayout.constraintCount = 2;
         }
 
         private void ClearMaterialTextInstances()
@@ -356,7 +410,7 @@ namespace Landsong.UISystem
                 itemName = "未命名材料";
             }
 
-            return $"{itemName} x{cost.Amount}";
+            return $"{itemName}*{cost.Amount}";
         }
 
         private IEnumerator ShowCostPanelAfterLongPress()
@@ -407,7 +461,7 @@ namespace Landsong.UISystem
 
             if (prefab_材料文本预制体 == null)
             {
-                HideBlankMaterialTemplateChildren();
+                HideMaterialTemplateChildren();
                 return;
             }
 
@@ -418,10 +472,10 @@ namespace Landsong.UISystem
                 return;
             }
 
-            HideBlankMaterialTemplateChildren();
+            HideMaterialTemplateChildren();
         }
 
-        private void HideBlankMaterialTemplateChildren()
+        private void HideMaterialTemplateChildren()
         {
             if (root_消耗面板 == null)
             {
@@ -432,7 +486,7 @@ namespace Landsong.UISystem
             for (var i = 0; i < texts.Length; i++)
             {
                 var text = texts[i];
-                if (text == null || materialTextInstances.Contains(text) || !string.IsNullOrEmpty(text.text))
+                if (text == null || materialTextInstances.Contains(text))
                 {
                     continue;
                 }

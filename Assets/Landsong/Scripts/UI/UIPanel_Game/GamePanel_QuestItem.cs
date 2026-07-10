@@ -11,6 +11,8 @@ namespace Landsong.UISystem
     [DisallowMultipleComponent]
     public sealed class GamePanel_QuestItem : MonoBehaviour
     {
+        private const int MaxRewardColumns = 4;
+
         [SerializeField, LabelText("选择按钮")] private Button selectButton;
         [SerializeField, LabelText("任务操作按钮")] private Button submitButton;
         [SerializeField, LabelText("任务操作按钮文本")] private TMP_Text submitButtonLabel;
@@ -22,6 +24,9 @@ namespace Landsong.UISystem
         [SerializeField, LabelText("期限文本")] private TMP_Text deadlineLabel;
         [SerializeField, LabelText("任务要求根节点")] private RectTransform requirementRoot;
         [SerializeField, LabelText("任务要求Item预制体")] private GamePanelItem_Quest_Requirement requirementItemPrefab;
+        [SerializeField, LabelText("任务奖励根节点")] private RectTransform rewardRoot;
+        [SerializeField, LabelText("任务奖励文本预制体")] private TMP_Text rewardTextPrefab;
+        [SerializeField, LabelText("任务奖励布局")] private GridLayoutGroup rewardLayout;
         [SerializeField, LabelText("任务操作根节点")] private GameObject actionRoot;
         [SerializeField, LabelText("详情根节点")] private GameObject detailsRoot;
         [SerializeField, LabelText("选中状态根节点")] private GameObject selectedRoot;
@@ -35,7 +40,14 @@ namespace Landsong.UISystem
             new List<GamePanelItem_Quest_Requirement>();
         private readonly List<GamePanelItem_Quest_Requirement> requirementItemPool =
             new List<GamePanelItem_Quest_Requirement>();
+        private readonly List<TMP_Text> activeRewardTexts = new List<TMP_Text>();
+        private readonly List<TMP_Text> rewardTextPool = new List<TMP_Text>();
         private bool isSelected;
+
+        private void OnRectTransformDimensionsChange()
+        {
+            RefreshRewardLayout();
+        }
 
         private void Reset()
         {
@@ -110,6 +122,7 @@ namespace Landsong.UISystem
         public void Unbind()
         {
             ReleaseActiveRequirementItems();
+            ReleaseActiveRewardTexts();
 
             if (selectButton != null)
             {
@@ -139,6 +152,7 @@ namespace Landsong.UISystem
             SetText(descriptionLabel, string.Empty);
             SetText(deadlineLabel, string.Empty);
             SetActive(requirementRoot == null ? null : requirementRoot.gameObject, false);
+            SetActive(rewardRoot == null ? null : rewardRoot.gameObject, false);
             SetActive(actionRoot, false);
             SetActive(detailsRoot, false);
             SetActive(selectedRoot, false);
@@ -150,6 +164,7 @@ namespace Landsong.UISystem
         public void Refresh()
         {
             ReleaseActiveRequirementItems();
+            ReleaseActiveRewardTexts();
             if (quest == null || quest.Definition == null)
             {
                 Unbind();
@@ -160,11 +175,13 @@ namespace Landsong.UISystem
             SetText(descriptionLabel, quest.Definition.Description);
             SetText(deadlineLabel, FormatDeadline(quest));
             RenderRequirements(quest);
+            RenderRewards(quest);
             SetDetailsVisible(isSelected);
             SetActive(selectedRoot, isSelected);
             SetActive(completedRoot, quest.IsCompleted);
             SetIcon(quest.Icon);
             RefreshActionButtons();
+            RefreshRewardLayout();
         }
 
         private void RefreshActionButtons()
@@ -226,6 +243,7 @@ namespace Landsong.UISystem
 
             SetGameObjectActive(descriptionLabel, visible);
             SetActive(requirementRoot == null ? null : requirementRoot.gameObject, visible);
+            SetActive(rewardRoot == null ? null : rewardRoot.gameObject, visible && activeRewardTexts.Count > 0);
         }
 
         private static string FormatTitle(GameQuestState quest)
@@ -322,7 +340,126 @@ namespace Landsong.UISystem
             }
 
             item.Bind(requirementText, isCompleted);
+            item.SetTextAlignment(TextAlignmentOptions.Center);
             activeRequirementItems.Add(item);
+        }
+
+        private void RenderRewards(GameQuestState sourceQuest)
+        {
+            if (sourceQuest == null || sourceQuest.Definition == null || !sourceQuest.Definition.HasRewards)
+            {
+                return;
+            }
+
+            var rewards = sourceQuest.Definition.Rewards;
+            for (var i = 0; i < rewards.Count; i++)
+            {
+                var reward = rewards[i].Normalized();
+                if (!reward.IsValid)
+                {
+                    continue;
+                }
+
+                var text = ResourceRichTextFormatter.FormatAmount(
+                    reward.ItemDefinition,
+                    reward.ItemId,
+                    reward.ItemDefinition == null ? reward.ItemId : reward.ItemDefinition.DisplayName,
+                    reward.Amount);
+                AddReward(text);
+            }
+        }
+
+        private void AddReward(string rewardText)
+        {
+            var text = GetRewardTextFromPool();
+            if (text == null)
+            {
+                return;
+            }
+
+            ResourceRichTextFormatter.ApplySpriteAsset(text);
+            SetText(text, rewardText);
+            activeRewardTexts.Add(text);
+        }
+
+        private TMP_Text GetRewardTextFromPool()
+        {
+            if (rewardRoot == null)
+            {
+                return null;
+            }
+
+            TMP_Text text;
+            var lastIndex = rewardTextPool.Count - 1;
+            if (lastIndex >= 0)
+            {
+                text = rewardTextPool[lastIndex];
+                rewardTextPool.RemoveAt(lastIndex);
+            }
+            else if (rewardTextPrefab != null)
+            {
+                text = Instantiate(rewardTextPrefab, rewardRoot);
+            }
+            else
+            {
+                return null;
+            }
+
+            text.transform.SetParent(rewardRoot, false);
+            text.gameObject.SetActive(true);
+            return text;
+        }
+
+        private void ReleaseActiveRewardTexts()
+        {
+            for (var i = 0; i < activeRewardTexts.Count; i++)
+            {
+                var text = activeRewardTexts[i];
+                if (text == null)
+                {
+                    continue;
+                }
+
+                SetText(text, string.Empty);
+                text.gameObject.SetActive(false);
+                if (rewardRoot != null)
+                {
+                    text.transform.SetParent(rewardRoot, false);
+                }
+
+                if (!rewardTextPool.Contains(text))
+                {
+                    rewardTextPool.Add(text);
+                }
+            }
+
+            activeRewardTexts.Clear();
+        }
+
+        private void RefreshRewardLayout()
+        {
+            if (rewardLayout == null || rewardRoot == null || activeRewardTexts.Count <= 0)
+            {
+                return;
+            }
+
+            var columnCount = Mathf.Clamp(activeRewardTexts.Count, 1, MaxRewardColumns);
+            rewardLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            rewardLayout.constraintCount = columnCount;
+
+            var availableWidth = rewardRoot.rect.width
+                                 - rewardLayout.padding.left
+                                 - rewardLayout.padding.right
+                                 - rewardLayout.spacing.x * Mathf.Max(0, columnCount - 1);
+            if (availableWidth <= 0f)
+            {
+                return;
+            }
+
+            var cellSize = rewardLayout.cellSize;
+            cellSize.x = availableWidth / columnCount;
+            rewardLayout.cellSize = cellSize;
+            LayoutRebuilder.MarkLayoutForRebuild(rewardRoot);
         }
 
         private GamePanelItem_Quest_Requirement GetRequirementItemFromPool()

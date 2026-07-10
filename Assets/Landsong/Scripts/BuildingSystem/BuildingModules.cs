@@ -739,6 +739,218 @@ namespace Landsong.BuildingSystem
     }
 
     [Serializable]
+    public sealed class BM_施工材料消耗 : BuildingModuleBase, IBuildingModuleStateSerializer
+    {
+        [Serializable]
+        private struct ConstructionTurnCost
+        {
+            [SerializeField, LabelText("本回合消耗")]
+            private BuildingCost[] costs;
+
+            public IReadOnlyList<BuildingCost> Costs => costs ?? Array.Empty<BuildingCost>();
+
+            public ConstructionTurnCost Normalize()
+            {
+                costs ??= Array.Empty<BuildingCost>();
+                for (var i = 0; i < costs.Length; i++)
+                {
+                    costs[i] = costs[i].Normalized();
+                }
+
+                return this;
+            }
+        }
+
+        [Serializable]
+        private sealed class ConstructionConsumptionState
+        {
+            public int LastCompletedTurnIndex = -1;
+        }
+
+        [SerializeField, LabelText("逐回合施工消耗")]
+        private ConstructionTurnCost[] turnCosts = Array.Empty<ConstructionTurnCost>();
+
+        private int lastCompletedTurnIndex = -1;
+
+        public override string ModuleDescription => "按施工进度扣除当前回合配置的材料；扣除成功后由在建脚本推进等级升级经验。";
+        public int ConfiguredTurnCount => turnCosts == null ? 0 : turnCosts.Length;
+        public IReadOnlyList<BuildingResourceChange> LastResourceConsumptions =>
+            CreateResourceChanges(lastCompletedTurnIndex);
+
+        public override void Normalize()
+        {
+            turnCosts ??= Array.Empty<ConstructionTurnCost>();
+            for (var i = 0; i < turnCosts.Length; i++)
+            {
+                turnCosts[i] = turnCosts[i].Normalize();
+            }
+
+            if (lastCompletedTurnIndex < -1 || lastCompletedTurnIndex >= turnCosts.Length)
+            {
+                lastCompletedTurnIndex = -1;
+            }
+        }
+
+        public IReadOnlyList<BuildingResourceChange> GetResourceConsumptionsForTurn(int turnIndex)
+        {
+            return CreateResourceChanges(turnIndex);
+        }
+
+        public IReadOnlyList<BuildingCost> GetTotalConstructionCosts()
+        {
+            Normalize();
+            List<BuildingCost> totals = null;
+            for (var turnIndex = 0; turnIndex < turnCosts.Length; turnIndex++)
+            {
+                var costs = turnCosts[turnIndex].Costs;
+                for (var costIndex = 0; costIndex < costs.Count; costIndex++)
+                {
+                    var cost = costs[costIndex];
+                    if (!cost.IsValid)
+                    {
+                        continue;
+                    }
+
+                    totals ??= new List<BuildingCost>();
+                    var existingIndex = FindCostIndex(totals, cost.ItemId);
+                    if (existingIndex < 0)
+                    {
+                        totals.Add(cost);
+                        continue;
+                    }
+
+                    var existing = totals[existingIndex];
+                    totals[existingIndex] = new BuildingCost(
+                        existing.ItemDefinition == null ? cost.ItemDefinition : existing.ItemDefinition,
+                        existing.Amount + cost.Amount);
+                }
+            }
+
+            return totals == null ? Array.Empty<BuildingCost>() : totals;
+        }
+
+        public bool TryConsumeForTurn(
+            BuildingBase building,
+            int turnIndex,
+            out string failureStatusId,
+            out string failureStatusText)
+        {
+            Normalize();
+            lastCompletedTurnIndex = -1;
+            failureStatusId = string.Empty;
+            failureStatusText = string.Empty;
+
+            if (!TryGetValidCosts(turnIndex, out var costs))
+            {
+                failureStatusId = BuildingRuntimeStatusCatalog.BS_消耗失败;
+                failureStatusText = "施工材料配置异常";
+                return false;
+            }
+
+            var inventory = building == null || building.GameSystem == null
+                ? null
+                : building.GameSystem.Inventory;
+            if (inventory == null)
+            {
+                failureStatusId = BuildingRuntimeStatusCatalog.BS_库存缺失;
+                failureStatusText = "库存服务缺失";
+                return false;
+            }
+
+            if (!inventory.CanAffordBuildingCosts(costs)
+                || !inventory.TrySpendBuildingCosts(costs))
+            {
+                failureStatusId = BuildingRuntimeStatusCatalog.BS_消耗失败;
+                failureStatusText = "施工材料不足";
+                return false;
+            }
+
+            lastCompletedTurnIndex = turnIndex;
+            return true;
+        }
+
+        public bool TryCaptureState(out string json)
+        {
+            json = JsonUtility.ToJson(new ConstructionConsumptionState
+            {
+                LastCompletedTurnIndex = lastCompletedTurnIndex
+            });
+            return !string.IsNullOrWhiteSpace(json);
+        }
+
+        public void RestoreState(string json)
+        {
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                lastCompletedTurnIndex = -1;
+                return;
+            }
+
+            var state = JsonUtility.FromJson<ConstructionConsumptionState>(json);
+            lastCompletedTurnIndex = state == null ? -1 : state.LastCompletedTurnIndex;
+            Normalize();
+        }
+
+        private bool TryGetValidCosts(int turnIndex, out IReadOnlyList<BuildingCost> costs)
+        {
+            costs = Array.Empty<BuildingCost>();
+            if (turnIndex < 0 || turnCosts == null || turnIndex >= turnCosts.Length)
+            {
+                return false;
+            }
+
+            var configuredCosts = turnCosts[turnIndex].Costs;
+            for (var i = 0; i < configuredCosts.Count; i++)
+            {
+                if (configuredCosts[i].IsValid)
+                {
+                    costs = configuredCosts;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private IReadOnlyList<BuildingResourceChange> CreateResourceChanges(int turnIndex)
+        {
+            if (!TryGetValidCosts(turnIndex, out var costs))
+            {
+                return Array.Empty<BuildingResourceChange>();
+            }
+
+            List<BuildingResourceChange> changes = null;
+            for (var i = 0; i < costs.Count; i++)
+            {
+                var cost = costs[i];
+                var change = new BuildingResourceChange(cost.ItemId, cost.Amount);
+                if (!change.IsValid)
+                {
+                    continue;
+                }
+
+                changes ??= new List<BuildingResourceChange>();
+                changes.Add(change);
+            }
+
+            return changes == null ? Array.Empty<BuildingResourceChange>() : changes;
+        }
+
+        private static int FindCostIndex(IReadOnlyList<BuildingCost> costs, string itemId)
+        {
+            for (var i = 0; i < costs.Count; i++)
+            {
+                if (string.Equals(costs[i].ItemId, itemId, StringComparison.Ordinal))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+    }
+
+    [Serializable]
     public sealed class BM_等级升级 : BuildingModuleBase
     {
         [SerializeField, LabelText("自动升级")]
