@@ -1,4 +1,4 @@
-name: Apply architecture refactor
+name: Finalize architecture refactor to main
 
 on:
   pull_request:
@@ -9,31 +9,73 @@ permissions:
   contents: write
 
 jobs:
-  refactor:
+  finalize:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout staging branch
+      - name: Checkout validated staging tree
         uses: actions/checkout@v4
         with:
           ref: agent/architecture-refactor-20260711
           fetch-depth: 0
+          show-progress: false
 
-      - name: Decode and apply refactor
+      - name: Verify final tree
         shell: bash
         run: |
-          cp .github/workflows/architecture-refactor.yml /tmp/architecture-refactor.yml
-          base64 --decode .github/scripts/architecture_refactor.py.gz.b64 | gzip --decompress > .github/scripts/architecture_refactor.py
-          python3 .github/scripts/architecture_refactor.py
-          mkdir -p .github/workflows
-          cp /tmp/architecture-refactor.yml .github/workflows/architecture-refactor.yml
+          expected_main="94a2f4ad691b46b06a9837d7b9e170693ac815ac"
+          actual_main="$(git rev-parse origin/main)"
+          if [ "$actual_main" != "$expected_main" ]; then
+            echo "main moved from $expected_main to $actual_main; refusing to overwrite newer work."
+            exit 1
+          fi
 
-      - name: Commit generated changes
+          test ! -e .github/architecture-validation-report.txt
+          test ! -e .github/scripts/architecture_refactor.py
+          test ! -e .github/scripts/architecture_refactor.py.gz.b64
+          test ! -e .github/workflows/architecture-refactor.yml
+
+          git diff --check origin/main...HEAD
+
+          python3 -m pip install --quiet tree_sitter tree_sitter_c_sharp
+          python3 - <<'PY'
+          from pathlib import Path
+          import subprocess
+          from tree_sitter import Language, Parser
+          import tree_sitter_c_sharp
+
+          language = Language(tree_sitter_c_sharp.language())
+          try:
+              parser = Parser(language)
+          except TypeError:
+              parser = Parser()
+              parser.language = language
+
+          changed = subprocess.run(
+              ["git", "diff", "--name-only", "origin/main...HEAD", "--", "*.cs"],
+              check=True,
+              capture_output=True,
+              text=True).stdout.splitlines()
+          invalid = []
+          for file_name in changed:
+              path = Path(file_name)
+              if path.exists() and parser.parse(path.read_bytes()).root_node.has_error:
+                  invalid.append(file_name)
+          if invalid:
+              raise SystemExit("C# syntax errors:\n" + "\n".join(invalid))
+          print(f"Final syntax validation passed for {len(changed)} changed C# files.")
+          PY
+
+      - name: Create one clean commit on main
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git reset --soft origin/main
           git add -A
-          git status --short
-          git commit -m "refactor: split game systems and persistence [skip ci]"
-          git push origin HEAD:agent/architecture-refactor-20260711
+          git diff --cached --check
+          git commit \
+            -m "refactor: split game systems and persistence" \
+            -m "Make building replacement transactional, extract quest and persistence responsibilities from the central managers, and consolidate compatibility facades behind canonical service APIs."
+          git push origin HEAD:main
