@@ -5,6 +5,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SCRIPTS = ROOT / "Assets" / "Landsong" / "Scripts"
+REPORT = ROOT / "Document" / "API_AUDIT_TEMP.md"
 
 GAME_SYSTEM_FILES = [
     SCRIPTS / "GameSystem" / "GameSystem.cs",
@@ -55,34 +56,34 @@ def find_usages(name: str, excluded: set[Path]) -> list[str]:
 
 
 def main() -> None:
-    print("=== GameSystem public members ===")
+    output: list[str] = ["# API Audit", "", "## GameSystem public members"]
     game_members: dict[str, list[str]] = {}
     for path in GAME_SYSTEM_FILES:
         if not path.exists():
             continue
-        print(f"\n# {path.relative_to(ROOT)}")
+        output.extend(["", f"### `{path.relative_to(ROOT)}`", "", "```text"])
         for name, tail, location in public_members(path):
             game_members.setdefault(name, []).append(location)
-            print(f"{name:42} {tail:2} {location}")
+            output.append(f"{name:42} {tail:2} {location}")
+        output.append("```")
 
-    print("\n=== DataManager public members ===")
+    output.extend(["", "## DataManager public members", "", "```text"])
     if DATA_MANAGER_FILE.exists():
         for name, tail, location in public_members(DATA_MANAGER_FILE):
-            print(f"{name:42} {tail:2} {location}")
+            output.append(f"{name:42} {tail:2} {location}")
+    output.append("```")
 
-    print("\n=== External usages of GameSystem public members ===")
+    output.extend(["", "## External usages of GameSystem public members"])
     excluded = set(GAME_SYSTEM_FILES)
     for name in sorted(game_members):
         usages = find_usages(name, excluded)
         if not usages:
             continue
-        print(f"\n## {name} ({len(usages)})")
-        for usage in usages[:80]:
-            print(usage)
-        if len(usages) > 80:
-            print(f"... {len(usages) - 80} more")
+        output.extend(["", f"### `{name}` ({len(usages)})", "", "```text"])
+        output.extend(usages)
+        output.append("```")
 
-    print("\n=== Duplicate DataManager save aliases ===")
+    output.extend(["", "## Duplicate DataManager save aliases"])
     for name in (
         "SaveGameData",
         "OverwriteSaveGameData",
@@ -91,13 +92,17 @@ def main() -> None:
         "AutoSaveGameData",
         "GetAllGameDataMeta",
     ):
-        print(f"\n## {name}")
+        output.extend(["", f"### `{name}`", "", "```text"])
         for path in SCRIPTS.rglob("*.cs"):
             if path == DATA_MANAGER_FILE:
                 continue
             for index, line in enumerate(read(path).splitlines(), 1):
                 if re.search(rf"\b{name}\s*\(", line):
-                    print(f"{path.relative_to(ROOT)}:{index}: {line.strip()}")
+                    output.append(f"{path.relative_to(ROOT)}:{index}: {line.strip()}")
+        output.append("```")
+
+    REPORT.write_text("\n".join(output) + "\n", encoding="utf-8")
+    print(f"Wrote {REPORT.relative_to(ROOT)}")
 
 
 if __name__ == "__main__":
