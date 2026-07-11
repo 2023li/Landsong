@@ -1,8 +1,8 @@
 Traceback (most recent call last):
   File "/home/runner/work/Landsong/Landsong/.github/scripts/unify_public_api.py", line 13, in <module>
     source = gzip.decompress(base64.b64decode(payload))
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3.12/gzip.py", line 632, in decompress
-    decompressed = do.decompress(data[fp.tell():])
-                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-zlib.error: Error -3 while decompressing data: invalid distance too far back
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/base64.py", line 88, in b64decode
+    return binascii.a2b_base64(s, strict_mode=validate)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+binascii.Error: Invalid base64-encoded string: number of data characters (17217) cannot be 1 more than a multiple of 4
