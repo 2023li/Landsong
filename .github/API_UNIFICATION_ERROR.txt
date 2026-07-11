@@ -1,8 +1,8 @@
 Traceback (most recent call last):
-  File "/home/runner/work/Landsong/Landsong/.github/scripts/unify_public_api.py", line 6, in <module>
-    exec(compile(gzip.decompress(base64.b64decode(_PAYLOAD)), __file__, "exec"))
-                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3.12/base64.py", line 88, in b64decode
-    return binascii.a2b_base64(s, strict_mode=validate)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-binascii.Error: Invalid base64-encoded string: number of data characters (17493) cannot be 1 more than a multiple of 4
+  File "/home/runner/work/Landsong/Landsong/.github/scripts/unify_public_api.py", line 14, in <module>
+    exec(compile(source, __file__, "exec"))
+  File "/home/runner/work/Landsong/Landsong/.github/scripts/unify_public_api.py", line 1813, in <module>
+  File "/home/runner/work/Landsong/Landsong/.github/scripts/unify_public_api.py", line 1802, in main
+  File "/home/runner/work/Landsong/Landsong/.github/scripts/unify_public_api.py", line 1374, in update_persistence
+  File "/home/runner/work/Landsong/Landsong/.github/scripts/unify_public_api.py", line 41, in must_replace
+RuntimeError: Required text not found for runtime snapshot capture
