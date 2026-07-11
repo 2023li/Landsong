@@ -1,17 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Landsong.AppSystem;
 using Landsong.BuildingSystem;
 using Landsong.DynastySystem;
-using Landsong.ExpeditionSystem;
-using Landsong.GridSystem;
-using Landsong.InheritanceSystem;
-using Landsong.InventorySystem;
-using Landsong.TalentSystem;
-using Landsong.TechnologySystem;
+using Landsong.Persistence;
 using Moyo.Unity;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public enum GameDataSaveMode
 {
@@ -19,44 +14,37 @@ public enum GameDataSaveMode
     NewSave = 1
 }
 
-public class DataManager : MonoSingleton<DataManager>
+/// <summary>
+/// 存档系统兼容门面。磁盘读写、索引维护和运行时快照分别委托给独立服务。
+/// </summary>
+public sealed class DataManager : MonoSingleton<DataManager>
 {
-    private const string AppDataKey = "AppData";
-    private const string GameDataIndexKey = "GameDataIndex";
-    private const string GameDataKey = "GameData";
-    private const string GameDataMetaKey = "GameDataMeta";
+    [SerializeField] private AppData appData;
+    [SerializeField] private List<GameDataMeta> gameDataMetaList = new List<GameDataMeta>();
 
-    [SerializeField]
-    private AppData appData;
-
-    [SerializeField]
-    private List<GameDataMeta> gameDataMetaList = new List<GameDataMeta>();
+    private GameSaveRepository repository;
+    private GameSaveIndexService indexService;
+    private GameRuntimeSnapshotService runtimeSnapshot;
 
     public AppData AppData => appData;
-
     public bool HasLoadedAppData { get; private set; }
-
     public bool HasLoadedGameDataIndex { get; private set; }
-
-    public string SaveRootPath => IOManager.Instance.SaveRootPath;
-
+    public string SaveRootPath
+    {
+        get
+        {
+            EnsureServices();
+            return repository.SaveRootPath;
+        }
+    }
     public IReadOnlyList<GameDataMeta> GameDataMetaList => gameDataMetaList;
-
     public GameData CurrentGameData { get; private set; }
 
     public event Action<GameData> OnGameDataSave;
-
     public event Action<GameData> OnGameDataLoaded;
-
     public event Action<GameData> OnRuntimeDataRestoreStarted;
-
     public event Action<GameData> OnRuntimeDataRestoreCompleted;
-
     public event Action<AudioSaveData> OnAudioSettingsChanged;
-
-    private string AppDataFilePath => IOManager.Instance.AppDataFilePath;
-
-    private string GameDataIndexFilePath => IOManager.Instance.GameDataIndexFilePath;
 
     protected override void Init()
     {
@@ -65,42 +53,18 @@ public class DataManager : MonoSingleton<DataManager>
 
     public void Initialize()
     {
-        IOManager.Instance.Initialize();
+        EnsureServices();
+        repository.Initialize();
         LoadAppData();
         LoadGameDataIndex();
     }
 
-    private void EnsureSaveFolders()
-    {
-        IOManager.Instance.EnsureSaveFolders();
-    }
-
-    private string GetGameSaveFolderPath(string saveGuid)
-    {
-        return IOManager.Instance.GetGameSaveFolderPath(saveGuid);
-    }
-
-    private string GetGameDataFilePath(string saveGuid)
-    {
-        return IOManager.Instance.GetGameDataFilePath(saveGuid);
-    }
-
     public void LoadAppData()
     {
-        EnsureSaveFolders();
-
-        if (!IOManager.Instance.ES3KeyExists(AppDataKey, AppDataFilePath))
-        {
-            appData = AppData.CreateDefault();
-            SaveAppData();
-            HasLoadedAppData = true;
-            return;
-        }
-
+        EnsureServices();
         try
         {
-            appData = IOManager.Instance.LoadES3<AppData>(AppDataKey, AppDataFilePath);
-
+            appData = repository.LoadAppData();
             if (appData == null)
             {
                 appData = AppData.CreateDefault();
@@ -110,30 +74,23 @@ public class DataManager : MonoSingleton<DataManager>
             {
                 appData.Validate();
             }
-
-            HasLoadedAppData = true;
         }
-        catch (Exception e)
+        catch (Exception exception)
         {
-            Debug.LogWarning($"读取 AppData 失败，将使用默认数据。\n{e.Message}");
-
+            Debug.LogWarning($"读取 AppData 失败，将使用默认数据。\n{exception.Message}");
             appData = AppData.CreateDefault();
             SaveAppData();
-            HasLoadedAppData = true;
         }
+
+        HasLoadedAppData = true;
     }
 
     public void SaveAppData()
     {
-        EnsureSaveFolders();
-
-        if (appData == null)
-        {
-            appData = AppData.CreateDefault();
-        }
-
+        EnsureServices();
+        appData ??= AppData.CreateDefault();
         appData.Validate();
-        IOManager.Instance.SaveES3(AppDataKey, appData, AppDataFilePath);
+        repository.SaveAppData(appData);
     }
 
     public void EnsureAppDataLoaded()
@@ -147,294 +104,73 @@ public class DataManager : MonoSingleton<DataManager>
     public void MarkFirstLaunchFinished()
     {
         EnsureAppDataLoaded();
-
         appData.IsFirstLaunch = false;
         SaveAppData();
     }
 
     public void SetBgmVolume(float volume)
     {
-        EnsureAppDataLoaded();
-
-        appData.Audio.BgmVolume = Mathf.Clamp01(volume);
-        SaveAppData();
-        NotifyAudioSettingsChanged();
+        UpdateAudioSettings(data => data.BgmVolume = Mathf.Clamp01(volume));
     }
 
     public void SetSfxVolume(float volume)
     {
-        EnsureAppDataLoaded();
-
-        appData.Audio.SfxVolume = Mathf.Clamp01(volume);
-        SaveAppData();
-        NotifyAudioSettingsChanged();
+        UpdateAudioSettings(data => data.SfxVolume = Mathf.Clamp01(volume));
     }
 
     public void SetAmbienceVolume(float volume)
     {
-        EnsureAppDataLoaded();
-
-        appData.Audio.AmbienceVolume = Mathf.Clamp01(volume);
-        SaveAppData();
-        NotifyAudioSettingsChanged();
+        UpdateAudioSettings(data => data.AmbienceVolume = Mathf.Clamp01(volume));
     }
 
     public void SetAudioMasterVolume(float volume)
     {
-        EnsureAppDataLoaded();
-
-        appData.Audio.MasterVolume = Mathf.Clamp01(volume);
-        SaveAppData();
-        NotifyAudioSettingsChanged();
+        UpdateAudioSettings(data => data.MasterVolume = Mathf.Clamp01(volume));
     }
 
     public void SetAudioVolumeGroup(string volumeGroupKey, float volume)
     {
-        EnsureAppDataLoaded();
-
-        appData.Audio.SetVolumeGroup(volumeGroupKey, volume);
-        SaveAppData();
-        NotifyAudioSettingsChanged();
+        UpdateAudioSettings(data => data.SetVolumeGroup(volumeGroupKey, volume));
     }
 
     public void SetAudioChannelVolume(string channelKey, float volume)
     {
-        EnsureAppDataLoaded();
-
-        appData.Audio.SetChannelVolume(channelKey, volume);
-        SaveAppData();
-        NotifyAudioSettingsChanged();
+        UpdateAudioSettings(data => data.SetChannelVolume(channelKey, volume));
     }
 
     public void SetMuted(bool muted)
     {
-        EnsureAppDataLoaded();
-
-        appData.Audio.IsMuted = muted;
-        SaveAppData();
-        NotifyAudioSettingsChanged();
-    }
-
-    private void NotifyAudioSettingsChanged()
-    {
-        if (appData == null)
-        {
-            return;
-        }
-
-        appData.Audio ??= AudioSaveData.CreateDefault();
-        appData.Audio.Validate();
-        OnAudioSettingsChanged?.Invoke(appData.Audio);
+        UpdateAudioSettings(data => data.IsMuted = muted);
     }
 
     public void LoadGameDataIndex()
     {
-        EnsureSaveFolders();
-
-        gameDataMetaList = new List<GameDataMeta>();
-
+        EnsureAppDataLoaded();
+        EnsureServices();
         try
         {
-            if (IOManager.Instance.ES3KeyExists(GameDataIndexKey, GameDataIndexFilePath))
-            {
-                gameDataMetaList = IOManager.Instance.LoadES3<List<GameDataMeta>>(GameDataIndexKey, GameDataIndexFilePath);
-            }
-
-            if (gameDataMetaList == null)
-            {
-                gameDataMetaList = new List<GameDataMeta>();
-            }
-
-            RebuildIndexFromSlotFiles();
-            ValidateGameDataIndex();
-
+            var appChanged = indexService.Reload(appData);
             HasLoadedGameDataIndex = true;
-            SaveGameDataIndex();
+            if (appChanged)
+            {
+                SaveAppData();
+            }
         }
-        catch (Exception e)
+        catch (Exception exception)
         {
-            Debug.LogWarning($"读取存档索引失败，将尝试从 Slots 文件夹重建。\n{e.Message}");
-
-            gameDataMetaList = new List<GameDataMeta>();
-
-            RebuildIndexFromSlotFiles();
-            ValidateGameDataIndex();
-
+            Debug.LogWarning($"重建存档索引失败。\n{exception.Message}");
+            gameDataMetaList.Clear();
             HasLoadedGameDataIndex = true;
-            SaveGameDataIndex();
         }
     }
 
     public void SaveGameDataIndex()
     {
-        EnsureSaveFolders();
-        ValidateGameDataIndex();
-
-        IOManager.Instance.SaveES3(GameDataIndexKey, gameDataMetaList, GameDataIndexFilePath);
-    }
-
-    private void ValidateGameDataIndex()
-    {
         EnsureAppDataLoaded();
-
-        if (gameDataMetaList == null)
+        EnsureServices();
+        if (indexService.Save(appData))
         {
-            gameDataMetaList = new List<GameDataMeta>();
-        }
-
-        for (int i = gameDataMetaList.Count - 1; i >= 0; i--)
-        {
-            GameDataMeta meta = gameDataMetaList[i];
-
-            if (meta == null || string.IsNullOrEmpty(meta.SaveGuid))
-            {
-                gameDataMetaList.RemoveAt(i);
-                continue;
-            }
-
-            meta.Validate();
-
-            string filePath = GetGameDataFilePath(meta.SaveGuid);
-            if (!IOManager.Instance.FileExists(filePath))
-            {
-                gameDataMetaList.RemoveAt(i);
-            }
-        }
-
-        RemoveDuplicateMetas();
-        gameDataMetaList.Sort((a, b) => b.LastSaveUnixTime.CompareTo(a.LastSaveUnixTime));
-
-        if (!string.IsNullOrEmpty(appData.LastGameGuid))
-        {
-            bool lastSaveExists = gameDataMetaList.Exists(x => x.SaveGuid == appData.LastGameGuid);
-
-            if (!lastSaveExists)
-            {
-                appData.LastGameGuid = string.Empty;
-                SaveAppData();
-            }
-        }
-    }
-
-    private void RemoveDuplicateMetas()
-    {
-        Dictionary<string, GameDataMeta> metasByGuid = new Dictionary<string, GameDataMeta>(StringComparer.Ordinal);
-
-        foreach (GameDataMeta meta in gameDataMetaList)
-        {
-            if (meta == null || string.IsNullOrEmpty(meta.SaveGuid))
-            {
-                continue;
-            }
-
-            if (!metasByGuid.TryGetValue(meta.SaveGuid, out GameDataMeta oldMeta))
-            {
-                metasByGuid.Add(meta.SaveGuid, meta);
-                continue;
-            }
-
-            if (meta.LastSaveUnixTime > oldMeta.LastSaveUnixTime)
-            {
-                metasByGuid[meta.SaveGuid] = meta;
-            }
-        }
-
-        gameDataMetaList = new List<GameDataMeta>(metasByGuid.Values);
-    }
-
-    private void RebuildIndexFromSlotFiles()
-    {
-        if (!IOManager.Instance.DirectoryExists(IOManager.Instance.SlotsFolderPath))
-        {
-            return;
-        }
-
-        string[] slotFolders = IOManager.Instance.GetSlotFolderPaths();
-
-        foreach (string slotFolder in slotFolders)
-        {
-            string saveGuid = IOManager.Instance.GetFolderName(slotFolder);
-
-            if (string.IsNullOrEmpty(saveGuid))
-            {
-                continue;
-            }
-
-            string gameDataPath = GetGameDataFilePath(saveGuid);
-
-            if (!IOManager.Instance.FileExists(gameDataPath))
-            {
-                continue;
-            }
-
-            GameDataMeta meta = null;
-
-            try
-            {
-                if (IOManager.Instance.ES3KeyExists(GameDataKey, gameDataPath))
-                {
-                    GameData gameData = IOManager.Instance.LoadES3<GameData>(GameDataKey, gameDataPath);
-
-                    if (gameData != null)
-                    {
-                        if (string.IsNullOrEmpty(gameData.SaveGuid))
-                        {
-                            gameData.SaveGuid = saveGuid;
-                        }
-
-                        gameData.Validate();
-                        meta = GameDataMeta.CreateFromGameData(gameData);
-                    }
-                }
-                else if (IOManager.Instance.ES3KeyExists(GameDataMetaKey, gameDataPath))
-                {
-                    meta = IOManager.Instance.LoadES3<GameDataMeta>(GameDataMetaKey, gameDataPath);
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.LogWarning($"重建存档索引失败：{gameDataPath}\n{e.Message}");
-            }
-
-            if (meta == null)
-            {
-                continue;
-            }
-
-            if (string.IsNullOrEmpty(meta.SaveGuid))
-            {
-                meta.SaveGuid = saveGuid;
-            }
-
-            meta.Validate();
-            AddOrReplaceMeta(meta);
-        }
-    }
-
-    private void AddOrReplaceMeta(GameDataMeta meta)
-    {
-        if (meta == null || string.IsNullOrEmpty(meta.SaveGuid))
-        {
-            return;
-        }
-
-        int index = gameDataMetaList.FindIndex(x => x.SaveGuid == meta.SaveGuid);
-
-        if (index >= 0)
-        {
-            gameDataMetaList[index] = meta;
-        }
-        else
-        {
-            gameDataMetaList.Add(meta);
-        }
-    }
-
-    private void EnsureGameDataIndexLoaded()
-    {
-        if (!HasLoadedGameDataIndex || gameDataMetaList == null)
-        {
-            LoadGameDataIndex();
+            SaveAppData();
         }
     }
 
@@ -443,7 +179,7 @@ public class DataManager : MonoSingleton<DataManager>
         EnsureAppDataLoaded();
         EnsureGameDataIndexLoaded();
 
-        GameData gameData = GameData.CreateDefault();
+        var gameData = GameData.CreateDefault();
         gameData.PlayerName = string.IsNullOrWhiteSpace(playerName) ? "Player" : playerName.Trim();
         gameData.WorldSeed = worldSeed;
         gameData.MapName = NormalizeOptionalText(mapName);
@@ -453,24 +189,38 @@ public class DataManager : MonoSingleton<DataManager>
         gameData.Stage = DynastyStage.营地.ToString();
 
         CurrentGameData = gameData;
-        SaveGameData(GameDataSaveMode.NewSave, false);
-
+        SaveCurrentGame(GameDataSaveMode.NewSave, false);
         return gameData;
     }
 
     public void SaveGameData()
     {
-        OverwriteSaveGameData();
+        SaveCurrentGame(GameDataSaveMode.Overwrite, true);
     }
 
     public void OverwriteSaveGameData()
     {
-        SaveGameData(GameDataSaveMode.Overwrite);
+        SaveCurrentGame(GameDataSaveMode.Overwrite, true);
     }
 
     public void SaveNewGameData()
     {
-        SaveGameData(GameDataSaveMode.NewSave);
+        SaveCurrentGame(GameDataSaveMode.NewSave, true);
+    }
+
+    public void QuickSaveGameData()
+    {
+        SaveCurrentGame(GameDataSaveMode.Overwrite, true);
+    }
+
+    public void AutoSaveGameData()
+    {
+        SaveCurrentGame(GameDataSaveMode.Overwrite, true);
+    }
+
+    public void SaveGameData(GameDataSaveMode saveMode)
+    {
+        SaveCurrentGame(saveMode, true);
     }
 
     public bool SetCurrentGameSaveName(string saveName)
@@ -494,12 +244,12 @@ public class DataManager : MonoSingleton<DataManager>
 
     public string GetDefaultCurrentGameSaveName()
     {
-        Landsong.GameSystem gameSystem = UnityEngine.Object.FindFirstObjectByType<Landsong.GameSystem>(FindObjectsInactive.Include);
+        var gameSystem = UnityEngine.Object.FindFirstObjectByType<Landsong.GameSystem>(FindObjectsInactive.Include);
         if (gameSystem != null)
         {
-            string runtimeDynastyName = gameSystem.Dynasty == null
+            var runtimeDynastyName = gameSystem.Services.Dynasty == null
                 ? CurrentGameData?.DynastyName
-                : gameSystem.Dynasty.DynastyName;
+                : gameSystem.Services.Dynasty.DynastyName;
             return GameData.FormatDefaultSaveName(runtimeDynastyName, gameSystem.CurrentTurn);
         }
 
@@ -514,57 +264,194 @@ public class DataManager : MonoSingleton<DataManager>
 
     public void SetLastSelectedBuilding(BuildingBase building)
     {
-        if (CurrentGameData == null || !CanCaptureSoftBuildingReference(building))
+        EnsureServices();
+        runtimeSnapshot.SetLastSelectedBuilding(CurrentGameData, building);
+    }
+
+    public GameData LoadGameData(string saveGuid)
+    {
+        EnsureAppDataLoaded();
+        EnsureGameDataIndexLoaded();
+        if (string.IsNullOrWhiteSpace(saveGuid))
+        {
+            Debug.LogWarning("读取 GameData 失败：saveGuid 为空。");
+            return null;
+        }
+
+        try
+        {
+            var gameData = repository.LoadGame(saveGuid);
+            if (gameData == null)
+            {
+                Debug.LogWarning($"读取 GameData 失败：文件或 Key 不存在。{saveGuid}");
+                return null;
+            }
+
+            if (string.IsNullOrWhiteSpace(gameData.SaveGuid))
+            {
+                gameData.SaveGuid = saveGuid;
+            }
+
+            gameData.Validate();
+            appData.LastGameGuid = gameData.SaveGuid;
+            CurrentGameData = gameData;
+            indexService.AddOrReplace(GameDataMeta.CreateFromGameData(gameData));
+            SaveGameDataIndex();
+            SaveAppData();
+            OnGameDataLoaded?.Invoke(CurrentGameData);
+            return CurrentGameData;
+        }
+        catch (Exception exception)
+        {
+            Debug.LogWarning($"读取 GameData 失败：{saveGuid}\n{exception.Message}");
+            return null;
+        }
+    }
+
+    public GameData LoadLastGameData()
+    {
+        var meta = GetLastGameDataMeta();
+        return meta == null ? null : LoadGameData(meta.SaveGuid);
+    }
+
+    public bool DeleteGameData(string saveGuid)
+    {
+        EnsureAppDataLoaded();
+        EnsureGameDataIndexLoaded();
+        if (string.IsNullOrWhiteSpace(saveGuid))
+        {
+            Debug.LogWarning("删除 GameData 失败：saveGuid 为空。");
+            return false;
+        }
+
+        try
+        {
+            if (!repository.DeleteGame(saveGuid))
+            {
+                return false;
+            }
+
+            indexService.Remove(saveGuid);
+            if (CurrentGameData != null && CurrentGameData.SaveGuid == saveGuid)
+            {
+                CurrentGameData = null;
+            }
+
+            if (appData.LastGameGuid == saveGuid)
+            {
+                appData.LastGameGuid = string.Empty;
+                var next = indexService.GetLast(appData);
+                appData.LastGameGuid = next == null ? string.Empty : next.SaveGuid;
+            }
+
+            SaveGameDataIndex();
+            SaveAppData();
+            return true;
+        }
+        catch (Exception exception)
+        {
+            Debug.LogWarning($"删除 GameData 失败：{saveGuid}\n{exception.Message}");
+            return false;
+        }
+    }
+
+    public bool CreateBackup(string saveGuid)
+    {
+        EnsureGameDataIndexLoaded();
+        try
+        {
+            var created = repository.CreateBackup(saveGuid);
+            if (!created)
+            {
+                Debug.LogWarning($"创建备份失败：{saveGuid}");
+            }
+            return created;
+        }
+        catch (Exception exception)
+        {
+            Debug.LogWarning($"创建备份失败：{saveGuid}\n{exception.Message}");
+            return false;
+        }
+    }
+
+    public GameDataMeta GetLastGameDataMeta()
+    {
+        EnsureAppDataLoaded();
+        EnsureGameDataIndexLoaded();
+        return indexService.GetLast(appData);
+    }
+
+    public IReadOnlyList<GameDataMeta> GetAllGameDataMeta()
+    {
+        EnsureGameDataIndexLoaded();
+        return indexService.Entries;
+    }
+
+    public void RestoreCurrentGameDataToRuntime()
+    {
+        if (CurrentGameData == null)
         {
             return;
         }
 
-        CurrentGameData.SoftData ??= GameSoftData.CreateDefault();
-        CurrentGameData.SoftData.LastSelectedBuilding = BuildingSoftReferenceSaveData.CreateFromBuilding(building);
-        CurrentGameData.SoftData.Validate();
+        EnsureServices();
+        OnRuntimeDataRestoreStarted?.Invoke(CurrentGameData);
+        if (!runtimeSnapshot.Restore(CurrentGameData))
+        {
+            Debug.LogWarning("恢复 GameData 运行时状态失败：GameSystem 不存在。");
+            return;
+        }
+
+        OnRuntimeDataRestoreCompleted?.Invoke(CurrentGameData);
     }
 
-    public void QuickSaveGameData()
+    public IEnumerator RestoreCurrentGameDataToRuntimeRoutine(int buildingsPerFrame = 16)
     {
-        OverwriteSaveGameData();
+        if (CurrentGameData == null)
+        {
+            yield break;
+        }
+
+        EnsureServices();
+        OnRuntimeDataRestoreStarted?.Invoke(CurrentGameData);
+        var succeeded = false;
+        yield return runtimeSnapshot.RestoreRoutine(
+            CurrentGameData,
+            buildingsPerFrame,
+            result => succeeded = result);
+        if (!succeeded)
+        {
+            Debug.LogWarning("恢复 GameData 运行时状态失败：GameSystem 不存在。");
+            yield break;
+        }
+
+        OnRuntimeDataRestoreCompleted?.Invoke(CurrentGameData);
     }
 
-    public void AutoSaveGameData()
-    {
-        OverwriteSaveGameData();
-    }
-
-    public void SaveGameData(GameDataSaveMode saveMode)
-    {
-        SaveGameData(saveMode, true);
-    }
-
-    private void SaveGameData(GameDataSaveMode saveMode, bool captureRuntimeData)
+    private void SaveCurrentGame(GameDataSaveMode saveMode, bool captureRuntimeData)
     {
         EnsureAppDataLoaded();
         EnsureGameDataIndexLoaded();
-
         if (CurrentGameData == null)
         {
             Debug.LogWarning("保存 GameData 失败：CurrentGameData 为空。");
             return;
         }
 
+        EnsureServices();
         if (captureRuntimeData)
         {
-            CaptureCurrentRuntimeData(CurrentGameData);
+            runtimeSnapshot.Capture(CurrentGameData);
         }
 
         CurrentGameData.Validate();
-
-        long now = DateTimeOffset.Now.ToUnixTimeSeconds();
-
+        var now = DateTimeOffset.Now.ToUnixTimeSeconds();
         if (saveMode == GameDataSaveMode.NewSave)
         {
             CurrentGameData.SaveGuid = Guid.NewGuid().ToString("N");
             CurrentGameData.CreatedAtUnixTime = now;
         }
-        else if (string.IsNullOrEmpty(CurrentGameData.SaveGuid))
+        else if (string.IsNullOrWhiteSpace(CurrentGameData.SaveGuid))
         {
             Debug.LogWarning("覆盖保存 GameData 失败：CurrentGameData 没有 SaveGuid。请使用新建保存。");
             return;
@@ -576,592 +463,46 @@ public class DataManager : MonoSingleton<DataManager>
         }
 
         CurrentGameData.LastSaveUnixTime = now;
-
-        string saveFolderPath = GetGameSaveFolderPath(CurrentGameData.SaveGuid);
-        string gameDataPath = GetGameDataFilePath(CurrentGameData.SaveGuid);
-
-        IOManager.Instance.EnsureDirectory(saveFolderPath);
-
-        GameDataMeta meta = GameDataMeta.CreateFromGameData(CurrentGameData);
-
-        OnGameDataSave?.Invoke(CurrentGameData);
-
-        IOManager.Instance.SaveES3(GameDataKey, CurrentGameData, gameDataPath);
-        IOManager.Instance.SaveES3(GameDataMetaKey, meta, gameDataPath);
-
-        AddOrReplaceMeta(meta);
-
-        appData.LastGameGuid = CurrentGameData.SaveGuid;
-
-        SaveGameDataIndex();
-        SaveAppData();
-    }
-
-    public GameData LoadGameData(string saveGuid)
-    {
-        EnsureAppDataLoaded();
-        EnsureGameDataIndexLoaded();
-
-        if (string.IsNullOrEmpty(saveGuid))
-        {
-            Debug.LogWarning("读取 GameData 失败：saveGuid 为空。");
-            return null;
-        }
-
-        string gameDataPath = GetGameDataFilePath(saveGuid);
-
-        if (!IOManager.Instance.ES3KeyExists(GameDataKey, gameDataPath))
-        {
-            Debug.LogWarning($"读取 GameData 失败：文件或 Key 不存在。{gameDataPath}");
-            return null;
-        }
-
+        var meta = GameDataMeta.CreateFromGameData(CurrentGameData);
         try
         {
-            GameData gameData = IOManager.Instance.LoadES3<GameData>(GameDataKey, gameDataPath);
-
-            if (gameData == null)
-            {
-                Debug.LogWarning($"读取 GameData 失败：结果为空。{gameDataPath}");
-                return null;
-            }
-
-            gameData.Validate();
-
-            appData.LastGameGuid = gameData.SaveGuid;
-            SaveAppData();
-
-            CurrentGameData = gameData;
-            OnGameDataLoaded?.Invoke(CurrentGameData);
-
-            return CurrentGameData;
-        }
-        catch (Exception e)
-        {
-            Debug.LogWarning($"读取 GameData 失败：{gameDataPath}\n{e.Message}");
-            return null;
-        }
-    }
-
-    public GameData LoadLastGameData()
-    {
-        EnsureAppDataLoaded();
-        EnsureGameDataIndexLoaded();
-
-        GameDataMeta meta = GetLastGameDataMeta();
-
-        if (meta == null)
-        {
-            return null;
-        }
-
-        return LoadGameData(meta.SaveGuid);
-    }
-
-    public bool DeleteGameData(string saveGuid)
-    {
-        EnsureAppDataLoaded();
-        EnsureGameDataIndexLoaded();
-
-        if (string.IsNullOrEmpty(saveGuid))
-        {
-            Debug.LogWarning("删除 GameData 失败：saveGuid 为空。");
-            return false;
-        }
-
-        string saveFolderPath = GetGameSaveFolderPath(saveGuid);
-
-        try
-        {
-            if (IOManager.Instance.DirectoryExists(saveFolderPath))
-            {
-                IOManager.Instance.DeleteDirectory(saveFolderPath, true);
-            }
-
-            gameDataMetaList.RemoveAll(x => x != null && x.SaveGuid == saveGuid);
-
-            if (appData.LastGameGuid == saveGuid)
-            {
-                GameDataMeta nextLastMeta = GetLastGameDataMeta();
-                appData.LastGameGuid = nextLastMeta != null ? nextLastMeta.SaveGuid : string.Empty;
-            }
-
-            if (CurrentGameData != null && CurrentGameData.SaveGuid == saveGuid)
-            {
-                CurrentGameData = null;
-            }
-
+            OnGameDataSave?.Invoke(CurrentGameData);
+            repository.SaveGame(CurrentGameData, meta);
+            indexService.AddOrReplace(meta);
+            appData.LastGameGuid = CurrentGameData.SaveGuid;
             SaveGameDataIndex();
             SaveAppData();
-
-            return true;
         }
-        catch (Exception e)
+        catch (Exception exception)
         {
-            Debug.LogWarning($"删除 GameData 失败：{saveFolderPath}\n{e.Message}");
-            return false;
+            Debug.LogWarning($"保存 GameData 失败：{CurrentGameData.SaveGuid}\n{exception.Message}");
         }
     }
 
-    public bool CreateBackup(string saveGuid)
-    {
-        EnsureGameDataIndexLoaded();
-
-        if (string.IsNullOrEmpty(saveGuid))
-        {
-            Debug.LogWarning("创建备份失败：saveGuid 为空。");
-            return false;
-        }
-
-        string sourcePath = GetGameDataFilePath(saveGuid);
-
-        if (!IOManager.Instance.FileExists(sourcePath))
-        {
-            Debug.LogWarning($"创建备份失败：源文件不存在。{sourcePath}");
-            return false;
-        }
-
-        try
-        {
-            string backupFolder = IOManager.Instance.GetBackupFolderPath(saveGuid);
-            IOManager.Instance.EnsureDirectory(backupFolder);
-
-            string backupFileName = $"{DateTime.Now:yyyyMMdd_HHmmss}_{IOManager.Instance.GetBackupGameDataFileName()}";
-            string targetPath = IOManager.Instance.CombinePath(backupFolder, backupFileName);
-
-            IOManager.Instance.CopyFile(sourcePath, targetPath, false);
-
-            return true;
-        }
-        catch (Exception e)
-        {
-            Debug.LogWarning($"创建备份失败：{saveGuid}\n{e.Message}");
-            return false;
-        }
-    }
-
-    public GameDataMeta GetLastGameDataMeta()
+    private void UpdateAudioSettings(Action<AudioSaveData> update)
     {
         EnsureAppDataLoaded();
-        EnsureGameDataIndexLoaded();
-
-        if (!string.IsNullOrEmpty(appData.LastGameGuid))
-        {
-            GameDataMeta lastMeta = gameDataMetaList.Find(x => x.SaveGuid == appData.LastGameGuid);
-
-            if (lastMeta != null)
-            {
-                return lastMeta;
-            }
-        }
-
-        if (gameDataMetaList.Count <= 0)
-        {
-            return null;
-        }
-
-        gameDataMetaList.Sort((a, b) => b.LastSaveUnixTime.CompareTo(a.LastSaveUnixTime));
-        return gameDataMetaList[0];
+        appData.Audio ??= AudioSaveData.CreateDefault();
+        update?.Invoke(appData.Audio);
+        appData.Audio.Validate();
+        SaveAppData();
+        OnAudioSettingsChanged?.Invoke(appData.Audio);
     }
 
-    public IReadOnlyList<GameDataMeta> GetAllGameDataMeta()
+    private void EnsureServices()
     {
-        EnsureGameDataIndexLoaded();
-        return gameDataMetaList;
+        gameDataMetaList ??= new List<GameDataMeta>();
+        repository ??= new GameSaveRepository();
+        indexService ??= new GameSaveIndexService(repository, gameDataMetaList);
+        runtimeSnapshot ??= new GameRuntimeSnapshotService();
     }
 
-    public void RestoreCurrentGameDataToRuntime()
+    private void EnsureGameDataIndexLoaded()
     {
-        if (CurrentGameData == null)
+        if (!HasLoadedGameDataIndex)
         {
-            return;
+            LoadGameDataIndex();
         }
-
-        if (!RestoreCurrentRuntimeData(CurrentGameData))
-        {
-            Debug.LogWarning("恢复 GameData 运行时状态失败：GameSystem 不存在。");
-        }
-    }
-
-    public IEnumerator RestoreCurrentGameDataToRuntimeRoutine(int buildingsPerFrame = 16)
-    {
-        if (CurrentGameData == null)
-        {
-            yield break;
-        }
-
-        yield return RestoreCurrentRuntimeDataRoutine(CurrentGameData, buildingsPerFrame);
-    }
-
-    private void CaptureCurrentRuntimeData(GameData gameData)
-    {
-        if (gameData == null)
-        {
-            return;
-        }
-
-        Landsong.GameSystem gameSystem = UnityEngine.Object.FindFirstObjectByType<Landsong.GameSystem>(FindObjectsInactive.Include);
-        if (gameSystem != null)
-        {
-            gameData.CurrentTurn = gameSystem.CurrentTurn;
-            gameData.RoundCount = Mathf.Max(1, gameSystem.CurrentTurn);
-            gameData.TechnologyData = gameSystem.CaptureTechnologyData();
-            gameData.UnlockedTechnologies = gameSystem.CaptureUnlockedTechnologies();
-            gameData.QuestData = gameSystem.CaptureQuestData();
-            gameData.ExpeditionData = gameSystem.CaptureExpeditionData();
-            gameData.TalentData = gameSystem.CaptureTalentData();
-            gameData.RoyalInheritanceData = gameSystem.CaptureInheritanceData();
-            gameData.UnlockedBuildingBlueprintIds = gameSystem.CaptureUnlockedBuildingBlueprints();
-            if (gameSystem.Dynasty != null)
-            {
-                gameData.DynastyName = gameSystem.Dynasty.DynastyName;
-                gameData.Stage = gameSystem.Dynasty.Stage.ToString();
-                gameData.BasePopulation = gameSystem.Dynasty.BasePopulation;
-            }
-
-            if (gameSystem.Inventory != null)
-            {
-                gameData.InventoryData = gameSystem.Inventory.CaptureSaveData();
-            }
-        }
-
-        if (gameSystem != null && gameSystem.Buildings != null)
-        {
-            gameData.BuildingInstances = CaptureBuildingInstances(gameSystem.Buildings.Buildings);
-        }
-
-        CaptureSoftData(gameData, gameSystem);
-    }
-
-    private bool RestoreCurrentRuntimeData(GameData gameData)
-    {
-        if (!PrepareRuntimeRestore(gameData, out var gameSystem))
-        {
-            return false;
-        }
-
-        RestoreBuildingInstances(gameData, gameSystem);
-        gameSystem.EndQuestRuntimeRestore();
-        OnRuntimeDataRestoreCompleted?.Invoke(gameData);
-        return true;
-    }
-
-    private IEnumerator RestoreCurrentRuntimeDataRoutine(GameData gameData, int buildingsPerFrame)
-    {
-        if (!PrepareRuntimeRestore(gameData, out var gameSystem))
-        {
-            Debug.LogWarning("恢复 GameData 运行时状态失败：GameSystem 不存在。");
-            yield break;
-        }
-
-        yield return RestoreBuildingInstancesRoutine(gameData, gameSystem, buildingsPerFrame);
-        gameSystem.EndQuestRuntimeRestore();
-        OnRuntimeDataRestoreCompleted?.Invoke(gameData);
-    }
-
-    private bool PrepareRuntimeRestore(GameData gameData, out Landsong.GameSystem gameSystem)
-    {
-        gameSystem = null;
-        if (gameData == null)
-        {
-            return false;
-        }
-
-        gameSystem = UnityEngine.Object.FindFirstObjectByType<Landsong.GameSystem>(FindObjectsInactive.Include);
-        if (gameSystem == null)
-        {
-            return false;
-        }
-
-        gameData.Validate();
-        OnRuntimeDataRestoreStarted?.Invoke(gameData);
-
-        gameSystem.RestoreCurrentTurn(gameData.CurrentTurn);
-        gameSystem.RestoreDynastyData(gameData.DynastyName, gameData.Stage, gameData.BasePopulation);
-        gameSystem.RestoreTechnologyData(gameData.TechnologyData, gameData.UnlockedTechnologies);
-        gameSystem.RestoreBuildingBlueprintData(gameData.UnlockedBuildingBlueprintIds);
-
-        if (gameSystem.Inventory != null && gameData.InventoryData != null)
-        {
-            gameSystem.Inventory.RestoreSaveData(gameData.InventoryData);
-        }
-
-        gameSystem.RestoreExpeditionData(gameData.ExpeditionData);
-        gameSystem.RestoreTalentData(gameData.TalentData);
-        gameSystem.RestoreInheritanceData(gameData.RoyalInheritanceData);
-        gameSystem.BeginQuestRuntimeRestore();
-        gameSystem.RestoreQuestData(gameData.QuestData);
-
-        return true;
-    }
-
-    private static List<BuildingInstanceSaveData> CaptureBuildingInstances(IReadOnlyList<BuildingBase> buildings)
-    {
-        var saveData = new List<BuildingInstanceSaveData>();
-        if (buildings == null)
-        {
-            return saveData;
-        }
-
-        for (var i = 0; i < buildings.Count; i++)
-        {
-            var building = buildings[i];
-            if (!CanCaptureBuilding(building))
-            {
-                continue;
-            }
-
-            var buildingSaveData = BuildingInstanceSaveData.CreateFromBuilding(building);
-            CaptureBuildingData(building, buildingSaveData);
-            saveData.Add(buildingSaveData);
-        }
-
-        return saveData;
-    }
-
-    private static bool CanCaptureBuilding(BuildingBase building)
-    {
-        return building != null
-               && building.isActiveAndEnabled
-               && !building.IsDemolishing
-               && building.HasDefinition
-               && building.HasPlacement;
-    }
-
-    private static bool CanCaptureSoftBuildingReference(BuildingBase building)
-    {
-        return building != null
-               && building.isActiveAndEnabled
-               && !building.IsDemolishing
-               && building.HasDefinition;
-    }
-
-    private static void CaptureSoftData(GameData gameData, Landsong.GameSystem gameSystem)
-    {
-        if (gameData == null)
-        {
-            return;
-        }
-
-        gameData.SoftData ??= GameSoftData.CreateDefault();
-
-        var selectedBuilding = gameSystem == null || gameSystem.BuildingSelection == null
-            ? null
-            : gameSystem.BuildingSelection.SelectedBuilding;
-        if (CanCaptureSoftBuildingReference(selectedBuilding))
-        {
-            gameData.SoftData.LastSelectedBuilding = BuildingSoftReferenceSaveData.CreateFromBuilding(selectedBuilding);
-        }
-
-        gameData.SoftData.Validate();
-    }
-
-    private static void CaptureBuildingData(BuildingBase building, BuildingInstanceSaveData saveData)
-    {
-        if (building == null || saveData == null)
-        {
-            return;
-        }
-
-        var data = building.CaptureSaveData();
-        if (data == null)
-        {
-            return;
-        }
-
-        var typeId = BuildingSaveDataRegistry.GetTypeId(data);
-        if (string.IsNullOrWhiteSpace(typeId))
-        {
-            return;
-        }
-
-        saveData.BuildingStateTypeId = typeId;
-        saveData.BuildingStateJson = JsonUtility.ToJson(data);
-    }
-
-    private void RestoreBuildingInstances(GameData gameData, Landsong.GameSystem gameSystem)
-    {
-        if (gameData == null || gameSystem == null || gameData.BuildingInstances == null)
-        {
-            return;
-        }
-
-        ClearCurrentRuntimeBuildings(gameSystem);
-        RestoreBuildingInstancesInternal(gameData.BuildingInstances, gameSystem);
-    }
-
-    private IEnumerator RestoreBuildingInstancesRoutine(GameData gameData, Landsong.GameSystem gameSystem, int buildingsPerFrame)
-    {
-        if (gameData == null || gameSystem == null || gameData.BuildingInstances == null)
-        {
-            yield break;
-        }
-
-        ClearCurrentRuntimeBuildings(gameSystem);
-        yield return null;
-
-        buildingsPerFrame = Mathf.Max(1, buildingsPerFrame);
-        var restoredThisFrame = 0;
-        var buildingInstances = gameData.BuildingInstances;
-
-        for (var i = 0; i < buildingInstances.Count; i++)
-        {
-            if (RestoreBuildingInstance(buildingInstances[i], gameSystem))
-            {
-                restoredThisFrame++;
-            }
-
-            if (restoredThisFrame < buildingsPerFrame || i >= buildingInstances.Count - 1)
-            {
-                continue;
-            }
-
-            restoredThisFrame = 0;
-            yield return null;
-        }
-    }
-
-    private void RestoreBuildingInstancesInternal(
-        IReadOnlyList<BuildingInstanceSaveData> buildingInstances,
-        Landsong.GameSystem gameSystem)
-    {
-        if (buildingInstances == null || gameSystem == null)
-        {
-            return;
-        }
-
-        for (var i = 0; i < buildingInstances.Count; i++)
-        {
-            RestoreBuildingInstance(buildingInstances[i], gameSystem);
-        }
-    }
-
-    private bool RestoreBuildingInstance(BuildingInstanceSaveData saveData, Landsong.GameSystem gameSystem)
-    {
-        if (saveData == null || gameSystem == null || gameSystem.Buildings == null)
-        {
-            return false;
-        }
-
-        saveData.Validate();
-        if (!saveData.IsValid)
-        {
-            return false;
-        }
-
-        var gridMap = UnityEngine.Object.FindFirstObjectByType<GridMapBehaviour>(FindObjectsInactive.Include);
-        if (gridMap == null)
-        {
-            Debug.LogWarning($"恢复建筑失败：场景中没有 GridMapBehaviour。BuildingId = {saveData.BuildingId}");
-            return false;
-        }
-
-        var catalog = ResolveBuildingCatalog(gameSystem);
-        if (catalog == null || !catalog.TryGetBuildingPrefab(saveData.BuildingId, out var buildingPrefab))
-        {
-            Debug.LogWarning($"恢复建筑失败：建筑目录中找不到 BuildingId = {saveData.BuildingId}");
-            return false;
-        }
-
-        var parent = ResolveRestoredBuildingParent(gridMap);
-        if (!gameSystem.Buildings.TryPlace(
-                buildingPrefab,
-                gridMap,
-                saveData.Origin,
-                saveData.Rotation,
-                parent,
-                out var building))
-        {
-            Debug.LogWarning($"恢复建筑失败：无法放置 BuildingId = {saveData.BuildingId}, Origin = {saveData.Origin}");
-            return false;
-        }
-
-        var buildingData = RestoreBuildingData(saveData);
-        if (buildingData != null)
-        {
-            building.RestoreSaveData(buildingData);
-        }
-
-        gameSystem.RegisterBuilding(building);
-        return true;
-    }
-
-    private static BuildingCatalog ResolveBuildingCatalog(Landsong.GameSystem gameSystem)
-    {
-        if (gameSystem != null && gameSystem.BuildingCatalog != null)
-        {
-            return gameSystem.BuildingCatalog;
-        }
-
-        return BuildingCatalog.Instance;
-    }
-
-    private static Transform ResolveRestoredBuildingParent(GridMapBehaviour gridMap)
-    {
-        if (gridMap == null)
-        {
-            return null;
-        }
-
-        const string restoredBuildingRootName = "Restored Buildings";
-        var existingRoot = gridMap.transform.Find(restoredBuildingRootName);
-        if (existingRoot != null)
-        {
-            return existingRoot;
-        }
-
-        var root = new GameObject(restoredBuildingRootName);
-        root.transform.SetParent(gridMap.transform, false);
-        return root.transform;
-    }
-
-    private static BuildingDataBase RestoreBuildingData(BuildingInstanceSaveData saveData)
-    {
-        if (saveData == null
-            || string.IsNullOrWhiteSpace(saveData.BuildingStateTypeId)
-            || string.IsNullOrWhiteSpace(saveData.BuildingStateJson))
-        {
-            return null;
-        }
-
-        if (!BuildingSaveDataRegistry.TryCreate(saveData.BuildingStateTypeId, out var data))
-        {
-            Debug.LogWarning($"恢复建筑数据失败：找不到数据类型 ID {saveData.BuildingStateTypeId}");
-            return null;
-        }
-
-        try
-        {
-            JsonUtility.FromJsonOverwrite(saveData.BuildingStateJson, data);
-            return data;
-        }
-        catch (Exception e)
-        {
-            Debug.LogWarning($"恢复建筑数据失败：{saveData.BuildingId}\n{e.Message}");
-            return null;
-        }
-    }
-
-    private static void ClearCurrentRuntimeBuildings(Landsong.GameSystem gameSystem)
-    {
-        var sceneBuildings = UnityEngine.Object.FindObjectsByType<BuildingBase>(
-            FindObjectsInactive.Include,
-            FindObjectsSortMode.None);
-
-        for (var i = 0; i < sceneBuildings.Length; i++)
-        {
-            var building = sceneBuildings[i];
-            if (building == null || building.IsDemolishing || !building.gameObject.scene.IsValid())
-            {
-                continue;
-            }
-
-            gameSystem?.UnregisterBuilding(building);
-            building.ClearPlacement();
-            UnityEngine.Object.Destroy(building.gameObject);
-        }
-
-        gameSystem?.Buildings?.ClearBuildings();
     }
 
     private static string NormalizeOptionalText(string text)
@@ -1172,856 +513,5 @@ public class DataManager : MonoSingleton<DataManager>
     private static string NormalizeRequiredText(string text)
     {
         return string.IsNullOrWhiteSpace(text) ? string.Empty : text.Trim();
-    }
-}
-
-[Serializable]
-public class AppData
-{
-    public int DataVersion = 1;
-
-    public bool IsFirstLaunch = true;
-
-    public string LastGameGuid = string.Empty;
-
-    public LocalizationSaveData Language = new LocalizationSaveData();
-
-    public AudioSaveData Audio = new AudioSaveData();
-
-    public static AppData CreateDefault()
-    {
-        return new AppData
-        {
-            DataVersion = 1,
-            IsFirstLaunch = true,
-            LastGameGuid = string.Empty,
-            Language = LocalizationSaveData.CreateDefault(),
-            Audio = AudioSaveData.CreateDefault()
-        };
-    }
-
-    public void Validate()
-    {
-        if (DataVersion <= 0)
-        {
-            DataVersion = 1;
-        }
-
-        if (LastGameGuid == null)
-        {
-            LastGameGuid = string.Empty;
-        }
-
-        if (Language == null)
-        {
-            Language = LocalizationSaveData.CreateDefault();
-        }
-
-        if (Audio == null)
-        {
-            Audio = AudioSaveData.CreateDefault();
-        }
-
-        Language.Validate();
-        Audio.Validate();
-    }
-}
-
-[Serializable]
-public class GameDataMeta
-{
-    public string SaveGuid = string.Empty;
-
-    public string SaveName = string.Empty;
-
-    public string PlayerName = "Player";
-
-    public string DynastyName = DynastyService.DefaultDynastyName;
-
-    public string MapName = string.Empty;
-
-    public int RoundCount = 0;
-
-    public string Stage = string.Empty;
-
-    public string CurrentSceneName = string.Empty;
-
-    public long CreatedAtUnixTime;
-
-    public long LastSaveUnixTime;
-
-    public float TotalPlayTimeSeconds;
-
-    public int CurrentTurn = 1;
-
-    public int DataVersion = 1;
-
-    public static GameDataMeta CreateFromGameData(GameData gameData)
-    {
-        if (gameData == null)
-        {
-            return null;
-        }
-
-        return new GameDataMeta
-        {
-            SaveGuid = gameData.SaveGuid,
-            SaveName = gameData.SaveName,
-            PlayerName = gameData.PlayerName,
-            DynastyName = gameData.DynastyName,
-            MapName = gameData.MapName,
-            RoundCount = Mathf.Max(1, gameData.RoundCount > 0 ? gameData.RoundCount : gameData.CurrentTurn),
-            Stage = gameData.Stage,
-           
-            CreatedAtUnixTime = gameData.CreatedAtUnixTime,
-            LastSaveUnixTime = gameData.LastSaveUnixTime,
-            TotalPlayTimeSeconds = gameData.TotalPlayTimeSeconds,
-            CurrentTurn = gameData.CurrentTurn,
-            DataVersion = gameData.DataVersion
-        };
-    }
-
-    public void Validate()
-    {
-        if (SaveGuid == null)
-        {
-            SaveGuid = string.Empty;
-        }
-
-        if (SaveName == null)
-        {
-            SaveName = string.Empty;
-        }
-
-        if (PlayerName == null)
-        {
-            PlayerName = "Player";
-        }
-
-        DynastyName = DynastyService.NormalizeDynastyName(DynastyName);
-
-        if (MapName == null)
-        {
-            MapName = string.Empty;
-        }
-
-        if (Stage == null)
-        {
-            Stage = string.Empty;
-        }
-
-        if (CurrentSceneName == null)
-        {
-            CurrentSceneName = string.Empty;
-        }
-
-        if (DataVersion <= 0)
-        {
-            DataVersion = 1;
-        }
-
-        if (CreatedAtUnixTime <= 0)
-        {
-            CreatedAtUnixTime = DateTimeOffset.Now.ToUnixTimeSeconds();
-        }
-
-        if (LastSaveUnixTime < CreatedAtUnixTime)
-        {
-            LastSaveUnixTime = CreatedAtUnixTime;
-        }
-
-        CurrentTurn = Mathf.Max(1, CurrentTurn);
-        RoundCount = Mathf.Max(1, RoundCount > 0 ? RoundCount : CurrentTurn);
-        if (string.IsNullOrWhiteSpace(SaveName))
-        {
-            SaveName = GameData.FormatDefaultSaveName(DynastyName, RoundCount);
-        }
-
-        TotalPlayTimeSeconds = Mathf.Max(0f, TotalPlayTimeSeconds);
-    }
-
-    public DateTime GetLastSaveLocalTime()
-    {
-        return DateTimeOffset.FromUnixTimeSeconds(LastSaveUnixTime).LocalDateTime;
-    }
-
-    public DateTime GetCreatedLocalTime()
-    {
-        return DateTimeOffset.FromUnixTimeSeconds(CreatedAtUnixTime).LocalDateTime;
-    }
-}
-
-[Serializable]
-public class GameData
-{
-    public const string DefaultDynastyName = DynastyService.DefaultDynastyName;
-
-    //data 版本号
-    public const int CurrentDataVersion = 8;
-
-    public int DataVersion = CurrentDataVersion;
-
-    public string SaveGuid = string.Empty;
-
-    public string SaveName = string.Empty;
-
-    public string PlayerName = "Player";
-
-
-    //----------------新增字段------------------
-    public string DynastyName = DefaultDynastyName;
-
-    public string MapName = string.Empty;
-
-    public int RoundCount = 0;
-
-    public string Stage = string.Empty;
-
-    public int BasePopulation = -1;
-
-
-
-    public long CreatedAtUnixTime;
-
-    public long LastSaveUnixTime;
-
-    public float TotalPlayTimeSeconds;
-
-    public int CurrentTurn = 1;
-
-    public int WorldSeed;
-
-    public InventorySaveData InventoryData;
-
-    public TechnologySaveData TechnologyData;
-
-    public Landsong.QuestSaveData QuestData;
-
-    public ExpeditionSaveData ExpeditionData;
-
-    public TalentSaveData TalentData;
-
-    public RoyalInheritanceSaveData RoyalInheritanceData;
-
-    public List<string> UnlockedTechnologies;
-
-    public List<string> UnlockedBuildingBlueprintIds;
-
-    public List<BuildingInstanceSaveData> BuildingInstances;
-
-    public GameSoftData SoftData;
-
-    public static GameData CreateDefault()
-    {
-        long now = DateTimeOffset.Now.ToUnixTimeSeconds();
-
-        return new GameData
-        {
-            DataVersion = CurrentDataVersion,
-            SaveGuid = string.Empty,
-            SaveName = string.Empty,
-            PlayerName = "Player",
-            DynastyName = DefaultDynastyName,
-            MapName = string.Empty,
-            RoundCount = 1,
-            Stage = string.Empty,
-            BasePopulation = -1,
-            CreatedAtUnixTime = now,
-            LastSaveUnixTime = now,
-            TotalPlayTimeSeconds = 0f,
-            CurrentTurn = 1,
-            WorldSeed = 0,
-            InventoryData = null,
-            TechnologyData = null,
-            QuestData = null,
-            ExpeditionData = null,
-            TalentData = null,
-            RoyalInheritanceData = null,
-            UnlockedTechnologies = null,
-            UnlockedBuildingBlueprintIds = null,
-            BuildingInstances = null,
-            SoftData = GameSoftData.CreateDefault()
-        };
-    }
-
-    public void Validate()
-    {
-        var loadedDataVersion = DataVersion;
-        if (DataVersion < CurrentDataVersion)
-        {
-            DataVersion = CurrentDataVersion;
-        }
-
-        if (SaveGuid == null)
-        {
-            SaveGuid = string.Empty;
-        }
-
-        if (SaveName == null)
-        {
-            SaveName = string.Empty;
-        }
-
-        if (PlayerName == null)
-        {
-            PlayerName = "Player";
-        }
-
-        DynastyName = DynastyService.NormalizeDynastyName(DynastyName);
-
-        if (MapName == null)
-        {
-            MapName = string.Empty;
-        }
-
-        if (Stage == null)
-        {
-            Stage = string.Empty;
-        }
-
-        BasePopulation = loadedDataVersion < 6 && BasePopulation <= 0
-            ? -1
-            : Mathf.Max(-1, BasePopulation);
-
-        CurrentTurn = Mathf.Max(1, CurrentTurn);
-        RoundCount = Mathf.Max(1, RoundCount > 0 ? RoundCount : CurrentTurn);
-        if (string.IsNullOrWhiteSpace(SaveName))
-        {
-            SaveName = FormatDefaultSaveName(DynastyName, CurrentTurn);
-        }
-
-        long now = DateTimeOffset.Now.ToUnixTimeSeconds();
-
-        if (CreatedAtUnixTime <= 0)
-        {
-            CreatedAtUnixTime = now;
-        }
-
-        if (LastSaveUnixTime < CreatedAtUnixTime)
-        {
-            LastSaveUnixTime = CreatedAtUnixTime;
-        }
-
-        TotalPlayTimeSeconds = Mathf.Max(0f, TotalPlayTimeSeconds);
-        NormalizeUnlockedTechnologies();
-        NormalizeUnlockedBuildingBlueprints();
-        NormalizeTechnologyData();
-        NormalizeQuestData();
-        NormalizeExpeditionData();
-        NormalizeTalentData();
-        NormalizeRoyalInheritanceData();
-        SoftData ??= GameSoftData.CreateDefault();
-        SoftData.Validate();
-
-        if (BuildingInstances != null)
-        {
-            for (var i = BuildingInstances.Count - 1; i >= 0; i--)
-            {
-                var building = BuildingInstances[i];
-                if (building == null)
-                {
-                    BuildingInstances.RemoveAt(i);
-                    continue;
-                }
-
-                building.Validate();
-            }
-        }
-    }
-
-    public static string FormatDefaultSaveName(string dynastyName, int turnCount)
-    {
-        dynastyName = DynastyService.NormalizeDynastyName(dynastyName);
-        return $"{dynastyName}-{Mathf.Max(1, turnCount)}";
-    }
-
-    private void NormalizeUnlockedTechnologies()
-    {
-        if (UnlockedTechnologies == null)
-        {
-            return;
-        }
-
-        HashSet<string> seen = new HashSet<string>(StringComparer.Ordinal);
-        for (var i = UnlockedTechnologies.Count - 1; i >= 0; i--)
-        {
-            var technologyId = string.IsNullOrWhiteSpace(UnlockedTechnologies[i])
-                ? string.Empty
-                : UnlockedTechnologies[i].Trim();
-            if (string.IsNullOrWhiteSpace(technologyId) || !seen.Add(technologyId))
-            {
-                UnlockedTechnologies.RemoveAt(i);
-                continue;
-            }
-
-            UnlockedTechnologies[i] = technologyId;
-        }
-    }
-
-    private void NormalizeUnlockedBuildingBlueprints()
-    {
-        if (UnlockedBuildingBlueprintIds == null)
-        {
-            return;
-        }
-
-        HashSet<string> seen = new HashSet<string>(StringComparer.Ordinal);
-        for (var i = UnlockedBuildingBlueprintIds.Count - 1; i >= 0; i--)
-        {
-            var buildingId = string.IsNullOrWhiteSpace(UnlockedBuildingBlueprintIds[i])
-                ? string.Empty
-                : UnlockedBuildingBlueprintIds[i].Trim();
-            if (string.IsNullOrWhiteSpace(buildingId) || !seen.Add(buildingId))
-            {
-                UnlockedBuildingBlueprintIds.RemoveAt(i);
-                continue;
-            }
-
-            UnlockedBuildingBlueprintIds[i] = buildingId;
-        }
-    }
-
-    private void NormalizeTechnologyData()
-    {
-        if (TechnologyData != null)
-        {
-            TechnologyData.Validate();
-            if (UnlockedTechnologies == null)
-            {
-                UnlockedTechnologies = new List<string>(TechnologyData.UnlockedTechnologyIds);
-            }
-
-            return;
-        }
-
-        if (UnlockedTechnologies != null)
-        {
-            TechnologyData = new TechnologySaveData
-            {
-                UnlockedTechnologyIds = new List<string>(UnlockedTechnologies)
-            };
-            TechnologyData.Validate();
-        }
-    }
-
-    private void NormalizeQuestData()
-    {
-        QuestData?.Validate();
-    }
-
-    private void NormalizeExpeditionData()
-    {
-        ExpeditionData?.Validate();
-    }
-
-    private void NormalizeTalentData()
-    {
-        TalentData?.Validate();
-    }
-
-    private void NormalizeRoyalInheritanceData()
-    {
-        RoyalInheritanceData?.Validate();
-    }
-}
-
-[Serializable]
-public class GameSoftData
-{
-    public BuildingSoftReferenceSaveData LastSelectedBuilding = new BuildingSoftReferenceSaveData();
-
-    public static GameSoftData CreateDefault()
-    {
-        return new GameSoftData
-        {
-            LastSelectedBuilding = new BuildingSoftReferenceSaveData()
-        };
-    }
-
-    public void Validate()
-    {
-        LastSelectedBuilding ??= new BuildingSoftReferenceSaveData();
-        LastSelectedBuilding.Validate();
-    }
-}
-
-[Serializable]
-public class BuildingSoftReferenceSaveData
-{
-    public string BuildingId = string.Empty;
-
-    public bool HasOrigin;
-
-    public int OriginX;
-
-    public int OriginY;
-
-    public bool IsEmpty => string.IsNullOrWhiteSpace(BuildingId);
-
-    public GridPosition Origin => new GridPosition(OriginX, OriginY);
-
-    public static BuildingSoftReferenceSaveData CreateFromBuilding(BuildingBase building)
-    {
-        if (building == null || !building.HasDefinition)
-        {
-            return new BuildingSoftReferenceSaveData();
-        }
-
-        var saveData = new BuildingSoftReferenceSaveData
-        {
-            BuildingId = building.Definition.BuildingId,
-            HasOrigin = building.HasPlacement,
-            OriginX = building.HasPlacement ? building.Origin.X : 0,
-            OriginY = building.HasPlacement ? building.Origin.Y : 0
-        };
-        saveData.Validate();
-        return saveData;
-    }
-
-    public bool Matches(BuildingBase building)
-    {
-        if (building == null || !building.HasDefinition)
-        {
-            return false;
-        }
-
-        if (!string.Equals(BuildingId, building.Definition.BuildingId, StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        return !HasOrigin
-               || (building.HasPlacement && building.Origin.X == OriginX && building.Origin.Y == OriginY);
-    }
-
-    public void Validate()
-    {
-        BuildingId = string.IsNullOrWhiteSpace(BuildingId) ? string.Empty : BuildingId.Trim();
-        if (string.IsNullOrEmpty(BuildingId))
-        {
-            HasOrigin = false;
-            OriginX = 0;
-            OriginY = 0;
-        }
-    }
-}
-
-[Serializable]
-public class BuildingInstanceSaveData
-{
-    public string BuildingId = string.Empty;
-
-    public int OriginX;
-
-    public int OriginY;
-
-    public float RotationX;
-
-    public float RotationY;
-
-    public float RotationZ;
-
-    public float RotationW = 1f;
-
-    public string BuildingStateTypeId = string.Empty;
-
-    public string BuildingStateJson = string.Empty;
-
-    public bool IsValid => !string.IsNullOrWhiteSpace(BuildingId);
-
-    public GridPosition Origin => new GridPosition(OriginX, OriginY);
-
-    public Quaternion Rotation => new Quaternion(RotationX, RotationY, RotationZ, RotationW);
-
-    public static BuildingInstanceSaveData CreateFromBuilding(BuildingBase building)
-    {
-        if (building == null || !building.HasDefinition || !building.HasPlacement)
-        {
-            return null;
-        }
-
-        var rotation = building.transform.rotation;
-        return new BuildingInstanceSaveData
-        {
-            BuildingId = building.Definition.BuildingId,
-            OriginX = building.Origin.X,
-            OriginY = building.Origin.Y,
-            RotationX = rotation.x,
-            RotationY = rotation.y,
-            RotationZ = rotation.z,
-            RotationW = rotation.w,
-            BuildingStateTypeId = string.Empty,
-            BuildingStateJson = string.Empty
-        };
-    }
-
-    public void Validate()
-    {
-        BuildingId = string.IsNullOrWhiteSpace(BuildingId) ? string.Empty : BuildingId.Trim();
-        BuildingStateTypeId = string.IsNullOrWhiteSpace(BuildingStateTypeId) ? string.Empty : BuildingStateTypeId.Trim();
-        BuildingStateJson ??= string.Empty;
-
-        if (Mathf.Approximately(RotationX, 0f)
-            && Mathf.Approximately(RotationY, 0f)
-            && Mathf.Approximately(RotationZ, 0f)
-            && Mathf.Approximately(RotationW, 0f))
-        {
-            RotationW = 1f;
-        }
-    }
-}
-
-[Serializable]
-public class LocalizationSaveData
-{
-    public bool UseSystemLanguage = true;
-
-    public string CurrentLanguageCode = string.Empty;
-
-    public LanguageSource Source = LanguageSource.BuiltIn;
-
-    public string ExternalPackId = string.Empty;
-
-    public string ExternalPackFileName = string.Empty;
-
-    public static LocalizationSaveData CreateDefault()
-    {
-        return new LocalizationSaveData
-        {
-            UseSystemLanguage = true,
-            CurrentLanguageCode = string.Empty,
-            Source = LanguageSource.BuiltIn,
-            ExternalPackId = string.Empty,
-            ExternalPackFileName = string.Empty
-        };
-    }
-
-    public void Validate()
-    {
-        if (CurrentLanguageCode == null)
-        {
-            CurrentLanguageCode = string.Empty;
-        }
-
-        if (ExternalPackId == null)
-        {
-            ExternalPackId = string.Empty;
-        }
-
-        if (ExternalPackFileName == null)
-        {
-            ExternalPackFileName = string.Empty;
-        }
-
-        if (Source == LanguageSource.BuiltIn)
-        {
-            ExternalPackId = string.Empty;
-            ExternalPackFileName = string.Empty;
-        }
-    }
-}
-
-[Serializable]
-public class AudioSaveData
-{
-    public const string MasterVolumeGroupKey = "master";
-    public const string MusicVolumeGroupKey = "music";
-    public const string LegacyBgmVolumeGroupKey = "bgm";
-    public const string AmbienceVolumeGroupKey = "ambience";
-    public const string SfxVolumeGroupKey = "sfx";
-
-    public float MasterVolume = 1f;
-
-    public float BgmVolume = 1f;
-
-    public float AmbienceVolume = 1f;
-
-    public float SfxVolume = 1f;
-
-    public bool IsMuted;
-
-    public List<AudioKeyVolumeSaveData> VolumeGroups = new List<AudioKeyVolumeSaveData>();
-
-    public List<AudioKeyVolumeSaveData> ChannelVolumes = new List<AudioKeyVolumeSaveData>();
-
-    public static AudioSaveData CreateDefault()
-    {
-        return new AudioSaveData
-        {
-            MasterVolume = 1f,
-            BgmVolume = 1f,
-            AmbienceVolume = 1f,
-            SfxVolume = 1f,
-            IsMuted = false,
-            VolumeGroups = new List<AudioKeyVolumeSaveData>(),
-            ChannelVolumes = new List<AudioKeyVolumeSaveData>()
-        };
-    }
-
-    public void Validate()
-    {
-        MasterVolume = Mathf.Clamp01(MasterVolume);
-        BgmVolume = Mathf.Clamp01(BgmVolume);
-        AmbienceVolume = Mathf.Clamp01(AmbienceVolume);
-        SfxVolume = Mathf.Clamp01(SfxVolume);
-        VolumeGroups ??= new List<AudioKeyVolumeSaveData>();
-        ChannelVolumes ??= new List<AudioKeyVolumeSaveData>();
-        NormalizeVolumeList(VolumeGroups);
-        NormalizeVolumeList(ChannelVolumes);
-    }
-
-    public float GetVolumeGroup(string volumeGroupKey)
-    {
-        string key = NormalizeAudioKey(volumeGroupKey);
-        switch (key)
-        {
-            case MasterVolumeGroupKey:
-                return Mathf.Clamp01(MasterVolume);
-            case MusicVolumeGroupKey:
-            case LegacyBgmVolumeGroupKey:
-                return Mathf.Clamp01(BgmVolume);
-            case AmbienceVolumeGroupKey:
-                return Mathf.Clamp01(AmbienceVolume);
-            case SfxVolumeGroupKey:
-                return Mathf.Clamp01(SfxVolume);
-        }
-
-        return TryGetVolume(VolumeGroups, key, out float volume) ? volume : 1f;
-    }
-
-    public void SetVolumeGroup(string volumeGroupKey, float volume)
-    {
-        string key = NormalizeAudioKey(volumeGroupKey);
-        if (string.IsNullOrEmpty(key))
-        {
-            return;
-        }
-
-        volume = Mathf.Clamp01(volume);
-        switch (key)
-        {
-            case MasterVolumeGroupKey:
-                MasterVolume = volume;
-                return;
-            case MusicVolumeGroupKey:
-            case LegacyBgmVolumeGroupKey:
-                BgmVolume = volume;
-                return;
-            case AmbienceVolumeGroupKey:
-                AmbienceVolume = volume;
-                return;
-            case SfxVolumeGroupKey:
-                SfxVolume = volume;
-                return;
-        }
-
-        VolumeGroups ??= new List<AudioKeyVolumeSaveData>();
-        SetVolume(VolumeGroups, key, volume);
-    }
-
-    public float GetChannelVolume(string channelKey)
-    {
-        string key = NormalizeAudioKey(channelKey);
-        return TryGetVolume(ChannelVolumes, key, out float volume) ? volume : 1f;
-    }
-
-    public void SetChannelVolume(string channelKey, float volume)
-    {
-        string key = NormalizeAudioKey(channelKey);
-        if (string.IsNullOrEmpty(key))
-        {
-            return;
-        }
-
-        ChannelVolumes ??= new List<AudioKeyVolumeSaveData>();
-        SetVolume(ChannelVolumes, key, volume);
-    }
-
-    public static string NormalizeAudioKey(string key)
-    {
-        return string.IsNullOrWhiteSpace(key) ? string.Empty : key.Trim().ToLowerInvariant();
-    }
-
-    private static bool TryGetVolume(List<AudioKeyVolumeSaveData> volumes, string key, out float volume)
-    {
-        if (volumes != null)
-        {
-            for (int i = 0; i < volumes.Count; i++)
-            {
-                AudioKeyVolumeSaveData item = volumes[i];
-                if (item != null && item.Key == key)
-                {
-                    volume = Mathf.Clamp01(item.Volume);
-                    return true;
-                }
-            }
-        }
-
-        volume = 1f;
-        return false;
-    }
-
-    private static void SetVolume(List<AudioKeyVolumeSaveData> volumes, string key, float volume)
-    {
-        if (volumes == null)
-        {
-            return;
-        }
-
-        volume = Mathf.Clamp01(volume);
-        for (int i = 0; i < volumes.Count; i++)
-        {
-            AudioKeyVolumeSaveData item = volumes[i];
-            if (item != null && item.Key == key)
-            {
-                item.Volume = volume;
-                item.Validate();
-                return;
-            }
-        }
-
-        volumes.Add(new AudioKeyVolumeSaveData
-        {
-            Key = key,
-            Volume = volume
-        });
-    }
-
-    private static void NormalizeVolumeList(List<AudioKeyVolumeSaveData> volumes)
-    {
-        if (volumes == null)
-        {
-            return;
-        }
-
-        for (int i = volumes.Count - 1; i >= 0; i--)
-        {
-            AudioKeyVolumeSaveData item = volumes[i];
-            if (item == null)
-            {
-                volumes.RemoveAt(i);
-                continue;
-            }
-
-            item.Validate();
-            if (string.IsNullOrEmpty(item.Key))
-            {
-                volumes.RemoveAt(i);
-            }
-        }
-    }
-}
-
-[Serializable]
-public class AudioKeyVolumeSaveData
-{
-    public string Key = string.Empty;
-
-    public float Volume = 1f;
-
-    public void Validate()
-    {
-        Key = AudioSaveData.NormalizeAudioKey(Key);
-        Volume = Mathf.Clamp01(Volume);
     }
 }

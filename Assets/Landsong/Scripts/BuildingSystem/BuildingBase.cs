@@ -298,6 +298,20 @@ namespace Landsong.BuildingSystem
             NotifyStateChanged();
         }
 
+        /// <summary>
+        /// 建筑替换已在 GridMap 中完成占用权转移后调用。
+        /// 只解除本实例保存的放置信息，不再清理已经转交给新建筑的格子占用。
+        /// </summary>
+        internal void DetachPlacementAfterOccupancyTransfer()
+        {
+            if (!hasGridPosition)
+            {
+                return;
+            }
+
+            DetachPlacement();
+        }
+
         private void NotifyPlacedIfReady()
         {
             if (!initialized || placedNotified || !hasGridPosition)

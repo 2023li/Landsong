@@ -260,6 +260,77 @@ namespace Landsong.GridSystem
             return true;
         }
 
+        /// <summary>
+        /// 原子地把一个现有占用者替换为新的占用者。
+        /// 所有合法性检查都在修改字典和 Tilemap 之前完成，因此失败时原占用保持不变。
+        /// </summary>
+        public bool TryReplaceOccupant(
+            string currentOccupantId,
+            GridPosition newOrigin,
+            Vector2Int newSize,
+            string newOccupantId,
+            IReadOnlyList<string> requiredTerrainKeys,
+            int movementResistance,
+            out GridPlacementFailureReason failureReason)
+        {
+            EnsureInitialized();
+            currentOccupantId = string.IsNullOrWhiteSpace(currentOccupantId)
+                ? string.Empty
+                : currentOccupantId.Trim();
+            newOccupantId = string.IsNullOrWhiteSpace(newOccupantId)
+                ? string.Empty
+                : newOccupantId.Trim();
+
+            if (string.IsNullOrEmpty(currentOccupantId)
+                || string.IsNullOrEmpty(newOccupantId)
+                || string.Equals(currentOccupantId, newOccupantId, StringComparison.Ordinal)
+                || !occupiedPositionsById.TryGetValue(currentOccupantId, out var currentPositions)
+                || currentPositions == null
+                || currentPositions.Count == 0
+                || occupiedPositionsById.ContainsKey(newOccupantId))
+            {
+                failureReason = GridPlacementFailureReason.InvalidOccupantId;
+                return false;
+            }
+
+            if (!CanOccupy(
+                    newOrigin,
+                    newSize,
+                    requiredTerrainKeys,
+                    out failureReason,
+                    currentOccupantId))
+            {
+                return false;
+            }
+
+            var previousPositions = new List<GridPosition>(currentPositions);
+            for (var i = 0; i < previousPositions.Count; i++)
+            {
+                var position = previousPositions[i];
+                if (occupiedCells.TryGetValue(position, out var occupancy)
+                    && string.Equals(occupancy.OccupantId, currentOccupantId, StringComparison.Ordinal))
+                {
+                    occupiedCells.Remove(position);
+                }
+            }
+
+            occupiedPositionsById.Remove(currentOccupantId);
+
+            var newFootprint = new GridFootprint(newOrigin, newSize);
+            var newPositions = GetOrCreateOccupiedPositions(newOccupantId);
+            var newOccupancy = new GridOccupancyData(newOccupantId, movementResistance);
+            foreach (var position in newFootprint.Positions())
+            {
+                occupiedCells[position] = newOccupancy;
+                newPositions.Add(position);
+            }
+
+            ClearOccupancyTiles(previousPositions);
+            SetOccupancyTiles(newFootprint);
+            failureReason = GridPlacementFailureReason.None;
+            return true;
+        }
+
         public bool HasBaseTileAt(GridPosition position)
         {
             EnsureInitialized();
