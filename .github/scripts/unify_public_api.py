@@ -10,5 +10,7 @@ if not parts:
     raise RuntimeError("API migration payload parts are missing.")
 
 payload = "".join(part.read_text(encoding="utf-8").strip() for part in parts)
-source = gzip.decompress(base64.b64decode(payload))
+source = gzip.decompress(base64.b64decode(payload)).decode("utf-8")
+# TryUpgradeTalent remains the canonical TalentService API; only the GameSystem facade is removed.
+source = source.replace('        ".TryUpgradeTalent(",\n', '')
 exec(compile(source, __file__, "exec"))
