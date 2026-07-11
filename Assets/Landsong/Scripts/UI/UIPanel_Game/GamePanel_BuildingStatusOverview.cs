@@ -31,7 +31,7 @@ namespace Landsong.UISystem
         private void Reset()
         {
             itemRoot = transform;
-         
+
         }
 
         private void OnEnable()

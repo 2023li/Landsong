@@ -66,9 +66,9 @@ public class GamePanel_HUD : MonoBehaviour
     }
 
     #region 顶部栏
-    //阶段 
+    //阶段
     [SerializeField, FoldoutGroup("顶部栏")] private TMP_Text txt_Stage;
-    //人口 
+    //人口
     [SerializeField, FoldoutGroup("顶部栏")] private TMP_Text txt_Population;
     //金币 从仓库获取 Item_金币的数量
     [SerializeField, FoldoutGroup("顶部栏")] private TMP_Text txt_Gold;

@@ -68,5 +68,5 @@ namespace Landsong.ConditionSystem
         }
     }
 
-   
+
 }

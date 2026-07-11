@@ -58,7 +58,7 @@ public sealed class GamePanel_Inventory : MonoBehaviour
     {
         UnsubscribeInventory();
     }
-    
+
     public void Show()
     {
         if (!gameObject.activeSelf)
@@ -73,7 +73,7 @@ public sealed class GamePanel_Inventory : MonoBehaviour
 
         RefreshFromGameSystem();
     }
-   
+
     public void Hide()
     {
         UnsubscribeInventory();
