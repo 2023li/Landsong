@@ -48,12 +48,12 @@ namespace Landsong.TechnologySystem
 
         public override TechnologyEffectApplyResult Apply(GameSystem context, TechnologyDefinition technology)
         {
-            if (context == null || context.Inventory == null || itemDefinition == null || Amount <= 0)
+            if (context == null || context.Services.Inventory == null || itemDefinition == null || Amount <= 0)
             {
                 return new TechnologyEffectApplyResult(false, string.Empty);
             }
 
-            var added = context.Inventory.AddItem(itemDefinition, Amount);
+            var added = context.Services.Inventory.AddItem(itemDefinition, Amount);
             if (added <= 0)
             {
                 return new TechnologyEffectApplyResult(false, $"{itemDefinition.DisplayName}+0");
@@ -79,7 +79,7 @@ namespace Landsong.TechnologySystem
             }
 
             var definition = buildingPrefab.Definition;
-            var unlocked = context.UnlockBuildingBlueprint(definition.BuildingId);
+            var unlocked = context.Services.BuildingBlueprints.Unlock(definition.BuildingId);
             return new TechnologyEffectApplyResult(
                 unlocked,
                 unlocked ? $"蓝图解锁：{definition.DisplayName}" : $"蓝图已解锁：{definition.DisplayName}");

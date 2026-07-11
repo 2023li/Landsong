@@ -177,12 +177,12 @@ public sealed class GamePanel_Inventory : MonoBehaviour
             return;
         }
 
-        if (gameSystem.Inventory == null)
+        if (gameSystem.Services.Inventory == null)
         {
             gameSystem.ReinitializeInventory();
         }
 
-        inventory = gameSystem.Inventory;
+        inventory = gameSystem.Services.Inventory;
     }
 
     private void SyncSlotCount(int count)

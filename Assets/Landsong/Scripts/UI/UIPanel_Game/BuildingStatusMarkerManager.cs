@@ -106,7 +106,7 @@ namespace Landsong.UISystem
         private void ResolveReferences()
         {
             gameSystem = Landsong.GameSystem.Instance;
-            SetBuildingService(gameSystem == null ? null : gameSystem.Buildings);
+            SetBuildingService(gameSystem == null ? null : gameSystem.Services.Buildings);
 
             if (TryGetGamePanelFromUIManager(out var gamePanel))
             {

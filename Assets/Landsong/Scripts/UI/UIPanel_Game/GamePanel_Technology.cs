@@ -105,7 +105,7 @@ namespace Landsong.UISystem
         private void ResolveRuntime()
         {
             var gameSystem = Landsong.GameSystem.Instance;
-            technology = gameSystem == null ? null : gameSystem.Technology;
+            technology = gameSystem == null ? null : gameSystem.Services.Technology;
         }
 
         private void BindButtons()

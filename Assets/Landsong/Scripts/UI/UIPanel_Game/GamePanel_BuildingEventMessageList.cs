@@ -127,7 +127,7 @@ namespace Landsong.UISystem
         {
             gameSystem = Landsong.GameSystem.Instance;
 
-            var resolvedEvents = gameSystem == null ? null : gameSystem.Events;
+            var resolvedEvents = gameSystem == null ? null : gameSystem.Services.Events;
             if (resolvedEvents != gameEvents)
             {
                 UnsubscribeGameEvents();
@@ -276,7 +276,7 @@ namespace Landsong.UISystem
         {
             if (gameEvents == null)
             {
-                gameEvents = gameSystem == null ? null : gameSystem.Events;
+                gameEvents = gameSystem == null ? null : gameSystem.Services.Events;
             }
 
             if (gameEvents == null)

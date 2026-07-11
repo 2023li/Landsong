@@ -430,7 +430,7 @@ namespace Landsong.BuildingSystem
 
         public static int GetAvailablePopulation(Landsong.GameSystem gameSystem, IReadOnlyList<BuildingBase> buildings)
         {
-            var population = gameSystem == null || gameSystem.Dynasty == null ? 0 : gameSystem.Dynasty.Population;
+            var population = gameSystem == null || gameSystem.Services.Dynasty == null ? 0 : gameSystem.Services.Dynasty.Population;
             return Mathf.Max(0, population - CountCurrentWorkers(buildings));
         }
 

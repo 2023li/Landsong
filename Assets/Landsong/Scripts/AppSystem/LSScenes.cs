@@ -258,9 +258,9 @@ public class LoadScene_Game : SceneLoadingPipeline
             return false;
         }
 
-        if (Landsong.GameSystem.TryGetInstance(out var gameSystem) && gameSystem.Buildings != null)
+        if (Landsong.GameSystem.TryGetInstance(out var gameSystem) && gameSystem.Services.Buildings != null)
         {
-            var buildings = gameSystem.Buildings.Buildings;
+            var buildings = gameSystem.Services.Buildings.Buildings;
             for (var i = 0; i < buildings.Count; i++)
             {
                 var candidate = buildings[i];

@@ -155,7 +155,7 @@ namespace Landsong.UISystem
                 return;
             }
 
-            gameSystem.InheritanceChanged += HandleInheritanceChanged;
+            gameSystem.Services.Inheritance.StateChanged += HandleInheritanceChanged;
             subscribedToInheritance = true;
         }
 
@@ -167,13 +167,13 @@ namespace Landsong.UISystem
                 return;
             }
 
-            gameSystem.InheritanceChanged -= HandleInheritanceChanged;
+            gameSystem.Services.Inheritance.StateChanged -= HandleInheritanceChanged;
             subscribedToInheritance = false;
         }
 
         private void RefreshHeader()
         {
-            var service = gameSystem == null ? null : gameSystem.Inheritance;
+            var service = gameSystem == null ? null : gameSystem.Services.Inheritance;
             if (service == null)
             {
                 SetText(statusLabel, "继承系统未初始化");
@@ -198,7 +198,7 @@ namespace Landsong.UISystem
         private void RefreshHeirs()
         {
             ReleaseActiveHeirItems();
-            var service = gameSystem == null ? null : gameSystem.Inheritance;
+            var service = gameSystem == null ? null : gameSystem.Services.Inheritance;
             if (service == null || heirRoot == null || heirItemPrefab == null)
             {
                 SetEmptyState(heirEmptyRoot, heirEmptyLabel, true, "继承人列表未配置");
@@ -220,7 +220,7 @@ namespace Landsong.UISystem
         private void RefreshCharacters()
         {
             ReleaseActiveCharacterItems();
-            var service = gameSystem == null ? null : gameSystem.Inheritance;
+            var service = gameSystem == null ? null : gameSystem.Services.Inheritance;
             if (service == null || characterRoot == null || characterItemPrefab == null)
             {
                 SetEmptyState(characterEmptyRoot, characterEmptyLabel, true, "世代表列表未配置");
@@ -335,7 +335,7 @@ namespace Landsong.UISystem
                 return;
             }
 
-            var born = gameSystem.TryBirthPrince(string.Empty, out var prince);
+            var born = gameSystem.Services.Inheritance.TryBirthPrince(string.Empty, out var prince);
             lastStatusMessage = born && prince != null ? $"王子出生：{prince.DisplayName}" : "当前无法生育王子";
             Refresh();
         }
@@ -347,16 +347,15 @@ namespace Landsong.UISystem
                 return;
             }
 
-            var abdicated = gameSystem.TryAbdicateCurrentKing(out var succession);
+            var abdicated = gameSystem.Services.Inheritance.TryAbdicateCurrentKing(out var succession);
             lastStatusMessage = abdicated && succession.NewKing != null
                 ? $"新王登基：{succession.NewKing.DisplayName}"
                 : "退位失败：没有可用继承人";
             Refresh();
         }
 
-        private void HandleInheritanceChanged(GameSystem changedGameSystem)
+        private void HandleInheritanceChanged(RoyalInheritanceService changedInheritance)
         {
-            gameSystem = changedGameSystem;
             Refresh();
         }
 

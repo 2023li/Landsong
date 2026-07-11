@@ -31,7 +31,7 @@ namespace Landsong.BuildingSystem
             var isUnlocked = availableCondition == null || availableCondition.IsMet(gameSystem);
             var isBlueprintUnlocked = IsBlueprintUnlocked(definition, gameSystem);
             var hasBuildSlot = !definition.HasBuildCountLimit || builtCount < definition.MaxBuildCount;
-            var inventory = gameSystem == null ? null : gameSystem.Inventory;
+            var inventory = gameSystem == null ? null : gameSystem.Services.Inventory;
             var canAfford = CanAffordPlacementCosts(definition, inventory);
 
             return new BuildingAvailability(
@@ -53,7 +53,7 @@ namespace Landsong.BuildingSystem
                 return true;
             }
 
-            return gameSystem != null && gameSystem.IsBuildingBlueprintUnlocked(definition.BuildingId);
+            return gameSystem != null && gameSystem.Services.BuildingBlueprints.IsUnlocked(definition.BuildingId);
         }
 
         private static bool RequiresBlueprint(BuildingDefinition definition)

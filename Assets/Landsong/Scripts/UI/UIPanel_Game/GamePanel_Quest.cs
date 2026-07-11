@@ -94,7 +94,7 @@ namespace Landsong.UISystem
                 return;
             }
 
-            var quests = gameSystem.Quests;
+            var quests = gameSystem.Services.Quest.Quests;
             EnsureSelectedQuest(quests);
 
             var visibleCount = 0;
@@ -166,7 +166,7 @@ namespace Landsong.UISystem
                 return;
             }
 
-            gameSystem.QuestsChanged += HandleQuestsChanged;
+            gameSystem.Services.Quest.StateChanged += HandleQuestsChanged;
             subscribedToQuests = true;
         }
 
@@ -178,7 +178,7 @@ namespace Landsong.UISystem
                 return;
             }
 
-            gameSystem.QuestsChanged -= HandleQuestsChanged;
+            gameSystem.Services.Quest.StateChanged -= HandleQuestsChanged;
             subscribedToQuests = false;
         }
 
@@ -312,11 +312,11 @@ namespace Landsong.UISystem
 
             if (quest.CanClaimRewards)
             {
-                gameSystem.TryClaimQuestRewards(quest);
+                gameSystem.Services.Quest.TryClaimRewards(quest);
             }
             else
             {
-                gameSystem.TrySubmitQuestResources(quest);
+                gameSystem.Services.Quest.TrySubmitResources(quest);
             }
 
             Refresh();
@@ -329,13 +329,12 @@ namespace Landsong.UISystem
                 return;
             }
 
-            gameSystem.TryAbandonQuest(quest);
+            gameSystem.Services.Quest.TryAbandon(quest);
             Refresh();
         }
 
-        private void HandleQuestsChanged(GameSystem changedGameSystem)
+        private void HandleQuestsChanged(QuestService changedQuestService)
         {
-            gameSystem = changedGameSystem;
             Refresh();
         }
 

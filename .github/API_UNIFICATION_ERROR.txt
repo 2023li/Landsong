@@ -1,7 +1,0 @@
-Traceback (most recent call last):
-  File "/home/runner/work/Landsong/Landsong/.github/scripts/unify_public_api.py", line 14, in <module>
-    exec(compile(source, __file__, "exec"))
-  File "/home/runner/work/Landsong/Landsong/.github/scripts/unify_public_api.py", line 1783, in <module>
-  File "/home/runner/work/Landsong/Landsong/.github/scripts/unify_public_api.py", line 1777, in main
-  File "/home/runner/work/Landsong/Landsong/.github/scripts/unify_public_api.py", line 1666, in validate
-RuntimeError: Legacy call token remains: .TryUpgradeTalent(

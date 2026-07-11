@@ -97,7 +97,7 @@ namespace Landsong.BuildingSystem
                 return true;
             }
 
-            var inventory = gameSystem == null ? null : gameSystem.Inventory;
+            var inventory = gameSystem == null ? null : gameSystem.Services.Inventory;
             if (inventory == null)
             {
                 return false;
@@ -114,7 +114,7 @@ namespace Landsong.BuildingSystem
                 return true;
             }
 
-            var inventory = gameSystem == null ? null : gameSystem.Inventory;
+            var inventory = gameSystem == null ? null : gameSystem.Services.Inventory;
             if (inventory == null)
             {
                 return false;

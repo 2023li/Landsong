@@ -192,7 +192,7 @@ namespace Landsong.BuildingSystem
         private void ResolveReferences()
         {
             gameSystem = Landsong.GameSystem.Instance;
-            buildings = gameSystem == null ? null : gameSystem.Buildings;
+            buildings = gameSystem == null ? null : gameSystem.Services.Buildings;
             inputController ??= InputController.Instance;
             placementController ??= FindFirstObjectByType<BuildingPlacementController>(FindObjectsInactive.Include);
 

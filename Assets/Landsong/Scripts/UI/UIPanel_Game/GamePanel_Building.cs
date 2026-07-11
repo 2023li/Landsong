@@ -285,10 +285,10 @@ namespace Landsong.UISystem
         private void ResolveGameSystem()
         {
             gameSystem = Landsong.GameSystem.Instance;
-            buildingCatalog = gameSystem == null ? null : gameSystem.BuildingCatalog;
-            inventory = gameSystem == null ? null : gameSystem.Inventory;
-            buildings = gameSystem == null ? null : gameSystem.Buildings;
-            technology = gameSystem == null ? null : gameSystem.Technology;
+            buildingCatalog = gameSystem == null ? null : gameSystem.Services.BuildingCatalog;
+            inventory = gameSystem == null ? null : gameSystem.Services.Inventory;
+            buildings = gameSystem == null ? null : gameSystem.Services.Buildings;
+            technology = gameSystem == null ? null : gameSystem.Services.Technology;
         }
 
         private void ResolvePlacementController()
@@ -962,7 +962,7 @@ namespace Landsong.UISystem
                 return;
             }
 
-            gameSystem.BuildingBlueprintsChanged += HandleBuildingBlueprintsChanged;
+            gameSystem.Services.BuildingBlueprints.StateChanged += HandleBuildingBlueprintsChanged;
             subscribedToBlueprints = true;
         }
 
@@ -974,13 +974,12 @@ namespace Landsong.UISystem
                 return;
             }
 
-            gameSystem.BuildingBlueprintsChanged -= HandleBuildingBlueprintsChanged;
+            gameSystem.Services.BuildingBlueprints.StateChanged -= HandleBuildingBlueprintsChanged;
             subscribedToBlueprints = false;
         }
 
-        private void HandleBuildingBlueprintsChanged(Landsong.GameSystem changedGameSystem)
+        private void HandleBuildingBlueprintsChanged(BuildingBlueprintService changedBlueprints)
         {
-            gameSystem = changedGameSystem;
             Refresh();
         }
     }

@@ -50,7 +50,7 @@ namespace Landsong.ConditionSystem
         {
             return context != null
                    && TechnologyDefinition != null
-                   && context.IsTechnologyUnlocked(TechnologyDefinition.TechnologyId);
+                   && context.Services.Technology.IsUnlocked(TechnologyDefinition.TechnologyId);
         }
     }
 
@@ -64,7 +64,7 @@ namespace Landsong.ConditionSystem
             return context != null
                    && BuildingPrefab != null
                    && BuildingPrefab.HasDefinition
-                   && context.IsBuildingBlueprintUnlocked(BuildingPrefab.Definition.BuildingId);
+                   && context.Services.BuildingBlueprints.IsUnlocked(BuildingPrefab.Definition.BuildingId);
         }
     }
 

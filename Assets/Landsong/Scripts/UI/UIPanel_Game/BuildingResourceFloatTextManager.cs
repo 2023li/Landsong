@@ -86,7 +86,7 @@ namespace Landsong.UISystem
         private void ResolveReferences()
         {
             gameSystem = Landsong.GameSystem.Instance;
-            SetTurnService(gameSystem == null ? null : gameSystem.Turn);
+            SetTurnService(gameSystem == null ? null : gameSystem.Services.Turn);
 
             if (TryGetGamePanelFromUIManager(out var gamePanel))
             {
@@ -354,9 +354,9 @@ namespace Landsong.UISystem
 
         private Sprite ResolveItemIcon(string itemId)
         {
-            var catalog = gameSystem == null || gameSystem.Inventory == null
+            var catalog = gameSystem == null || gameSystem.Services.Inventory == null
                 ? null
-                : gameSystem.Inventory.ItemCatalog;
+                : gameSystem.Services.Inventory.ItemCatalog;
 
             if (catalog != null && catalog.TryGetDefinition(itemId, out var definition))
             {

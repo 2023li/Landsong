@@ -274,7 +274,7 @@ namespace Landsong.UISystem
             }
 
             var gameSystem = GameSystem.Instance;
-            var currentTurn = gameSystem == null ? quest.StartedTurn : gameSystem.CurrentTurn;
+            var currentTurn = gameSystem == null ? quest.StartedTurn : gameSystem.Services.Turn.CurrentTurn;
             return $"截止第 {quest.DeadlineTurn} 回合，剩余 {quest.GetRemainingTurns(currentTurn)} 回合";
         }
 

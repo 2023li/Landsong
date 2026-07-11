@@ -462,6 +462,8 @@ namespace Landsong.ExpeditionSystem
         }
 
         public event Action<ExpeditionService> StateChanged;
+        public event Action<ExpeditionService, ExpeditionStartResult> ExpeditionStarted;
+        public event Action<ExpeditionService, ExpeditionClaimResult> RewardsClaimed;
 
         public IReadOnlyList<ExpeditionState> Expeditions => expeditions.Count == 0 ? EmptyExpeditions : expeditions;
         public ExpeditionDestinationCatalog Catalog => catalog;
@@ -472,7 +474,9 @@ namespace Landsong.ExpeditionSystem
         public bool HasAvailableExpeditionSlot => ActiveExpeditionCount < MaxActiveExpeditions;
         public int SubsidyPenaltyStacks => subsidyPenaltyStacks;
         public int SubsidyPenaltyActiveUntilTurn => subsidyPenaltyActiveUntilTurn;
-        public bool IsSubsidyPenaltyActive => IsSubsidyPenaltyActiveAt(context == null ? 1 : context.CurrentTurn);
+        public bool IsSubsidyPenaltyActive => IsSubsidyPenaltyActiveAt(context == null ? 1 : context.Services.Turn.CurrentTurn);
+        public float RewardYieldBonus => context == null ? 0f : context.CalculateExpeditionRewardYieldBonus();
+        public float RewardYieldMultiplier => 1f + RewardYieldBonus;
 
         public void SetCatalog(ExpeditionDestinationCatalog newCatalog)
         {
@@ -501,7 +505,7 @@ namespace Landsong.ExpeditionSystem
             }
 
             var destinations = catalog.Destinations;
-            var currentTurn = context == null ? 1 : context.CurrentTurn;
+            var currentTurn = context == null ? 1 : context.Services.Turn.CurrentTurn;
             for (var i = 0; i < destinations.Count; i++)
             {
                 var destination = destinations[i];
@@ -566,7 +570,7 @@ namespace Landsong.ExpeditionSystem
                 return false;
             }
 
-            var availability = EvaluateDestination(destination, context == null ? 1 : context.CurrentTurn);
+            var availability = EvaluateDestination(destination, context == null ? 1 : context.Services.Turn.CurrentTurn);
             if (!availability.IsAvailable)
             {
                 result = FailStart(ExpeditionStartFailureReason.DestinationUnavailable, destination, population, null, "远征目的地当前不可用。");
@@ -591,7 +595,7 @@ namespace Landsong.ExpeditionSystem
                 return false;
             }
 
-            if (context == null || context.Dynasty == null || !context.Dynasty.TryConsumePopulation(population))
+            if (context == null || context.Services.Dynasty == null || !context.Services.Dynasty.TryConsumePopulation(population))
             {
                 result = FailStart(ExpeditionStartFailureReason.PopulationUnavailable, destination, population, null, "基础人口不足，无法出发。");
                 return false;
@@ -600,33 +604,33 @@ namespace Landsong.ExpeditionSystem
             var normalizedSupplies = NormalizeAssignedSupplies(assignedSupplies);
             if (!ValidateSupplies(destination, normalizedSupplies, out var supplyFailure, out var supplyMessage))
             {
-                context.Dynasty.AddPopulation(population);
+                context.Services.Dynasty.AddPopulation(population);
                 result = FailStart(supplyFailure, destination, population, normalizedSupplies, supplyMessage);
                 return false;
             }
 
-            if (context.Inventory == null)
+            if (context.Services.Inventory == null)
             {
-                context.Dynasty.AddPopulation(population);
+                context.Services.Dynasty.AddPopulation(population);
                 result = FailStart(ExpeditionStartFailureReason.InventoryMissing, destination, population, normalizedSupplies, "库存服务未初始化。");
                 return false;
             }
 
-            if (!HasSuppliesInInventory(context.Inventory, normalizedSupplies))
+            if (!HasSuppliesInInventory(context.Services.Inventory, normalizedSupplies))
             {
-                context.Dynasty.AddPopulation(population);
+                context.Services.Dynasty.AddPopulation(population);
                 result = FailStart(ExpeditionStartFailureReason.InventoryMissing, destination, population, normalizedSupplies, "库存物品不足。");
                 return false;
             }
 
-            if (!RemoveSuppliesFromInventory(context.Inventory, normalizedSupplies))
+            if (!RemoveSuppliesFromInventory(context.Services.Inventory, normalizedSupplies))
             {
-                context.Dynasty.AddPopulation(population);
+                context.Services.Dynasty.AddPopulation(population);
                 result = FailStart(ExpeditionStartFailureReason.InventoryRemoveFailed, destination, population, normalizedSupplies, "扣除远征物资失败。");
                 return false;
             }
 
-            var currentTurn = context.CurrentTurn;
+            var currentTurn = context.Services.Turn.CurrentTurn;
             var supplyLookup = BuildSupplyLookup(normalizedSupplies);
             var successChance = destination.CalculateSuccessChance(population, supplyLookup);
             var supplyRewardYieldBonus = destination.CalculateSupplyRewardYieldBonus(supplyLookup);
@@ -648,6 +652,7 @@ namespace Landsong.ExpeditionSystem
                 successChance,
                 $"远征队已前往 {destination.DisplayName}。");
             NotifyChanged();
+            ExpeditionStarted?.Invoke(this, result);
             return true;
         }
 
@@ -699,7 +704,7 @@ namespace Landsong.ExpeditionSystem
                 return false;
             }
 
-            if (context == null || context.Inventory == null)
+            if (context == null || context.Services.Inventory == null)
             {
                 result = new ExpeditionClaimResult(false, ExpeditionClaimFailureReason.InventoryMissing, expedition, "库存服务未初始化。");
                 return false;
@@ -714,6 +719,7 @@ namespace Landsong.ExpeditionSystem
             ClaimRewards(expedition);
             result = new ExpeditionClaimResult(true, ExpeditionClaimFailureReason.None, expedition, "远征奖励已领取。");
             NotifyChanged();
+            RewardsClaimed?.Invoke(this, result);
             return true;
         }
 
@@ -769,7 +775,7 @@ namespace Landsong.ExpeditionSystem
                 subsidyPenaltyActiveUntilTurn = 0;
             }
 
-            ClearExpiredPenalty(context == null ? 1 : context.CurrentTurn);
+            ClearExpiredPenalty(context == null ? 1 : context.Services.Turn.CurrentTurn);
             NotifyChanged();
         }
 
@@ -791,7 +797,7 @@ namespace Landsong.ExpeditionSystem
                     rewardsClaimed = true;
                 }
                 else if (context != null
-                         && context.Inventory != null
+                         && context.Services.Inventory != null
                          && CanAddRewardsToInventory(expedition))
                 {
                     ClaimRewards(expedition);
@@ -830,17 +836,17 @@ namespace Landsong.ExpeditionSystem
             }
 
             var goldItemId = subsidyGoldItemDefinition == null ? string.Empty : subsidyGoldItemDefinition.ItemId;
-            if (context == null || context.Inventory == null || string.IsNullOrWhiteSpace(goldItemId))
+            if (context == null || context.Services.Inventory == null || string.IsNullOrWhiteSpace(goldItemId))
             {
                 ApplySubsidyPenalty(expedition, requiredSubsidy, currentTurn);
                 return;
             }
 
-            var available = context.Inventory.GetQuantity(goldItemId);
+            var available = context.Services.Inventory.GetQuantity(goldItemId);
             var paid = Mathf.Min(available, requiredSubsidy);
             if (paid > 0)
             {
-                context.Inventory.RemoveItem(goldItemId, paid);
+                context.Services.Inventory.RemoveItem(goldItemId, paid);
             }
 
             expedition.FailureSubsidyPaid = paid;
@@ -894,7 +900,7 @@ namespace Landsong.ExpeditionSystem
 
         private float GetRewardYieldMultiplier(ExpeditionState expedition = null)
         {
-            var baseMultiplier = context == null ? 1f : context.ExpeditionRewardYieldMultiplier;
+            var baseMultiplier = RewardYieldMultiplier;
             var supplyBonus = expedition == null ? 0f : expedition.SupplyRewardYieldBonus;
             return Mathf.Max(0f, baseMultiplier + supplyBonus);
         }
@@ -967,7 +973,7 @@ namespace Landsong.ExpeditionSystem
 
         private bool CanAddRewardsToInventory(ExpeditionState expedition)
         {
-            if (context == null || context.Inventory == null)
+            if (context == null || context.Services.Inventory == null)
             {
                 return false;
             }
@@ -980,13 +986,13 @@ namespace Landsong.ExpeditionSystem
 
             if (TryBuildItemAmounts(rewards, expedition.Definition, out var itemAmounts))
             {
-                return context.Inventory.CanAddItems(itemAmounts);
+                return context.Services.Inventory.CanAddItems(itemAmounts);
             }
 
             for (var i = 0; i < rewards.Count; i++)
             {
                 var reward = rewards[i];
-                if (reward != null && reward.IsValid && !context.Inventory.CanAddItem(reward.ItemId, reward.Amount))
+                if (reward != null && reward.IsValid && !context.Services.Inventory.CanAddItem(reward.ItemId, reward.Amount))
                 {
                     return false;
                 }
@@ -997,7 +1003,7 @@ namespace Landsong.ExpeditionSystem
 
         private void AddItemRewardsToInventory(ExpeditionState expedition)
         {
-            if (context == null || context.Inventory == null)
+            if (context == null || context.Services.Inventory == null)
             {
                 return;
             }
@@ -1010,7 +1016,7 @@ namespace Landsong.ExpeditionSystem
 
             if (TryBuildItemAmounts(rewards, expedition.Definition, out var itemAmounts))
             {
-                context.Inventory.TryAddItems(itemAmounts);
+                context.Services.Inventory.TryAddItems(itemAmounts);
                 return;
             }
 
@@ -1019,7 +1025,7 @@ namespace Landsong.ExpeditionSystem
                 var reward = rewards[i];
                 if (reward != null && reward.IsValid)
                 {
-                    context.Inventory.TryAddItem(reward.ItemId, reward.Amount);
+                    context.Services.Inventory.TryAddItem(reward.ItemId, reward.Amount);
                 }
             }
         }
@@ -1097,9 +1103,9 @@ namespace Landsong.ExpeditionSystem
                 }
             }
 
-            var catalog = context == null || context.Inventory == null
+            var catalog = context == null || context.Services.Inventory == null
                 ? null
-                : context.Inventory.ItemCatalog;
+                : context.Services.Inventory.ItemCatalog;
             return catalog != null && catalog.TryGetDefinition(itemId, out var definition)
                 ? definition
                 : null;
