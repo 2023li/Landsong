@@ -26,6 +26,15 @@ jobs:
         run: |
           cp .github/workflows/architecture-refactor.yml /tmp/architecture-refactor.yml
           base64 --decode .github/scripts/architecture_refactor.py.gz.b64 | gzip --decompress > .github/scripts/architecture_refactor.py
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('.github/scripts/architecture_refactor.py')
+          source = path.read_text(encoding='utf-8')
+          source = source.replace(
+              "if 'Quest.TrySubmitResources' not in adapter or 'Quest.CaptureSaveData' not in adapter:",
+              "if '.TrySubmitResources' not in adapter or '.CaptureSaveData' not in adapter:")
+          path.write_text(source, encoding='utf-8')
+          PY
           set +e
           python3 .github/scripts/architecture_refactor.py > /tmp/architecture-refactor.log 2>&1
           exit_code=$?
