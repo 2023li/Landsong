@@ -36,13 +36,13 @@ namespace Landsong.Persistence
                     ? gameSystem.CaptureQuestData()
                     : services.Quest.CaptureSaveData();
                 gameData.ExpeditionData = services.Expeditions == null
-                    ? new Landsong.ExpeditionSystem.ExpeditionSaveData()
+                    ? gameSystem.CaptureExpeditionData()
                     : services.Expeditions.CaptureSaveData();
                 gameData.TalentData = services.Talents == null
-                    ? new Landsong.TalentSystem.TalentSaveData()
+                    ? gameSystem.CaptureTalentData()
                     : services.Talents.CaptureSaveData();
                 gameData.RoyalInheritanceData = services.Inheritance == null
-                    ? new Landsong.InheritanceSystem.RoyalInheritanceSaveData()
+                    ? gameSystem.CaptureInheritanceData()
                     : services.Inheritance.CaptureSaveData();
                 gameData.UnlockedBuildingBlueprintIds = gameSystem.CaptureUnlockedBuildingBlueprints();
 

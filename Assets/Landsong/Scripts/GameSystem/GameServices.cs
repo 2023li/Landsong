@@ -42,9 +42,5 @@ namespace Landsong
         public GameServices Services => gameServices ??= new GameServices(this);
         public QuestService Quest { get; private set; }
 
-        private void EnsureQuestFacade()
-        {
-            Quest ??= new QuestService(this);
-        }
     }
 }

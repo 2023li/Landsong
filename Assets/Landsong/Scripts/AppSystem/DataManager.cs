@@ -189,38 +189,46 @@ public sealed class DataManager : MonoSingleton<DataManager>
         gameData.Stage = DynastyStage.营地.ToString();
 
         CurrentGameData = gameData;
-        SaveCurrentGame(GameDataSaveMode.NewSave, false);
+        SaveCurrentGameInternal(GameDataSaveMode.NewSave, false);
         return gameData;
+    }
+
+    /// <summary>
+    /// 统一的当前存档保存入口。旧的保存 API 继续保留为兼容别名。
+    /// </summary>
+    public void SaveCurrentGame(GameDataSaveMode saveMode = GameDataSaveMode.Overwrite)
+    {
+        SaveCurrentGameInternal(saveMode, true);
     }
 
     public void SaveGameData()
     {
-        SaveCurrentGame(GameDataSaveMode.Overwrite, true);
+        SaveCurrentGame();
     }
 
     public void OverwriteSaveGameData()
     {
-        SaveCurrentGame(GameDataSaveMode.Overwrite, true);
+        SaveCurrentGame();
     }
 
     public void SaveNewGameData()
     {
-        SaveCurrentGame(GameDataSaveMode.NewSave, true);
+        SaveCurrentGame(GameDataSaveMode.NewSave);
     }
 
     public void QuickSaveGameData()
     {
-        SaveCurrentGame(GameDataSaveMode.Overwrite, true);
+        SaveCurrentGame();
     }
 
     public void AutoSaveGameData()
     {
-        SaveCurrentGame(GameDataSaveMode.Overwrite, true);
+        SaveCurrentGame();
     }
 
     public void SaveGameData(GameDataSaveMode saveMode)
     {
-        SaveCurrentGame(saveMode, true);
+        SaveCurrentGame(saveMode);
     }
 
     public bool SetCurrentGameSaveName(string saveName)
@@ -428,7 +436,7 @@ public sealed class DataManager : MonoSingleton<DataManager>
         OnRuntimeDataRestoreCompleted?.Invoke(CurrentGameData);
     }
 
-    private void SaveCurrentGame(GameDataSaveMode saveMode, bool captureRuntimeData)
+    private void SaveCurrentGameInternal(GameDataSaveMode saveMode, bool captureRuntimeData)
     {
         EnsureAppDataLoaded();
         EnsureGameDataIndexLoaded();
