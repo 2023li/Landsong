@@ -1,14 +1,13 @@
-name: Apply architecture refactor
+name: Validate architecture refactor
 
 on:
   pull_request:
 
 permissions:
   contents: write
-  pull-requests: write
 
 jobs:
-  refactor:
+  validate:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
@@ -19,35 +18,122 @@ jobs:
           fetch-depth: 0
           show-progress: false
 
-      - name: Decode and apply refactor
+      - name: Apply final idempotent patch
         shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           cp .github/workflows/architecture-refactor.yml /tmp/architecture-refactor.yml
           base64 --decode .github/scripts/architecture_refactor.py.gz.b64 | gzip --decompress > .github/scripts/architecture_refactor.py
-          set +e
-          python3 .github/scripts/architecture_refactor.py > /tmp/architecture-refactor.log 2>&1
-          exit_code=$?
-          set -e
-          tail -100 /tmp/architecture-refactor.log
-          if [ "$exit_code" -ne 0 ]; then
-            printf 'Architecture validation failed:\n\n```text\n' > /tmp/comment.md
-            tail -80 /tmp/architecture-refactor.log >> /tmp/comment.md
-            printf '\n```\n' >> /tmp/comment.md
-            gh pr comment 5 --body-file /tmp/comment.md
-            exit "$exit_code"
-          fi
-          mkdir -p .github/workflows
+          python3 .github/scripts/architecture_refactor.py
           cp /tmp/architecture-refactor.yml .github/workflows/architecture-refactor.yml
-          rm -f .github/architecture-refactor-error.log
 
-      - name: Commit generated changes
+      - name: Validate changed source files
+        shell: bash
+        run: |
+          git diff --check origin/main...HEAD
+          python3 -m pip install --quiet tree_sitter tree_sitter_c_sharp
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          import subprocess
+          from tree_sitter import Language, Parser
+          import tree_sitter_c_sharp
+
+          language = Language(tree_sitter_c_sharp.language())
+          try:
+              parser = Parser(language)
+          except TypeError:
+              parser = Parser()
+              parser.language = language
+
+          result = subprocess.run(
+              ["git", "diff", "--name-only", "origin/main...HEAD", "--", "*.cs"],
+              check=True,
+              capture_output=True,
+              text=True)
+          changed_cs = [Path(line) for line in result.stdout.splitlines() if line.strip()]
+          errors = []
+          for path in changed_cs:
+              if not path.exists():
+                  continue
+              source = path.read_bytes()
+              tree = parser.parse(source)
+              if tree.root_node.has_error:
+                  errors.append(str(path))
+
+          if errors:
+              raise SystemExit("C# syntax errors detected:\n" + "\n".join(errors))
+
+          source_root = Path("Assets/Landsong/Scripts")
+          all_source = "\n".join(
+              path.read_text(encoding="utf-8", errors="ignore")
+              for path in source_root.rglob("*.cs"))
+          for type_name in (
+              "AppData",
+              "GameData",
+              "GameDataMeta",
+              "GameSoftData",
+              "BuildingInstanceSaveData",
+              "QuestService",
+          ):
+              pattern = rf"\b(?:public|internal)\s+(?:sealed\s+)?class\s+{type_name}\b"
+              count = len(re.findall(pattern, all_source))
+              if count != 1:
+                  raise SystemExit(f"Expected one declaration of {type_name}, found {count}")
+
+          game_system = Path("Assets/Landsong/Scripts/GameSystem/GameSystem.cs").read_text(encoding="utf-8")
+          quest_service = Path("Assets/Landsong/Scripts/QuestSystem/QuestService.cs").read_text(encoding="utf-8")
+          quest_facade = Path("Assets/Landsong/Scripts/QuestSystem/GameSystem.Quest.cs").read_text(encoding="utf-8")
+          data_manager = Path("Assets/Landsong/Scripts/AppSystem/DataManager.cs").read_text(encoding="utf-8")
+          snapshot = Path("Assets/Landsong/Scripts/Persistence/GameRuntimeSnapshotService.cs").read_text(encoding="utf-8")
+          building_service = Path("Assets/Landsong/Scripts/BuildingSystem/BuildingService.cs").read_text(encoding="utf-8")
+          grid_map = Path("Assets/Landsong/Scripts/Grid/GridMapBehaviour.cs").read_text(encoding="utf-8")
+
+          checks = {
+              "QuestService owns quest state": "private readonly List<GameQuestState> quests" in quest_service,
+              "GameSystem no longer owns quest state": "private readonly List<GameQuestState> quests" not in game_system,
+              "Quest facade delegates submit": ".TrySubmitResources(" in quest_facade,
+              "Quest facade delegates claim": ".TryClaimRewards(" in quest_facade,
+              "DataManager has canonical save entry": "public void SaveCurrentGame(" in data_manager,
+              "Snapshot preserves expedition fallback": "CaptureExpeditionData()" in snapshot,
+              "Snapshot preserves talent fallback": "CaptureTalentData()" in snapshot,
+              "Snapshot preserves inheritance fallback": "CaptureInheritanceData()" in snapshot,
+              "Building replacement transfers occupancy": "TryReplaceOccupant(" in building_service,
+              "Grid replacement supports rollback": "RollbackOccupantReplacement(" in grid_map,
+          }
+          failed = [name for name, passed in checks.items() if not passed]
+          if failed:
+              raise SystemExit("Architecture checks failed:\n" + "\n".join(failed))
+
+          changed_meta = subprocess.run(
+              ["git", "diff", "--name-only", "origin/main...HEAD", "--", "*.meta"],
+              check=True,
+              capture_output=True,
+              text=True).stdout.splitlines()
+          guid_to_files = {}
+          for meta_path in Path("Assets").rglob("*.meta"):
+              match = re.search(r"^guid:\s*([0-9a-fA-F]+)\s*$", meta_path.read_text(encoding="utf-8", errors="ignore"), re.MULTILINE)
+              if match:
+                  guid_to_files.setdefault(match.group(1).lower(), []).append(str(meta_path))
+          for changed_path in changed_meta:
+              path = Path(changed_path)
+              if not path.exists():
+                  continue
+              match = re.search(r"^guid:\s*([0-9a-fA-F]+)\s*$", path.read_text(encoding="utf-8", errors="ignore"), re.MULTILINE)
+              if match and len(guid_to_files.get(match.group(1).lower(), [])) != 1:
+                  raise SystemExit(f"Duplicate Unity meta GUID for {path}: {guid_to_files[match.group(1).lower()]}")
+
+          print(f"Validated {len(changed_cs)} changed C# files and {len(changed_meta)} changed meta files.")
+          PY
+
+      - name: Commit patch when needed
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git status --short
-          git commit -m "refactor: split game systems and persistence [skip ci]"
+          if git diff --cached --quiet; then
+            echo "No patch changes to commit."
+            exit 0
+          fi
+          git commit -m "fix: complete architecture refactor validation [skip ci]"
           git push origin HEAD:agent/architecture-refactor-20260711
