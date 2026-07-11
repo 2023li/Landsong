@@ -22,7 +22,14 @@ jobs:
         run: |
           cp .github/workflows/architecture-refactor.yml /tmp/architecture-refactor.yml
           base64 --decode .github/scripts/architecture_refactor.py.gz.b64 | gzip --decompress > .github/scripts/architecture_refactor.py
-          python3 .github/scripts/architecture_refactor.py
+          set +e
+          python3 .github/scripts/architecture_refactor.py > /tmp/architecture-refactor.log 2>&1
+          exit_code=$?
+          set -e
+          tail -120 /tmp/architecture-refactor.log
+          if [ "$exit_code" -ne 0 ]; then
+            exit "$exit_code"
+          fi
           mkdir -p .github/workflows
           cp /tmp/architecture-refactor.yml .github/workflows/architecture-refactor.yml
 
