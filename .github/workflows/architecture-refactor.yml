@@ -5,6 +5,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   refactor:
@@ -20,6 +21,8 @@ jobs:
 
       - name: Decode and apply refactor
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           cp .github/workflows/architecture-refactor.yml /tmp/architecture-refactor.yml
           base64 --decode .github/scripts/architecture_refactor.py.gz.b64 | gzip --decompress > .github/scripts/architecture_refactor.py
@@ -28,15 +31,15 @@ jobs:
           exit_code=$?
           set -e
           if [ "$exit_code" -ne 0 ]; then
-            git reset --hard HEAD
-            git clean -fd
-            mkdir -p .github
-            cp /tmp/architecture-refactor.log .github/architecture-refactor-error.log
-          else
-            mkdir -p .github/workflows
-            cp /tmp/architecture-refactor.yml .github/workflows/architecture-refactor.yml
-            rm -f .github/architecture-refactor-error.log
+            printf 'Architecture validation failed:\n\n```text\n' > /tmp/comment.md
+            tail -80 /tmp/architecture-refactor.log >> /tmp/comment.md
+            printf '\n```\n' >> /tmp/comment.md
+            gh pr comment "${{ github.event.pull_request.number }}" --body-file /tmp/comment.md
+            exit "$exit_code"
           fi
+          mkdir -p .github/workflows
+          cp /tmp/architecture-refactor.yml .github/workflows/architecture-refactor.yml
+          rm -f .github/architecture-refactor-error.log
 
       - name: Commit generated changes
         shell: bash
