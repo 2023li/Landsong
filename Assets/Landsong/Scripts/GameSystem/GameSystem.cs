@@ -43,10 +43,6 @@ namespace Landsong
 
         private readonly List<BM_库存格容量> inventorySlotCapacityModules =
             new List<BM_库存格容量>();
-        private readonly HashSet<string> unlockedTechnologies =
-            new HashSet<string>(StringComparer.Ordinal);
-        private readonly HashSet<string> unlockedBuildingBlueprintIds =
-            new HashSet<string>(StringComparer.Ordinal);
         private readonly List<BuildingJobAttractionModifier> activeJobAttractionModifiers =
             new List<BuildingJobAttractionModifier>();
 
@@ -83,109 +79,62 @@ namespace Landsong
         [SerializeField, FoldoutGroup(InspectorSceneSystems), LabelText("建筑选择控制器")] private BuildingSelectionController buildingSelection;
 
         [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeServices), LabelText("库存服务")]
-        public InventoryService Inventory { get; private set; }
+        internal InventoryService Inventory { get; private set; }
 
         [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeServices), LabelText("回合服务")]
-        public TurnService Turn { get; private set; }
+        internal TurnService Turn { get; private set; }
 
         [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeServices), LabelText("王朝服务")]
-        public DynastyService Dynasty { get; private set; }
+        internal DynastyService Dynasty { get; private set; }
 
         [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeServices), LabelText("建筑服务")]
-        public BuildingService Buildings { get; private set; }
+        internal BuildingService Buildings { get; private set; }
 
         [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeServices), LabelText("事件服务")]
-        public GameEventService Events { get; private set; }
+        internal GameEventService Events { get; private set; }
 
         [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeServices), LabelText("科技服务")]
-        public TechnologyService Technology { get; private set; }
+        internal TechnologyService Technology { get; private set; }
 
         [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeServices), LabelText("远征服务")]
-        public ExpeditionService Expeditions { get; private set; }
+        internal ExpeditionService Expeditions { get; private set; }
 
         [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeServices), LabelText("人才服务")]
-        public TalentService Talents { get; private set; }
+        internal TalentService Talents { get; private set; }
 
         [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeServices), LabelText("继承服务")]
-        public RoyalInheritanceService Inheritance { get; private set; }
+        internal RoyalInheritanceService Inheritance { get; private set; }
 
         [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeStatus), LabelText("当前建筑选择控制器")]
-        public BuildingSelectionController BuildingSelection => buildingSelection;
+        internal BuildingSelectionController BuildingSelection => buildingSelection;
 
         [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeStatus), LabelText("建筑目录")]
-        public BuildingCatalog BuildingCatalog => buildingCatalog;
+        internal BuildingCatalog BuildingCatalog => buildingCatalog;
 
         [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeStatus), LabelText("科技目录")]
-        public TechnologyCatalog TechnologyCatalog => technologyCatalog;
+        internal TechnologyCatalog TechnologyCatalog => technologyCatalog;
 
         [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeStatus), LabelText("当前人口")]
-        public int Population => Dynasty == null ? startingPopulation : Dynasty.Population;
+        internal int Population => Dynasty == null ? startingPopulation : Dynasty.Population;
 
         [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeStatus), LabelText("王朝名称")]
-        public string DynastyName => Dynasty == null ? startingDynastyName : Dynasty.DynastyName;
+        internal string DynastyName => Dynasty == null ? startingDynastyName : Dynasty.DynastyName;
 
         [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeStatus), LabelText("拥有王宫")]
-        public bool HasPalace => Dynasty != null && Dynasty.HasPalace;
+        internal bool HasPalace => Dynasty != null && Dynasty.HasPalace;
 
         [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeStatus), LabelText("游戏已结束")]
         public bool IsGameOver { get; private set; }
 
         public event Action<GameSystem, GameOverReason> GameEnded;
-        public event Action<GameSystem> ExpeditionsChanged;
-        public event Action<GameSystem> TalentsChanged;
-        public event Action<GameSystem> InheritanceChanged;
-        public event Action<GameSystem> BuildingBlueprintsChanged;
-
-        public string CurrentResearchTechnologyId =>
-            Technology == null
-                ? (startingResearchTechnology == null ? string.Empty : startingResearchTechnology.TechnologyId)
-                : Technology.CurrentResearchTechnologyId;
-
-        public int CurrentResearchProgress =>
-            Technology == null ? startingResearchProgress : Technology.CurrentResearchProgress;
-
-        public int CurrentResearchRequiredPoints =>
-            Technology == null || !Technology.HasCurrentResearch ? 0 : Technology.CurrentResearchRequiredPoints;
-
-        public IReadOnlyCollection<string> UnlockedTechnologies =>
-            Technology == null ? unlockedTechnologies : Technology.UnlockedTechnologyIds;
-
-        public IReadOnlyList<ExpeditionState> ExpeditionStates =>
-            Expeditions == null ? Array.Empty<ExpeditionState>() : Expeditions.Expeditions;
-        public ExpeditionDestinationCatalog ExpeditionDestinationCatalog => expeditionDestinationCatalog;
-        public IReadOnlyList<TalentState> TalentPool =>
-            Talents == null ? Array.Empty<TalentState>() : Talents.OwnedTalents;
-        public IReadOnlyList<TalentOfferState> TalentOffers =>
-            Talents == null ? Array.Empty<TalentOfferState>() : Talents.CurrentOffers;
-        public IReadOnlyList<TalentSlotRuntimeState> TalentSlots =>
-            Talents == null ? Array.Empty<TalentSlotRuntimeState>() : Talents.SlotStates;
-        public TalentCatalog TalentCatalog => talentCatalog;
-        public RoyalTraitCatalog RoyalTraitCatalog => royalTraitCatalog;
-        public RoyalCharacterState CurrentKing => Inheritance == null ? null : Inheritance.CurrentKing;
-        public RoyalCharacterState CurrentQueen => Inheritance == null ? null : Inheritance.CurrentQueen;
-        public IReadOnlyList<RoyalCharacterState> RoyalCharacters =>
-            Inheritance == null ? Array.Empty<RoyalCharacterState>() : Inheritance.Characters;
-        public IReadOnlyCollection<string> UnlockedBuildingBlueprintIds => unlockedBuildingBlueprintIds;
-        public bool HasActiveExpeditionSubsidyPenalty =>
-            Expeditions != null && Expeditions.IsSubsidyPenaltyActive;
-        public int ExpeditionSubsidyPenaltyStacks =>
-            Expeditions == null ? 0 : Expeditions.SubsidyPenaltyStacks;
-        public int ExpeditionSubsidyPenaltyActiveUntilTurn =>
-            Expeditions == null ? 0 : Expeditions.SubsidyPenaltyActiveUntilTurn;
-        public int ActiveExpeditionTeamCount =>
-            Expeditions == null ? 0 : Expeditions.ActiveExpeditionCount;
-        public int ExpeditionTeamCapacity =>
-            Expeditions == null ? Mathf.Max(1, expeditionTeamCapacity) : Expeditions.MaxActiveExpeditions;
-        public float ExpeditionRewardYieldBonus => CalculateExpeditionRewardYieldBonus();
-        public float ExpeditionRewardYieldMultiplier => 1f + ExpeditionRewardYieldBonus;
 
         public IReadOnlyList<BuildingJobAttractionModifier> GetJobAttractionModifiers(BuildingBase building)
         {
             activeJobAttractionModifiers.Clear();
-            if (HasActiveExpeditionSubsidyPenalty && ExpeditionSubsidyPenaltyStacks > 0)
+            if (Expeditions != null && Expeditions.IsSubsidyPenaltyActive && Expeditions.SubsidyPenaltyStacks > 0)
             {
                 var value = -Mathf.Max(0f, expeditionSubsidyPenaltyAttractionPerStack)
-                            * ExpeditionSubsidyPenaltyStacks;
+                            * Expeditions.SubsidyPenaltyStacks;
                 activeJobAttractionModifiers.Add(
                     new BuildingJobAttractionModifier(
                         "expedition_subsidy_penalty",
@@ -200,7 +149,7 @@ namespace Landsong
                 : activeJobAttractionModifiers.ToArray();
         }
 
-        private float CalculateExpeditionRewardYieldBonus()
+        internal float CalculateExpeditionRewardYieldBonus()
         {
             var buildings = Buildings == null ? null : Buildings.Buildings;
             if (buildings == null || buildings.Count == 0)
@@ -239,7 +188,7 @@ namespace Landsong
             CreateTurnService();
             CreateBuildingService();
             CreateGameEventService();
-            InitializeUnlockedBuildingBlueprints();
+            CreateBuildingBlueprintService();
             CreateExpeditionService();
             CreateTalentService();
             CreateInheritanceService();
@@ -337,610 +286,6 @@ namespace Landsong
             NormalizeRuntimeExchangeQuestRules();
         }
 
-        [Button("重新初始化库存")]
-        public void ReinitializeInventory()
-        {
-            CreateInventoryService();
-        }
-
-        public void SetBuildingCatalog(BuildingCatalog newBuildingCatalog)
-        {
-            buildingCatalog = newBuildingCatalog;
-        }
-
-        public void SetTechnologyCatalog(TechnologyCatalog newTechnologyCatalog)
-        {
-            technologyCatalog = newTechnologyCatalog;
-            Technology?.SetCatalog(technologyCatalog);
-        }
-
-        public bool IsTechnologyUnlocked(string technologyId)
-        {
-            if (Technology != null)
-            {
-                return Technology.IsUnlocked(technologyId);
-            }
-
-            return !string.IsNullOrWhiteSpace(technologyId)
-                   && unlockedTechnologies.Contains(technologyId.Trim());
-        }
-
-        public bool UnlockTechnology(string technologyId)
-        {
-            if (Technology != null)
-            {
-                var unlocked = Technology.UnlockForFree(technologyId);
-                MirrorUnlockedTechnologiesFromService();
-                SyncStartingResearchFromService();
-                return unlocked;
-            }
-
-            if (string.IsNullOrWhiteSpace(technologyId))
-            {
-                return false;
-            }
-
-            return unlockedTechnologies.Add(technologyId.Trim());
-        }
-
-        public bool TryStartTechnologyResearch(string technologyId)
-        {
-            if (Technology == null)
-            {
-                CreateTechnologyService();
-            }
-
-            var started = Technology != null && Technology.TryStartResearch(technologyId);
-            if (started)
-            {
-                ClearMissingResearchWarning();
-            }
-
-            MirrorUnlockedTechnologiesFromService();
-            SyncStartingResearchFromService();
-            return started;
-        }
-
-        public bool TryStartTechnologyResearch(TechnologyDefinition definition)
-        {
-            if (Technology == null)
-            {
-                CreateTechnologyService();
-            }
-
-            var started = Technology != null && Technology.TryStartResearch(definition);
-            if (started)
-            {
-                ClearMissingResearchWarning();
-            }
-
-            MirrorUnlockedTechnologiesFromService();
-            SyncStartingResearchFromService();
-            return started;
-        }
-
-        public List<string> CaptureUnlockedTechnologies()
-        {
-            var source = Technology == null ? unlockedTechnologies : Technology.UnlockedTechnologyIds;
-            var captured = new List<string>(source);
-            captured.Sort(StringComparer.Ordinal);
-            return captured;
-        }
-
-        public TechnologySaveData CaptureTechnologyData()
-        {
-            if (Technology != null)
-            {
-                return Technology.CaptureSaveData();
-            }
-
-            return new TechnologySaveData
-            {
-                CurrentResearchTechnologyId = startingResearchTechnology == null
-                    ? string.Empty
-                    : startingResearchTechnology.TechnologyId,
-                CurrentResearchProgress = Mathf.Max(0, startingResearchProgress),
-                UnlockedTechnologyIds = CaptureUnlockedTechnologies()
-            };
-        }
-
-        public void RestoreUnlockedTechnologies(IReadOnlyList<string> technologies)
-        {
-            if (Technology != null)
-            {
-                if (technologies == null)
-                {
-                    RestoreTechnologyData(null, null);
-                    return;
-                }
-
-                RestoreTechnologyData(
-                    new TechnologySaveData
-                    {
-                        UnlockedTechnologyIds = new List<string>(technologies)
-                    },
-                    null);
-                return;
-            }
-
-            unlockedTechnologies.Clear();
-            if (technologies == null)
-            {
-                InitializeUnlockedTechnologies();
-                return;
-            }
-
-            for (var i = 0; i < technologies.Count; i++)
-            {
-                UnlockTechnology(technologies[i]);
-            }
-        }
-
-        public void RestoreTechnologyData(TechnologySaveData technologyData, IReadOnlyList<string> fallbackUnlockedTechnologies)
-        {
-            if (Technology == null)
-            {
-                CreateTechnologyService();
-            }
-
-            if (technologyData == null)
-            {
-                technologyData = new TechnologySaveData
-                {
-                    CurrentResearchTechnologyId = startingResearchTechnology == null
-                        ? string.Empty
-                        : startingResearchTechnology.TechnologyId,
-                    CurrentResearchProgress = Mathf.Max(0, startingResearchProgress),
-                    UnlockedTechnologyIds = fallbackUnlockedTechnologies == null
-                        ? new List<string>(startingUnlockedTechnologies ?? Array.Empty<string>())
-                        : new List<string>(fallbackUnlockedTechnologies)
-                };
-            }
-
-            Technology?.RestoreSaveData(technologyData, null);
-            SyncStartingResearchFromService();
-            MirrorUnlockedTechnologiesFromService();
-        }
-
-        public List<string> CaptureUnlockedBuildingBlueprints()
-        {
-            var captured = new List<string>(unlockedBuildingBlueprintIds);
-            captured.Sort(StringComparer.Ordinal);
-            return captured;
-        }
-
-        public void RestoreBuildingBlueprintData(IReadOnlyList<string> buildingBlueprintIds)
-        {
-            unlockedBuildingBlueprintIds.Clear();
-            if (buildingBlueprintIds == null)
-            {
-                InitializeUnlockedBuildingBlueprints();
-                NotifyBuildingBlueprintsChanged();
-                return;
-            }
-
-            for (var i = 0; i < buildingBlueprintIds.Count; i++)
-            {
-                var buildingId = NormalizeBuildingBlueprintId(buildingBlueprintIds[i]);
-                if (!string.IsNullOrWhiteSpace(buildingId))
-                {
-                    unlockedBuildingBlueprintIds.Add(buildingId);
-                }
-            }
-
-            NotifyBuildingBlueprintsChanged();
-        }
-
-        public bool IsBuildingBlueprintUnlocked(string buildingId)
-        {
-            buildingId = NormalizeBuildingBlueprintId(buildingId);
-            return !string.IsNullOrWhiteSpace(buildingId)
-                   && unlockedBuildingBlueprintIds.Contains(buildingId);
-        }
-
-        public bool UnlockBuildingBlueprint(string buildingId)
-        {
-            buildingId = NormalizeBuildingBlueprintId(buildingId);
-            if (string.IsNullOrWhiteSpace(buildingId) || !unlockedBuildingBlueprintIds.Add(buildingId))
-            {
-                return false;
-            }
-
-            NotifyBuildingBlueprintsChanged();
-            return true;
-        }
-
-        public void SetExpeditionDestinationCatalog(ExpeditionDestinationCatalog newCatalog)
-        {
-            expeditionDestinationCatalog = newCatalog;
-            Expeditions?.SetCatalog(expeditionDestinationCatalog);
-        }
-
-        public ExpeditionSaveData CaptureExpeditionData()
-        {
-            return Expeditions == null ? new ExpeditionSaveData() : Expeditions.CaptureSaveData();
-        }
-
-        public void RestoreExpeditionData(ExpeditionSaveData expeditionData)
-        {
-            if (Expeditions == null)
-            {
-                CreateExpeditionService(expeditionData);
-                return;
-            }
-
-            Expeditions.RestoreSaveData(expeditionData);
-            SyncExpeditionPopulationEmployment();
-            NotifyExpeditionsChanged();
-        }
-
-        public IReadOnlyList<ExpeditionDestinationAvailability> GetExpeditionDestinations(bool includeUnavailable = true)
-        {
-            if (Expeditions == null)
-            {
-                CreateExpeditionService();
-            }
-
-            return Expeditions == null
-                ? Array.Empty<ExpeditionDestinationAvailability>()
-                : Expeditions.GetDestinationAvailabilities(includeUnavailable);
-        }
-
-        public bool TryStartExpedition(
-            ExpeditionDestinationDefinition destination,
-            int population,
-            IEnumerable<ItemAmount> assignedSupplies,
-            out ExpeditionStartResult result)
-        {
-            if (Expeditions == null)
-            {
-                CreateExpeditionService();
-            }
-
-            if (Expeditions == null)
-            {
-                result = new ExpeditionStartResult(
-                    false,
-                    ExpeditionStartFailureReason.InvalidDestination,
-                    null,
-                    0f,
-                    "远征服务未初始化。");
-                return false;
-            }
-
-            var started = Expeditions.TryStartExpedition(destination, population, assignedSupplies, out result);
-            SyncExpeditionPopulationEmployment();
-            if (started && result.Expedition != null)
-            {
-                AddExpeditionMessage(
-                    GameEventCatalog.GE_远征出发,
-                    $"远征出发：{destination.DisplayName}，预计第 {result.Expedition.ReturnTurn} 回合归来，成功率 {FormatPercent(result.SuccessChance)}。");
-            }
-
-            NotifyExpeditionsChanged();
-            return started;
-        }
-
-        public bool TryClaimExpeditionRewards(string expeditionId, out ExpeditionClaimResult result)
-        {
-            if (Expeditions == null)
-            {
-                CreateExpeditionService();
-            }
-
-            if (Expeditions == null)
-            {
-                result = new ExpeditionClaimResult(
-                    false,
-                    ExpeditionClaimFailureReason.InvalidExpedition,
-                    null,
-                    "远征服务未初始化。");
-                return false;
-            }
-
-            var claimed = Expeditions.TryClaimRewards(expeditionId, out result);
-            if (claimed && result.Expedition != null)
-            {
-                AddExpeditionMessage(
-                    GameEventCatalog.GE_远征奖励领取,
-                    $"领取远征奖励：{FormatExpeditionDestinationName(result.Expedition)}。");
-            }
-
-            NotifyExpeditionsChanged();
-            return claimed;
-        }
-
-        public void SetTalentCatalog(TalentCatalog newCatalog)
-        {
-            talentCatalog = newCatalog;
-            Talents?.SetCatalog(talentCatalog);
-        }
-
-        public TalentSaveData CaptureTalentData()
-        {
-            return Talents == null ? new TalentSaveData() : Talents.CaptureSaveData();
-        }
-
-        public void RestoreTalentData(TalentSaveData talentData)
-        {
-            if (Talents == null)
-            {
-                CreateTalentService(talentData);
-                return;
-            }
-
-            Talents.RestoreSaveData(talentData);
-            NotifyTalentsChanged();
-        }
-
-        public bool TryRefreshTalents(out TalentRefreshResult result)
-        {
-            if (Talents == null)
-            {
-                CreateTalentService();
-            }
-
-            if (Talents == null)
-            {
-                result = new TalentRefreshResult(false, talentRefreshGoldCost, Array.Empty<TalentOfferState>(), "人才服务未初始化。");
-                return false;
-            }
-
-            var refreshed = Talents.TryRefreshOffers(out result);
-            if (refreshed)
-            {
-                AddTalentMessage(
-                    GameEventCatalog.GE_人才刷新,
-                    $"刷新人才：消耗 {result.CostGold} 金币，获得 {result.Offers.Count} 张候选卡。");
-            }
-
-            NotifyTalentsChanged();
-            return refreshed;
-        }
-
-        public bool TryRecruitTalentOffer(string offerId, out TalentRecruitResult result)
-        {
-            if (Talents == null)
-            {
-                CreateTalentService();
-            }
-
-            if (Talents == null)
-            {
-                result = new TalentRecruitResult(false, null, null, "人才服务未初始化。");
-                return false;
-            }
-
-            var recruited = Talents.TryRecruitOffer(offerId, out result);
-            if (recruited && result.Talent != null)
-            {
-                AddTalentMessage(
-                    GameEventCatalog.GE_人才招募,
-                    $"招募人才：{result.Talent.DisplayName}。");
-            }
-
-            NotifyTalentsChanged();
-            return recruited;
-        }
-
-        public bool TryAssignTalent(string talentInstanceId, string slotId, out TalentAssignResult result)
-        {
-            if (Talents == null)
-            {
-                CreateTalentService();
-            }
-
-            if (Talents == null)
-            {
-                result = new TalentAssignResult(false, null, null, "人才服务未初始化。");
-                return false;
-            }
-
-            var assigned = Talents.TryAssignTalentToSlot(talentInstanceId, slotId, out result);
-            if (assigned && result.Talent != null && result.Slot != null)
-            {
-                AddTalentMessage(
-                    GameEventCatalog.GE_人才任命,
-                    $"任命人才：{result.Talent.DisplayName} -> {result.Slot.DisplayName}。");
-            }
-
-            NotifyTalentsChanged();
-            return assigned;
-        }
-
-        public bool TryUnassignTalentSlot(string slotId, out TalentAssignResult result)
-        {
-            if (Talents == null)
-            {
-                CreateTalentService();
-            }
-
-            if (Talents == null)
-            {
-                result = new TalentAssignResult(false, null, null, "人才服务未初始化。");
-                return false;
-            }
-
-            var unassigned = Talents.TryUnassignSlot(slotId, out result);
-            if (unassigned && result.Talent != null)
-            {
-                AddTalentMessage(
-                    GameEventCatalog.GE_人才卸任,
-                    $"卸任人才：{result.Talent.DisplayName}。");
-            }
-
-            NotifyTalentsChanged();
-            return unassigned;
-        }
-
-        public bool TryUnassignTalent(string talentInstanceId, out TalentAssignResult result)
-        {
-            if (Talents == null)
-            {
-                CreateTalentService();
-            }
-
-            if (Talents == null)
-            {
-                result = new TalentAssignResult(false, null, null, "人才服务未初始化。");
-                return false;
-            }
-
-            var unassigned = Talents.TryUnassignTalent(talentInstanceId, out result);
-            if (unassigned && result.Talent != null)
-            {
-                AddTalentMessage(
-                    GameEventCatalog.GE_人才卸任,
-                    $"卸任人才：{result.Talent.DisplayName}。");
-            }
-
-            NotifyTalentsChanged();
-            return unassigned;
-        }
-
-        public bool TryUpgradeTalent(string talentInstanceId, out TalentUpgradeResult result)
-        {
-            if (Talents == null)
-            {
-                CreateTalentService();
-            }
-
-            if (Talents == null)
-            {
-                result = new TalentUpgradeResult(false, null, 0, null, "人才服务未初始化。");
-                return false;
-            }
-
-            var upgraded = Talents.TryUpgradeTalent(talentInstanceId, out result);
-            if (upgraded && result.Talent != null)
-            {
-                AddTalentMessage(
-                    GameEventCatalog.GE_人才升级,
-                    $"人才升级：{result.Talent.DisplayName} {result.PreviousLevel}->{result.Talent.Level}。");
-                AddTalentTraitTransitionMessages(result.TraitTransitions, CurrentTurn);
-            }
-
-            NotifyTalentsChanged();
-            return upgraded;
-        }
-
-        public bool AddTalentExperience(string talentInstanceId, int amount)
-        {
-            if (Talents == null)
-            {
-                CreateTalentService();
-            }
-
-            return Talents != null && Talents.AddTalentExperience(talentInstanceId, amount);
-        }
-
-        public void SetRoyalTraitCatalog(RoyalTraitCatalog newCatalog)
-        {
-            royalTraitCatalog = newCatalog;
-            Inheritance?.SetTraitCatalog(royalTraitCatalog);
-        }
-
-        public RoyalInheritanceSaveData CaptureInheritanceData()
-        {
-            return Inheritance == null ? new RoyalInheritanceSaveData() : Inheritance.CaptureSaveData();
-        }
-
-        public void RestoreInheritanceData(RoyalInheritanceSaveData inheritanceData)
-        {
-            if (Inheritance == null)
-            {
-                CreateInheritanceService(inheritanceData);
-                return;
-            }
-
-            Inheritance.RestoreSaveData(inheritanceData);
-            NotifyInheritanceChanged();
-        }
-
-        public bool TryBirthPrince(string displayName, out RoyalCharacterState prince)
-        {
-            if (Inheritance == null)
-            {
-                CreateInheritanceService();
-            }
-
-            if (Inheritance == null)
-            {
-                prince = null;
-                return false;
-            }
-
-            var effects = new List<RoyalEffectApplicationResult>();
-            var born = Inheritance.TryBirthPrince(displayName, CurrentTurn, out prince, effects);
-            if (born && prince != null)
-            {
-                AddInheritanceMessage(
-                    GameEventCatalog.GE_王子出生,
-                    $"王子出生：{prince.DisplayName}。");
-                for (var i = 0; i < effects.Count; i++)
-                {
-                    var effect = effects[i];
-                    if (effect.HasMessage)
-                    {
-                        AddInheritanceMessage(
-                            GameEventCatalog.GE_国王特性效果触发,
-                            $"国王特性效果：{effect.Message}。");
-                    }
-                }
-            }
-
-            NotifyInheritanceChanged();
-            return born;
-        }
-
-        public bool TryAbdicateCurrentKing(out RoyalSuccessionResult succession)
-        {
-            if (Inheritance == null)
-            {
-                CreateInheritanceService();
-            }
-
-            if (Inheritance == null)
-            {
-                succession = new RoyalSuccessionResult(RoyalSuccessionReason.None, null, null, false);
-                return false;
-            }
-
-            var abdicated = Inheritance.TryAbdicateCurrentKing(CurrentTurn, out succession);
-            if (abdicated)
-            {
-                AddInheritanceSuccessionMessage(succession, CurrentTurn);
-            }
-
-            NotifyInheritanceChanged();
-            return abdicated;
-        }
-
-        public bool TryAddRoyalAcquiredTrait(string characterId, RoyalTraitDefinition trait)
-        {
-            if (Inheritance == null)
-            {
-                CreateInheritanceService();
-            }
-
-            if (Inheritance == null || trait == null)
-            {
-                return false;
-            }
-
-            var added = Inheritance.TryAddAcquiredTrait(characterId, trait, CurrentTurn);
-            if (added)
-            {
-                var character = Inheritance.FindCharacter(characterId);
-                AddInheritanceMessage(
-                    GameEventCatalog.GE_王族后天特性获得,
-                    $"后天特性获得：{(character == null ? characterId : character.DisplayName)} 获得 {trait.TraitName}。");
-            }
-
-            NotifyInheritanceChanged();
-            return added;
-        }
-
         internal void RestoreCurrentTurn(int currentTurn)
         {
             if (Turn == null)
@@ -991,6 +336,11 @@ namespace Landsong
             return Enum.TryParse(stageName.Trim(), out stage);
         }
 
+        private void CreateBuildingBlueprintService()
+        {
+            BuildingBlueprints = new BuildingBlueprintService(startingUnlockedBuildingBlueprintIds);
+        }
+
         private void CreateExpeditionService(ExpeditionSaveData saveData = null)
         {
             UnsubscribeExpeditionService();
@@ -1001,27 +351,50 @@ namespace Landsong
                 expeditionTeamCapacity,
                 saveData);
             Expeditions.StateChanged += HandleExpeditionsChanged;
+            Expeditions.ExpeditionStarted += HandleExpeditionStarted;
+            Expeditions.RewardsClaimed += HandleExpeditionRewardsClaimed;
             SyncExpeditionPopulationEmployment();
-            NotifyExpeditionsChanged();
         }
 
         private void UnsubscribeExpeditionService()
         {
-            if (Expeditions != null)
+            if (Expeditions == null)
             {
-                Expeditions.StateChanged -= HandleExpeditionsChanged;
+                return;
             }
+
+            Expeditions.StateChanged -= HandleExpeditionsChanged;
+            Expeditions.ExpeditionStarted -= HandleExpeditionStarted;
+            Expeditions.RewardsClaimed -= HandleExpeditionRewardsClaimed;
         }
 
         private void HandleExpeditionsChanged(ExpeditionService changedExpeditions)
         {
             SyncExpeditionPopulationEmployment();
-            NotifyExpeditionsChanged();
         }
 
-        private void NotifyExpeditionsChanged()
+        private void HandleExpeditionStarted(ExpeditionService service, ExpeditionStartResult result)
         {
-            ExpeditionsChanged?.Invoke(this);
+            if (result.Expedition == null)
+            {
+                return;
+            }
+
+            AddExpeditionMessage(
+                GameEventCatalog.GE_远征出发,
+                $"远征出发：{FormatExpeditionDestinationName(result.Expedition)}，预计第 {result.Expedition.ReturnTurn} 回合归来，成功率 {FormatPercent(result.SuccessChance)}。");
+        }
+
+        private void HandleExpeditionRewardsClaimed(ExpeditionService service, ExpeditionClaimResult result)
+        {
+            if (result.Expedition == null)
+            {
+                return;
+            }
+
+            AddExpeditionMessage(
+                GameEventCatalog.GE_远征奖励领取,
+                $"领取远征奖励：{FormatExpeditionDestinationName(result.Expedition)}。");
         }
 
         private void SyncExpeditionPopulationEmployment()
@@ -1052,8 +425,7 @@ namespace Landsong
             if (results == null || results.Count == 0)
             {
                 SyncExpeditionPopulationEmployment();
-                NotifyExpeditionsChanged();
-                return;
+                    return;
             }
 
             for (var i = 0; i < results.Count; i++)
@@ -1062,7 +434,6 @@ namespace Landsong
             }
 
             SyncExpeditionPopulationEmployment();
-            NotifyExpeditionsChanged();
         }
 
         private void AddExpeditionSettlementMessage(ExpeditionSettlementResult result, int turnNumber)
@@ -1130,26 +501,71 @@ namespace Landsong
                 talentRefreshGoldCost,
                 talentRefreshCardCount,
                 saveData);
-            Talents.StateChanged += HandleTalentsChanged;
-            NotifyTalentsChanged();
+            Talents.OffersRefreshed += HandleTalentOffersRefreshed;
+            Talents.OfferRecruited += HandleTalentOfferRecruited;
+            Talents.TalentAssigned += HandleTalentAssigned;
+            Talents.TalentUnassigned += HandleTalentUnassigned;
+            Talents.TalentUpgraded += HandleTalentUpgraded;
         }
 
         private void UnsubscribeTalentService()
         {
-            if (Talents != null)
+            if (Talents == null)
             {
-                Talents.StateChanged -= HandleTalentsChanged;
+                return;
+            }
+
+            Talents.OffersRefreshed -= HandleTalentOffersRefreshed;
+            Talents.OfferRecruited -= HandleTalentOfferRecruited;
+            Talents.TalentAssigned -= HandleTalentAssigned;
+            Talents.TalentUnassigned -= HandleTalentUnassigned;
+            Talents.TalentUpgraded -= HandleTalentUpgraded;
+        }
+
+        private void HandleTalentOffersRefreshed(TalentService service, TalentRefreshResult result)
+        {
+            AddTalentMessage(
+                GameEventCatalog.GE_人才刷新,
+                $"刷新人才：消耗 {result.CostGold} 金币，获得 {result.Offers.Count} 张候选卡。");
+        }
+
+        private void HandleTalentOfferRecruited(TalentService service, TalentRecruitResult result)
+        {
+            if (result.Talent != null)
+            {
+                AddTalentMessage(GameEventCatalog.GE_人才招募, $"招募人才：{result.Talent.DisplayName}。");
             }
         }
 
-        private void HandleTalentsChanged(TalentService changedTalents)
+        private void HandleTalentAssigned(TalentService service, TalentAssignResult result)
         {
-            NotifyTalentsChanged();
+            if (result.Talent != null && result.Slot != null)
+            {
+                AddTalentMessage(
+                    GameEventCatalog.GE_人才任命,
+                    $"任命人才：{result.Talent.DisplayName} -> {result.Slot.DisplayName}。");
+            }
         }
 
-        private void NotifyTalentsChanged()
+        private void HandleTalentUnassigned(TalentService service, TalentAssignResult result)
         {
-            TalentsChanged?.Invoke(this);
+            if (result.Talent != null)
+            {
+                AddTalentMessage(GameEventCatalog.GE_人才卸任, $"卸任人才：{result.Talent.DisplayName}。");
+            }
+        }
+
+        private void HandleTalentUpgraded(TalentService service, TalentUpgradeResult result)
+        {
+            if (result.Talent == null)
+            {
+                return;
+            }
+
+            AddTalentMessage(
+                GameEventCatalog.GE_人才升级,
+                $"人才升级：{result.Talent.DisplayName} {result.PreviousLevel}->{result.Talent.Level}。");
+            AddTalentTraitTransitionMessages(result.TraitTransitions, CurrentTurn);
         }
 
         private void SettleTalentsForTurn(int turnNumber)
@@ -1166,7 +582,6 @@ namespace Landsong
 
             var result = Talents.SettleTurn(turnNumber);
             AddTalentSettlementMessages(result);
-            NotifyTalentsChanged();
         }
 
         private void AddTalentSettlementMessages(TalentTurnSettlementResult result)
@@ -1264,26 +679,71 @@ namespace Landsong
                 royalTraitCatalog,
                 royalInheritanceConfig,
                 saveData);
-            Inheritance.StateChanged += HandleInheritanceChanged;
-            NotifyInheritanceChanged();
+            Inheritance.PrinceBorn += HandlePrinceBorn;
+            Inheritance.SuccessionOccurred += HandleSuccessionOccurred;
+            Inheritance.AcquiredTraitAdded += HandleAcquiredRoyalTraitAdded;
         }
 
         private void UnsubscribeInheritanceService()
         {
-            if (Inheritance != null)
+            if (Inheritance == null)
             {
-                Inheritance.StateChanged -= HandleInheritanceChanged;
+                return;
+            }
+
+            Inheritance.PrinceBorn -= HandlePrinceBorn;
+            Inheritance.SuccessionOccurred -= HandleSuccessionOccurred;
+            Inheritance.AcquiredTraitAdded -= HandleAcquiredRoyalTraitAdded;
+        }
+
+        private void HandlePrinceBorn(
+            RoyalInheritanceService service,
+            RoyalCharacterState prince,
+            IReadOnlyList<RoyalEffectApplicationResult> effects)
+        {
+            if (prince == null)
+            {
+                return;
+            }
+
+            AddInheritanceMessage(GameEventCatalog.GE_王子出生, $"王子出生：{prince.DisplayName}。");
+            if (effects == null)
+            {
+                return;
+            }
+
+            for (var i = 0; i < effects.Count; i++)
+            {
+                var effect = effects[i];
+                if (effect.HasMessage)
+                {
+                    AddInheritanceMessage(
+                        GameEventCatalog.GE_国王特性效果触发,
+                        $"国王特性效果：{effect.Message}。");
+                }
             }
         }
 
-        private void HandleInheritanceChanged(RoyalInheritanceService changedInheritance)
+        private void HandleSuccessionOccurred(
+            RoyalInheritanceService service,
+            RoyalSuccessionResult succession)
         {
-            NotifyInheritanceChanged();
+            AddInheritanceSuccessionMessage(succession, CurrentTurn);
         }
 
-        private void NotifyInheritanceChanged()
+        private void HandleAcquiredRoyalTraitAdded(
+            RoyalInheritanceService service,
+            RoyalCharacterState character,
+            RoyalTraitDefinition trait)
         {
-            InheritanceChanged?.Invoke(this);
+            if (trait == null)
+            {
+                return;
+            }
+
+            AddInheritanceMessage(
+                GameEventCatalog.GE_王族后天特性获得,
+                $"后天特性获得：{(character == null ? "未知角色" : character.DisplayName)} 获得 {trait.TraitName}。");
         }
 
         private void SettleInheritanceForTurn(int turnNumber)
@@ -1300,7 +760,6 @@ namespace Landsong
 
             var result = Inheritance.SettleTurn(turnNumber);
             AddInheritanceSettlementMessages(result);
-            NotifyInheritanceChanged();
         }
 
         private void AddInheritanceSettlementMessages(RoyalInheritanceTurnResult result)
@@ -1430,34 +889,6 @@ namespace Landsong
             Events?.AddMessage(GameEventMessage.ForGame(eventTypeId, message, turnNumber));
         }
 
-        private void InitializeUnlockedBuildingBlueprints()
-        {
-            unlockedBuildingBlueprintIds.Clear();
-            if (startingUnlockedBuildingBlueprintIds == null)
-            {
-                return;
-            }
-
-            for (var i = 0; i < startingUnlockedBuildingBlueprintIds.Length; i++)
-            {
-                var buildingId = NormalizeBuildingBlueprintId(startingUnlockedBuildingBlueprintIds[i]);
-                if (!string.IsNullOrWhiteSpace(buildingId))
-                {
-                    unlockedBuildingBlueprintIds.Add(buildingId);
-                }
-            }
-        }
-
-        private void NotifyBuildingBlueprintsChanged()
-        {
-            BuildingBlueprintsChanged?.Invoke(this);
-        }
-
-        private static string NormalizeBuildingBlueprintId(string buildingId)
-        {
-            return string.IsNullOrWhiteSpace(buildingId) ? string.Empty : buildingId.Trim();
-        }
-
         private static string FormatExpeditionDestinationName(ExpeditionState expedition)
         {
             if (expedition == null)
@@ -1483,25 +914,11 @@ namespace Landsong
             return $"{Mathf.Max(0f, value) * 100f:0.#}%";
         }
 
-        private void InitializeUnlockedTechnologies()
-        {
-            unlockedTechnologies.Clear();
-            if (startingUnlockedTechnologies == null)
-            {
-                return;
-            }
-
-            for (var i = 0; i < startingUnlockedTechnologies.Length; i++)
-            {
-                UnlockTechnology(startingUnlockedTechnologies[i]);
-            }
-        }
-
         private void CreateTechnologyService()
         {
             if (Technology != null)
             {
-                Technology.CurrentResearchChanged -= HandleCurrentResearchChanged;
+                Technology.StateChanged -= HandleTechnologyStateChanged;
             }
 
             Technology = new TechnologyService(
@@ -1509,33 +926,16 @@ namespace Landsong
                 startingUnlockedTechnologies,
                 startingResearchTechnology == null ? null : startingResearchTechnology.TechnologyId,
                 startingResearchProgress);
-            Technology.CurrentResearchChanged += HandleCurrentResearchChanged;
-            MirrorUnlockedTechnologiesFromService();
-            SyncStartingResearchFromService();
+            Technology.StateChanged += HandleTechnologyStateChanged;
+            HandleTechnologyStateChanged(Technology);
         }
 
-        private void HandleCurrentResearchChanged(TechnologyService changedTechnology)
+        private void HandleTechnologyStateChanged(TechnologyService changedTechnology)
         {
+            SyncStartingResearchFromService();
             if (changedTechnology != null && changedTechnology.HasCurrentResearch)
             {
                 ClearMissingResearchWarning();
-            }
-        }
-
-        private void MirrorUnlockedTechnologiesFromService()
-        {
-            if (Technology == null)
-            {
-                return;
-            }
-
-            unlockedTechnologies.Clear();
-            foreach (var technologyId in Technology.UnlockedTechnologyIds)
-            {
-                if (!string.IsNullOrWhiteSpace(technologyId))
-                {
-                    unlockedTechnologies.Add(technologyId.Trim());
-                }
             }
         }
 
@@ -1551,7 +951,7 @@ namespace Landsong
             startingResearchProgress = Technology.CurrentResearchProgress;
         }
 
-        public void RegisterBuilding(BuildingBase building)
+        internal void RegisterBuilding(BuildingBase building)
         {
             if (building == null)
             {
@@ -1596,7 +996,7 @@ namespace Landsong
             RefreshInventorySlotCapacity();
         }
 
-        public void UnregisterBuilding(BuildingBase building)
+        internal void UnregisterBuilding(BuildingBase building)
         {
             if (building == null)
             {
@@ -1711,10 +1111,10 @@ namespace Landsong
         [SerializeField, FoldoutGroup(InspectorTurn), LabelText("每帧处理建筑数"), Min(1)] private int turnBuildingsPerFrame = 4;
         [SerializeField, FoldoutGroup(InspectorTurn), LabelText("输出回合日志")] private bool logTurnResult = true;
 
-        public int CurrentTurn => Turn == null ? startingTurn : Turn.CurrentTurn;
+        internal int CurrentTurn => Turn == null ? startingTurn : Turn.CurrentTurn;
 
         [ShowInInspector, ReadOnly, FoldoutGroup(InspectorTurn), LabelText("正在推进回合")]
-        public bool IsAdvancingTurn => Turn != null && Turn.IsAdvancingTurn;
+        internal bool IsAdvancingTurn => Turn != null && Turn.IsAdvancingTurn;
 
         private Coroutine turnAdvanceCoroutine;
 
@@ -1914,16 +1314,12 @@ namespace Landsong
             ApplyResearchPointsToTechnology(points, turnNumber);
         }
 
-        public TechnologyResearchAppliedResult ApplyTalentResearchPoints(int amount, int turnNumber, string sourceName)
+        internal TechnologyResearchAppliedResult ApplyExternalResearchPoints(
+            int amount,
+            int turnNumber,
+            string sourceName)
         {
-            amount = Mathf.Max(0, amount);
-            return ApplyResearchPointsToTechnology(amount, turnNumber);
-        }
-
-        public TechnologyResearchAppliedResult ApplyRoyalResearchPoints(int amount, int turnNumber, string sourceName)
-        {
-            amount = Mathf.Max(0, amount);
-            return ApplyResearchPointsToTechnology(amount, turnNumber);
+            return ApplyResearchPointsToTechnology(Mathf.Max(0, amount), turnNumber);
         }
 
         private TechnologyResearchAppliedResult ApplyResearchPointsToTechnology(int points, int turnNumber)
@@ -1940,7 +1336,6 @@ namespace Landsong
 
             var result = Technology.ApplyResearchPoints(Mathf.Max(0, points));
             SyncStartingResearchFromService();
-            MirrorUnlockedTechnologiesFromService();
 
             if (!result.Completed || result.Technology == null)
             {

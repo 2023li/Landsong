@@ -488,6 +488,9 @@ namespace Landsong.InheritanceSystem
         }
 
         public event Action<RoyalInheritanceService> StateChanged;
+        public event Action<RoyalInheritanceService, RoyalCharacterState, IReadOnlyList<RoyalEffectApplicationResult>> PrinceBorn;
+        public event Action<RoyalInheritanceService, RoyalSuccessionResult> SuccessionOccurred;
+        public event Action<RoyalInheritanceService, RoyalCharacterState, RoyalTraitDefinition> AcquiredTraitAdded;
 
         public RoyalTraitCatalog TraitCatalog => traitCatalog;
         public RoyalInheritanceConfig Config => config;
@@ -498,6 +501,30 @@ namespace Landsong.InheritanceSystem
         public int LastSettlementTurn => lastSettlementTurn;
         public int LastSuccessionTurn => lastSuccessionTurn;
         public int LegalHeirAge => config == null ? 16 : config.LegalHeirAge;
+
+        public bool TryBirthPrince(string displayName, out RoyalCharacterState prince)
+        {
+            var currentTurn = context == null || context.Services.Turn == null
+                ? 1
+                : context.Services.Turn.CurrentTurn;
+            return TryBirthPrince(displayName, currentTurn, out prince);
+        }
+
+        public bool TryAbdicateCurrentKing(out RoyalSuccessionResult succession)
+        {
+            var currentTurn = context == null || context.Services.Turn == null
+                ? 1
+                : context.Services.Turn.CurrentTurn;
+            return TryAbdicateCurrentKing(currentTurn, out succession);
+        }
+
+        public bool TryAddAcquiredTrait(string characterId, RoyalTraitDefinition trait)
+        {
+            var currentTurn = context == null || context.Services.Turn == null
+                ? 1
+                : context.Services.Turn.CurrentTurn;
+            return TryAddAcquiredTrait(characterId, trait, currentTurn);
+        }
 
         public void SetTraitCatalog(RoyalTraitCatalog newCatalog)
         {
@@ -564,7 +591,7 @@ namespace Landsong.InheritanceSystem
             return result;
         }
 
-        public bool TryBirthPrince(
+        internal bool TryBirthPrince(
             string displayName,
             int turnNumber,
             out RoyalCharacterState prince,
@@ -584,12 +611,17 @@ namespace Landsong.InheritanceSystem
             }
 
             prince = CreatePrince(displayName, turnNumber, king, queen);
-            ApplyKingEffects(TalentEffectTriggerTiming.OnPrinceBorn, turnNumber, effects);
+            var appliedEffects = effects ?? new List<RoyalEffectApplicationResult>();
+            ApplyKingEffects(TalentEffectTriggerTiming.OnPrinceBorn, turnNumber, appliedEffects);
             NotifyChanged();
+            if (prince != null)
+            {
+                PrinceBorn?.Invoke(this, prince, appliedEffects);
+            }
             return prince != null;
         }
 
-        public bool TryAbdicateCurrentKing(int turnNumber, out RoyalSuccessionResult succession)
+        internal bool TryAbdicateCurrentKing(int turnNumber, out RoyalSuccessionResult succession)
         {
             var king = CurrentKing;
             if (king == null || !king.IsReigning)
@@ -603,12 +635,13 @@ namespace Landsong.InheritanceSystem
             if (succession.Occurred)
             {
                 NotifyChanged();
+                SuccessionOccurred?.Invoke(this, succession);
             }
 
             return succession.Occurred;
         }
 
-        public bool TryAddAcquiredTrait(string characterId, RoyalTraitDefinition trait, int turnNumber)
+        internal bool TryAddAcquiredTrait(string characterId, RoyalTraitDefinition trait, int turnNumber)
         {
             var character = FindCharacter(characterId);
             if (character == null || trait == null || !CanAddTrait(character, trait))
@@ -624,6 +657,7 @@ namespace Landsong.InheritanceSystem
             {
                 RefreshEffectiveLifespan(character);
                 NotifyChanged();
+                AcquiredTraitAdded?.Invoke(this, character, trait);
             }
 
             return added;
@@ -1305,12 +1339,12 @@ namespace Landsong.InheritanceSystem
             TalentEffectDefinition effect,
             int amount)
         {
-            if (context.Inventory == null || effect.ItemDefinition == null || amount <= 0)
+            if (context.Services.Inventory == null || effect.ItemDefinition == null || amount <= 0)
             {
                 return new RoyalEffectApplicationResult(character, effect, false, amount, string.Empty);
             }
 
-            var added = context.Inventory.AddItem(effect.ItemDefinition, amount);
+            var added = context.Services.Inventory.AddItem(effect.ItemDefinition, amount);
             var message = added > 0
                 ? $"{character.DisplayName}：{effect.ItemDefinition.DisplayName}+{added}"
                 : $"{character.DisplayName}：{effect.ItemDefinition.DisplayName}+0（仓库已满）";
@@ -1328,7 +1362,7 @@ namespace Landsong.InheritanceSystem
                 return new RoyalEffectApplicationResult(character, effect, false, 0, string.Empty);
             }
 
-            context.ApplyRoyalResearchPoints(amount, turnNumber, character.DisplayName);
+            context.ApplyExternalResearchPoints(amount, turnNumber, character.DisplayName);
             return new RoyalEffectApplicationResult(character, effect, true, amount, $"{character.DisplayName}：研究点+{amount}");
         }
 
@@ -1340,7 +1374,7 @@ namespace Landsong.InheritanceSystem
                 return new RoyalEffectApplicationResult(character, effect, false, 0, string.Empty);
             }
 
-            var unlocked = context.UnlockBuildingBlueprint(building.Definition.BuildingId);
+            var unlocked = context.Services.BuildingBlueprints.Unlock(building.Definition.BuildingId);
             var message = unlocked
                 ? $"{character.DisplayName}：解锁蓝图 {building.Definition.DisplayName}"
                 : $"{character.DisplayName}：蓝图已解锁 {building.Definition.DisplayName}";

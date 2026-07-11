@@ -39,7 +39,7 @@ public class GamePanel_HUD : MonoBehaviour
         SubscribeBottomBarSelection();
         RefreshTopBar();
         RefreshBottomBar();
-        if (gameSystem != null && gameSystem.IsAdvancingTurn)
+        if (gameSystem != null && gameSystem.Services.Turn.IsAdvancingTurn)
         {
             BeginTurnProcessingDisplay();
         }
@@ -66,9 +66,9 @@ public class GamePanel_HUD : MonoBehaviour
     }
 
     #region 顶部栏
-    //阶段 
+    //阶段
     [SerializeField, FoldoutGroup("顶部栏")] private TMP_Text txt_Stage;
-    //人口 
+    //人口
     [SerializeField, FoldoutGroup("顶部栏")] private TMP_Text txt_Population;
     //金币 从仓库获取 Item_金币的数量
     [SerializeField, FoldoutGroup("顶部栏")] private TMP_Text txt_Gold;
@@ -267,10 +267,10 @@ public class GamePanel_HUD : MonoBehaviour
     private void ResolveRuntimeServices()
     {
         gameSystem = GameSystem.Instance;
-        dynasty = gameSystem == null ? null : gameSystem.Dynasty;
-        inventory = gameSystem == null ? null : gameSystem.Inventory;
-        technology = gameSystem == null ? null : gameSystem.Technology;
-        turn = gameSystem == null ? null : gameSystem.Turn;
+        dynasty = gameSystem == null ? null : gameSystem.Services.Dynasty;
+        inventory = gameSystem == null ? null : gameSystem.Services.Inventory;
+        technology = gameSystem == null ? null : gameSystem.Services.Technology;
+        turn = gameSystem == null ? null : gameSystem.Services.Turn;
     }
 
     private void SubscribeRuntimeServices()
@@ -493,13 +493,13 @@ public class GamePanel_HUD : MonoBehaviour
     {
         if (txt_TurnCount != null)
         {
-            txt_TurnCount.text = gameSystem == null ? string.Empty : gameSystem.CurrentTurn.ToString();
+            txt_TurnCount.text = gameSystem == null ? string.Empty : gameSystem.Services.Turn.CurrentTurn.ToString();
         }
     }
 
     private void RefreshTurnControls()
     {
-        var isProcessing = gameSystem != null && gameSystem.IsAdvancingTurn;
+        var isProcessing = gameSystem != null && gameSystem.Services.Turn.IsAdvancingTurn;
         SetNextTurnButtonVisible(!isProcessing);
         SetActive(go_回合处理显示, isProcessing);
     }
@@ -507,7 +507,7 @@ public class GamePanel_HUD : MonoBehaviour
     private void HandleNextTurnClicked()
     {
         ResolveRuntimeServices();
-        if (gameSystem == null || gameSystem.IsGameOver || gameSystem.IsAdvancingTurn)
+        if (gameSystem == null || gameSystem.IsGameOver || gameSystem.Services.Turn.IsAdvancingTurn)
         {
             RefreshTurnControls();
             return;
@@ -549,7 +549,7 @@ public class GamePanel_HUD : MonoBehaviour
         SetActive(go_回合处理显示, true);
 
         var startedAt = Time.unscaledTime;
-        while (gameSystem != null && gameSystem.IsAdvancingTurn)
+        while (gameSystem != null && gameSystem.Services.Turn.IsAdvancingTurn)
         {
             yield return null;
         }
@@ -574,7 +574,7 @@ public class GamePanel_HUD : MonoBehaviour
         }
 
         SetActive(go_回合处理显示, false);
-        SetNextTurnButtonVisible(gameSystem == null || !gameSystem.IsAdvancingTurn);
+        SetNextTurnButtonVisible(gameSystem == null || !gameSystem.Services.Turn.IsAdvancingTurn);
     }
 
     private void SetNextTurnButtonVisible(bool visible)

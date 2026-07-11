@@ -31,7 +31,7 @@ namespace Landsong.UISystem
         private void Reset()
         {
             itemRoot = transform;
-         
+
         }
 
         private void OnEnable()
@@ -78,7 +78,7 @@ namespace Landsong.UISystem
         {
             gamePanel = GetComponentInParent<UIPanel_Game>();
             gameSystem = Landsong.GameSystem.Instance;
-            buildings = gameSystem == null ? null : gameSystem.Buildings;
+            buildings = gameSystem == null ? null : gameSystem.Services.Buildings;
 
             if (cameraController == null)
             {

@@ -15,7 +15,7 @@ public enum GameDataSaveMode
 }
 
 /// <summary>
-/// 存档系统兼容门面。磁盘读写、索引维护和运行时快照分别委托给独立服务。
+/// 存档系统统一公共门面。磁盘读写、索引维护和运行时快照分别委托给独立服务。
 /// </summary>
 public sealed class DataManager : MonoSingleton<DataManager>
 {
@@ -194,41 +194,11 @@ public sealed class DataManager : MonoSingleton<DataManager>
     }
 
     /// <summary>
-    /// 统一的当前存档保存入口。旧的保存 API 继续保留为兼容别名。
+    /// 当前存档的唯一保存入口。
     /// </summary>
     public void SaveCurrentGame(GameDataSaveMode saveMode = GameDataSaveMode.Overwrite)
     {
         SaveCurrentGameInternal(saveMode, true);
-    }
-
-    public void SaveGameData()
-    {
-        SaveCurrentGame();
-    }
-
-    public void OverwriteSaveGameData()
-    {
-        SaveCurrentGame();
-    }
-
-    public void SaveNewGameData()
-    {
-        SaveCurrentGame(GameDataSaveMode.NewSave);
-    }
-
-    public void QuickSaveGameData()
-    {
-        SaveCurrentGame();
-    }
-
-    public void AutoSaveGameData()
-    {
-        SaveCurrentGame();
-    }
-
-    public void SaveGameData(GameDataSaveMode saveMode)
-    {
-        SaveCurrentGame(saveMode);
     }
 
     public bool SetCurrentGameSaveName(string saveName)
@@ -258,7 +228,7 @@ public sealed class DataManager : MonoSingleton<DataManager>
             var runtimeDynastyName = gameSystem.Services.Dynasty == null
                 ? CurrentGameData?.DynastyName
                 : gameSystem.Services.Dynasty.DynastyName;
-            return GameData.FormatDefaultSaveName(runtimeDynastyName, gameSystem.CurrentTurn);
+            return GameData.FormatDefaultSaveName(runtimeDynastyName, gameSystem.Services.Turn.CurrentTurn);
         }
 
         if (CurrentGameData == null)
@@ -387,12 +357,6 @@ public sealed class DataManager : MonoSingleton<DataManager>
         EnsureAppDataLoaded();
         EnsureGameDataIndexLoaded();
         return indexService.GetLast(appData);
-    }
-
-    public IReadOnlyList<GameDataMeta> GetAllGameDataMeta()
-    {
-        EnsureGameDataIndexLoaded();
-        return indexService.Entries;
     }
 
     public void RestoreCurrentGameDataToRuntime()

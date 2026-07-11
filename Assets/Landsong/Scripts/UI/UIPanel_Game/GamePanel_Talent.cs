@@ -162,7 +162,7 @@ namespace Landsong.UISystem
                 return;
             }
 
-            gameSystem.TalentsChanged += HandleTalentsChanged;
+            gameSystem.Services.Talents.StateChanged += HandleTalentsChanged;
             subscribedToTalents = true;
         }
 
@@ -174,13 +174,13 @@ namespace Landsong.UISystem
                 return;
             }
 
-            gameSystem.TalentsChanged -= HandleTalentsChanged;
+            gameSystem.Services.Talents.StateChanged -= HandleTalentsChanged;
             subscribedToTalents = false;
         }
 
         private void SubscribeInventory()
         {
-            var inventory = gameSystem == null ? null : gameSystem.Inventory;
+            var inventory = gameSystem == null ? null : gameSystem.Services.Inventory;
             if (subscribedInventory == inventory)
             {
                 return;
@@ -205,7 +205,7 @@ namespace Landsong.UISystem
 
         private void RefreshHeader()
         {
-            var service = gameSystem == null ? null : gameSystem.Talents;
+            var service = gameSystem == null ? null : gameSystem.Services.Talents;
             if (service == null)
             {
                 SetText(statusLabel, "人才系统未初始化");
@@ -231,8 +231,8 @@ namespace Landsong.UISystem
 
             var goldName = service.SalaryGoldItemDefinition == null ? "金币未配置" : service.SalaryGoldItemDefinition.DisplayName;
             var salary = service.CalculateTotalSalaryGoldPerTurn();
-            var available = service.SalaryGoldItemDefinition != null && gameSystem != null && gameSystem.Inventory != null
-                ? gameSystem.Inventory.GetQuantity(service.SalaryGoldItemDefinition.ItemId)
+            var available = service.SalaryGoldItemDefinition != null && gameSystem != null && gameSystem.Services.Inventory != null
+                ? gameSystem.Services.Inventory.GetQuantity(service.SalaryGoldItemDefinition.ItemId)
                 : 0;
             return $"{goldName} {available} / 薪资 {salary}/回合";
         }
@@ -247,7 +247,7 @@ namespace Landsong.UISystem
         private void RefreshOffers()
         {
             ReleaseActiveOfferItems();
-            var offers = gameSystem == null ? null : gameSystem.TalentOffers;
+            var offers = gameSystem == null ? null : gameSystem.Services.Talents.CurrentOffers;
             if (offerRoot == null || offerItemPrefab == null || offers == null)
             {
                 SetEmptyState(offerEmptyRoot, offerEmptyLabel, true, "候选卡列表未配置");
@@ -273,8 +273,8 @@ namespace Landsong.UISystem
         private void RefreshPool()
         {
             ReleaseActivePoolItems();
-            var talents = gameSystem == null ? null : gameSystem.TalentPool;
-            var service = gameSystem == null ? null : gameSystem.Talents;
+            var talents = gameSystem == null ? null : gameSystem.Services.Talents.OwnedTalents;
+            var service = gameSystem == null ? null : gameSystem.Services.Talents;
             if (poolRoot == null || poolItemPrefab == null || talents == null)
             {
                 SetEmptyState(poolEmptyRoot, poolEmptyLabel, true, "人才池列表未配置");
@@ -308,7 +308,7 @@ namespace Landsong.UISystem
         private void RefreshSlots()
         {
             ReleaseActiveSlotItems();
-            var slots = gameSystem == null ? null : gameSystem.TalentSlots;
+            var slots = gameSystem == null ? null : gameSystem.Services.Talents.SlotStates;
             if (slotRoot == null || slotItemPrefab == null || slots == null)
             {
                 SetEmptyState(slotEmptyRoot, slotEmptyLabel, true, "人才槽列表未配置");
@@ -340,7 +340,7 @@ namespace Landsong.UISystem
             }
 
             selectedTalentInstanceId = string.Empty;
-            var talents = gameSystem == null ? null : gameSystem.TalentPool;
+            var talents = gameSystem == null ? null : gameSystem.Services.Talents.OwnedTalents;
             if (talents == null || talents.Count == 0)
             {
                 return;
@@ -351,9 +351,9 @@ namespace Landsong.UISystem
 
         private TalentState FindSelectedTalent()
         {
-            return gameSystem == null || gameSystem.Talents == null
+            return gameSystem == null || gameSystem.Services.Talents == null
                 ? null
-                : gameSystem.Talents.FindOwnedTalent(selectedTalentInstanceId);
+                : gameSystem.Services.Talents.FindOwnedTalent(selectedTalentInstanceId);
         }
 
         private bool IsSelectedTalent(TalentState talent)
@@ -493,7 +493,7 @@ namespace Landsong.UISystem
                 return;
             }
 
-            gameSystem.TryRefreshTalents(out var result);
+            gameSystem.Services.Talents.TryRefreshOffers(out var result);
             lastStatusMessage = result.Message;
             Refresh();
         }
@@ -505,7 +505,7 @@ namespace Landsong.UISystem
                 return;
             }
 
-            gameSystem.TryRecruitTalentOffer(offer.OfferId, out var result);
+            gameSystem.Services.Talents.TryRecruitOffer(offer.OfferId, out var result);
             if (result.Talent != null)
             {
                 selectedTalentInstanceId = result.Talent.TalentInstanceId;
@@ -529,7 +529,7 @@ namespace Landsong.UISystem
                 return;
             }
 
-            gameSystem.TryUpgradeTalent(talent.TalentInstanceId, out var result);
+            gameSystem.Services.Talents.TryUpgradeTalent(talent.TalentInstanceId, out var result);
             lastStatusMessage = result.Message;
             Refresh();
         }
@@ -541,7 +541,7 @@ namespace Landsong.UISystem
                 return;
             }
 
-            gameSystem.TryUnassignTalent(talent.TalentInstanceId, out var result);
+            gameSystem.Services.Talents.TryUnassignTalent(talent.TalentInstanceId, out var result);
             lastStatusMessage = result.Message;
             Refresh();
         }
@@ -559,7 +559,7 @@ namespace Landsong.UISystem
                 return;
             }
 
-            gameSystem.TryAssignTalent(selectedTalent.TalentInstanceId, slot.SlotId, out var result);
+            gameSystem.Services.Talents.TryAssignTalentToSlot(selectedTalent.TalentInstanceId, slot.SlotId, out var result);
             lastStatusMessage = result.Message;
             Refresh();
         }
@@ -571,14 +571,13 @@ namespace Landsong.UISystem
                 return;
             }
 
-            gameSystem.TryUnassignTalentSlot(slot.SlotId, out var result);
+            gameSystem.Services.Talents.TryUnassignSlot(slot.SlotId, out var result);
             lastStatusMessage = result.Message;
             Refresh();
         }
 
-        private void HandleTalentsChanged(GameSystem changedGameSystem)
+        private void HandleTalentsChanged(TalentService changedTalents)
         {
-            gameSystem = changedGameSystem;
             SubscribeInventory();
             Refresh();
         }

@@ -60,7 +60,7 @@ public class GamePanel_Pause : MonoBehaviour
             return;
         }
 
-        DataManager.Instance.QuickSaveGameData();
+        DataManager.Instance.SaveCurrentGame();
     }
 
     private async void OpenSaveConfirmation()

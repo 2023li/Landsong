@@ -142,7 +142,7 @@ namespace Landsong.TalentSystem
             return valueType switch
             {
                 TalentEffectValueType.PerTalentLevel => value * level + Mathf.Max(0, level - 1) * levelScaling,
-                TalentEffectValueType.BasedOnPopulation => scaledValue * Mathf.Max(0, context == null ? 0 : context.Population),
+                TalentEffectValueType.BasedOnPopulation => scaledValue * Mathf.Max(0, context == null ? 0 : context.Services.Dynasty.Population),
                 TalentEffectValueType.BasedOnBuildingCount => scaledValue * GetBuildingCount(context),
                 _ => scaledValue
             };
@@ -154,11 +154,11 @@ namespace Landsong.TalentSystem
             if (effectType == TalentEffectType.AddItem
                 && valueType == TalentEffectValueType.PercentOfCurrentStorage
                 && context != null
-                && context.Inventory != null
+                && context.Services.Inventory != null
                 && itemDefinition != null
                 && !string.IsNullOrWhiteSpace(itemDefinition.ItemId))
             {
-                var currentAmount = context.Inventory.GetQuantity(itemDefinition.ItemId);
+                var currentAmount = context.Services.Inventory.GetQuantity(itemDefinition.ItemId);
                 var amount = currentAmount * rawValue;
                 return amount > 0f && amount < 1f ? 1 : Mathf.FloorToInt(amount);
             }
@@ -222,9 +222,9 @@ namespace Landsong.TalentSystem
 
         private static int GetBuildingCount(GameSystem context)
         {
-            return context == null || context.Buildings == null || context.Buildings.Buildings == null
+            return context == null || context.Services.Buildings == null || context.Services.Buildings.Buildings == null
                 ? 0
-                : context.Buildings.Buildings.Count;
+                : context.Services.Buildings.Buildings.Count;
         }
 
         private static string FormatPercent(float value)

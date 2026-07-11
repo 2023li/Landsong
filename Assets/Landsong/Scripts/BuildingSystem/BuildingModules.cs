@@ -849,7 +849,7 @@ namespace Landsong.BuildingSystem
 
             var inventory = building == null || building.GameSystem == null
                 ? null
-                : building.GameSystem.Inventory;
+                : building.GameSystem.Services.Inventory;
             if (inventory == null)
             {
                 failureStatusId = BuildingRuntimeStatusCatalog.BS_库存缺失;
@@ -1016,9 +1016,9 @@ namespace Landsong.BuildingSystem
                    && upgradeTargetPrefab != null
                    && upgradeTargetPrefab.HasDefinition
                    && building.GameSystem != null
-                   && building.GameSystem.Buildings != null
+                   && building.GameSystem.Services.Buildings != null
                    && IsUpgradeConditionMet(building)
-                   && building.GameSystem.Buildings.CanReplace(building, upgradeTargetPrefab, false)
+                   && building.GameSystem.Services.Buildings.CanReplace(building, upgradeTargetPrefab, false)
                    && CanAffordUpgradeCosts(building);
         }
 
@@ -1034,7 +1034,7 @@ namespace Landsong.BuildingSystem
                 return false;
             }
 
-            return building.GameSystem.Buildings.TryReplace(building, upgradeTargetPrefab, out _);
+            return building.GameSystem.Services.Buildings.TryReplace(building, upgradeTargetPrefab, out _);
         }
 
         public bool TryAutoUpgrade(BuildingBase building)
@@ -1049,7 +1049,7 @@ namespace Landsong.BuildingSystem
                 return true;
             }
 
-            var inventory = building == null || building.GameSystem == null ? null : building.GameSystem.Inventory;
+            var inventory = building == null || building.GameSystem == null ? null : building.GameSystem.Services.Inventory;
             return inventory != null && inventory.CanAffordBuildingCosts(UpgradeCosts);
         }
 
@@ -1060,7 +1060,7 @@ namespace Landsong.BuildingSystem
                 return true;
             }
 
-            var inventory = building == null || building.GameSystem == null ? null : building.GameSystem.Inventory;
+            var inventory = building == null || building.GameSystem == null ? null : building.GameSystem.Services.Inventory;
             return inventory != null && inventory.TrySpendBuildingCosts(UpgradeCosts);
         }
 

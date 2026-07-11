@@ -161,8 +161,8 @@ namespace Landsong.UISystem
             }
 
             UnsubscribeGameSystem();
-            gameSystem.QuestsChanged += HandleQuestsChanged;
-            gameSystem.QuestEventClicked += HandleQuestEventClicked;
+            gameSystem.Services.Quest.StateChanged += HandleQuestsChanged;
+            gameSystem.Services.Quest.QuestRequested += HandleQuestEventClicked;
             subscribedGameSystem = gameSystem;
         }
 
@@ -173,20 +173,18 @@ namespace Landsong.UISystem
                 return;
             }
 
-            subscribedGameSystem.QuestsChanged -= HandleQuestsChanged;
-            subscribedGameSystem.QuestEventClicked -= HandleQuestEventClicked;
+            subscribedGameSystem.Services.Quest.StateChanged -= HandleQuestsChanged;
+            subscribedGameSystem.Services.Quest.QuestRequested -= HandleQuestEventClicked;
             subscribedGameSystem = null;
         }
 
-        private void HandleQuestsChanged(GameSystem changedGameSystem)
+        private void HandleQuestsChanged(QuestService changedQuestService)
         {
-            gameSystem = changedGameSystem;
             RefreshFromGameSystem();
         }
 
-        private void HandleQuestEventClicked(GameSystem changedGameSystem, GameQuestState quest)
+        private void HandleQuestEventClicked(QuestService changedQuestService, GameQuestState quest)
         {
-            gameSystem = changedGameSystem;
             if (quest == null)
             {
                 return;
@@ -198,7 +196,7 @@ namespace Landsong.UISystem
 
         private GameQuestState SelectHudQuest()
         {
-            var quests = gameSystem == null ? null : gameSystem.Quests;
+            var quests = gameSystem == null ? null : gameSystem.Services.Quest.Quests;
             if (quests == null || quests.Count == 0)
             {
                 return null;
@@ -389,7 +387,7 @@ namespace Landsong.UISystem
                 return;
             }
 
-            gameSystem.TryClaimQuestRewards(currentQuest);
+            gameSystem.Services.Quest.TryClaimRewards(currentQuest);
         }
 
         private void SetButtonInteractable(bool interactable)
@@ -506,7 +504,7 @@ namespace Landsong.UISystem
             }
 
             var gameSystem = GameSystem.Instance;
-            var currentTurn = gameSystem == null ? quest.StartedTurn : gameSystem.CurrentTurn;
+            var currentTurn = gameSystem == null ? quest.StartedTurn : gameSystem.Services.Turn.CurrentTurn;
             return $"剩余 {quest.GetRemainingTurns(currentTurn)} 回合";
         }
 

@@ -127,8 +127,8 @@ namespace Landsong.UISystem
             }
 
             gameSystem = GameSystem.Instance;
-            inventory = gameSystem == null ? null : gameSystem.Inventory;
-            dynasty = gameSystem == null ? null : gameSystem.Dynasty;
+            inventory = gameSystem == null ? null : gameSystem.Services.Inventory;
+            dynasty = gameSystem == null ? null : gameSystem.Services.Dynasty;
         }
 
         private void BindButtons()
@@ -196,7 +196,7 @@ namespace Landsong.UISystem
         {
             if (!subscribedToExpeditions && gameSystem != null)
             {
-                gameSystem.ExpeditionsChanged += HandleExpeditionsChanged;
+                gameSystem.Services.Expeditions.StateChanged += HandleExpeditionsChanged;
                 subscribedToExpeditions = true;
             }
 
@@ -217,7 +217,7 @@ namespace Landsong.UISystem
         {
             if (subscribedToExpeditions && gameSystem != null)
             {
-                gameSystem.ExpeditionsChanged -= HandleExpeditionsChanged;
+                gameSystem.Services.Expeditions.StateChanged -= HandleExpeditionsChanged;
             }
 
             if (subscribedToInventory && inventory != null)
@@ -244,7 +244,7 @@ namespace Landsong.UISystem
                 return;
             }
 
-            var destinations = gameSystem.GetExpeditionDestinations(includeUnavailableDestinations);
+            var destinations = gameSystem.Services.Expeditions.GetDestinationAvailabilities(includeUnavailableDestinations);
             EnsureSelectedDestination(destinations);
 
             var visibleCount = 0;
@@ -261,7 +261,7 @@ namespace Landsong.UISystem
                     availability,
                     IsSelectedDestination(availability.Destination),
                     FindDisplayExpeditionForDestination(availability.Destination.DestinationId),
-                    gameSystem.CurrentTurn,
+                    gameSystem.Services.Turn.CurrentTurn,
                     HandleDestinationClicked,
                     HandleClaimClicked);
                 activeDestinationItems.Add(item);
@@ -274,9 +274,9 @@ namespace Landsong.UISystem
         private void RefreshSelectedDestination()
         {
             var destination = FindSelectedDestination();
-            var availability = destination == null || gameSystem == null || gameSystem.Expeditions == null
+            var availability = destination == null || gameSystem == null || gameSystem.Services.Expeditions == null
                 ? default
-                : gameSystem.Expeditions.EvaluateDestination(destination, gameSystem.CurrentTurn);
+                : gameSystem.Services.Expeditions.EvaluateDestination(destination, gameSystem.Services.Turn.CurrentTurn);
 
             if (destination == null)
             {
@@ -306,7 +306,7 @@ namespace Landsong.UISystem
 
         private void RefreshPenalty()
         {
-            if (gameSystem == null || !gameSystem.HasActiveExpeditionSubsidyPenalty)
+            if (gameSystem == null || !gameSystem.Services.Expeditions.IsSubsidyPenaltyActive)
             {
                 SetText(penaltyLabel, string.Empty);
                 return;
@@ -314,7 +314,7 @@ namespace Landsong.UISystem
 
             SetText(
                 penaltyLabel,
-                $"补贴不足惩罚 {gameSystem.ExpeditionSubsidyPenaltyStacks} 层，持续至第 {gameSystem.ExpeditionSubsidyPenaltyActiveUntilTurn} 回合");
+                $"补贴不足惩罚 {gameSystem.Services.Expeditions.SubsidyPenaltyStacks} 层，持续至第 {gameSystem.Services.Expeditions.SubsidyPenaltyActiveUntilTurn} 回合");
         }
 
         private void RefreshTeamCount()
@@ -325,7 +325,7 @@ namespace Landsong.UISystem
                 return;
             }
 
-            SetText(expeditionTeamCountLabel, $"{gameSystem.ActiveExpeditionTeamCount}/{gameSystem.ExpeditionTeamCapacity}");
+            SetText(expeditionTeamCountLabel, $"{gameSystem.Services.Expeditions.ActiveExpeditionCount}/{gameSystem.Services.Expeditions.MaxActiveExpeditions}");
         }
 
         private void RebuildSupplyInputs(ExpeditionDestinationDefinition destination)
@@ -409,7 +409,7 @@ namespace Landsong.UISystem
             var supplyRewardYieldBonus = destination.CalculateSupplyRewardYieldBonus(supplyLookup);
             var availableBasePopulation = dynasty == null ? 0 : dynasty.BasePopulation;
             var hasAvailableTeamSlot = gameSystem != null
-                                       && gameSystem.ActiveExpeditionTeamCount < gameSystem.ExpeditionTeamCapacity;
+                                       && gameSystem.Services.Expeditions.ActiveExpeditionCount < gameSystem.Services.Expeditions.MaxActiveExpeditions;
             var rewardBonusText = supplyRewardYieldBonus > 0f
                 ? $"，额外收益 +{supplyRewardYieldBonus * 100f:0.#}%"
                 : string.Empty;
@@ -482,14 +482,14 @@ namespace Landsong.UISystem
             }
 
             var supplies = BuildAssignedSupplies();
-            if (!gameSystem.TryStartExpedition(destination, ParsePopulation(), supplies, out var result))
+            if (!gameSystem.Services.Expeditions.TryStartExpedition(destination, ParsePopulation(), supplies, out var result))
             {
                 SetText(statusLabel, result.Message);
                 RefreshLaunchPreview(
                     destination,
-                    gameSystem.Expeditions == null
+                    gameSystem.Services.Expeditions == null
                         ? default
-                        : gameSystem.Expeditions.EvaluateDestination(destination, gameSystem.CurrentTurn));
+                        : gameSystem.Services.Expeditions.EvaluateDestination(destination, gameSystem.Services.Turn.CurrentTurn));
                 return;
             }
 
@@ -505,7 +505,7 @@ namespace Landsong.UISystem
                 return;
             }
 
-            if (!gameSystem.TryClaimExpeditionRewards(expedition.ExpeditionId, out var result))
+            if (!gameSystem.Services.Expeditions.TryClaimRewards(expedition.ExpeditionId, out var result))
             {
                 SetText(statusLabel, result.Message);
                 return;
@@ -530,9 +530,9 @@ namespace Landsong.UISystem
             var destination = FindSelectedDestination();
             RefreshLaunchPreview(
                 destination,
-                gameSystem == null || gameSystem.Expeditions == null || destination == null
+                gameSystem == null || gameSystem.Services.Expeditions == null || destination == null
                     ? default
-                    : gameSystem.Expeditions.EvaluateDestination(destination, gameSystem.CurrentTurn));
+                    : gameSystem.Services.Expeditions.EvaluateDestination(destination, gameSystem.Services.Turn.CurrentTurn));
         }
 
         private void HandleSupplyChanged()
@@ -540,14 +540,13 @@ namespace Landsong.UISystem
             var destination = FindSelectedDestination();
             RefreshLaunchPreview(
                 destination,
-                gameSystem == null || gameSystem.Expeditions == null || destination == null
+                gameSystem == null || gameSystem.Services.Expeditions == null || destination == null
                     ? default
-                    : gameSystem.Expeditions.EvaluateDestination(destination, gameSystem.CurrentTurn));
+                    : gameSystem.Services.Expeditions.EvaluateDestination(destination, gameSystem.Services.Turn.CurrentTurn));
         }
 
-        private void HandleExpeditionsChanged(GameSystem changedGameSystem)
+        private void HandleExpeditionsChanged(ExpeditionService changedExpeditions)
         {
-            gameSystem = changedGameSystem;
             Refresh();
         }
 
@@ -621,12 +620,12 @@ namespace Landsong.UISystem
 
         private ExpeditionDestinationDefinition FindSelectedDestination()
         {
-            if (gameSystem == null || gameSystem.ExpeditionDestinationCatalog == null || string.IsNullOrWhiteSpace(selectedDestinationId))
+            if (gameSystem == null || gameSystem.Services.Expeditions.Catalog == null || string.IsNullOrWhiteSpace(selectedDestinationId))
             {
                 return null;
             }
 
-            return gameSystem.ExpeditionDestinationCatalog.TryGetDestination(selectedDestinationId, out var destination)
+            return gameSystem.Services.Expeditions.Catalog.TryGetDestination(selectedDestinationId, out var destination)
                 ? destination
                 : null;
         }
@@ -646,7 +645,7 @@ namespace Landsong.UISystem
             }
 
             ExpeditionState result = null;
-            var expeditions = gameSystem.ExpeditionStates;
+            var expeditions = gameSystem.Services.Expeditions.Expeditions;
             for (var i = 0; i < expeditions.Count; i++)
             {
                 var expedition = expeditions[i];
@@ -860,7 +859,7 @@ namespace Landsong.UISystem
                 ? destination.MaxPopulation.ToString()
                 : "不限";
             var status = availability.IsAvailable ? "可出发" : FormatAvailabilityReason(availability);
-            var rewardYieldMultiplier = gameSystem == null ? 1f : gameSystem.ExpeditionRewardYieldMultiplier;
+            var rewardYieldMultiplier = gameSystem == null ? 1f : gameSystem.Services.Expeditions.RewardYieldMultiplier;
             return $"持续 {destination.DurationTurns} 回合，人口 {destination.MinPopulation}-{maxPopulation}，基础成功率 {destination.BaseSuccessChance * 100f:0.#}%，收益率 {rewardYieldMultiplier * 100f:0.#}%，{status}";
         }
 

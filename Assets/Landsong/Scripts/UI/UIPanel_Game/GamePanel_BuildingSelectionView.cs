@@ -79,7 +79,7 @@ namespace Landsong.UISystem
         private void ResolveReferences()
         {
             gameSystem = Landsong.GameSystem.Instance;
-            selectionController = gameSystem == null ? null : gameSystem.BuildingSelection;
+            selectionController = gameSystem == null ? null : gameSystem.Services.BuildingSelection;
 
             if (selectionController == null)
             {

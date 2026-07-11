@@ -58,7 +58,7 @@ public sealed class GamePanel_Inventory : MonoBehaviour
     {
         UnsubscribeInventory();
     }
-    
+
     public void Show()
     {
         if (!gameObject.activeSelf)
@@ -73,7 +73,7 @@ public sealed class GamePanel_Inventory : MonoBehaviour
 
         RefreshFromGameSystem();
     }
-   
+
     public void Hide()
     {
         UnsubscribeInventory();
@@ -177,12 +177,7 @@ public sealed class GamePanel_Inventory : MonoBehaviour
             return;
         }
 
-        if (gameSystem.Inventory == null)
-        {
-            gameSystem.ReinitializeInventory();
-        }
-
-        inventory = gameSystem.Inventory;
+        inventory = gameSystem.Services.Inventory;
     }
 
     private void SyncSlotCount(int count)

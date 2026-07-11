@@ -87,7 +87,7 @@ using UnityEngine.UI;
             // 这里主动重载索引，确保外部新增/删除的 Slot 文件也能被重新扫描到。
             DataManager.Instance.LoadGameDataIndex();
 
-            IReadOnlyList<GameDataMeta> metas = DataManager.Instance.GetAllGameDataMeta();
+            IReadOnlyList<GameDataMeta> metas = DataManager.Instance.GameDataMetaList;
 
             if (metas == null || metas.Count <= 0)
             {

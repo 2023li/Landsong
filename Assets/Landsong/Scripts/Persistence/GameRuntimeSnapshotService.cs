@@ -23,28 +23,18 @@ namespace Landsong.Persistence
             if (gameSystem != null)
             {
                 var services = gameSystem.Services;
-                gameData.CurrentTurn = services.Turn == null ? gameSystem.CurrentTurn : services.Turn.CurrentTurn;
+                gameData.CurrentTurn = services.Turn == null ? gameSystem.Services.Turn.CurrentTurn : services.Turn.CurrentTurn;
                 gameData.RoundCount = Mathf.Max(1, gameData.CurrentTurn);
 
-                gameData.TechnologyData = services.Technology == null
-                    ? gameSystem.CaptureTechnologyData()
-                    : services.Technology.CaptureSaveData();
+                gameData.TechnologyData = services.Technology?.CaptureSaveData();
                 gameData.UnlockedTechnologies = gameData.TechnologyData == null
-                    ? gameSystem.CaptureUnlockedTechnologies()
+                    ? new List<string>()
                     : new List<string>(gameData.TechnologyData.UnlockedTechnologyIds);
-                gameData.QuestData = services.Quest == null
-                    ? gameSystem.CaptureQuestData()
-                    : services.Quest.CaptureSaveData();
-                gameData.ExpeditionData = services.Expeditions == null
-                    ? gameSystem.CaptureExpeditionData()
-                    : services.Expeditions.CaptureSaveData();
-                gameData.TalentData = services.Talents == null
-                    ? gameSystem.CaptureTalentData()
-                    : services.Talents.CaptureSaveData();
-                gameData.RoyalInheritanceData = services.Inheritance == null
-                    ? gameSystem.CaptureInheritanceData()
-                    : services.Inheritance.CaptureSaveData();
-                gameData.UnlockedBuildingBlueprintIds = gameSystem.CaptureUnlockedBuildingBlueprints();
+                gameData.QuestData = services.Quest?.CaptureSaveData();
+                gameData.ExpeditionData = services.Expeditions?.CaptureSaveData();
+                gameData.TalentData = services.Talents?.CaptureSaveData();
+                gameData.RoyalInheritanceData = services.Inheritance?.CaptureSaveData();
+                gameData.UnlockedBuildingBlueprintIds = services.BuildingBlueprints?.CaptureSaveData();
 
                 if (services.Dynasty != null)
                 {
@@ -83,7 +73,7 @@ namespace Landsong.Persistence
             }
             finally
             {
-                gameSystem.Services.Quest?.EndRuntimeRestore();
+                gameSystem.Services.Quest.EndRuntimeRestore();
                 if (!succeeded)
                 {
                     Debug.LogWarning("运行时快照恢复未完成，任务系统已退出恢复抑制状态。");
@@ -107,7 +97,7 @@ namespace Landsong.Persistence
             }
             finally
             {
-                gameSystem.Services.Quest?.EndRuntimeRestore();
+                gameSystem.Services.Quest.EndRuntimeRestore();
                 completed?.Invoke(succeeded);
             }
         }
@@ -145,28 +135,20 @@ namespace Landsong.Persistence
             gameData.Validate();
             gameSystem.RestoreCurrentTurn(gameData.CurrentTurn);
             gameSystem.RestoreDynastyData(gameData.DynastyName, gameData.Stage, gameData.BasePopulation);
-            gameSystem.RestoreTechnologyData(gameData.TechnologyData, gameData.UnlockedTechnologies);
-            gameSystem.RestoreBuildingBlueprintData(gameData.UnlockedBuildingBlueprintIds);
 
             var services = gameSystem.Services;
+            services.Technology?.RestoreSaveData(gameData.TechnologyData, gameData.UnlockedTechnologies);
+            services.BuildingBlueprints?.RestoreSaveData(gameData.UnlockedBuildingBlueprintIds);
             if (services.Inventory != null && gameData.InventoryData != null)
             {
                 services.Inventory.RestoreSaveData(gameData.InventoryData);
             }
 
-            gameSystem.RestoreExpeditionData(gameData.ExpeditionData);
-            gameSystem.RestoreTalentData(gameData.TalentData);
-            gameSystem.RestoreInheritanceData(gameData.RoyalInheritanceData);
+            services.Expeditions?.RestoreSaveData(gameData.ExpeditionData);
+            services.Talents?.RestoreSaveData(gameData.TalentData);
+            services.Inheritance?.RestoreSaveData(gameData.RoyalInheritanceData);
             services.Quest?.BeginRuntimeRestore();
-            if (services.Quest == null)
-            {
-                gameSystem.BeginQuestRuntimeRestore();
-                gameSystem.RestoreQuestData(gameData.QuestData);
-            }
-            else
-            {
-                services.Quest.RestoreSaveData(gameData.QuestData);
-            }
+            services.Quest?.RestoreSaveData(gameData.QuestData);
 
             return true;
         }
@@ -220,9 +202,9 @@ namespace Landsong.Persistence
             }
 
             gameData.SoftData ??= GameSoftData.CreateDefault();
-            var selectedBuilding = gameSystem == null || gameSystem.BuildingSelection == null
+            var selectedBuilding = gameSystem == null || gameSystem.Services.BuildingSelection == null
                 ? null
-                : gameSystem.BuildingSelection.SelectedBuilding;
+                : gameSystem.Services.BuildingSelection.SelectedBuilding;
             if (CanCaptureSoftBuildingReference(selectedBuilding))
             {
                 gameData.SoftData.LastSelectedBuilding = BuildingSoftReferenceSaveData.CreateFromBuilding(selectedBuilding);
@@ -320,7 +302,7 @@ namespace Landsong.Persistence
                 return false;
             }
 
-            var catalog = gameSystem.BuildingCatalog == null ? BuildingCatalog.Instance : gameSystem.BuildingCatalog;
+            var catalog = gameSystem.Services.BuildingCatalog == null ? BuildingCatalog.Instance : gameSystem.Services.BuildingCatalog;
             if (catalog == null || !catalog.TryGetBuildingPrefab(saveData.BuildingId, out var buildingPrefab))
             {
                 Debug.LogWarning($"恢复建筑失败：建筑目录中找不到 BuildingId = {saveData.BuildingId}");

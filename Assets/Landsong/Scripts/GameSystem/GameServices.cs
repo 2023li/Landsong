@@ -11,8 +11,8 @@ using Landsong.TurnSystem;
 namespace Landsong
 {
     /// <summary>
-    /// GameSystem 组合根中的类型化服务目录。
-    /// 它只提供当前服务引用，不复制业务门面，避免 GameSystem 继续增加同义转发 API。
+    /// GameSystem 的唯一公开领域入口。
+    /// 业务代码通过该目录访问服务，避免同时使用 GameSystem 代理方法和服务本体。
     /// </summary>
     public sealed class GameServices
     {
@@ -33,6 +33,9 @@ namespace Landsong
         public ExpeditionService Expeditions => owner.Expeditions;
         public TalentService Talents => owner.Talents;
         public RoyalInheritanceService Inheritance => owner.Inheritance;
+        public BuildingBlueprintService BuildingBlueprints => owner.BuildingBlueprints;
+        public BuildingSelectionController BuildingSelection => owner.BuildingSelection;
+        public BuildingCatalog BuildingCatalog => owner.BuildingCatalog;
     }
 
     public sealed partial class GameSystem
@@ -40,7 +43,8 @@ namespace Landsong
         private GameServices gameServices;
 
         public GameServices Services => gameServices ??= new GameServices(this);
-        public QuestService Quest { get; private set; }
 
+        internal QuestService Quest { get; private set; }
+        internal BuildingBlueprintService BuildingBlueprints { get; private set; }
     }
 }

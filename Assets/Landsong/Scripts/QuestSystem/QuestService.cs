@@ -10,7 +10,7 @@ namespace Landsong
 {
     /// <summary>
     /// 任务领域服务。拥有任务运行时状态、完成判定、随机任务、订阅和存档逻辑。
-    /// GameSystem 只保留序列化配置、服务组装和旧 API 兼容门面。
+    /// GameSystem 只保留序列化配置和服务组装。
     /// </summary>
     public sealed class QuestService : IDisposable
     {
@@ -44,12 +44,12 @@ namespace Landsong
         public event Action<QuestService, GameQuestState> QuestRequested;
 
         public IReadOnlyList<GameQuestState> Quests => quests;
-        private InventoryService Inventory => context.Inventory;
-        private BuildingService Buildings => context.Buildings;
-        private TurnService Turn => context.Turn;
-        private GameEventService Events => context.Events;
+        private InventoryService Inventory => context.Services.Inventory;
+        private BuildingService Buildings => context.Services.Buildings;
+        private TurnService Turn => context.Services.Turn;
+        private GameEventService Events => context.Services.Events;
         private ItemCatalog itemCatalog => context.QuestItemCatalog;
-        private int CurrentTurn => context.CurrentTurn;
+        private int CurrentTurn => Turn == null ? 1 : Turn.CurrentTurn;
 
         internal void Configure(
             GameQuestDefinition[] newStartingQuests,
@@ -1323,7 +1323,6 @@ namespace Landsong
             }
 
             QuestRequested?.Invoke(this, quest);
-            context.NotifyLegacyQuestRequested(quest);
         }
 
         private void AddQuestMessage(
@@ -1446,7 +1445,6 @@ namespace Landsong
         private void NotifyChanged()
         {
             StateChanged?.Invoke(this);
-            context.NotifyLegacyQuestsChanged();
         }
     }
 }

@@ -422,7 +422,7 @@ namespace Landsong.BuildingSystem
                 return false;
             }
 
-            var inventory = owner == null || owner.GameSystem == null ? null : owner.GameSystem.Inventory;
+            var inventory = owner == null || owner.GameSystem == null ? null : owner.GameSystem.Services.Inventory;
             if (inventory == null)
             {
                 SetLastAbnormalStatus(StatusMissingInventory, "库存服务缺失");
@@ -577,7 +577,7 @@ namespace Landsong.BuildingSystem
                 return true;
             }
 
-            var inventory = owner == null || owner.GameSystem == null ? null : owner.GameSystem.Inventory;
+            var inventory = owner == null || owner.GameSystem == null ? null : owner.GameSystem.Services.Inventory;
             return inventory != null && inventory.CanAffordBuildingCosts(costs);
         }
 
@@ -592,7 +592,7 @@ namespace Landsong.BuildingSystem
                 return true;
             }
 
-            var inventory = owner == null || owner.GameSystem == null ? null : owner.GameSystem.Inventory;
+            var inventory = owner == null || owner.GameSystem == null ? null : owner.GameSystem.Services.Inventory;
             if (inventory == null)
             {
                 SetLastAbnormalStatus(StatusMissingInventory, "库存服务缺失");

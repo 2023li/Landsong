@@ -1275,19 +1275,19 @@ namespace Landsong.BuildingSystem
         private static BuildingService ResolveBuildingService(BuildingBase building)
         {
             var gameSystem = building == null ? null : building.GameSystem;
-            if (gameSystem != null && gameSystem.Buildings != null)
+            if (gameSystem != null && gameSystem.Services.Buildings != null)
             {
-                return gameSystem.Buildings;
+                return gameSystem.Services.Buildings;
             }
 
             gameSystem = Landsong.GameSystem.Instance;
-            return gameSystem == null ? null : gameSystem.Buildings;
+            return gameSystem == null ? null : gameSystem.Services.Buildings;
         }
 
         private static BuildingService ResolveRuntimeBuildingService()
         {
             var gameSystem = Landsong.GameSystem.Instance;
-            return gameSystem == null ? null : gameSystem.Buildings;
+            return gameSystem == null ? null : gameSystem.Services.Buildings;
         }
 
         private static void ClearCurrentBuildingSelection()

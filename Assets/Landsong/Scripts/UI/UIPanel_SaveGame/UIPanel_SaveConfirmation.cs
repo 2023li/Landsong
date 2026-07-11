@@ -122,7 +122,7 @@ public class UIPanel_SaveConfirmation : UIPanelBase
             return;
         }
 
-        DataManager.Instance.SaveNewGameData();
+        DataManager.Instance.SaveCurrentGame(GameDataSaveMode.NewSave);
         await UIManager.Instance.BackAsync();
     }
 

@@ -255,7 +255,7 @@ namespace Landsong.DebugSystem
             var previousEnabled = GUI.enabled;
             if (GUILayout.Button("添加 9999 金币", GUILayout.Height(30f)))
             {
-                var added = gameSystem.AddGameplayDebugGold();
+                var added = gameSystem.Services.Inventory.AddItem("金币", 9999);
                 gameplayDebugStatus = added == 9999
                     ? "已添加金币 x9999。"
                     : $"金币仅添加 x{added}/9999：库存容量不足或金币未配置。";
@@ -277,7 +277,7 @@ namespace Landsong.DebugSystem
             GUILayout.Space(8f);
             if (GUILayout.Button("获取一个随机任务", GUILayout.Height(30f)))
             {
-                if (gameSystem.TryAddGameplayDebugRandomQuest(out var quest))
+                if (gameSystem.Services.Quest.TryAddDebugRandomQuest(out var quest))
                 {
                     gameplayDebugStatus = $"已获取随机任务：{quest.Definition.DisplayName}。";
                 }
@@ -299,7 +299,7 @@ namespace Landsong.DebugSystem
 
         private void DrawGameplayDebugItemSelection(Landsong.GameSystem gameSystem)
         {
-            var catalog = gameSystem.Inventory == null ? null : gameSystem.Inventory.ItemCatalog;
+            var catalog = gameSystem.Services.Inventory == null ? null : gameSystem.Services.Inventory.ItemCatalog;
             var definitions = catalog == null ? null : catalog.Definitions;
             if (definitions == null || definitions.Count == 0)
             {
@@ -351,14 +351,14 @@ namespace Landsong.DebugSystem
             gameplayDebugItemQuantity = amount;
             gameplayDebugItemQuantityText = amount.ToString();
 
-            var catalog = gameSystem.Inventory == null ? null : gameSystem.Inventory.ItemCatalog;
+            var catalog = gameSystem.Services.Inventory == null ? null : gameSystem.Services.Inventory.ItemCatalog;
             if (catalog == null || !catalog.TryGetDefinition(gameplayDebugItemId, out var definition))
             {
                 gameplayDebugStatus = "请选择物品目录中的有效物资。";
                 return;
             }
 
-            var added = gameSystem.AddGameplayDebugItem(definition.ItemId, amount);
+            var added = gameSystem.Services.Inventory.AddItem(definition.ItemId, amount);
             gameplayDebugStatus = added == amount
                 ? $"已添加 {definition.DisplayName} x{added}。"
                 : $"{definition.DisplayName} 仅添加 x{added}/{amount}：库存容量不足。";
@@ -674,10 +674,10 @@ namespace Landsong.DebugSystem
                 AppendBuildingDebugNote("没有 GameSystem，无法读取选择状态和运行时建筑数量。");
             }
 
-            BuildingSelectionController selectionController = gameSystem == null ? null : gameSystem.BuildingSelection;
-            IReadOnlyList<BuildingBase> runtimeBuildings = gameSystem == null || gameSystem.Buildings == null
+            BuildingSelectionController selectionController = gameSystem == null ? null : gameSystem.Services.BuildingSelection;
+            IReadOnlyList<BuildingBase> runtimeBuildings = gameSystem == null || gameSystem.Services.Buildings == null
                 ? null
-                : gameSystem.Buildings.Buildings;
+                : gameSystem.Services.Buildings.Buildings;
 
             sampledSelectedBuilding = selectionController == null ? null : selectionController.SelectedBuilding;
             sampledRuntimeBuildingCount = runtimeBuildings == null ? 0 : runtimeBuildings.Count;

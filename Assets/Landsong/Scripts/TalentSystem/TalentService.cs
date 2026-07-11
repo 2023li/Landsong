@@ -597,6 +597,11 @@ namespace Landsong.TalentSystem
         }
 
         public event Action<TalentService> StateChanged;
+        public event Action<TalentService, TalentRefreshResult> OffersRefreshed;
+        public event Action<TalentService, TalentRecruitResult> OfferRecruited;
+        public event Action<TalentService, TalentAssignResult> TalentAssigned;
+        public event Action<TalentService, TalentAssignResult> TalentUnassigned;
+        public event Action<TalentService, TalentUpgradeResult> TalentUpgraded;
 
         public TalentCatalog Catalog => catalog;
         public ItemDefinition SalaryGoldItemDefinition => salaryGoldItemDefinition;
@@ -654,9 +659,9 @@ namespace Landsong.TalentSystem
 
             var goldItemId = GetGoldItemId();
             return context != null
-                   && context.Inventory != null
+                   && context.Services.Inventory != null
                    && !string.IsNullOrWhiteSpace(goldItemId)
-                   && context.Inventory.HasItem(goldItemId, refreshGoldCost);
+                   && context.Services.Inventory.HasItem(goldItemId, refreshGoldCost);
         }
 
         public bool TryRefreshOffers(out TalentRefreshResult result)
@@ -689,13 +694,14 @@ namespace Landsong.TalentSystem
                 currentOffers.Add(new TalentOfferState(Guid.NewGuid().ToString("N"), selected));
             }
 
-            lastRefreshTurn = context == null ? 0 : context.CurrentTurn;
+            lastRefreshTurn = context == null ? 0 : context.Services.Turn.CurrentTurn;
             result = new TalentRefreshResult(
                 true,
                 refreshGoldCost,
                 currentOffers.ToArray(),
                 currentOffers.Count <= 0 ? "没有符合条件的人才。" : $"已刷新 {currentOffers.Count} 张人才卡。");
             NotifyChanged();
+            OffersRefreshed?.Invoke(this, result);
             return true;
         }
 
@@ -723,6 +729,7 @@ namespace Landsong.TalentSystem
 
             result = new TalentRecruitResult(true, offer, talent, $"已招募：{talent.DisplayName}。");
             NotifyChanged();
+            OfferRecruited?.Invoke(this, result);
             return true;
         }
 
@@ -752,6 +759,7 @@ namespace Landsong.TalentSystem
             slot.Assign(talent);
             result = new TalentAssignResult(true, talent, slot, $"已任命 {talent.DisplayName} 至 {slot.DisplayName}。");
             NotifyChanged();
+            TalentAssigned?.Invoke(this, result);
             return true;
         }
 
@@ -774,6 +782,7 @@ namespace Landsong.TalentSystem
             slot.Assign(null);
             result = new TalentAssignResult(true, talent, slot, $"已卸任：{talent.DisplayName}。");
             NotifyChanged();
+            TalentUnassigned?.Invoke(this, result);
             return true;
         }
 
@@ -796,6 +805,7 @@ namespace Landsong.TalentSystem
             slot.Assign(null);
             result = new TalentAssignResult(true, talent, slot, $"已卸任：{talent.DisplayName}。");
             NotifyChanged();
+            TalentUnassigned?.Invoke(this, result);
             return true;
         }
 
@@ -824,6 +834,7 @@ namespace Landsong.TalentSystem
                 transitions.ToArray(),
                 $"{talent.DisplayName} 已提升至 {talent.Level} 级。");
             NotifyChanged();
+            TalentUpgraded?.Invoke(this, result);
             return true;
         }
 
@@ -1154,7 +1165,7 @@ namespace Landsong.TalentSystem
             }
 
             var goldItemId = GetGoldItemId();
-            if (context == null || context.Inventory == null)
+            if (context == null || context.Services.Inventory == null)
             {
                 message = "库存服务未初始化。";
                 return false;
@@ -1166,13 +1177,13 @@ namespace Landsong.TalentSystem
                 return false;
             }
 
-            if (!context.Inventory.HasItem(goldItemId, refreshGoldCost))
+            if (!context.Services.Inventory.HasItem(goldItemId, refreshGoldCost))
             {
                 message = $"金币不足：刷新需要 {refreshGoldCost}。";
                 return false;
             }
 
-            if (!context.Inventory.TryRemoveItem(goldItemId, refreshGoldCost))
+            if (!context.Services.Inventory.TryRemoveItem(goldItemId, refreshGoldCost))
             {
                 message = "扣除刷新费用失败。";
                 return false;
@@ -1193,17 +1204,17 @@ namespace Landsong.TalentSystem
             }
 
             var goldItemId = GetGoldItemId();
-            if (context == null || context.Inventory == null || string.IsNullOrWhiteSpace(goldItemId))
+            if (context == null || context.Services.Inventory == null || string.IsNullOrWhiteSpace(goldItemId))
             {
                 salaryMissing = salaryRequired;
                 return;
             }
 
-            var available = context.Inventory.GetQuantity(goldItemId);
+            var available = context.Services.Inventory.GetQuantity(goldItemId);
             salaryPaid = Mathf.Min(available, salaryRequired);
             if (salaryPaid > 0)
             {
-                context.Inventory.RemoveItem(goldItemId, salaryPaid);
+                context.Services.Inventory.RemoveItem(goldItemId, salaryPaid);
             }
 
             salaryMissing = Mathf.Max(0, salaryRequired - salaryPaid);
@@ -1265,12 +1276,12 @@ namespace Landsong.TalentSystem
             TalentEffectDefinition effect,
             int amount)
         {
-            if (context.Inventory == null || effect.ItemDefinition == null || amount <= 0)
+            if (context.Services.Inventory == null || effect.ItemDefinition == null || amount <= 0)
             {
                 return new TalentEffectApplicationResult(talent, effect, false, amount, string.Empty);
             }
 
-            var added = context.Inventory.AddItem(effect.ItemDefinition, amount);
+            var added = context.Services.Inventory.AddItem(effect.ItemDefinition, amount);
             var message = added > 0
                 ? $"{talent.DisplayName}：{effect.ItemDefinition.DisplayName}+{added}"
                 : $"{talent.DisplayName}：{effect.ItemDefinition.DisplayName}+0（仓库已满）";
@@ -1288,7 +1299,7 @@ namespace Landsong.TalentSystem
                 return new TalentEffectApplicationResult(talent, effect, false, amount, string.Empty);
             }
 
-            context.ApplyTalentResearchPoints(amount, turnNumber, talent.DisplayName);
+            context.ApplyExternalResearchPoints(amount, turnNumber, talent.DisplayName);
             return new TalentEffectApplicationResult(talent, effect, true, amount, $"{talent.DisplayName}：研究点+{amount}");
         }
 
@@ -1300,7 +1311,7 @@ namespace Landsong.TalentSystem
                 return new TalentEffectApplicationResult(talent, effect, false, 0, string.Empty);
             }
 
-            var unlocked = context.UnlockBuildingBlueprint(building.Definition.BuildingId);
+            var unlocked = context.Services.BuildingBlueprints.Unlock(building.Definition.BuildingId);
             var message = unlocked
                 ? $"{talent.DisplayName}：解锁蓝图 {building.Definition.DisplayName}"
                 : $"{talent.DisplayName}：蓝图已解锁 {building.Definition.DisplayName}";
