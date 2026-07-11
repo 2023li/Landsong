@@ -107,7 +107,7 @@ public class GameDataMeta
             MapName = gameData.MapName,
             RoundCount = Mathf.Max(1, gameData.RoundCount > 0 ? gameData.RoundCount : gameData.CurrentTurn),
             Stage = gameData.Stage,
-           
+
             CreatedAtUnixTime = gameData.CreatedAtUnixTime,
             LastSaveUnixTime = gameData.LastSaveUnixTime,
             TotalPlayTimeSeconds = gameData.TotalPlayTimeSeconds,
@@ -860,4 +860,3 @@ public class AudioKeyVolumeSaveData
         Volume = Mathf.Clamp01(Volume);
     }
 }
-

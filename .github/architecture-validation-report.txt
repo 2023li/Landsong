@@ -1,4 +1,6 @@
 diff_status=2
+.github/architecture-validation-report.txt:3: trailing whitespace.
+++           
 Assets/Landsong/Scripts/Persistence/SaveDataModels.cs:110: trailing whitespace.
 +           
 Assets/Landsong/Scripts/Persistence/SaveDataModels.cs:863: new blank line at EOF.
