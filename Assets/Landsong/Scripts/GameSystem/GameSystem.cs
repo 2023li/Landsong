@@ -115,13 +115,13 @@ namespace Landsong
         internal TechnologyCatalog TechnologyCatalog => technologyCatalog;
 
         [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeStatus), LabelText("当前人口")]
-        public int Population => Dynasty == null ? startingPopulation : Dynasty.Population;
+        internal int Population => Dynasty == null ? startingPopulation : Dynasty.Population;
 
         [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeStatus), LabelText("王朝名称")]
-        public string DynastyName => Dynasty == null ? startingDynastyName : Dynasty.DynastyName;
+        internal string DynastyName => Dynasty == null ? startingDynastyName : Dynasty.DynastyName;
 
         [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeStatus), LabelText("拥有王宫")]
-        public bool HasPalace => Dynasty != null && Dynasty.HasPalace;
+        internal bool HasPalace => Dynasty != null && Dynasty.HasPalace;
 
         [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeStatus), LabelText("游戏已结束")]
         public bool IsGameOver { get; private set; }
@@ -887,16 +887,6 @@ namespace Landsong
             }
 
             Events?.AddMessage(GameEventMessage.ForGame(eventTypeId, message, turnNumber));
-        }
-
-        private void NotifyBuildingBlueprintsChanged()
-        {
-            BuildingBlueprintsChanged?.Invoke(this);
-        }
-
-        private static string NormalizeBuildingBlueprintId(string buildingId)
-        {
-            return string.IsNullOrWhiteSpace(buildingId) ? string.Empty : buildingId.Trim();
         }
 
         private static string FormatExpeditionDestinationName(ExpeditionState expedition)
