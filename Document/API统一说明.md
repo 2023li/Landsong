@@ -24,6 +24,14 @@ GameSystem.Instance.Services
 - `BuildingSelection`
 - `BuildingCatalog`
 
+例如：
+
+```csharp
+GameSystem.Instance.Services.Quest.TrySubmitResources(questId);
+GameSystem.Instance.Services.Technology.TryStartResearch(technology);
+GameSystem.Instance.Services.Talents.TryRefreshOffers(out var result);
+```
+
 `GameSystem` 只保留真正的游戏级编排，例如 `NextTurn()`、游戏结束状态和跨系统回合结算。
 
 ## 不再保留的接口
