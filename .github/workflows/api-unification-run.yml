@@ -25,14 +25,16 @@ jobs:
       - name: Run migration
         shell: bash
         run: |
+          rm -f .github/API_UNIFICATION_ERROR.status .github/API_UNIFICATION_ERROR.txt
           set +e
-          python3 .github/scripts/unify_public_api.py > /tmp/api-unification.log 2>&1
+          python3 .github/scripts/unify_public_api.py > /tmp/api-unification.txt 2>&1
           status=$?
           set -e
-          cat /tmp/api-unification.log
+          cat /tmp/api-unification.txt
           if [ "$status" -ne 0 ]; then
             git reset --hard HEAD
-            cp /tmp/api-unification.log .github/API_UNIFICATION_ERROR.log
+            rm -f .github/API_UNIFICATION_ERROR.status .github/API_UNIFICATION_ERROR.txt
+            cp /tmp/api-unification.txt .github/API_UNIFICATION_ERROR.txt
             echo "$status" > .github/API_UNIFICATION_ERROR.status
           fi
 
