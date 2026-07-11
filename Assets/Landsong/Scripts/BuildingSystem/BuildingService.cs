@@ -282,7 +282,9 @@ namespace Landsong.BuildingSystem
         public bool TryReplace(BuildingBase sourceBuilding, BuildingBase replacementPrefab, out BuildingBase replacement)
         {
             replacement = null;
-            if (!CanReplace(sourceBuilding, replacementPrefab))
+            if (!CanReplace(sourceBuilding, replacementPrefab)
+                || sourceBuilding.Definition == null
+                || replacementPrefab.Definition == null)
             {
                 return false;
             }
@@ -291,26 +293,112 @@ namespace Landsong.BuildingSystem
             var origin = sourceBuilding.GridPosition;
             var rotation = sourceBuilding.transform.rotation;
             var parent = sourceBuilding.transform.parent;
+            var sourceDefinition = sourceBuilding.Definition;
+            var replacementDefinition = replacementPrefab.Definition;
+            var sourceOccupancyId = sourceBuilding.GridOccupancyId;
+            var replacementOccupancyId = CreateGridOccupancyId(replacementPrefab);
+            var sourceWasRegistered = sourceBuilding.IsRegistered || registeredBuildings.Contains(sourceBuilding);
+            var occupancyTransferred = false;
+            var sourceDetached = false;
 
-            sourceBuilding.ClearPlacement();
-            var request = new BuildingPlacementRequest(
-                replacementPrefab,
-                gridMap,
-                origin,
-                rotation,
-                parent);
-            var result = TryPlace(request, out replacement);
-            if (!result.Succeeded)
+            try
             {
+                var placementPosition = gridMap.GetFootprintCenter(origin, replacementDefinition.Size);
+                replacement = UnityEngine.Object.Instantiate(
+                    replacementPrefab,
+                    placementPosition,
+                    rotation,
+                    parent);
+                if (replacement == null)
+                {
+                    Debug.LogWarning(
+                        $"Cannot replace building '{sourceBuilding.name}' because replacement instantiation failed.",
+                        sourceBuilding);
+                    return false;
+                }
+
+                // Start 尚未执行，先禁用实例，避免替换提交前进入运行时注册流程。
+                replacement.gameObject.SetActive(false);
+                replacement.ReceiveReplacementStateFrom(sourceBuilding);
+
+                if (!gridMap.TryReplaceOccupant(
+                        sourceOccupancyId,
+                        origin,
+                        replacementDefinition.Size,
+                        replacementOccupancyId,
+                        replacementDefinition.RequiredTerrainKeys,
+                        replacementDefinition.MovementResistance,
+                        out var failureReason))
+                {
+                    Debug.LogWarning(
+                        $"Cannot replace building '{sourceBuilding.name}' with '{replacementDefinition.DisplayName}' at {origin}: {failureReason}.",
+                        sourceBuilding);
+                    UnityEngine.Object.Destroy(replacement.gameObject);
+                    replacement = null;
+                    return false;
+                }
+
+                occupancyTransferred = true;
+                sourceBuilding.DetachPlacementAfterOccupancyTransfer();
+                sourceDetached = true;
+                replacement.SetPlacement(origin, replacementOccupancyId, gridMap);
+                replacement.gameObject.SetActive(true);
+
+                if (sourceWasRegistered)
+                {
+                    gameSystem?.UnregisterBuilding(sourceBuilding);
+                    gameSystem?.RegisterBuilding(replacement);
+                }
+
                 UnityEngine.Object.Destroy(sourceBuilding.gameObject);
+                return true;
+            }
+            catch (Exception exception)
+            {
+                Debug.LogException(exception, sourceBuilding);
+
+                if (replacement != null)
+                {
+                    gameSystem?.UnregisterBuilding(replacement);
+                }
+
+                if (occupancyTransferred)
+                {
+                    if (gridMap.TryReplaceOccupant(
+                            replacementOccupancyId,
+                            origin,
+                            sourceDefinition.Size,
+                            sourceOccupancyId,
+                            sourceDefinition.RequiredTerrainKeys,
+                            sourceDefinition.MovementResistance,
+                            out var rollbackFailure))
+                    {
+                        if (sourceDetached)
+                        {
+                            sourceBuilding.SetPlacement(origin, sourceOccupancyId, gridMap);
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogError(
+                            $"Building replacement rollback failed for '{sourceBuilding.name}' at {origin}: {rollbackFailure}.",
+                            sourceBuilding);
+                    }
+                }
+
+                if (sourceWasRegistered)
+                {
+                    gameSystem?.RegisterBuilding(sourceBuilding);
+                }
+
+                if (replacement != null)
+                {
+                    UnityEngine.Object.Destroy(replacement.gameObject);
+                    replacement = null;
+                }
+
                 return false;
             }
-
-            replacement.ReceiveReplacementStateFrom(sourceBuilding);
-            gameSystem?.UnregisterBuilding(sourceBuilding);
-            UnityEngine.Object.Destroy(sourceBuilding.gameObject);
-            gameSystem?.RegisterBuilding(replacement);
-            return true;
         }
 
         public bool CanReplace(BuildingBase sourceBuilding, BuildingBase replacementPrefab, bool logWarning = true)

@@ -8,6 +8,7 @@ namespace Landsong.GridSystem
         OutOfBounds = 3,
         NotBuildable = 4,
         Occupied = 5,
-        TerrainMismatch = 6
+        TerrainMismatch = 6,
+        TransactionFailed = 7
     }
 }
