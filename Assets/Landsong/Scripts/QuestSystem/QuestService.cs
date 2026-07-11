@@ -14,6 +14,8 @@ namespace Landsong
     /// </summary>
     public sealed class QuestService : IDisposable
     {
+        private const string GameplayDebugGoldItemId = "金币";
+
         private readonly GameSystem context;
         private readonly List<GameQuestState> quests = new List<GameQuestState>();
 
