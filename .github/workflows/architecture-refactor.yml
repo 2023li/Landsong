@@ -16,6 +16,7 @@ jobs:
         with:
           ref: agent/architecture-refactor-20260711
           fetch-depth: 0
+          show-progress: false
 
       - name: Decode and apply refactor
         shell: bash
@@ -26,12 +27,16 @@ jobs:
           python3 .github/scripts/architecture_refactor.py > /tmp/architecture-refactor.log 2>&1
           exit_code=$?
           set -e
-          tail -120 /tmp/architecture-refactor.log
           if [ "$exit_code" -ne 0 ]; then
-            exit "$exit_code"
+            git reset --hard HEAD
+            git clean -fd
+            mkdir -p .github
+            cp /tmp/architecture-refactor.log .github/architecture-refactor-error.log
+          else
+            mkdir -p .github/workflows
+            cp /tmp/architecture-refactor.yml .github/workflows/architecture-refactor.yml
+            rm -f .github/architecture-refactor-error.log
           fi
-          mkdir -p .github/workflows
-          cp /tmp/architecture-refactor.yml .github/workflows/architecture-refactor.yml
 
       - name: Commit generated changes
         shell: bash
