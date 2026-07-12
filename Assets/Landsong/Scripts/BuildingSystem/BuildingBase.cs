@@ -59,6 +59,9 @@ namespace Landsong.BuildingSystem
         [Tooltip("为 true 时，该建筑可作为居民房等建筑的资源连接点。")]
         [SerializeField] private bool isResourceProviderPoint;
 
+        [Tooltip("资源消费者优先选择数值更高的可达资源提供点；同优先级时选择路径行动力代价更低的提供点。")]
+        [SerializeField, LabelText("资源提供优先级")] private int resourceProviderPriority;
+
         [Tooltip("建筑可选能力模块。只给需要该能力的建筑添加对应模块。")]
         [SerializeReference, LabelText("建筑模块")] private List<BuildingModuleBase> buildingModules = new List<BuildingModuleBase>();
 
@@ -154,6 +157,9 @@ namespace Landsong.BuildingSystem
 
         // 是否可作为居民房等建筑的资源连接点。
         public bool IsResourceProviderPoint => isResourceProviderPoint;
+
+        // 资源消费者选择提供点时使用的优先级。数值越高越优先。
+        public int ResourceProviderPriority => resourceProviderPriority;
 
         // 当前建筑挂载的可选能力模块。
         public IReadOnlyList<BuildingModuleBase> BuildingModules => buildingModules ?? EmptyBuildingModules;

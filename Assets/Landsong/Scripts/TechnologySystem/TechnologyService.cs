@@ -819,8 +819,8 @@ namespace Landsong.TechnologySystem
 
             var leftId = TechnologySaveData.NormalizeTechnologyId(left.TechnologyId);
             var rightId = TechnologySaveData.NormalizeTechnologyId(right.TechnologyId);
-            var leftHasPosition = TryParseTechnologyNodePosition(leftId, out var leftRow, out var leftColumn);
-            var rightHasPosition = TryParseTechnologyNodePosition(rightId, out var rightRow, out var rightColumn);
+            var leftHasPosition = TechnologyNodeId.TryParse(leftId, out var leftRow, out var leftColumn);
+            var rightHasPosition = TechnologyNodeId.TryParse(rightId, out var rightRow, out var rightColumn);
             if (leftHasPosition && rightHasPosition)
             {
                 var rowComparison = leftRow.CompareTo(rightRow);
@@ -845,22 +845,6 @@ namespace Landsong.TechnologySystem
             }
 
             return string.Compare(leftId, rightId, StringComparison.Ordinal);
-        }
-
-        private static bool TryParseTechnologyNodePosition(string technologyId, out int row, out int column)
-        {
-            row = 0;
-            column = 0;
-            if (string.IsNullOrWhiteSpace(technologyId))
-            {
-                return false;
-            }
-
-            var parts = technologyId.Trim().Split('_');
-            return parts.Length >= 3
-                   && string.Equals(parts[0], "TN", StringComparison.Ordinal)
-                   && int.TryParse(parts[1], out row)
-                   && int.TryParse(parts[2], out column);
         }
 
         private static int GetRequiredResearchPoints(TechnologyDefinition definition)

@@ -5,7 +5,7 @@ using Landsong.InventorySystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-public sealed class FishingHutBuilding :BuildingBase, IBuildingWorkforceFundingSource
+public sealed class FishingHutBuilding :BuildingBase, IBuildingWorkforceFundingSource, IBuildingWorkforceModuleHost
 {
     private const string DefaultFishItemId = "鱼";
     private const string DefaultGoldFishItemId = "黄金鱼";
@@ -137,6 +137,13 @@ public sealed class FishingHutBuilding :BuildingBase, IBuildingWorkforceFundingS
     private readonly List<BuildingWorkforceAttractionFactor> workforceAttractionFactors =
         new List<BuildingWorkforceAttractionFactor>();
 
+    public BM_岗位运营 GetWorkforceModule()
+    {
+        var module = EnsureBuildingModule<BM_岗位运营>();
+        module.ConfigureDefaultsIfUnset(maxWorkers, initialWorkersOnPlaced, baseJobAttraction, singleRecruitCost, autoFullWorkerSubsidyEnabled, targetStableWorkers, goldItemId);
+        return module;
+    }
+
     public int CurrentWorkers => currentWorkers;
     public int MaxWorkers => maxWorkers;
     public int StableWorkers => stableWorkers;
@@ -175,48 +182,39 @@ public sealed class FishingHutBuilding :BuildingBase, IBuildingWorkforceFundingS
 
     protected override void OnInitialized()
     {
-        NormalizeConfiguration();
-        RecalculateWorkforce();
+        GetWorkforceModule().Bind(this);
     }
 
     protected override void OnRegistered()
     {
-        RecalculateWorkforce();
-        RefreshDynastyEmployedPopulation();
+        GetWorkforceModule().Bind(this);
     }
 
     protected override void OnPlaced()
     {
-        TryGrantInitialWorkersOnPlaced();
-        RefreshDynastyEmployedPopulation();
+        GetWorkforceModule().OnPlaced(this);
     }
 
     protected override bool OnTurn()
     {
-        NormalizeConfiguration();
         ClearLastTurnState();
+        var workforce = GetWorkforceModule();
+        if (!workforce.ProcessTurn(this)) return false;
 
-        RecalculateWorkforceWithoutSubsidy();
-        TryPaySubsidyForCurrentTurn();
-        RecalculateWorkforce();
-        ProcessWorkerTurn();
-
-        if (currentWorkers < GetMinimumWorkersForProduction())
+        if (workforce.CurrentWorkers < EnsureResourceProductionModule().GetMinimumWorkersForProduction(workforce.MaxWorkers))
         {
             SetLastAbnormalStatus(StatusInsufficientWorkers, "工人不足");
-            RefreshDynastyEmployedPopulation();
             return false;
         }
 
         var inventory = GameSystem == null ? null : GameSystem.Inventory;
         var productionResult = EnsureResourceProductionModule()
-            .TryAdvanceProductionCycle(this, inventory, currentWorkers, maxWorkers);
+            .TryAdvanceProductionCycle(this, inventory, workforce.CurrentWorkers, workforce.MaxWorkers);
         if (!productionResult.Succeeded)
         {
             SetLastAbnormalStatus(
                 productionResult.FailureStatusId,
                 productionResult.FailureStatusText);
-            RefreshDynastyEmployedPopulation();
             return false;
         }
 
@@ -226,7 +224,6 @@ public sealed class FishingHutBuilding :BuildingBase, IBuildingWorkforceFundingS
             AddUpgradeExperience();
         }
 
-        RefreshDynastyEmployedPopulation();
         return true;
     }
 
@@ -523,7 +520,7 @@ public sealed class FishingHutBuilding :BuildingBase, IBuildingWorkforceFundingS
     private bool ShouldCatchSpecialFish()
     {
         return enableSpecialCatch
-               && currentWorkers >= specialCatchMinimumWorkers
+               && GetWorkforceModule().CurrentWorkers >= specialCatchMinimumWorkers
                && specialCatchAmount > 0
                && specialCatchChancePercent > 0f
                && UnityEngine.Random.value < Mathf.Clamp01(specialCatchChancePercent / 100f);

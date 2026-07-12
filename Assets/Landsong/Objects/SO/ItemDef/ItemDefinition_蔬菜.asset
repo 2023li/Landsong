@@ -12,13 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2f82a98a2ca34cb18716745704baeb28, type: 3}
   m_Name: "ItemDefinition_\u852C\u83DC"
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.InventorySystem.ItemDefinition
+  icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
   itemId: "\u852C\u83DC"
   displayName: "\u852C\u83DC"
   description: 
-  icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
   category: 30
   stackable: 1
   maxStackSize: 200
-  baseValue: 0
+  baseValue: 1
   addressableKey: 
   tags: []

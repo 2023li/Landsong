@@ -41,12 +41,14 @@ namespace Landsong.TurnSystem
             {
                 var summary = BeginTurnAdvance();
                 var snapshot = CreateBuildingSnapshot(runtimeBuildings);
+                BeginResourceProvisionTurn(snapshot);
 
                 for (var i = 0; i < snapshot.Length; i++)
                 {
                     ProcessBuildingTurn(snapshot[i], ref summary);
                 }
 
+                CompleteResourceProvisionTurn(snapshot);
                 CompleteTurnAdvance(summary);
                 return summary;
             }
@@ -70,6 +72,7 @@ namespace Landsong.TurnSystem
 
                 var summary = BeginTurnAdvance();
                 var snapshot = CreateBuildingSnapshot(runtimeBuildings);
+                BeginResourceProvisionTurn(snapshot);
                 var processedThisFrame = 0;
 
                 for (var i = 0; i < snapshot.Length; i++)
@@ -86,6 +89,7 @@ namespace Landsong.TurnSystem
                     yield return null;
                 }
 
+                CompleteResourceProvisionTurn(snapshot);
                 CompleteTurnAdvance(summary);
                 completed?.Invoke(summary);
             }
@@ -191,6 +195,29 @@ namespace Landsong.TurnSystem
                 }
 
                 BuildingResourceProvided?.Invoke(this, new BuildingResourceProvidedEvent(building, resource));
+            }
+        }
+
+        private void BeginResourceProvisionTurn(IReadOnlyList<BuildingBase> buildings)
+        {
+            BuildingResourceProviderSystem.BeginResourceProvisionTurn(buildings);
+        }
+
+        private void CompleteResourceProvisionTurn(IReadOnlyList<BuildingBase> buildings)
+        {
+            BuildingResourceProviderSystem.CompleteResourceProvisionTurn(buildings);
+
+            if (buildings == null)
+            {
+                return;
+            }
+
+            for (var i = 0; i < buildings.Count; i++)
+            {
+                if (buildings[i] is IBuildingResourceProvisionAccounting)
+                {
+                    NotifyProvidedResources(buildings[i]);
+                }
             }
         }
 

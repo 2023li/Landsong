@@ -6,6 +6,7 @@ using Landsong.ExpeditionSystem;
 using Landsong.GridSystem;
 using Landsong.InheritanceSystem;
 using Landsong.InventorySystem;
+using Landsong.PolicySystem;
 using Landsong.TalentSystem;
 using Landsong.TechnologySystem;
 using UnityEngine;
@@ -192,7 +193,7 @@ public class GameData
     public const string DefaultDynastyName = DynastyService.DefaultDynastyName;
 
     //data 版本号
-    public const int CurrentDataVersion = 8;
+    public const int CurrentDataVersion = 9;
 
     public int DataVersion = CurrentDataVersion;
 
@@ -229,6 +230,8 @@ public class GameData
     public InventorySaveData InventoryData;
 
     public TechnologySaveData TechnologyData;
+
+    public PolicySaveData PolicyData;
 
     public Landsong.QuestSaveData QuestData;
 
@@ -268,6 +271,7 @@ public class GameData
             WorldSeed = 0,
             InventoryData = null,
             TechnologyData = null,
+            PolicyData = null,
             QuestData = null,
             ExpeditionData = null,
             TalentData = null,
@@ -341,6 +345,7 @@ public class GameData
         NormalizeUnlockedTechnologies();
         NormalizeUnlockedBuildingBlueprints();
         NormalizeTechnologyData();
+        NormalizePolicyData();
         NormalizeQuestData();
         NormalizeExpeditionData();
         NormalizeTalentData();
@@ -437,6 +442,11 @@ public class GameData
             };
             TechnologyData.Validate();
         }
+    }
+
+    private void NormalizePolicyData()
+    {
+        PolicyData?.Validate();
     }
 
     private void NormalizeQuestData()

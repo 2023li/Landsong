@@ -419,7 +419,7 @@ namespace Landsong.BuildingSystem
                     continue;
                 }
 
-                if (building is IBuildingJobSource jobSource)
+                if (BuildingWorkforceUtility.TryGetSource(building, out var jobSource))
                 {
                     workerCount += Mathf.Max(0, jobSource.CurrentWorkers);
                 }

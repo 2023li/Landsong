@@ -26,7 +26,7 @@ public sealed class BuildingDetailsBlock_Workforce : BuildingDetailsBlockBase
 
     public override bool CanShow(BuildingBase targetBuilding)
     {
-        return targetBuilding is IBuildingWorkforceFundingSource;
+        return BuildingWorkforceUtility.TryGetSource(targetBuilding, out _);
     }
 
     public override void Initialize(
@@ -40,8 +40,7 @@ public sealed class BuildingDetailsBlock_Workforce : BuildingDetailsBlockBase
 
     public override void Bind(BuildingBase targetBuilding)
     {
-        workforceFundingSource = targetBuilding as IBuildingWorkforceFundingSource;
-        if (workforceFundingSource == null)
+        if (!BuildingWorkforceUtility.TryGetSource(targetBuilding, out workforceFundingSource))
         {
             Unbind();
             return;

@@ -10,19 +10,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a3b70d7f4d394dd9a76b0bc2e5c6a101, type: 3}
-  m_Name: "TN_3_4_\u542F\u8499"
+  m_Name: "TN_4_4_冶铁术"
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.TechnologySystem.TechnologyDefinition
   icon: {fileID: 0}
-  technologyId: "TN_3_4_\u542F\u8499"
-  displayName: "\u5B8C\u7ED3"
-  description: 
-  sciencePointCost: 1
-  allowRepeatResearch: 1
+  technologyId: "TN_4_4_冶铁术"
+  displayName: "冶铁术"
+  description: "以高温炉火冶炼铁矿，打造更坚韧的工具与武器。"
+  sciencePointCost: 30
+  allowRepeatResearch: 0
   prerequisites:
-  - {fileID: 11400000, guid: f781232eb061b7e4099bf4f2eff53c98, type: 2}
-  - {fileID: 11400000, guid: dcd01ab1673e38748ace913b29c49655, type: 2}
+  - {fileID: 11400000, guid: a75fdf4152ea4d058deee4a376a3d7c5, type: 2}
+  - {fileID: 11400000, guid: 0564931de0f148b59aefb70aaf598f69, type: 2}
   completionEffects: []
-  graphPosition: {x: 1264.9999, y: 380.66663}
+  graphPosition: {x: 780, y: 450}
   references:
     version: 2
     RefIds: []

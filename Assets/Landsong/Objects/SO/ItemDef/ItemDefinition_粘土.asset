@@ -19,6 +19,6 @@ MonoBehaviour:
   category: 0
   stackable: 1
   maxStackSize: 200
-  baseValue: 0
+  baseValue: 1
   addressableKey: 
   tags: []

@@ -4,6 +4,7 @@ using Landsong.ExpeditionSystem;
 using Landsong.GameEventSystem;
 using Landsong.InheritanceSystem;
 using Landsong.InventorySystem;
+using Landsong.PolicySystem;
 using Landsong.TalentSystem;
 using Landsong.TechnologySystem;
 using Landsong.TurnSystem;
@@ -29,6 +30,7 @@ namespace Landsong
         public BuildingService Buildings => owner.Buildings;
         public GameEventService Events => owner.Events;
         public TechnologyService Technology => owner.Technology;
+        public PolicyService Policies => owner.Policies;
         public QuestService Quest => owner.Quest;
         public ExpeditionService Expeditions => owner.Expeditions;
         public TalentService Talents => owner.Talents;
@@ -36,6 +38,7 @@ namespace Landsong
         public BuildingBlueprintService BuildingBlueprints => owner.BuildingBlueprints;
         public BuildingSelectionController BuildingSelection => owner.BuildingSelection;
         public BuildingCatalog BuildingCatalog => owner.BuildingCatalog;
+        public PolicyCatalog PolicyCatalog => owner.PolicyCatalog;
     }
 
     public sealed partial class GameSystem

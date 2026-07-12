@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3b70d7f4d394dd9a76b0bc2e5c6a101, type: 3}
+  m_Name: "TN_3_6_远洋帆装"
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.TechnologySystem.TechnologyDefinition
+  icon: {fileID: 0}
+  technologyId: "TN_3_6_远洋帆装"
+  displayName: "远洋帆装"
+  description: "以更可靠的船体、桅杆与帆具支持跨海远航。"
+  sciencePointCost: 65
+  allowRepeatResearch: 0
+  prerequisites:
+  - {fileID: 11400000, guid: bc85e62cdd734a36b343c62a94cc8326, type: 2}
+  - {fileID: 11400000, guid: 98671757f6784958bf64e348f4155687, type: 2}
+  completionEffects: []
+  graphPosition: {x: 1300, y: 300}
+  references:
+    version: 2
+    RefIds: []

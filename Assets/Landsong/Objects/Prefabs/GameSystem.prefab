@@ -71,6 +71,9 @@ MonoBehaviour:
   startingResearchTechnology: {fileID: 0}
   startingResearchProgress: 0
   startingUnlockedTechnologies: []
+  policyCatalog: {fileID: 11400000, guid: 2c44ed9de03142fca98c63198b3f2ab5, type: 2}
+  startingPublicOpinion: 0
+  startingSelectedPolicies: []
   startingQuests:
   - questId: main_build_farms_3
     displayName: "\u6574\u5907\u7530\u5784"

@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Landsong.BuildingSystem.Buildings
 {
-    public sealed class FarmField : BuildingBase, IBuildingWorkforceFundingSource, IBuildingCropFieldSource, IBuildingCropFieldActions
+    public sealed class FarmField : BuildingBase, IBuildingWorkforceFundingSource, IBuildingWorkforceModuleHost, IBuildingCropFieldSource, IBuildingCropFieldActions
     {
         private const string DefaultGoldItemId = "金币";
         private const string StatusMissingInventory = BuildingRuntimeStatusCatalog.BS_库存缺失;
@@ -155,6 +155,13 @@ namespace Landsong.BuildingSystem.Buildings
         private BuildingJobCalculation lastJobCalculationWithoutSubsidy;
         private bool hasCalculatedSubsidyTarget;
 
+        public BM_岗位运营 GetWorkforceModule()
+        {
+            var module = EnsureBuildingModule<BM_岗位运营>();
+            module.ConfigureDefaultsIfUnset(maxWorkers, initialWorkersOnPlaced, baseJobAttraction, singleRecruitCost, autoFullWorkerSubsidyEnabled, targetStableWorkers, goldItemId);
+            return module;
+        }
+
         public int CurrentWorkers => currentWorkers;
         public int MaxWorkers => maxWorkers;
         public int StableWorkers => stableWorkers;
@@ -208,41 +215,30 @@ namespace Landsong.BuildingSystem.Buildings
 
         protected override void OnInitialized()
         {
-            NormalizeConfiguration();
-            RecalculateJobState(false);
+            GetWorkforceModule().Bind(this);
         }
 
         protected override void OnRegistered()
         {
-            RecalculateJobState(false);
-            RefreshDynastyEmployedPopulation();
+            GetWorkforceModule().Bind(this);
         }
 
         protected override void OnPlaced()
         {
-            NormalizeConfiguration();
-            TryGrantInitialWorkersOnPlaced();
-            RecalculateJobState(false);
-            RefreshDynastyEmployedPopulation();
+            GetWorkforceModule().OnPlaced(this);
         }
 
         protected override bool OnTurn()
         {
-            NormalizeConfiguration();
             ClearLastTurnState();
-
-            var inventory = GameSystem == null ? null : GameSystem.Inventory;
-            RecalculateJobState();
-            TryPaySubsidyForCurrentTurn(inventory);
-            RecalculateJobState();
-            ProcessWorkerTurn();
-            RecalculateJobState();
+            var workforce = GetWorkforceModule();
+            if (!workforce.ProcessTurn(this)) return false;
 
             var cropGrowth = EnsureCropGrowthModule();
             var succeeded = true;
             if (cropGrowth.HasCrop)
             {
-                if (currentWorkers < maxWorkers)
+                if (workforce.CurrentWorkers < workforce.MaxWorkers)
                 {
                     SetLastAbnormalStatus(StatusInsufficientWorkers, "工人不足");
                     succeeded = false;
@@ -257,7 +253,6 @@ namespace Landsong.BuildingSystem.Buildings
                 }
             }
 
-            RefreshDynastyEmployedPopulation();
             return succeeded;
         }
 

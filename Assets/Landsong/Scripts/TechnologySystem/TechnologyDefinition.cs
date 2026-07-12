@@ -5,6 +5,32 @@ using UnityEngine;
 
 namespace Landsong.TechnologySystem
 {
+    public static class TechnologyNodeId
+    {
+        public const int MinimumRow = 1;
+        public const int MaximumRow = 5;
+
+        public static bool TryParse(string technologyId, out int row, out int column)
+        {
+            row = 0;
+            column = 0;
+            if (string.IsNullOrWhiteSpace(technologyId))
+            {
+                return false;
+            }
+
+            var parts = technologyId.Trim().Split(new[] { '_' }, 4);
+            return parts.Length == 4
+                   && string.Equals(parts[0], "TN", StringComparison.Ordinal)
+                   && int.TryParse(parts[1], out row)
+                   && row >= MinimumRow
+                   && row <= MaximumRow
+                   && int.TryParse(parts[2], out column)
+                   && column > 0
+                   && !string.IsNullOrWhiteSpace(parts[3]);
+        }
+    }
+
     [CreateAssetMenu(menuName = "Landsong/Technology/Technology Definition", fileName = "TechnologyDefinition")]
     public sealed class TechnologyDefinition : ScriptableObject
     {
@@ -31,6 +57,11 @@ namespace Landsong.TechnologySystem
         public Vector2 GraphPosition => graphPosition;
         public bool HasIcon => icon != null;
         public bool IsValid => !string.IsNullOrWhiteSpace(technologyId);
+
+        public bool TryGetNodePosition(out int row, out int column)
+        {
+            return TechnologyNodeId.TryParse(technologyId, out row, out column);
+        }
 
         private void OnValidate()
         {

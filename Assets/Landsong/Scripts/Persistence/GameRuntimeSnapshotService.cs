@@ -23,10 +23,11 @@ namespace Landsong.Persistence
             if (gameSystem != null)
             {
                 var services = gameSystem.Services;
-                gameData.CurrentTurn = services.Turn == null ? gameSystem.Services.Turn.CurrentTurn : services.Turn.CurrentTurn;
+                gameData.CurrentTurn = services.Turn == null ? gameSystem.CurrentTurn : services.Turn.CurrentTurn;
                 gameData.RoundCount = Mathf.Max(1, gameData.CurrentTurn);
 
                 gameData.TechnologyData = services.Technology?.CaptureSaveData();
+                gameData.PolicyData = services.Policies?.CaptureSaveData();
                 gameData.UnlockedTechnologies = gameData.TechnologyData == null
                     ? new List<string>()
                     : new List<string>(gameData.TechnologyData.UnlockedTechnologyIds);
@@ -59,7 +60,7 @@ namespace Landsong.Persistence
 
         public bool Restore(GameData gameData)
         {
-            if (!PrepareRestore(gameData, out var gameSystem))
+            if (!PrepareRestore(gameData, out var gameSystem, out var quest))
             {
                 return false;
             }
@@ -67,13 +68,15 @@ namespace Landsong.Persistence
             var succeeded = false;
             try
             {
+                quest.BeginRuntimeRestore();
+                quest.RestoreSaveData(gameData.QuestData);
                 RestoreBuildingInstances(gameData, gameSystem);
                 succeeded = true;
                 return true;
             }
             finally
             {
-                gameSystem.Services.Quest.EndRuntimeRestore();
+                quest.EndRuntimeRestore();
                 if (!succeeded)
                 {
                     Debug.LogWarning("运行时快照恢复未完成，任务系统已退出恢复抑制状态。");
@@ -83,7 +86,7 @@ namespace Landsong.Persistence
 
         public IEnumerator RestoreRoutine(GameData gameData, int buildingsPerFrame, Action<bool> completed)
         {
-            if (!PrepareRestore(gameData, out var gameSystem))
+            if (!PrepareRestore(gameData, out var gameSystem, out var quest))
             {
                 completed?.Invoke(false);
                 yield break;
@@ -92,12 +95,14 @@ namespace Landsong.Persistence
             var succeeded = false;
             try
             {
+                quest.BeginRuntimeRestore();
+                quest.RestoreSaveData(gameData.QuestData);
                 yield return RestoreBuildingInstancesRoutine(gameData, gameSystem, buildingsPerFrame);
                 succeeded = true;
             }
             finally
             {
-                gameSystem.Services.Quest.EndRuntimeRestore();
+                quest.EndRuntimeRestore();
                 completed?.Invoke(succeeded);
             }
         }
@@ -124,20 +129,23 @@ namespace Landsong.Persistence
             return UnityEngine.Object.FindFirstObjectByType<GameSystem>(FindObjectsInactive.Include);
         }
 
-        private static bool PrepareRestore(GameData gameData, out GameSystem gameSystem)
+        private static bool PrepareRestore(GameData gameData, out GameSystem gameSystem, out QuestService quest)
         {
             gameSystem = ResolveGameSystem();
+            quest = null;
             if (gameData == null || gameSystem == null)
             {
                 return false;
             }
 
             gameData.Validate();
+            gameSystem.EnsureRuntimeServices();
             gameSystem.RestoreCurrentTurn(gameData.CurrentTurn);
             gameSystem.RestoreDynastyData(gameData.DynastyName, gameData.Stage, gameData.BasePopulation);
 
             var services = gameSystem.Services;
             services.Technology?.RestoreSaveData(gameData.TechnologyData, gameData.UnlockedTechnologies);
+            services.Policies?.RestoreSaveData(gameData.PolicyData);
             services.BuildingBlueprints?.RestoreSaveData(gameData.UnlockedBuildingBlueprintIds);
             if (services.Inventory != null && gameData.InventoryData != null)
             {
@@ -147,8 +155,12 @@ namespace Landsong.Persistence
             services.Expeditions?.RestoreSaveData(gameData.ExpeditionData);
             services.Talents?.RestoreSaveData(gameData.TalentData);
             services.Inheritance?.RestoreSaveData(gameData.RoyalInheritanceData);
-            services.Quest?.BeginRuntimeRestore();
-            services.Quest?.RestoreSaveData(gameData.QuestData);
+            quest = services.Quest;
+            if (quest == null)
+            {
+                Debug.LogError("恢复 GameData 运行时状态失败：任务服务未初始化。");
+                return false;
+            }
 
             return true;
         }

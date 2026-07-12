@@ -10,18 +10,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a3b70d7f4d394dd9a76b0bc2e5c6a101, type: 3}
-  m_Name: "TN_3_3_\u542F\u8499"
+  m_Name: "TN_4_5_铁骑"
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.TechnologySystem.TechnologyDefinition
   icon: {fileID: 0}
-  technologyId: "TN_3_3_\u542F\u8499"
-  displayName: "\u6D4B\u8BD52"
-  description: 
-  sciencePointCost: 1
+  technologyId: "TN_4_5_铁骑"
+  displayName: "铁骑"
+  description: "结合轮式运输、骑乘训练与铁制装备建立重装骑兵。"
+  sciencePointCost: 50
   allowRepeatResearch: 0
   prerequisites:
-  - {fileID: 11400000, guid: 9a0f6a8451e34c80ac55c4dfe537b407, type: 2}
+  - {fileID: 11400000, guid: 3424b56f27534f7a94f008d25e7c5d7c, type: 2}
+  - {fileID: 11400000, guid: dcd01ab1673e38748ace913b29c49655, type: 2}
   completionEffects: []
-  graphPosition: {x: 877.99994, y: 375.99982}
+  graphPosition: {x: 1040, y: 450}
   references:
     version: 2
     RefIds: []

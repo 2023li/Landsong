@@ -16,6 +16,7 @@ namespace Landsong.BuildingSystem
         public const string BS_食物不足 = "missing_food";
         public const string BS_税收配置异常 = "invalid_tax_item";
         public const string BS_税收存入失败 = "tax_reward_failed";
+        public const string BS_市场收入存入失败 = "market_income_failed";
         public const string BS_原木配置异常 = "invalid_wood_item";
         public const string BS_金币配置异常 = "invalid_gold_item";
         public const string BS_原木存入失败 = "wood_storage_failed";
@@ -36,6 +37,7 @@ namespace Landsong.BuildingSystem
                 BS_食物不足,
                 BS_税收配置异常,
                 BS_税收存入失败,
+                BS_市场收入存入失败,
                 BS_原木配置异常,
                 BS_金币配置异常,
                 BS_原木存入失败,

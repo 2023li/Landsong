@@ -6,7 +6,7 @@ using Landsong.InventorySystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-public class LumberCabin : BuildingBase, IBuildingWorkforceFundingSource
+public class LumberCabin : BuildingBase, IBuildingWorkforceFundingSource, IBuildingWorkforceModuleHost
 {
     private const string DefaultWoodItemId = "原木";
     private const string DefaultGoldItemId = "金币";
@@ -118,6 +118,13 @@ public class LumberCabin : BuildingBase, IBuildingWorkforceFundingSource
         new List<BuildingWorkforceAttractionFactor>();
     private bool hasCalculatedSubsidyTarget;
 
+    public BM_岗位运营 GetWorkforceModule()
+    {
+        var module = EnsureBuildingModule<BM_岗位运营>();
+        module.ConfigureDefaultsIfUnset(maxWorkers, initialWorkersOnPlaced, baseJobAttraction, singleRecruitCost, autoFullWorkerSubsidyEnabled, targetStableWorkers, goldItemId);
+        return module;
+    }
+
     public int CurrentWorkers => currentWorkers;
     public int MaxWorkers => maxWorkers;
     public int StableWorkers => stableWorkers;
@@ -176,44 +183,27 @@ public class LumberCabin : BuildingBase, IBuildingWorkforceFundingSource
 
     protected override void OnInitialized()
     {
-        NormalizeConfiguration();
-        RecalculateJobState();
+        GetWorkforceModule().Bind(this);
     }
 
     protected override void OnPlaced()
     {
-        NormalizeConfiguration();
-        TryGrantInitialWorkersOnPlaced();
-        RecalculateJobState();
-        RefreshDynastyEmployedPopulation();
+        GetWorkforceModule().OnPlaced(this);
     }
 
     protected override void OnRegistered()
     {
-        RecalculateJobState();
-        RefreshDynastyEmployedPopulation();
+        GetWorkforceModule().Bind(this);
     }
 
     protected override bool OnTurn()
     {
-        NormalizeConfiguration();
-        ClearLastTurnState();
-
+        var workforce = GetWorkforceModule();
+        if (!workforce.ProcessTurn(this)) return false;
         var inventory = GameSystem == null ? null : GameSystem.Inventory;
-        if (inventory == null)
-        {
-            SetLastAbnormalStatus(StatusMissingInventory, "库存服务缺失");
-            return false;
-        }
-
-        RecalculateJobState();
-        TryPaySubsidyForCurrentTurn(inventory);
-        RecalculateJobState();
-        ProcessWorkerTurn();
-        RecalculateJobState();
 
         var productionResult = EnsureResourceProductionModule()
-            .TryAdvanceProductionCycle(this, inventory, currentWorkers, maxWorkers);
+            .TryAdvanceProductionCycle(this, inventory, workforce.CurrentWorkers, workforce.MaxWorkers);
         if (!productionResult.Succeeded)
         {
             SetLastAbnormalStatus(
@@ -226,7 +216,6 @@ public class LumberCabin : BuildingBase, IBuildingWorkforceFundingSource
             AddProductionExperience();
         }
 
-        RefreshDynastyEmployedPopulation();
         return productionResult.Succeeded;
     }
 

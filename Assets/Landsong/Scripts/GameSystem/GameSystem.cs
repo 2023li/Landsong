@@ -7,6 +7,7 @@ using Landsong.ExpeditionSystem;
 using Landsong.GameEventSystem;
 using Landsong.InheritanceSystem;
 using Landsong.InventorySystem;
+using Landsong.PolicySystem;
 using Landsong.TalentSystem;
 using Landsong.TechnologySystem;
 using Landsong.TurnSystem;
@@ -31,6 +32,7 @@ namespace Landsong
         private const string InspectorInventory = "库存";
         private const string InspectorDynasty = "王朝";
         private const string InspectorTechnology = "科技";
+        private const string InspectorPolicy = "政策";
         private const string InspectorQuest = "任务";
         private const string InspectorExpedition = "远征";
         private const string InspectorTalent = "人才";
@@ -58,6 +60,10 @@ namespace Landsong
         [SerializeField, FoldoutGroup(InspectorTechnology), LabelText("初始当前研究科技")] private TechnologyDefinition startingResearchTechnology;
         [SerializeField, FoldoutGroup(InspectorTechnology), LabelText("初始当前研究进度"), Min(0)] private int startingResearchProgress;
         [SerializeField, FoldoutGroup(InspectorTechnology), LabelText("初始已解锁科技")] private string[] startingUnlockedTechnologies = Array.Empty<string>();
+
+        [SerializeField, FoldoutGroup(InspectorPolicy), LabelText("政策目录")] private PolicyCatalog policyCatalog;
+        [SerializeField, FoldoutGroup(InspectorPolicy), LabelText("初始民意"), Min(0)] private int startingPublicOpinion;
+        [SerializeField, FoldoutGroup(InspectorPolicy), LabelText("初始已选择政策")] private PolicyDefinition[] startingSelectedPolicies = Array.Empty<PolicyDefinition>();
 
         [SerializeField, FoldoutGroup(InspectorExpedition), LabelText("远征目的地目录")] private ExpeditionDestinationCatalog expeditionDestinationCatalog;
         [SerializeField, FoldoutGroup(InspectorExpedition), LabelText("远征补贴金币物品")] private ItemDefinition expeditionSubsidyGoldItemDefinition;
@@ -96,6 +102,9 @@ namespace Landsong
         [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeServices), LabelText("科技服务")]
         internal TechnologyService Technology { get; private set; }
 
+        [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeServices), LabelText("政策服务")]
+        internal PolicyService Policies { get; private set; }
+
         [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeServices), LabelText("远征服务")]
         internal ExpeditionService Expeditions { get; private set; }
 
@@ -113,6 +122,12 @@ namespace Landsong
 
         [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeStatus), LabelText("科技目录")]
         internal TechnologyCatalog TechnologyCatalog => technologyCatalog;
+
+        [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeStatus), LabelText("政策目录")]
+        internal PolicyCatalog PolicyCatalog => policyCatalog;
+
+        [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeStatus), LabelText("当前民意")]
+        internal int PublicOpinion => Policies == null ? startingPublicOpinion : Policies.PublicOpinion;
 
         [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeStatus), LabelText("当前人口")]
         internal int Population => Dynasty == null ? startingPopulation : Dynasty.Population;
@@ -182,18 +197,71 @@ namespace Landsong
 
         protected override void Init()
         {
-            CreateTechnologyService();
-            CreateInventoryService();
-            CreateDynastyService();
-            CreateTurnService();
-            CreateBuildingService();
-            CreateGameEventService();
-            CreateBuildingBlueprintService();
-            CreateExpeditionService();
-            CreateTalentService();
-            CreateInheritanceService();
-            CreateQuestService();
+            EnsureRuntimeServices();
             ResolveBuildingSelectionController();
+        }
+
+        internal void EnsureRuntimeServices()
+        {
+            if (Technology == null)
+            {
+                CreateTechnologyService();
+            }
+
+            if (Policies == null)
+            {
+                CreatePolicyService();
+            }
+
+            if (Inventory == null)
+            {
+                CreateInventoryService();
+            }
+
+            if (Dynasty == null)
+            {
+                CreateDynastyService();
+            }
+
+            if (Turn == null)
+            {
+                CreateTurnService();
+            }
+
+            if (Buildings == null)
+            {
+                CreateBuildingService();
+            }
+
+            if (Events == null)
+            {
+                CreateGameEventService();
+            }
+
+            if (BuildingBlueprints == null)
+            {
+                CreateBuildingBlueprintService();
+            }
+
+            if (Expeditions == null)
+            {
+                CreateExpeditionService();
+            }
+
+            if (Talents == null)
+            {
+                CreateTalentService();
+            }
+
+            if (Inheritance == null)
+            {
+                CreateInheritanceService();
+            }
+
+            if (Quest == null)
+            {
+                CreateQuestService();
+            }
         }
 
         private void Update()
@@ -216,6 +284,7 @@ namespace Landsong
             inventorySlotCount = Mathf.Max(0, inventorySlotCount);
             startingPopulation = Mathf.Max(0, startingPopulation);
             startingResearchProgress = Mathf.Max(0, startingResearchProgress);
+            startingPublicOpinion = Mathf.Max(0, startingPublicOpinion);
             startingTurn = Mathf.Max(1, startingTurn);
             turnBuildingsPerFrame = Mathf.Max(1, turnBuildingsPerFrame);
             expeditionTeamCapacity = Mathf.Max(1, expeditionTeamCapacity);
@@ -251,9 +320,11 @@ namespace Landsong
                 {
                     startingUnlockedTechnologies[i] = string.IsNullOrWhiteSpace(startingUnlockedTechnologies[i])
                         ? string.Empty
-                    : startingUnlockedTechnologies[i].Trim();
+                        : startingUnlockedTechnologies[i].Trim();
                 }
             }
+
+            startingSelectedPolicies ??= Array.Empty<PolicyDefinition>();
 
             if (startingUnlockedBuildingBlueprintIds == null)
             {
@@ -928,6 +999,11 @@ namespace Landsong
                 startingResearchProgress);
             Technology.StateChanged += HandleTechnologyStateChanged;
             HandleTechnologyStateChanged(Technology);
+        }
+
+        private void CreatePolicyService()
+        {
+            Policies = new PolicyService(policyCatalog, startingPublicOpinion, startingSelectedPolicies);
         }
 
         private void HandleTechnologyStateChanged(TechnologyService changedTechnology)

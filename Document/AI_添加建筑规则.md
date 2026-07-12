@@ -1,5 +1,7 @@
 # AI_添加建筑规则
 
+> 项目级入口见 [AI_开发原则.md](AI_开发原则.md)。本文件只规定建筑系统的实现和交付规则；查看现有建筑与 Prefab 配置时继续阅读 [建筑说明.md](建筑说明.md)。
+
 本文档给后续 AI / 开发者修改 Landsong 建筑系统时使用。它不是玩家教程，而是**当前仓库实现下的入口索引、职责边界、修改约束与交付清单**。
 
 如果旧文档、历史讨论、旧脚本命名与当前实现冲突，以**仓库当前代码和 Prefab 配置**为准。
@@ -185,11 +187,19 @@ flowchart TD
 
 - 具体建筑脚本负责 `OnTurn()` 的业务逻辑。
 - `BM_资源产出` 负责周期、产量表、上回合产出记录。
+- `BM_岗位运营` 负责岗位吸引、补贴、招工/离职、就业人口和岗位运行时存档；生产/作物/市场等具体业务仍留在建筑脚本。
 - `BM_施工材料消耗` 负责按施工阶段扣除材料并暴露本回合/上回合消耗。
 - `BM_等级升级` 负责施工或运营经验、升级条件、升级成本、目标 Prefab 与自动升级。
 - `BM_科技点产出` 负责保存每回合科技点数值和上回合结果。
 - `BuildingJobSystem` 负责岗位吸引力与稳定工人数公式。
 - `BuildingAvailabilityEvaluator` 负责建造菜单可见/可用状态。
+
+### 资源提供点与供给归属
+
+- `isResourceProviderPoint` 只表示建筑具备作为提供点的静态资格；消费者实际选点必须调用 `BuildingResourceProviderSystem.TrySelectProvider(...)`，不要自行遍历建筑后只判断“存在任意资源点”。
+- 统一选点规则是：可达提供点中先选 `resourceProviderPriority` 更高者；同优先级时选路径行动力代价更低者；完全并列时由稳定键决胜。
+- 有开工条件的提供点应实现 `IBuildingResourceProviderOperationalState`，未开工时不会参与选点。
+- 需要统计实际供给的提供点应实现 `IBuildingResourceProvisionAccounting`；由 `TurnService` 在回合开始清账、所有建筑处理完成后结算，不能在自身 `OnTurn()` 里提前结算。
 
 ### 存档规则
 
@@ -231,6 +241,8 @@ private sealed class ExampleBuildingData : BuildingDataBase
 - `IBuildingTaxSource`
 - `IBuildingTechnologyPointSource`
 - `IBuildingWorkforceFundingSource`
+- `IBuildingResourceProviderOperationalState`
+- `IBuildingResourceProvisionAccounting`
 
 不要在 UI 层硬写：
 
@@ -258,6 +270,20 @@ else if (building is ResidentialHousingLV1) { ... }
 - 捕鱼
 - 农田成熟收获
 - 工坊生产
+
+### `BM_岗位运营`
+
+用途：
+
+- 为需要雇工的建筑提供统一的岗位吸引、自动补贴、招工/离职和就业人口同步
+- 通过 `IBuildingModuleStateSerializer` 保存工人、补贴开关和目标稳定工人
+- 通过 `BuildingWorkforceUtility.TryGetSource(...)` 向岗位 UI、资源产出模块和全局人口统计暴露岗位来源
+
+约束：
+
+- 新建筑优先挂载此模块，不要在具体建筑脚本重复实现 `IBuildingWorkforceFundingSource`。
+- 建筑 `OnTurn()` 只调用模块的岗位处理，再执行自己的生产、作物或结算业务。
+- 本项目不保留旧版本存档兼容；迁移既有建筑时应删除旧岗位字段和旧岗位存档数据。模块类型名仍不可随意变更。
 
 ### `BM_附近人口岗位吸引`
 
@@ -339,6 +365,12 @@ else if (building is ResidentialHousingLV1) { ... }
 
 例如当前伐木小屋 LV1 / LV2 就更接近这种模式。
 
+### 等级脚本决策
+
+同一玩法机制的多个等级必须共用一个不带等级后缀的脚本，例如 `LumberCabin` 与 `Market`。等级 Prefab 通过 `BuildingDefinition`、`BM_岗位运营`、`BM_资源产出`、`BM_等级升级` 等配置表达差异。
+
+只有回合状态机、领域注册责任、存档模型或独立交互流程实质分叉时，才拆为不同脚本；施工态与完工态属于这种例外。不要仅因 Prefab 名称为 LV1/LV2 创建 `XXXLV1` / `XXXLV2` 脚本。
+
 ### 需要独立回合逻辑
 
 如果新建筑有这些差异：
@@ -393,6 +425,7 @@ else if (building is ResidentialHousingLV1) { ... }
 - `taxIntervalTurns`
 - `consumptionFailureDecayThreshold`
 - `isResourceProviderPoint`
+- `resourceProviderPriority`
 - `buildingActionPower`
 
 ## 示例
@@ -400,16 +433,16 @@ else if (building is ResidentialHousingLV1) { ... }
 ### 新增一个“生产型岗位建筑”的推荐写法
 
 ```csharp
-public sealed class ExampleWorkshop : BuildingBase, IBuildingWorkforceFundingSource
+public sealed class ExampleWorkshop : BuildingBase
 {
     protected override void OnRegistered()
     {
-        RecalculateState();
+        EnsureBuildingModule<BM_岗位运营>().Bind(this);
     }
 
     protected override void OnPlaced()
     {
-        RecalculateState();
+        EnsureBuildingModule<BM_岗位运营>().OnPlaced(this);
     }
 
     protected override bool OnTurn()
@@ -420,10 +453,14 @@ public sealed class ExampleWorkshop : BuildingBase, IBuildingWorkforceFundingSou
             return false;
         }
 
-        RecalculateState();
+        var workforce = EnsureBuildingModule<BM_岗位运营>();
+        if (!workforce.ProcessTurn(this))
+        {
+            return false;
+        }
 
         var result = EnsureBuildingModule<BM_资源产出>()
-            .TryAdvanceProductionCycle(this, inventory, CurrentWorkers, MaxWorkers);
+            .TryAdvanceProductionCycle(this, inventory, workforce.CurrentWorkers, workforce.MaxWorkers);
 
         if (result.ProducedResources && TryGetModule<BM_等级升级>(out var levelModule))
         {

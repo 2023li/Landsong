@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Landsong.BuildingSystem;
 using Landsong.GameEventSystem;
-using Landsong.GridSystem;
 using Landsong.InventorySystem;
 using Landsong.UISystem;
 using Sirenix.OdinInspector;
@@ -198,12 +197,13 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
                 $"ResidentialHousingLV1 '{name}' cannot consume food because food item id is empty.");
         }
 
-        if (!HasReachableResourceProvider())
+        if (!BuildingResourceProviderSystem.TrySelectProvider(this, out var providerSelection))
         {
             return RegisterConsumptionFailure(StatusMissingResourceProvider, "无法连接资源");
         }
 
         lastTurnHadResourceProvider = true;
+        lastResourceProviderActionCost = providerSelection.ActionCost;
 
         var foodAmount = GetCurrentFoodConsumptionAmount();
         if (foodAmount > 0 && !inventory.TryRemoveItem(foodItemId, foodAmount))
@@ -214,6 +214,13 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
         ClearConsumptionFailure();
         lastTurnConsumedResources = foodAmount > 0;
         lastResourceConsumptions = CreateResourceChanges(foodItemId, foodAmount);
+        if (foodAmount > 0)
+        {
+            BuildingResourceProviderSystem.RecordProvidedResource(
+                providerSelection,
+                this,
+                new BuildingResourceChange(foodItemId, foodAmount));
+        }
 
         return ProcessSuccessfulConsumption(inventory);
     }
@@ -345,132 +352,6 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
         lastTurnProvidedTax = true;
         lastTaxRewards = CreateResourceChanges(taxItemId, taxAmount);
         return true;
-    }
-
-    private bool HasReachableResourceProvider()
-    {
-        lastResourceProviderActionCost = -1;
-
-        if (!HasPlacement || GridMap == null || GameSystem == null || GameSystem.Buildings == null)
-        {
-            return false;
-        }
-
-        var buildings = GameSystem.Buildings.Buildings;
-        if (buildings == null || buildings.Count == 0)
-        {
-            return false;
-        }
-
-        var targetCells = new HashSet<GridPosition>();
-        for (var i = 0; i < buildings.Count; i++)
-        {
-            var building = buildings[i];
-            if (!CanUseAsResourceProvider(building))
-            {
-                continue;
-            }
-
-            foreach (var position in building.Footprint.Positions())
-            {
-                targetCells.Add(position);
-            }
-        }
-
-        if (targetCells.Count == 0)
-        {
-            return false;
-        }
-
-        var ownCells = CreateFootprintCellSet(this);
-        var reachable = GridManhattanPathfinder.FindReachable(
-            GridMap,
-            ownCells,
-            BuildingActionPower,
-            position => CanEnterResourceProviderSearchCell(position, ownCells, targetCells),
-            position => GetResourceProviderSearchActionCost(position, targetCells));
-
-        var bestActionCost = int.MaxValue;
-        for (var i = 0; i < reachable.Count; i++)
-        {
-            var node = reachable[i];
-            if (targetCells.Contains(node.Position) && node.ActionCost < bestActionCost)
-            {
-                bestActionCost = node.ActionCost;
-            }
-        }
-
-        if (bestActionCost == int.MaxValue)
-        {
-            return false;
-        }
-
-        lastResourceProviderActionCost = bestActionCost;
-        return true;
-    }
-
-    private static HashSet<GridPosition> CreateFootprintCellSet(BuildingBase building)
-    {
-        var cells = new HashSet<GridPosition>();
-        if (building == null || !building.HasPlacement)
-        {
-            return cells;
-        }
-
-        foreach (var position in building.Footprint.Positions())
-        {
-            cells.Add(position);
-        }
-
-        return cells;
-    }
-
-    private bool CanUseAsResourceProvider(BuildingBase building)
-    {
-        if (building == null || building == this || !building.isActiveAndEnabled || building.IsDemolishing)
-        {
-            return false;
-        }
-
-        if (!building.HasPlacement || building.GridMap != GridMap)
-        {
-            return false;
-        }
-
-        return building.IsResourceProviderPoint;
-    }
-
-    private bool CanEnterResourceProviderSearchCell(
-        GridPosition position,
-        HashSet<GridPosition> ownCells,
-        HashSet<GridPosition> targetCells)
-    {
-        if (GridMap == null || !GridMap.HasBaseTileAt(position))
-        {
-            return false;
-        }
-
-        if (ownCells.Contains(position))
-        {
-            return true;
-        }
-
-        if (targetCells.Contains(position))
-        {
-            return true;
-        }
-
-        return GridMap.CanTraverse(position, GridOccupancyId);
-    }
-
-    private int GetResourceProviderSearchActionCost(GridPosition position, HashSet<GridPosition> targetCells)
-    {
-        if (!targetCells.Contains(position) || GridMap.CanTraverse(position, GridOccupancyId))
-        {
-            return GridMap.GetTraversalActionCost(position, GridOccupancyId);
-        }
-
-        return GridMap.GetTerrainTraversalActionCost(position);
     }
 
     private int GetCurrentFoodConsumptionAmount()

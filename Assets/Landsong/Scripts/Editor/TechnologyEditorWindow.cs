@@ -939,9 +939,11 @@ public sealed class TechnologyEditorWindow : EditorWindow
             return false;
         }
 
-        if (!int.TryParse(parts[1], out var row) || row <= 0)
+        if (!int.TryParse(parts[1], out var row)
+            || row < TechnologyNodeId.MinimumRow
+            || row > TechnologyNodeId.MaximumRow)
         {
-            errorMessage = "节点 ID 的行号必须是大于 0 的整数。";
+            errorMessage = $"节点 ID 的行号必须是 {TechnologyNodeId.MinimumRow}-{TechnologyNodeId.MaximumRow}。";
             return false;
         }
 

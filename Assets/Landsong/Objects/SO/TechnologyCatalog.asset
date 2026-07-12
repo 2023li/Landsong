@@ -13,10 +13,26 @@ MonoBehaviour:
   m_Name: TechnologyCatalog
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.TechnologySystem.TechnologyCatalog
   definitions:
-  - {fileID: 11400000, guid: 9a0f6a8451e34c80ac55c4dfe537b407, type: 2}
-  - {fileID: 11400000, guid: 006213b12ed0bbc4091a2f3c95bc2f65, type: 2}
-  - {fileID: 11400000, guid: dcd01ab1673e38748ace913b29c49655, type: 2}
+  - {fileID: 11400000, guid: e42fb5dd061f454b937e6a3962d810eb, type: 2}
+  - {fileID: 11400000, guid: f313c2baa5204c98ab677a484c013308, type: 2}
+  - {fileID: 11400000, guid: 7b8e4b4acf054a8086c6c03ebbeabd0a, type: 2}
+  - {fileID: 11400000, guid: e471d386ba1a440e8e307c132cc871c1, type: 2}
   - {fileID: 11400000, guid: bd13b1fc3bb1e134d9e40a6e591a1057, type: 2}
   - {fileID: 11400000, guid: f781232eb061b7e4099bf4f2eff53c98, type: 2}
+  - {fileID: 11400000, guid: 98671757f6784958bf64e348f4155687, type: 2}
+  - {fileID: 11400000, guid: 0d8ebf680c4648b7a780078af00a8409, type: 2}
+  - {fileID: 11400000, guid: 006213b12ed0bbc4091a2f3c95bc2f65, type: 2}
+  - {fileID: 11400000, guid: 9a0f6a8451e34c80ac55c4dfe537b407, type: 2}
+  - {fileID: 11400000, guid: dcd01ab1673e38748ace913b29c49655, type: 2}
   - {fileID: 11400000, guid: 342fa6b729cdf5c47bb162f923bc11f8, type: 2}
+  - {fileID: 11400000, guid: bc85e62cdd734a36b343c62a94cc8326, type: 2}
+  - {fileID: 11400000, guid: a2d1e13e924b415cbefd00c4b00d396d, type: 2}
+  - {fileID: 11400000, guid: b561d310aff84f7ea6070ac39f3c4a64, type: 2}
+  - {fileID: 11400000, guid: a75fdf4152ea4d058deee4a376a3d7c5, type: 2}
+  - {fileID: 11400000, guid: 3424b56f27534f7a94f008d25e7c5d7c, type: 2}
+  - {fileID: 11400000, guid: fda315085aaa4756ad44c3731eacc78e, type: 2}
+  - {fileID: 11400000, guid: 0564931de0f148b59aefb70aaf598f69, type: 2}
+  - {fileID: 11400000, guid: 61697eb9c4b24fb9897e281cb2c16734, type: 2}
+  - {fileID: 11400000, guid: 2647df88960947c5a42c3abe4d5be27f, type: 2}
+  - {fileID: 11400000, guid: 40ffa58f25464805821e89f0862d1215, type: 2}
   folderPath: Assets/Landsong/Objects/SO/Technology

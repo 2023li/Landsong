@@ -539,7 +539,7 @@ namespace Landsong.BuildingSystem
 
         private static bool TryResolveWorkforce(BuildingBase building, out int workers, out int maxWorkers)
         {
-            if (building is IBuildingWorkforceFundingSource workforce)
+            if (BuildingWorkforceUtility.TryGetSource(building, out var workforce))
             {
                 workers = workforce.CurrentWorkers;
                 maxWorkers = workforce.MaxWorkers;
