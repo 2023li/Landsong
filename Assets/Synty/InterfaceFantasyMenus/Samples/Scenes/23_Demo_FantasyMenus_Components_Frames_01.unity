@@ -13,7 +13,7 @@ OcclusionCullingSettings:
 --- !u!104 &2
 RenderSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 9
+  serializedVersion: 10
   m_Fog: 1
   m_FogColor: {r: 0.5652706, g: 0.57815427, b: 0.6039216, a: 1}
   m_FogMode: 3
@@ -42,8 +42,8 @@ RenderSettings:
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 12
-  m_GIWorkflowMode: 1
+  serializedVersion: 13
+  m_BakeOnSceneLoad: 0
   m_GISettings:
     serializedVersion: 2
     m_BounceScale: 1
@@ -66,9 +66,6 @@ LightmapSettings:
     m_LightmapParameters: {fileID: 0}
     m_LightmapsBakeMode: 1
     m_TextureCompression: 1
-    m_FinalGather: 0
-    m_FinalGatherFiltering: 1
-    m_FinalGatherRayCount: 256
     m_ReflectionCompression: 2
     m_MixedBakeMode: 2
     m_BakeBackend: 0
@@ -2648,6 +2645,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 421663212920527807, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
+      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
+      value: 1801810542
+      objectReference: {fileID: 0}
     - target: {fileID: 447467132942510491, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
       propertyPath: sceneName
       value: 12_Demo_SciFi_Other_VFX
@@ -2659,6 +2660,14 @@ PrefabInstance:
     - target: {fileID: 556388437488221398, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
       propertyPath: m_text
       value: 11_Demo_SciFi_Components_Misc
+      objectReference: {fileID: 0}
+    - target: {fileID: 833889591991724306, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
+      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
+      value: 1801810542
+      objectReference: {fileID: 0}
+    - target: {fileID: 861104194505345219, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
+      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
+      value: 1801810542
       objectReference: {fileID: 0}
     - target: {fileID: 927990108575761938, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
       propertyPath: m_AnchorMax.y
@@ -2761,243 +2770,243 @@ PrefabInstance:
       value: 69
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[9]
+      propertyPath: '_sceneNames.Array.data[9]'
       value: 11_Demo_FantasyWarrior_Screen_Loading_01
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[10]
+      propertyPath: '_sceneNames.Array.data[10]'
       value: 12_Demo_FantasyWarrior_Screen_Settings_01
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[11]
+      propertyPath: '_sceneNames.Array.data[11]'
       value: 13_Demo_FantasyWarrior_Screen_SaveGame_01
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[12]
+      propertyPath: '_sceneNames.Array.data[12]'
       value: 15_Demo_FantasyWarrior_Screen_LoadGame_01
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[13]
+      propertyPath: '_sceneNames.Array.data[13]'
       value: 17_Demo_FantasyWarrior_Screen_Death_01
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[14]
+      propertyPath: '_sceneNames.Array.data[14]'
       value: 18_Demo_FantasyWarrior_Screen_AdjustBrightness_01
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[15]
+      propertyPath: '_sceneNames.Array.data[15]'
       value: 19_Demo_FantasyWarrior_Screen_PhotoMode_01
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[16]
+      propertyPath: '_sceneNames.Array.data[16]'
       value: 20_Demo_FantasyWarrior_Screen_Credits_01
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[17]
+      propertyPath: '_sceneNames.Array.data[17]'
       value: 21_Demo_FantasyWarrior_Input_Xbox
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[18]
+      propertyPath: '_sceneNames.Array.data[18]'
       value: 22_Demo_FantasyWarrior_Input_PlayStation
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[19]
+      propertyPath: '_sceneNames.Array.data[19]'
       value: 23_Demo_FantasyWarrior_Input_NintendoSwitch
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[20]
+      propertyPath: '_sceneNames.Array.data[20]'
       value: 24_Demo_FantasyWarrior_Input_Keyboard&Mouse
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[21]
+      propertyPath: '_sceneNames.Array.data[21]'
       value: 25_Demo_FantasyWarrior_Input_SteamDeck
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[22]
+      propertyPath: '_sceneNames.Array.data[22]'
       value: 26_Demo_FantasyWarrior_MasterSprites
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[23]
+      propertyPath: '_sceneNames.Array.data[23]'
       value: 27_Demo_FantasyWarrior_Icons_01
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[24]
+      propertyPath: '_sceneNames.Array.data[24]'
       value: 28_Demo_FantasyWarrior_Components_Crests_01
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[25]
+      propertyPath: '_sceneNames.Array.data[25]'
       value: 29_Demo_FantasyWarrior_Components_Crests_02
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[26]
+      propertyPath: '_sceneNames.Array.data[26]'
       value: 30_Demo_FantasyWarrior_Components_Crests_03
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[27]
+      propertyPath: '_sceneNames.Array.data[27]'
       value: 31_Demo_FantasyWarrior_Components_Frames_01
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[28]
+      propertyPath: '_sceneNames.Array.data[28]'
       value: 31_Demo_FantasyWarrior_Components_MenuButtons_01
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[29]
+      propertyPath: '_sceneNames.Array.data[29]'
       value: 31_Demo_FantasyWarrior_Components_MenuButtons_02
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[30]
+      propertyPath: '_sceneNames.Array.data[30]'
       value: 31_Demo_FantasyWarrior_Components_Popups_01
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[31]
+      propertyPath: '_sceneNames.Array.data[31]'
       value: 00_Demo_MilitaryCombat_Title
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[32]
+      propertyPath: '_sceneNames.Array.data[32]'
       value: 01_Demo_MilitaryCombat_Components_Actionbars-Hotbars
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[33]
+      propertyPath: '_sceneNames.Array.data[33]'
       value: 02_Demo_MilitaryCombat_Components_HPBars_Stats
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[34]
+      propertyPath: '_sceneNames.Array.data[34]'
       value: 03_Demo_MilitaryCombat_Components_Compass-Minimap-Comms
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[35]
+      propertyPath: '_sceneNames.Array.data[35]'
       value: 04_Demo_MilitaryCombat_Components_WeaponWheels
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[36]
+      propertyPath: '_sceneNames.Array.data[36]'
       value: 05_Demo_MilitaryCombat_HUD_TeamShooter_01
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[37]
+      propertyPath: '_sceneNames.Array.data[37]'
       value: 06_Demo_MilitaryCombat_HUD_3rdPerson_01
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[38]
+      propertyPath: '_sceneNames.Array.data[38]'
       value: 07_Demo_MilitaryCombat_HUD_Downed_01
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[39]
+      propertyPath: '_sceneNames.Array.data[39]'
       value: 08_Demo_MilitaryCombat_HUD_Survival_01
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[40]
+      propertyPath: '_sceneNames.Array.data[40]'
       value: 09_Demo_MilitaryCombat_HUD_LooterShooter_01
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[41]
+      propertyPath: '_sceneNames.Array.data[41]'
       value: 10_Demo_MilitaryCombat_Components_Badges_01
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[42]
+      propertyPath: '_sceneNames.Array.data[42]'
       value: 11_Demo_MilitaryCombat_Components_Badges_02
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[43]
+      propertyPath: '_sceneNames.Array.data[43]'
       value: 12_Demo_MilitaryCombat_Components_Badges_03
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[44]
+      propertyPath: '_sceneNames.Array.data[44]'
       value: 13_Demo_MilitaryCombat_Components_Badges_04
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[45]
+      propertyPath: '_sceneNames.Array.data[45]'
       value: 14_Demo_MilitaryCombat_Components_Misc_01
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[46]
+      propertyPath: '_sceneNames.Array.data[46]'
       value: 15_Demo_MilitaryCombat_Components_Misc_02
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[47]
+      propertyPath: '_sceneNames.Array.data[47]'
       value: 16_Demo_MilitaryCombat_Components_Misc_03
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[48]
+      propertyPath: '_sceneNames.Array.data[48]'
       value: 17_Demo_MilitaryCombat_Other_Reticles_01
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[49]
+      propertyPath: '_sceneNames.Array.data[49]'
       value: 18_Demo_MilitaryCombat_Other_Reticles_02
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[50]
+      propertyPath: '_sceneNames.Array.data[50]'
       value: 19_Demo_MilitaryCombat_Other_MasterSprites
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[51]
+      propertyPath: '_sceneNames.Array.data[51]'
       value: 20_Demo_MilitaryCombat_Icons_Misc
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[52]
+      propertyPath: '_sceneNames.Array.data[52]'
       value: 21_Demo_MilitaryCombat_VFX
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[53]
+      propertyPath: '_sceneNames.Array.data[53]'
       value: 22_Demo_MilitaryCombat_Input_Xbox
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[54]
+      propertyPath: '_sceneNames.Array.data[54]'
       value: 23_Demo_MilitaryCombat_Input_PlayStation
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[55]
+      propertyPath: '_sceneNames.Array.data[55]'
       value: 24_Demo_MilitaryCombat_Input_NintendoSwitch
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[56]
+      propertyPath: '_sceneNames.Array.data[56]'
       value: 25_Demo_MilitaryCombat_Input_Keyboard&Mouse
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[57]
+      propertyPath: '_sceneNames.Array.data[57]'
       value: 26_Demo_MilitaryCombat_Input_SteamDeck 1
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[58]
+      propertyPath: '_sceneNames.Array.data[58]'
       value: 26_Demo_MilitaryCombat_Input_SteamDeck
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[59]
+      propertyPath: '_sceneNames.Array.data[59]'
       value: 27_Demo_MilitaryCombat_Icons_Weapons_01
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[60]
+      propertyPath: '_sceneNames.Array.data[60]'
       value: 28_Demo_MilitaryCombat_Icons_WeaponsSide_01
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[61]
+      propertyPath: '_sceneNames.Array.data[61]'
       value: 29_Demo_MilitaryCombat_Icons_WeaponsSide_02
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[62]
+      propertyPath: '_sceneNames.Array.data[62]'
       value: 30_Demo_MilitaryCombat_Icons_WeaponMods_01
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[63]
+      propertyPath: '_sceneNames.Array.data[63]'
       value: 31_Demo_MilitaryCombat_Icons_WeaponMods_02
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[64]
+      propertyPath: '_sceneNames.Array.data[64]'
       value: 32_Demo_MilitaryCombat_Icons_WeaponMods_03
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[65]
+      propertyPath: '_sceneNames.Array.data[65]'
       value: 33_Demo_MilitaryCombat_Icons_Resources_01
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[66]
+      propertyPath: '_sceneNames.Array.data[66]'
       value: 34_Demo_MilitaryCombat_Icons_Resources_02
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[67]
+      propertyPath: '_sceneNames.Array.data[67]'
       value: 35_Demo_MilitaryCombat_Icons_Resources_03
       objectReference: {fileID: 0}
     - target: {fileID: 2126715343665978459, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
-      propertyPath: _sceneNames.Array.data[68]
+      propertyPath: '_sceneNames.Array.data[68]'
       value: 36_Demo_MilitaryCombat_Icons_Resources_04
       objectReference: {fileID: 0}
     - target: {fileID: 2347967597552022173, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
@@ -3111,6 +3120,14 @@ PrefabInstance:
     - target: {fileID: 2851985237504262507, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2885739062380933273, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
+      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
+      value: 1801810542
+      objectReference: {fileID: 0}
+    - target: {fileID: 3003696940651212592, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
+      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
+      value: 1801810542
       objectReference: {fileID: 0}
     - target: {fileID: 3387456131049150321, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
       propertyPath: m_AnchorMax.y
@@ -3556,6 +3573,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 7763805419918518924, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
+      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
+      value: 1801810542
+      objectReference: {fileID: 0}
     - target: {fileID: 8708030144735700094, guid: abdb8086a3368574c816e1a3f4c7d0f0, type: 3}
       propertyPath: m_SizeDelta.x
       value: 0
@@ -3803,6 +3824,7 @@ RectTransform:
   - {fileID: 662158757}
   - {fileID: 1697611216}
   - {fileID: 937031097}
+  - {fileID: 5844456787185445632}
   - {fileID: 30338566}
   - {fileID: 2004902474}
   - {fileID: 1901222769}
@@ -5076,7 +5098,7 @@ GameObject:
   - component: {fileID: 2030909726}
   - component: {fileID: 2030909725}
   - component: {fileID: 2030909728}
-  - component: {fileID: 2030909727}
+  - component: {fileID: 2030909729}
   m_Layer: 5
   m_Name: EventSystem
   m_TagString: Untagged
@@ -5114,26 +5136,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2030909727
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2030909723}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4f231c4fb786f3946a6b90b886c48677, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_SendPointerHoverToParent: 1
-  m_HorizontalAxis: Horizontal
-  m_VerticalAxis: Vertical
-  m_SubmitButton: Submit
-  m_CancelButton: Cancel
-  m_InputActionsPerSecond: 10
-  m_RepeatDelay: 0.5
-  m_ForceModuleActive: 0
 --- !u!114 &2030909728
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5146,6 +5148,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e7317656063394fbc8696880247f5c39, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &2030909729
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2030909723}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01614664b831546d2ae94a42149d80ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.UI.InputSystemUIInputModule
+  m_SendPointerHoverToParent: 1
+  m_MoveRepeatDelay: 0.5
+  m_MoveRepeatRate: 0.1
+  m_XRTrackingOrigin: {fileID: 0}
+  m_ActionsAsset: {fileID: -944628639613478452, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_PointAction: {fileID: -1654692200621890270, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_MoveAction: {fileID: -8784545083839296357, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_SubmitAction: {fileID: 392368643174621059, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_CancelAction: {fileID: 7727032971491509709, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_LeftClickAction: {fileID: 3001919216989983466, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_MiddleClickAction: {fileID: -2185481485913320682, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_RightClickAction: {fileID: -4090225696740746782, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_ScrollWheelAction: {fileID: 6240969308177333660, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_TrackedDevicePositionAction: {fileID: 6564999863303420839, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_TrackedDeviceOrientationAction: {fileID: 7970375526676320489, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_DeselectOnBackgroundClick: 1
+  m_PointerBehavior: 0
+  m_CursorLockBehavior: 0
+  m_ScrollDeltaPerTick: 6
 --- !u!1 &2047348322
 GameObject:
   m_ObjectHideFlags: 0
@@ -5521,6 +5554,108 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2102400873}
   m_CullTransparentMesh: 1
+--- !u!1001 &5844456787185445631
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1360473496}
+    m_Modifications:
+    - target: {fileID: 3717384154311430510, guid: 18824d17727d3074fb959d3010c1707d, type: 3}
+      propertyPath: m_Pivot.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3717384154311430510, guid: 18824d17727d3074fb959d3010c1707d, type: 3}
+      propertyPath: m_Pivot.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3717384154311430510, guid: 18824d17727d3074fb959d3010c1707d, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3717384154311430510, guid: 18824d17727d3074fb959d3010c1707d, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3717384154311430510, guid: 18824d17727d3074fb959d3010c1707d, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3717384154311430510, guid: 18824d17727d3074fb959d3010c1707d, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3717384154311430510, guid: 18824d17727d3074fb959d3010c1707d, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3717384154311430510, guid: 18824d17727d3074fb959d3010c1707d, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3717384154311430510, guid: 18824d17727d3074fb959d3010c1707d, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3717384154311430510, guid: 18824d17727d3074fb959d3010c1707d, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3717384154311430510, guid: 18824d17727d3074fb959d3010c1707d, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3717384154311430510, guid: 18824d17727d3074fb959d3010c1707d, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3717384154311430510, guid: 18824d17727d3074fb959d3010c1707d, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3717384154311430510, guid: 18824d17727d3074fb959d3010c1707d, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3717384154311430510, guid: 18824d17727d3074fb959d3010c1707d, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3717384154311430510, guid: 18824d17727d3074fb959d3010c1707d, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3717384154311430510, guid: 18824d17727d3074fb959d3010c1707d, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3717384154311430510, guid: 18824d17727d3074fb959d3010c1707d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3717384154311430510, guid: 18824d17727d3074fb959d3010c1707d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3717384154311430510, guid: 18824d17727d3074fb959d3010c1707d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8383708431222232274, guid: 18824d17727d3074fb959d3010c1707d, type: 3}
+      propertyPath: m_Name
+      value: Frame_Example_12 (1)
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 18824d17727d3074fb959d3010c1707d, type: 3}
+--- !u!224 &5844456787185445632 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 3717384154311430510, guid: 18824d17727d3074fb959d3010c1707d, type: 3}
+  m_PrefabInstance: {fileID: 5844456787185445631}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

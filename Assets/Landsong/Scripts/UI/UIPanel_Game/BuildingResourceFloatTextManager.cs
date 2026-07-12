@@ -144,6 +144,7 @@ namespace Landsong.UISystem
             if (subscribedTurn != null)
             {
                 subscribedTurn.BuildingResourceProvided -= HandleBuildingResourceProvided;
+                subscribedTurn.BuildingResourceConsumed -= HandleBuildingResourceConsumed;
             }
 
             subscribedTurn = resolvedTurn;
@@ -151,12 +152,39 @@ namespace Landsong.UISystem
             if (subscribedTurn != null)
             {
                 subscribedTurn.BuildingResourceProvided += HandleBuildingResourceProvided;
+                subscribedTurn.BuildingResourceConsumed += HandleBuildingResourceConsumed;
             }
         }
 
         private void HandleBuildingResourceProvided(TurnService turn, BuildingResourceProvidedEvent resourceEvent)
         {
-            if (floatTextPrefab == null || !resourceEvent.IsValid)
+            if (!resourceEvent.IsValid)
+            {
+                return;
+            }
+
+            EnqueueResourceFloatText(
+                resourceEvent.Building,
+                resourceEvent.ItemId,
+                resourceEvent.Amount);
+        }
+
+        private void HandleBuildingResourceConsumed(TurnService turn, BuildingResourceConsumedEvent resourceEvent)
+        {
+            if (!resourceEvent.IsValid)
+            {
+                return;
+            }
+
+            EnqueueResourceFloatText(
+                resourceEvent.Building,
+                resourceEvent.ItemId,
+                -resourceEvent.Amount);
+        }
+
+        private void EnqueueResourceFloatText(BuildingBase building, string itemId, int signedAmount)
+        {
+            if (floatTextPrefab == null || signedAmount == 0)
             {
                 return;
             }
@@ -166,7 +194,6 @@ namespace Landsong.UISystem
                 return;
             }
 
-            var building = resourceEvent.Building;
             if (!CanShowFloatTextForBuilding(building) || !TryGetMarkerAnchoredPosition(building, out _))
             {
                 return;
@@ -174,9 +201,9 @@ namespace Landsong.UISystem
 
             pendingRequests.Enqueue(new ResourceFloatTextRequest(
                 building,
-                resourceEvent.ItemId,
-                resourceEvent.Amount,
-                ResolveItemIcon(resourceEvent.ItemId)));
+                itemId,
+                signedAmount,
+                ResolveItemIcon(itemId)));
         }
 
         private void SpawnQueuedFloatTexts()
@@ -460,7 +487,7 @@ namespace Landsong.UISystem
 
         private static string FormatQuantity(int amount)
         {
-            return amount <= 0 ? string.Empty : $"+{amount}";
+            return amount > 0 ? $"+{amount}" : amount.ToString();
         }
 
         private readonly struct ResourceFloatTextRequest
@@ -469,7 +496,7 @@ namespace Landsong.UISystem
             {
                 Building = building;
                 ItemId = string.IsNullOrWhiteSpace(itemId) ? string.Empty : itemId.Trim();
-                Amount = Mathf.Max(0, amount);
+                Amount = amount;
                 Icon = icon;
             }
 
@@ -477,7 +504,7 @@ namespace Landsong.UISystem
             public string ItemId { get; }
             public int Amount { get; }
             public Sprite Icon { get; }
-            public bool IsValid => Building != null && !string.IsNullOrWhiteSpace(ItemId) && Amount > 0;
+            public bool IsValid => Building != null && !string.IsNullOrWhiteSpace(ItemId) && Amount != 0;
         }
 
         private sealed class ActiveFloatText

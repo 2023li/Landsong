@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Xml;
 using Landsong.ConditionSystem;
 using Landsong.GridSystem;
 using Sirenix.OdinInspector;
@@ -65,10 +64,15 @@ namespace Landsong.BuildingSystem
         [PropertyTooltip("None/空引用表示无显示条件，默认显示。配置条件且不满足时，该建筑从建造菜单隐藏。")]
         [SerializeReference] private GameCondition visibleCondition;
 
-        [TitleGroup("建造菜单")]
-        [LabelText("可用条件")]
-        [PropertyTooltip("None/空引用表示无可用条件，默认可用。配置条件且不满足时，该建筑仍可显示但不可建造。")]
-        [SerializeReference] private GameCondition availableCondition;
+        [TitleGroup("建筑蓝图")]
+        [LabelText("初始未拥有蓝图")]
+        [PropertyTooltip("启用后，新游戏不会自动授予该建筑蓝图，必须由科技、任务、远征、天赋或传承等奖励调用 BuildingBlueprintService.Unlock。")]
+        [SerializeField] private bool blueprintInitiallyLocked;
+
+        [TitleGroup("建筑蓝图")]
+        [LabelText("未解锁时隐藏")]
+        [PropertyTooltip("启用后，未获得蓝图时不显示在建造菜单；关闭时显示为“未获得蓝图”。")]
+        [SerializeField] private bool hideWhenBlueprintLocked;
 
         [TitleGroup("建造菜单")]
         [LabelText("菜单排序")]
@@ -130,7 +134,8 @@ namespace Landsong.BuildingSystem
 
         public BuildingCategory Category => category;
         public GameCondition VisibleCondition => visibleCondition;
-        public GameCondition AvailableCondition => availableCondition;
+        public bool BlueprintInitiallyLocked => blueprintInitiallyLocked;
+        public bool HideWhenBlueprintLocked => hideWhenBlueprintLocked;
         public int BuildMenuSortOrder => buildMenuSortOrder;
         public int MaxBuildCount => maxBuildCount;
         public string BuildLimitGroupId => string.IsNullOrWhiteSpace(buildLimitGroupId) ? buildingId : buildLimitGroupId;

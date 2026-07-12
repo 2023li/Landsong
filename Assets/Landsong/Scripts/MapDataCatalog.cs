@@ -1,73 +1,24 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Landsong.GridSystem;
 using Moyo.Unity;
 using Sirenix.OdinInspector;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
 [CreateAssetMenu(menuName = "Landsong/Map/Map Catalog", fileName = "MapCatalog")]
-public class MapDataCatalog : SingletonScriptableObject<MapDataCatalog>
+public sealed class MapDataCatalog : SingletonScriptableObject<MapDataCatalog>
 {
-    [Serializable]
-    public class MapData
-    {
-        [FormerlySerializedAs("name")]
-        [SerializeField, LabelText("地图名称")]
-        private string displayName;
+    [SerializeField, LabelText("地图定义")]
+    private MapDefinition[] maps = Array.Empty<MapDefinition>();
 
-        [SerializeField, LabelText("地图图标")]
-        private Sprite icon;
+    private Dictionary<string, MapDefinition> mapsById;
 
-        [SerializeField, TextArea, LabelText("地图描述")]
-        private string description;
-
-        [SerializeField, LabelText("地图预制体")]
-        private GridMapBehaviour map;
-
-        public string DisplayName
-        {
-            get
-            {
-                if (!string.IsNullOrWhiteSpace(displayName))
-                {
-                    return displayName.Trim();
-                }
-
-                return map == null ? "未命名地图" : map.name;
-            }
-        }
-
-        public string Description => string.IsNullOrWhiteSpace(description) ? string.Empty : description.Trim();
-        public Sprite Icon => icon;
-        public GridMapBehaviour Map => map;
-        public bool IsValid => map != null;
-
-        public static MapData Create(string displayName, Sprite icon, string description, GridMapBehaviour map)
-        {
-            return new MapData
-            {
-                displayName = displayName,
-                icon = icon,
-                description = description,
-                map = map
-            };
-        }
-    }
-
-    [SerializeField, LabelText("地图列表")]
-    private MapData[] mapDatas = Array.Empty<MapData>();
-
-    private Dictionary<string, MapData> mapDatasByName;
-
-    public MapData[] MapDatas => mapDatas ?? Array.Empty<MapData>();
-    public IReadOnlyList<MapData> Maps => MapDatas;
-    public int Count => mapDatas == null ? 0 : mapDatas.Length;
+    public IReadOnlyList<MapDefinition> Maps => maps ?? Array.Empty<MapDefinition>();
+    public int Count => maps == null ? 0 : maps.Length;
 
     public static Task<MapDataCatalog> LoadAsync(string addressableKey)
     {
@@ -76,171 +27,158 @@ public class MapDataCatalog : SingletonScriptableObject<MapDataCatalog>
 
     private void OnEnable()
     {
-        ValidateEntries();
+        RebuildIndex();
     }
 
     private void OnValidate()
     {
-        ValidateEntries();
+        maps ??= Array.Empty<MapDefinition>();
+        RebuildIndex();
     }
 
-    public bool TryGetMapData(int index, out MapData mapData)
+    public bool TryGetMapDefinition(int index, out MapDefinition definition)
     {
-        MapData[] maps = MapDatas;
-        if (index < 0 || index >= maps.Length)
+        if (maps == null || index < 0 || index >= maps.Length)
         {
-            mapData = null;
+            definition = null;
             return false;
         }
 
-        mapData = maps[index];
-        return mapData != null && mapData.IsValid;
+        definition = maps[index];
+        return definition != null && definition.IsValid;
     }
 
-    public bool TryGetMapData(string mapName, out MapData mapData)
+    public bool TryGetMapDefinition(string mapId, out MapDefinition definition)
     {
-        if (string.IsNullOrWhiteSpace(mapName))
+        definition = null;
+        mapId = string.IsNullOrWhiteSpace(mapId) ? string.Empty : mapId.Trim();
+        if (string.IsNullOrEmpty(mapId))
         {
-            mapData = null;
             return false;
         }
 
         EnsureIndex();
-        return mapDatasByName.TryGetValue(mapName.Trim(), out mapData);
+        return mapsById.TryGetValue(mapId, out definition) && definition != null && definition.IsValid;
     }
 
-    public GridMapBehaviour GetMapPrefab(string mapName)
+    public MapDefinition GetFirstValidMapDefinition()
     {
-        return TryGetMapData(mapName, out var mapData) ? mapData.Map : null;
-    }
-
-    public MapData GetFirstValidMapData()
-    {
-        foreach (MapData mapData in GetValidMapDatas())
+        foreach (var definition in GetValidMapDefinitions())
         {
-            return mapData;
+            return definition;
         }
 
         return null;
     }
 
-    public IEnumerable<MapData> GetValidMapDatas()
+    public IEnumerable<MapDefinition> GetValidMapDefinitions()
     {
-        if (mapDatas == null)
+        if (maps == null)
         {
             yield break;
         }
 
-        for (int i = 0; i < mapDatas.Length; i++)
+        for (var i = 0; i < maps.Length; i++)
         {
-            MapData mapData = mapDatas[i];
-
-            if (mapData != null && mapData.IsValid)
+            if (maps[i] != null && maps[i].IsValid)
             {
-                yield return mapData;
+                yield return maps[i];
             }
         }
-    }
-
-    private void ValidateEntries()
-    {
-        if (mapDatas == null)
-        {
-            mapDatas = Array.Empty<MapData>();
-        }
-
-        RebuildIndex();
     }
 
     public void RebuildIndex()
     {
-        mapDatasByName = new Dictionary<string, MapData>(StringComparer.Ordinal);
-
-        foreach (var mapData in MapDatas)
+        mapsById = new Dictionary<string, MapDefinition>(StringComparer.Ordinal);
+        if (maps == null)
         {
-            if (mapData == null || string.IsNullOrWhiteSpace(mapData.DisplayName))
+            return;
+        }
+
+        for (var i = 0; i < maps.Length; i++)
+        {
+            var definition = maps[i];
+            if (definition == null || string.IsNullOrWhiteSpace(definition.MapId))
             {
                 continue;
             }
 
-            string mapName = mapData.DisplayName;
-            if (mapDatasByName.ContainsKey(mapName))
+            if (mapsById.ContainsKey(definition.MapId))
             {
-                Debug.LogWarning($"Duplicate map data name '{mapName}' in catalog '{name}'. The first entry will be used.", this);
+                Debug.LogError($"MapCatalog 中存在重复 MapId：{definition.MapId}", definition);
                 continue;
             }
 
-            mapDatasByName.Add(mapName, mapData);
+            mapsById.Add(definition.MapId, definition);
         }
     }
 
     private void EnsureIndex()
     {
-        if (mapDatasByName == null)
+        if (mapsById == null)
         {
             RebuildIndex();
         }
     }
 
 #if UNITY_EDITOR
-    [SerializeField, FolderPath(RequireExistingPath = true), LabelText("地图预制体目录")]
-    private string mapPrefabFolderPath = "Assets/Landsong/Objects/Prefabs/Map";
+    [SerializeField, FolderPath(RequireExistingPath = true), LabelText("MapDefinition 目录")]
+    private string mapDefinitionFolderPath = "Assets/Landsong/Objects/SO/Map";
 
-    [Button("从目录加载地图预制体")]
-    private void LoadMapsFromFolder()
+    [Button("从目录登记 MapDefinition")]
+    private void LoadDefinitionsFromFolder()
     {
-        if (string.IsNullOrWhiteSpace(mapPrefabFolderPath))
+        if (!AssetDatabase.IsValidFolder(mapDefinitionFolderPath))
         {
-            Debug.LogWarning("Map prefab folder path is empty.", this);
+            Debug.LogError($"无效 MapDefinition 目录：{mapDefinitionFolderPath}", this);
             return;
         }
 
-        if (!AssetDatabase.IsValidFolder(mapPrefabFolderPath))
+        var guids = AssetDatabase.FindAssets("t:MapDefinition", new[] { mapDefinitionFolderPath });
+        var loaded = new List<MapDefinition>(guids.Length);
+        for (var i = 0; i < guids.Length; i++)
         {
-            Debug.LogWarning($"Map prefab folder path '{mapPrefabFolderPath}' is not a valid asset folder.", this);
-            return;
-        }
-
-        var existingMapDatas = new Dictionary<GridMapBehaviour, MapData>();
-        foreach (var mapData in MapDatas)
-        {
-            if (mapData != null && mapData.Map != null && !existingMapDatas.ContainsKey(mapData.Map))
+            var path = AssetDatabase.GUIDToAssetPath(guids[i]);
+            var definition = AssetDatabase.LoadAssetAtPath<MapDefinition>(path);
+            if (definition != null)
             {
-                existingMapDatas.Add(mapData.Map, mapData);
+                loaded.Add(definition);
             }
         }
 
-        string[] guids = AssetDatabase.FindAssets("t:Prefab", new[] { mapPrefabFolderPath });
-        var loadedMapDatas = new List<MapData>(guids.Length);
-
-        foreach (string guid in guids)
-        {
-            string assetPath = AssetDatabase.GUIDToAssetPath(guid);
-            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
-            if (prefab == null)
-            {
-                continue;
-            }
-
-            GridMapBehaviour map = prefab.GetComponentInChildren<GridMapBehaviour>(true);
-            if (map == null)
-            {
-                continue;
-            }
-
-            existingMapDatas.TryGetValue(map, out var existingMapData);
-            loadedMapDatas.Add(MapData.Create(
-                string.IsNullOrWhiteSpace(existingMapData?.DisplayName) ? prefab.name : existingMapData.DisplayName,
-                existingMapData?.Icon,
-                existingMapData?.Description ?? string.Empty,
-                map));
-        }
-
-        mapDatas = loadedMapDatas.ToArray();
+        loaded.Sort((left, right) => string.Compare(left.MapId, right.MapId, StringComparison.Ordinal));
+        maps = loaded.ToArray();
         RebuildIndex();
         EditorUtility.SetDirty(this);
+    }
 
-        Debug.Log($"Loaded {mapDatas.Length} map prefabs into '{name}'.", this);
+    public void RegisterDefinition(MapDefinition definition)
+    {
+        if (definition == null)
+        {
+            return;
+        }
+
+        var list = new List<MapDefinition>(maps ?? Array.Empty<MapDefinition>());
+        var index = list.FindIndex(candidate => candidate != null
+                                                && string.Equals(
+                                                    candidate.MapId,
+                                                    definition.MapId,
+                                                    StringComparison.Ordinal));
+        if (index >= 0)
+        {
+            list[index] = definition;
+        }
+        else
+        {
+            list.Add(definition);
+        }
+
+        list.Sort((left, right) => string.Compare(left?.MapId, right?.MapId, StringComparison.Ordinal));
+        maps = list.ToArray();
+        RebuildIndex();
+        EditorUtility.SetDirty(this);
+        AssetDatabase.SaveAssets();
     }
 #endif
 }

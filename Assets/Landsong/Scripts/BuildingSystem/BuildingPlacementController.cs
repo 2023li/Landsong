@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using Landsong.BuildingSystem.Buildings;
 using Landsong.CameraSystem;
 using Landsong.GridSystem;
@@ -8,7 +9,6 @@ using Landsong.InputSystem;
 using Landsong.UISystem;
 using Moyo.Unity;
 using UnityEngine;
-using UnityEngine.Tilemaps;
 
 namespace Landsong.BuildingSystem
 {
@@ -37,18 +37,27 @@ namespace Landsong.BuildingSystem
         [Header("Demolition")]
         [SerializeField, InspectorName("拆除点击最大移动像素"), Min(0f)] private float demolitionClickMaxMovementPixels = 8f;
 
-        [Header("Tile Highlight")]
-        [SerializeField, InspectorName("合法格子高亮瓦片")] private TileBase validHighlightTile;
-        [SerializeField, InspectorName("建筑占格高亮瓦片")] private TileBase buildingFootprintHighlightTile;
-        [SerializeField, InspectorName("非法占格高亮瓦片")] private TileBase invalidHighlightTile;
-        [SerializeField, InspectorName("道路连接预览瓦片")] private TileBase roadConnectionHighlightTile;
+        [Header("Grid Overlay Channels")]
+        [SerializeField, InspectorName("合法占地通道")] private GridOverlayChannelDefinition validFootprintChannel;
+        [SerializeField, InspectorName("非法占地通道")] private GridOverlayChannelDefinition invalidFootprintChannel;
+        [SerializeField, InspectorName("道路路径通道")] private GridOverlayChannelDefinition roadPathChannel;
+        [SerializeField, InspectorName("拆除目标通道")] private GridOverlayChannelDefinition demolitionChannel;
+        [SerializeField, InspectorName("资源可达范围通道")] private GridOverlayChannelDefinition resourceReachableChannel;
+        [SerializeField, InspectorName("可用资源点通道")] private GridOverlayChannelDefinition resourceProviderChannel;
+        [SerializeField, InspectorName("最终资源点通道")] private GridOverlayChannelDefinition selectedResourceProviderChannel;
+        [SerializeField, InspectorName("最终资源路径通道")] private GridOverlayChannelDefinition resourcePathChannel;
+        [SerializeField, InspectorName("Buff 范围通道")] private GridOverlayChannelDefinition buffRangeChannel;
 
-        private readonly List<Vector3Int> highlightedBuildableAreaCells = new List<Vector3Int>();
-        private readonly List<Vector3Int> highlightedFootprintCells = new List<Vector3Int>();
-        private readonly HashSet<Vector3Int> highlightedBuildableAreaCellSet = new HashSet<Vector3Int>();
         private readonly List<GridPosition> currentRoadPath = new List<GridPosition>();
-        private Tilemap activeHighlightTilemap;
-        private BuildingDefinition highlightedBuildableAreaDefinition;
+        private GridOverlayOwnerHandle validFootprintHandle;
+        private GridOverlayOwnerHandle invalidFootprintHandle;
+        private GridOverlayOwnerHandle roadPathHandle;
+        private GridOverlayOwnerHandle demolitionHandle;
+        private GridOverlayOwnerHandle resourceReachableHandle;
+        private GridOverlayOwnerHandle resourceProviderHandle;
+        private GridOverlayOwnerHandle selectedResourceProviderHandle;
+        private GridOverlayOwnerHandle resourcePathHandle;
+        private GridOverlayOwnerHandle buffRangeHandle;
         private InputController inputController;
         private BuildingBase activeBuildingPrefab;
         private BuildingBase selectedDemolitionBuilding;
@@ -73,12 +82,18 @@ namespace Landsong.BuildingSystem
         private bool demolitionClickStartedOverUi;
         private Vector2 demolitionClickStartPosition;
         private RoadPlacementEndpoint roadDraggedEndpoint;
+        private BuildingPlacementEvaluation currentEvaluation;
+        private GridPosition evaluatedOrigin;
+        private BuildingBase evaluatedPrefab;
+        private int evaluatedOccupancyVersion = -1;
 
         public event Action<bool> DemolitionModeChanged;
+        public event Action<BuildingPlacementEvaluation> PlacementEvaluationChanged;
 
         public bool IsPlacing => isPlacing;
         public bool IsDemolitionMode => isDemolitionMode;
         public bool IsActive => isPlacing || isDemolitionMode;
+        public BuildingPlacementEvaluation CurrentEvaluation => currentEvaluation;
 
         private void Reset()
         {
@@ -91,6 +106,25 @@ namespace Landsong.BuildingSystem
             ResolveSceneReferences();
             ResolveInputController();
             ResolvePlacementControls();
+            ValidateOverlayBindings();
+        }
+
+        private void ValidateOverlayBindings()
+        {
+            if (validFootprintChannel == null
+                || invalidFootprintChannel == null
+                || roadPathChannel == null
+                || demolitionChannel == null
+                || resourceReachableChannel == null
+                || resourceProviderChannel == null
+                || selectedResourceProviderChannel == null
+                || resourcePathChannel == null
+                || buffRangeChannel == null)
+            {
+                Debug.LogError(
+                    "BuildingPlacementController 的 Overlay Channel 尚未完整绑定。请按重构文档绑定全部九个通道。",
+                    this);
+            }
         }
 
         private void Update()
@@ -254,6 +288,8 @@ namespace Landsong.BuildingSystem
             ReleasePlacementControls();
 
             ClearHighlightedTiles();
+            InvalidateEvaluationCache();
+            SetCurrentEvaluation(null);
 
             if (wasDemolitionMode)
             {
@@ -317,7 +353,6 @@ namespace Landsong.BuildingSystem
                 buildingPrefab,
                 gridMap,
                 origin,
-                Quaternion.identity,
                 placedBuildingRoot,
                 1,
                 true,
@@ -589,11 +624,12 @@ namespace Landsong.BuildingSystem
 
             currentOrigin = origin;
             hasCurrentOrigin = true;
-            currentCanPlace = gridMap.CanOccupy(currentOrigin, activeDefinition.Size, activeDefinition.RequiredTerrainKeys, out _);
+            var evaluation = EvaluateCurrentPlacement();
+            currentCanPlace = evaluation?.CanConfirm == true;
 
             var placementPosition = gridMap.GetFootprintCenter(currentOrigin, activeDefinition.Size);
             MovePreview(placementPosition);
-            UpdateFootprintHighlight(new GridFootprint(currentOrigin, activeDefinition.Size), activeDefinition);
+            UpdatePlacementOverlays(evaluation);
 
             SetPlacementConfirmInteractable(currentCanPlace);
         }
@@ -666,8 +702,9 @@ namespace Landsong.BuildingSystem
                 return;
             }
 
-            currentCanPlace = gridMap.CanOccupy(currentOrigin, activeDefinition.Size, activeDefinition.RequiredTerrainKeys, out _);
-            UpdateFootprintHighlight(new GridFootprint(currentOrigin, activeDefinition.Size), activeDefinition);
+            var evaluation = EvaluateCurrentPlacement();
+            currentCanPlace = evaluation?.CanConfirm == true;
+            UpdatePlacementOverlays(evaluation);
 
             SetPlacementConfirmInteractable(currentCanPlace);
         }
@@ -681,6 +718,8 @@ namespace Landsong.BuildingSystem
             }
 
             var activeDefinition = activeBuildingPrefab.Definition;
+            InvalidateEvaluationCache();
+            SetCurrentEvaluation(null);
             var buildingService = ResolveRuntimeBuildingService();
             BuildingRoadPlacementPlanner.SelectRoadPath(
                 gridMap,
@@ -703,11 +742,12 @@ namespace Landsong.BuildingSystem
         {
             hasCurrentOrigin = false;
             currentCanPlace = false;
+            InvalidateEvaluationCache();
+            SetCurrentEvaluation(null);
             currentRoadPath.Clear();
             if (activeBuildingPrefab != null)
             {
-                EnsureBuildableAreaHighlight(activeBuildingPrefab.Definition);
-                ClearFootprintHighlight();
+                ClearHighlightedTiles();
             }
             else
             {
@@ -919,76 +959,249 @@ namespace Landsong.BuildingSystem
                 buildingPrefab);
         }
 
+        private BuildingPlacementEvaluation EvaluateCurrentPlacement()
+        {
+            if (!hasCurrentOrigin || activeBuildingPrefab == null || gridMap == null)
+            {
+                return null;
+            }
+
+            if (currentEvaluation != null
+                && evaluatedPrefab == activeBuildingPrefab
+                && evaluatedOrigin == currentOrigin
+                && evaluatedOccupancyVersion == gridMap.OccupancyVersion)
+            {
+                return currentEvaluation;
+            }
+
+            var buildingService = ResolveRuntimeBuildingService();
+            var buildings = buildingService == null ? null : buildingService.Buildings;
+            var evaluation = BuildingPlacementEvaluator.Evaluate(
+                activeBuildingPrefab,
+                gridMap,
+                currentOrigin,
+                buildings);
+            evaluatedPrefab = activeBuildingPrefab;
+            evaluatedOrigin = currentOrigin;
+            evaluatedOccupancyVersion = gridMap.OccupancyVersion;
+            SetCurrentEvaluation(evaluation);
+            return evaluation;
+        }
+
+        private void UpdatePlacementOverlays(BuildingPlacementEvaluation evaluation)
+        {
+            ClearHighlightedTiles();
+            if (evaluation == null || gridMap?.OverlayService == null)
+            {
+                return;
+            }
+
+            UpdateFootprintHighlight(evaluation.Footprint, activeBuildingPrefab?.Definition);
+
+            var connection = evaluation.ResourceConnection;
+            if (connection != null)
+            {
+                var reachableCells = new List<GridPosition>(connection.ReachableNodes.Count);
+                for (var i = 0; i < connection.ReachableNodes.Count; i++)
+                {
+                    reachableCells.Add(connection.ReachableNodes[i].Position);
+                }
+
+                resourceReachableHandle = gridMap.OverlayService.AcquireOwner(
+                    resourceReachableChannel,
+                    "building-placement-resource-reachable");
+                resourceReachableHandle?.SetCells(reachableCells);
+
+                var providerCells = new List<GridPosition>();
+                for (var i = 0; i < connection.ReachableProviders.Count; i++)
+                {
+                    var provider = connection.ReachableProviders[i].Provider;
+                    if (provider == null)
+                    {
+                        continue;
+                    }
+
+                    foreach (var cell in provider.Footprint.Positions())
+                    {
+                        providerCells.Add(cell);
+                    }
+                }
+
+                resourceProviderHandle = gridMap.OverlayService.AcquireOwner(
+                    resourceProviderChannel,
+                    "building-placement-resource-providers");
+                resourceProviderHandle?.SetCells(providerCells);
+
+                if (connection.Selection.IsValid)
+                {
+                    var selectedCells = new List<GridPosition>();
+                    foreach (var cell in connection.Selection.Provider.Footprint.Positions())
+                    {
+                        selectedCells.Add(cell);
+                    }
+
+                    selectedResourceProviderHandle = gridMap.OverlayService.AcquireOwner(
+                        selectedResourceProviderChannel,
+                        "building-placement-resource-selected");
+                    selectedResourceProviderHandle?.SetCells(selectedCells, 100);
+                    resourcePathHandle = gridMap.OverlayService.AcquireOwner(
+                        resourcePathChannel,
+                        "building-placement-resource-path");
+                    resourcePathHandle?.SetCells(connection.Selection.Path);
+                }
+            }
+
+            var buffCells = new HashSet<GridPosition>();
+            for (var i = 0; i < evaluation.SpatialEffects.Count; i++)
+            {
+                var cells = evaluation.SpatialEffects[i].AffectedCells;
+                for (var j = 0; j < cells.Count; j++)
+                {
+                    buffCells.Add(cells[j]);
+                }
+            }
+
+            buffRangeHandle = gridMap.OverlayService.AcquireOwner(
+                buffRangeChannel,
+                "building-placement-buff-range");
+            buffRangeHandle?.SetCells(buffCells);
+        }
+
+        private void SetCurrentEvaluation(BuildingPlacementEvaluation evaluation)
+        {
+            if (ReferenceEquals(currentEvaluation, evaluation))
+            {
+                return;
+            }
+
+            currentEvaluation = evaluation;
+            placementControls?.SetPlacementInfo(FormatPlacementInfo(evaluation));
+            PlacementEvaluationChanged?.Invoke(evaluation);
+        }
+
+        private static string FormatPlacementInfo(BuildingPlacementEvaluation evaluation)
+        {
+            if (evaluation == null)
+            {
+                return string.Empty;
+            }
+
+            var builder = new StringBuilder();
+            builder.Append(evaluation.IsSpatiallyLegal ? "占地合法" : $"占地非法：{evaluation.GridFailure}");
+            if (evaluation.RequiresResourceConnection)
+            {
+                builder.AppendLine();
+                if (evaluation.ResourceProviderFound)
+                {
+                    var selection = evaluation.ResourceConnection.Selection;
+                    var providerName = selection.Provider.HasDefinition
+                        ? selection.Provider.Definition.DisplayName
+                        : selection.Provider.name;
+                    builder.Append($"资源点：{providerName}（行动力 {selection.ActionCost}）");
+                }
+                else
+                {
+                    builder.Append("资源点：当前范围内无连接（不阻止放置）");
+                }
+            }
+
+            for (var i = 0; i < evaluation.SpatialEffects.Count; i++)
+            {
+                var preview = evaluation.SpatialEffects[i];
+                if (preview == null || string.IsNullOrWhiteSpace(preview.Description))
+                {
+                    continue;
+                }
+
+                builder.AppendLine();
+                builder.Append($"Buff：{preview.Description}，范围 {preview.Definition.Range}");
+            }
+
+            return builder.ToString();
+        }
+
+        private void InvalidateEvaluationCache()
+        {
+            evaluatedPrefab = null;
+            evaluatedOrigin = default;
+            evaluatedOccupancyVersion = -1;
+        }
+
         private void UpdateDemolitionHighlight(BuildingBase building)
         {
             ClearHighlightedTiles();
-            if (!CanDemolishBuilding(building) || building.GridMap == null || building.GridMap.HighlightTilemap == null)
+            if (!CanDemolishBuilding(building)
+                || building.GridMap == null
+                || building.GridMap.OverlayService == null
+                || demolitionChannel == null)
             {
                 return;
             }
 
-            var highlightTile = invalidHighlightTile ?? buildingFootprintHighlightTile ?? validHighlightTile;
-            if (highlightTile == null)
+            demolitionHandle = building.GridMap.OverlayService.AcquireOwner(
+                demolitionChannel,
+                "building-placement-demolition");
+            if (demolitionHandle == null)
             {
                 return;
             }
 
-            activeHighlightTilemap = building.GridMap.HighlightTilemap;
+            var cells = new List<GridPosition>();
             foreach (var position in building.Footprint.Positions())
             {
-                var tilemapCell = GridPositionToHighlightTilemapCell(position);
-                activeHighlightTilemap.SetTile(tilemapCell, highlightTile);
-                highlightedFootprintCells.Add(tilemapCell);
+                cells.Add(position);
             }
+
+            demolitionHandle.SetCells(cells);
         }
 
         private void UpdateFootprintHighlight(GridFootprint footprint, BuildingDefinition definition)
         {
-            if (gridMap == null || gridMap.HighlightTilemap == null)
-            {
-                ClearHighlightedTiles();
-                return;
-            }
-
-            var highlightTilemap = gridMap.HighlightTilemap;
-            EnsureBuildableAreaHighlight(definition);
-            ClearFootprintHighlight();
-            activeHighlightTilemap = highlightTilemap;
-
-            var highlightTile = currentCanPlace
-                ? buildingFootprintHighlightTile ?? validHighlightTile
-                : invalidHighlightTile ?? buildingFootprintHighlightTile ?? validHighlightTile;
-            if (highlightTile == null)
+            if (gridMap == null || gridMap.OverlayService == null)
             {
                 return;
             }
 
+            var channel = currentCanPlace ? validFootprintChannel : invalidFootprintChannel;
+            if (channel == null)
+            {
+                return;
+            }
+
+            var cells = new List<GridPosition>();
             foreach (var position in footprint.Positions())
             {
-                var tilemapCell = GridPositionToHighlightTilemapCell(position);
-                highlightTilemap.SetTile(tilemapCell, highlightTile);
-                highlightedFootprintCells.Add(tilemapCell);
+                cells.Add(position);
+            }
+
+            var handle = gridMap.OverlayService.AcquireOwner(channel, "building-placement-footprint");
+            handle?.SetCells(cells);
+            if (currentCanPlace)
+            {
+                validFootprintHandle = handle;
+            }
+            else
+            {
+                invalidFootprintHandle = handle;
             }
         }
 
         private void UpdateRoadPathHighlight(BuildingDefinition definition)
         {
-            if (gridMap == null || gridMap.HighlightTilemap == null)
+            ClearHighlightedTiles();
+            if (gridMap == null || gridMap.OverlayService == null)
             {
-                ClearHighlightedTiles();
                 return;
             }
-
-            var highlightTilemap = gridMap.HighlightTilemap;
-            EnsureBuildableAreaHighlight(definition);
-            ClearFootprintHighlight();
-            activeHighlightTilemap = highlightTilemap;
 
             if (definition == null || currentRoadPath.Count == 0)
             {
                 return;
             }
 
+            var validCells = new List<GridPosition>();
+            var invalidCells = new List<GridPosition>();
+            var roadCells = new List<GridPosition>();
             for (var i = 0; i < currentRoadPath.Count; i++)
             {
                 var origin = currentRoadPath[i];
@@ -999,157 +1212,59 @@ namespace Landsong.BuildingSystem
                     origin,
                     definition);
                 var isEndpoint = i == 0 || i == currentRoadPath.Count - 1;
-                var highlightTile = GetRoadPathHighlightTile(isEndpoint, canPlaceCell);
-                if (highlightTile == null)
-                {
-                    continue;
-                }
 
                 var footprint = new GridFootprint(origin, definition.Size);
                 foreach (var position in footprint.Positions())
                 {
-                    var tilemapCell = GridPositionToHighlightTilemapCell(position);
-                    highlightTilemap.SetTile(tilemapCell, highlightTile);
-                    highlightedFootprintCells.Add(tilemapCell);
-                }
-            }
-        }
-
-        private TileBase GetRoadPathHighlightTile(bool isEndpoint, bool canPlaceCell)
-        {
-            if (!canPlaceCell)
-            {
-                return invalidHighlightTile ?? buildingFootprintHighlightTile ?? roadConnectionHighlightTile ?? validHighlightTile;
-            }
-
-            if (isEndpoint)
-            {
-                return buildingFootprintHighlightTile ?? validHighlightTile;
-            }
-
-            return roadConnectionHighlightTile ?? buildingFootprintHighlightTile ?? validHighlightTile;
-        }
-
-        private void EnsureBuildableAreaHighlight(BuildingDefinition definition)
-        {
-            if (gridMap == null || gridMap.HighlightTilemap == null)
-            {
-                ClearHighlightedTiles();
-                return;
-            }
-
-            var highlightTilemap = gridMap.HighlightTilemap;
-            if (activeHighlightTilemap != null && activeHighlightTilemap != highlightTilemap)
-            {
-                ClearHighlightedTiles();
-            }
-
-            activeHighlightTilemap = highlightTilemap;
-            if (highlightedBuildableAreaDefinition == definition)
-            {
-                return;
-            }
-
-            ClearFootprintHighlight();
-            ClearBuildableAreaHighlight();
-            highlightedBuildableAreaDefinition = definition;
-
-            if (definition == null || validHighlightTile == null)
-            {
-                return;
-            }
-
-            var bounds = gridMap.BaseCellBounds;
-            for (var y = bounds.yMin; y < bounds.yMax; y++)
-            {
-                for (var x = bounds.xMin; x < bounds.xMax; x++)
-                {
-                    var position = new GridPosition(x, y);
-                    if (!IsPlacementCellValid(position, definition))
+                    if (!canPlaceCell)
                     {
-                        continue;
+                        invalidCells.Add(position);
                     }
-
-                    var tilemapCell = GridPositionToHighlightTilemapCell(position);
-                    highlightTilemap.SetTile(tilemapCell, validHighlightTile);
-                    highlightedBuildableAreaCells.Add(tilemapCell);
-                    highlightedBuildableAreaCellSet.Add(tilemapCell);
-                }
-            }
-        }
-
-        private void ClearFootprintHighlight()
-        {
-            if (activeHighlightTilemap == null || highlightedFootprintCells.Count == 0)
-            {
-                highlightedFootprintCells.Clear();
-                return;
-            }
-
-            for (var i = 0; i < highlightedFootprintCells.Count; i++)
-            {
-                var tilemapCell = highlightedFootprintCells[i];
-                var restoreTile = highlightedBuildableAreaCellSet.Contains(tilemapCell) ? validHighlightTile : null;
-                activeHighlightTilemap.SetTile(tilemapCell, restoreTile);
-            }
-
-            highlightedFootprintCells.Clear();
-        }
-
-        private void ClearBuildableAreaHighlight()
-        {
-            if (activeHighlightTilemap != null)
-            {
-                for (var i = 0; i < highlightedBuildableAreaCells.Count; i++)
-                {
-                    activeHighlightTilemap.SetTile(highlightedBuildableAreaCells[i], null);
+                    else if (isEndpoint)
+                    {
+                        validCells.Add(position);
+                    }
+                    else
+                    {
+                        roadCells.Add(position);
+                    }
                 }
             }
 
-            highlightedBuildableAreaCells.Clear();
-            highlightedBuildableAreaCellSet.Clear();
-            highlightedBuildableAreaDefinition = null;
-        }
-
-        private bool IsPlacementCellValid(GridPosition position, BuildingDefinition definition)
-        {
-            return definition != null
-                   && gridMap != null
-                   && gridMap.CanOccupy(position, Vector2Int.one, definition.RequiredTerrainKeys, out _);
-        }
-
-        private Vector3Int GridPositionToHighlightTilemapCell(GridPosition position)
-        {
-            return new Vector3Int(position.X, position.Y, 0);
+            validFootprintHandle = gridMap.OverlayService.AcquireOwner(
+                validFootprintChannel,
+                "building-placement-road-endpoints");
+            validFootprintHandle?.SetCells(validCells);
+            invalidFootprintHandle = gridMap.OverlayService.AcquireOwner(
+                invalidFootprintChannel,
+                "building-placement-road-invalid");
+            invalidFootprintHandle?.SetCells(invalidCells);
+            roadPathHandle = gridMap.OverlayService.AcquireOwner(
+                roadPathChannel,
+                "building-placement-road-path");
+            roadPathHandle?.SetCells(roadCells);
         }
 
         private void ClearHighlightedTiles()
         {
-            if (activeHighlightTilemap == null)
-            {
-                highlightedFootprintCells.Clear();
-                highlightedBuildableAreaCells.Clear();
-                highlightedBuildableAreaCellSet.Clear();
-                highlightedBuildableAreaDefinition = null;
-                activeHighlightTilemap = null;
-                return;
-            }
-
-            for (var i = 0; i < highlightedFootprintCells.Count; i++)
-            {
-                activeHighlightTilemap.SetTile(highlightedFootprintCells[i], null);
-            }
-
-            for (var i = 0; i < highlightedBuildableAreaCells.Count; i++)
-            {
-                activeHighlightTilemap.SetTile(highlightedBuildableAreaCells[i], null);
-            }
-
-            highlightedFootprintCells.Clear();
-            highlightedBuildableAreaCells.Clear();
-            highlightedBuildableAreaCellSet.Clear();
-            highlightedBuildableAreaDefinition = null;
-            activeHighlightTilemap = null;
+            validFootprintHandle?.Dispose();
+            invalidFootprintHandle?.Dispose();
+            roadPathHandle?.Dispose();
+            demolitionHandle?.Dispose();
+            resourceReachableHandle?.Dispose();
+            resourceProviderHandle?.Dispose();
+            selectedResourceProviderHandle?.Dispose();
+            resourcePathHandle?.Dispose();
+            buffRangeHandle?.Dispose();
+            validFootprintHandle = null;
+            invalidFootprintHandle = null;
+            roadPathHandle = null;
+            demolitionHandle = null;
+            resourceReachableHandle = null;
+            resourceProviderHandle = null;
+            selectedResourceProviderHandle = null;
+            resourcePathHandle = null;
+            buffRangeHandle = null;
         }
 
         private void ResolveSceneReferences()

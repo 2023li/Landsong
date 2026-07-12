@@ -220,10 +220,8 @@ MonoBehaviour:
     - land
     movementResistance: 0
     placementCosts: []
-    visibleCondition:
-      rid: 5711026220397232213
-    availableCondition:
-      rid: 5711026220397232214
+    blueprintInitiallyLocked: 1
+    hideWhenBlueprintLocked: 1
     buildMenuSortOrder: 0
     maxBuildCount: 0
     buildLimitGroupId: 
@@ -245,12 +243,4 @@ MonoBehaviour:
   autoRepair: 0
   references:
     version: 2
-    RefIds:
-    - rid: 5711026220397232213
-      type: {class: GameCondition_TechnologyUnlocked, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
-      data:
-        TechnologyDefinition: {fileID: 11400000, guid: 9a0f6a8451e34c80ac55c4dfe537b407, type: 2}
-    - rid: 5711026220397232214
-      type: {class: GameCondition_TechnologyUnlocked, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
-      data:
-        TechnologyDefinition: {fileID: 11400000, guid: 9a0f6a8451e34c80ac55c4dfe537b407, type: 2}
+    RefIds: []

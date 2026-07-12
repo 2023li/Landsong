@@ -352,6 +352,75 @@ namespace Landsong.InventorySystem
             return true;
         }
 
+        public bool CanExchangeItems(
+            IEnumerable<ItemAmount> inputs,
+            IEnumerable<ItemAmount> outputs)
+        {
+            return TryBuildExchangeResult(inputs, outputs, out _);
+        }
+
+        public bool TryExchangeItems(
+            IEnumerable<ItemAmount> inputs,
+            IEnumerable<ItemAmount> outputs)
+        {
+            if (!TryBuildExchangeResult(inputs, outputs, out var projected))
+            {
+                return false;
+            }
+
+            RestoreSaveData(projected, false);
+            return true;
+        }
+
+        private bool TryBuildExchangeResult(
+            IEnumerable<ItemAmount> inputs,
+            IEnumerable<ItemAmount> outputs,
+            out InventorySaveData projected)
+        {
+            projected = null;
+            var normalizedInputs = ToNormalizedAmounts(inputs);
+            var normalizedOutputs = ToNormalizedAmounts(outputs);
+            var simulation = new Inventory(slots.Count, catalog);
+            simulation.RestoreSaveData(CaptureSaveData(), false);
+            if (!simulation.TryRemoveItems(normalizedInputs)
+                || !simulation.TryAddItems(normalizedOutputs))
+            {
+                return false;
+            }
+
+            projected = simulation.CaptureSaveData();
+            return true;
+        }
+
+        private static IReadOnlyList<ItemAmount> ToNormalizedAmounts(IEnumerable<ItemAmount> items)
+        {
+            var totals = new Dictionary<string, ItemAmount>(StringComparer.Ordinal);
+            if (items != null)
+            {
+                foreach (var item in items)
+                {
+                    var normalized = item.Normalized();
+                    if (!normalized.IsValid)
+                    {
+                        continue;
+                    }
+
+                    totals.TryGetValue(normalized.ItemId, out var current);
+                    totals[normalized.ItemId] = new ItemAmount(
+                        normalized.ItemDefinition,
+                        current.Amount + normalized.Amount);
+                }
+            }
+
+            var result = new List<ItemAmount>(totals.Count);
+            foreach (var pair in totals)
+            {
+                result.Add(pair.Value);
+            }
+
+            return result;
+        }
+
         private static Dictionary<string, int> BuildValidItemTotals(IEnumerable<ItemAmount> items)
         {
             var totalsByItemId = new Dictionary<string, int>(StringComparer.Ordinal);

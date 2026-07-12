@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Threading.Tasks;
 using Landsong.BuildingSystem;
 using Landsong.InventorySystem;
@@ -28,6 +29,9 @@ namespace Landsong.AppSystem
     public sealed class AppManager : MonoSingleton<AppManager>
     {
         private const string DefaultPlayerName = "Player";
+#if UNITY_EDITOR
+        private const string PendingEditorMapIdKey = "Landsong.MapAuthoring.PendingMapId";
+#endif
 
         [Header("App")]
         [SerializeField, LabelText("版本号覆盖")] private string versionOverride = string.Empty;
@@ -70,7 +74,37 @@ namespace Landsong.AppSystem
                     MapDataCatalog.LoadAsync(mapDataCatalogAddressKey),
                     ItemCatalog.LoadAsync(itemCatalogAddressKey),
                     BuildingCatalog.LoadAsync(buildingCatalogAddressKey));
+#if UNITY_EDITOR
+            StartCoroutine(TryStartPendingEditorMapRoutine());
+#endif
         }
+
+#if UNITY_EDITOR
+        private IEnumerator TryStartPendingEditorMapRoutine()
+        {
+            var mapId = EditorPrefs.GetString(PendingEditorMapIdKey, string.Empty);
+            if (string.IsNullOrWhiteSpace(mapId))
+            {
+                yield break;
+            }
+
+            EditorPrefs.DeleteKey(PendingEditorMapIdKey);
+            while (SceneTransitionManager.Instance != null
+                   && SceneTransitionManager.Instance.IsTransitioning)
+            {
+                yield return null;
+            }
+
+            var catalog = MapDataCatalog.Instance;
+            if (catalog == null || !catalog.TryGetMapDefinition(mapId, out var map))
+            {
+                Debug.LogError($"编辑器地图测试启动失败：MapCatalog 中不存在 {mapId}", this);
+                yield break;
+            }
+
+            StartNewGame(map, "测试王朝");
+        }
+#endif
 
       
 
@@ -146,12 +180,12 @@ namespace Landsong.AppSystem
 #endif
         }
 
-        internal void StartNewGame(MapDataCatalog.MapData map)
+        internal void StartNewGame(MapDefinition map)
         {
             StartNewGame(map, string.Empty);
         }
 
-        internal void StartNewGame(MapDataCatalog.MapData map, string dynastyName)
+        internal void StartNewGame(MapDefinition map, string dynastyName)
         {
             if (map == null || !map.IsValid)
             {
@@ -168,6 +202,7 @@ namespace Landsong.AppSystem
             GameData gameData = DataManager.Instance.CreateNewGame(
                 DefaultPlayerName,
                 worldSeed,
+                map.MapId,
                 map.DisplayName,
                 dynastyName);
 

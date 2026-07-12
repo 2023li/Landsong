@@ -95,7 +95,7 @@ namespace Landsong.Persistence
                     if (IO.ES3KeyExists(GameDataKey, gameDataPath))
                     {
                         var gameData = IO.LoadES3<GameData>(GameDataKey, gameDataPath);
-                        if (gameData != null)
+                        if (gameData != null && gameData.DataVersion == GameData.CurrentDataVersion)
                         {
                             if (string.IsNullOrWhiteSpace(gameData.SaveGuid))
                             {
@@ -109,6 +109,10 @@ namespace Landsong.Persistence
                     else if (IO.ES3KeyExists(GameDataMetaKey, gameDataPath))
                     {
                         meta = IO.LoadES3<GameDataMeta>(GameDataMetaKey, gameDataPath);
+                        if (meta != null && meta.DataVersion != GameData.CurrentDataVersion)
+                        {
+                            meta = null;
+                        }
                     }
 
                     if (meta == null)
@@ -160,7 +164,10 @@ namespace Landsong.Persistence
                 return null;
             }
 
-            return IO.LoadES3<GameData>(GameDataKey, gameDataPath);
+            var gameData = IO.LoadES3<GameData>(GameDataKey, gameDataPath);
+            return gameData != null && gameData.DataVersion == GameData.CurrentDataVersion
+                ? gameData
+                : null;
         }
 
         public bool DeleteGame(string saveGuid)

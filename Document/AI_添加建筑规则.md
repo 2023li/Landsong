@@ -404,13 +404,26 @@ else if (building is ResidentialHousingLV1) { ... }
 - `movementResistance`
 - `placementCosts`
 - `visibleCondition`
-- `availableCondition`
+- `blueprintInitiallyLocked`
+- `hideWhenBlueprintLocked`
 - `buildMenuSortOrder`
 - `maxBuildCount`
 - `buildLimitGroupId`
 - `isDevelopmentCompleted`
 - `useUniqueDetailPanel`
 - `uniqueDetailPanel`
+
+### 建筑蓝图解锁的唯一流程
+
+- 建造菜单中的每个建筑都固定以 `BuildingBlueprintService.IsUnlocked(buildingId)` 作为可用资格，不再存在 `availableCondition`。
+- `blueprintInitiallyLocked = false` 表示新游戏和旧存档迁移时自动把该建筑蓝图写入服务；这是普通基础建筑的默认配置。
+- `blueprintInitiallyLocked = true` 表示开局不拥有蓝图，必须配置至少一个科技、任务、远征、天赋或传承解锁来源。
+- `hideWhenBlueprintLocked` 决定未获得蓝图时隐藏，还是显示为不可建造。
+- `BuildingBlueprintService` 是唯一运行时解锁状态，并由存档快照保存和恢复。
+- 科技、远征、天赋、传承等来源只负责调用 `BuildingBlueprintService.Unlock(buildingId)`。
+- 科技来源使用 `TechnologyEffect_UnlockBuildingBlueprint`，不要再用 `visibleCondition` 配置同一个科技作为蓝图解锁判断。
+- `visibleCondition` 只处理与蓝图无关的菜单显示规则；它不能让一个未拥有蓝图的建筑变为可用。
+- `GameCondition_TechnologyUnlocked` 仍可用于建筑升级等非建造菜单蓝图规则。
 
 ### 建筑 Prefab 上常见运行时参数
 
@@ -518,7 +531,8 @@ public sealed class ExampleWorkshop : BuildingBase
 先查：
 
 - `visibleCondition`
-- `availableCondition`
+- 是否已经通过 `BuildingBlueprintService` 获得蓝图
+- `blueprintInitiallyLocked / hideWhenBlueprintLocked`
 - `isDevelopmentCompleted`
 - `maxBuildCount / buildLimitGroupId`
 - `placementCosts`

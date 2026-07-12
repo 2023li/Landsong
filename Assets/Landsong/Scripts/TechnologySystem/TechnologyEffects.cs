@@ -6,6 +6,34 @@ using UnityEngine;
 
 namespace Landsong.TechnologySystem
 {
+    public enum TechnologyEffectPresentationCategory
+    {
+        Other = 0,
+        Item = 1,
+        Building = 2
+    }
+
+    public readonly struct TechnologyEffectPresentation
+    {
+        public TechnologyEffectPresentation(
+            Sprite icon,
+            string displayName,
+            TechnologyEffectPresentationCategory category,
+            int amount = 1)
+        {
+            Icon = icon;
+            DisplayName = string.IsNullOrWhiteSpace(displayName) ? string.Empty : displayName.Trim();
+            Category = category;
+            Amount = Mathf.Max(1, amount);
+        }
+
+        public Sprite Icon { get; }
+        public string DisplayName { get; }
+        public TechnologyEffectPresentationCategory Category { get; }
+        public int Amount { get; }
+        public bool IsValid => Icon != null || !string.IsNullOrWhiteSpace(DisplayName);
+    }
+
     public readonly struct TechnologyEffectApplyResult
     {
         public TechnologyEffectApplyResult(bool applied, string message)
@@ -27,6 +55,12 @@ namespace Landsong.TechnologySystem
         }
 
         public abstract TechnologyEffectApplyResult Apply(GameSystem context, TechnologyDefinition technology);
+
+        public virtual bool TryGetPresentation(out TechnologyEffectPresentation presentation)
+        {
+            presentation = default;
+            return false;
+        }
     }
 
     [Serializable]
@@ -61,6 +95,18 @@ namespace Landsong.TechnologySystem
 
             return new TechnologyEffectApplyResult(true, $"{itemDefinition.DisplayName}+{added}");
         }
+
+        public override bool TryGetPresentation(out TechnologyEffectPresentation presentation)
+        {
+            presentation = itemDefinition == null || Amount <= 0
+                ? default
+                : new TechnologyEffectPresentation(
+                    itemDefinition.Icon,
+                    itemDefinition.DisplayName,
+                    TechnologyEffectPresentationCategory.Item,
+                    Amount);
+            return presentation.IsValid;
+        }
     }
 
     [Serializable]
@@ -83,6 +129,20 @@ namespace Landsong.TechnologySystem
             return new TechnologyEffectApplyResult(
                 unlocked,
                 unlocked ? $"蓝图解锁：{definition.DisplayName}" : $"蓝图已解锁：{definition.DisplayName}");
+        }
+
+        public override bool TryGetPresentation(out TechnologyEffectPresentation presentation)
+        {
+            var definition = buildingPrefab == null || !buildingPrefab.HasDefinition
+                ? null
+                : buildingPrefab.Definition;
+            presentation = definition == null
+                ? default
+                : new TechnologyEffectPresentation(
+                    definition.Icon,
+                    definition.DisplayName,
+                    TechnologyEffectPresentationCategory.Building);
+            return presentation.IsValid;
         }
     }
 }

@@ -15,6 +15,59 @@ namespace Landsong.GridSystem
         public int ActionCost { get; }
     }
 
+    public sealed class GridManhattanPathResult
+    {
+        private readonly Dictionary<GridPosition, GridPosition> predecessors;
+        private readonly HashSet<GridPosition> starts;
+
+        internal GridManhattanPathResult(
+            List<GridManhattanPathNode> nodes,
+            Dictionary<GridPosition, GridPosition> predecessors,
+            HashSet<GridPosition> starts)
+        {
+            Nodes = nodes ?? new List<GridManhattanPathNode>();
+            this.predecessors = predecessors ?? new Dictionary<GridPosition, GridPosition>();
+            this.starts = starts ?? new HashSet<GridPosition>();
+        }
+
+        public IReadOnlyList<GridManhattanPathNode> Nodes { get; }
+
+        public bool TryBuildPath(GridPosition target, out List<GridPosition> path)
+        {
+            path = new List<GridPosition>();
+            var reachable = false;
+            for (var i = 0; i < Nodes.Count; i++)
+            {
+                if (Nodes[i].Position == target)
+                {
+                    reachable = true;
+                    break;
+                }
+            }
+
+            if (!reachable)
+            {
+                return false;
+            }
+
+            var current = target;
+            path.Add(current);
+            while (!starts.Contains(current))
+            {
+                if (!predecessors.TryGetValue(current, out current))
+                {
+                    path.Clear();
+                    return false;
+                }
+
+                path.Add(current);
+            }
+
+            path.Reverse();
+            return true;
+        }
+    }
+
     public static class GridManhattanPathfinder
     {
         private static readonly GridPosition[] Directions =
@@ -32,10 +85,27 @@ namespace Landsong.GridSystem
             Func<GridPosition, bool> canEnter,
             Func<GridPosition, int> getActionCost = null)
         {
+            return new List<GridManhattanPathNode>(FindPaths(
+                gridMap,
+                startPositions,
+                maxActionCost,
+                canEnter,
+                getActionCost).Nodes);
+        }
+
+        public static GridManhattanPathResult FindPaths(
+            GridMapBehaviour gridMap,
+            IEnumerable<GridPosition> startPositions,
+            int maxActionCost,
+            Func<GridPosition, bool> canEnter,
+            Func<GridPosition, int> getActionCost = null)
+        {
             var reachable = new List<GridManhattanPathNode>();
+            var predecessors = new Dictionary<GridPosition, GridPosition>();
+            var starts = new HashSet<GridPosition>();
             if (gridMap == null || startPositions == null || maxActionCost < 0)
             {
-                return reachable;
+                return new GridManhattanPathResult(reachable, predecessors, starts);
             }
 
             canEnter ??= position => gridMap.HasBaseTileAt(position);
@@ -57,6 +127,7 @@ namespace Landsong.GridSystem
                 }
 
                 bestCosts[start] = 0;
+                starts.Add(start);
                 open.Add(new GridManhattanPathNode(start, 0));
             }
 
@@ -108,11 +179,12 @@ namespace Landsong.GridSystem
                     }
 
                     bestCosts[neighbor] = nextActionCost;
+                    predecessors[neighbor] = current.Position;
                     open.Add(new GridManhattanPathNode(neighbor, nextActionCost));
                 }
             }
 
-            return reachable;
+            return new GridManhattanPathResult(reachable, predecessors, starts);
         }
 
         private static int GetCheapestOpenNodeIndex(IReadOnlyList<GridManhattanPathNode> open)

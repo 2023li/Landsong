@@ -1,4 +1,5 @@
 using Landsong.BuildingSystem;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,6 +11,7 @@ namespace Landsong.UISystem
         [SerializeField, InspectorName("控制条根节点")] private RectTransform controlsRoot;
         [SerializeField, InspectorName("确认按钮")] private Button confirmButton;
         [SerializeField, InspectorName("取消按钮")] private Button cancelButton;
+        [SerializeField, InspectorName("放置信息文本（可选）")] private TMP_Text placementInfoText;
         [SerializeField, InspectorName("在相机后方时隐藏")] private bool hideWhenBehindCamera = true;
 
         private Canvas owningCanvas;
@@ -90,6 +92,17 @@ namespace Landsong.UISystem
             {
                 confirmButton.interactable = interactable;
             }
+        }
+
+        public void SetPlacementInfo(string text)
+        {
+            if (placementInfoText == null)
+            {
+                return;
+            }
+
+            placementInfoText.text = string.IsNullOrWhiteSpace(text) ? string.Empty : text;
+            placementInfoText.gameObject.SetActive(!string.IsNullOrWhiteSpace(placementInfoText.text));
         }
 
         public void SetWorldPosition(Camera worldCamera, Vector3 worldPosition)

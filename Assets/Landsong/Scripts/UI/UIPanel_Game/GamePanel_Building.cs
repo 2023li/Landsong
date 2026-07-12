@@ -810,8 +810,6 @@ namespace Landsong.UISystem
 
             return availability.FirstUnavailableReason switch
             {
-                BuildingUnavailableReason.Locked => "未解锁",
-                BuildingUnavailableReason.BlueprintLocked => "未获得蓝图",
                 BuildingUnavailableReason.DevelopmentIncomplete => "建筑未开发完成",
                 BuildingUnavailableReason.BuildLimitReached => "数量已达上限",
                 BuildingUnavailableReason.MissingMaterials => "材料不足",

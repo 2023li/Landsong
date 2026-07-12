@@ -239,10 +239,8 @@ MonoBehaviour:
     - "\u9646\u5730"
     movementResistance: 0
     placementCosts: []
-    visibleCondition:
-      rid: 5711026220397232215
-    availableCondition:
-      rid: 5711026220397232216
+    blueprintInitiallyLocked: 1
+    hideWhenBlueprintLocked: 1
     buildMenuSortOrder: 0
     maxBuildCount: 0
     buildLimitGroupId: 
@@ -326,14 +324,6 @@ MonoBehaviour:
         - itemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
           amount: 30
     - rid: 5711026220397232209
-      type: {class: GameCondition_TechnologyUnlocked, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
-      data:
-        TechnologyDefinition: {fileID: 11400000, guid: 006213b12ed0bbc4091a2f3c95bc2f65, type: 2}
-    - rid: 5711026220397232215
-      type: {class: GameCondition_TechnologyUnlocked, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
-      data:
-        TechnologyDefinition: {fileID: 11400000, guid: 006213b12ed0bbc4091a2f3c95bc2f65, type: 2}
-    - rid: 5711026220397232216
       type: {class: GameCondition_TechnologyUnlocked, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
       data:
         TechnologyDefinition: {fileID: 11400000, guid: 006213b12ed0bbc4091a2f3c95bc2f65, type: 2}

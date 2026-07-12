@@ -68,7 +68,7 @@ namespace Landsong
         [SerializeField, FoldoutGroup(InspectorExpedition), LabelText("远征目的地目录")] private ExpeditionDestinationCatalog expeditionDestinationCatalog;
         [SerializeField, FoldoutGroup(InspectorExpedition), LabelText("远征补贴金币物品")] private ItemDefinition expeditionSubsidyGoldItemDefinition;
         [SerializeField, FoldoutGroup(InspectorExpedition), LabelText("远征队伍上限"), Min(1)] private int expeditionTeamCapacity = 3;
-        [SerializeField, FoldoutGroup(InspectorExpedition), LabelText("初始已解锁奇迹蓝图")] private string[] startingUnlockedBuildingBlueprintIds = Array.Empty<string>();
+        [SerializeField, FoldoutGroup(InspectorSceneSystems), LabelText("额外初始建筑蓝图")] private string[] startingUnlockedBuildingBlueprintIds = Array.Empty<string>();
         [SerializeField, FoldoutGroup(InspectorExpedition), LabelText("补贴不足惩罚持续回合"), Min(1)] private int expeditionSubsidyPenaltyDurationTurns = 5;
         [SerializeField, FoldoutGroup(InspectorExpedition), LabelText("每层补贴不足惩罚岗位吸引力"), Min(0f)] private float expeditionSubsidyPenaltyAttractionPerStack = 5f;
 
@@ -410,6 +410,61 @@ namespace Landsong
         private void CreateBuildingBlueprintService()
         {
             BuildingBlueprints = new BuildingBlueprintService(startingUnlockedBuildingBlueprintIds);
+            ReconcileInitiallyUnlockedBuildingBlueprints();
+            ReconcileBuildingBlueprintsFromUnlockedTechnologies();
+        }
+
+        internal void ReconcileInitiallyUnlockedBuildingBlueprints()
+        {
+            if (BuildingBlueprints == null || BuildingCatalog == null)
+            {
+                return;
+            }
+
+            var prefabs = BuildingCatalog.BuildingPrefabs;
+            for (var i = 0; i < prefabs.Count; i++)
+            {
+                var building = prefabs[i];
+                if (building != null
+                    && building.HasDefinition
+                    && !building.Definition.BlueprintInitiallyLocked)
+                {
+                    BuildingBlueprints.Unlock(building.Definition.BuildingId);
+                }
+            }
+        }
+
+        internal void ReconcileBuildingBlueprintsFromUnlockedTechnologies()
+        {
+            if (Technology == null || BuildingBlueprints == null || Technology.Catalog == null)
+            {
+                return;
+            }
+
+            var definitions = Technology.Catalog.Definitions;
+            for (var i = 0; i < definitions.Count; i++)
+            {
+                var technology = definitions[i];
+                if (technology == null || !Technology.IsUnlocked(technology.TechnologyId))
+                {
+                    continue;
+                }
+
+                var effects = technology.CompletionEffects;
+                for (var j = 0; j < effects.Count; j++)
+                {
+                    if (effects[j] is not TechnologyEffect_UnlockBuildingBlueprint unlockEffect)
+                    {
+                        continue;
+                    }
+
+                    var building = unlockEffect.BuildingPrefab;
+                    if (building != null && building.HasDefinition)
+                    {
+                        BuildingBlueprints.Unlock(building.Definition.BuildingId);
+                    }
+                }
+            }
         }
 
         private void CreateExpeditionService(ExpeditionSaveData saveData = null)

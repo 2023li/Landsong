@@ -12,6 +12,8 @@ namespace Landsong.TurnSystem
             new List<BM_科技点产出>();
         private readonly List<BM_资源产出> resourceProductionModules =
             new List<BM_资源产出>();
+        private readonly List<BM_资源加工> resourceProcessingModules =
+            new List<BM_资源加工>();
 
         public TurnService(int startingTurn = 1)
         {
@@ -21,6 +23,7 @@ namespace Landsong.TurnSystem
         public event Action<TurnService> BeforeTurnAdvanced;
         public event Action<TurnService, TurnAdvanceSummary> TurnAdvanced;
         public event Action<TurnService, BuildingResourceProvidedEvent> BuildingResourceProvided;
+        public event Action<TurnService, BuildingResourceConsumedEvent> BuildingResourceConsumed;
         public event Action<TurnService, BuildingTechnologyPointsProvidedEvent> BuildingTechnologyPointsProvided;
 
         public int CurrentTurn { get; private set; }
@@ -141,6 +144,7 @@ namespace Landsong.TurnSystem
 
             ResetProvidedTechnologyPoints(building);
             var succeeded = building.ProcessTurn();
+            NotifyConsumedResources(building);
             if (!succeeded)
             {
                 summary.Failed++;
@@ -150,6 +154,48 @@ namespace Landsong.TurnSystem
             summary.OperatingConsumed++;
             NotifyProvidedResources(building);
             NotifyProvidedTechnologyPoints(building);
+        }
+
+        private void NotifyConsumedResources(BuildingBase building)
+        {
+            if (BuildingResourceConsumed == null || building == null)
+            {
+                return;
+            }
+
+            if (building is IBuildingResourceConsumptionSource consumptionSource)
+            {
+                NotifyConsumedResources(building, consumptionSource.LastResourceConsumptions);
+            }
+
+            resourceProcessingModules.Clear();
+            building.GetModules(resourceProcessingModules);
+            for (var i = 0; i < resourceProcessingModules.Count; i++)
+            {
+                NotifyConsumedResources(building, resourceProcessingModules[i].LastResourceConsumptions);
+            }
+            resourceProcessingModules.Clear();
+        }
+
+        private void NotifyConsumedResources(
+            BuildingBase building,
+            IReadOnlyList<BuildingResourceChange> resources)
+        {
+            if (resources == null)
+            {
+                return;
+            }
+
+            for (var i = 0; i < resources.Count; i++)
+            {
+                var resource = resources[i];
+                if (!resource.IsValid)
+                {
+                    continue;
+                }
+
+                BuildingResourceConsumed?.Invoke(this, new BuildingResourceConsumedEvent(building, resource));
+            }
         }
 
         private void NotifyProvidedResources(BuildingBase building)
@@ -172,6 +218,14 @@ namespace Landsong.TurnSystem
             }
 
             resourceProductionModules.Clear();
+
+            resourceProcessingModules.Clear();
+            building.GetModules(resourceProcessingModules);
+            for (var i = 0; i < resourceProcessingModules.Count; i++)
+            {
+                NotifyProvidedResources(building, resourceProcessingModules[i].LastResourceProductions);
+            }
+            resourceProcessingModules.Clear();
 
             if (building is IBuildingTaxSource taxSource)
             {
@@ -274,6 +328,22 @@ namespace Landsong.TurnSystem
     public readonly struct BuildingResourceProvidedEvent
     {
         public BuildingResourceProvidedEvent(BuildingBase building, BuildingResourceChange resource)
+        {
+            Building = building;
+            Resource = resource;
+        }
+
+        public BuildingBase Building { get; }
+        public BuildingResourceChange Resource { get; }
+        public string ItemId => Resource.ItemId;
+        public int Amount => Resource.Amount;
+        public bool IsValid => Building != null && Resource.IsValid;
+    }
+
+    [Serializable]
+    public readonly struct BuildingResourceConsumedEvent
+    {
+        public BuildingResourceConsumedEvent(BuildingBase building, BuildingResourceChange resource)
         {
             Building = building;
             Resource = resource;

@@ -130,22 +130,10 @@ namespace Landsong.BuildingSystem
             Transform parent,
             out BuildingBase building)
         {
-            return TryPlace(buildingPrefab, gridMap, origin, Quaternion.identity, parent, out building);
-        }
-
-        public bool TryPlace(
-            BuildingBase buildingPrefab,
-            GridMapBehaviour gridMap,
-            GridPosition origin,
-            Quaternion rotation,
-            Transform parent,
-            out BuildingBase building)
-        {
             var request = new BuildingPlacementRequest(
                 buildingPrefab,
                 gridMap,
                 origin,
-                rotation,
                 parent);
             var result = TryPlace(request, out building);
             return result.Succeeded;
@@ -193,7 +181,7 @@ namespace Landsong.BuildingSystem
             }
 
             var placementPosition = request.GridMap.GetFootprintCenter(request.Origin, definition.Size);
-            building = UnityEngine.Object.Instantiate(request.BuildingPrefab, placementPosition, request.Rotation, request.Parent);
+            building = UnityEngine.Object.Instantiate(request.BuildingPrefab, placementPosition, Quaternion.identity, request.Parent);
             if (building == null)
             {
                 LogWarning(request.LogWarnings, $"Placed building prefab '{request.BuildingPrefab.name}' could not instantiate a BuildingBase.", request.BuildingPrefab);
@@ -252,7 +240,6 @@ namespace Landsong.BuildingSystem
                     buildingPrefab,
                     gridMap,
                     origins[i],
-                    Quaternion.identity,
                     parent,
                     1,
                     false,
@@ -291,7 +278,6 @@ namespace Landsong.BuildingSystem
 
             var gridMap = sourceBuilding.GridMap;
             var origin = sourceBuilding.GridPosition;
-            var rotation = sourceBuilding.transform.rotation;
             var parent = sourceBuilding.transform.parent;
             var sourceDefinition = sourceBuilding.Definition;
             var replacementDefinition = replacementPrefab.Definition;
@@ -307,7 +293,7 @@ namespace Landsong.BuildingSystem
                 replacement = UnityEngine.Object.Instantiate(
                     replacementPrefab,
                     placementPosition,
-                    rotation,
+                    Quaternion.identity,
                     parent);
                 if (replacement == null)
                 {

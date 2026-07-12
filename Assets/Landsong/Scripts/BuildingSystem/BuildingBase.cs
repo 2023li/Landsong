@@ -170,6 +170,72 @@ namespace Landsong.BuildingSystem
         // 根据 Definition 的尺寸和当前原点计算出的占地范围。
         public GridFootprint Footprint => definition == null ? new GridFootprint(gridPosition, Vector2Int.one) : definition.CreateFootprint(gridPosition);
 
+        public bool RequiresConnectionType(string connectionTypeId)
+        {
+            connectionTypeId = BuildingConnectionTypes.Normalize(connectionTypeId);
+            if (string.IsNullOrEmpty(connectionTypeId))
+            {
+                return false;
+            }
+
+            if (this is IBuildingConnectionConsumer consumer
+                && ContainsConnectionType(consumer.RequiredConnectionTypeIds, connectionTypeId))
+            {
+                return true;
+            }
+
+            if (buildingModules == null)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < buildingModules.Count; i++)
+            {
+                if (buildingModules[i] is IBuildingConnectionConsumerModule module
+                    && buildingModules[i].IsEnabled
+                    && ContainsConnectionType(module.RequiredConnectionTypeIds, connectionTypeId))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public bool ProvidesConnectionType(string connectionTypeId)
+        {
+            connectionTypeId = BuildingConnectionTypes.Normalize(connectionTypeId);
+            if (this is IBuildingConnectionProviderSource source)
+            {
+                return source.ProvidesConnectionType(connectionTypeId);
+            }
+
+            return string.Equals(connectionTypeId, BuildingConnectionTypes.Resource, StringComparison.Ordinal)
+                   && isResourceProviderPoint;
+        }
+
+        public int GetConnectionProviderPriority(string connectionTypeId)
+        {
+            return this is IBuildingConnectionProviderSource source
+                ? source.GetConnectionProviderPriority(BuildingConnectionTypes.Normalize(connectionTypeId))
+                : resourceProviderPriority;
+        }
+
+        public bool IsConnectionProviderOperational(string connectionTypeId)
+        {
+            if (this is IBuildingConnectionProviderSource source)
+            {
+                return source.IsConnectionProviderOperational(BuildingConnectionTypes.Normalize(connectionTypeId));
+            }
+
+            return !string.Equals(
+                       BuildingConnectionTypes.Normalize(connectionTypeId),
+                       BuildingConnectionTypes.Resource,
+                       StringComparison.Ordinal)
+                   || this is not IBuildingResourceProviderOperationalState resourceState
+                   || resourceState.IsResourceProviderOperational;
+        }
+
         #region
 
 
@@ -361,6 +427,10 @@ namespace Landsong.BuildingSystem
             }
 
             bool succeeded = OnTurn();
+            if (succeeded)
+            {
+                succeeded = ProcessAutomaticTurnModules();
+            }
             if (succeeded && TryProcessLevelAutoUpgrade())
             {
                 return true;
@@ -368,6 +438,28 @@ namespace Landsong.BuildingSystem
 
             NotifyStateChanged();
             return succeeded;
+        }
+
+        private bool ProcessAutomaticTurnModules()
+        {
+            if (buildingModules == null)
+            {
+                return true;
+            }
+
+            for (var i = 0; i < buildingModules.Count; i++)
+            {
+                var module = buildingModules[i];
+                if (module != null
+                    && module.IsEnabled
+                    && module is IBuildingAutomaticTurnModule automatic
+                    && !automatic.ProcessAutomaticTurn(this))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private bool TryProcessLevelAutoUpgrade()
@@ -718,6 +810,29 @@ namespace Landsong.BuildingSystem
         protected static bool HasUsableItemId(string itemId)
         {
             return !string.IsNullOrWhiteSpace(itemId);
+        }
+
+        private static bool ContainsConnectionType(
+            IReadOnlyList<string> connectionTypeIds,
+            string expected)
+        {
+            if (connectionTypeIds == null)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < connectionTypeIds.Count; i++)
+            {
+                if (string.Equals(
+                        BuildingConnectionTypes.Normalize(connectionTypeIds[i]),
+                        expected,
+                        StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         protected static string NormalizeItemId(string itemId, string fallback)

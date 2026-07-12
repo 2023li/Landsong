@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3b70d7f4d394dd9a76b0bc2e5c6a101, type: 3}
+  m_Name: "TN_3_9_天文导航"
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.TechnologySystem.TechnologyDefinition
+  icon: {fileID: 0}
+  technologyId: "TN_3_9_天文导航"
+  displayName: "天文导航"
+  description: "结合远洋帆装和测量工具确定海上位置。"
+  sciencePointCost: 78
+  allowRepeatResearch: 0
+  prerequisites:
+  - {fileID: 11400000, guid: a2d1e13e924b415cbefd00c4b00d396d, type: 2}
+  - {fileID: 11400000, guid: 57225f95e2e841cba18f218a0d38cbfe, type: 2}
+  completionEffects: []
+  graphPosition: {x: 1760, y: 300}
+  references:
+    version: 2
+    RefIds: []

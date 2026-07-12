@@ -281,6 +281,30 @@ namespace Landsong.TechnologySystem
             return false;
         }
 
+        public int GetResearchQueueIndex(TechnologyDefinition definition)
+        {
+            if (definition == null)
+            {
+                return -1;
+            }
+
+            var technologyId = TechnologySaveData.NormalizeTechnologyId(definition.TechnologyId);
+            if (string.IsNullOrEmpty(technologyId))
+            {
+                return -1;
+            }
+
+            for (var i = 0; i < researchQueueTechnologyIds.Count; i++)
+            {
+                if (string.Equals(researchQueueTechnologyIds[i], technologyId, StringComparison.Ordinal))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
         public bool CanStartResearch(string technologyId, out TechnologyResearchFailureReason failureReason)
         {
             if (catalog == null || !catalog.TryGetDefinition(technologyId, out var definition))

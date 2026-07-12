@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3b70d7f4d394dd9a76b0bc2e5c6a101, type: 3}
+  m_Name: "TN_4_15_联合军制"
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.TechnologySystem.TechnologyDefinition
+  icon: {fileID: 0}
+  technologyId: "TN_4_15_联合军制"
+  displayName: "联合军制"
+  description: "协调军需体系与灵脉通讯，统合陆海军力。"
+  sciencePointCost: 240
+  allowRepeatResearch: 0
+  prerequisites:
+  - {fileID: 11400000, guid: 27ac63415b79445db81eefa845b3244c, type: 2}
+  - {fileID: 11400000, guid: ef51c213eee64ac183b443d004f25c58, type: 2}
+  completionEffects: []
+  graphPosition: {x: 3080, y: 450}
+  references:
+    version: 2
+    RefIds: []

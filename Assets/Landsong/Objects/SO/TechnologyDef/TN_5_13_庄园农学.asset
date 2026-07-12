@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3b70d7f4d394dd9a76b0bc2e5c6a101, type: 3}
+  m_Name: "TN_5_13_庄园农学"
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.TechnologySystem.TechnologyDefinition
+  icon: {fileID: 0}
+  technologyId: "TN_5_13_庄园农学"
+  displayName: "庄园农学"
+  description: "结合磨坊生产和医学卫生管理大型农业庄园。"
+  sciencePointCost: 168
+  allowRepeatResearch: 0
+  prerequisites:
+  - {fileID: 11400000, guid: 336f8fe0f5fe4dd8a14256dfe1c5a3ed, type: 2}
+  - {fileID: 11400000, guid: 3cbdbd5fee134a8b9b13b8d59d8f7d2f, type: 2}
+  completionEffects: []
+  graphPosition: {x: 2640, y: 600}
+  references:
+    version: 2
+    RefIds: []

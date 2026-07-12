@@ -9,7 +9,6 @@ using Moyo.Unity;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.Tilemaps;
 
 namespace Landsong.BuildingSystem
 {
@@ -20,10 +19,10 @@ namespace Landsong.BuildingSystem
         private GamePanel_BuildingOperationBar operationBarPrefab;
 
         [FoldoutGroup("选填")]
-        [SerializeField] private TileBase selectionHighlightTile;
+        [SerializeField] private GridOverlayChannelDefinition selectionOverlayChannel;
 
         [FoldoutGroup("选填")]
-        [SerializeField] private TileBase reachableRangeHighlightTile;
+        [SerializeField] private GridOverlayChannelDefinition reachableRangeOverlayChannel;
 
         [FoldoutGroup("选填")]
         [SerializeField] private Vector3 operationBarWorldOffset = new Vector3(0f, -0.75f, 0f);
@@ -44,8 +43,6 @@ namespace Landsong.BuildingSystem
         [SerializeField, Min(0f), LabelText("选择点击最大移动像素")] private float selectionClickMaxMovementPixels = 8f;
 
         private readonly HashSet<BuildingBase> subscribedBuildings = new HashSet<BuildingBase>();
-        private readonly List<Vector3Int> highlightedCells = new List<Vector3Int>();
-        private readonly List<Vector3Int> highlightedReachableRangeCells = new List<Vector3Int>();
         private Landsong.GameSystem gameSystem;
         private BuildingService buildings;
         private BuildingService subscribedBuildingService;
@@ -54,8 +51,8 @@ namespace Landsong.BuildingSystem
         private Canvas markerCanvas;
         private RectTransform markerRoot;
         private GamePanel_BuildingOperationBar activeOperationBar;
-        private Tilemap activeHighlightTilemap;
-        private Tilemap activeReachableRangeHighlightTilemap;
+        private GridOverlayOwnerHandle selectionOverlayHandle;
+        private GridOverlayOwnerHandle reachableRangeOverlayHandle;
         private BuildingBase selectedBuilding;
         private CameraController subscribedCameraController;
         private bool subscribedToBuildings;
@@ -83,6 +80,11 @@ namespace Landsong.BuildingSystem
 
         private void OnEnable()
         {
+            if (selectionOverlayChannel == null || reachableRangeOverlayChannel == null)
+            {
+                Debug.LogError("BuildingSelectionController 必须绑定选择与可达范围 Overlay Channel。", this);
+            }
+
             ResolveReferences();
             RegisterSelf();
             SubscribeBuildings();
@@ -234,33 +236,28 @@ namespace Landsong.BuildingSystem
             BuildingBase building = selectedBuilding;
             if (!CanSelectBuilding(building)
                 || building.GridMap == null
-                || building.GridMap.HighlightTilemap == null
-                || selectionHighlightTile == null)
+                || building.GridMap.OverlayService == null
+                || selectionOverlayChannel == null)
             {
                 return;
             }
 
-            activeHighlightTilemap = building.GridMap.HighlightTilemap;
+            selectionOverlayHandle = building.GridMap.OverlayService.AcquireOwner(
+                selectionOverlayChannel,
+                "building-selection");
+            var cells = new List<GridPosition>();
             foreach (GridPosition position in building.Footprint.Positions())
             {
-                Vector3Int tilemapCell = GridPositionToTilemapCell(position);
-                activeHighlightTilemap.SetTile(tilemapCell, selectionHighlightTile);
-                highlightedCells.Add(tilemapCell);
+                cells.Add(position);
             }
+
+            selectionOverlayHandle?.SetCells(cells);
         }
 
         private void ClearSelectionHighlight()
         {
-            if (activeHighlightTilemap != null)
-            {
-                for (int i = 0; i < highlightedCells.Count; i++)
-                {
-                    activeHighlightTilemap.SetTile(highlightedCells[i], null);
-                }
-            }
-
-            highlightedCells.Clear();
-            activeHighlightTilemap = null;
+            selectionOverlayHandle?.Dispose();
+            selectionOverlayHandle = null;
         }
 
         private void ShowOperationBar()
@@ -430,13 +427,8 @@ namespace Landsong.BuildingSystem
             BuildingBase building = selectedBuilding;
             if (!CanSelectBuilding(building)
                 || building.GridMap == null
-                || building.GridMap.HighlightTilemap == null)
-            {
-                return;
-            }
-
-            var highlightTile = reachableRangeHighlightTile == null ? selectionHighlightTile : reachableRangeHighlightTile;
-            if (highlightTile == null)
+                || building.GridMap.OverlayService == null
+                || reachableRangeOverlayChannel == null)
             {
                 return;
             }
@@ -454,7 +446,7 @@ namespace Landsong.BuildingSystem
                 position => CanEnterReachableRangeCell(building, footprintCells, position),
                 position => building.GridMap.GetTraversalActionCost(position, building.GridOccupancyId));
 
-            activeReachableRangeHighlightTilemap = building.GridMap.HighlightTilemap;
+            var cells = new List<GridPosition>();
             for (var i = 0; i < reachable.Count; i++)
             {
                 var position = reachable[i].Position;
@@ -463,24 +455,19 @@ namespace Landsong.BuildingSystem
                     continue;
                 }
 
-                var tilemapCell = GridPositionToTilemapCell(position);
-                activeReachableRangeHighlightTilemap.SetTile(tilemapCell, highlightTile);
-                highlightedReachableRangeCells.Add(tilemapCell);
+                cells.Add(position);
             }
+
+            reachableRangeOverlayHandle = building.GridMap.OverlayService.AcquireOwner(
+                reachableRangeOverlayChannel,
+                "building-selection-reachable");
+            reachableRangeOverlayHandle?.SetCells(cells);
         }
 
         private void ClearReachableRangeHighlight()
         {
-            if (activeReachableRangeHighlightTilemap != null)
-            {
-                for (var i = 0; i < highlightedReachableRangeCells.Count; i++)
-                {
-                    activeReachableRangeHighlightTilemap.SetTile(highlightedReachableRangeCells[i], null);
-                }
-            }
-
-            highlightedReachableRangeCells.Clear();
-            activeReachableRangeHighlightTilemap = null;
+            reachableRangeOverlayHandle?.Dispose();
+            reachableRangeOverlayHandle = null;
         }
 
         private bool CanEnterReachableRangeCell(
@@ -920,11 +907,6 @@ namespace Landsong.BuildingSystem
                    && screenPosition.x <= pixelRect.xMax
                    && screenPosition.y >= pixelRect.yMin
                    && screenPosition.y <= pixelRect.yMax;
-        }
-
-        private static Vector3Int GridPositionToTilemapCell(GridPosition position)
-        {
-            return new Vector3Int(position.X, position.Y, 0);
         }
 
     }

@@ -25,7 +25,7 @@ public class MainMenuItem_MapSelectionPopup : MonoBehaviour
     [SerializeField] private Button closeButton;
 
     private readonly List<MainMenuItem_MapDataView> mapDataViews = new List<MainMenuItem_MapDataView>();
-    private MapDataCatalog.MapData pendingMapData;
+    private MapDefinition pendingMapData;
 
     internal void Hide()
     {
@@ -87,7 +87,7 @@ public class MainMenuItem_MapSelectionPopup : MonoBehaviour
 
         int createdCount = 0;
 
-        foreach (MapDataCatalog.MapData mapData in mapDataCatalog.GetValidMapDatas())
+        foreach (MapDefinition mapData in mapDataCatalog.GetValidMapDefinitions())
         {
             CreateMapDataView(mapData);
             createdCount++;
@@ -99,7 +99,7 @@ public class MainMenuItem_MapSelectionPopup : MonoBehaviour
         mapDataViewPrefab.gameObject.SetActive(false);
     }
 
-    private void CreateMapDataView(MapDataCatalog.MapData mapData)
+    private void CreateMapDataView(MapDefinition mapData)
     {
         MainMenuItem_MapDataView view = Instantiate(mapDataViewPrefab, mapDataViewRoot);
         view.gameObject.SetActive(true);
@@ -107,7 +107,7 @@ public class MainMenuItem_MapSelectionPopup : MonoBehaviour
         mapDataViews.Add(view);
     }
 
-    private void ConfirmMapSelection(MapDataCatalog.MapData mapData)
+    private void ConfirmMapSelection(MapDefinition mapData)
     {
         if (mapData == null || !mapData.IsValid)
         {
@@ -217,7 +217,7 @@ public class MainMenuItem_MapSelectionPopup : MonoBehaviour
     [SerializeField, FoldoutGroup("取名弹窗")] private TMP_InputField ipt_名称输入框;
     [SerializeField, FoldoutGroup("取名弹窗")] private DynastyNameCatalog dynastyNameCatalog;
 
-    private void ShowDynastyNamePopup(MapDataCatalog.MapData mapData)
+    private void ShowDynastyNamePopup(MapDefinition mapData)
     {
         pendingMapData = mapData;
         ipt_名称输入框.text = GetRandomDynastyName();
@@ -245,7 +245,7 @@ public class MainMenuItem_MapSelectionPopup : MonoBehaviour
             return;
         }
 
-        MapDataCatalog.MapData selectedMapData = pendingMapData;
+        MapDefinition selectedMapData = pendingMapData;
         string dynastyName = DynastyService.NormalizeDynastyName(ipt_名称输入框.text);
         HideDynastyNamePopup();
         AppManager.Instance.StartNewGame(selectedMapData, dynastyName);

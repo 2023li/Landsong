@@ -194,8 +194,6 @@ MonoBehaviour:
     placementCosts: []
     visibleCondition:
       rid: 5711026220397232211
-    availableCondition:
-      rid: 5711026220397232212
     buildMenuSortOrder: 0
     maxBuildCount: 0
     buildLimitGroupId: 
@@ -264,8 +262,5 @@ MonoBehaviour:
     version: 2
     RefIds:
     - rid: 5711026220397232211
-      type: {class: GameCondition_False, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
-      data: 
-    - rid: 5711026220397232212
       type: {class: GameCondition_False, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
       data: 

@@ -96,7 +96,7 @@ public class LoadGamePanelItem_SaveItem : MonoBehaviour
 
         if (txt_MapName != null)
         {
-            txt_MapName.text = FormatOptionalText(meta.MapName);
+            txt_MapName.text = FormatOptionalText(meta.MapDisplayName);
         }
 
         if (txt_Stage != null)

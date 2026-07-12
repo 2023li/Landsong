@@ -14,8 +14,8 @@ public class MainMenuItem_MapDataView : MonoBehaviour
     [FormerlySerializedAs("map_icon")]
     [SerializeField, LabelText("地图图标")] private Image mapIcon;
 
-    private MapDataCatalog.MapData mapData;
-    private Action<MapDataCatalog.MapData> onConfirmSelection;
+    private MapDefinition mapData;
+    private Action<MapDefinition> onConfirmSelection;
 
     private void Awake()
     {
@@ -35,7 +35,7 @@ public class MainMenuItem_MapDataView : MonoBehaviour
         }
     }
 
-    public void Initialize(MapDataCatalog.MapData newMapData, Action<MapDataCatalog.MapData> confirmSelection)
+    public void Initialize(MapDefinition newMapData, Action<MapDefinition> confirmSelection)
     {
         mapData = newMapData;
         onConfirmSelection = confirmSelection;

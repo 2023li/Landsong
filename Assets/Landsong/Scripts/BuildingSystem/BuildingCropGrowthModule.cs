@@ -416,7 +416,7 @@ namespace Landsong.BuildingSystem
                 return false;
             }
 
-            if (!TryBuildHarvestRewards(crop, out var rewards, out var rewardChanges))
+            if (!TryBuildHarvestRewards(owner, crop, out var rewards, out var rewardChanges))
             {
                 SetLastAbnormalStatus(StatusInvalidCrop, "收获产出配置异常");
                 return false;
@@ -456,6 +456,7 @@ namespace Landsong.BuildingSystem
         }
 
         private bool TryBuildHarvestRewards(
+            BuildingBase owner,
             CropDefinition crop,
             out List<ItemAmount> rewards,
             out IReadOnlyList<BuildingResourceChange> rewardChanges)
@@ -477,6 +478,13 @@ namespace Landsong.BuildingSystem
                 }
 
                 var item = reward.Roll();
+                if (!item.IsValid)
+                {
+                    continue;
+                }
+
+                var modifiedAmount = BuildingSpatialEffectService.ApplyProductionPercent(owner, item.Amount);
+                item = new ItemAmount(item.ItemDefinition, modifiedAmount);
                 if (!item.IsValid)
                 {
                     continue;

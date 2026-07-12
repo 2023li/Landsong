@@ -13,37 +13,33 @@ namespace Landsong.GridSystem
     public sealed class GridMapBehaviour : MonoBehaviour
     {
         [SerializeField, LabelText("Awake 时初始化")] private bool initializeOnAwake = true;
-        [SerializeField, BoxGroup("规则"), LabelText("默认地形 Key")] private string defaultTerrainKey = GridTerrainKeys.Land;
-        [SerializeField, BoxGroup("规则"), LabelText("默认可建造")] private bool defaultBuildable = true;
+        [SerializeField, BoxGroup("规则"), LabelText("共享 Grid Rule Set")] private GridRuleSet ruleSet;
         [SerializeField, BoxGroup("底层TileMap"), LabelText("Tilemap_基础层")] private Tilemap baseTilemap;
         [SerializeField, BoxGroup("底层TileMap"), LabelText("Tilemap_占用层")] private Tilemap occupancyTilemap;
         [SerializeField, BoxGroup("底层TileMap"), LabelText("占用层 填充瓦片")] private TileBase occupiedTile;
-        [SerializeField, BoxGroup("底层TileMap"), LabelText("Tilemap_高亮层")] private Tilemap highlightTilemap;
         [SerializeField, BoxGroup("底层TileMap"), LabelText("初始化时清空占用层")] private bool clearOccupancyLayerOnInitialize = true;
-        [SerializeField, BoxGroup("底层TileMap"), LabelText("初始化时清空高亮层")] private bool clearHighlightLayerOnInitialize = true;
         [SerializeField, BoxGroup("地形层"), LabelText("地形 Tilemap 层")] private List<GridTerrainLayer> terrainLayers = new List<GridTerrainLayer>();
-        [SerializeField, BoxGroup("寻路"), LabelText("普通格行动力消耗"), Min(1)] private int defaultTraversalActionCost = 10;
-        [SerializeField, BoxGroup("寻路"), LabelText("地形行动力消耗")] private List<GridTraversalCostRule> traversalCostRules = new List<GridTraversalCostRule>
-        {
-            new GridTraversalCostRule(GridTerrainKeys.Road, 5),
-            new GridTraversalCostRule(GridTerrainKeys.AdvancedRoad, 3)
-        };
 
         private readonly Dictionary<GridPosition, GridOccupancyData> occupiedCells = new Dictionary<GridPosition, GridOccupancyData>();
         private readonly Dictionary<string, List<GridPosition>> occupiedPositionsById = new Dictionary<string, List<GridPosition>>(StringComparer.Ordinal);
         private readonly List<GridPosition> clearedOccupancyPositions = new List<GridPosition>();
         private UnityEngine.Grid cachedUnityGrid;
+        private UnityEngine.Grid boundContentGrid;
+        private GridOverlayService overlayService;
         private bool hasValidBaseTilemap;
         private bool loggedInvalidBaseTilemap;
+        private int occupancyVersion;
 
         public BoundsInt BaseCellBounds => baseTilemap == null ? new BoundsInt(0, 0, 0, 0, 0, 1) : baseTilemap.cellBounds;
         public Vector3 WorldOrigin => GridLayoutService.GetOrigin(UnityGrid);
         public GridPlaneMode PlaneMode => GridLayoutService.GetPlaneMode(UnityGrid);
-        public Tilemap HighlightTilemap => highlightTilemap;
+        public GridOverlayService OverlayService => overlayService;
         public GridLayoutService Layout { get; private set; }
         public bool IsInitialized => hasValidBaseTilemap && Layout != null;
-        public int DefaultTraversalActionCost => Mathf.Max(1, defaultTraversalActionCost);
-        public IReadOnlyList<GridTraversalCostRule> TraversalCostRules => traversalCostRules;
+        public int DefaultTraversalActionCost => ruleSet == null ? 10 : ruleSet.DefaultTraversalActionCost;
+        public IReadOnlyList<GridTraversalCostRule> TraversalCostRules =>
+            ruleSet == null ? Array.Empty<GridTraversalCostRule>() : ruleSet.TraversalCostRules;
+        public int OccupancyVersion => occupancyVersion;
 
         private bool HasOccupancyTilemapVisualization => occupancyTilemap != null && occupiedTile != null;
 
@@ -51,6 +47,11 @@ namespace Landsong.GridSystem
         {
             get
             {
+                if (boundContentGrid != null)
+                {
+                    return boundContentGrid;
+                }
+
                 if (cachedUnityGrid == null)
                 {
                     cachedUnityGrid = GetComponent<UnityEngine.Grid>();
@@ -62,7 +63,7 @@ namespace Landsong.GridSystem
 
         private void Awake()
         {
-            if (initializeOnAwake)
+            if (initializeOnAwake && baseTilemap != null)
             {
                 Initialize();
             }
@@ -71,14 +72,12 @@ namespace Landsong.GridSystem
         private void OnValidate()
         {
             cachedUnityGrid = GetComponent<UnityEngine.Grid>();
-            NormalizeSerializedTerrainKeys();
-            NormalizeTraversalCosts();
+            terrainLayers ??= new List<GridTerrainLayer>();
         }
 
         public void Initialize()
         {
-            NormalizeSerializedTerrainKeys();
-            NormalizeTraversalCosts();
+            terrainLayers ??= new List<GridTerrainLayer>();
             hasValidBaseTilemap = TryValidateBaseTilemap(true);
             loggedInvalidBaseTilemap = hasValidBaseTilemap ? false : loggedInvalidBaseTilemap;
 
@@ -90,12 +89,49 @@ namespace Landsong.GridSystem
                 ClearOccupancyTilemap();
             }
 
-            if (clearHighlightLayerOnInitialize)
+            RefreshLayout();
+        }
+
+        public void BindContent(
+            UnityEngine.Grid contentGrid,
+            Tilemap contentBaseTilemap,
+            IReadOnlyList<GridTerrainLayer> contentTerrainLayers,
+            GridRuleSet sharedRuleSet,
+            GridOverlayService sharedOverlayService)
+        {
+            if (contentGrid == null || contentBaseTilemap == null)
             {
-                ClearHighlightTilemap();
+                throw new ArgumentNullException(contentGrid == null ? nameof(contentGrid) : nameof(contentBaseTilemap));
             }
 
-            RefreshLayout();
+            if (sharedRuleSet == null)
+            {
+                throw new ArgumentNullException(nameof(sharedRuleSet));
+            }
+
+            boundContentGrid = contentGrid;
+            baseTilemap = contentBaseTilemap;
+            terrainLayers = contentTerrainLayers == null
+                ? new List<GridTerrainLayer>()
+                : new List<GridTerrainLayer>(contentTerrainLayers);
+            ruleSet = sharedRuleSet;
+            overlayService = sharedOverlayService;
+            Initialize();
+        }
+
+        public void UnbindContent()
+        {
+            occupiedCells.Clear();
+            occupiedPositionsById.Clear();
+            occupancyVersion++;
+            ClearOccupancyTilemap();
+            baseTilemap = null;
+            terrainLayers.Clear();
+            boundContentGrid = null;
+            overlayService = null;
+            Layout = null;
+            hasValidBaseTilemap = false;
+            occupancyVersion++;
         }
 
         public void RefreshLayout()
@@ -204,6 +240,7 @@ namespace Landsong.GridSystem
             }
 
             SetOccupancyTiles(footprint);
+            occupancyVersion++;
             failureReason = GridPlacementFailureReason.None;
             return true;
         }
@@ -347,6 +384,7 @@ namespace Landsong.GridSystem
 
                 ClearOccupancyTiles(previousPositions);
                 SetOccupancyTiles(replacementFootprint);
+                occupancyVersion++;
                 failureReason = GridPlacementFailureReason.None;
                 return true;
             }
@@ -359,6 +397,7 @@ namespace Landsong.GridSystem
                     previousOccupancyByPosition,
                     replacementPositions);
                 Debug.LogException(exception, this);
+                occupancyVersion++;
                 failureReason = GridPlacementFailureReason.TransactionFailed;
                 return false;
             }
@@ -440,6 +479,7 @@ namespace Landsong.GridSystem
             }
 
             var bestCost = DefaultTraversalActionCost;
+            var traversalCostRules = TraversalCostRules;
             if (traversalCostRules == null)
             {
                 return bestCost;
@@ -559,17 +599,10 @@ namespace Landsong.GridSystem
             if (clearedOccupancyPositions.Count > 0)
             {
                 ClearOccupancyTiles(clearedOccupancyPositions);
+                occupancyVersion++;
             }
 
             return clearedOccupancyPositions.Count;
-        }
-
-        private void ClearHighlightTilemap()
-        {
-            if (highlightTilemap != null)
-            {
-                highlightTilemap.ClearAllTiles();
-            }
         }
 
         private void EnsureInitialized()
@@ -593,8 +626,6 @@ namespace Landsong.GridSystem
             EnsureUnityGridComponent();
             baseTilemap = EnsureTilemapLayer(baseTilemap, "Base Tilemap", 0);
             occupancyTilemap = EnsureTilemapLayer(occupancyTilemap, "Occupancy Tilemap", 100);
-            highlightTilemap = EnsureTilemapLayer(highlightTilemap, "Highlight Tilemap", 200);
-
             EditorUtility.SetDirty(this);
             Undo.CollapseUndoOperations(undoGroup);
         }
@@ -673,7 +704,7 @@ namespace Landsong.GridSystem
 
         private bool IsBuildable(GridPosition position)
         {
-            return HasBaseTile(position) && defaultBuildable;
+            return HasBaseTile(position) && ruleSet != null && ruleSet.DefaultBuildable;
         }
 
         private bool HasAllTerrainKeys(GridPosition position, IReadOnlyList<string> terrainKeys)
@@ -696,7 +727,7 @@ namespace Landsong.GridSystem
 
         private string GetPrimaryTerrainKey(GridPosition position)
         {
-            var terrainKey = defaultTerrainKey;
+            var terrainKey = ruleSet == null ? GridTerrainKeys.Land : ruleSet.DefaultTerrainKey;
             for (var i = 0; i < terrainLayers.Count; i++)
             {
                 var layer = terrainLayers[i];
@@ -802,35 +833,6 @@ namespace Landsong.GridSystem
         private bool HasBaseTile(GridPosition position)
         {
             return baseTilemap != null && baseTilemap.HasTile(GridPositionToTilemapCell(position));
-        }
-
-        private void NormalizeSerializedTerrainKeys()
-        {
-            defaultTerrainKey = GridTerrainKeys.Normalize(defaultTerrainKey);
-            if (string.IsNullOrEmpty(defaultTerrainKey))
-            {
-                defaultTerrainKey = GridTerrainKeys.Land;
-            }
-
-            terrainLayers ??= new List<GridTerrainLayer>();
-        }
-
-        private void NormalizeTraversalCosts()
-        {
-            defaultTraversalActionCost = Mathf.Max(1, defaultTraversalActionCost);
-            if (traversalCostRules == null || traversalCostRules.Count == 0)
-            {
-                traversalCostRules = new List<GridTraversalCostRule>
-                {
-                    new GridTraversalCostRule(GridTerrainKeys.Road, 5),
-                    new GridTraversalCostRule(GridTerrainKeys.AdvancedRoad, 3)
-                };
-            }
-
-            for (var i = 0; i < traversalCostRules.Count; i++)
-            {
-                traversalCostRules[i]?.Normalize(defaultTraversalActionCost);
-            }
         }
 
         private void LogInvalidBaseTilemap(string message, UnityEngine.Object context, bool logWarnings)

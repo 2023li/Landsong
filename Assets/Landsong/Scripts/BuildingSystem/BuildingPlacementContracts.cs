@@ -25,7 +25,6 @@ namespace Landsong.BuildingSystem
             BuildingBase buildingPrefab,
             GridMapBehaviour gridMap,
             GridPosition origin,
-            Quaternion rotation,
             Transform parent,
             int costMultiplier = 1,
             bool spendPlacementCosts = false,
@@ -35,7 +34,6 @@ namespace Landsong.BuildingSystem
             BuildingPrefab = buildingPrefab;
             GridMap = gridMap;
             Origin = origin;
-            Rotation = rotation;
             Parent = parent;
             CostMultiplier = Mathf.Max(0, costMultiplier);
             SpendPlacementCosts = spendPlacementCosts;
@@ -46,7 +44,6 @@ namespace Landsong.BuildingSystem
         public BuildingBase BuildingPrefab { get; }
         public GridMapBehaviour GridMap { get; }
         public GridPosition Origin { get; }
-        public Quaternion Rotation { get; }
         public Transform Parent { get; }
         public int CostMultiplier { get; }
         public bool SpendPlacementCosts { get; }
@@ -59,7 +56,6 @@ namespace Landsong.BuildingSystem
                 BuildingPrefab,
                 GridMap,
                 origin,
-                Rotation,
                 Parent,
                 CostMultiplier,
                 SpendPlacementCosts,

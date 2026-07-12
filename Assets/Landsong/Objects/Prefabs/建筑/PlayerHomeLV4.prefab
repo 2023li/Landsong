@@ -193,8 +193,6 @@ MonoBehaviour:
     placementCosts: []
     visibleCondition:
       rid: -2
-    availableCondition:
-      rid: -2
     buildMenuSortOrder: 0
     maxBuildCount: 0
     buildLimitGroupId: ""

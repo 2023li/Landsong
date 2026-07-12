@@ -174,7 +174,12 @@ public sealed class DataManager : MonoSingleton<DataManager>
         }
     }
 
-    public GameData CreateNewGame(string playerName, int worldSeed, string mapName = "", string dynastyName = "")
+    public GameData CreateNewGame(
+        string playerName,
+        int worldSeed,
+        string mapId,
+        string mapDisplayName,
+        string dynastyName = "")
     {
         EnsureAppDataLoaded();
         EnsureGameDataIndexLoaded();
@@ -182,15 +187,28 @@ public sealed class DataManager : MonoSingleton<DataManager>
         var gameData = GameData.CreateDefault();
         gameData.PlayerName = string.IsNullOrWhiteSpace(playerName) ? "Player" : playerName.Trim();
         gameData.WorldSeed = worldSeed;
-        gameData.MapName = NormalizeOptionalText(mapName);
+        gameData.MapId = NormalizeOptionalText(mapId);
+        gameData.MapDisplayName = NormalizeOptionalText(mapDisplayName);
+        gameData.RequiresInitialMapSetup = true;
         gameData.DynastyName = DynastyService.NormalizeDynastyName(dynastyName);
         gameData.RoundCount = Mathf.Max(1, gameData.CurrentTurn);
         gameData.SaveName = GameData.FormatDefaultSaveName(gameData.DynastyName, gameData.CurrentTurn);
         gameData.Stage = DynastyStage.营地.ToString();
 
         CurrentGameData = gameData;
-        SaveCurrentGameInternal(GameDataSaveMode.NewSave, false);
-        return gameData;
+        if (SaveCurrentGameInternal(GameDataSaveMode.NewSave, false))
+        {
+            return gameData;
+        }
+
+        var failedSaveGuid = gameData.SaveGuid;
+        if (!string.IsNullOrWhiteSpace(failedSaveGuid))
+        {
+            DeleteGameData(failedSaveGuid);
+        }
+
+        CurrentGameData = null;
+        return null;
     }
 
     /// <summary>
@@ -199,6 +217,11 @@ public sealed class DataManager : MonoSingleton<DataManager>
     public void SaveCurrentGame(GameDataSaveMode saveMode = GameDataSaveMode.Overwrite)
     {
         SaveCurrentGameInternal(saveMode, true);
+    }
+
+    public bool TrySaveCurrentGame(GameDataSaveMode saveMode = GameDataSaveMode.Overwrite)
+    {
+        return SaveCurrentGameInternal(saveMode, true);
     }
 
     public bool SetCurrentGameSaveName(string saveName)
@@ -400,14 +423,14 @@ public sealed class DataManager : MonoSingleton<DataManager>
         OnRuntimeDataRestoreCompleted?.Invoke(CurrentGameData);
     }
 
-    private void SaveCurrentGameInternal(GameDataSaveMode saveMode, bool captureRuntimeData)
+    private bool SaveCurrentGameInternal(GameDataSaveMode saveMode, bool captureRuntimeData)
     {
         EnsureAppDataLoaded();
         EnsureGameDataIndexLoaded();
         if (CurrentGameData == null)
         {
             Debug.LogWarning("保存 GameData 失败：CurrentGameData 为空。");
-            return;
+            return false;
         }
 
         EnsureServices();
@@ -426,7 +449,7 @@ public sealed class DataManager : MonoSingleton<DataManager>
         else if (string.IsNullOrWhiteSpace(CurrentGameData.SaveGuid))
         {
             Debug.LogWarning("覆盖保存 GameData 失败：CurrentGameData 没有 SaveGuid。请使用新建保存。");
-            return;
+            return false;
         }
 
         if (CurrentGameData.CreatedAtUnixTime <= 0)
@@ -444,10 +467,12 @@ public sealed class DataManager : MonoSingleton<DataManager>
             appData.LastGameGuid = CurrentGameData.SaveGuid;
             SaveGameDataIndex();
             SaveAppData();
+            return true;
         }
         catch (Exception exception)
         {
             Debug.LogWarning($"保存 GameData 失败：{CurrentGameData.SaveGuid}\n{exception.Message}");
+            return false;
         }
     }
 

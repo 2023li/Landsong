@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Landsong.BuildingSystem;
 using Landsong.CameraSystem;
@@ -41,6 +42,11 @@ public class LoadScene_Start : SceneLoadingPipeline
 
         yield return base.OnBeginWaitPlayerConfirm();
     }
+
+    public override IEnumerator OnBeforeExitCurrentScene()
+    {
+        yield return MapContentSceneLoader.UnloadRoutine();
+    }
     public override IEnumerator OnPlayerConfirmed()
     {
         yield return LSSceneTask.WaitForTask(UIManager.Instance.OpenAsync<UIPanel_MainMenu>());
@@ -67,12 +73,15 @@ public class LoadScene_Game : SceneLoadingPipeline
     private const int RestoreBuildingsPerFrame = 16;
 
     public override string TargetSceneName => "Game";
+    public override bool NeedPlayerConfirm => !loadFailed;
 
     internal static bool Load()
     {
         return SceneTransitionManager.Instance.StartTransition(new LoadScene_Game());
     }
     UIPanel_Loading panel;
+    private bool loadFailed;
+    private string loadFailureMessage = string.Empty;
     public override IEnumerator OnPrepareTransition()
     {
         Task<UIPanel_Loading> openTask = UIManager.Instance.OpenAsync<UIPanel_Loading>(UIPanel_Loading.LoadingItemType.Item_进度条);
@@ -88,10 +97,25 @@ public class LoadScene_Game : SceneLoadingPipeline
 
     public override IEnumerator OnTargetSceneLoaded()
     {
-        SpawnCurrentMap();
+        yield return LoadAndBindCurrentMapRoutine();
+        if (loadFailed)
+        {
+            yield break;
+        }
+
         RefreshCameraViewBounds();
 
         yield return DataManager.Instance.RestoreCurrentGameDataToRuntimeRoutine(RestoreBuildingsPerFrame);
+
+        var gameData = DataManager.Instance.CurrentGameData;
+        if (gameData != null && gameData.RequiresInitialMapSetup)
+        {
+            yield return CreateAndSaveInitialBuildingsRoutine(gameData);
+            if (loadFailed)
+            {
+                yield break;
+            }
+        }
 
         RefreshCameraViewBounds();
         FocusCameraOnLoadTarget();
@@ -133,54 +157,118 @@ public class LoadScene_Game : SceneLoadingPipeline
     public override IEnumerator OnCompleted()
     {
         UnsubscribeLoadingProgress();
+        if (loadFailed)
+        {
+            Debug.LogError($"进入游戏失败：{loadFailureMessage}");
+            SceneTransitionManager.Instance.StartCoroutine(ReturnToStartAfterTransition());
+        }
+
         yield return base.OnCompleted();
     }
 
-    private void SpawnCurrentMap()
+    private IEnumerator LoadAndBindCurrentMapRoutine()
     {
-        if (UnityEngine.Object.FindFirstObjectByType<GridMapBehaviour>(FindObjectsInactive.Include) != null)
-        {
-            return;
-        }
-
-        MapDataCatalog catalog = MapDataCatalog.Instance;
+        var catalog = MapDataCatalog.Instance;
+        var gameData = DataManager.Instance.CurrentGameData;
         if (catalog == null)
         {
-            Debug.LogWarning("加载地图失败：MapDataCatalog 尚未加载。");
-            return;
+            FailLoad("MapDataCatalog 尚未加载。");
+            yield break;
         }
 
-        GameData gameData = DataManager.Instance.CurrentGameData;
-        MapDataCatalog.MapData mapData = null;
-
-        if (gameData != null && !string.IsNullOrWhiteSpace(gameData.MapName))
+        if (gameData == null || string.IsNullOrWhiteSpace(gameData.MapId))
         {
-            catalog.TryGetMapData(gameData.MapName, out mapData);
+            FailLoad("当前存档没有有效 mapId。");
+            yield break;
+        }
 
-            if (mapData == null)
+        if (!catalog.TryGetMapDefinition(gameData.MapId, out var definition))
+        {
+            FailLoad($"MapCatalog 中不存在 mapId：{gameData.MapId}");
+            yield break;
+        }
+
+        var loaded = false;
+        var error = string.Empty;
+        yield return MapContentSceneLoader.LoadRoutine(
+            definition,
+            (succeeded, message) =>
             {
-                Debug.LogWarning($"加载地图失败：存档地图不在 MapCatalog 中。MapName = {gameData.MapName}");
+                loaded = succeeded;
+                error = message;
+            });
+        if (!loaded)
+        {
+            FailLoad(error);
+            yield break;
+        }
+
+        var host = MapRuntimeHost.Active;
+        if (host == null || !host.TryBind(MapContentSceneLoader.ActiveContent, out error))
+        {
+            yield return MapContentSceneLoader.UnloadRoutine();
+            FailLoad(string.IsNullOrWhiteSpace(error) ? "Game Scene 中缺少 MapRuntimeHost。" : error);
+            yield break;
+        }
+
+        gameData.MapDisplayName = definition.DisplayName;
+    }
+
+    private IEnumerator CreateAndSaveInitialBuildingsRoutine(GameData gameData)
+    {
+        var host = MapRuntimeHost.Active;
+        var gameSystem = UnityEngine.Object.FindFirstObjectByType<Landsong.GameSystem>(FindObjectsInactive.Include);
+        var error = string.Empty;
+        IReadOnlyList<BuildingBase> created = null;
+        if (host == null
+            || gameSystem == null
+            || !host.TryCreateInitialBuildings(gameSystem, out created, out error))
+        {
+            RollbackFailedNewGame(gameData, created: null);
+            FailLoad(string.IsNullOrWhiteSpace(error) ? "初始建筑生成失败。" : error);
+            yield break;
+        }
+
+        gameData.RequiresInitialMapSetup = false;
+        if (!DataManager.Instance.TrySaveCurrentGame(GameDataSaveMode.Overwrite))
+        {
+            gameData.RequiresInitialMapSetup = true;
+            RollbackFailedNewGame(gameData, created);
+            FailLoad("初始建筑快照保存失败。");
+        }
+
+        yield break;
+    }
+
+    private static void RollbackFailedNewGame(GameData gameData, IReadOnlyList<BuildingBase> created)
+    {
+        var gameSystem = UnityEngine.Object.FindFirstObjectByType<Landsong.GameSystem>(FindObjectsInactive.Include);
+        var service = gameSystem?.Services?.Buildings;
+        if (created != null && service != null)
+        {
+            for (var i = created.Count - 1; i >= 0; i--)
+            {
+                service.Remove(created[i]);
             }
         }
 
-        if (mapData == null)
+        var saveGuid = gameData == null ? string.Empty : gameData.SaveGuid;
+        if (!string.IsNullOrWhiteSpace(saveGuid) && !DataManager.Instance.DeleteGameData(saveGuid))
         {
-            mapData = catalog.GetFirstValidMapData();
+            Debug.LogError($"删除半初始化新游戏存档失败：{saveGuid}");
         }
+    }
 
-        if (mapData == null || !mapData.IsValid)
-        {
-            Debug.LogWarning("加载地图失败：MapCatalog 中没有有效地图。");
-            return;
-        }
+    private void FailLoad(string message)
+    {
+        loadFailed = true;
+        loadFailureMessage = string.IsNullOrWhiteSpace(message) ? "未知地图加载错误。" : message.Trim();
+    }
 
-        if (gameData != null && string.IsNullOrWhiteSpace(gameData.MapName))
-        {
-            gameData.MapName = mapData.DisplayName;
-        }
-
-        GridMapBehaviour mapInstance = UnityEngine.Object.Instantiate(mapData.Map);
-        mapInstance.name = mapData.DisplayName;
+    private static IEnumerator ReturnToStartAfterTransition()
+    {
+        yield return null;
+        LoadScene_Start.Load();
     }
 
     private void RefreshCameraViewBounds()

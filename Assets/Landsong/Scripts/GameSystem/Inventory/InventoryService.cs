@@ -131,6 +131,16 @@ namespace Landsong.InventorySystem
             return Inventory.TryRemoveItems(requirements);
         }
 
+        public bool CanExchangeItems(IEnumerable<ItemAmount> inputs, IEnumerable<ItemAmount> outputs)
+        {
+            return Inventory.CanExchangeItems(inputs, outputs);
+        }
+
+        public bool TryExchangeItems(IEnumerable<ItemAmount> inputs, IEnumerable<ItemAmount> outputs)
+        {
+            return Inventory.TryExchangeItems(inputs, outputs);
+        }
+
         public int GetQuantity(string itemId)
         {
             return Inventory.GetQuantity(itemId);

@@ -201,8 +201,6 @@ MonoBehaviour:
       amount: 1
     visibleCondition:
       rid: 5711026153326903379
-    availableCondition:
-      rid: 5711026153326903380
     buildMenuSortOrder: 0
     maxBuildCount: 99
     buildLimitGroupId: "\u5C45\u6C11\u623F"
@@ -229,9 +227,6 @@ MonoBehaviour:
     - rid: 5711026153326903379
       type: {class: GameCondition_True, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
       data: 
-    - rid: 5711026153326903380
-      type: {class: GameCondition_True, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
-      data: 
     - rid: 5711026153326903381
       type: {class: BM_施工材料消耗, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
       data:
@@ -254,8 +249,6 @@ MonoBehaviour:
         currentExperience: 0
         requiredExperience: 3
         upgradeTargetPrefab: {fileID: 8791965200104292625, guid: 5a2e56844bf1f09479a2a8a48ecfa705, type: 3}
-        upgradeCondition:
-          rid: -2
         upgradeCosts: []
 --- !u!61 &7314689994193135270
 BoxCollider2D:

@@ -74,7 +74,9 @@ public class GameDataMeta
 
     public string DynastyName = DynastyService.DefaultDynastyName;
 
-    public string MapName = string.Empty;
+    public string MapId = string.Empty;
+
+    public string MapDisplayName = string.Empty;
 
     public int RoundCount = 0;
 
@@ -105,7 +107,8 @@ public class GameDataMeta
             SaveName = gameData.SaveName,
             PlayerName = gameData.PlayerName,
             DynastyName = gameData.DynastyName,
-            MapName = gameData.MapName,
+            MapId = gameData.MapId,
+            MapDisplayName = gameData.MapDisplayName,
             RoundCount = Mathf.Max(1, gameData.RoundCount > 0 ? gameData.RoundCount : gameData.CurrentTurn),
             Stage = gameData.Stage,
 
@@ -136,10 +139,8 @@ public class GameDataMeta
 
         DynastyName = DynastyService.NormalizeDynastyName(DynastyName);
 
-        if (MapName == null)
-        {
-            MapName = string.Empty;
-        }
+        MapId = string.IsNullOrWhiteSpace(MapId) ? string.Empty : MapId.Trim();
+        MapDisplayName = string.IsNullOrWhiteSpace(MapDisplayName) ? MapId : MapDisplayName.Trim();
 
         if (Stage == null)
         {
@@ -193,7 +194,7 @@ public class GameData
     public const string DefaultDynastyName = DynastyService.DefaultDynastyName;
 
     //data 版本号
-    public const int CurrentDataVersion = 9;
+    public const int CurrentDataVersion = 10;
 
     public int DataVersion = CurrentDataVersion;
 
@@ -207,7 +208,11 @@ public class GameData
     //----------------新增字段------------------
     public string DynastyName = DefaultDynastyName;
 
-    public string MapName = string.Empty;
+    public string MapId = string.Empty;
+
+    public string MapDisplayName = string.Empty;
+
+    public bool RequiresInitialMapSetup = true;
 
     public int RoundCount = 0;
 
@@ -260,7 +265,9 @@ public class GameData
             SaveName = string.Empty,
             PlayerName = "Player",
             DynastyName = DefaultDynastyName,
-            MapName = string.Empty,
+            MapId = string.Empty,
+            MapDisplayName = string.Empty,
+            RequiresInitialMapSetup = true,
             RoundCount = 1,
             Stage = string.Empty,
             BasePopulation = -1,
@@ -285,12 +292,6 @@ public class GameData
 
     public void Validate()
     {
-        var loadedDataVersion = DataVersion;
-        if (DataVersion < CurrentDataVersion)
-        {
-            DataVersion = CurrentDataVersion;
-        }
-
         if (SaveGuid == null)
         {
             SaveGuid = string.Empty;
@@ -308,19 +309,15 @@ public class GameData
 
         DynastyName = DynastyService.NormalizeDynastyName(DynastyName);
 
-        if (MapName == null)
-        {
-            MapName = string.Empty;
-        }
+        MapId = string.IsNullOrWhiteSpace(MapId) ? string.Empty : MapId.Trim();
+        MapDisplayName = string.IsNullOrWhiteSpace(MapDisplayName) ? MapId : MapDisplayName.Trim();
 
         if (Stage == null)
         {
             Stage = string.Empty;
         }
 
-        BasePopulation = loadedDataVersion < 6 && BasePopulation <= 0
-            ? -1
-            : Mathf.Max(-1, BasePopulation);
+        BasePopulation = Mathf.Max(-1, BasePopulation);
 
         CurrentTurn = Mathf.Max(1, CurrentTurn);
         RoundCount = Mathf.Max(1, RoundCount > 0 ? RoundCount : CurrentTurn);
@@ -560,14 +557,6 @@ public class BuildingInstanceSaveData
 
     public int OriginY;
 
-    public float RotationX;
-
-    public float RotationY;
-
-    public float RotationZ;
-
-    public float RotationW = 1f;
-
     public string BuildingStateTypeId = string.Empty;
 
     public string BuildingStateJson = string.Empty;
@@ -576,8 +565,6 @@ public class BuildingInstanceSaveData
 
     public GridPosition Origin => new GridPosition(OriginX, OriginY);
 
-    public Quaternion Rotation => new Quaternion(RotationX, RotationY, RotationZ, RotationW);
-
     public static BuildingInstanceSaveData CreateFromBuilding(BuildingBase building)
     {
         if (building == null || !building.HasDefinition || !building.HasPlacement)
@@ -585,16 +572,11 @@ public class BuildingInstanceSaveData
             return null;
         }
 
-        var rotation = building.transform.rotation;
         return new BuildingInstanceSaveData
         {
             BuildingId = building.Definition.BuildingId,
             OriginX = building.Origin.X,
             OriginY = building.Origin.Y,
-            RotationX = rotation.x,
-            RotationY = rotation.y,
-            RotationZ = rotation.z,
-            RotationW = rotation.w,
             BuildingStateTypeId = string.Empty,
             BuildingStateJson = string.Empty
         };
@@ -605,14 +587,6 @@ public class BuildingInstanceSaveData
         BuildingId = string.IsNullOrWhiteSpace(BuildingId) ? string.Empty : BuildingId.Trim();
         BuildingStateTypeId = string.IsNullOrWhiteSpace(BuildingStateTypeId) ? string.Empty : BuildingStateTypeId.Trim();
         BuildingStateJson ??= string.Empty;
-
-        if (Mathf.Approximately(RotationX, 0f)
-            && Mathf.Approximately(RotationY, 0f)
-            && Mathf.Approximately(RotationZ, 0f)
-            && Mathf.Approximately(RotationW, 0f))
-        {
-            RotationW = 1f;
-        }
     }
 }
 

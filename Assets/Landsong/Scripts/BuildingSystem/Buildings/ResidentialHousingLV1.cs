@@ -7,8 +7,10 @@ using Landsong.UISystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionSource, IBuildingTaxSource, IBuildingPopulationSource
+public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionSource, IBuildingTaxSource, IBuildingPopulationSource, IBuildingConnectionConsumer
 {
+    private static readonly IReadOnlyList<string> ResourceConnectionTypes =
+        new[] { BuildingConnectionTypes.Resource };
     private const string DefaultFoodItemId = "蔬菜";
     private const string DefaultTaxItemId = "金币";
     private const string StatusAbandoned = BuildingRuntimeStatusCatalog.BS_废弃;
@@ -19,6 +21,8 @@ public class ResidentialHousingLV1 : BuildingBase, IBuildingResourceConsumptionS
     private const string StatusMissingFood = BuildingRuntimeStatusCatalog.BS_食物不足;
     private const string StatusInvalidTaxItem = BuildingRuntimeStatusCatalog.BS_税收配置异常;
     private const string StatusTaxRewardFailed = BuildingRuntimeStatusCatalog.BS_税收存入失败;
+
+    public IReadOnlyList<string> RequiredConnectionTypeIds => ResourceConnectionTypes;
 
     [TitleGroup("人口")]
     [SerializeField, Min(1)] private int initialPopulationContribution = 2;

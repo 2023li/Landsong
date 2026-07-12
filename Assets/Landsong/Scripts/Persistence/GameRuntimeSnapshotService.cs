@@ -147,6 +147,8 @@ namespace Landsong.Persistence
             services.Technology?.RestoreSaveData(gameData.TechnologyData, gameData.UnlockedTechnologies);
             services.Policies?.RestoreSaveData(gameData.PolicyData);
             services.BuildingBlueprints?.RestoreSaveData(gameData.UnlockedBuildingBlueprintIds);
+            gameSystem.ReconcileInitiallyUnlockedBuildingBlueprints();
+            gameSystem.ReconcileBuildingBlueprintsFromUnlockedTechnologies();
             if (services.Inventory != null && gameData.InventoryData != null)
             {
                 services.Inventory.RestoreSaveData(gameData.InventoryData);
@@ -326,7 +328,6 @@ namespace Landsong.Persistence
                     buildingPrefab,
                     gridMap,
                     saveData.Origin,
-                    saveData.Rotation,
                     parent,
                     out var building))
             {

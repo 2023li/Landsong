@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Landsong.TechnologySystem;
 using Sirenix.OdinInspector;
@@ -21,6 +22,10 @@ namespace Landsong.UISystem
         [SerializeField, LabelText("科技节点根节点")]
         [Tooltip("手动摆放的 GamePanel_TechnologyNodeItem 会从这个节点下扫描。为空时扫描当前面板自身。")]
         private Transform nodeRoot;
+
+        [SerializeField, LabelText("科技树滚动视图")]
+        [Tooltip("当前研究科技发生变化或面板重新打开时，自动把对应节点滚动到可见区域。")]
+        private ScrollRect technologyScrollRect;
 
         [SerializeField, LabelText("编辑器预览科技目录")]
         [Tooltip("在 Prefab 编辑模式点击生成按钮时使用；不影响运行时 TechnologyService 的目录。")]
@@ -73,6 +78,8 @@ namespace Landsong.UISystem
         private TechnologyDefinition selectedDefinition;
         private TechnologyTreeConnectionGraphic connectionGraphic;
         private bool subscribedToTechnology;
+        private string lastAutoScrolledTechnologyId = string.Empty;
+        private Coroutine autoScrollRoutine;
 
         private void Reset()
         {
@@ -87,18 +94,22 @@ namespace Landsong.UISystem
 
         private void OnEnable()
         {
+            lastAutoScrolledTechnologyId = string.Empty;
             ResolveRuntime();
             SubscribeTechnology();
             Refresh();
+            ScheduleScrollToCurrentResearch(true);
         }
 
         private void OnDisable()
         {
+            StopAutoScrollRoutine();
             UnsubscribeTechnology();
         }
 
         private void OnDestroy()
         {
+            StopAutoScrollRoutine();
             UnbindButtons();
             UnsubscribeTechnology();
         }
@@ -236,11 +247,27 @@ namespace Landsong.UISystem
                         && string.Equals(scrollRect.name, "科技面板滚动视图", StringComparison.Ordinal))
                     {
                         nodeRoot = scrollRect.content;
+                        technologyScrollRect = scrollRect;
                         break;
                     }
                 }
 
                 nodeRoot ??= transform;
+            }
+
+            if (technologyScrollRect == null)
+            {
+                var scrollRects = GetComponentsInChildren<ScrollRect>(true);
+                for (var i = 0; i < scrollRects.Length; i++)
+                {
+                    var scrollRect = scrollRects[i];
+                    if (scrollRect != null
+                        && scrollRect.content == nodeRoot)
+                    {
+                        technologyScrollRect = scrollRect;
+                        break;
+                    }
+                }
             }
         }
 
@@ -800,6 +827,122 @@ namespace Landsong.UISystem
         {
             technology = changedTechnology;
             Refresh();
+            ScheduleScrollToCurrentResearch(false);
+        }
+
+        private void ScheduleScrollToCurrentResearch(bool force)
+        {
+            if (!isActiveAndEnabled || technologyScrollRect == null || technology == null)
+            {
+                return;
+            }
+
+            var current = technology.CurrentResearchDefinition;
+            var technologyId = current == null ? string.Empty : current.TechnologyId;
+            if (string.IsNullOrWhiteSpace(technologyId))
+            {
+                lastAutoScrolledTechnologyId = string.Empty;
+                return;
+            }
+
+            if (!force && string.Equals(lastAutoScrolledTechnologyId, technologyId, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            StopAutoScrollRoutine();
+            autoScrollRoutine = StartCoroutine(ScrollCurrentResearchIntoViewRoutine(current, technologyId));
+        }
+
+        private IEnumerator ScrollCurrentResearchIntoViewRoutine(
+            TechnologyDefinition current,
+            string technologyId)
+        {
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            CollectExistingNodeItems();
+
+            GamePanel_TechnologyNodeItem targetItem = null;
+            for (var i = 0; i < nodeItems.Count; i++)
+            {
+                var item = nodeItems[i];
+                if (item != null && item.Definition == current)
+                {
+                    targetItem = item;
+                    break;
+                }
+            }
+
+            if (targetItem != null)
+            {
+                ScrollIntoView(targetItem.transform as RectTransform);
+                lastAutoScrolledTechnologyId = technologyId;
+            }
+
+            autoScrollRoutine = null;
+        }
+
+        private void ScrollIntoView(RectTransform target)
+        {
+            if (target == null
+                || technologyScrollRect == null
+                || technologyScrollRect.content == null)
+            {
+                return;
+            }
+
+            var viewport = technologyScrollRect.viewport;
+            if (viewport == null)
+            {
+                viewport = technologyScrollRect.transform as RectTransform;
+            }
+
+            if (viewport == null)
+            {
+                return;
+            }
+
+            var targetBounds = RectTransformUtility.CalculateRelativeRectTransformBounds(viewport, target);
+            var viewportRect = viewport.rect;
+            var deltaX = 0f;
+            if (targetBounds.min.x < viewportRect.xMin)
+            {
+                deltaX = viewportRect.xMin - targetBounds.min.x;
+            }
+            else if (targetBounds.max.x > viewportRect.xMax)
+            {
+                deltaX = viewportRect.xMax - targetBounds.max.x;
+            }
+
+            var deltaY = 0f;
+            if (targetBounds.min.y < viewportRect.yMin)
+            {
+                deltaY = viewportRect.yMin - targetBounds.min.y;
+            }
+            else if (targetBounds.max.y > viewportRect.yMax)
+            {
+                deltaY = viewportRect.yMax - targetBounds.max.y;
+            }
+
+            if (Mathf.Approximately(deltaX, 0f) && Mathf.Approximately(deltaY, 0f))
+            {
+                return;
+            }
+
+            technologyScrollRect.StopMovement();
+            technologyScrollRect.content.anchoredPosition += new Vector2(deltaX, deltaY);
+            Canvas.ForceUpdateCanvases();
+        }
+
+        private void StopAutoScrollRoutine()
+        {
+            if (autoScrollRoutine == null)
+            {
+                return;
+            }
+
+            StopCoroutine(autoScrollRoutine);
+            autoScrollRoutine = null;
         }
 
         private void HandleCloseClicked()

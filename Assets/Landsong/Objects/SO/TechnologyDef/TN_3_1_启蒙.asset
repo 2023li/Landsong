@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3b70d7f4d394dd9a76b0bc2e5c6a101, type: 3}
+  m_Name: "TN_3_1_\u542F\u8499"
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.TechnologySystem.TechnologyDefinition
+  icon: {fileID: 21300000, guid: 3b75c9db5786d6d48a82e3b3d7a1180c, type: 3}
+  technologyId: "TN_3_1_\u542F\u8499"
+  displayName: "\u542F\u8499"
+  description: "\u6574\u7406\u7ECF\u9A8C\uFF0C\u5EFA\u7ACB\u805A\u843D\u5171\u540C\u5B66\u4E60\u4E0E\u4F20\u627F\u77E5\u8BC6\u7684\u8D77\u70B9\u3002"
+  sciencePointCost: 5
+  allowRepeatResearch: 0
+  prerequisites: []
+  completionEffects:
+  - rid: 893410000000000001
+  graphPosition: {x: 0, y: 300}
+  references:
+    version: 2
+    RefIds:
+    - rid: 893410000000000001
+      type: {class: TechnologyEffect_UnlockBuildingBlueprint, ns: Landsong.TechnologySystem, asm: Assembly-CSharp}
+      data:
+        buildingPrefab: {fileID: 12218147606298111, guid: 06c2b02f49598024ca5a5cb53ebb838d, type: 3}
