@@ -16,5 +16,12 @@ namespace Landsong.GridSystem
         public Tilemap Tilemap => tilemap;
         public bool ReplaceDefaultTerrainKey => replaceDefaultTerrainKey;
         public bool IsValid => tilemap != null && !string.IsNullOrWhiteSpace(Key);
+
+        public void Configure(string terrainKey, Tilemap terrainTilemap, bool replaceDefault)
+        {
+            key = GridTerrainKeys.Normalize(terrainKey);
+            tilemap = terrainTilemap;
+            replaceDefaultTerrainKey = replaceDefault;
+        }
     }
 }

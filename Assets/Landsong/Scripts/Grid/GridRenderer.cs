@@ -359,7 +359,7 @@ namespace Landsong.GridSystem
 
             if (Application.isPlaying && !gridMap.IsInitialized)
             {
-                gridMap.Initialize();
+                return false;
             }
 
             layout = gridMap.Layout != null ? gridMap.Layout : gridMap.CreateLayoutSnapshot();

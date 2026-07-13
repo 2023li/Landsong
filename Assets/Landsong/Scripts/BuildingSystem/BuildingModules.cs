@@ -739,8 +739,13 @@ namespace Landsong.BuildingSystem
     }
 
     [Serializable]
-    public sealed class BM_施工材料消耗 : BuildingModuleBase, IBuildingModuleStateSerializer
+    public sealed class BM_施工材料消耗 : BuildingModuleBase,
+        IBuildingConnectionConsumerModule,
+        IBuildingModuleStateSerializer
     {
+        private static readonly IReadOnlyList<string> RequiredConnections =
+            new[] { BuildingConnectionTypes.Resource };
+
         [Serializable]
         private struct ConstructionTurnCost
         {
@@ -772,7 +777,8 @@ namespace Landsong.BuildingSystem
 
         private int lastCompletedTurnIndex = -1;
 
-        public override string ModuleDescription => "按施工进度扣除当前回合配置的材料；扣除成功后由在建脚本推进等级升级经验。";
+        public override string ModuleDescription => "连接一个 Resource 提供点后，按施工进度扣除当前回合配置的材料；扣除成功后由在建脚本推进等级升级经验。";
+        public IReadOnlyList<string> RequiredConnectionTypeIds => RequiredConnections;
         public int ConfiguredTurnCount => turnCosts == null ? 0 : turnCosts.Length;
         public IReadOnlyList<BuildingResourceChange> LastResourceConsumptions =>
             CreateResourceChanges(lastCompletedTurnIndex);
@@ -847,6 +853,13 @@ namespace Landsong.BuildingSystem
                 return false;
             }
 
+            if (!BuildingResourceProviderSystem.TrySelectProvider(building, out var providerSelection))
+            {
+                failureStatusId = BuildingRuntimeStatusCatalog.BS_无法连接资源点;
+                failureStatusText = "无法连接资源提供点";
+                return false;
+            }
+
             var inventory = building == null || building.GameSystem == null
                 ? null
                 : building.GameSystem.Services.Inventory;
@@ -866,6 +879,15 @@ namespace Landsong.BuildingSystem
             }
 
             lastCompletedTurnIndex = turnIndex;
+            var consumptions = CreateResourceChanges(turnIndex);
+            for (var i = 0; i < consumptions.Count; i++)
+            {
+                BuildingResourceProviderSystem.RecordProvidedResource(
+                    providerSelection,
+                    building,
+                    consumptions[i]);
+            }
+
             return true;
         }
 

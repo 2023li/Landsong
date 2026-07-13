@@ -135,34 +135,55 @@ public sealed class MapAuthoringWindow : EditorWindow
         }
 
         var content = contents[0];
-        if (!content.IsValid)
+        if (!content.TryValidateConfiguration(out var contentError))
         {
-            errors.Add("MapContentAuthoring 的 Grid 或 Base Tilemap 无效。");
+            errors.Add(contentError);
             return;
         }
 
-        var occupied = new HashSet<GridPosition>();
-        var markers = content.GetInitialBuildingMarkers();
-        for (var i = 0; i < markers.Length; i++)
+        var unmanagedBuildings = new List<BuildingBase>();
+        for (var i = 0; i < roots.Length; i++)
         {
-            var marker = markers[i];
-            if (marker == null || !marker.IsValid)
+            unmanagedBuildings.AddRange(roots[i].GetComponentsInChildren<BuildingBase>(true));
+        }
+
+        for (var i = 0; i < unmanagedBuildings.Count; i++)
+        {
+            var building = unmanagedBuildings[i];
+            if (building != null
+                && building.GetComponentInParent<MapContentAuthoring>(true) != content)
             {
-                errors.Add($"InitialBuildingMarker 无效：{(marker == null ? "<null>" : marker.name)}");
+                errors.Add($"初始建筑必须位于 MapContentAuthoring 层级下：{building.name}");
+            }
+        }
+
+        var occupied = new HashSet<GridPosition>();
+        var templates = content.GetInitialBuildingTemplates();
+        for (var i = 0; i < templates.Length; i++)
+        {
+            var template = templates[i];
+            if (!template.IsValid)
+            {
+                errors.Add($"初始建筑模板无效：{template.DisplayName}");
                 continue;
             }
 
-            foreach (var cell in marker.BuildingPrefab.Definition.CreateFootprint(marker.Origin).Positions())
+            if (!template.PreviewAligned)
+            {
+                errors.Add($"建筑预览与实际占地未对齐，请执行“吸附初始建筑到格子”：{template.DisplayName}");
+            }
+
+            foreach (var cell in template.BuildingPrefab.Definition.CreateFootprint(template.Origin).Positions())
             {
                 var tileCell = new Vector3Int(cell.X, cell.Y, 0);
                 if (!content.BaseTilemap.HasTile(tileCell))
                 {
-                    errors.Add($"初始建筑越出 Base 地图：{marker.name}，{cell}");
+                    errors.Add($"初始建筑越出 Base 地图：{template.DisplayName}，{cell}");
                 }
 
                 if (!occupied.Add(cell))
                 {
-                    errors.Add($"初始建筑相互重叠：{marker.name}，{cell}");
+                    errors.Add($"初始建筑相互重叠：{template.DisplayName}，{cell}");
                 }
             }
         }

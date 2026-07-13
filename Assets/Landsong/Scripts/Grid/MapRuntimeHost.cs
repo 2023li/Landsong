@@ -53,15 +53,25 @@ namespace Landsong.GridSystem
         public bool TryBind(MapContentAuthoring content, out string error)
         {
             error = string.Empty;
-            if (content == null || !content.IsValid)
+            if (content == null)
             {
-                error = "MapContentAuthoring 缺失，或 Grid/Base Tilemap 未正确绑定。";
+                error = "MapContentAuthoring 缺失。";
+                return false;
+            }
+
+            if (!content.TryValidateConfiguration(out error))
+            {
                 return false;
             }
 
             if (gridMap == null || ruleSet == null || overlayService == null)
             {
                 error = "MapRuntimeHost 必须绑定 GridMapBehaviour、GridRuleSet 和 GridOverlayService。";
+                return false;
+            }
+
+            if (!gridMap.TryValidateContentGridCompatibility(content.UnityGrid, out error))
+            {
                 return false;
             }
 
@@ -79,6 +89,7 @@ namespace Landsong.GridSystem
                     content.TerrainLayers,
                     ruleSet,
                     overlayService);
+                gridMap.GetComponent<GridRenderer>()?.RefreshAll();
                 boundContent = content;
                 return true;
             }
@@ -95,6 +106,7 @@ namespace Landsong.GridSystem
         {
             overlayService?.ClearAll();
             gridMap?.UnbindContent();
+            gridMap?.GetComponent<GridRenderer>()?.RefreshAll();
             boundContent = null;
         }
 
@@ -112,20 +124,20 @@ namespace Landsong.GridSystem
                 return false;
             }
 
-            var markers = boundContent.GetInitialBuildingMarkers();
-            if (!ValidateMarkers(markers, out error))
+            var templates = boundContent.GetInitialBuildingTemplates();
+            if (!ValidateTemplates(templates, out error))
             {
                 return false;
             }
 
             var parent = ResolveRuntimeBuildingsRoot();
-            for (var i = 0; i < markers.Length; i++)
+            for (var i = 0; i < templates.Length; i++)
             {
-                var marker = markers[i];
+                var template = templates[i];
                 var request = new BuildingPlacementRequest(
-                    marker.BuildingPrefab,
+                    template.BuildingPrefab,
                     gridMap,
-                    marker.Origin,
+                    template.Origin,
                     parent,
                     1,
                     false,
@@ -134,7 +146,7 @@ namespace Landsong.GridSystem
                 var result = gameSystem.Services.Buildings.TryPlace(request, out var building);
                 if (!result.Succeeded)
                 {
-                    error = $"初始建筑生成失败：{marker.name}，{result.Message}";
+                    error = $"初始建筑生成失败：{template.DisplayName}，{result.Message}";
                     Rollback(gameSystem.Services.Buildings, created);
                     return false;
                 }
@@ -145,40 +157,46 @@ namespace Landsong.GridSystem
             return true;
         }
 
-        private bool ValidateMarkers(IReadOnlyList<InitialBuildingMarker> markers, out string error)
+        private bool ValidateTemplates(IReadOnlyList<InitialBuildingTemplate> templates, out string error)
         {
             error = string.Empty;
             var plannedCells = new HashSet<GridPosition>();
-            if (markers == null)
+            if (templates == null)
             {
                 return true;
             }
 
-            for (var i = 0; i < markers.Count; i++)
+            for (var i = 0; i < templates.Count; i++)
             {
-                var marker = markers[i];
-                if (marker == null || !marker.IsValid)
+                var template = templates[i];
+                if (!template.IsValid)
                 {
-                    error = $"InitialBuildingMarker 配置无效：{(marker == null ? "<null>" : marker.name)}";
+                    error = $"初始建筑模板无效：{template.DisplayName}";
                     return false;
                 }
 
-                var definition = marker.BuildingPrefab.Definition;
+                if (!template.PreviewAligned)
+                {
+                    error = $"初始建筑预览未吸附到实际占地：{template.DisplayName}";
+                    return false;
+                }
+
+                var definition = template.BuildingPrefab.Definition;
                 if (!gridMap.CanOccupy(
-                        marker.Origin,
+                        template.Origin,
                         definition.Size,
                         definition.RequiredTerrainKeys,
                         out var failure))
                 {
-                    error = $"InitialBuildingMarker 无法放置：{marker.name}，{failure}";
+                    error = $"初始建筑模板无法放置：{template.DisplayName}，{failure}";
                     return false;
                 }
 
-                foreach (var cell in definition.CreateFootprint(marker.Origin).Positions())
+                foreach (var cell in definition.CreateFootprint(template.Origin).Positions())
                 {
                     if (!plannedCells.Add(cell))
                     {
-                        error = $"InitialBuildingMarker 相互重叠：{marker.name}，Cell={cell}";
+                        error = $"初始建筑模板相互重叠：{template.DisplayName}，Cell={cell}";
                         return false;
                     }
                 }

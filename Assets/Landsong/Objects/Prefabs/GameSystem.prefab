@@ -74,6 +74,42 @@ MonoBehaviour:
   policyCatalog: {fileID: 11400000, guid: 2c44ed9de03142fca98c63198b3f2ab5, type: 2}
   startingPublicOpinion: 0
   startingSelectedPolicies: []
+  expeditionDestinationCatalog: {fileID: 0}
+  expeditionSubsidyGoldItemDefinition: {fileID: 0}
+  expeditionTeamCapacity: 3
+  startingUnlockedBuildingBlueprintIds: []
+  expeditionSubsidyPenaltyDurationTurns: 5
+  expeditionSubsidyPenaltyAttractionPerStack: 5
+  talentCatalog: {fileID: 0}
+  talentGoldItemDefinition: {fileID: 0}
+  talentRefreshGoldCost: 20
+  talentRefreshCardCount: 3
+  startingTalentSlots: []
+  royalTraitCatalog: {fileID: 0}
+  royalInheritanceConfig:
+    startingKing:
+      displayName: 
+      age: 20
+      baseMaxLifespan: 80
+      traits: []
+    startingQueen:
+      displayName: 
+      age: 20
+      baseMaxLifespan: 80
+      traits: []
+    legalHeirAge: 16
+    princeBaseMaxLifespan: 80
+    birthChancePerTurn: 0.08
+    maxChildren: 8
+    mutationChance: 0.03
+    mutationWeightMultiplier: 0.5
+  buildingCatalog: {fileID: 11400000, guid: 8344cbee3c103ae4ca387a12fc3f7082, type: 2}
+  buildingSelection: {fileID: 0}
+  startingTurn: 1
+  allowKeyboardNextTurn: 1
+  nextTurnKey: 28
+  turnBuildingsPerFrame: 4
+  logTurnResult: 1
   startingQuests:
   - questId: main_build_farms_3
     displayName: "\u6574\u5907\u7530\u5784"
@@ -91,7 +127,8 @@ MonoBehaviour:
     runtimeGenerated: 0
   - questId: main_build_residential_houses_3
     displayName: "\u5B89\u7F6E\u65B0\u6C11"
-    description: "\u519C\u7530\u521D\u5177\u89C4\u6A21\u540E\uFF0C\u5EFA\u9020 3 \u5EA7\u5C45\u6C11\u623FLV0\uFF0C\u8BA9\u65B0\u6765\u7684\u5C45\u6C11\u6709\u53EF\u4EE5\u843D\u811A\u7684\u5C45\u6240\u3002"
+    description: "\u519C\u7530\u521D\u5177\u89C4\u6A21\u540E\uFF0C\u5EFA\u9020 3
+      \u5EA7\u5C45\u6C11\u623FLV0\uFF0C\u8BA9\u65B0\u6765\u7684\u5C45\u6C11\u6709\u53EF\u4EE5\u843D\u811A\u7684\u5C45\u6240\u3002"
     category: 1
     objectiveType: 1
     turnLimit: 12
@@ -109,42 +146,6 @@ MonoBehaviour:
   startingRandomQuestCount: 1
   maxActiveRandomQuests: 2
   randomQuestRefreshIntervalTurns: 3
-  expeditionDestinationCatalog: {fileID: 0}
-  expeditionSubsidyGoldItemDefinition: {fileID: 0}
-  expeditionTeamCapacity: 3
-  startingUnlockedBuildingBlueprintIds: []
-  expeditionSubsidyPenaltyDurationTurns: 5
-  expeditionSubsidyPenaltyAttractionPerStack: 5
-  talentCatalog: {fileID: 0}
-  talentGoldItemDefinition: {fileID: 0}
-  talentRefreshGoldCost: 20
-  talentRefreshCardCount: 3
-  startingTalentSlots: []
-  royalTraitCatalog: {fileID: 0}
-  royalInheritanceConfig:
-    startingKing:
-      displayName:
-      age: 20
-      baseMaxLifespan: 80
-      traits: []
-    startingQueen:
-      displayName:
-      age: 20
-      baseMaxLifespan: 80
-      traits: []
-    legalHeirAge: 16
-    princeBaseMaxLifespan: 80
-    birthChancePerTurn: 0.08
-    maxChildren: 8
-    mutationChance: 0.03
-    mutationWeightMultiplier: 0.5
-  buildingCatalog: {fileID: 11400000, guid: 8344cbee3c103ae4ca387a12fc3f7082, type: 2}
-  buildingSelection: {fileID: 0}
-  startingTurn: 1
-  allowKeyboardNextTurn: 1
-  nextTurnKey: 28
-  turnBuildingsPerFrame: 4
-  logTurnResult: 1
 --- !u!114 &3837668256779799915
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -166,10 +167,15 @@ MonoBehaviour:
   placementControls: {fileID: 0}
   cancelPlacementOnDisable: 1
   demolitionClickMaxMovementPixels: 8
-  validHighlightTile: {fileID: 11400000, guid: ded42df90b68af2428548eca67a40d3d, type: 2}
-  buildingFootprintHighlightTile: {fileID: 11400000, guid: ec459835cfc27264991f68a1c208c899, type: 2}
-  invalidHighlightTile: {fileID: 11400000, guid: 1b3c911605b7cff4c9fb03f23793f0af, type: 2}
-  roadConnectionHighlightTile: {fileID: 11400000, guid: aaacd32a41a1180469f6340ccaa5e562, type: 2}
+  validFootprintChannel: {fileID: 11400000, guid: 1a672dc4181aa2f439cba334e0ed3878, type: 2}
+  invalidFootprintChannel: {fileID: 11400000, guid: acb79da165a197543874e2d27c297837, type: 2}
+  roadPathChannel: {fileID: 11400000, guid: 62523fe0e9241ab4498818afae501f73, type: 2}
+  demolitionChannel: {fileID: 11400000, guid: 589234903502d92469fe852ce013ff29, type: 2}
+  resourceReachableChannel: {fileID: 11400000, guid: 278fb883e853b534d8cf59e524be326e, type: 2}
+  resourceProviderChannel: {fileID: 11400000, guid: 712c0371c272f504e8ca9a1e869718d9, type: 2}
+  selectedResourceProviderChannel: {fileID: 11400000, guid: ac23de52d895e244797d2c560916ec00, type: 2}
+  resourcePathChannel: {fileID: 11400000, guid: 0ccca96ec1c54284db348a65a4d90e69, type: 2}
+  buffRangeChannel: {fileID: 11400000, guid: 17e634dd79a2e12498fd8bf27bcd82b0, type: 2}
 --- !u!114 &5898616053397243020
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -224,8 +230,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingSelectionController
   operationBarPrefab: {fileID: 3887755073401264093, guid: 191329e8eb9c32c46a78da5ecd4ae070, type: 3}
-  selectionHighlightTile: {fileID: 11400000, guid: 7bf290ab785523d4cba981ae47ddbe58, type: 2}
-  reachableRangeHighlightTile: {fileID: 0}
+  selectionOverlayChannel: {fileID: 11400000, guid: 0c802b033453af240ad275d2e188be7d, type: 2}
+  reachableRangeOverlayChannel: {fileID: 11400000, guid: e4fb839be2a756b4591c1c7746cafcd8, type: 2}
   operationBarWorldOffset: {x: 0, y: -0.75, z: 0}
   operationBarScreenOffset: {x: 0, y: 0}
   hideOperationBarWhenOffscreen: 1
@@ -242,8 +248,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: da67f94e60d54a7e9c735103bef8e669, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   playStartupBirdCall: 1
   startupBirdCallClip: {fileID: 8300000, guid: 41c30371244903d41809b05d726bd536, type: 3}
   startupBirdCallChannelKey: sfx.default

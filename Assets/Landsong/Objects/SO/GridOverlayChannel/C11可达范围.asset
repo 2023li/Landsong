@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee0be8ecd52e12a4db7168341722932e, type: 3}
+  m_Name: "C11\u53EF\u8FBE\u8303\u56F4"
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.GridSystem.GridOverlayChannelDefinition
+  channelId: C11
+  tile: {fileID: 11400000, guid: 573af5b39a50db24aa36ac3b2c272859, type: 2}
+  sortingOrder: 0

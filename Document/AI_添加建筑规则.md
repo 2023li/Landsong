@@ -1,6 +1,6 @@
 # AI_添加建筑规则
 
-> 项目级入口见 [AI_开发原则.md](AI_开发原则.md)。本文件只规定建筑系统的实现和交付规则；查看现有建筑与 Prefab 配置时继续阅读 [建筑说明.md](建筑说明.md)。
+> 项目级入口见 [AI_开发原则.md](AI_开发原则.md)。本文件只规定建筑系统的实现和交付规则；查看现有建筑与 Prefab 配置时继续阅读 [建筑说明.md](建筑说明.md)。涉及占地、地形、资源连接、初始建筑、放置 Overlay 或空间效果时，必须同时阅读 [AI_地图系统.md](AI_地图系统.md)。
 
 本文档给后续 AI / 开发者修改 Landsong 建筑系统时使用。它不是玩家教程，而是**当前仓库实现下的入口索引、职责边界、修改约束与交付清单**。
 
@@ -22,11 +22,18 @@
 - `Assets/Landsong/Scripts/BuildingSystem/BuildingService.cs`
 - `Assets/Landsong/Scripts/BuildingSystem/BuildingAvailabilityEvaluator.cs`
 - `Assets/Landsong/Scripts/BuildingSystem/BuildingPlacementController.cs`
+- `Assets/Landsong/Scripts/BuildingSystem/BuildingPlacementEvaluator.cs`
+- `Assets/Landsong/Scripts/BuildingSystem/BuildingConnectionContracts.cs`
+- `Assets/Landsong/Scripts/BuildingSystem/BuildingResourceProviderSystem.cs`
+- `Assets/Landsong/Scripts/BuildingSystem/BuildingProcessingModule.cs`
+- `Assets/Landsong/Scripts/BuildingSystem/BuildingSpatialEffects.cs`
 - `Assets/Landsong/Scripts/BuildingSystem/BuildingJobSystem.cs`
 - `Assets/Landsong/Scripts/BuildingSystem/BuildingResourceInterfaces.cs`
 - `Assets/Landsong/Scripts/BuildingSystem/BuildingFunctionBlockInterfaces.cs`
 - `Assets/Landsong/Scripts/BuildingSystem/BuildingRuntimeStatusCatalog.cs`
 - `Assets/Landsong/Scripts/BuildingSystem/BuildingSaveDataRegistry.cs`
+- `Assets/Landsong/Scripts/Grid/GridMapBehaviour.cs`
+- `Assets/Landsong/Scripts/Grid/GridOverlayService.cs`
 
 如果要改具体建筑，再补读对应脚本和 Prefab，例如：
 
@@ -180,6 +187,10 @@ flowchart TD
 
 - 等级升级本质上是**替换 Prefab**，不是在同一实例里硬切“当前等级”。
 - 施工态建筑升级成完工建筑，也应优先复用替换流程。
+- 项目没有建筑旋转概念。建筑根 Transform、占地、放置请求、替换和存档都不保存旋转；美术朝向只能放在 Prefab 子对象中。
+- 放置合法性只由完整 footprint 的地图边界、全局可建造开关、地形要求和占用冲突决定。
+- 资源连接和 Buff 是附加预览信息，不改变 `CanConfirm`；不要把“找不到资源点”重新塞进通用放置合法性。
+- 需要扩展放置规则时先扩展 `BuildingPlacementEvaluator` 或对应领域查询，不要在 `BuildingPlacementController` 内复制业务算法。
 
 ### 回合与模块数据流
 
@@ -197,9 +208,22 @@ flowchart TD
 ### 资源提供点与供给归属
 
 - `isResourceProviderPoint` 只表示建筑具备作为提供点的静态资格；消费者实际选点必须调用 `BuildingResourceProviderSystem.TrySelectProvider(...)`，不要自行遍历建筑后只判断“存在任意资源点”。
+- `ResourceConnection` 不是 Prefab 上的序列化字段，而是 `BuildingPlacementEvaluator` / `BuildingResourceProviderSystem` 根据消费者能力生成的查询结果。
+- 建筑通过实现 `IBuildingConnectionConsumer`，或挂载启用且实现 `IBuildingConnectionConsumerModule` 的模块来声明所需连接类型。当前内置类型是稳定 ID `Resource`，接口允许未来增加 `Electricity` 等类型。
+- `buildingActionPower` 只定义寻路预算；它不会自动把建筑变成 Resource 消费者。没有消费者声明时，即使行动力大于 0，也不会生成资源范围 Overlay。
 - 统一选点规则是：可达提供点中先选 `resourceProviderPriority` 更高者；同优先级时选路径行动力代价更低者；完全并列时由稳定键决胜。
 - 有开工条件的提供点应实现 `IBuildingResourceProviderOperationalState`，未开工时不会参与选点。
 - 需要统计实际供给的提供点应实现 `IBuildingResourceProvisionAccounting`；由 `TurnService` 在回合开始清账、所有建筑处理完成后结算，不能在自身 `OnTurn()` 里提前结算。
+- 消费者允许在没有提供点时放置，但真正从全局库存拉取资源前必须再次调用 `TrySelectProvider(...)`。查询失败时不应扣库存或推进生产/施工进度。
+- 放置 Ghost 和已落地建筑必须共用同一个 `ResourceConsumerProbe` 查询，确保可达格、可用提供点、最终提供点和最终路径一致。
+
+### 空间效果与 Buff 范围
+
+- 可复用范围效果使用 `BuildingSpatialEffectDefinition` + `BM_空间效果源`，不要只在放置 UI 中增加一个半径字段。
+- `BuildingSpatialEffectDefinition` 保存稳定 Effect ID、效果类型、目标过滤、曼哈顿半径、效果数值和叠加规则。
+- 当前范围从来源建筑的完整 footprint 向外计算，受 Base 地图边界限制，但忽略建筑、水域和障碍，不使用资源连接寻路。
+- 运行时结算与放置预览必须读取同一份 Definition；新增效果类型时同时检查 `BuildingSpatialEffectService` 的预览、目标过滤和结算分支。
+- 产量百分比支持 `NoStack` / `Additive`；美化值属于格子并使用 `HighestValue`。多格建筑的最终美化值为全部占地格美化值平均后向下取整。
 
 ### 存档规则
 
@@ -333,6 +357,7 @@ else if (building is ResidentialHousingLV1) { ... }
 用途：
 
 - 为通用在建建筑配置逐回合施工材料
+- 自动声明需要一个 `Resource` 提供点，放置时会生成行动力范围、提供点和最终路径预览
 - 只在材料足够且成功扣除后允许施工进度前进
 - 暴露当前阶段预计消耗与上次成功消耗
 - 通过 `IBuildingModuleStateSerializer` 保存上次成功施工阶段
@@ -340,9 +365,41 @@ else if (building is ResidentialHousingLV1) { ... }
 关键约束：
 
 - 与 `BM_等级升级` 配合使用，每成功扣料一次增加 1 点升级经验
+- 每回合扣料前必须选到可达 Resource 提供点；没有提供点时不扣材料、不增加经验，但这不阻止最初放置
+- 扣料成功后通过 `BuildingResourceProviderSystem.RecordProvidedResource(...)` 记录最终提供点的实际供给
 - `turnCosts` 的阶段数至少应覆盖 `BM_等级升级.requiredExperience`
 - 施工材料放在本模块；完工瞬间仍需额外支付的费用才放在 `BM_等级升级.upgradeCosts`
 - 不要在具体建筑脚本里再保存一份施工进度
+
+### `BM_资源加工`
+
+用途：
+
+- 把一项或多项全局库存输入原子地加工为一项或多项输出
+- 自动声明需要 `Resource` 连接
+- 配置生产周期和最低工人数
+- 保存加工进度，并暴露当前/上次消耗与产出
+- 成功加工后把实际消耗记到最终 Resource 提供点
+
+关键约束：
+
+- 输入与输出必须都至少有一项有效配置。
+- 找不到 Resource 提供点、工人不足或库存事务失败时，不完成本轮加工；已完成的周期进度按模块现有规则保留。
+- 不要先逐项扣输入再逐项加输出；统一使用 `Inventory.TryExchangeItems(...)` 的原子事务。
+
+### `BM_空间效果源`
+
+用途：
+
+- 在建筑 Prefab 上绑定一个或多个 `BuildingSpatialEffectDefinition`
+- 为放置预览提供 Buff 范围和说明
+- 为农田产量、美化值等运行时查询提供同一份效果定义
+
+关键约束：
+
+- 模块本身不保存另一份半径或数值，全部读取 Definition。
+- Effect ID 必须稳定且非空，数值必须大于 0。
+- 当前项目已有框架，但仍需为具体灌溉坊/装饰物创建效果资产并在 Prefab 检查器中绑定。
 
 ## 具体建筑实现模式
 
@@ -441,6 +498,8 @@ else if (building is ResidentialHousingLV1) { ... }
 - `resourceProviderPriority`
 - `buildingActionPower`
 
+其中 `buildingActionPower` 只有在建筑本体或启用模块声明了连接消费者能力时才会参与资源范围查询。提供点使用 `isResourceProviderPoint / resourceProviderPriority`；消费者不要配置第二份“搜索半径”。
+
 ## 示例
 
 ### 新增一个“生产型岗位建筑”的推荐写法
@@ -493,6 +552,7 @@ public sealed class ExampleWorkshop : BuildingBase
 - 配置 `BM_施工材料消耗.turnCosts`
 - 配置 `BM_等级升级.requiredExperience` 与 `upgradeTargetPrefab`
 - 通常保持 `BM_等级升级.autoUpgradeEnabled = true`
+- 配置 `BuildingBase.buildingActionPower`；`BM_施工材料消耗` 会自动声明 Resource 连接，不需要额外的 `ResourceConnection` 字段
 - 达到阈值后由 `BuildingBase.ProcessTurn()` 调用升级模块并走 `BuildingService.TryReplace(...)`
 - 不要为每种建筑新建 `XXX_LV0` 施工脚本，也不要在同一个实例里把脚本切成完工类型
 
@@ -509,6 +569,9 @@ public sealed class ExampleWorkshop : BuildingBase
 7. 把 Prefab 加入 `BuildingCatalog.asset`。
 8. 在 Unity Editor 验证：
    - 放置是否成功
+   - 完整 footprint 的红/绿反馈是否与实际占用一致
+   - Resource 消费者是否显示可达范围、可用提供点、最终提供点和路径
+   - 空间效果源是否显示 Buff 范围，并与落地后的运行时效果一致
    - 详情面板是否正常
    - 模块是否仍可在 Inspector 中显示
    - 存档恢复是否正常
@@ -525,6 +588,8 @@ public sealed class ExampleWorkshop : BuildingBase
 - `movementResistance`
 - `GridMap.CanOccupy(...)`
 - `BuildingService.TryPlace(...)` 返回的失败原因
+
+如果只是没有 Resource 提供点但占地合法，建筑仍应允许放置；此时应排查资源连接预览和运行时异常状态，而不是修改 `CanOccupy()`。
 
 ### 建筑能显示但不能建造
 
@@ -566,6 +631,26 @@ public sealed class ExampleWorkshop : BuildingBase
 - 是否重写了 `GetFunctionBlockEntries()`
 - 是否忘记调用 `AppendBuildingModuleFunctionBlockEntries(ref entries)`
 
+### 放置时没有资源范围
+
+先查：
+
+- 建筑是否实现 `IBuildingConnectionConsumer`，或是否挂载启用的 `IBuildingConnectionConsumerModule`
+- 是否误以为只配置 `buildingActionPower` 就会自动成为消费者
+- `BuildingPlacementController` 的 C5～C8 Overlay 通道是否绑定且有效
+- 地图是否存在同一 `GridMap` 上已放置、启用且处于可运营状态的提供点
+
+即使当前没有提供点，只要消费者声明有效，仍应显示 `BuildingActionPower` 可达格；只会缺少最终提供点和路径。
+
+### 放置时没有 Buff 范围
+
+先查：
+
+- Prefab 是否挂载启用的 `BM_空间效果源`
+- 模块是否绑定有效的 `BuildingSpatialEffectDefinition`
+- Effect ID、数值和目标过滤是否有效
+- `BuildingPlacementController.buffRangeChannel` 是否绑定有效通道
+
 ## 变更记录
 
 ### 2026-07-06
@@ -581,3 +666,10 @@ public sealed class ExampleWorkshop : BuildingBase
 
 - 用通用 `BuildingUnderConstruction` 替代居民房专用 `ResidentialHousingLV0`。
 - 新增 `BM_施工材料消耗`，并明确它与 `BM_等级升级` 的施工职责边界。
+
+### 2026-07-13
+
+- 回写地图/放置重构后的建筑契约：完整 footprint、无旋转、结构化放置评估和多通道 Overlay。
+- 补充通用 Resource 消费者/提供点声明、`BuildingActionPower` 语义、虚拟消费者查询和最终路径规则。
+- `BM_施工材料消耗` 现在自动要求 Resource 连接；居民房施工态无提供点时不扣材料、不增加经验，但仍允许放置。
+- 补充 `BM_资源加工`、`BM_空间效果源` 和 `BuildingSpatialEffectDefinition` 的配置与运行时边界。

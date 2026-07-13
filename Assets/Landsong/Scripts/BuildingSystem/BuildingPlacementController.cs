@@ -8,6 +8,7 @@ using Landsong.GridSystem;
 using Landsong.InputSystem;
 using Landsong.UISystem;
 using Moyo.Unity;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Landsong.BuildingSystem
@@ -31,22 +32,22 @@ namespace Landsong.BuildingSystem
         [Header("Preview")]
         [SerializeField] private Vector3 ghostWorldOffset = Vector3.zero;
         [SerializeField] private Vector3 controlsWorldOffset = new Vector3(0f, -1.25f, 0f);
-        [SerializeField, InspectorName("放置控制 UI")] private GamePanel_BuildingPlacementControls placementControls;
+        [SerializeField, LabelText("放置控制 UI")] private GamePanel_BuildingPlacementControls placementControls;
         [SerializeField] private bool cancelPlacementOnDisable = true;
 
         [Header("Demolition")]
-        [SerializeField, InspectorName("拆除点击最大移动像素"), Min(0f)] private float demolitionClickMaxMovementPixels = 8f;
+        [SerializeField, LabelText("拆除点击最大移动像素"), Min(0f)] private float demolitionClickMaxMovementPixels = 8f;
 
         [Header("Grid Overlay Channels")]
-        [SerializeField, InspectorName("合法占地通道")] private GridOverlayChannelDefinition validFootprintChannel;
-        [SerializeField, InspectorName("非法占地通道")] private GridOverlayChannelDefinition invalidFootprintChannel;
-        [SerializeField, InspectorName("道路路径通道")] private GridOverlayChannelDefinition roadPathChannel;
-        [SerializeField, InspectorName("拆除目标通道")] private GridOverlayChannelDefinition demolitionChannel;
-        [SerializeField, InspectorName("资源可达范围通道")] private GridOverlayChannelDefinition resourceReachableChannel;
-        [SerializeField, InspectorName("可用资源点通道")] private GridOverlayChannelDefinition resourceProviderChannel;
-        [SerializeField, InspectorName("最终资源点通道")] private GridOverlayChannelDefinition selectedResourceProviderChannel;
-        [SerializeField, InspectorName("最终资源路径通道")] private GridOverlayChannelDefinition resourcePathChannel;
-        [SerializeField, InspectorName("Buff 范围通道")] private GridOverlayChannelDefinition buffRangeChannel;
+        [SerializeField, LabelText("合法占地通道")] private GridOverlayChannelDefinition validFootprintChannel;
+        [SerializeField, LabelText("非法占地通道")] private GridOverlayChannelDefinition invalidFootprintChannel;
+        [SerializeField, LabelText("道路路径通道")] private GridOverlayChannelDefinition roadPathChannel;
+        [SerializeField, LabelText("拆除目标通道")] private GridOverlayChannelDefinition demolitionChannel;
+        [SerializeField, LabelText("资源可达范围通道")] private GridOverlayChannelDefinition resourceReachableChannel;
+        [SerializeField, LabelText("可用资源点通道")] private GridOverlayChannelDefinition resourceProviderChannel;
+        [SerializeField, LabelText("最终资源点通道")] private GridOverlayChannelDefinition selectedResourceProviderChannel;
+        [SerializeField, LabelText("最终资源路径通道")] private GridOverlayChannelDefinition resourcePathChannel;
+        [SerializeField, LabelText("Buff 范围通道")] private GridOverlayChannelDefinition buffRangeChannel;
 
         private readonly List<GridPosition> currentRoadPath = new List<GridPosition>();
         private GridOverlayOwnerHandle validFootprintHandle;

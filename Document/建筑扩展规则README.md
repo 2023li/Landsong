@@ -2,6 +2,8 @@
 
 本文档约束之后新增或修改建筑时的代码边界。当前建筑系统不保留旧字段、旧存档、旧详情面板兼容；如果旧 prefab 或旧存档因为字段变更丢数据，按新规则重新配置。
 
+涉及占地、地形、资源连接、放置 Overlay、初始建筑或空间范围效果时，同时以 [AI_地图系统.md](AI_地图系统.md) 为准。
+
 ## 核心边界
 
 ### BuildingDefinition
@@ -58,9 +60,9 @@
 
 ### BuildingPlacementController
 
-`BuildingPlacementController` 只负责玩家输入、拖拽、预览、高亮、确认/取消 UI 状态。
+`BuildingPlacementController` 只负责玩家输入、拖拽、Ghost、Overlay 编排和确认/取消 UI 状态。普通建筑的结构化评估由 `BuildingPlacementEvaluator` 负责，格子视觉由 `GridOverlayService` 负责。
 
-不要在这里新增建筑业务规则。道路路径规则放到 `BuildingRoadPlacementPlanner`，预览实例创建放到 `BuildingPlacementPreviewFactory`，放置事务放到 `BuildingService`。
+不要在这里新增建筑业务规则。道路路径规则放到 `BuildingRoadPlacementPlanner`，预览实例创建放到 `BuildingPlacementPreviewFactory`，资源连接使用 `BuildingResourceProviderSystem`，空间效果使用 `BuildingSpatialEffectService`，放置事务放到 `BuildingService`。
 
 ## 新增建筑流程
 
@@ -72,6 +74,9 @@
 6. 如果有运行时数据，创建 `BuildingDataBase` 子类并添加 `BuildingDataTypeId`。
 7. 实现 `CaptureBuildingData()` / `RestoreBuildingData()`。
 8. 通过 `GetRuntimeStatuses()` 和 `GetFunctionBlockEntries()` 暴露 UI 所需数据。
+9. 如果建筑需要 Resource 等连接，使用消费者接口或消费者模块声明，并配置 `buildingActionPower`。
+10. 如果建筑提供范围效果，创建 `BuildingSpatialEffectDefinition`，通过 `BM_空间效果源` 绑定。
+11. 在 Play Mode 验证完整占地、资源路径/Buff 范围和实际运行效果一致。
 
 ## 快速开始：添加农田
 
@@ -471,6 +476,8 @@ private sealed class ExampleBuildingData : BuildingDataBase
 - 附近人口吸引力
 - 种植、成熟、收获
 - 未来可复用的生产、维护、加成、范围效果
+- 资源加工、施工材料消耗和连接消费者能力
+- 产量 Buff、美化等空间效果源
 
 模块应该满足：
 
@@ -479,7 +486,7 @@ private sealed class ExampleBuildingData : BuildingDataBase
 - 通过 `BuildingBase` 的 `buildingModules` 序列化列表挂到建筑 prefab。
 - 通过 `AppendFunctionBlockEntries()` 暴露功能区 UI。
 - 如果需要回合推进，由拥有它的 `BuildingBase` 子类在 `OnTurn()` 中显式调用模块方法。
-- 如果需要存档，由拥有它的 `BuildingBase` 子类在 `CaptureBuildingData()` / `RestoreBuildingData()` 中显式调用模块的数据方法。
+- 如果需要存档，实现 `IBuildingModuleStateSerializer`；`BuildingBase` 会统一捕获和恢复，不要再在具体建筑数据中重复保存同一模块状态。
 - 不直接调用 `NotifyStateChanged()`；模块返回状态变化结果，由拥有它的建筑脚本负责通知。
 - 不直接处理输入。
 - 不直接实例化 UI。
@@ -494,6 +501,13 @@ private sealed class ExampleBuildingData : BuildingDataBase
 5. 为建筑脚本提供明确方法，例如 `ProcessTurn(...)`、`TryDoSomething(...)`、`CaptureData()`、`RestoreData(...)`。
 6. 在建筑 prefab 的 `建筑模块` 列表里添加该模块。
 7. 在拥有模块的建筑脚本里用 `TryGetModule<XxxModule>(out var module)` 读取并调用它。
+
+连接与空间效果模块还要遵循：
+
+- 实现 `IBuildingConnectionConsumerModule` 的启用模块会自动参与 `BuildingBase.RequiresConnectionType(...)`；不要再增加重复的 Prefab 布尔字段。
+- `buildingActionPower` 是连接寻路预算，不是消费者开关。
+- `BM_施工材料消耗` 和 `BM_资源加工` 已自动声明 `Resource` 连接。
+- `BM_空间效果源` 只引用 `BuildingSpatialEffectDefinition`；预览和运行时结算共用 Definition，不在模块或 UI 中复制半径/数值。
 
 如果能力有独立配置、独立运行时状态、独立 UI 表达，或者未来明显会被多个建筑复用，直接做 `BuildingModuleBase`。只有纯粹的一次性小差异才放在具体建筑脚本。
 
@@ -548,6 +562,30 @@ BuildingService.TryPlaceBatch(...)
 
 不要在 UI 控制器里重复扣建造成本、重复占格、重复回滚。
 
+普通建筑放置评估必须保持以下边界：
+
+- 完整 `BuildingDefinition.Size` footprint 的边界、全局可建造、地形和占用决定红/绿与 `CanConfirm`。
+- Resource 可达范围、可用提供点、最终提供点/路径和 Buff 范围是附加信息，不阻止放置。
+- 项目没有建筑旋转语义；根 Transform 始终使用单位旋转。
+- Base Tilemap 决定地图边界，Terrain Layers 决定静态地形标签，运行时占用由 `GridMapBehaviour` 字典决定。
+- 不要让建筑、UI 或新效果直接写某个共享 Tilemap。通过 `GridOverlayService.AcquireOwner(...)` 获取 owner handle，结束时 Dispose，只清理自己的提交。
+
+## 资源连接规则
+
+- 当前内置连接类型为 `BuildingConnectionTypes.Resource`；接口预留其他稳定类型 ID。
+- 建筑本体实现 `IBuildingConnectionConsumer`，或启用模块实现 `IBuildingConnectionConsumerModule`，才能成为消费者。
+- 提供点使用 `isResourceProviderPoint`，需要动态可用性时实现 `IBuildingResourceProviderOperationalState`。
+- 运行时消费前调用 `BuildingResourceProviderSystem.TrySelectProvider(...)`；不要因为放置预览找到过提供点就缓存并永久复用。
+- Resource 表示可以访问全局库存，不是提供点自己的局部库存。
+- 找不到提供点时允许放置，但依赖连接的回合逻辑必须失败且不得扣库存/推进进度。
+
+## 空间效果规则
+
+- 范围效果使用 `BuildingSpatialEffectDefinition` + `BM_空间效果源`。
+- 当前使用完整来源 footprint 的曼哈顿范围，忽略障碍，只裁剪到 Base 地图边界。
+- `ProductionPercent` 根据 Definition 的叠加规则影响目标；`Beauty` 按格取最高值，多格建筑取占地平均值向下取整。
+- 新增效果类型必须同时补齐预览、目标过滤、运行时结算和 UI 描述，不能只画 Overlay。
+
 ## 升级/替换规则
 
 建筑升级走：
@@ -572,6 +610,10 @@ BuildingService.TryReplace(sourceBuilding, targetPrefab, out replacement)
 - 不要新增旧存档兼容逻辑。
 - 不要用 C# 类型全名作为存档类型。
 - 不要绕过 `BuildingService` 直接占格/扣费/替换。
+- 不要把资源连接结果并入通用放置合法性。
+- 不要只配置 `buildingActionPower` 却遗漏消费者接口/模块。
+- 不要直接清空共享 Overlay Tilemap 或清理其他 owner 的格子。
+- 不要为建筑根对象增加旋转放置或旋转存档字段。
 
 ## 判断某段逻辑应该放哪里
 
@@ -583,3 +625,14 @@ BuildingService.TryReplace(sourceBuilding, targetPrefab, out replacement)
 - 这是可复用建筑能力吗？做 `BuildingModuleBase`。
 - 这是某个建筑独有玩法吗？放具体建筑脚本。
 - 这是 UI 展示组件吗？放 `BuildingDetailsBlock_*` 或 UI 脚本。
+- 这是地图静态内容或地形标签吗？放 `MapContentAuthoring` 的 Base/Terrain Tilemap。
+- 这是放置阶段的纯评估吗？放 `BuildingPlacementEvaluator` 或对应领域查询。
+- 这是格子视觉吗？定义 `GridOverlayChannelDefinition`，通过 `GridOverlayService` 提交。
+
+## 变更记录
+
+### 2026-07-13
+
+- 同步地图与建筑放置重构后的职责边界。
+- 补充 Resource 消费者/提供点、空间效果、完整 footprint 和 owner 化 Overlay 规则。
+- 修正模块存档说明：实现 `IBuildingModuleStateSerializer` 后由 `BuildingBase` 统一保存与恢复。

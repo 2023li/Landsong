@@ -232,7 +232,7 @@ namespace Landsong.GridSystem
 
         private void RebuildChannel(ChannelState state)
         {
-            if (state == null || state.Tilemap == null || state.Definition?.Style == null)
+            if (state == null || state.Tilemap == null || state.Definition?.Tile == null)
             {
                 return;
             }
@@ -266,7 +266,7 @@ namespace Landsong.GridSystem
                 state.Tilemap.SetTile(ToCell(changedCells[i]), null);
             }
 
-            var style = state.Definition.Style;
+            var tile = state.Definition.Tile;
             foreach (var pair in next)
             {
                 if (state.Rendered.TryGetValue(pair.Key, out var previous)
@@ -277,8 +277,7 @@ namespace Landsong.GridSystem
                 }
 
                 var cell = ToCell(pair.Key);
-                state.Tilemap.SetTile(cell, style.Tile);
-                state.Tilemap.SetColor(cell, style.Color);
+                state.Tilemap.SetTile(cell, tile);
             }
 
             state.Rendered.Clear();

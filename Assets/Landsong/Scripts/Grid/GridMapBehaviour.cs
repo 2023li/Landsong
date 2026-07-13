@@ -12,13 +12,19 @@ namespace Landsong.GridSystem
     [RequireComponent(typeof(UnityEngine.Grid))]
     public sealed class GridMapBehaviour : MonoBehaviour
     {
-        [SerializeField, LabelText("Awake 时初始化")] private bool initializeOnAwake = true;
-        [SerializeField, BoxGroup("规则"), LabelText("共享 Grid Rule Set")] private GridRuleSet ruleSet;
-        [SerializeField, BoxGroup("底层TileMap"), LabelText("Tilemap_基础层")] private Tilemap baseTilemap;
-        [SerializeField, BoxGroup("底层TileMap"), LabelText("Tilemap_占用层")] private Tilemap occupancyTilemap;
-        [SerializeField, BoxGroup("底层TileMap"), LabelText("占用层 填充瓦片")] private TileBase occupiedTile;
-        [SerializeField, BoxGroup("底层TileMap"), LabelText("初始化时清空占用层")] private bool clearOccupancyLayerOnInitialize = true;
-        [SerializeField, BoxGroup("地形层"), LabelText("地形 Tilemap 层")] private List<GridTerrainLayer> terrainLayers = new List<GridTerrainLayer>();
+        // 以下三项由 MapRuntimeHost 在 Content Scene 绑定时注入，不属于 Game Scene Inspector 配置。
+        private GridRuleSet ruleSet;
+        private Tilemap baseTilemap;
+        private List<GridTerrainLayer> terrainLayers = new List<GridTerrainLayer>();
+
+        [SerializeField, BoxGroup("运行时占用层"), LabelText("Tilemap_占用层")]
+        private Tilemap occupancyTilemap;
+
+        [SerializeField, BoxGroup("运行时占用层"), LabelText("占用层 填充瓦片")]
+        private TileBase occupiedTile;
+
+        [SerializeField, BoxGroup("运行时占用层"), LabelText("初始化时清空占用层")]
+        private bool clearOccupancyLayerOnInitialize = true;
 
         private readonly Dictionary<GridPosition, GridOccupancyData> occupiedCells = new Dictionary<GridPosition, GridOccupancyData>();
         private readonly Dictionary<string, List<GridPosition>> occupiedPositionsById = new Dictionary<string, List<GridPosition>>(StringComparer.Ordinal);
@@ -41,6 +47,38 @@ namespace Landsong.GridSystem
             ruleSet == null ? Array.Empty<GridTraversalCostRule>() : ruleSet.TraversalCostRules;
         public int OccupancyVersion => occupancyVersion;
 
+        public bool TryValidateContentGridCompatibility(UnityEngine.Grid contentGrid, out string error)
+        {
+            error = string.Empty;
+            var runtimeGrid = GetComponent<UnityEngine.Grid>();
+            if (runtimeGrid == null || contentGrid == null)
+            {
+                error = "Runtime Grid 或 Content Grid 缺失。";
+                return false;
+            }
+
+            if (runtimeGrid.cellLayout != contentGrid.cellLayout
+                || runtimeGrid.cellSwizzle != contentGrid.cellSwizzle
+                || !Approximately(runtimeGrid.cellSize, contentGrid.cellSize)
+                || !Approximately(runtimeGrid.cellGap, contentGrid.cellGap))
+            {
+                error = "Game Scene Grid 与 Content Grid 的 Cell Size/Gap/Layout/Swizzle 不一致。";
+                return false;
+            }
+
+            var runtimeTransform = runtimeGrid.transform;
+            var contentTransform = contentGrid.transform;
+            if (!Approximately(runtimeTransform.position, contentTransform.position)
+                || !Approximately(runtimeTransform.lossyScale, contentTransform.lossyScale)
+                || Quaternion.Angle(runtimeTransform.rotation, contentTransform.rotation) > 0.01f)
+            {
+                error = "Game Scene Grid 与 Content Grid 的 Transform 原点/旋转/缩放不一致。";
+                return false;
+            }
+
+            return true;
+        }
+
         private bool HasOccupancyTilemapVisualization => occupancyTilemap != null && occupiedTile != null;
 
         private UnityEngine.Grid UnityGrid
@@ -58,14 +96,6 @@ namespace Landsong.GridSystem
                 }
 
                 return cachedUnityGrid;
-            }
-        }
-
-        private void Awake()
-        {
-            if (initializeOnAwake && baseTilemap != null)
-            {
-                Initialize();
             }
         }
 
@@ -614,8 +644,8 @@ namespace Landsong.GridSystem
         }
 
 #if UNITY_EDITOR
-        [Button("一键配置基础 Tilemap")]
-        [ContextMenu("Configure Required Tilemaps")]
+        [Button("一键配置运行时占用 Tilemap")]
+        [ContextMenu("Configure Runtime Occupancy Tilemap")]
         private void ConfigureRequiredTilemaps()
         {
             Undo.IncrementCurrentGroup();
@@ -624,7 +654,6 @@ namespace Landsong.GridSystem
             Undo.RecordObject(this, "Configure Required Tilemaps");
 
             EnsureUnityGridComponent();
-            baseTilemap = EnsureTilemapLayer(baseTilemap, "Base Tilemap", 0);
             occupancyTilemap = EnsureTilemapLayer(occupancyTilemap, "Occupancy Tilemap", 100);
             EditorUtility.SetDirty(this);
             Undo.CollapseUndoOperations(undoGroup);
@@ -828,6 +857,11 @@ namespace Landsong.GridSystem
         private static Vector3Int GridPositionToTilemapCell(GridPosition position)
         {
             return new Vector3Int(position.X, position.Y, 0);
+        }
+
+        private static bool Approximately(Vector3 left, Vector3 right)
+        {
+            return (left - right).sqrMagnitude <= 0.000001f;
         }
 
         private bool HasBaseTile(GridPosition position)

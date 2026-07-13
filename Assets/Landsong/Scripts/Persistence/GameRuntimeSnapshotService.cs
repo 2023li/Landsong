@@ -394,7 +394,10 @@ namespace Landsong.Persistence
             for (var i = 0; i < sceneBuildings.Length; i++)
             {
                 var building = sceneBuildings[i];
-                if (building == null || building.IsDemolishing || !building.gameObject.scene.IsValid())
+                if (building == null
+                    || building.IsDemolishing
+                    || !building.gameObject.scene.IsValid()
+                    || MapContentAuthoring.IsInitialBuildingTemplate(building))
                 {
                     continue;
                 }

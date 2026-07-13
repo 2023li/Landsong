@@ -12,13 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a8a532e23c94b0c4aabafefdccd59d81, type: 3}
   m_Name: MapCatalog
   m_EditorClassIdentifier: Assembly-CSharp::MapDataCatalog
-  mapDatas:
-  - displayName: "\u9ED8\u8BA4\u5730\u56FE"
-    icon: {fileID: 0}
-    description: "\u8FD9\u662F\u4E00\u5F20\u7528\u4E8E\u6D4B\u8BD5\u7684\u9ED8\u8BA4\u5730\u56FE"
-    map: {fileID: 4896321450339995972, guid: 7fccb5461c5d34245948c86841191ca3, type: 3}
-  - displayName: "\u9ED8\u8BA4\u5730\u56FE2"
-    icon: {fileID: 0}
-    description: 
-    map: {fileID: 4896321450339995972, guid: af9a8ae68ac124d4b83c2e8683541afc, type: 3}
-  mapPrefabFolderPath: Assets/Landsong/Objects/Prefabs/Map
+  maps:
+  - {fileID: 11400000, guid: a32371a26d0b4a043a138a8e66656831, type: 2}
+  mapDefinitionFolderPath: Assets/Landsong/Objects/SO/MapDef
