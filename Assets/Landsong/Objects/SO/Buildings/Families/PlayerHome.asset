@@ -1,0 +1,134 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad4cbf49b35f06744b7e4297512a9e5f, type: 3}
+  m_Name: PlayerHome
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingFamilyDefinition
+  definition:
+    familyId: building.player_home
+    displayName: "\u738B\u5BAB"
+    category: 1
+    icon: {fileID: -3500720322899650623, guid: 8ea5bedac443ad54ea4d109d5e13e55e, type: 3}
+    size: {x: 4, y: 4}
+    ignoreTerrainRequirement: 0
+    requiredTerrainKeys:
+    - "\u9646\u5730"
+    movementResistance: 0
+    placementCosts: []
+    visibleCondition:
+      rid: 5711026424601640960
+    blueprintInitiallyLocked: 0
+    hideWhenBlueprintLocked: 0
+    buildMenuSortOrder: 0
+    maxBuildCount: 1
+    buildLimitGroupId: building.player_home
+    isDevelopmentCompleted: 1
+    useUniqueDetailPanel: 0
+    uniqueDetailPanel: {fileID: 0}
+  runtimePrefab: {fileID: 644822085078556415, guid: c31dca3ff7eb28546bf600cb3f6c826f, type: 3}
+  construction:
+    turns:
+    - costs: []
+  levels:
+  - level: 1
+    configured: 1
+    upgradeCondition:
+      rid: -2
+    upgradeCosts: []
+    configurations:
+    - rid: 5711026424309612546
+    - rid: 5711026424309612547
+    - rid: 5711026424309612548
+  - level: 2
+    configured: 0
+    upgradeCondition:
+      rid: -2
+    upgradeCosts: []
+    configurations:
+    - rid: 5711026424309612549
+    - rid: 5711026424309612550
+    - rid: 5711026424309612551
+  - level: 3
+    configured: 0
+    upgradeCondition:
+      rid: -2
+    upgradeCosts: []
+    configurations:
+    - rid: 5711026424309612552
+    - rid: 5711026424309612553
+    - rid: 5711026424309612554
+  - level: 4
+    configured: 0
+    upgradeCondition:
+      rid: -2
+    upgradeCosts: []
+    configurations:
+    - rid: 5711026424309612555
+    - rid: 5711026424309612556
+    - rid: 5711026424309612557
+  moduleSet: {fileID: 11400000, guid: 3856a77226b33f64d8e76e212827b399, type: 2}
+  presentation: {fileID: 11400000, guid: 26b2a3b1728dc6b4bbe49e3b31a83a9d, type: 2}
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 5711026424309612546
+      type: {class: PlayerHomeLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        population: 10
+    - rid: 5711026424309612547
+      type: {class: BuildingInventoryLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        providedSlots: 5
+    - rid: 5711026424309612548
+      type: {class: BuildingTechnologyPointLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        pointsPerTurn: 1
+    - rid: 5711026424309612549
+      type: {class: PlayerHomeLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        population: 10
+    - rid: 5711026424309612550
+      type: {class: BuildingInventoryLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        providedSlots: 5
+    - rid: 5711026424309612551
+      type: {class: BuildingTechnologyPointLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        pointsPerTurn: 1
+    - rid: 5711026424309612552
+      type: {class: PlayerHomeLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        population: 10
+    - rid: 5711026424309612553
+      type: {class: BuildingInventoryLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        providedSlots: 5
+    - rid: 5711026424309612554
+      type: {class: BuildingTechnologyPointLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        pointsPerTurn: 1
+    - rid: 5711026424309612555
+      type: {class: PlayerHomeLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        population: 10
+    - rid: 5711026424309612556
+      type: {class: BuildingInventoryLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        providedSlots: 5
+    - rid: 5711026424309612557
+      type: {class: BuildingTechnologyPointLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        pointsPerTurn: 1
+    - rid: 5711026424601640960
+      type: {class: GameCondition_False, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
+      data: 

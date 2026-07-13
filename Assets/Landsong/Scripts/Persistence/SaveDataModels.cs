@@ -490,7 +490,9 @@ public class GameSoftData
 [Serializable]
 public class BuildingSoftReferenceSaveData
 {
-    public string BuildingId = string.Empty;
+    public string FamilyId = string.Empty;
+
+    public string InstanceId = string.Empty;
 
     public bool HasOrigin;
 
@@ -498,7 +500,7 @@ public class BuildingSoftReferenceSaveData
 
     public int OriginY;
 
-    public bool IsEmpty => string.IsNullOrWhiteSpace(BuildingId);
+    public bool IsEmpty => string.IsNullOrWhiteSpace(FamilyId) || string.IsNullOrWhiteSpace(InstanceId);
 
     public GridPosition Origin => new GridPosition(OriginX, OriginY);
 
@@ -511,7 +513,8 @@ public class BuildingSoftReferenceSaveData
 
         var saveData = new BuildingSoftReferenceSaveData
         {
-            BuildingId = building.Definition.BuildingId,
+            FamilyId = building.FamilyId,
+            InstanceId = building.InstanceId,
             HasOrigin = building.HasPlacement,
             OriginX = building.HasPlacement ? building.Origin.X : 0,
             OriginY = building.HasPlacement ? building.Origin.Y : 0
@@ -527,7 +530,8 @@ public class BuildingSoftReferenceSaveData
             return false;
         }
 
-        if (!string.Equals(BuildingId, building.Definition.BuildingId, StringComparison.Ordinal))
+        if (!string.Equals(InstanceId, building.InstanceId, StringComparison.Ordinal)
+            || !string.Equals(FamilyId, building.FamilyId, StringComparison.Ordinal))
         {
             return false;
         }
@@ -538,9 +542,12 @@ public class BuildingSoftReferenceSaveData
 
     public void Validate()
     {
-        BuildingId = string.IsNullOrWhiteSpace(BuildingId) ? string.Empty : BuildingId.Trim();
-        if (string.IsNullOrEmpty(BuildingId))
+        FamilyId = string.IsNullOrWhiteSpace(FamilyId) ? string.Empty : FamilyId.Trim();
+        InstanceId = string.IsNullOrWhiteSpace(InstanceId) ? string.Empty : InstanceId.Trim();
+        if (string.IsNullOrEmpty(FamilyId) || string.IsNullOrEmpty(InstanceId))
         {
+            FamilyId = string.Empty;
+            InstanceId = string.Empty;
             HasOrigin = false;
             OriginX = 0;
             OriginY = 0;
@@ -551,17 +558,28 @@ public class BuildingSoftReferenceSaveData
 [Serializable]
 public class BuildingInstanceSaveData
 {
-    public string BuildingId = string.Empty;
+    public string FamilyId = string.Empty;
+
+    public string InstanceId = string.Empty;
+
+    public BuildingLifecycleStage Stage = BuildingLifecycleStage.Construction;
+
+    public int Level = 1;
+
+    public string StyleId = string.Empty;
+
+    public int ConstructionProgress;
 
     public int OriginX;
 
     public int OriginY;
 
-    public string BuildingStateTypeId = string.Empty;
+    public string FamilyStateTypeId = string.Empty;
 
-    public string BuildingStateJson = string.Empty;
+    public string FamilyStateJson = string.Empty;
 
-    public bool IsValid => !string.IsNullOrWhiteSpace(BuildingId);
+    public bool IsValid => !string.IsNullOrWhiteSpace(FamilyId)
+                           && !string.IsNullOrWhiteSpace(InstanceId);
 
     public GridPosition Origin => new GridPosition(OriginX, OriginY);
 
@@ -574,19 +592,28 @@ public class BuildingInstanceSaveData
 
         return new BuildingInstanceSaveData
         {
-            BuildingId = building.Definition.BuildingId,
+            FamilyId = building.FamilyId,
+            InstanceId = building.InstanceId,
+            Stage = building.Stage,
+            Level = building.CurrentLevel,
+            StyleId = building.StyleId,
+            ConstructionProgress = building.ConstructionProgress,
             OriginX = building.Origin.X,
             OriginY = building.Origin.Y,
-            BuildingStateTypeId = string.Empty,
-            BuildingStateJson = string.Empty
+            FamilyStateTypeId = string.Empty,
+            FamilyStateJson = string.Empty
         };
     }
 
     public void Validate()
     {
-        BuildingId = string.IsNullOrWhiteSpace(BuildingId) ? string.Empty : BuildingId.Trim();
-        BuildingStateTypeId = string.IsNullOrWhiteSpace(BuildingStateTypeId) ? string.Empty : BuildingStateTypeId.Trim();
-        BuildingStateJson ??= string.Empty;
+        FamilyId = string.IsNullOrWhiteSpace(FamilyId) ? string.Empty : FamilyId.Trim();
+        InstanceId = string.IsNullOrWhiteSpace(InstanceId) ? string.Empty : InstanceId.Trim();
+        Level = Mathf.Max(1, Level);
+        StyleId = string.IsNullOrWhiteSpace(StyleId) ? string.Empty : StyleId.Trim();
+        ConstructionProgress = Mathf.Max(0, ConstructionProgress);
+        FamilyStateTypeId = string.IsNullOrWhiteSpace(FamilyStateTypeId) ? string.Empty : FamilyStateTypeId.Trim();
+        FamilyStateJson ??= string.Empty;
     }
 }
 

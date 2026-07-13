@@ -40,8 +40,9 @@ namespace Landsong.UISystem
         [SerializeField] private Image icon;
 
         private BuildingBase buildingPrefab;
+        private string styleId = string.Empty;
         private BuildingAvailability availability;
-        private Action<BuildingBase> clicked;
+        private Action<BuildingBase, string> clicked;
         private readonly List<TMP_Text> materialTextInstances = new List<TMP_Text>();
         private Coroutine longPressRoutine;
         private bool pointerPressed;
@@ -94,7 +95,8 @@ namespace Landsong.UISystem
         public void Bind(
             BuildingBase sourceBuildingPrefab,
             BuildingAvailability buildingAvailability,
-            Action<BuildingBase> onClicked)
+            BuildingStyleDefinition style,
+            Action<BuildingBase, string> onClicked)
         {
             if (button != null)
             {
@@ -108,14 +110,15 @@ namespace Landsong.UISystem
             CancelLongPress();
 
             buildingPrefab = sourceBuildingPrefab;
+            styleId = style == null ? string.Empty : style.StyleId;
             availability = buildingAvailability;
             clicked = onClicked;
             var definition = buildingPrefab == null ? null : buildingPrefab.Definition;
 
             if (icon != null)
             {
-                icon.sprite = definition == null ? null : definition.Icon;
-                icon.enabled = definition != null && definition.Icon != null;
+                icon.sprite = style?.Icon != null ? style.Icon : definition?.Icon;
+                icon.enabled = icon.sprite != null;
             }
 
             if (button != null)
@@ -137,6 +140,7 @@ namespace Landsong.UISystem
             CancelLongPress();
 
             buildingPrefab = null;
+            styleId = string.Empty;
             availability = BuildingAvailability.Hidden(null, BuildingUnavailableReason.Hidden);
             clicked = null;
 
@@ -268,7 +272,7 @@ namespace Landsong.UISystem
                 return;
             }
 
-            clicked?.Invoke(buildingPrefab);
+            clicked?.Invoke(buildingPrefab, styleId);
         }
 
         private void ShowCostPanel()
@@ -313,11 +317,7 @@ namespace Landsong.UISystem
                 "放置消耗",
                 definition == null ? null : definition.PlacementCosts);
 
-            IReadOnlyList<BuildingCost> constructionCosts = null;
-            if (buildingPrefab.TryGetModule<BM_施工材料消耗>(out var constructionCostModule))
-            {
-                constructionCosts = constructionCostModule.GetTotalConstructionCosts();
-            }
+            var constructionCosts = buildingPrefab.FamilyDefinition?.Construction?.GetTotalCosts();
 
             createdCount += CreateCostSection("施工消耗", constructionCosts);
             return createdCount;

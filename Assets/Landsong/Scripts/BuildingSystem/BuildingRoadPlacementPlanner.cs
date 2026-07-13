@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Landsong.BuildingSystem.Buildings;
 using Landsong.GridSystem;
 using UnityEngine;
 
@@ -145,7 +144,7 @@ namespace Landsong.BuildingSystem
             GridMapBehaviour gridMap,
             IReadOnlyList<BuildingBase> buildings,
             GridPosition position,
-            out RoadBuilding road)
+            out BuildingBase road)
         {
             road = null;
             if (gridMap == null
@@ -158,7 +157,8 @@ namespace Landsong.BuildingSystem
 
             for (var i = 0; i < buildings.Count; i++)
             {
-                if (buildings[i] is not RoadBuilding candidate
+                var candidate = buildings[i];
+                if (!IsRoad(candidate)
                     || !candidate.HasPlacement
                     || candidate.GridMap != gridMap
                     || candidate.IsDemolishing
@@ -172,6 +172,12 @@ namespace Landsong.BuildingSystem
             }
 
             return false;
+        }
+
+        private static bool IsRoad(BuildingBase building)
+        {
+            return building?.Definition != null
+                   && (building.Definition.Category & BuildingCategory.道路) != 0;
         }
 
         private static void BuildSingleTurnRoadPath(

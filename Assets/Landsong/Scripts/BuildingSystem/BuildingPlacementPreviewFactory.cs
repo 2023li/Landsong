@@ -4,7 +4,12 @@ namespace Landsong.BuildingSystem
 {
     public static class BuildingPlacementPreviewFactory
     {
-        public static GameObject Create(BuildingBase buildingPrefab, Transform parent, string ghostName, out BuildingView view)
+        public static GameObject Create(
+            BuildingBase buildingPrefab,
+            Transform parent,
+            string ghostName,
+            string styleId,
+            out BuildingView view)
         {
             view = null;
             if (buildingPrefab == null)
@@ -18,6 +23,15 @@ namespace Landsong.BuildingSystem
             instance.SetActive(false);
 
             var ghostBuilding = instance.GetComponentInChildren<BuildingBase>(true);
+            if (ghostBuilding != null)
+            {
+                ghostBuilding.RestoreRuntimeIdentity(
+                    ghostBuilding.InstanceId,
+                    BuildingLifecycleStage.Operational,
+                    1,
+                    styleId,
+                    0);
+            }
             DisablePreviewBuildingRuntime(instance);
             view = ghostBuilding == null ? instance.GetComponentInChildren<BuildingView>(true) : ghostBuilding.View;
             if (view == null)

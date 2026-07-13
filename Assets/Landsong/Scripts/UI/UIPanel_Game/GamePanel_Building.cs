@@ -69,6 +69,7 @@ namespace Landsong.UISystem
         private readonly List<GamePanel_BuildingItem> buildingItemPool = new List<GamePanel_BuildingItem>();
         private BuildingCategory selectedCategory = BuildingCategory.None;
         private BuildingBase selectedBuildingPrefab;
+        private string selectedBuildingStyleId = string.Empty;
         private BuildingPlacementController subscribedPlacementController;
         private bool subscribedToInventory;
         private bool subscribedToBuildings;
@@ -488,7 +489,8 @@ namespace Landsong.UISystem
                 return;
             }
 
-            BuildingBase firstVisibleBuildingPrefab = null;
+            var firstVisibleEntry = default(BuildingDisplayEntry);
+            var hasFirstVisibleEntry = false;
             var selectedStillVisible = false;
             var visibleEntries = new List<BuildingDisplayEntry>();
             var buildingPrefabs = buildingCatalog.BuildingPrefabs;
@@ -513,7 +515,24 @@ namespace Landsong.UISystem
                     continue;
                 }
 
-                visibleEntries.Add(new BuildingDisplayEntry(buildingPrefab, prefabIndex));
+                var styles = buildingPrefab.FamilyDefinition?.Presentation?.Styles;
+                if (styles == null || styles.Count == 0)
+                {
+                    visibleEntries.Add(new BuildingDisplayEntry(buildingPrefab, prefabIndex, null));
+                }
+                else
+                {
+                    for (var styleIndex = 0; styleIndex < styles.Count; styleIndex++)
+                    {
+                        if (styles[styleIndex] != null && styles[styleIndex].IsValid)
+                        {
+                            visibleEntries.Add(new BuildingDisplayEntry(
+                                buildingPrefab,
+                                prefabIndex,
+                                styles[styleIndex]));
+                        }
+                    }
+                }
             }
 
             visibleEntries.Sort(CompareBuildingDisplayEntries);
@@ -521,13 +540,23 @@ namespace Landsong.UISystem
             for (var i = 0; i < visibleEntries.Count; i++)
             {
                 var buildingPrefab = visibleEntries[i].BuildingPrefab;
+                var style = visibleEntries[i].Style;
                 var availability = Evaluate(buildingPrefab);
                 var item = GetBuildingItemFromPool();
-                item.Bind(buildingPrefab, availability, HandleBuildingItemClicked);
+                item.Bind(buildingPrefab, availability, style, HandleBuildingItemClicked);
                 buildingItems.Add(item);
 
-                firstVisibleBuildingPrefab ??= buildingPrefab;
-                if (selectedBuildingPrefab == buildingPrefab)
+                if (!hasFirstVisibleEntry)
+                {
+                    firstVisibleEntry = visibleEntries[i];
+                    hasFirstVisibleEntry = true;
+                }
+
+                if (selectedBuildingPrefab == buildingPrefab
+                    && string.Equals(
+                        selectedBuildingStyleId,
+                        style == null ? string.Empty : style.StyleId,
+                        StringComparison.Ordinal))
                 {
                     selectedStillVisible = true;
                 }
@@ -535,11 +564,13 @@ namespace Landsong.UISystem
 
             if (!selectedStillVisible && selectFirstBuildingOnRefresh)
             {
-                SetSelectedBuilding(firstVisibleBuildingPrefab);
+                SetSelectedBuilding(
+                    hasFirstVisibleEntry ? firstVisibleEntry.BuildingPrefab : null,
+                    hasFirstVisibleEntry ? firstVisibleEntry.Style : null);
             }
             else if (!selectedStillVisible)
             {
-                SetSelectedBuilding(null);
+                SetSelectedBuilding(null, null);
             }
         }
 
@@ -567,7 +598,11 @@ namespace Landsong.UISystem
         private static int CompareBuildingDisplayEntries(BuildingDisplayEntry left, BuildingDisplayEntry right)
         {
             var result = CompareBuildingPrefabsForDisplay(left.BuildingPrefab, right.BuildingPrefab);
-            return result != 0 ? result : left.CatalogIndex.CompareTo(right.CatalogIndex);
+            if (result != 0) return result;
+            result = left.CatalogIndex.CompareTo(right.CatalogIndex);
+            return result != 0
+                ? result
+                : CompareStableText(left.Style?.StyleId, right.Style?.StyleId);
         }
 
         private static int CompareBuildingPrefabsForDisplay(BuildingBase left, BuildingBase right)
@@ -596,7 +631,7 @@ namespace Landsong.UISystem
                 return result;
             }
 
-            result = CompareStableText(leftDefinition.BuildingId, rightDefinition.BuildingId);
+            result = CompareStableText(leftDefinition.FamilyId, rightDefinition.FamilyId);
             if (result != 0)
             {
                 return result;
@@ -620,14 +655,19 @@ namespace Landsong.UISystem
 
         private readonly struct BuildingDisplayEntry
         {
-            public BuildingDisplayEntry(BuildingBase buildingPrefab, int catalogIndex)
+            public BuildingDisplayEntry(
+                BuildingBase buildingPrefab,
+                int catalogIndex,
+                BuildingStyleDefinition style)
             {
                 BuildingPrefab = buildingPrefab;
                 CatalogIndex = catalogIndex;
+                Style = style;
             }
 
             public BuildingBase BuildingPrefab { get; }
             public int CatalogIndex { get; }
+            public BuildingStyleDefinition Style { get; }
         }
 
         private void ReleaseActiveBuildingItems()
@@ -677,9 +717,10 @@ namespace Landsong.UISystem
             return value != 0 && (value & (value - 1)) == 0;
         }
 
-        private void HandleBuildingItemClicked(BuildingBase buildingPrefab)
+        private void HandleBuildingItemClicked(BuildingBase buildingPrefab, string styleId)
         {
-            SetSelectedBuilding(buildingPrefab);
+            var style = FindStyle(buildingPrefab, styleId);
+            SetSelectedBuilding(buildingPrefab, style);
 
             var availability = Evaluate(buildingPrefab);
             if (!availability.CanBuild)
@@ -690,7 +731,7 @@ namespace Landsong.UISystem
             if (placementController != null)
             {
                 DisableDemolitionMode();
-                placementController.BeginPlacement(buildingPrefab);
+                placementController.BeginPlacement(buildingPrefab, styleId);
             }
 
             buildingSelected.Invoke(buildingPrefab);
@@ -745,7 +786,15 @@ namespace Landsong.UISystem
 
         private void SetSelectedBuilding(BuildingBase buildingPrefab)
         {
+            SetSelectedBuilding(buildingPrefab, null);
+        }
+
+        private void SetSelectedBuilding(
+            BuildingBase buildingPrefab,
+            BuildingStyleDefinition style)
+        {
             selectedBuildingPrefab = buildingPrefab;
+            selectedBuildingStyleId = style == null ? string.Empty : style.StyleId;
             RefreshInfoPanel();
         }
 
@@ -768,13 +817,34 @@ namespace Landsong.UISystem
 
             var selectedDefinition = selectedBuildingPrefab.Definition;
             var availability = Evaluate(selectedBuildingPrefab);
-            SetInfoIcon(selectedDefinition.Icon);
-            SetInfoText(infoNameLabel, selectedDefinition.DisplayName);
+            var selectedStyle = FindStyle(selectedBuildingPrefab, selectedBuildingStyleId);
+            SetInfoIcon(selectedStyle?.Icon != null ? selectedStyle.Icon : selectedDefinition.Icon);
+            SetInfoText(
+                infoNameLabel,
+                selectedStyle == null
+                    ? selectedDefinition.DisplayName
+                    : $"{selectedDefinition.DisplayName} · {selectedStyle.DisplayName}");
             SetInfoText(infoStatusLabel, GetStatusText(availability));
             SetInfoText(infoCostLabel, FormatCosts(selectedDefinition.PlacementCosts));
             SetInfoText(infoCountLimitLabel, selectedDefinition.HasBuildCountLimit
                 ? $"{availability.BuiltCount}/{selectedDefinition.MaxBuildCount}"
                 : "无限制");
+        }
+
+        private static BuildingStyleDefinition FindStyle(BuildingBase prefab, string styleId)
+        {
+            var styles = prefab?.FamilyDefinition?.Presentation?.Styles;
+            if (styles == null || string.IsNullOrWhiteSpace(styleId)) return null;
+            for (var i = 0; i < styles.Count; i++)
+            {
+                if (styles[i] != null
+                    && string.Equals(styles[i].StyleId, styleId, StringComparison.Ordinal))
+                {
+                    return styles[i];
+                }
+            }
+
+            return null;
         }
 
         private void SetInfoIcon(Sprite sprite)

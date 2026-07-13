@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68f39362795b4135b43f8539369e6f33, type: 3}
+  m_Name: TreeModules
+  m_EditorClassIdentifier: Assembly-CSharp:Landsong.BuildingSystem:BuildingModuleSetDefinition
+  buildingModules:
+  - rid: 5711026424309612585
+  references:
+    version: 2
+    RefIds:
+    - rid: 5711026424309612585
+      type: {class: "BM_\u6811\u6728\u91C7\u96C6", ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        enabled: 1
+        minHealth: 3
+        maxHealth: 6
+        damagePerDoubleClick: 1
+        woodItemDefinition: {fileID: 11400000, guid: 6293531210d744e8b03f1b99017467c3, type: 2}
+        woodRewardAmount: 2
+        saplingItemDefinition: {fileID: 11400000, guid: dd8a28cea30e0b64c89b0b4be4e74ce0, type: 2}
+        saplingRewardAmount: 3
+        currentHealth: 0

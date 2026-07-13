@@ -48,7 +48,7 @@ namespace Landsong.BuildingSystem
         {
             return definition != null
                    && gameSystem != null
-                   && gameSystem.Services.BuildingBlueprints.IsUnlocked(definition.BuildingId);
+                   && gameSystem.Services.BuildingBlueprints.IsUnlocked(definition.FamilyId);
         }
 
         private static bool CanAffordPlacementCosts(BuildingDefinition definition, InventoryService inventory)

@@ -6,12 +6,8 @@ using UnityEngine;
 
 namespace Landsong.BuildingSystem
 {
-    public interface IBuildingAutomaticTurnModule
-    {
-        bool ProcessAutomaticTurn(BuildingBase building);
-    }
-
     [Serializable]
+    [BuildingModuleId("processing")]
     public sealed class BM_资源加工 : BuildingModuleBase,
         IBuildingAutomaticTurnModule,
         IBuildingConnectionConsumerModule,

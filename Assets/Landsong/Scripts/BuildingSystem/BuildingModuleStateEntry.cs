@@ -5,15 +5,14 @@ namespace Landsong.BuildingSystem
     [Serializable]
     public sealed class BuildingModuleStateEntry
     {
-        public int ModuleIndex;
-        public string ModuleTypeId;
+        public string ModuleId;
         public string Json;
 
-        public bool IsValid => !string.IsNullOrWhiteSpace(ModuleTypeId);
+        public bool IsValid => !string.IsNullOrWhiteSpace(ModuleId);
 
         public void Normalize()
         {
-            ModuleTypeId = string.IsNullOrWhiteSpace(ModuleTypeId) ? string.Empty : ModuleTypeId.Trim();
+            ModuleId = string.IsNullOrWhiteSpace(ModuleId) ? string.Empty : ModuleId.Trim();
             Json ??= string.Empty;
         }
     }

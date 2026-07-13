@@ -53,7 +53,7 @@ namespace Landsong.CameraSystem
         [SerializeField, LabelText("缩放适配边界")] private bool limitZoomToBounds = true;
 
         [Header("定位")]
-        [SerializeField, LabelText("默认定位建筑 ID")] private string defaultFocusBuildingId = "PlayerHomeLV1";
+        [SerializeField, LabelText("默认定位建筑家族 ID")] private string defaultFocusBuildingId = "building.player_home";
         [SerializeField, LabelText("平滑定位")] private bool smoothFocus = true;
         [SerializeField, LabelText("定位速度"), Min(0.01f)] private float focusLerpSpeed = 8f;
         [SerializeField, LabelText("手动输入取消定位")] private bool cancelFocusOnManualInput = true;

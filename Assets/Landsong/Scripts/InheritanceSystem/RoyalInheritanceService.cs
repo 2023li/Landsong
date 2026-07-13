@@ -1374,7 +1374,7 @@ namespace Landsong.InheritanceSystem
                 return new RoyalEffectApplicationResult(character, effect, false, 0, string.Empty);
             }
 
-            var unlocked = context.Services.BuildingBlueprints.Unlock(building.Definition.BuildingId);
+            var unlocked = context.Services.BuildingBlueprints.Unlock(building.FamilyId);
             var message = unlocked
                 ? $"{character.DisplayName}：解锁蓝图 {building.Definition.DisplayName}"
                 : $"{character.DisplayName}：蓝图已解锁 {building.Definition.DisplayName}";

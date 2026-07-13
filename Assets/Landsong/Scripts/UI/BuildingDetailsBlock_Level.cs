@@ -5,248 +5,147 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// 建筑等级面板。升级由 BuildingUpgradeService 原地应用等级配置，不再使用经验或替换 Prefab。
+/// </summary>
 public sealed class BuildingDetailsBlock_Level : BuildingDetailsBlockBase
 {
-    [SerializeField, LabelText("自动升级开关")] private Toggle tgl_自动升级;
-    [SerializeField, LabelText("经验进度条")] private Slider sld_经验进度;
-    [SerializeField, LabelText("经验文本")] private TMP_Text txt_经验;
+    [SerializeField, LabelText("旧自动升级开关（终态禁用）")] private Toggle tgl_自动升级;
+    [SerializeField, LabelText("等级进度条")] private Slider sld_经验进度;
+    [SerializeField, LabelText("等级文本")] private TMP_Text txt_经验;
     [SerializeField, LabelText("升级按钮")] private Button btn_升级;
-    [SerializeField, LabelText("升级消耗文本")] private TMP_Text txt_升级消耗;
+    [SerializeField, LabelText("升级消耗/条件文本")] private TMP_Text txt_升级消耗;
 
     private BuildingBase building;
-    private BM_等级升级 levelModule;
-    private bool suppressCallback;
     private bool listenersBound;
 
     public override bool CanShow(BuildingBase targetBuilding)
     {
-        return targetBuilding != null
-               && targetBuilding.TryGetModule<BM_等级升级>(out _);
+        return targetBuilding?.FamilyDefinition != null
+               && targetBuilding.FamilyDefinition.Levels.Count > 1;
     }
 
     public override void Initialize(Popup_BuildingDetails detailOwner)
     {
         ResolveFields();
         BindListeners();
+        if (tgl_自动升级 != null)
+        {
+            tgl_自动升级.gameObject.SetActive(false);
+        }
     }
 
     public override void Bind(BuildingBase targetBuilding)
     {
         building = targetBuilding;
-        if (building == null || !building.TryGetModule(out levelModule))
-        {
-            Unbind();
-            return;
-        }
-
-        SetBlockVisible(true);
+        SetBlockVisible(CanShow(building));
         Refresh();
     }
 
     public override void Refresh()
     {
-        if (levelModule == null)
+        if (!CanShow(building))
         {
             SetBlockVisible(false);
             return;
         }
 
-        suppressCallback = true;
-        if (tgl_自动升级 != null)
-        {
-            tgl_自动升级.isOn = levelModule.AutoUpgradeEnabled;
-        }
+        var service = building.GameSystem?.Services.Buildings?.Upgrades;
+        var evaluation = service == null
+            ? new BuildingUpgradeResult(false, BuildingUpgradeFailure.MissingBuilding, 0, "升级服务未初始化。")
+            : service.Evaluate(building);
+        var maxLevel = building.FamilyDefinition.Levels.Count;
+        var targetLevel = building.CurrentLevel + 1;
 
         if (sld_经验进度 != null)
         {
-            sld_经验进度.minValue = 0f;
-            sld_经验进度.maxValue = 1f;
-            sld_经验进度.value = levelModule.ExperienceProgress;
+            sld_经验进度.minValue = 1f;
+            sld_经验进度.maxValue = Mathf.Max(1, maxLevel);
+            sld_经验进度.value = building.CurrentLevel;
             sld_经验进度.interactable = false;
         }
 
-        suppressCallback = false;
+        SetText(txt_经验, $"LV{building.CurrentLevel} / LV{maxLevel}");
+        if (building.FamilyDefinition.TryGetLevel(targetLevel, out var target))
+        {
+            var costs = FormatUpgradeCosts(target.UpgradeCosts);
+            SetText(
+                txt_升级消耗,
+                evaluation.Succeeded ? costs : $"{costs}\n{evaluation.Message}");
+        }
+        else
+        {
+            SetText(txt_升级消耗, evaluation.Message);
+        }
 
-        SetText(txt_经验, $"{levelModule.CurrentExperience}/{levelModule.RequiredExperience}");
-        SetText(txt_升级消耗, FormatUpgradeCosts(levelModule.UpgradeCosts));
         if (btn_升级 != null)
         {
-            btn_升级.interactable = levelModule.CanUpgrade(building);
+            btn_升级.interactable = evaluation.Succeeded;
         }
     }
 
     public override void Unbind()
     {
         building = null;
-        levelModule = null;
-        suppressCallback = false;
-        if (tgl_自动升级 != null)
-        {
-            tgl_自动升级.isOn = false;
-        }
-
-        if (sld_经验进度 != null)
-        {
-            sld_经验进度.value = 0f;
-        }
-
         SetText(txt_经验, string.Empty);
         SetText(txt_升级消耗, string.Empty);
-        if (btn_升级 != null)
-        {
-            btn_升级.interactable = false;
-        }
-
+        if (btn_升级 != null) btn_升级.interactable = false;
+        if (sld_经验进度 != null) sld_经验进度.value = 1f;
         SetBlockVisible(false);
     }
 
-    private void OnDestroy()
-    {
-        UnbindListeners();
-    }
+    private void OnDestroy() => UnbindListeners();
 
     private void BindListeners()
     {
-        if (listenersBound)
-        {
-            return;
-        }
-
-        if (tgl_自动升级 != null)
-        {
-            tgl_自动升级.onValueChanged.AddListener(HandleAutoUpgradeChanged);
-        }
-
-        if (btn_升级 != null)
-        {
-            btn_升级.onClick.AddListener(HandleUpgradeClicked);
-        }
-
+        if (listenersBound) return;
+        if (btn_升级 != null) btn_升级.onClick.AddListener(HandleUpgradeClicked);
         listenersBound = true;
     }
 
     private void UnbindListeners()
     {
-        if (!listenersBound)
-        {
-            return;
-        }
-
-        if (tgl_自动升级 != null)
-        {
-            tgl_自动升级.onValueChanged.RemoveListener(HandleAutoUpgradeChanged);
-        }
-
-        if (btn_升级 != null)
-        {
-            btn_升级.onClick.RemoveListener(HandleUpgradeClicked);
-        }
-
+        if (!listenersBound) return;
+        if (btn_升级 != null) btn_升级.onClick.RemoveListener(HandleUpgradeClicked);
         listenersBound = false;
-    }
-
-    private void HandleAutoUpgradeChanged(bool enabled)
-    {
-        if (suppressCallback || levelModule == null)
-        {
-            return;
-        }
-
-        levelModule.SetAutoUpgradeEnabled(enabled);
     }
 
     private void HandleUpgradeClicked()
     {
-        if (building == null || levelModule == null)
-        {
-            return;
-        }
-
-        if (!levelModule.TryUpgrade(building))
-        {
-            Refresh();
-        }
+        building?.GameSystem?.Services.Buildings?.Upgrades.TryUpgrade(building);
+        Refresh();
     }
 
     private void ResolveFields()
     {
-        if (tgl_自动升级 == null)
-        {
-            tgl_自动升级 = GetComponentInChildren<Toggle>(true);
-        }
-
-        if (sld_经验进度 == null)
-        {
-            sld_经验进度 = GetComponentInChildren<Slider>(true);
-        }
-
-        if (btn_升级 == null)
-        {
-            btn_升级 = GetComponentInChildren<Button>(true);
-        }
-
-        ResolveTextFields();
-    }
-
-    private void ResolveTextFields()
-    {
-        if (txt_经验 != null)
-        {
-            if (txt_升级消耗 != null)
-            {
-                return;
-            }
-        }
+        tgl_自动升级 ??= GetComponentInChildren<Toggle>(true);
+        sld_经验进度 ??= GetComponentInChildren<Slider>(true);
+        btn_升级 ??= GetComponentInChildren<Button>(true);
 
         var texts = GetComponentsInChildren<TMP_Text>(true);
         for (var i = 0; i < texts.Length; i++)
         {
             var text = texts[i];
-            if (text != null && text.name.Contains("经验"))
-            {
-                txt_经验 = text;
-                continue;
-            }
-
-            if (text != null && text.name.Contains("消耗"))
-            {
-                txt_升级消耗 = text;
-            }
+            if (txt_经验 == null && text.name.Contains("经验")) txt_经验 = text;
+            else if (txt_升级消耗 == null && text.name.Contains("消耗")) txt_升级消耗 = text;
         }
 
-        if (txt_经验 == null && texts.Length > 0)
-        {
-            txt_经验 = texts[0];
-        }
-
-        if (txt_升级消耗 == null && texts.Length > 1)
-        {
-            txt_升级消耗 = texts[1];
-        }
+        if (txt_经验 == null && texts.Length > 0) txt_经验 = texts[0];
+        if (txt_升级消耗 == null && texts.Length > 1) txt_升级消耗 = texts[1];
     }
 
     private static string FormatUpgradeCosts(IReadOnlyList<BuildingCost> costs)
     {
-        if (costs == null || costs.Count == 0)
-        {
-            return "升级消耗：无";
-        }
-
         var content = string.Empty;
-        for (var i = 0; i < costs.Count; i++)
+        if (costs != null)
         {
-            var cost = costs[i];
-            if (!cost.IsValid)
+            for (var i = 0; i < costs.Count; i++)
             {
-                continue;
+                var cost = costs[i];
+                if (!cost.IsValid) continue;
+                if (content.Length > 0) content += "、";
+                content += $"{cost.ItemId}x{cost.Amount}";
             }
-
-            if (content.Length > 0)
-            {
-                content += "、";
-            }
-
-            content += $"{cost.ItemId}x{cost.Amount}";
         }
 
         return content.Length == 0 ? "升级消耗：无" : $"升级消耗：{content}";
@@ -254,22 +153,11 @@ public sealed class BuildingDetailsBlock_Level : BuildingDetailsBlockBase
 
     private void SetBlockVisible(bool visible)
     {
-        SetActive(gameObject, visible);
+        if (gameObject.activeSelf != visible) gameObject.SetActive(visible);
     }
 
     private static void SetText(TMP_Text target, string text)
     {
-        if (target != null)
-        {
-            target.text = text ?? string.Empty;
-        }
-    }
-
-    private static void SetActive(GameObject target, bool active)
-    {
-        if (target != null && target.activeSelf != active)
-        {
-            target.SetActive(active);
-        }
+        if (target != null) target.text = text ?? string.Empty;
     }
 }

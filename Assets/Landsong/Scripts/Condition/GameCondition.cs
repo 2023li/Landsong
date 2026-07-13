@@ -64,7 +64,7 @@ namespace Landsong.ConditionSystem
             return context != null
                    && BuildingPrefab != null
                    && BuildingPrefab.HasDefinition
-                   && context.Services.BuildingBlueprints.IsUnlocked(BuildingPrefab.Definition.BuildingId);
+                   && context.Services.BuildingBlueprints.IsUnlocked(BuildingPrefab.FamilyId);
         }
     }
 

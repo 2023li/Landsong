@@ -246,8 +246,8 @@ namespace Landsong.Persistence
                 return;
             }
 
-            saveData.BuildingStateTypeId = typeId;
-            saveData.BuildingStateJson = JsonUtility.ToJson(data);
+            saveData.FamilyStateTypeId = typeId;
+            saveData.FamilyStateJson = JsonUtility.ToJson(data);
         }
 
         private static void RestoreBuildingInstances(GameData gameData, GameSystem gameSystem)
@@ -312,14 +312,14 @@ namespace Landsong.Persistence
             var gridMap = UnityEngine.Object.FindFirstObjectByType<GridMapBehaviour>(FindObjectsInactive.Include);
             if (gridMap == null)
             {
-                Debug.LogWarning($"恢复建筑失败：场景中没有 GridMapBehaviour。BuildingId = {saveData.BuildingId}");
+                Debug.LogWarning($"恢复建筑失败：场景中没有 GridMapBehaviour。FamilyId = {saveData.FamilyId}");
                 return false;
             }
 
             var catalog = gameSystem.Services.BuildingCatalog == null ? BuildingCatalog.Instance : gameSystem.Services.BuildingCatalog;
-            if (catalog == null || !catalog.TryGetBuildingPrefab(saveData.BuildingId, out var buildingPrefab))
+            if (catalog == null || !catalog.TryGetBuildingPrefab(saveData.FamilyId, out var buildingPrefab))
             {
-                Debug.LogWarning($"恢复建筑失败：建筑目录中找不到 BuildingId = {saveData.BuildingId}");
+                Debug.LogWarning($"恢复建筑失败：建筑目录中找不到 FamilyId = {saveData.FamilyId}");
                 return false;
             }
 
@@ -331,9 +331,16 @@ namespace Landsong.Persistence
                     parent,
                     out var building))
             {
-                Debug.LogWarning($"恢复建筑失败：无法放置 BuildingId = {saveData.BuildingId}, Origin = {saveData.Origin}");
+                Debug.LogWarning($"恢复建筑失败：无法放置 FamilyId = {saveData.FamilyId}, Origin = {saveData.Origin}");
                 return false;
             }
+
+            building.RestoreRuntimeIdentity(
+                saveData.InstanceId,
+                saveData.Stage,
+                saveData.Level,
+                saveData.StyleId,
+                saveData.ConstructionProgress);
 
             var buildingData = RestoreBuildingData(saveData);
             if (buildingData != null)
@@ -362,26 +369,26 @@ namespace Landsong.Persistence
         private static BuildingDataBase RestoreBuildingData(BuildingInstanceSaveData saveData)
         {
             if (saveData == null
-                || string.IsNullOrWhiteSpace(saveData.BuildingStateTypeId)
-                || string.IsNullOrWhiteSpace(saveData.BuildingStateJson))
+                || string.IsNullOrWhiteSpace(saveData.FamilyStateTypeId)
+                || string.IsNullOrWhiteSpace(saveData.FamilyStateJson))
             {
                 return null;
             }
 
-            if (!BuildingSaveDataRegistry.TryCreate(saveData.BuildingStateTypeId, out var data))
+            if (!BuildingSaveDataRegistry.TryCreate(saveData.FamilyStateTypeId, out var data))
             {
-                Debug.LogWarning($"恢复建筑数据失败：找不到数据类型 ID {saveData.BuildingStateTypeId}");
+                Debug.LogWarning($"恢复建筑数据失败：找不到数据类型 ID {saveData.FamilyStateTypeId}");
                 return null;
             }
 
             try
             {
-                JsonUtility.FromJsonOverwrite(saveData.BuildingStateJson, data);
+                JsonUtility.FromJsonOverwrite(saveData.FamilyStateJson, data);
                 return data;
             }
             catch (Exception exception)
             {
-                Debug.LogWarning($"恢复建筑数据失败：{saveData.BuildingId}\n{exception.Message}");
+                Debug.LogWarning($"恢复建筑数据失败：{saveData.FamilyId}\n{exception.Message}");
                 return null;
             }
         }

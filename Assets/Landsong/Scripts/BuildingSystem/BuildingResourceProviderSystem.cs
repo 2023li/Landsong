@@ -174,7 +174,7 @@ namespace Landsong.BuildingSystem
         {
             if (selection.IsValid
                 && resource.IsValid
-                && selection.Provider is IBuildingResourceProvisionAccounting accounting)
+                && selection.Provider.TryGetCapability<IBuildingResourceProvisionAccounting>(out var accounting))
             {
                 accounting.RecordProvidedResource(consumer, resource);
             }
@@ -201,7 +201,8 @@ namespace Landsong.BuildingSystem
 
             for (var i = 0; i < buildings.Count; i++)
             {
-                if (buildings[i] is IBuildingResourceProvisionAccounting provider)
+                if (buildings[i] != null
+                    && buildings[i].TryGetCapability<IBuildingResourceProvisionAccounting>(out var provider))
                 {
                     action(provider);
                 }
@@ -271,8 +272,8 @@ namespace Landsong.BuildingSystem
             }
 
             comparison = string.Compare(
-                left.Definition == null ? string.Empty : left.Definition.BuildingId,
-                right.Definition == null ? string.Empty : right.Definition.BuildingId,
+                left.FamilyId,
+                right.FamilyId,
                 StringComparison.Ordinal);
             return comparison != 0
                 ? comparison

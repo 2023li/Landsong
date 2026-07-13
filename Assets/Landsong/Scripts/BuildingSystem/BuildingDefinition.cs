@@ -15,102 +15,102 @@ namespace Landsong.BuildingSystem
         [TitleGroup("基础信息")]
         [HorizontalGroup("基础信息/Split", Width = 0.72f)]
         [VerticalGroup("基础信息/Split/Left")]
-        [LabelText("建筑ID")]
-        [ValidateInput(nameof(HasValidBuildingId), "建筑ID不能为空。")]
-        [SerializeField] private string buildingId;
+        [LabelText("建筑家族 ID")]
+        [ValidateInput(nameof(HasValidFamilyId), "建筑家族 ID 不能为空。")]
+        [SerializeField, InspectorName("建筑家族 ID")] private string familyId;
 
         [VerticalGroup("基础信息/Split/Left")]
         [LabelText("显示名称")]
-        [SerializeField] private string displayName;
+        [SerializeField, InspectorName("显示名称")] private string displayName;
 
         [VerticalGroup("基础信息/Split/Left")]
         [LabelText("分类")]
         [EnumToggleButtons]
-        [SerializeField] private BuildingCategory category = BuildingCategory.None;
+        [SerializeField, InspectorName("分类")] private BuildingCategory category = BuildingCategory.None;
 
         [HorizontalGroup("基础信息/Split", Width = 88)]
         [PreviewField(72)]
         [HideLabel]
-        [SerializeField] private Sprite icon;
+        [SerializeField, InspectorName("建筑图标")] private Sprite icon;
 
         [TitleGroup("表现与占地")]
         [LabelText("占地尺寸")]
         [MinValue(1)]
-        [SerializeField] private Vector2Int size = Vector2Int.one;
+        [SerializeField, InspectorName("占地尺寸")] private Vector2Int size = Vector2Int.one;
 
         [TitleGroup("建造位置")]
         [LabelText("忽略地形要求")]
-        [SerializeField] private bool ignoreTerrainRequirement;
+        [SerializeField, InspectorName("忽略地形要求")] private bool ignoreTerrainRequirement;
 
         [TitleGroup("建造位置")]
         [LabelText("需要的地形 Key")]
         [HideIf(nameof(ignoreTerrainRequirement))]
         [PropertyTooltip("建筑 footprint 内每个格子都必须包含这些 key。默认 land；水上建筑填 water；特殊区域建筑填对应区域 key。")]
-        [SerializeField] private string[] requiredTerrainKeys = { GridTerrainKeys.Land };
+        [SerializeField, InspectorName("需要的地形 Key")] private string[] requiredTerrainKeys = { GridTerrainKeys.Land };
 
         [TitleGroup("寻路")]
         [LabelText("移动阻力")]
         [PropertyTooltip("该建筑占用格的通行行动力消耗。小于等于 0 表示不可通行；道路等可通行建筑填正数。")]
-        [SerializeField] private int movementResistance;
+        [SerializeField, InspectorName("移动阻力")] private int movementResistance;
 
         [TitleGroup("成本")]
         [LabelText("放置成本")]
-        [PropertyTooltip("玩家确认放置时立即扣除。施工、运营、生产、升级等成本写在建筑 prefab 上的 BuildingBase 子类里。")]
+        [PropertyTooltip("玩家确认放置时立即扣除。逐回合施工成本写在家族 Construction，升级成本写在对应 Level。")]
         [ListDrawerSettings(DefaultExpandedState = true, DraggableItems = true, ShowFoldout = true)]
-        [SerializeField] private BuildingCost[] placementCosts = Array.Empty<BuildingCost>();
+        [SerializeField, InspectorName("放置成本")] private BuildingCost[] placementCosts = new BuildingCost[0];
 
         [TitleGroup("建造菜单")]
         [LabelText("显示条件")]
         [PropertyTooltip("None/空引用表示无显示条件，默认显示。配置条件且不满足时，该建筑从建造菜单隐藏。")]
-        [SerializeReference] private GameCondition visibleCondition;
+        [SerializeReference, InspectorName("显示条件")] private GameCondition visibleCondition;
 
         [TitleGroup("建筑蓝图")]
         [LabelText("初始未拥有蓝图")]
         [PropertyTooltip("启用后，新游戏不会自动授予该建筑蓝图，必须由科技、任务、远征、天赋或传承等奖励调用 BuildingBlueprintService.Unlock。")]
-        [SerializeField] private bool blueprintInitiallyLocked;
+        [SerializeField, InspectorName("初始未拥有蓝图")] private bool blueprintInitiallyLocked;
 
         [TitleGroup("建筑蓝图")]
         [LabelText("未解锁时隐藏")]
         [PropertyTooltip("启用后，未获得蓝图时不显示在建造菜单；关闭时显示为“未获得蓝图”。")]
-        [SerializeField] private bool hideWhenBlueprintLocked;
+        [SerializeField, InspectorName("未解锁时隐藏")] private bool hideWhenBlueprintLocked;
 
         [TitleGroup("建造菜单")]
         [LabelText("菜单排序")]
-        [PropertyTooltip("值越小越靠前。值相同时按建筑ID、显示名称做固定排序。")]
-        [SerializeField] private int buildMenuSortOrder;
+        [PropertyTooltip("值越小越靠前。值相同时按家族 ID、显示名称做固定排序。")]
+        [SerializeField, InspectorName("菜单排序")] private int buildMenuSortOrder;
 
         [TitleGroup("数量限制")]
         [LabelText("最大建造数量")]
         [MinValue(0)]
         [PropertyTooltip("0 表示无限制。")]
-        [SerializeField] private int maxBuildCount;
+        [SerializeField, InspectorName("最大建造数量")] private int maxBuildCount;
 
         [TitleGroup("数量限制")]
         [LabelText("数量限制分组ID")]
-        [PropertyTooltip("留空时使用建筑ID。同一分组共享数量上限。")]
-        [SerializeField] private string buildLimitGroupId;
+        [PropertyTooltip("留空时使用家族 ID。同一分组共享数量上限。")]
+        [SerializeField, InspectorName("数量限制分组 ID")] private string buildLimitGroupId;
 
         [TitleGroup("数量限制")]
         [LabelText("开发完成")]
-        [SerializeField] private bool isDevelopmentCompleted;
+        [SerializeField, InspectorName("开发完成")] private bool isDevelopmentCompleted;
 
         [TitleGroup("附件")]
-        [SerializeField]
+        [SerializeField, InspectorName("使用专用详情面板")]
         [LabelText("使用专用的详情面板")]
         private bool useUniqueDetailPanel = false;
 
         [LabelText("专属的详情面板")]
         [Tooltip("需要继承 Popup_BuildingDetails")]
         [ShowIf(nameof(useUniqueDetailPanel))]
-        [SerializeField]
+        [SerializeField, InspectorName("专用详情面板")]
         private Popup_BuildingDetails uniqueDetailPanel;
 
         [NonSerialized] private string[] cachedRequiredTerrainKeys;
 
         public bool IsDevelopmentCompleted => isDevelopmentCompleted;
-        public string BuildingId => buildingId;
+        public string FamilyId => familyId;
         public string DisplayName => string.IsNullOrWhiteSpace(displayName)
-            ? (string.IsNullOrWhiteSpace(buildingId) ? "未命名建筑" : buildingId)
+            ? (string.IsNullOrWhiteSpace(familyId) ? "未命名建筑" : familyId)
             : displayName;
         public Sprite Icon => icon;
         public Vector2Int Size => size;
@@ -138,10 +138,10 @@ namespace Landsong.BuildingSystem
         public bool HideWhenBlueprintLocked => hideWhenBlueprintLocked;
         public int BuildMenuSortOrder => buildMenuSortOrder;
         public int MaxBuildCount => maxBuildCount;
-        public string BuildLimitGroupId => string.IsNullOrWhiteSpace(buildLimitGroupId) ? buildingId : buildLimitGroupId;
+        public string BuildLimitGroupId => string.IsNullOrWhiteSpace(buildLimitGroupId) ? familyId : buildLimitGroupId;
         public bool HasIcon => icon != null;
         public bool HasBuildCountLimit => maxBuildCount > 0;
-        public bool IsValid => !string.IsNullOrWhiteSpace(buildingId);
+        public bool IsValid => !string.IsNullOrWhiteSpace(familyId);
         public bool UseUniqueDetailPanel => useUniqueDetailPanel && uniqueDetailPanel != null;
         public Popup_BuildingDetails UniqueDetailPanel => UseUniqueDetailPanel ? uniqueDetailPanel : null;
 
@@ -152,7 +152,7 @@ namespace Landsong.BuildingSystem
 
         public void Normalize()
         {
-            buildingId = string.IsNullOrWhiteSpace(buildingId) ? string.Empty : buildingId.Trim();
+            familyId = string.IsNullOrWhiteSpace(familyId) ? string.Empty : familyId.Trim();
             displayName = string.IsNullOrWhiteSpace(displayName) ? string.Empty : displayName.Trim();
             buildLimitGroupId = string.IsNullOrWhiteSpace(buildLimitGroupId) ? string.Empty : buildLimitGroupId.Trim();
             size = new Vector2Int(Mathf.Max(1, size.x), Mathf.Max(1, size.y));
@@ -162,16 +162,33 @@ namespace Landsong.BuildingSystem
             cachedRequiredTerrainKeys = null;
         }
 
-        private bool HasValidBuildingId()
+        public void ConfigureIdentity(
+            string stableFamilyId,
+            string localizedDisplayName,
+            string limitGroupId = "")
         {
-            return !string.IsNullOrWhiteSpace(buildingId);
+            familyId = string.IsNullOrWhiteSpace(stableFamilyId)
+                ? string.Empty
+                : stableFamilyId.Trim();
+            displayName = string.IsNullOrWhiteSpace(localizedDisplayName)
+                ? familyId
+                : localizedDisplayName.Trim();
+            buildLimitGroupId = string.IsNullOrWhiteSpace(limitGroupId)
+                ? familyId
+                : limitGroupId.Trim();
+            Normalize();
+        }
+
+        private bool HasValidFamilyId()
+        {
+            return !string.IsNullOrWhiteSpace(familyId);
         }
 
         private static void NormalizeCosts(ref BuildingCost[] costs)
         {
             if (costs == null)
             {
-                costs = Array.Empty<BuildingCost>();
+                costs = new BuildingCost[0];
                 return;
             }
 

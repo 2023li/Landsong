@@ -387,7 +387,8 @@ namespace Landsong.BuildingSystem
             for (var i = 0; i < buildings.Count; i++)
             {
                 var building = buildings[i];
-                if (!CanUseNeighbor(source, building) || building is not IBuildingPopulationSource populationSource)
+                if (!CanUseNeighbor(source, building)
+                    || !building.TryGetCapability<IBuildingPopulationSource>(out var populationSource))
                 {
                     continue;
                 }

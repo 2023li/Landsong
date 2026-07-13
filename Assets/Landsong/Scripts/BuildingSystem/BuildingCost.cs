@@ -12,12 +12,12 @@ namespace Landsong.BuildingSystem
         [HorizontalGroup("Cost", Width = 0.72f)]
         [LabelText("物品")]
         [AssetsOnly]
-        [SerializeField] private ItemDefinition itemDefinition;
+        [SerializeField, InspectorName("物品")] private ItemDefinition itemDefinition;
 
         [HorizontalGroup("Cost")]
         [LabelText("数量")]
         [MinValue(0)]
-        [SerializeField] private int amount;
+        [SerializeField, InspectorName("数量")] private int amount;
 
         public BuildingCost(ItemDefinition itemDefinition, int amount)
         {

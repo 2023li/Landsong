@@ -1,0 +1,123 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad4cbf49b35f06744b7e4297512a9e5f, type: 3}
+  m_Name: FishingHut
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingFamilyDefinition
+  definition:
+    familyId: building.fishing_hut
+    displayName: "\u6355\u9C7C\u5C0F\u5C4B"
+    category: 2
+    icon: {fileID: 0}
+    size: {x: 2, y: 2}
+    ignoreTerrainRequirement: 0
+    requiredTerrainKeys:
+    - "\u9646\u5730"
+    movementResistance: 0
+    placementCosts: []
+    visibleCondition:
+      rid: -2
+    blueprintInitiallyLocked: 0
+    hideWhenBlueprintLocked: 0
+    buildMenuSortOrder: 0
+    maxBuildCount: 0
+    buildLimitGroupId: building.fishing_hut
+    isDevelopmentCompleted: 0
+    useUniqueDetailPanel: 0
+    uniqueDetailPanel: {fileID: 0}
+  runtimePrefab: {fileID: 1277389843011732721, guid: 0176782714a47ad499bd88c9e48e6acb, type: 3}
+  construction:
+    turns:
+    - costs: []
+  levels:
+  - level: 1
+    configured: 1
+    upgradeCondition:
+      rid: -2
+    upgradeCosts: []
+    configurations:
+    - rid: 5711026424309612572
+    - rid: 5711026424309612573
+    - rid: 5711026424309612574
+  - level: 2
+    configured: 0
+    upgradeCondition:
+      rid: -2
+    upgradeCosts: []
+    configurations:
+    - rid: 5711026424309612575
+    - rid: 5711026424309612576
+    - rid: 5711026424309612577
+  moduleSet: {fileID: 11400000, guid: 61477c4cb6debf543ab80a80e779ff2a, type: 2}
+  presentation: {fileID: 11400000, guid: b6b86a38aec2b1a4bb61e3d836d86cf2, type: 2}
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 5711026424309612572
+      type: {class: BuildingWorkforceLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        maxWorkers: 3
+        initialWorkers: 0
+        baseAttraction: 55
+        recruitCost: 10
+        autoSubsidy: 0
+        targetStableWorkers: 0
+        goldItemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+    - rid: 5711026424309612573
+      type: {class: BuildingProductionLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        intervalTurns: 3
+        outputs:
+        - itemDefinition: {fileID: 11400000, guid: 3ae6bc649b9f3ae408d2edd483824b8f, type: 2}
+          workerProductionTiers:
+          - "\u5DE5\u4EBA": 2
+            "\u4EA7\u91CF": 1
+          - "\u5DE5\u4EBA": 3
+            "\u4EA7\u91CF": 2
+    - rid: 5711026424309612574
+      type: {class: FishingHutLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        enableSpecialCatch: 0
+        specialItemDefinition: {fileID: 11400000, guid: e02568ca797180a449171f8ae5a538f7, type: 2}
+        minimumWorkers: 3
+        chancePercent: 1
+        amount: 1
+    - rid: 5711026424309612575
+      type: {class: BuildingWorkforceLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        maxWorkers: 3
+        initialWorkers: 0
+        baseAttraction: 55
+        recruitCost: 10
+        autoSubsidy: 0
+        targetStableWorkers: 0
+        goldItemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+    - rid: 5711026424309612576
+      type: {class: BuildingProductionLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        intervalTurns: 3
+        outputs:
+        - itemDefinition: {fileID: 11400000, guid: 3ae6bc649b9f3ae408d2edd483824b8f, type: 2}
+          workerProductionTiers:
+          - "\u5DE5\u4EBA": 2
+            "\u4EA7\u91CF": 1
+          - "\u5DE5\u4EBA": 3
+            "\u4EA7\u91CF": 2
+    - rid: 5711026424309612577
+      type: {class: FishingHutLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        enableSpecialCatch: 0
+        specialItemDefinition: {fileID: 11400000, guid: e02568ca797180a449171f8ae5a538f7, type: 2}
+        minimumWorkers: 3
+        chancePercent: 1
+        amount: 1

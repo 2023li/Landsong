@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
-using Landsong.BuildingSystem.Buildings;
 using Landsong.CameraSystem;
 using Landsong.GridSystem;
 using Landsong.InputSystem;
@@ -61,6 +60,7 @@ namespace Landsong.BuildingSystem
         private GridOverlayOwnerHandle buffRangeHandle;
         private InputController inputController;
         private BuildingBase activeBuildingPrefab;
+        private string activeStyleId = string.Empty;
         private BuildingBase selectedDemolitionBuilding;
         private BuildingBase demolitionClickStartedBuilding;
         private GameObject ghostInstance;
@@ -95,6 +95,7 @@ namespace Landsong.BuildingSystem
         public bool IsDemolitionMode => isDemolitionMode;
         public bool IsActive => isPlacing || isDemolitionMode;
         public BuildingPlacementEvaluation CurrentEvaluation => currentEvaluation;
+        public string ActiveStyleId => activeStyleId;
 
         private void Reset()
         {
@@ -181,6 +182,11 @@ namespace Landsong.BuildingSystem
 
         public void BeginPlacement(BuildingBase buildingPrefab)
         {
+            BeginPlacement(buildingPrefab, ResolveDefaultStyleId(buildingPrefab));
+        }
+
+        public void BeginPlacement(BuildingBase buildingPrefab, string styleId)
+        {
             if (buildingPrefab == null)
             {
                 return;
@@ -201,9 +207,20 @@ namespace Landsong.BuildingSystem
 
             WarnIfPrefabMissingCollider(buildingPrefab);
 
+            var presentation = buildingPrefab.FamilyDefinition?.Presentation;
+            styleId = string.IsNullOrWhiteSpace(styleId) ? string.Empty : styleId.Trim();
+            if (presentation != null && !presentation.HasStyle(styleId))
+            {
+                Debug.LogWarning(
+                    $"Building family '{buildingPrefab.FamilyId}' does not define style '{styleId}'.",
+                    buildingPrefab);
+                return;
+            }
+
             CancelPlacement();
 
             activeBuildingPrefab = buildingPrefab;
+            activeStyleId = styleId;
             isPlacing = true;
             isConfirming = false;
             isDraggingPlacement = false;
@@ -267,6 +284,7 @@ namespace Landsong.BuildingSystem
             SetCameraInputBlocked(false);
 
             activeBuildingPrefab = null;
+            activeStyleId = string.Empty;
             selectedDemolitionBuilding = null;
             demolitionClickStartedBuilding = null;
             isPlacing = false;
@@ -357,7 +375,9 @@ namespace Landsong.BuildingSystem
                 placedBuildingRoot,
                 1,
                 true,
-                true);
+                true,
+                true,
+                activeStyleId);
             var result = buildingService.TryPlace(request, out _);
             if (!result.Succeeded)
             {
@@ -869,6 +889,7 @@ namespace Landsong.BuildingSystem
                 buildingPrefab,
                 previewRoot == null ? transform : previewRoot,
                 isRoadPlacement ? $"{definition.DisplayName}_PlacementHeadGhost" : $"{definition.DisplayName}_PlacementGhost",
+                activeStyleId,
                 out ghostView);
 
             if (isRoadPlacement)
@@ -877,6 +898,7 @@ namespace Landsong.BuildingSystem
                     buildingPrefab,
                     previewRoot == null ? transform : previewRoot,
                     $"{definition.DisplayName}_PlacementTailGhost",
+                    activeStyleId,
                     out roadTailGhostView);
             }
         }
@@ -1380,7 +1402,27 @@ namespace Landsong.BuildingSystem
 
         private static bool IsRoadPlacementPrefab(BuildingBase buildingPrefab)
         {
-            return buildingPrefab is RoadBuilding;
+            return buildingPrefab?.Definition != null
+                   && (buildingPrefab.Definition.Category & BuildingCategory.道路) != 0;
+        }
+
+        private static string ResolveDefaultStyleId(BuildingBase buildingPrefab)
+        {
+            var styles = buildingPrefab?.FamilyDefinition?.Presentation?.Styles;
+            if (styles == null || styles.Count == 0)
+            {
+                return string.Empty;
+            }
+
+            for (var i = 0; i < styles.Count; i++)
+            {
+                if (styles[i] != null && styles[i].IsValid)
+                {
+                    return styles[i].StyleId;
+                }
+            }
+
+            return string.Empty;
         }
 
         private static bool CanDemolishBuilding(BuildingBase building)

@@ -1,0 +1,132 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad4cbf49b35f06744b7e4297512a9e5f, type: 3}
+  m_Name: ResidentialHouse
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingFamilyDefinition
+  definition:
+    familyId: building.residential_house
+    displayName: "\u5C45\u6C11\u623F"
+    category: 1
+    icon: {fileID: 21300000, guid: 6c015b6b70681414f81092658fe0932f, type: 3}
+    size: {x: 1, y: 1}
+    ignoreTerrainRequirement: 0
+    requiredTerrainKeys:
+    - "\u9646\u5730"
+    movementResistance: 0
+    placementCosts:
+    - itemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+      amount: 30
+    - itemDefinition: {fileID: 11400000, guid: 52d28e7de1d658444b6a2fb735c56e85, type: 2}
+      amount: 1
+    - itemDefinition: {fileID: 11400000, guid: 6293531210d744e8b03f1b99017467c3, type: 2}
+      amount: 1
+    visibleCondition:
+      rid: 5711026424601640961
+    blueprintInitiallyLocked: 0
+    hideWhenBlueprintLocked: 0
+    buildMenuSortOrder: 0
+    maxBuildCount: 99
+    buildLimitGroupId: building.residential_house
+    isDevelopmentCompleted: 1
+    useUniqueDetailPanel: 0
+    uniqueDetailPanel: {fileID: 0}
+  runtimePrefab: {fileID: 3750083483410662862, guid: cce99397b7253b64a9bf1716a5067150, type: 3}
+  construction:
+    turns:
+    - costs:
+      - itemDefinition: {fileID: 11400000, guid: 83207646c27978649aad0c621fe5e93d, type: 2}
+        amount: 10
+    - costs:
+      - itemDefinition: {fileID: 11400000, guid: 52d28e7de1d658444b6a2fb735c56e85, type: 2}
+        amount: 10
+    - costs:
+      - itemDefinition: {fileID: 11400000, guid: 6293531210d744e8b03f1b99017467c3, type: 2}
+        amount: 10
+  levels:
+  - level: 1
+    configured: 1
+    upgradeCondition:
+      rid: -2
+    upgradeCosts: []
+    configurations:
+    - rid: 5711026424309612558
+  - level: 2
+    configured: 0
+    upgradeCondition:
+      rid: -2
+    upgradeCosts: []
+    configurations:
+    - rid: 5711026424309612559
+  - level: 3
+    configured: 0
+    upgradeCondition:
+      rid: -2
+    upgradeCosts: []
+    configurations:
+    - rid: 5711026424309612560
+  - level: 4
+    configured: 0
+    upgradeCondition:
+      rid: -2
+    upgradeCosts: []
+    configurations:
+    - rid: 5711026424309612561
+  moduleSet: {fileID: 11400000, guid: 407eb0e71553bdc4fa07e30e5c092a32, type: 2}
+  presentation: {fileID: 11400000, guid: b5df6886edbe88b40a478c40cdc5e66a, type: 2}
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 5711026424309612558
+      type: {class: ResidentialHousingLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        initialPopulation: 2
+        maxPopulation: 5
+        foodItemDefinition: {fileID: 11400000, guid: 3083d7b285a48b34384cf36253389185, type: 2}
+        growthIntervalTurns: 3
+        failureDecayThreshold: 3
+        taxItemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+        taxIntervalTurns: 5
+    - rid: 5711026424309612559
+      type: {class: ResidentialHousingLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        initialPopulation: 2
+        maxPopulation: 5
+        foodItemDefinition: {fileID: 11400000, guid: 3083d7b285a48b34384cf36253389185, type: 2}
+        growthIntervalTurns: 3
+        failureDecayThreshold: 3
+        taxItemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+        taxIntervalTurns: 5
+    - rid: 5711026424309612560
+      type: {class: ResidentialHousingLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        initialPopulation: 2
+        maxPopulation: 5
+        foodItemDefinition: {fileID: 11400000, guid: 3083d7b285a48b34384cf36253389185, type: 2}
+        growthIntervalTurns: 3
+        failureDecayThreshold: 3
+        taxItemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+        taxIntervalTurns: 5
+    - rid: 5711026424309612561
+      type: {class: ResidentialHousingLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        initialPopulation: 2
+        maxPopulation: 5
+        foodItemDefinition: {fileID: 11400000, guid: 3083d7b285a48b34384cf36253389185, type: 2}
+        growthIntervalTurns: 3
+        failureDecayThreshold: 3
+        taxItemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+        taxIntervalTurns: 5
+    - rid: 5711026424601640961
+      type: {class: GameCondition_True, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
+      data: 

@@ -256,7 +256,7 @@ MonoBehaviour:
   viewBoundsMin: {x: -50, y: -50}
   viewBoundsMax: {x: 50, y: 50}
   limitZoomToBounds: 1
-  defaultFocusBuildingId: PlayerHomeLV1
+  defaultFocusBuildingId: building.player_home
   smoothFocus: 1
   focusLerpSpeed: 8
   cancelFocusOnManualInput: 1

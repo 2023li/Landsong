@@ -60,7 +60,10 @@ namespace Landsong.BuildingSystem
                 ignoredOccupantId);
 
             BuildingConnectionQueryResult resourceConnection = null;
-            if (buildingPrefab.RequiresConnectionType(BuildingConnectionTypes.Resource))
+            var constructionNeedsResources =
+                buildingPrefab.FamilyDefinition?.Construction?.HasAnyCost() == true;
+            if (constructionNeedsResources
+                || buildingPrefab.RequiresConnectionType(BuildingConnectionTypes.Resource))
             {
                 var probe = new ResourceConsumerProbe(
                     gridMap,

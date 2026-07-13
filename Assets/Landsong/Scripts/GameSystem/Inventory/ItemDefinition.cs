@@ -8,7 +8,7 @@ namespace Landsong.InventorySystem
     [CreateAssetMenu(menuName = "Landsong/Inventory/Item Definition", fileName = "ItemDefinition")]
     public sealed class ItemDefinition : ScriptableObject
     {
-        [PreviewField(72)]
+        [PreviewField(72),Required(InfoMessageType.Warning)]
         [SerializeField] private Sprite icon;
      
         [SerializeField] private string itemId;

@@ -62,6 +62,7 @@ namespace Landsong.BuildingSystem
     }
 
     [Serializable]
+    [BuildingModuleId("spatial_effect")]
     public sealed class BM_空间效果源 : BuildingModuleBase
     {
         [SerializeField, LabelText("空间效果")]
@@ -295,7 +296,8 @@ namespace Landsong.BuildingSystem
         {
             return definition.TargetFilter switch
             {
-                BuildingSpatialTargetFilter.Farmland => target is IBuildingCropFieldSource,
+                BuildingSpatialTargetFilter.Farmland =>
+                    target.TryGetCapability<IBuildingCropFieldSource>(out _),
                 BuildingSpatialTargetFilter.Cell => false,
                 _ => true
             };

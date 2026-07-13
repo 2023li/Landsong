@@ -125,7 +125,7 @@ namespace Landsong.TechnologySystem
             }
 
             var definition = buildingPrefab.Definition;
-            var unlocked = context.Services.BuildingBlueprints.Unlock(definition.BuildingId);
+            var unlocked = context.Services.BuildingBlueprints.Unlock(definition.FamilyId);
             return new TechnologyEffectApplyResult(
                 unlocked,
                 unlocked ? $"蓝图解锁：{definition.DisplayName}" : $"蓝图已解锁：{definition.DisplayName}");

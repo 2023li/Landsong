@@ -1,0 +1,64 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad4cbf49b35f06744b7e4297512a9e5f, type: 3}
+  m_Name: FarmField
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingFamilyDefinition
+  definition:
+    familyId: building.farm_field
+    displayName: "\u519C\u7530"
+    category: 2
+    icon: {fileID: 0}
+    size: {x: 2, y: 2}
+    ignoreTerrainRequirement: 0
+    requiredTerrainKeys:
+    - "\u9646\u5730"
+    movementResistance: 0
+    placementCosts: []
+    visibleCondition:
+      rid: -2
+    blueprintInitiallyLocked: 0
+    hideWhenBlueprintLocked: 0
+    buildMenuSortOrder: 0
+    maxBuildCount: 0
+    buildLimitGroupId: building.farm_field
+    isDevelopmentCompleted: 1
+    useUniqueDetailPanel: 0
+    uniqueDetailPanel: {fileID: 0}
+  runtimePrefab: {fileID: 8640536483753721910, guid: f14acff9a80333a428b3f2920c7920e4, type: 3}
+  construction:
+    turns:
+    - costs: []
+  levels:
+  - level: 1
+    configured: 1
+    upgradeCondition:
+      rid: -2
+    upgradeCosts: []
+    configurations:
+    - rid: 5711026424309612580
+  moduleSet: {fileID: 11400000, guid: a3a9306dcb9100b4bb3a769c79a7c5e1, type: 2}
+  presentation: {fileID: 11400000, guid: 63829c772b1d1bc4c8e05026a0d602cb, type: 2}
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 5711026424309612580
+      type: {class: BuildingWorkforceLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        maxWorkers: 2
+        initialWorkers: 0
+        baseAttraction: 55
+        recruitCost: 10
+        autoSubsidy: 0
+        targetStableWorkers: 0
+        goldItemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}

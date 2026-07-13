@@ -1,0 +1,113 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad4cbf49b35f06744b7e4297512a9e5f, type: 3}
+  m_Name: LumberCabin
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingFamilyDefinition
+  definition:
+    familyId: building.lumber_cabin
+    displayName: "\u4F10\u6728\u5C0F\u5C4B"
+    category: 2
+    icon: {fileID: 21300000, guid: 5895c2374555bbe4b9fe06ae5fbacdaa, type: 3}
+    size: {x: 1, y: 1}
+    ignoreTerrainRequirement: 0
+    requiredTerrainKeys:
+    - "\u9646\u5730"
+    movementResistance: 0
+    placementCosts: []
+    visibleCondition:
+      rid: -2
+    blueprintInitiallyLocked: 1
+    hideWhenBlueprintLocked: 1
+    buildMenuSortOrder: 0
+    maxBuildCount: 0
+    buildLimitGroupId: building.lumber_cabin
+    isDevelopmentCompleted: 1
+    useUniqueDetailPanel: 0
+    uniqueDetailPanel: {fileID: 0}
+  runtimePrefab: {fileID: 2691341205180206682, guid: 55f0fdd00e21caa45b484736b34d5727, type: 3}
+  construction:
+    turns:
+    - costs: []
+  levels:
+  - level: 1
+    configured: 1
+    upgradeCondition:
+      rid: -2
+    upgradeCosts: []
+    configurations:
+    - rid: 5711026424309612564
+    - rid: 5711026424309612565
+  - level: 2
+    configured: 1
+    upgradeCondition:
+      rid: 5711026424309612566
+    upgradeCosts:
+    - itemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+      amount: 30
+    configurations:
+    - rid: 5711026424309612567
+    - rid: 5711026424309612568
+  moduleSet: {fileID: 11400000, guid: a55785c68a452714ca52c820a79afc5d, type: 2}
+  presentation: {fileID: 11400000, guid: a713f548cb0987543b29448fa2d1da4e, type: 2}
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 5711026424309612564
+      type: {class: BuildingWorkforceLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        maxWorkers: 3
+        initialWorkers: 2
+        baseAttraction: 55
+        recruitCost: 10
+        autoSubsidy: 0
+        targetStableWorkers: 0
+        goldItemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+    - rid: 5711026424309612565
+      type: {class: BuildingProductionLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        intervalTurns: 3
+        outputs:
+        - itemDefinition: {fileID: 11400000, guid: 6293531210d744e8b03f1b99017467c3, type: 2}
+          workerProductionTiers:
+          - "\u5DE5\u4EBA": 2
+            "\u4EA7\u91CF": 1
+          - "\u5DE5\u4EBA": 3
+            "\u4EA7\u91CF": 2
+    - rid: 5711026424309612566
+      type: {class: GameCondition_TechnologyUnlocked, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
+      data:
+        TechnologyDefinition: {fileID: 11400000, guid: 006213b12ed0bbc4091a2f3c95bc2f65, type: 2}
+    - rid: 5711026424309612567
+      type: {class: BuildingWorkforceLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        maxWorkers: 5
+        initialWorkers: 2
+        baseAttraction: 55
+        recruitCost: 10
+        autoSubsidy: 0
+        targetStableWorkers: 0
+        goldItemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+    - rid: 5711026424309612568
+      type: {class: BuildingProductionLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        intervalTurns: 3
+        outputs:
+        - itemDefinition: {fileID: 11400000, guid: 6293531210d744e8b03f1b99017467c3, type: 2}
+          workerProductionTiers:
+          - "\u5DE5\u4EBA": 2
+            "\u4EA7\u91CF": 1
+          - "\u5DE5\u4EBA": 3
+            "\u4EA7\u91CF": 2
+          - "\u5DE5\u4EBA": 5
+            "\u4EA7\u91CF": 4

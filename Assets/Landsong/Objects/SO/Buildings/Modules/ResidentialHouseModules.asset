@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68f39362795b4135b43f8539369e6f33, type: 3}
+  m_Name: ResidentialHouseModules
+  m_EditorClassIdentifier: Assembly-CSharp:Landsong.BuildingSystem:BuildingModuleSetDefinition
+  buildingModules:
+  - rid: 5711026424309612584
+  references:
+    version: 2
+    RefIds:
+    - rid: 5711026424309612584
+      type: {class: "BM_\u5C45\u6C11\u8FD0\u8425", ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        enabled: 1
+        initialPopulation: 2
+        maxPopulation: 5
+        foodItemDefinition: {fileID: 11400000, guid: 3083d7b285a48b34384cf36253389185, type: 2}
+        growthIntervalTurns: 3
+        failureDecayThreshold: 3
+        taxItemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+        taxIntervalTurns: 5
+        currentPopulation: 0
+        growthProgress: 0
+        taxProgress: 0
+        consecutiveFailures: 0
+        isAbandoned: 0
+        lastTurnHadResourceProvider: 0
+        lastTurnConsumptionFailed: 0
+        lastTurnConsumedResources: 0
+        lastTurnPopulationDecayed: 0
+        lastTurnGrewPopulation: 0
+        lastTurnProvidedTax: 0
+        lastResourceProviderActionCost: 0

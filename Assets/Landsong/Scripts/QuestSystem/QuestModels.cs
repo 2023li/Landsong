@@ -58,7 +58,7 @@ namespace Landsong
         public BuildingBase TargetBuilding => targetBuilding;
         public string TargetBuildingId => targetBuilding == null || !targetBuilding.HasDefinition
             ? string.Empty
-            : targetBuilding.Definition.BuildingId;
+            : targetBuilding.FamilyId;
         public string TargetBuildingDisplayName => targetBuilding == null || !targetBuilding.HasDefinition
             ? string.Empty
             : targetBuilding.Definition.DisplayName;

@@ -13,12 +13,16 @@ namespace Landsong.BuildingSystem
     [CreateAssetMenu(menuName = "Landsong/Building/Building Catalog", fileName = "BuildingCatalog")]
     public sealed class BuildingCatalog : SingletonScriptableObject<BuildingCatalog>
     {
-        [SerializeField, LabelText("建筑预制体")]
-        private BuildingBase[] buildingPrefabs = Array.Empty<BuildingBase>();
+        [SerializeField, LabelText("建筑家族")]
+        private BuildingFamilyDefinition[] families = Array.Empty<BuildingFamilyDefinition>();
 
         private Dictionary<string, BuildingBase> prefabsById;
+        private Dictionary<string, BuildingFamilyDefinition> familiesById;
+        private BuildingBase[] runtimePrefabs = Array.Empty<BuildingBase>();
 
-        public IReadOnlyList<BuildingBase> BuildingPrefabs => buildingPrefabs ?? Array.Empty<BuildingBase>();
+        public IReadOnlyList<BuildingFamilyDefinition> Families =>
+            families ?? Array.Empty<BuildingFamilyDefinition>();
+        public IReadOnlyList<BuildingBase> BuildingPrefabs => runtimePrefabs;
 
         public static Task<BuildingCatalog> LoadAsync(string addressableKey)
         {
@@ -37,63 +41,77 @@ namespace Landsong.BuildingSystem
             RebuildIndex();
         }
 
-        public bool TryGetBuildingPrefab(string buildingId, out BuildingBase buildingPrefab)
+        public bool TryGetBuildingPrefab(string familyId, out BuildingBase buildingPrefab)
         {
-            if (string.IsNullOrWhiteSpace(buildingId))
+            if (string.IsNullOrWhiteSpace(familyId))
             {
                 buildingPrefab = null;
                 return false;
             }
 
             EnsureIndex();
-            return prefabsById.TryGetValue(buildingId, out buildingPrefab);
+            return prefabsById.TryGetValue(familyId.Trim(), out buildingPrefab);
         }
 
-        public BuildingBase GetBuildingPrefab(string buildingId)
+        public bool TryGetFamily(string familyId, out BuildingFamilyDefinition family)
         {
-            if (TryGetBuildingPrefab(buildingId, out var buildingPrefab))
+            family = null;
+            if (string.IsNullOrWhiteSpace(familyId))
+            {
+                return false;
+            }
+
+            EnsureIndex();
+            return familiesById.TryGetValue(familyId.Trim(), out family);
+        }
+
+        public BuildingBase GetBuildingPrefab(string familyId)
+        {
+            if (TryGetBuildingPrefab(familyId, out var buildingPrefab))
             {
                 return buildingPrefab;
             }
 
-            throw new KeyNotFoundException($"Building prefab '{buildingId}' was not found in catalog '{name}'.");
+            throw new KeyNotFoundException($"Building family '{familyId}' was not found in catalog '{name}'.");
         }
 
-        public bool Contains(string buildingId)
+        public bool Contains(string familyId)
         {
-            return TryGetBuildingPrefab(buildingId, out _);
+            return TryGetBuildingPrefab(familyId, out _);
         }
 
         public void RebuildIndex()
         {
             prefabsById = new Dictionary<string, BuildingBase>(StringComparer.Ordinal);
+            familiesById = new Dictionary<string, BuildingFamilyDefinition>(StringComparer.Ordinal);
+            var prefabs = new List<BuildingBase>();
 
-            if (buildingPrefabs == null)
+            if (families != null)
             {
-                return;
-            }
-
-            foreach (var buildingPrefab in buildingPrefabs)
-            {
-                if (buildingPrefab == null || !buildingPrefab.HasDefinition)
+                for (var i = 0; i < families.Length; i++)
                 {
-                    continue;
+                    var family = families[i];
+                    if (family == null
+                        || !family.IsValid
+                        || string.IsNullOrWhiteSpace(family.FamilyId)
+                        || familiesById.ContainsKey(family.FamilyId))
+                    {
+                        continue;
+                    }
+
+                    familiesById.Add(family.FamilyId, family);
+                    prefabsById.Add(family.FamilyId, family.RuntimePrefab);
+                    prefabs.Add(family.RuntimePrefab);
                 }
 
-                var buildingId = buildingPrefab.Definition.BuildingId;
-                if (prefabsById.ContainsKey(buildingId))
-                {
-                    Debug.LogWarning($"Duplicate building prefab id '{buildingId}' in catalog '{name}'. The first entry will be used.", this);
-                    continue;
-                }
-
-                prefabsById.Add(buildingId, buildingPrefab);
             }
+
+            runtimePrefabs = prefabs.ToArray();
         }
 
         private void EnsureIndex()
         {
-            if (prefabsById == null)
+            if (prefabsById == null || familiesById == null)
             {
                 RebuildIndex();
             }
@@ -101,7 +119,15 @@ namespace Landsong.BuildingSystem
 
         private void NormalizePrefabs()
         {
-            buildingPrefabs ??= Array.Empty<BuildingBase>();
+            families ??= Array.Empty<BuildingFamilyDefinition>();
+        }
+
+        public void ConfigureFamilies(IEnumerable<BuildingFamilyDefinition> definitions)
+        {
+            families = definitions == null
+                ? Array.Empty<BuildingFamilyDefinition>()
+                : new List<BuildingFamilyDefinition>(definitions).ToArray();
+            RebuildIndex();
         }
 
 #if UNITY_EDITOR
@@ -109,8 +135,8 @@ namespace Landsong.BuildingSystem
         [SerializeField]
         private string folderPath = "Assets/";
 
-        [Button("从文件夹加载建筑 Prefab")]
-        private void LoadBuildingPrefabsFromFolder()
+        [Button("从文件夹加载建筑家族")]
+        private void LoadBuildingFamiliesFromFolder()
         {
             if (string.IsNullOrWhiteSpace(folderPath))
             {
@@ -124,25 +150,23 @@ namespace Landsong.BuildingSystem
                 return;
             }
 
-            string[] guids = AssetDatabase.FindAssets("t:GameObject", new[] { folderPath });
-            var loaded = new List<BuildingBase>(guids.Length);
+            string[] guids = AssetDatabase.FindAssets("t:BuildingFamilyDefinition", new[] { folderPath });
+            var loaded = new List<BuildingFamilyDefinition>(guids.Length);
 
             foreach (string guid in guids)
             {
                 string assetPath = AssetDatabase.GUIDToAssetPath(guid);
-                var prefabObject = AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
-                var building = prefabObject == null ? null : prefabObject.GetComponent<BuildingBase>();
-                if (building != null)
+                var family = AssetDatabase.LoadAssetAtPath<BuildingFamilyDefinition>(assetPath);
+                if (family != null)
                 {
-                    loaded.Add(building);
+                    loaded.Add(family);
                 }
             }
 
-            buildingPrefabs = loaded.ToArray();
+            ConfigureFamilies(loaded);
             EditorUtility.SetDirty(this);
-            RebuildIndex();
 
-            Debug.Log($"从文件中加载了 {buildingPrefabs.Length} 个建筑 Prefab.", this);
+            Debug.Log($"从文件中加载了 {families.Length} 个建筑家族。", this);
         }
 #endif
     }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Landsong.AudioSystem;
 using Landsong.GameEventSystem;
 using Landsong.GridSystem;
+using Landsong.InventorySystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -13,39 +14,34 @@ namespace Landsong.BuildingSystem
     [Serializable]
     public abstract class BuildingDataBase
     {
-        public bool HasLevelUpgradeModuleData;
-        public bool LevelUpgradeAutoUpgradeEnabled;
-        public int LevelUpgradeCurrentExperience;
-        public bool HasResourceProductionModuleData;
-        public int ResourceProductionProgress;
         public List<BuildingModuleStateEntry> ModuleStates;
     }
 
     /// <summary>
-    /// 建筑 prefab 根节点上的运行时基类。
-    /// BuildingDefinition 是 prefab 上的静态配置数据；具体建筑等级通过继承本类实现生命周期。
+    /// 建筑家族唯一运行时 Prefab 根节点上的 Facade。
+    /// 静态数据来自 BuildingFamilyDefinition；施工和等级是同一实例的运行时状态。
     /// </summary>
     [RequireComponent(typeof(BoxCollider2D))]
-    public abstract class BuildingBase : MonoBehaviour, IBuildingFunctionBlockSource
+    public sealed class BuildingBase : MonoBehaviour, IBuildingFunctionBlockSource
     {
         public static readonly string DefaultDetailPanelAddressKey = "Popup_GeneralBuildingDetails";
 
 
 
-        protected static readonly IReadOnlyList<BuildingRuntimeStatus> EmptyRuntimeStatuses =
+        private static readonly IReadOnlyList<BuildingRuntimeStatus> EmptyRuntimeStatuses =
             Array.Empty<BuildingRuntimeStatus>();
 
-        protected static readonly IReadOnlyList<BuildingResourceChange> EmptyResourceChanges =
-            Array.Empty<BuildingResourceChange>();
-
-        protected static readonly IReadOnlyList<BuildingFunctionBlockEntry> EmptyFunctionBlockEntries =
+        private static readonly IReadOnlyList<BuildingFunctionBlockEntry> EmptyFunctionBlockEntries =
             Array.Empty<BuildingFunctionBlockEntry>();
 
         private static readonly IReadOnlyList<BuildingModuleBase> EmptyBuildingModules =
             Array.Empty<BuildingModuleBase>();
 
-        [Tooltip("该建筑 prefab/实例对应的静态配置数据。")]
-        [SerializeField] private BuildingDefinition definition = new BuildingDefinition();
+        [Tooltip("建筑家族静态定义。一个家族只能对应一个运行时 Prefab。")]
+        [SerializeField] private BuildingFamilyDefinition familyDefinition;
+
+        [Tooltip("同一建筑实例跨施工和所有等级保持不变的身份与阶段。")]
+        [SerializeField] private BuildingRuntimeIdentity runtimeIdentity = new BuildingRuntimeIdentity();
 
         [Tooltip("是否已经拥有有效的格子坐标。未放置或已清除占地时为 false。")]
         [SerializeField] private bool hasGridPosition;
@@ -62,8 +58,7 @@ namespace Landsong.BuildingSystem
         [Tooltip("资源消费者优先选择数值更高的可达资源提供点；同优先级时选择路径行动力代价更低的提供点。")]
         [SerializeField, LabelText("资源提供优先级")] private int resourceProviderPriority;
 
-        [Tooltip("建筑可选能力模块。只给需要该能力的建筑添加对应模块。")]
-        [SerializeReference, LabelText("建筑模块")] private List<BuildingModuleBase> buildingModules = new List<BuildingModuleBase>();
+        private List<BuildingModuleBase> buildingModules = new List<BuildingModuleBase>();
 
         [Tooltip("建筑用于寻路和范围判断的行动力。普通格默认消耗 10 点，道路等地形由 GridMapBehaviour 配置。")]
         [SerializeField, Min(0)] private int buildingActionPower = 100;
@@ -86,6 +81,8 @@ namespace Landsong.BuildingSystem
         [Tooltip("建筑视觉控制器。BuildingBase 只持有引用，具体动画播放逻辑由 BuildingView 控制。")]
         [SerializeField] private BuildingView view;
 
+        [SerializeField] private BuildingPresentationController presentationController;
+
       
         // 当前建筑接入的游戏系统。库存、回合、全局服务都从 GameSystem 获取。
         private Landsong.GameSystem gameSystem;
@@ -104,23 +101,40 @@ namespace Landsong.BuildingSystem
         private Coroutine clickScaleCoroutine;
         private Transform clickScaleTarget;
         private Vector3 clickScaleOriginalScale;
+        private BuildingModuleSetDefinition runtimeModuleSet;
+        private string lastConstructionFailureStatusId = string.Empty;
+        private string lastConstructionFailureStatusText = string.Empty;
 
         public event Action<BuildingBase> StateChanged;
         public event Action<BuildingBase> Clicked;
         public event Action<BuildingBase> DoubleClicked;
+        public event Action<BuildingStageChangedEvent> StageChanged;
+        public event Action<BuildingLevelChangedEvent> LevelChanged;
 
         public AudioClip ClickSound => clickSound;
         public AudioClip DoubleClickSound => doubleClickSound;
         internal float DoubleClickInterval => doubleClickInterval;
 
-        // 当前建筑实例对应的静态定义。
-        public BuildingDefinition Definition => definition;
+        public BuildingFamilyDefinition FamilyDefinition => familyDefinition;
+        public BuildingDefinition Definition => familyDefinition?.Definition;
+        public string FamilyId => Definition == null ? string.Empty : Definition.FamilyId;
+        public string InstanceId => runtimeIdentity == null ? string.Empty : runtimeIdentity.InstanceId;
+        public BuildingLifecycleStage Stage => runtimeIdentity == null
+            ? BuildingLifecycleStage.Operational
+            : runtimeIdentity.Stage;
+        public int CurrentLevel => runtimeIdentity == null ? 1 : runtimeIdentity.Level;
+        public string StyleId => runtimeIdentity == null ? string.Empty : runtimeIdentity.StyleId;
+        public int ConstructionProgress => runtimeIdentity == null ? 0 : runtimeIdentity.ConstructionProgress;
+        public bool IsUnderConstruction => Stage == BuildingLifecycleStage.Construction;
+        public bool IsOperational => Stage == BuildingLifecycleStage.Operational;
+        public BuildingPresentationController PresentationController => presentationController;
 
         // 当前建筑的视觉控制器。
         public BuildingView View
         {
             get
             {
+                ResolvePresentationController();
                 ResolveView();
                 return view;
             }
@@ -138,7 +152,9 @@ namespace Landsong.BuildingSystem
         public bool IsDemolishing => isDemolishing;
 
         // 是否已经持有有效 BuildingDefinition 数据。
-        public bool HasDefinition => definition != null && definition.IsValid;
+        public bool HasDefinition => Definition != null
+                                     && Definition.IsValid
+                                     && (familyDefinition == null || familyDefinition.RuntimePrefab != null);
 
         // 是否已经写入格子坐标。
         public bool HasGridPosition => hasGridPosition;
@@ -168,7 +184,9 @@ namespace Landsong.BuildingSystem
         public int BuildingActionPower => Mathf.Max(0, buildingActionPower);
 
         // 根据 Definition 的尺寸和当前原点计算出的占地范围。
-        public GridFootprint Footprint => definition == null ? new GridFootprint(gridPosition, Vector2Int.one) : definition.CreateFootprint(gridPosition);
+        public GridFootprint Footprint => Definition == null
+            ? new GridFootprint(gridPosition, Vector2Int.one)
+            : Definition.CreateFootprint(gridPosition);
 
         public bool RequiresConnectionType(string connectionTypeId)
         {
@@ -178,8 +196,9 @@ namespace Landsong.BuildingSystem
                 return false;
             }
 
-            if (this is IBuildingConnectionConsumer consumer
-                && ContainsConnectionType(consumer.RequiredConnectionTypeIds, connectionTypeId))
+            if (IsUnderConstruction
+                && string.Equals(connectionTypeId, BuildingConnectionTypes.Resource, StringComparison.Ordinal)
+                && familyDefinition?.Construction?.HasAnyCost() == true)
             {
                 return true;
             }
@@ -205,7 +224,7 @@ namespace Landsong.BuildingSystem
         public bool ProvidesConnectionType(string connectionTypeId)
         {
             connectionTypeId = BuildingConnectionTypes.Normalize(connectionTypeId);
-            if (this is IBuildingConnectionProviderSource source)
+            if (TryGetCapability<IBuildingConnectionProviderSource>(out var source))
             {
                 return source.ProvidesConnectionType(connectionTypeId);
             }
@@ -216,14 +235,14 @@ namespace Landsong.BuildingSystem
 
         public int GetConnectionProviderPriority(string connectionTypeId)
         {
-            return this is IBuildingConnectionProviderSource source
+            return TryGetCapability<IBuildingConnectionProviderSource>(out var source)
                 ? source.GetConnectionProviderPriority(BuildingConnectionTypes.Normalize(connectionTypeId))
                 : resourceProviderPriority;
         }
 
         public bool IsConnectionProviderOperational(string connectionTypeId)
         {
-            if (this is IBuildingConnectionProviderSource source)
+            if (TryGetCapability<IBuildingConnectionProviderSource>(out var source))
             {
                 return source.IsConnectionProviderOperational(BuildingConnectionTypes.Normalize(connectionTypeId));
             }
@@ -232,7 +251,7 @@ namespace Landsong.BuildingSystem
                        BuildingConnectionTypes.Normalize(connectionTypeId),
                        BuildingConnectionTypes.Resource,
                        StringComparison.Ordinal)
-                   || this is not IBuildingResourceProviderOperationalState resourceState
+                   || !TryGetCapability<IBuildingResourceProviderOperationalState>(out var resourceState)
                    || resourceState.IsResourceProviderOperational;
         }
 
@@ -247,9 +266,8 @@ namespace Landsong.BuildingSystem
         #region 架构类API
         private void Reset()
         {
-            
-
             EnsureDefinition();
+            ResolvePresentationController();
             ResolveView();
             NormalizeBuildingActionPower();
             NormalizeBuildingModules();
@@ -264,26 +282,31 @@ namespace Landsong.BuildingSystem
             //NormalizeBuildingModules();
         }
 
-        protected virtual void Awake()
+        private void Awake()
         {
             EnsureDefinition();
+            EnsureRuntimeIdentity();
+            CreateRuntimeModulesFromFamily();
+            ResolvePresentationController();
             ResolveView();
             NormalizeClickFeedback();
             NormalizeBuildingActionPower();
             NormalizeBuildingModules();
+            ApplyCurrentLevelConfiguration();
+            presentationController?.Bind(this);
         }
 
         /// <summary>
-        /// Unity Start 阶段自动注册到 GameSystem。子类重写 Start 时必须调用 base.Start()。
+        /// Unity Start 阶段自动注册到 GameSystem。
         /// </summary>
-        protected virtual void Start()
+        private void Start()
         {
             WarnIfMissingClickCollider();
             Landsong.GameSystem.Instance.RegisterBuilding(this);
         }
 
         /// <summary>
-        /// 由 GameSystem 注册流程调用。Definition 从 prefab 内嵌数据读取，GameSystem 从单例获取。
+        /// 由 GameSystem 注册流程调用。静态定义从 FamilyDefinition 读取。
         /// </summary>
         internal void Initialize()
         {
@@ -301,24 +324,86 @@ namespace Landsong.BuildingSystem
             if (!initialized)
             {
                 initialized = true;
-                OnInitialized();
+                DispatchModuleInitialized();
             }
 
             if (gameSystemChanged)
             {
                 if (previousGameSystem != null)
                 {
-                    OnUnregistered();
+                    DispatchModuleUnregistered();
                 }
 
                 if (gameSystem != null)
                 {
-                    OnRegistered();
+                    DispatchModuleRegistered();
                 }
             }
 
             NotifyPlacedIfReady();
+            presentationController?.RefreshImmediate();
             NotifyStateChanged();
+        }
+
+        internal void PrepareForNewConstruction(string selectedStyleId = "")
+        {
+            EnsureRuntimeIdentity();
+            runtimeIdentity.BeginConstruction(selectedStyleId);
+            lastConstructionFailureStatusId = string.Empty;
+            lastConstructionFailureStatusText = string.Empty;
+            presentationController?.Bind(this);
+            presentationController?.RefreshImmediate();
+            NotifyStateChanged();
+        }
+
+        internal void RestoreRuntimeIdentity(
+            string restoredInstanceId,
+            BuildingLifecycleStage restoredStage,
+            int restoredLevel,
+            string restoredStyleId,
+            int restoredConstructionProgress)
+        {
+            EnsureRuntimeIdentity();
+            runtimeIdentity.Restore(
+                restoredInstanceId,
+                restoredStage,
+                restoredLevel,
+                restoredStyleId,
+                restoredConstructionProgress);
+            ApplyCurrentLevelConfiguration();
+            presentationController?.RefreshImmediate();
+            NotifyStateChanged();
+        }
+
+        internal bool TryApplyOperationalLevel(int targetLevel)
+        {
+            if (familyDefinition == null
+                || !IsOperational
+                || !familyDefinition.TryGetLevel(targetLevel, out var target)
+                || !target.IsConfigured)
+            {
+                return false;
+            }
+
+            var previous = runtimeIdentity.SetLevel(targetLevel);
+            try
+            {
+                familyDefinition.ApplyLevel(this, targetLevel);
+                DispatchModuleLevelApplied(previous, targetLevel);
+            }
+            catch (Exception exception)
+            {
+                runtimeIdentity.SetLevel(previous);
+                familyDefinition.ApplyLevel(this, previous);
+                Debug.LogException(exception, this);
+                return false;
+            }
+
+            var change = new BuildingLevelChangedEvent(this, previous, targetLevel);
+            LevelChanged?.Invoke(change);
+            presentationController?.PlayLevelTransition(previous);
+            NotifyStateChanged();
+            return true;
         }
 
         /// <summary>
@@ -331,17 +416,6 @@ namespace Landsong.BuildingSystem
             gridMap = newGridMap;
             hasGridPosition = true;
             NotifyPlacedIfReady();
-            NotifyStateChanged();
-        }
-
-        internal void ReceiveReplacementStateFrom(BuildingBase sourceBuilding)
-        {
-            if (sourceBuilding == null)
-            {
-                return;
-            }
-
-            OnReceiveReplacementState(sourceBuilding);
             NotifyStateChanged();
         }
 
@@ -370,20 +444,6 @@ namespace Landsong.BuildingSystem
             NotifyStateChanged();
         }
 
-        /// <summary>
-        /// 建筑替换已在 GridMap 中完成占用权转移后调用。
-        /// 只解除本实例保存的放置信息，不再清理已经转交给新建筑的格子占用。
-        /// </summary>
-        internal void DetachPlacementAfterOccupancyTransfer()
-        {
-            if (!hasGridPosition)
-            {
-                return;
-            }
-
-            DetachPlacement();
-        }
-
         private void NotifyPlacedIfReady()
         {
             if (!initialized || placedNotified || !hasGridPosition)
@@ -392,7 +452,14 @@ namespace Landsong.BuildingSystem
             }
 
             placedNotified = true;
-            OnPlaced();
+            if (IsOperational)
+            {
+                DispatchModulePlaced();
+            }
+            else
+            {
+                DispatchModuleConstructionStarted();
+            }
         }
 
         /// <summary>
@@ -406,13 +473,13 @@ namespace Landsong.BuildingSystem
             }
 
             isRegistered = false;
-            OnUnregistered();
+            DispatchModuleUnregistered();
             gameSystem = null;
             NotifyStateChanged();
         }
 
         /// <summary>
-        /// 回合系统入口。施工、运营、产出、失败处理都由具体建筑等级的 OnTurn 实现。
+        /// 回合系统入口。施工由核心处理；运营能力按 ModuleSet 顺序执行自动回合模块。
         /// </summary>
         public bool ProcessTurn()
         {
@@ -426,16 +493,14 @@ namespace Landsong.BuildingSystem
                 throw new InvalidOperationException($"Building '{name}' has not been initialized.");
             }
 
-            bool succeeded = OnTurn();
-            if (succeeded)
+            if (IsUnderConstruction)
             {
-                succeeded = ProcessAutomaticTurnModules();
-            }
-            if (succeeded && TryProcessLevelAutoUpgrade())
-            {
-                return true;
+                var constructionSucceeded = ProcessConstructionTurn();
+                NotifyStateChanged();
+                return constructionSucceeded;
             }
 
+            var succeeded = ProcessAutomaticTurnModules();
             NotifyStateChanged();
             return succeeded;
         }
@@ -462,19 +527,234 @@ namespace Landsong.BuildingSystem
             return true;
         }
 
-        private bool TryProcessLevelAutoUpgrade()
+        private void DispatchModuleInitialized()
         {
-            return TryGetModule<BM_等级升级>(out var levelModule)
-                   && levelModule.TryAutoUpgrade(this);
+            for (var i = 0; i < BuildingModules.Count; i++)
+            {
+                if (BuildingModules[i] is IBuildingModuleInitialized module && BuildingModules[i].IsEnabled)
+                {
+                    module.OnBuildingInitialized(this);
+                }
+            }
+        }
+
+        private void DispatchModuleRegistered()
+        {
+            for (var i = 0; i < BuildingModules.Count; i++)
+            {
+                if (BuildingModules[i] is IBuildingModuleRegistered module && BuildingModules[i].IsEnabled)
+                {
+                    module.OnBuildingRegistered(this);
+                }
+            }
+        }
+
+        private void DispatchModulePlaced()
+        {
+            for (var i = 0; i < BuildingModules.Count; i++)
+            {
+                if (BuildingModules[i] is IBuildingModulePlaced module && BuildingModules[i].IsEnabled)
+                {
+                    module.OnBuildingPlaced(this);
+                }
+            }
+        }
+
+        private void DispatchModuleConstructionStarted()
+        {
+            for (var i = 0; i < BuildingModules.Count; i++)
+            {
+                if (BuildingModules[i] is IBuildingModuleConstructionStarted module && BuildingModules[i].IsEnabled)
+                {
+                    module.OnBuildingConstructionStarted(this);
+                }
+            }
+        }
+
+        private void DispatchModuleConstructionCompleted()
+        {
+            for (var i = 0; i < BuildingModules.Count; i++)
+            {
+                if (BuildingModules[i] is IBuildingModuleConstructionCompleted module && BuildingModules[i].IsEnabled)
+                {
+                    module.OnBuildingConstructionCompleted(this);
+                }
+            }
+        }
+
+        private void DispatchModuleLevelApplied(int previousLevel, int currentLevel)
+        {
+            for (var i = 0; i < BuildingModules.Count; i++)
+            {
+                if (BuildingModules[i] is IBuildingModuleLevelApplied module && BuildingModules[i].IsEnabled)
+                {
+                    module.OnBuildingLevelApplied(this, previousLevel, currentLevel);
+                }
+            }
+        }
+
+        private void DispatchModuleUnregistered()
+        {
+            for (var i = BuildingModules.Count - 1; i >= 0; i--)
+            {
+                if (BuildingModules[i] is IBuildingModuleUnregistered module && BuildingModules[i].IsEnabled)
+                {
+                    module.OnBuildingUnregistered(this);
+                }
+            }
+        }
+
+        private void DispatchModuleDemolished()
+        {
+            for (var i = BuildingModules.Count - 1; i >= 0; i--)
+            {
+                if (BuildingModules[i] is IBuildingModuleDemolished module && BuildingModules[i].IsEnabled)
+                {
+                    module.OnBuildingDemolished(this);
+                }
+            }
+        }
+
+        private void DispatchModuleClicked()
+        {
+            for (var i = 0; i < BuildingModules.Count; i++)
+            {
+                if (BuildingModules[i] is IBuildingModuleClicked module && BuildingModules[i].IsEnabled)
+                {
+                    module.OnBuildingClicked(this);
+                }
+            }
+        }
+
+        private void DispatchModuleDoubleClicked()
+        {
+            for (var i = 0; i < BuildingModules.Count; i++)
+            {
+                if (BuildingModules[i] is IBuildingModuleDoubleClicked module && BuildingModules[i].IsEnabled)
+                {
+                    module.OnBuildingDoubleClicked(this);
+                }
+            }
+        }
+
+        private bool ProcessConstructionTurn()
+        {
+            lastConstructionFailureStatusId = string.Empty;
+            lastConstructionFailureStatusText = string.Empty;
+
+            var construction = familyDefinition?.Construction;
+            if (construction == null)
+            {
+                SetConstructionFailure(
+                    BuildingRuntimeStatusCatalog.BS_消耗失败,
+                    "施工配置缺失");
+                return false;
+            }
+
+            var turnIndex = ConstructionProgress;
+            var costs = construction.GetCosts(turnIndex);
+            if (HasAnyValidCost(costs))
+            {
+                if (!BuildingResourceProviderSystem.TrySelectProvider(this, out var providerSelection))
+                {
+                    SetConstructionFailure(
+                        BuildingRuntimeStatusCatalog.BS_无法连接资源点,
+                        "无法连接资源提供点");
+                    return false;
+                }
+
+                var inventory = GameSystem?.Services.Inventory;
+                if (inventory == null)
+                {
+                    SetConstructionFailure(
+                        BuildingRuntimeStatusCatalog.BS_库存缺失,
+                        "库存服务缺失");
+                    return false;
+                }
+
+                if (!inventory.CanAffordBuildingCosts(costs)
+                    || !inventory.TrySpendBuildingCosts(costs))
+                {
+                    SetConstructionFailure(
+                        BuildingRuntimeStatusCatalog.BS_消耗失败,
+                        "施工材料不足");
+                    return false;
+                }
+
+                for (var i = 0; i < costs.Count; i++)
+                {
+                    var cost = costs[i];
+                    if (!cost.IsValid)
+                    {
+                        continue;
+                    }
+
+                    BuildingResourceProviderSystem.RecordProvidedResource(
+                        providerSelection,
+                        this,
+                        new BuildingResourceChange(cost.ItemId, cost.Amount));
+                }
+            }
+
+            runtimeIdentity.AdvanceConstruction();
+            if (ConstructionProgress >= construction.RequiredTurns)
+            {
+                CompleteConstruction();
+            }
+
+            return true;
+        }
+
+        private void CompleteConstruction()
+        {
+            var previousStage = runtimeIdentity.CompleteConstruction();
+            familyDefinition?.ApplyLevel(this, 1);
+            DispatchModuleLevelApplied(0, 1);
+            if (HasPlacement)
+            {
+                DispatchModulePlaced();
+            }
+
+            DispatchModuleConstructionCompleted();
+            var change = new BuildingStageChangedEvent(
+                this,
+                previousStage,
+                BuildingLifecycleStage.Operational);
+            StageChanged?.Invoke(change);
+            presentationController?.PlayStageTransition(previousStage);
+        }
+
+        private void SetConstructionFailure(string statusId, string statusText)
+        {
+            lastConstructionFailureStatusId = string.IsNullOrWhiteSpace(statusId)
+                ? BuildingRuntimeStatusCatalog.BS_消耗失败
+                : statusId.Trim();
+            lastConstructionFailureStatusText = string.IsNullOrWhiteSpace(statusText)
+                ? lastConstructionFailureStatusId
+                : statusText.Trim();
+        }
+
+        private static bool HasAnyValidCost(IReadOnlyList<BuildingCost> costs)
+        {
+            if (costs == null)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < costs.Count; i++)
+            {
+                if (costs[i].IsValid)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public BuildingDataBase CaptureSaveData()
         {
-            var data = CaptureBuildingData();
-            if (data == null && HasCommonSaveData())
-            {
-                data = new CommonBuildingData();
-            }
+            var data = HasCommonSaveData() ? new CommonBuildingData() : null;
 
             if (data != null)
             {
@@ -486,16 +766,13 @@ namespace Landsong.BuildingSystem
 
         public void RestoreSaveData(BuildingDataBase data)
         {
-            RestoreBuildingData(data);
             RestoreCommonSaveData(data);
             NotifyStateChanged();
         }
 
         private bool HasCommonSaveData()
         {
-            return TryGetModule<BM_等级升级>(out _)
-                   || TryGetModule<BM_资源产出>(out _)
-                   || HasSerializableModuleState();
+            return familyDefinition != null || HasSerializableModuleState();
         }
 
         private void CaptureCommonSaveData(BuildingDataBase data)
@@ -503,19 +780,6 @@ namespace Landsong.BuildingSystem
             if (data == null)
             {
                 return;
-            }
-
-            if (TryGetModule<BM_等级升级>(out var levelModule))
-            {
-                data.HasLevelUpgradeModuleData = true;
-                data.LevelUpgradeAutoUpgradeEnabled = levelModule.AutoUpgradeEnabled;
-                data.LevelUpgradeCurrentExperience = levelModule.CurrentExperience;
-            }
-
-            if (TryGetModule<BM_资源产出>(out var productionModule))
-            {
-                data.HasResourceProductionModuleData = true;
-                data.ResourceProductionProgress = productionModule.ProductionProgress;
             }
 
             data.ModuleStates = CaptureModuleStates();
@@ -526,19 +790,6 @@ namespace Landsong.BuildingSystem
             if (data == null)
             {
                 return;
-            }
-
-            if (data.HasLevelUpgradeModuleData
-                && TryGetModule<BM_等级升级>(out var levelModule))
-            {
-                levelModule.SetAutoUpgradeEnabled(data.LevelUpgradeAutoUpgradeEnabled);
-                levelModule.SetExperience(data.LevelUpgradeCurrentExperience);
-            }
-
-            if (data.HasResourceProductionModuleData
-                && TryGetModule<BM_资源产出>(out var productionModule))
-            {
-                productionModule.RestoreProductionProgress(data.ResourceProductionProgress);
             }
 
             RestoreModuleStates(data.ModuleStates);
@@ -590,15 +841,14 @@ namespace Landsong.BuildingSystem
                 }
                 catch (Exception e)
                 {
-                    Debug.LogWarning($"采集建筑模块状态失败：{GetModuleStateTypeId(module)}\n{e.Message}", this);
+                    Debug.LogWarning($"采集建筑模块状态失败：{GetModuleStateId(module)}\n{e.Message}", this);
                     continue;
                 }
 
                 states ??= new List<BuildingModuleStateEntry>();
                 states.Add(new BuildingModuleStateEntry
                 {
-                    ModuleIndex = i,
-                    ModuleTypeId = GetModuleStateTypeId(module),
+                    ModuleId = GetModuleStateId(module),
                     Json = json
                 });
             }
@@ -633,7 +883,7 @@ namespace Landsong.BuildingSystem
                 }
                 catch (Exception e)
                 {
-                    Debug.LogWarning($"恢复建筑模块状态失败：{entry.ModuleTypeId}\n{e.Message}", this);
+                    Debug.LogWarning($"恢复建筑模块状态失败：{entry.ModuleId}\n{e.Message}", this);
                 }
             }
         }
@@ -648,16 +898,9 @@ namespace Landsong.BuildingSystem
                 return false;
             }
 
-            if (entry.ModuleIndex >= 0
-                && entry.ModuleIndex < buildingModules.Count
-                && TryGetModuleStateSerializer(buildingModules[entry.ModuleIndex], entry.ModuleTypeId, out serializer))
-            {
-                return true;
-            }
-
             for (var i = 0; i < buildingModules.Count; i++)
             {
-                if (TryGetModuleStateSerializer(buildingModules[i], entry.ModuleTypeId, out serializer))
+                if (TryGetModuleStateSerializer(buildingModules[i], entry.ModuleId, out serializer))
                 {
                     return true;
                 }
@@ -668,13 +911,13 @@ namespace Landsong.BuildingSystem
 
         private static bool TryGetModuleStateSerializer(
             BuildingModuleBase module,
-            string moduleTypeId,
+            string moduleId,
             out IBuildingModuleStateSerializer serializer)
         {
             serializer = null;
             if (module == null
                 || !module.IsEnabled
-                || !string.Equals(GetModuleStateTypeId(module), moduleTypeId, StringComparison.Ordinal))
+                || !string.Equals(GetModuleStateId(module), moduleId, StringComparison.Ordinal))
             {
                 return false;
             }
@@ -683,9 +926,9 @@ namespace Landsong.BuildingSystem
             return serializer != null;
         }
 
-        private static string GetModuleStateTypeId(BuildingModuleBase module)
+        private static string GetModuleStateId(BuildingModuleBase module)
         {
-            return module == null ? string.Empty : module.GetType().FullName ?? module.GetType().Name;
+            return module == null ? string.Empty : module.ModuleId;
         }
 
         [Serializable]
@@ -714,17 +957,23 @@ namespace Landsong.BuildingSystem
             }
 
             isDemolishing = true;
-            OnDemolished();
+            DispatchModuleDemolished();
             Destroy(gameObject);
         }
 
         /// <summary>
-        /// 建筑销毁时执行架构清理。子类不要重写 OnDestroy；游戏拆除行为重写 OnDemolished。
+        /// 建筑销毁时执行架构清理。游戏拆除行为由模块生命周期处理。
         /// </summary>
-        protected void OnDestroy()
+        private void OnDestroy()
         {
             StopClickScaleFeedback();
             ClearPlacement();
+
+            if (runtimeModuleSet != null)
+            {
+                Destroy(runtimeModuleSet);
+                runtimeModuleSet = null;
+            }
 
             if (gameSystem != null)
             {
@@ -739,7 +988,7 @@ namespace Landsong.BuildingSystem
             Clicked?.Invoke(this);
             PlayClickScaleFeedback();
             PlayPointerClickSound(isDoubleClick);
-            OnClicked();
+            DispatchModuleClicked();
 
             if (!isDoubleClick)
             {
@@ -747,7 +996,7 @@ namespace Landsong.BuildingSystem
             }
 
             DoubleClicked?.Invoke(this);
-            OnDoubleClicked();
+            DispatchModuleDoubleClicked();
         }
 
         private void PlayPointerClickSound(bool isDoubleClick)
@@ -777,18 +1026,12 @@ namespace Landsong.BuildingSystem
         #endregion
 
 
-        //--------------------------------GamePlay-----------------------------------------
-        #region 游戏内容字段
-        [SerializeField, LabelText("自动修复")]
-        public bool autoRepair = false;
-        #endregion
-
-        protected void NotifyStateChanged()
+        internal void NotifyStateChanged()
         {
             StateChanged?.Invoke(this);
         }
 
-        protected void SendBuildingEvent(string eventTypeId, string message)
+        internal void SendBuildingEvent(string eventTypeId, string message)
         {
             GameSystem?.Events?.AddMessage(GameEventMessage.ForBuildingEvent(
                 eventTypeId,
@@ -797,7 +1040,7 @@ namespace Landsong.BuildingSystem
                 GetEventTurnNumber()));
         }
 
-        protected int GetEventTurnNumber()
+        private int GetEventTurnNumber()
         {
             if (GameSystem == null)
             {
@@ -805,11 +1048,6 @@ namespace Landsong.BuildingSystem
             }
 
             return GameSystem.IsAdvancingTurn ? GameSystem.CurrentTurn + 1 : GameSystem.CurrentTurn;
-        }
-
-        protected static bool HasUsableItemId(string itemId)
-        {
-            return !string.IsNullOrWhiteSpace(itemId);
         }
 
         private static bool ContainsConnectionType(
@@ -835,46 +1073,6 @@ namespace Landsong.BuildingSystem
             return false;
         }
 
-        protected static string NormalizeItemId(string itemId, string fallback)
-        {
-            return string.IsNullOrWhiteSpace(itemId) ? fallback : itemId.Trim();
-        }
-
-        protected static IReadOnlyList<BuildingResourceChange> CreateResourceChanges(string itemId, int amount)
-        {
-            var change = new BuildingResourceChange(itemId, amount);
-            return change.IsValid ? new[] { change } : EmptyResourceChanges;
-        }
-
-        protected static string FormatResourceChanges(IReadOnlyList<BuildingResourceChange> changes)
-        {
-            if (changes == null || changes.Count == 0)
-            {
-                return "无";
-            }
-
-            var builder = new System.Text.StringBuilder();
-            for (var i = 0; i < changes.Count; i++)
-            {
-                var change = changes[i];
-                if (!change.IsValid)
-                {
-                    continue;
-                }
-
-                if (builder.Length > 0)
-                {
-                    builder.Append("，");
-                }
-
-                builder.Append(change.ItemId);
-                builder.Append(" x");
-                builder.Append(change.Amount);
-            }
-
-            return builder.Length == 0 ? "无" : builder.ToString();
-        }
-
         public bool TryGetModule<TModule>(out TModule module)
             where TModule : BuildingModuleBase
         {
@@ -894,6 +1092,74 @@ namespace Landsong.BuildingSystem
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// 从建筑宿主或其启用模块中解析一项对外能力。外部系统不得依赖具体建筑派生类型。
+        /// </summary>
+        public bool TryGetCapability<TCapability>(out TCapability capability)
+            where TCapability : class
+        {
+            if (this is TCapability directCapability)
+            {
+                capability = directCapability;
+                return true;
+            }
+
+            if (buildingModules != null)
+            {
+                for (var i = 0; i < buildingModules.Count; i++)
+                {
+                    if (buildingModules[i] is TCapability moduleCapability
+                        && buildingModules[i].IsEnabled)
+                    {
+                        capability = moduleCapability;
+                        return true;
+                    }
+                }
+            }
+
+            capability = null;
+            return false;
+        }
+
+        public List<TCapability> GetCapabilities<TCapability>(List<TCapability> results = null)
+            where TCapability : class
+        {
+            results ??= new List<TCapability>();
+            if (this is TCapability directCapability)
+            {
+                results.Add(directCapability);
+            }
+
+            if (buildingModules == null)
+            {
+                return results;
+            }
+
+            for (var i = 0; i < buildingModules.Count; i++)
+            {
+                if (buildingModules[i] is TCapability moduleCapability
+                    && buildingModules[i].IsEnabled)
+                {
+                    results.Add(moduleCapability);
+                }
+            }
+
+            return results;
+        }
+
+        public TModule GetRequiredModule<TModule>()
+            where TModule : BuildingModuleBase
+        {
+            if (TryGetModule<TModule>(out var module))
+            {
+                return module;
+            }
+
+            throw new InvalidOperationException(
+                $"Building family '{FamilyId}' requires module '{typeof(TModule).Name}', "
+                + "but it is not declared in BuildingModuleSetDefinition.");
         }
 
         public List<TModule> GetModules<TModule>(List<TModule> results = null)
@@ -916,25 +1182,7 @@ namespace Landsong.BuildingSystem
             return results;
         }
 
-        protected TModule EnsureBuildingModule<TModule>() where TModule : BuildingModuleBase, new()
-        {
-            buildingModules ??= new List<BuildingModuleBase>();
-            for (var i = 0; i < buildingModules.Count; i++)
-            {
-                if (buildingModules[i] is TModule candidate && candidate.IsEnabled)
-                {
-                    candidate.Normalize();
-                    return candidate;
-                }
-            }
-
-            var module = new TModule();
-            module.Normalize();
-            buildingModules.Add(module);
-            return module;
-        }
-
-        protected void AppendBuildingModuleFunctionBlockEntries(ref List<BuildingFunctionBlockEntry> entries)
+        private void AppendBuildingModuleFunctionBlockEntries(ref List<BuildingFunctionBlockEntry> entries)
         {
             if (buildingModules == null)
             {
@@ -953,65 +1201,14 @@ namespace Landsong.BuildingSystem
             }
         }
 
-        protected void AppendDefaultResourceFunctionBlockEntries(ref List<BuildingFunctionBlockEntry> entries)
-        {
-            if (this is IBuildingResourceConsumptionSource consumptionSource)
-            {
-                AppendResourceFunctionBlockEntries(
-                    ref entries,
-                    consumptionSource.CurrentResourceConsumptions,
-                    -1);
-            }
-
-            if (this is IBuildingResourceProductionSource productionSource)
-            {
-                AppendResourceFunctionBlockEntries(
-                    ref entries,
-                    productionSource.CurrentResourceProductions,
-                    1);
-            }
-        }
-
-        protected static void AppendResourceFunctionBlockEntries(ref List<BuildingFunctionBlockEntry> entries,IReadOnlyList<BuildingResourceChange> changes,int sign,IReadOnlyList<BuildingFunctionBlockSidebarRow> sidebarRows = null)
-        {
-            if (changes == null)
-            {
-                return;
-            }
-
-            sign = sign < 0 ? -1 : 1;
-            for (var i = 0; i < changes.Count; i++)
-            {
-                var change = changes[i];
-                if (!change.IsValid)
-                {
-                    continue;
-                }
-
-                entries ??= new List<BuildingFunctionBlockEntry>();
-                entries.Add(new BuildingFunctionBlockEntry(
-                    BuildingFunctionBlockGroup.资源组,
-                    change.ItemId,
-                    change.Amount * sign,
-                    sidebarRows));
-            }
-        }
-
-        protected static void AddFunctionBlockEntry(
-            ref List<BuildingFunctionBlockEntry> entries,
-            BuildingFunctionBlockEntry entry)
-        {
-            if (!entry.IsValid)
-            {
-                return;
-            }
-
-            entries ??= new List<BuildingFunctionBlockEntry>();
-            entries.Add(entry);
-        }
-
         private void ResolveView()
         {
+            if (presentationController != null && presentationController.ViewAdapter != null)
+            {
+                view = presentationController.ViewAdapter;
+                return;
+            }
+
             if (view != null)
             {
                 return;
@@ -1026,8 +1223,60 @@ namespace Landsong.BuildingSystem
 
         private void EnsureDefinition()
         {
-            definition ??= new BuildingDefinition();
-            definition.Normalize();
+            if (familyDefinition != null)
+            {
+                familyDefinition.Definition?.Normalize();
+            }
+        }
+
+        private void EnsureRuntimeIdentity()
+        {
+            runtimeIdentity ??= new BuildingRuntimeIdentity();
+            runtimeIdentity.EnsureInitialized();
+        }
+
+        private void ResolvePresentationController()
+        {
+            if (presentationController == null)
+            {
+                presentationController = GetComponent<BuildingPresentationController>();
+            }
+        }
+
+        private void CreateRuntimeModulesFromFamily()
+        {
+            if (familyDefinition?.ModuleSet == null)
+            {
+                return;
+            }
+
+            if (runtimeModuleSet != null)
+            {
+                Destroy(runtimeModuleSet);
+            }
+
+            runtimeModuleSet = familyDefinition.ModuleSet.CreateRuntimeClone();
+            buildingModules = new List<BuildingModuleBase>(runtimeModuleSet.BuildingModules.Count);
+            for (var i = 0; i < runtimeModuleSet.BuildingModules.Count; i++)
+            {
+                buildingModules.Add(runtimeModuleSet.BuildingModules[i]);
+            }
+        }
+
+        private void ApplyCurrentLevelConfiguration()
+        {
+            if (familyDefinition == null || !IsOperational)
+            {
+                return;
+            }
+
+            familyDefinition.ApplyLevel(this, CurrentLevel);
+        }
+
+        public void AssignFamilyDefinition(BuildingFamilyDefinition family)
+        {
+            familyDefinition = family;
+            EnsureDefinition();
         }
 
         private void NormalizeClickFeedback()
@@ -1042,7 +1291,7 @@ namespace Landsong.BuildingSystem
             buildingActionPower = Mathf.Max(0, buildingActionPower);
         }
 
-        protected void NormalizeBuildingModules()
+        private void NormalizeBuildingModules()
         {
             buildingModules ??= new List<BuildingModuleBase>();
 
@@ -1149,62 +1398,54 @@ namespace Landsong.BuildingSystem
         }
 
         /// <summary>
-        /// Definition 第一次写入后调用一次。适合初始化本建筑等级的运行时默认值。
-        /// </summary>
-        protected virtual void OnInitialized()
-        {
-        }
-
-        protected virtual BuildingDataBase CaptureBuildingData()
-        {
-            return null;
-        }
-
-        protected virtual void RestoreBuildingData(BuildingDataBase data)
-        {
-        }
-
-        protected virtual void OnReceiveReplacementState(BuildingBase sourceBuilding)
-        {
-        }
-
-        /// <summary>
-        /// 建筑被 GameSystem 纳入运行时管理后调用。适合注册全局人口、buff、事件监听等。
-        /// </summary>
-        protected abstract void OnRegistered();
-
-        /// <summary>
-        /// 玩家放置完成后调用。此时建筑已经拥有格子位置、Definition 和 GameSystem。
-        /// </summary>
-        protected abstract void OnPlaced();
-
-      
-        /// <summary>
-        /// 建筑每回合逻辑。施工、运营、产出、升级触发都写在这里。返回 false 表示本回合执行失败。
-        /// </summary>
-        protected abstract bool OnTurn();
-
-        /// <summary>
         /// 返回建筑当前需要显示的运行状态。空列表表示 UI 可视为正常。
         /// </summary>
-        public virtual IReadOnlyList<BuildingRuntimeStatus> GetRuntimeStatuses()
-        {
-            return GetCommonRuntimeStatuses();
-        }
-
-        protected IReadOnlyList<BuildingRuntimeStatus> GetCommonRuntimeStatuses()
+        public IReadOnlyList<BuildingRuntimeStatus> GetRuntimeStatuses()
         {
             List<BuildingRuntimeStatus> statuses = null;
+            if (IsOperational && buildingModules != null)
+            {
+                for (var i = 0; i < buildingModules.Count; i++)
+                {
+                    var module = buildingModules[i];
+                    if (module != null && module.IsEnabled)
+                    {
+                        module.AppendRuntimeStatuses(this, ref statuses);
+                    }
+                }
+            }
+
             AppendCommonRuntimeStatuses(ref statuses);
             return statuses ?? EmptyRuntimeStatuses;
         }
 
-        protected void AppendCommonRuntimeStatuses(ref List<BuildingRuntimeStatus> statuses)
+        private void AppendCommonRuntimeStatuses(ref List<BuildingRuntimeStatus> statuses)
         {
+            if (IsUnderConstruction)
+            {
+                var requiredTurns = familyDefinition?.Construction?.RequiredTurns ?? 1;
+                AppendRuntimeStatus(
+                    ref statuses,
+                    new BuildingRuntimeStatus(
+                        "construction",
+                        "施工中",
+                        ConstructionProgress,
+                        requiredTurns));
+            }
+
+            if (!string.IsNullOrWhiteSpace(lastConstructionFailureStatusId))
+            {
+                AppendRuntimeStatus(
+                    ref statuses,
+                    new BuildingRuntimeStatus(
+                        lastConstructionFailureStatusId,
+                        lastConstructionFailureStatusText));
+            }
+
             AppendRuntimeStatus(ref statuses, CreateRoadBlockedStatus());
         }
 
-        protected static void AppendRuntimeStatus(ref List<BuildingRuntimeStatus> statuses, BuildingRuntimeStatus status)
+        private static void AppendRuntimeStatus(ref List<BuildingRuntimeStatus> statuses, BuildingRuntimeStatus status)
         {
             if (!status.IsValid)
             {
@@ -1343,61 +1584,43 @@ namespace Landsong.BuildingSystem
                    || position.Y >= bounds.yMax - 1;
         }
 
-        /// <summary>
-        /// 建筑通过游戏行为被拆除时调用。普通 Destroy 不会触发该钩子。
-        /// </summary>
-        protected virtual void OnDemolished()
-        {
-        }
-
-        /// <summary>
-        /// 建筑从 GameSystem 移除时调用。适合注销事件监听或清理全局占用。
-        /// </summary>
-        protected virtual void OnUnregistered()
-        {
-        }
-
-
-        /// <summary>
-        /// 建筑被点击时调用。默认无行为；具体建筑可按需重写。
-        /// </summary>
-        protected virtual void OnClicked()
-        {
-
-        }
-
-        /// <summary>
-        /// 建筑被双击时调用。默认无行为；具体建筑可按需重写。
-        /// </summary>
-        protected virtual void OnDoubleClicked()
-        {
-        }
-
-
-        public virtual bool CanRepair()
-        {
-            return false;
-        }
-
-        public virtual bool TryRepair()
-        {
-            return false;
-        }
-
-
         #region 信息
         /// <summary>
         /// 建筑在列表、选中栏、底栏中使用的一行基础摘要。
         /// </summary>
-        public virtual string GetOverviewInfo()
+        public string GetOverviewInfo()
         {
-            return string.Empty;
+            if (IsUnderConstruction)
+            {
+                var requiredTurns = familyDefinition?.Construction?.RequiredTurns ?? 1;
+                return $"施工 {ConstructionProgress}/{requiredTurns}";
+            }
+
+            var fragments = new List<string> { $"等级 {CurrentLevel}" };
+            if (buildingModules != null)
+            {
+                for (var i = 0; i < buildingModules.Count; i++)
+                {
+                    var module = buildingModules[i];
+                    if (module == null || !module.IsEnabled)
+                    {
+                        continue;
+                    }
+
+                    var fragment = module.GetOverviewFragment(this);
+                    if (!string.IsNullOrWhiteSpace(fragment))
+                    {
+                        fragments.Add(fragment.Trim());
+                    }
+                }
+            }
+
+            return string.Join("，", fragments);
         }
 
-        public virtual IReadOnlyList<BuildingFunctionBlockEntry> GetFunctionBlockEntries()
+        public IReadOnlyList<BuildingFunctionBlockEntry> GetFunctionBlockEntries()
         {
             List<BuildingFunctionBlockEntry> entries = null;
-            AppendDefaultResourceFunctionBlockEntries(ref entries);
             AppendBuildingModuleFunctionBlockEntries(ref entries);
             return entries == null ? EmptyFunctionBlockEntries : entries;
         }

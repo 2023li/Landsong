@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68f39362795b4135b43f8539369e6f33, type: 3}
+  m_Name: PlayerHomeModules
+  m_EditorClassIdentifier: Assembly-CSharp:Landsong.BuildingSystem:BuildingModuleSetDefinition
+  buildingModules:
+  - rid: 5711026424309612543
+  - rid: 5711026424309612544
+  - rid: 5711026424309612545
+  references:
+    version: 2
+    RefIds:
+    - rid: 5711026424309612543
+      type: {class: "BM_\u56FA\u5B9A\u4EBA\u53E3", ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        enabled: 1
+        population: 10
+        registerAsPalace: 1
+    - rid: 5711026424309612544
+      type: {class: "BM_\u5E93\u5B58\u683C\u5BB9\u91CF", ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        enabled: 1
+        providedSlotCount: 5
+    - rid: 5711026424309612545
+      type: {class: "BM_\u79D1\u6280\u70B9\u4EA7\u51FA", ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        enabled: 1
+        providedTechnologyPointsPerTurn: 1

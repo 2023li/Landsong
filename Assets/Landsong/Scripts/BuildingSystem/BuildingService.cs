@@ -17,11 +17,13 @@ namespace Landsong.BuildingSystem
         public BuildingService(Landsong.GameSystem gameSystem)
         {
             this.gameSystem = gameSystem;
+            Upgrades = new BuildingUpgradeService(gameSystem);
         }
 
         public event Action<BuildingService> BuildingsChanged;
 
         public IReadOnlyList<BuildingBase> Buildings => buildings.Count == 0 ? EmptyBuildings : buildings;
+        public BuildingUpgradeService Upgrades { get; }
 
         public BuildingAvailability EvaluateAvailability(BuildingBase buildingPrefab)
         {
@@ -189,6 +191,7 @@ namespace Landsong.BuildingSystem
                 return BuildingPlacementResult.Fail(BuildingPlacementFailure.InstantiationFailed, "建筑实例化失败。");
             }
 
+            building.PrepareForNewConstruction(request.StyleId);
             building.SetPlacement(request.Origin, occupancyId, request.GridMap);
             building.gameObject.SetActive(true);
 
@@ -266,163 +269,6 @@ namespace Landsong.BuildingSystem
             return new BuildingBatchPlacementResult(true, placedBuildings, BuildingPlacementFailure.None, string.Empty);
         }
 
-        public bool TryReplace(BuildingBase sourceBuilding, BuildingBase replacementPrefab, out BuildingBase replacement)
-        {
-            replacement = null;
-            if (!CanReplace(sourceBuilding, replacementPrefab)
-                || sourceBuilding.Definition == null
-                || replacementPrefab.Definition == null)
-            {
-                return false;
-            }
-
-            var gridMap = sourceBuilding.GridMap;
-            var origin = sourceBuilding.GridPosition;
-            var parent = sourceBuilding.transform.parent;
-            var sourceDefinition = sourceBuilding.Definition;
-            var replacementDefinition = replacementPrefab.Definition;
-            var sourceOccupancyId = sourceBuilding.GridOccupancyId;
-            var replacementOccupancyId = CreateGridOccupancyId(replacementPrefab);
-            var sourceWasRegistered = sourceBuilding.IsRegistered || registeredBuildings.Contains(sourceBuilding);
-            var occupancyTransferred = false;
-            var sourceDetached = false;
-
-            try
-            {
-                var placementPosition = gridMap.GetFootprintCenter(origin, replacementDefinition.Size);
-                replacement = UnityEngine.Object.Instantiate(
-                    replacementPrefab,
-                    placementPosition,
-                    Quaternion.identity,
-                    parent);
-                if (replacement == null)
-                {
-                    Debug.LogWarning(
-                        $"Cannot replace building '{sourceBuilding.name}' because replacement instantiation failed.",
-                        sourceBuilding);
-                    return false;
-                }
-
-                // Start 尚未执行，先禁用实例，避免替换提交前进入运行时注册流程。
-                replacement.gameObject.SetActive(false);
-                replacement.ReceiveReplacementStateFrom(sourceBuilding);
-
-                if (!gridMap.TryReplaceOccupant(
-                        sourceOccupancyId,
-                        origin,
-                        replacementDefinition.Size,
-                        replacementOccupancyId,
-                        replacementDefinition.RequiredTerrainKeys,
-                        replacementDefinition.MovementResistance,
-                        out var failureReason))
-                {
-                    Debug.LogWarning(
-                        $"Cannot replace building '{sourceBuilding.name}' with '{replacementDefinition.DisplayName}' at {origin}: {failureReason}.",
-                        sourceBuilding);
-                    UnityEngine.Object.Destroy(replacement.gameObject);
-                    replacement = null;
-                    return false;
-                }
-
-                occupancyTransferred = true;
-                sourceBuilding.DetachPlacementAfterOccupancyTransfer();
-                sourceDetached = true;
-                replacement.SetPlacement(origin, replacementOccupancyId, gridMap);
-                replacement.gameObject.SetActive(true);
-
-                if (sourceWasRegistered)
-                {
-                    gameSystem?.UnregisterBuilding(sourceBuilding);
-                    gameSystem?.RegisterBuilding(replacement);
-                }
-
-                UnityEngine.Object.Destroy(sourceBuilding.gameObject);
-                return true;
-            }
-            catch (Exception exception)
-            {
-                Debug.LogException(exception, sourceBuilding);
-
-                if (replacement != null)
-                {
-                    gameSystem?.UnregisterBuilding(replacement);
-                }
-
-                if (occupancyTransferred)
-                {
-                    if (gridMap.TryReplaceOccupant(
-                            replacementOccupancyId,
-                            origin,
-                            sourceDefinition.Size,
-                            sourceOccupancyId,
-                            sourceDefinition.RequiredTerrainKeys,
-                            sourceDefinition.MovementResistance,
-                            out var rollbackFailure))
-                    {
-                        if (sourceDetached)
-                        {
-                            sourceBuilding.SetPlacement(origin, sourceOccupancyId, gridMap);
-                        }
-                    }
-                    else
-                    {
-                        Debug.LogError(
-                            $"Building replacement rollback failed for '{sourceBuilding.name}' at {origin}: {rollbackFailure}.",
-                            sourceBuilding);
-                    }
-                }
-
-                if (sourceWasRegistered)
-                {
-                    gameSystem?.RegisterBuilding(sourceBuilding);
-                }
-
-                if (replacement != null)
-                {
-                    UnityEngine.Object.Destroy(replacement.gameObject);
-                    replacement = null;
-                }
-
-                return false;
-            }
-        }
-
-        public bool CanReplace(BuildingBase sourceBuilding, BuildingBase replacementPrefab, bool logWarning = true)
-        {
-            if (sourceBuilding == null || !CanUseBuildingPrefab(replacementPrefab, out var replacementDefinition, logWarning))
-            {
-                return false;
-            }
-
-            if (!sourceBuilding.HasPlacement || sourceBuilding.GridMap == null)
-            {
-                if (logWarning)
-                {
-                    Debug.LogWarning($"Cannot replace building '{sourceBuilding.name}' because it has no grid placement.", sourceBuilding);
-                }
-
-                return false;
-            }
-
-            var gridMap = sourceBuilding.GridMap;
-            var origin = sourceBuilding.GridPosition;
-            var ignoredOccupantId = sourceBuilding.GridOccupancyId;
-
-            if (!gridMap.CanOccupy(origin, replacementDefinition.Size, replacementDefinition.RequiredTerrainKeys, out var failureReason, ignoredOccupantId))
-            {
-                if (logWarning)
-                {
-                    Debug.LogWarning(
-                        $"Cannot replace building '{sourceBuilding.name}' with '{replacementDefinition.DisplayName}' at {origin}: {failureReason}.",
-                        sourceBuilding);
-                }
-
-                return false;
-            }
-
-            return true;
-        }
-
         public void Demolish(BuildingBase building)
         {
             if (building == null)
@@ -477,9 +323,9 @@ namespace Landsong.BuildingSystem
         private static string CreateGridOccupancyId(BuildingBase buildingPrefab)
         {
             var definition = buildingPrefab.Definition;
-            var prefix = definition == null || string.IsNullOrWhiteSpace(definition.BuildingId)
+            var prefix = definition == null || string.IsNullOrWhiteSpace(definition.FamilyId)
                 ? buildingPrefab.name
-                : definition.BuildingId;
+                : definition.FamilyId;
             return $"{prefix}_{Guid.NewGuid():N}";
         }
 

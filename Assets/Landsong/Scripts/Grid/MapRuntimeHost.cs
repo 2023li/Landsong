@@ -141,7 +141,7 @@ namespace Landsong.GridSystem
                     parent,
                     1,
                     false,
-                    true,
+                    false,
                     false);
                 var result = gameSystem.Services.Buildings.TryPlace(request, out var building);
                 if (!result.Succeeded)
@@ -150,6 +150,14 @@ namespace Landsong.GridSystem
                     Rollback(gameSystem.Services.Buildings, created);
                     return false;
                 }
+
+                building.RestoreRuntimeIdentity(
+                    building.InstanceId,
+                    template.BuildingPrefab.Stage,
+                    template.BuildingPrefab.CurrentLevel,
+                    template.BuildingPrefab.StyleId,
+                    template.BuildingPrefab.ConstructionProgress);
+                gameSystem.RegisterBuilding(building);
 
                 created.Add(building);
             }

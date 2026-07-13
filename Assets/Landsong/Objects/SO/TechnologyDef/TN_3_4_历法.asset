@@ -21,13 +21,8 @@ MonoBehaviour:
   prerequisites:
   - {fileID: 11400000, guid: bd13b1fc3bb1e134d9e40a6e591a1057, type: 2}
   - {fileID: 11400000, guid: fef0681c891b44e28689a8416e1a9ddd, type: 2}
-  completionEffects:
-  - rid: 893410000000000002
+  completionEffects: []
   graphPosition: {x: 660, y: 300}
   references:
     version: 2
-    RefIds:
-    - rid: 893410000000000002
-      type: {class: TechnologyEffect_UnlockBuildingBlueprint, ns: Landsong.TechnologySystem, asm: Assembly-CSharp}
-      data:
-        buildingPrefab: {fileID: 1273407421134397176, guid: 7201a17d426e47047abe64250dc1feff, type: 3}
+    RefIds: []

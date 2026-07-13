@@ -37,14 +37,17 @@ public sealed class BuildingDetailsBlock_CropField : BuildingDetailsBlockBase
 
     public override bool CanShow(BuildingBase targetBuilding)
     {
-        return targetBuilding is IBuildingCropFieldSource
-               && targetBuilding is IBuildingCropFieldActions;
+        return targetBuilding != null
+               && targetBuilding.TryGetCapability<IBuildingCropFieldSource>(out _)
+               && targetBuilding.TryGetCapability<IBuildingCropFieldActions>(out _);
     }
 
     public override void Bind(BuildingBase targetBuilding)
     {
-        cropSource = targetBuilding as IBuildingCropFieldSource;
-        cropActions = targetBuilding as IBuildingCropFieldActions;
+        cropSource = null;
+        cropActions = null;
+        targetBuilding?.TryGetCapability(out cropSource);
+        targetBuilding?.TryGetCapability(out cropActions);
         if (cropSource == null || cropActions == null)
         {
             Unbind();

@@ -8,6 +8,7 @@ namespace Landsong.GridSystem
     [CreateAssetMenu(menuName = "Landsong/Grid/Overlay Channel", fileName = "GridOverlayChannel")]
     public sealed class GridOverlayChannelDefinition : ScriptableObject
     {
+        
         [SerializeField, LabelText("稳定 Channel ID")]
         private string channelId;
 

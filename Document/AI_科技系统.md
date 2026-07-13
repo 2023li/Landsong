@@ -103,7 +103,7 @@
 
 `TechnologyEffect` 继续负责实际玩法效果，同时通过 `TryGetPresentation(...)` 提供只读展示数据：图标、名称、类型和数量。节点 UI 不判断具体效果子类，也不执行效果；它只读取 `TechnologyDefinition.CompletionEffects` 并在“解锁内容”区域生成最多 5 个图标。目前物品奖励和建筑蓝图解锁已经实现该展示契约，后续新增效果子类时应同时补充展示数据。
 
-建筑解锁只使用一套蓝图状态：`BuildingBlueprintService` 是唯一运行时真相并负责存档；所有建造菜单建筑都必须拥有蓝图才可用，不再存在 `BuildingDefinition.availableCondition`。`TechnologyEffect_UnlockBuildingBlueprint` 只是科技完成时向该服务授予蓝图的命令，不单独保存状态。科技解锁建筑时，将建筑配置为 `blueprintInitiallyLocked`，并在对应科技的 `CompletionEffects` 中配置蓝图效果；不要再用 `visibleCondition` 重复检查同一个科技。旧存档恢复后会补齐初始蓝图及已完成科技授予的蓝图，但不会重放物品等奖励。
+建筑解锁只使用一套蓝图状态：`BuildingBlueprintService` 是唯一运行时真相并负责存档；所有建造菜单家族都必须拥有蓝图才可用，不再存在 `BuildingDefinition.availableCondition`。`TechnologyEffect_UnlockBuildingBlueprint` 只是科技完成时向该服务授予 FamilyId 蓝图的命令，不单独保存状态。科技解锁建筑时，在 FamilyDefinition 内把家族配置为 `blueprintInitiallyLocked`，并在对应科技的 `CompletionEffects` 中引用该家族唯一 Runtime Prefab；不要为等级创建解锁效果，也不要再用 `visibleCondition` 重复检查同一个科技。本轮不兼容旧建筑存档，不增加旧等级 BuildingId 的补齐或迁移逻辑。
 
 ## 主要代码职责
 

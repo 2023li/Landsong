@@ -429,7 +429,7 @@ namespace Landsong
                     && building.HasDefinition
                     && !building.Definition.BlueprintInitiallyLocked)
                 {
-                    BuildingBlueprints.Unlock(building.Definition.BuildingId);
+                    BuildingBlueprints.Unlock(building.FamilyId);
                 }
             }
         }
@@ -461,7 +461,7 @@ namespace Landsong
                     var building = unlockEffect.BuildingPrefab;
                     if (building != null && building.HasDefinition)
                     {
-                        BuildingBlueprints.Unlock(building.Definition.BuildingId);
+                        BuildingBlueprints.Unlock(building.FamilyId);
                     }
                 }
             }

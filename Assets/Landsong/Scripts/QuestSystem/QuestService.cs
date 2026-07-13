@@ -1280,7 +1280,7 @@ namespace Landsong
                     continue;
                 }
 
-                if (string.Equals(building.Definition.BuildingId, buildingId, StringComparison.Ordinal))
+                if (string.Equals(building.FamilyId, buildingId, StringComparison.Ordinal))
                 {
                     count++;
                 }

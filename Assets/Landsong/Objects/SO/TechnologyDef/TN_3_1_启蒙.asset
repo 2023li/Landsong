@@ -28,4 +28,4 @@ MonoBehaviour:
     - rid: 893410000000000001
       type: {class: TechnologyEffect_UnlockBuildingBlueprint, ns: Landsong.TechnologySystem, asm: Assembly-CSharp}
       data:
-        buildingPrefab: {fileID: 12218147606298111, guid: 06c2b02f49598024ca5a5cb53ebb838d, type: 3}
+        buildingPrefab: {fileID: 2691341205180206682, guid: 55f0fdd00e21caa45b484736b34d5727, type: 3}

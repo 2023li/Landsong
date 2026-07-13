@@ -1311,7 +1311,7 @@ namespace Landsong.TalentSystem
                 return new TalentEffectApplicationResult(talent, effect, false, 0, string.Empty);
             }
 
-            var unlocked = context.Services.BuildingBlueprints.Unlock(building.Definition.BuildingId);
+            var unlocked = context.Services.BuildingBlueprints.Unlock(building.FamilyId);
             var message = unlocked
                 ? $"{talent.DisplayName}：解锁蓝图 {building.Definition.DisplayName}"
                 : $"{talent.DisplayName}：蓝图已解锁 {building.Definition.DisplayName}";

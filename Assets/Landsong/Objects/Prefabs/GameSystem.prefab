@@ -118,7 +118,7 @@ MonoBehaviour:
     objectiveType: 1
     turnLimit: 10
     prerequisiteQuestIds: []
-    targetBuilding: {fileID: 2027023451905461964, guid: 71d3910ce5890e845875aa6bd4154c0a, type: 3}
+    targetBuilding: {fileID: 8640536483753721910, guid: f14acff9a80333a428b3f2920c7920e4, type: 3}
     targetBuildingCount: 3
     requiredResources: []
     rewards:
@@ -134,7 +134,7 @@ MonoBehaviour:
     turnLimit: 12
     prerequisiteQuestIds:
     - main_build_farms_3
-    targetBuilding: {fileID: 4732425292780895895, guid: fe7a88baee6ec2c4785fa2ea7cf9cd59, type: 3}
+    targetBuilding: {fileID: 3750083483410662862, guid: cce99397b7253b64a9bf1716a5067150, type: 3}
     targetBuildingCount: 3
     requiredResources: []
     rewards:

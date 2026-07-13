@@ -1,12 +1,22 @@
 using System;
 using System.Collections.Generic;
-using Landsong.ConditionSystem;
 using Landsong.InventorySystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Landsong.BuildingSystem
 {
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
+    public sealed class BuildingModuleIdAttribute : Attribute
+    {
+        public BuildingModuleIdAttribute(string id)
+        {
+            Id = string.IsNullOrWhiteSpace(id) ? string.Empty : id.Trim();
+        }
+
+        public string Id { get; }
+    }
+
     public interface IBuildingModuleStateSerializer
     {
         bool TryCaptureState(out string json);
@@ -27,6 +37,9 @@ namespace Landsong.BuildingSystem
         [SerializeField, LabelText("启用")] private bool enabled = true;
 
         public bool IsEnabled => enabled;
+        public string ModuleId =>
+            (Attribute.GetCustomAttribute(GetType(), typeof(BuildingModuleIdAttribute)) as BuildingModuleIdAttribute)?.Id
+            ?? string.Empty;
         public virtual string ModuleDescription => "未配置模块作用说明。";
 
         public override string ToString()
@@ -44,6 +57,23 @@ namespace Landsong.BuildingSystem
         {
         }
 
+        /// <summary>
+        /// 返回用于建筑列表的一段简短概览。多个启用模块的文本由统一运行时按顺序组合。
+        /// </summary>
+        public virtual string GetOverviewFragment(BuildingBase building)
+        {
+            return string.Empty;
+        }
+
+        /// <summary>
+        /// 向统一运行时追加本模块产生的异常或进度状态。
+        /// </summary>
+        public virtual void AppendRuntimeStatuses(
+            BuildingBase building,
+            ref List<BuildingRuntimeStatus> statuses)
+        {
+        }
+
         protected static void AddFunctionBlockEntry(
             ref List<BuildingFunctionBlockEntry> entries,
             BuildingFunctionBlockEntry entry)
@@ -55,6 +85,27 @@ namespace Landsong.BuildingSystem
 
             entries ??= new List<BuildingFunctionBlockEntry>();
             entries.Add(entry);
+        }
+
+        protected static void AddRuntimeStatus(
+            ref List<BuildingRuntimeStatus> statuses,
+            BuildingRuntimeStatus status)
+        {
+            if (!status.IsValid)
+            {
+                return;
+            }
+
+            statuses ??= new List<BuildingRuntimeStatus>();
+            for (var i = 0; i < statuses.Count; i++)
+            {
+                if (string.Equals(statuses[i].StatusId, status.StatusId, StringComparison.Ordinal))
+                {
+                    return;
+                }
+            }
+
+            statuses.Add(status);
         }
     }
 
@@ -108,7 +159,11 @@ namespace Landsong.BuildingSystem
     }
 
     [Serializable]
-    public sealed class BM_资源产出 : BuildingModuleBase, IBuildingResourceProductionSource
+    [BuildingModuleId("production")]
+    public sealed class BM_资源产出 : BuildingModuleBase,
+        IBuildingResourceProductionSource,
+        IBuildingModuleStateSerializer,
+        IBuildingAutomaticTurnModule
     {
         private const string StatusMissingInventory = BuildingRuntimeStatusCatalog.BS_库存缺失;
         private const string StatusInsufficientWorkers = BuildingRuntimeStatusCatalog.BS_工人不足;
@@ -116,26 +171,34 @@ namespace Landsong.BuildingSystem
         private const string StatusProductionStorageFailed = "production_storage_failed";
 
         [Serializable]
+        private sealed class ProductionState
+        {
+            public int Progress;
+            public string[] LastItemIds = Array.Empty<string>();
+            public int[] LastAmounts = Array.Empty<int>();
+        }
+
+        [Serializable]
         private struct ResourceProductionOutput
         {
-            [SerializeField, LabelText("资源ID")]
-            private string itemId;
+            [SerializeField, AssetsOnly, LabelText("产出物品")]
+            private ItemDefinition itemDefinition;
 
             [SerializeField, LabelText("工人数产量表")]
             private WorkerProductionTier[] workerProductionTiers;
 
-            public ResourceProductionOutput(string itemId, WorkerProductionTier[] workerProductionTiers)
+            public ResourceProductionOutput(ItemDefinition itemDefinition, WorkerProductionTier[] workerProductionTiers)
             {
-                this.itemId = string.IsNullOrWhiteSpace(itemId) ? string.Empty : itemId.Trim();
+                this.itemDefinition = itemDefinition;
                 this.workerProductionTiers = workerProductionTiers ?? Array.Empty<WorkerProductionTier>();
             }
 
-            public string ItemId => string.IsNullOrWhiteSpace(itemId) ? string.Empty : itemId.Trim();
-            public bool HasUsableItemId => !string.IsNullOrWhiteSpace(ItemId);
+            public ItemDefinition ItemDefinition => itemDefinition;
+            public string ItemId => itemDefinition == null ? string.Empty : itemDefinition.ItemId;
+            public bool HasUsableItemDefinition => itemDefinition != null && !string.IsNullOrWhiteSpace(ItemId);
 
             public ResourceProductionOutput Normalize(int maxWorkers)
             {
-                itemId = ItemId;
                 if (workerProductionTiers == null)
                 {
                     workerProductionTiers = Array.Empty<WorkerProductionTier>();
@@ -279,9 +342,58 @@ namespace Landsong.BuildingSystem
             currentResourceProductions ?? Array.Empty<BuildingResourceChange>();
         public IReadOnlyList<BuildingResourceChange> LastResourceProductions =>
             lastResourceProductions ?? Array.Empty<BuildingResourceChange>();
+        public bool HasOnlyValidConfiguredItemDefinitions
+        {
+            get
+            {
+                if (outputs == null)
+                {
+                    return true;
+                }
+
+                for (var i = 0; i < outputs.Length; i++)
+                {
+                    if (!outputs[i].HasUsableItemDefinition)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+        }
+
+        public void ApplyConfiguration(
+            int intervalTurns,
+            IReadOnlyList<BuildingProductionOutputConfiguration> configurations)
+        {
+            productionIntervalTurns = Mathf.Max(1, intervalTurns);
+            if (configurations == null || configurations.Count == 0)
+            {
+                outputs = Array.Empty<ResourceProductionOutput>();
+                Normalize();
+                return;
+            }
+
+            outputs = new ResourceProductionOutput[configurations.Count];
+            for (var i = 0; i < configurations.Count; i++)
+            {
+                var configuration = configurations[i];
+                var tiers = configuration.WorkerProductionTiers;
+                var copiedTiers = new WorkerProductionTier[tiers.Count];
+                for (var tierIndex = 0; tierIndex < tiers.Count; tierIndex++)
+                {
+                    copiedTiers[tierIndex] = tiers[tierIndex];
+                }
+
+                outputs[i] = new ResourceProductionOutput(configuration.ItemDefinition, copiedTiers);
+            }
+
+            Normalize();
+        }
 
         public void EnsureSingleOutput(
-            string itemId,
+            ItemDefinition itemDefinition,
             int defaultProductionIntervalTurns,
             WorkerProductionTier[] defaultWorkerProductionTiers)
         {
@@ -294,7 +406,7 @@ namespace Landsong.BuildingSystem
             productionIntervalTurns = Mathf.Max(1, defaultProductionIntervalTurns);
             outputs = new[]
             {
-                new ResourceProductionOutput(itemId, defaultWorkerProductionTiers)
+                new ResourceProductionOutput(itemDefinition, defaultWorkerProductionTiers)
             };
             Normalize();
         }
@@ -353,6 +465,45 @@ namespace Landsong.BuildingSystem
             productionProgress = Mathf.Clamp(value, 0, ProductionIntervalTurns);
         }
 
+        public bool TryCaptureState(out string json)
+        {
+            var count = LastResourceProductions.Count;
+            var itemIds = new string[count];
+            var amounts = new int[count];
+            for (var i = 0; i < count; i++)
+            {
+                itemIds[i] = LastResourceProductions[i].ItemId;
+                amounts[i] = LastResourceProductions[i].Amount;
+            }
+
+            json = JsonUtility.ToJson(new ProductionState
+            {
+                Progress = ProductionProgress,
+                LastItemIds = itemIds,
+                LastAmounts = amounts
+            });
+            return !string.IsNullOrWhiteSpace(json);
+        }
+
+        public void RestoreState(string json)
+        {
+            var state = string.IsNullOrWhiteSpace(json)
+                ? null
+                : JsonUtility.FromJson<ProductionState>(json);
+            RestoreProductionProgress(state?.Progress ?? 0);
+            ClearLastResourceProductions();
+            if (state?.LastItemIds == null || state.LastAmounts == null)
+            {
+                return;
+            }
+
+            var count = Mathf.Min(state.LastItemIds.Length, state.LastAmounts.Length);
+            for (var i = 0; i < count; i++)
+            {
+                AppendLastResourceProduction(state.LastItemIds[i], state.LastAmounts[i]);
+            }
+        }
+
         public IReadOnlyList<BuildingResourceChange> PreviewResourceProductions(int workers, int maxWorkers)
         {
             currentResourceProductions = CreateResourceProductions(workers, maxWorkers);
@@ -371,7 +522,7 @@ namespace Landsong.BuildingSystem
             var hasValidOutput = false;
             for (var i = 0; i < outputs.Length; i++)
             {
-                if (!outputs[i].HasUsableItemId)
+                if (!outputs[i].HasUsableItemDefinition)
                 {
                     continue;
                 }
@@ -443,6 +594,47 @@ namespace Landsong.BuildingSystem
             productionProgress = 0;
             lastResourceProductions = productionChanges;
             return new BuildingResourceProductionResult(true, true);
+        }
+
+        public bool ProcessAutomaticTurn(BuildingBase building)
+        {
+            if (!TryResolveWorkforce(building, out var workers, out var maxWorkers))
+            {
+                ClearLastResourceProductions();
+                return false;
+            }
+
+            return TryAdvanceProductionCycle(
+                building,
+                building?.GameSystem?.Services?.Inventory,
+                workers,
+                maxWorkers).Succeeded;
+        }
+
+        public override string GetOverviewFragment(BuildingBase building)
+        {
+            return $"生产 {ProductionProgress}/{ProductionIntervalTurns}";
+        }
+
+        public override void AppendRuntimeStatuses(
+            BuildingBase building,
+            ref List<BuildingRuntimeStatus> statuses)
+        {
+            if (!TryResolveWorkforce(building, out var workers, out var maxWorkers))
+            {
+                return;
+            }
+
+            var requiredWorkers = GetMinimumWorkersForProduction(maxWorkers);
+            AddRuntimeStatus(
+                ref statuses,
+                workers < requiredWorkers
+                    ? new BuildingRuntimeStatus(
+                        StatusInsufficientWorkers,
+                        "工人不足",
+                        workers,
+                        requiredWorkers)
+                    : default);
         }
 
         public override void AppendFunctionBlockEntries(
@@ -558,6 +750,7 @@ namespace Landsong.BuildingSystem
     }
 
     [Serializable]
+    [BuildingModuleId("workforce.nearby_population")]
     public sealed class BM_附近人口岗位吸引 : BuildingModuleBase
     {
         [SerializeField, LabelText("人口搜索半径"), Min(0)]
@@ -582,6 +775,7 @@ namespace Landsong.BuildingSystem
     }
 
     [Serializable]
+    [BuildingModuleId("inventory.capacity")]
     public sealed class BM_库存格容量 : BuildingModuleBase
     {
         [SerializeField, LabelText("提供库存格数"), Min(0)]
@@ -620,6 +814,7 @@ namespace Landsong.BuildingSystem
     }
 
     [Serializable]
+    [BuildingModuleId("expedition.reward_yield")]
     public sealed class BM_远征收益率 : BuildingModuleBase, IBuildingExpeditionRewardYieldSource
     {
         [SerializeField, LabelText("远征收益率加成"), Min(0f)]
@@ -659,6 +854,7 @@ namespace Landsong.BuildingSystem
     }
 
     [Serializable]
+    [BuildingModuleId("technology.points")]
     public sealed class BM_科技点产出 : BuildingModuleBase, IBuildingTechnologyPointSource, IBuildingModuleStateSerializer
     {
         [Serializable]
@@ -738,389 +934,4 @@ namespace Landsong.BuildingSystem
         }
     }
 
-    [Serializable]
-    public sealed class BM_施工材料消耗 : BuildingModuleBase,
-        IBuildingConnectionConsumerModule,
-        IBuildingModuleStateSerializer
-    {
-        private static readonly IReadOnlyList<string> RequiredConnections =
-            new[] { BuildingConnectionTypes.Resource };
-
-        [Serializable]
-        private struct ConstructionTurnCost
-        {
-            [SerializeField, LabelText("本回合消耗")]
-            private BuildingCost[] costs;
-
-            public IReadOnlyList<BuildingCost> Costs => costs ?? Array.Empty<BuildingCost>();
-
-            public ConstructionTurnCost Normalize()
-            {
-                costs ??= Array.Empty<BuildingCost>();
-                for (var i = 0; i < costs.Length; i++)
-                {
-                    costs[i] = costs[i].Normalized();
-                }
-
-                return this;
-            }
-        }
-
-        [Serializable]
-        private sealed class ConstructionConsumptionState
-        {
-            public int LastCompletedTurnIndex = -1;
-        }
-
-        [SerializeField, LabelText("逐回合施工消耗")]
-        private ConstructionTurnCost[] turnCosts = Array.Empty<ConstructionTurnCost>();
-
-        private int lastCompletedTurnIndex = -1;
-
-        public override string ModuleDescription => "连接一个 Resource 提供点后，按施工进度扣除当前回合配置的材料；扣除成功后由在建脚本推进等级升级经验。";
-        public IReadOnlyList<string> RequiredConnectionTypeIds => RequiredConnections;
-        public int ConfiguredTurnCount => turnCosts == null ? 0 : turnCosts.Length;
-        public IReadOnlyList<BuildingResourceChange> LastResourceConsumptions =>
-            CreateResourceChanges(lastCompletedTurnIndex);
-
-        public override void Normalize()
-        {
-            turnCosts ??= Array.Empty<ConstructionTurnCost>();
-            for (var i = 0; i < turnCosts.Length; i++)
-            {
-                turnCosts[i] = turnCosts[i].Normalize();
-            }
-
-            if (lastCompletedTurnIndex < -1 || lastCompletedTurnIndex >= turnCosts.Length)
-            {
-                lastCompletedTurnIndex = -1;
-            }
-        }
-
-        public IReadOnlyList<BuildingResourceChange> GetResourceConsumptionsForTurn(int turnIndex)
-        {
-            return CreateResourceChanges(turnIndex);
-        }
-
-        public IReadOnlyList<BuildingCost> GetTotalConstructionCosts()
-        {
-            Normalize();
-            List<BuildingCost> totals = null;
-            for (var turnIndex = 0; turnIndex < turnCosts.Length; turnIndex++)
-            {
-                var costs = turnCosts[turnIndex].Costs;
-                for (var costIndex = 0; costIndex < costs.Count; costIndex++)
-                {
-                    var cost = costs[costIndex];
-                    if (!cost.IsValid)
-                    {
-                        continue;
-                    }
-
-                    totals ??= new List<BuildingCost>();
-                    var existingIndex = FindCostIndex(totals, cost.ItemId);
-                    if (existingIndex < 0)
-                    {
-                        totals.Add(cost);
-                        continue;
-                    }
-
-                    var existing = totals[existingIndex];
-                    totals[existingIndex] = new BuildingCost(
-                        existing.ItemDefinition == null ? cost.ItemDefinition : existing.ItemDefinition,
-                        existing.Amount + cost.Amount);
-                }
-            }
-
-            return totals == null ? Array.Empty<BuildingCost>() : totals;
-        }
-
-        public bool TryConsumeForTurn(
-            BuildingBase building,
-            int turnIndex,
-            out string failureStatusId,
-            out string failureStatusText)
-        {
-            Normalize();
-            lastCompletedTurnIndex = -1;
-            failureStatusId = string.Empty;
-            failureStatusText = string.Empty;
-
-            if (!TryGetValidCosts(turnIndex, out var costs))
-            {
-                failureStatusId = BuildingRuntimeStatusCatalog.BS_消耗失败;
-                failureStatusText = "施工材料配置异常";
-                return false;
-            }
-
-            if (!BuildingResourceProviderSystem.TrySelectProvider(building, out var providerSelection))
-            {
-                failureStatusId = BuildingRuntimeStatusCatalog.BS_无法连接资源点;
-                failureStatusText = "无法连接资源提供点";
-                return false;
-            }
-
-            var inventory = building == null || building.GameSystem == null
-                ? null
-                : building.GameSystem.Services.Inventory;
-            if (inventory == null)
-            {
-                failureStatusId = BuildingRuntimeStatusCatalog.BS_库存缺失;
-                failureStatusText = "库存服务缺失";
-                return false;
-            }
-
-            if (!inventory.CanAffordBuildingCosts(costs)
-                || !inventory.TrySpendBuildingCosts(costs))
-            {
-                failureStatusId = BuildingRuntimeStatusCatalog.BS_消耗失败;
-                failureStatusText = "施工材料不足";
-                return false;
-            }
-
-            lastCompletedTurnIndex = turnIndex;
-            var consumptions = CreateResourceChanges(turnIndex);
-            for (var i = 0; i < consumptions.Count; i++)
-            {
-                BuildingResourceProviderSystem.RecordProvidedResource(
-                    providerSelection,
-                    building,
-                    consumptions[i]);
-            }
-
-            return true;
-        }
-
-        public bool TryCaptureState(out string json)
-        {
-            json = JsonUtility.ToJson(new ConstructionConsumptionState
-            {
-                LastCompletedTurnIndex = lastCompletedTurnIndex
-            });
-            return !string.IsNullOrWhiteSpace(json);
-        }
-
-        public void RestoreState(string json)
-        {
-            if (string.IsNullOrWhiteSpace(json))
-            {
-                lastCompletedTurnIndex = -1;
-                return;
-            }
-
-            var state = JsonUtility.FromJson<ConstructionConsumptionState>(json);
-            lastCompletedTurnIndex = state == null ? -1 : state.LastCompletedTurnIndex;
-            Normalize();
-        }
-
-        private bool TryGetValidCosts(int turnIndex, out IReadOnlyList<BuildingCost> costs)
-        {
-            costs = Array.Empty<BuildingCost>();
-            if (turnIndex < 0 || turnCosts == null || turnIndex >= turnCosts.Length)
-            {
-                return false;
-            }
-
-            var configuredCosts = turnCosts[turnIndex].Costs;
-            for (var i = 0; i < configuredCosts.Count; i++)
-            {
-                if (configuredCosts[i].IsValid)
-                {
-                    costs = configuredCosts;
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private IReadOnlyList<BuildingResourceChange> CreateResourceChanges(int turnIndex)
-        {
-            if (!TryGetValidCosts(turnIndex, out var costs))
-            {
-                return Array.Empty<BuildingResourceChange>();
-            }
-
-            List<BuildingResourceChange> changes = null;
-            for (var i = 0; i < costs.Count; i++)
-            {
-                var cost = costs[i];
-                var change = new BuildingResourceChange(cost.ItemId, cost.Amount);
-                if (!change.IsValid)
-                {
-                    continue;
-                }
-
-                changes ??= new List<BuildingResourceChange>();
-                changes.Add(change);
-            }
-
-            return changes == null ? Array.Empty<BuildingResourceChange>() : changes;
-        }
-
-        private static int FindCostIndex(IReadOnlyList<BuildingCost> costs, string itemId)
-        {
-            for (var i = 0; i < costs.Count; i++)
-            {
-                if (string.Equals(costs[i].ItemId, itemId, StringComparison.Ordinal))
-                {
-                    return i;
-                }
-            }
-
-            return -1;
-        }
-    }
-
-    [Serializable]
-    public sealed class BM_等级升级 : BuildingModuleBase
-    {
-        [SerializeField, LabelText("自动升级")]
-        private bool autoUpgradeEnabled = true;
-
-        [SerializeField, LabelText("当前经验"), Min(0)]
-        private int currentExperience;
-
-        [SerializeField, LabelText("升级所需经验"), Min(1)]
-        private int requiredExperience = 10;
-
-        [SerializeField, LabelText("升级目标预制体")]
-        private BuildingBase upgradeTargetPrefab;
-
-        [SerializeReference, LabelText("升级条件")]
-        private GameCondition upgradeCondition;
-
-        [SerializeField, LabelText("升级消耗")]
-        private BuildingCost[] upgradeCosts = Array.Empty<BuildingCost>();
-
-        public override string ModuleDescription => "保存升级经验，检查升级条件和消耗，满足后把当前建筑替换为目标 prefab。";
-        public bool AutoUpgradeEnabled => autoUpgradeEnabled;
-        public int CurrentExperience => Mathf.Max(0, currentExperience);
-        public int RequiredExperience => Mathf.Max(1, requiredExperience);
-        public BuildingBase UpgradeTargetPrefab => upgradeTargetPrefab;
-        public GameCondition UpgradeCondition => upgradeCondition;
-        public IReadOnlyList<BuildingCost> UpgradeCosts => upgradeCosts ?? Array.Empty<BuildingCost>();
-        public float ExperienceProgress => Mathf.Clamp01(CurrentExperience / (float)RequiredExperience);
-        public bool IsReadyToUpgrade => CurrentExperience >= RequiredExperience;
-        public bool HasUpgradeCosts => HasAnyValidCost(UpgradeCosts);
-
-        public override void Normalize()
-        {
-            currentExperience = Mathf.Max(0, currentExperience);
-            requiredExperience = Mathf.Max(1, requiredExperience);
-            NormalizeCosts();
-        }
-
-        public void SetAutoUpgradeEnabled(bool enabled)
-        {
-            autoUpgradeEnabled = enabled;
-        }
-
-        public void SetExperience(int experience)
-        {
-            currentExperience = Mathf.Clamp(experience, 0, RequiredExperience);
-        }
-
-        public void AddExperience(int experience)
-        {
-            if (experience <= 0)
-            {
-                return;
-            }
-
-            SetExperience(CurrentExperience + experience);
-        }
-
-        public bool CanUpgrade(BuildingBase building)
-        {
-            return building != null
-                   && IsReadyToUpgrade
-                   && upgradeTargetPrefab != null
-                   && upgradeTargetPrefab.HasDefinition
-                   && building.GameSystem != null
-                   && building.GameSystem.Services.Buildings != null
-                   && IsUpgradeConditionMet(building)
-                   && building.GameSystem.Services.Buildings.CanReplace(building, upgradeTargetPrefab, false)
-                   && CanAffordUpgradeCosts(building);
-        }
-
-        public bool TryUpgrade(BuildingBase building)
-        {
-            if (!CanUpgrade(building))
-            {
-                return false;
-            }
-
-            if (!TrySpendUpgradeCosts(building))
-            {
-                return false;
-            }
-
-            return building.GameSystem.Services.Buildings.TryReplace(building, upgradeTargetPrefab, out _);
-        }
-
-        public bool TryAutoUpgrade(BuildingBase building)
-        {
-            return autoUpgradeEnabled && TryUpgrade(building);
-        }
-
-        public bool CanAffordUpgradeCosts(BuildingBase building)
-        {
-            if (!HasUpgradeCosts)
-            {
-                return true;
-            }
-
-            var inventory = building == null || building.GameSystem == null ? null : building.GameSystem.Services.Inventory;
-            return inventory != null && inventory.CanAffordBuildingCosts(UpgradeCosts);
-        }
-
-        private bool TrySpendUpgradeCosts(BuildingBase building)
-        {
-            if (!HasUpgradeCosts)
-            {
-                return true;
-            }
-
-            var inventory = building == null || building.GameSystem == null ? null : building.GameSystem.Services.Inventory;
-            return inventory != null && inventory.TrySpendBuildingCosts(UpgradeCosts);
-        }
-
-        private bool IsUpgradeConditionMet(BuildingBase building)
-        {
-            return upgradeCondition == null || upgradeCondition.IsMet(building.GameSystem);
-        }
-
-        private void NormalizeCosts()
-        {
-            if (upgradeCosts == null)
-            {
-                upgradeCosts = Array.Empty<BuildingCost>();
-                return;
-            }
-
-            for (var i = 0; i < upgradeCosts.Length; i++)
-            {
-                upgradeCosts[i] = upgradeCosts[i].Normalized();
-            }
-        }
-
-        private static bool HasAnyValidCost(IReadOnlyList<BuildingCost> costs)
-        {
-            if (costs == null)
-            {
-                return false;
-            }
-
-            for (var i = 0; i < costs.Count; i++)
-            {
-                if (costs[i].IsValid)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-    }
 }

@@ -370,7 +370,7 @@ public class Popup_BuildingDetails : MonoBehaviour
             return $"状态：{displayData.StatusInfoText}";
         }
 
-        return targetBuilding.Definition == null ? string.Empty : targetBuilding.Definition.BuildingId;
+        return targetBuilding == null ? string.Empty : targetBuilding.FamilyId;
     }
 
     private static string FormatSidebarRow(BuildingDetailsSidebarRow row)

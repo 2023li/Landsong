@@ -8,7 +8,15 @@ using UnityEngine;
 namespace Landsong.BuildingSystem
 {
     [Serializable]
-    public sealed class BuildingCropGrowthModule : BuildingModuleBase, IBuildingCropFieldSource, IBuildingModuleStateSerializer
+    [BuildingModuleId("crop")]
+    public sealed class BuildingCropGrowthModule : BuildingModuleBase,
+        IBuildingCropFieldSource,
+        IBuildingCropFieldActions,
+        IBuildingModuleStateSerializer,
+        IBuildingModuleInitialized,
+        IBuildingModuleRegistered,
+        IBuildingModuleLevelApplied,
+        IBuildingAutomaticTurnModule
     {
         private const string StatusMissingInventory = BuildingRuntimeStatusCatalog.BS_库存缺失;
         private const string StatusInsufficientWorkers = BuildingRuntimeStatusCatalog.BS_工人不足;
@@ -156,6 +164,7 @@ namespace Landsong.BuildingSystem
         private IReadOnlyList<BuildingResourceChange> lastHarvestRewards = EmptyHarvestRewards;
         private string lastAbnormalStatusId = string.Empty;
         private string lastAbnormalStatusText = string.Empty;
+        [NonSerialized] private BuildingBase owner;
 
         public override string ModuleDescription => "保存作物配置与种植状态，处理播种、成熟、收获、铲除和自动收获。";
         public string PlantedCropId => string.IsNullOrWhiteSpace(plantedCropId) ? string.Empty : plantedCropId.Trim();
@@ -172,6 +181,103 @@ namespace Landsong.BuildingSystem
         public override string ToString()
         {
             return "BM_作物种植";
+        }
+
+        public void OnBuildingInitialized(BuildingBase building) => Bind(building);
+        public void OnBuildingRegistered(BuildingBase building) => Bind(building);
+
+        public void OnBuildingLevelApplied(
+            BuildingBase building,
+            int previousLevel,
+            int currentLevel) => Bind(building);
+
+        private void Bind(BuildingBase building)
+        {
+            owner = building;
+            Normalize();
+        }
+
+        public bool ProcessAutomaticTurn(BuildingBase building)
+        {
+            Bind(building);
+            ClearLastTurnState();
+            var hasEnoughWorkers = BuildingWorkforceUtility.TryGetSource(building, out var workforce)
+                                   && workforce.CurrentWorkers >= workforce.MaxWorkers;
+            return ProcessTurn(building, hasEnoughWorkers, out _);
+        }
+
+        public bool CanPlant(string cropId) => owner != null && owner.IsOperational && CanPlant(owner, cropId);
+        public bool TryPlant(string cropId)
+        {
+            return RunAction(() => TryPlant(owner, cropId, out _));
+        }
+
+        public bool TryHarvest()
+        {
+            return RunAction(() => TryHarvest(owner, out _));
+        }
+
+        public bool TryClearCrop()
+        {
+            return RunAction(() => TryClearCrop(owner, out _));
+        }
+
+        public bool TrySetAutoHarvestEnabled(bool enabled)
+        {
+            if (owner == null || !owner.IsOperational)
+            {
+                return false;
+            }
+
+            var result = TrySetAutoHarvestEnabled(enabled, out var changed);
+            if (changed)
+            {
+                owner.NotifyStateChanged();
+            }
+
+            return result;
+        }
+
+        private bool RunAction(Func<bool> action)
+        {
+            if (owner == null || !owner.IsOperational || action == null)
+            {
+                return false;
+            }
+
+            var beforeCrop = PlantedCropId;
+            var beforeProgress = GrowthProgressTurns;
+            var beforeAutoHarvest = AutoHarvestEnabled;
+            var result = action();
+            var stateChanged = !string.Equals(beforeCrop, PlantedCropId, StringComparison.Ordinal)
+                               || beforeProgress != GrowthProgressTurns
+                               || beforeAutoHarvest != AutoHarvestEnabled;
+            if (stateChanged)
+            {
+                owner.NotifyStateChanged();
+            }
+
+            return result;
+        }
+
+        public override string GetOverviewFragment(BuildingBase building)
+        {
+            if (!HasCrop)
+            {
+                return "未种植";
+            }
+
+            return IsMature ? "作物可收获" : $"成熟剩余 {RemainingGrowTurns} 回合";
+        }
+
+        public override void AppendRuntimeStatuses(
+            BuildingBase building,
+            ref List<BuildingRuntimeStatus> statuses)
+        {
+            if (TryGetLastRuntimeStatus(out var status))
+            {
+                AddRuntimeStatus(ref statuses, status);
+            }
         }
 
         public override void Normalize()
@@ -238,7 +344,11 @@ namespace Landsong.BuildingSystem
         public bool CanHarvest()
         {
             Normalize();
-            return IsMature && TryGetCrop(PlantedCropId, out var crop) && HasAnyValidHarvestReward(crop);
+            return owner != null
+                   && owner.IsOperational
+                   && IsMature
+                   && TryGetCrop(PlantedCropId, out var crop)
+                   && HasAnyValidHarvestReward(crop);
         }
 
         public bool TryHarvest(BuildingBase owner, out bool stateChanged)
@@ -248,7 +358,7 @@ namespace Landsong.BuildingSystem
 
         public bool CanClearCrop()
         {
-            return HasCrop;
+            return owner != null && owner.IsOperational && HasCrop;
         }
 
         public bool TryClearCrop(BuildingBase owner, out bool stateChanged)

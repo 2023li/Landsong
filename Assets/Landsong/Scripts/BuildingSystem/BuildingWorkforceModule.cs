@@ -11,9 +11,17 @@ namespace Landsong.BuildingSystem
     /// 生产、捕鱼、作物和市场收入仍由各自建筑处理。
     /// </summary>
     [Serializable]
-    public sealed class BM_岗位运营 : BuildingModuleBase, IBuildingWorkforceFundingSource, IBuildingModuleStateSerializer
+    [BuildingModuleId("workforce")]
+    public sealed class BM_岗位运营 : BuildingModuleBase,
+        IBuildingWorkforceFundingSource,
+        IBuildingModuleStateSerializer,
+        IBuildingModuleInitialized,
+        IBuildingModuleRegistered,
+        IBuildingModulePlaced,
+        IBuildingModuleLevelApplied,
+        IBuildingModuleUnregistered,
+        IBuildingAutomaticTurnModule
     {
-        private const string DefaultGoldItemId = "金币";
         private const string StatusMissingInventory = BuildingRuntimeStatusCatalog.BS_库存缺失;
         private const string StatusInvalidGoldItem = BuildingRuntimeStatusCatalog.BS_金币配置异常;
         private const string StatusRecruitGoldMissing = BuildingRuntimeStatusCatalog.BS_招工金币不足;
@@ -37,7 +45,7 @@ namespace Landsong.BuildingSystem
         [TitleGroup("岗位补贴")]
         [SerializeField, LabelText("自动补贴满岗位")] private bool autoFullWorkerSubsidyEnabled;
         [SerializeField, LabelText("目标稳定工人"), Min(0)] private int targetStableWorkers;
-        [SerializeField, LabelText("金币物品")] private string goldItemId = DefaultGoldItemId;
+        [SerializeField, AssetsOnly, LabelText("金币物品")] private ItemDefinition goldItemDefinition;
 
         [TitleGroup("运行时")]
         [SerializeField, ReadOnly] private int currentWorkers;
@@ -79,6 +87,8 @@ namespace Landsong.BuildingSystem
         public float JobAttractionGapToFullWorkers => Mathf.Max(0f, FullWorkerRequiredAttraction - jobAttractionWithoutSubsidy);
         public IReadOnlyList<BuildingWorkforceAttractionFactor> WorkforceAttractionFactors => BuildFactors();
         public bool IsFullyStaffed => currentWorkers >= maxWorkers;
+        public ItemDefinition GoldItemDefinition => goldItemDefinition;
+        private string GoldItemId => goldItemDefinition == null ? string.Empty : goldItemDefinition.ItemId;
 
         public void Bind(BuildingBase building)
         {
@@ -87,22 +97,65 @@ namespace Landsong.BuildingSystem
             Recalculate(false);
         }
 
-        public void ConfigureDefaultsIfUnset(int max, int initial, float attraction, int recruitCost, bool autoSubsidy, int targetWorkers, string goldItem)
+        public void OnBuildingInitialized(BuildingBase building) => Bind(building);
+        public void OnBuildingRegistered(BuildingBase building) => Bind(building);
+        public void OnBuildingPlaced(BuildingBase building) => OnPlaced(building);
+
+        public void OnBuildingLevelApplied(
+            BuildingBase building,
+            int previousLevel,
+            int currentLevel) => Bind(building);
+
+        public void OnBuildingUnregistered(BuildingBase building) => OnUnregistered(building);
+        public bool ProcessAutomaticTurn(BuildingBase building) => ProcessTurn(building);
+
+        public void ConfigureDefaultsIfUnset(int max, int initial, float attraction, int recruitCost, bool autoSubsidy, int targetWorkers, ItemDefinition goldItem)
         {
             if (defaultsConfigured)
             {
                 return;
             }
 
-            maxWorkers = Mathf.Max(1, max);
+            ApplyConfiguration(max, initial, attraction, recruitCost, autoSubsidy, targetWorkers, goldItem);
+            defaultsConfigured = true;
+        }
+
+        public void ApplyConfiguration(
+            int max,
+            int initial,
+            float attraction,
+            int recruitCost,
+            bool defaultAutoSubsidy,
+            int defaultTargetWorkers,
+            ItemDefinition goldItem)
+        {
+            var requestedMax = Mathf.Max(1, max);
+            if (currentWorkers > requestedMax)
+            {
+                Debug.LogError(
+                    $"岗位等级配置不能把最大岗位从当前工人数 {currentWorkers} 降到 {requestedMax}。已保留当前工人数以避免升级丢失状态。");
+                requestedMax = currentWorkers;
+            }
+
+            maxWorkers = requestedMax;
             initialWorkersOnPlaced = Mathf.Clamp(initial, 0, maxWorkers);
             baseJobAttraction = Mathf.Max(0f, attraction);
             singleRecruitCost = Mathf.Max(0, recruitCost);
-            autoFullWorkerSubsidyEnabled = autoSubsidy;
-            targetStableWorkers = Mathf.Clamp(targetWorkers, 0, maxWorkers);
-            goldItemId = string.IsNullOrWhiteSpace(goldItem) ? DefaultGoldItemId : goldItem.Trim();
+            goldItemDefinition = goldItem;
+
+            if (!initialWorkersGranted)
+            {
+                autoFullWorkerSubsidyEnabled = defaultAutoSubsidy;
+                targetStableWorkers = Mathf.Clamp(defaultTargetWorkers, 0, maxWorkers);
+            }
+            else
+            {
+                targetStableWorkers = Mathf.Clamp(targetStableWorkers, 0, maxWorkers);
+            }
+
             defaultsConfigured = true;
             Normalize();
+            Recalculate(false);
         }
 
         public void OnPlaced(BuildingBase building)
@@ -157,6 +210,7 @@ namespace Landsong.BuildingSystem
             }
 
             Recalculate(false);
+            owner?.NotifyStateChanged();
         }
 
         public void SetTargetStableWorkers(int value)
@@ -165,13 +219,14 @@ namespace Landsong.BuildingSystem
             Recalculate(false);
             targetStableWorkers = Mathf.Clamp(value, stableWorkersWithoutSubsidy, maxWorkers);
             Recalculate(false);
+            owner?.NotifyStateChanged();
         }
 
         public bool TryRecruitToFull()
         {
             ClearRecruitState();
             var inventory = owner?.GameSystem?.Services.Inventory;
-            if (inventory == null || string.IsNullOrWhiteSpace(goldItemId))
+            if (inventory == null || string.IsNullOrWhiteSpace(GoldItemId))
             {
                 return false;
             }
@@ -183,7 +238,7 @@ namespace Landsong.BuildingSystem
             }
 
             var cost = CalculateRecruitCost();
-            if (cost > 0 && !inventory.TryRemoveItem(goldItemId, cost))
+            if (cost > 0 && !inventory.TryRemoveItem(GoldItemId, cost))
             {
                 return false;
             }
@@ -191,7 +246,30 @@ namespace Landsong.BuildingSystem
             currentWorkers++;
             Recalculate();
             RefreshEmployedPopulation();
+            owner?.NotifyStateChanged();
             return true;
+        }
+
+        public override string GetOverviewFragment(BuildingBase building)
+        {
+            Bind(building);
+            return $"工人 {CurrentWorkers}/{MaxWorkers}";
+        }
+
+        public override void AppendRuntimeStatuses(
+            BuildingBase building,
+            ref List<BuildingRuntimeStatus> statuses)
+        {
+            Bind(building);
+            AddRuntimeStatus(
+                ref statuses,
+                CurrentWorkers < MaxWorkers
+                    ? new BuildingRuntimeStatus(
+                        BuildingRuntimeStatusCatalog.BS_工人不足,
+                        "工人不足",
+                        CurrentWorkers,
+                        MaxWorkers)
+                    : default);
         }
 
         public override void Normalize()
@@ -202,7 +280,6 @@ namespace Landsong.BuildingSystem
             singleRecruitCost = Mathf.Max(0, singleRecruitCost);
             targetStableWorkers = Mathf.Clamp(targetStableWorkers, 0, maxWorkers);
             currentWorkers = Mathf.Clamp(currentWorkers, 0, maxWorkers);
-            goldItemId = string.IsNullOrWhiteSpace(goldItemId) ? DefaultGoldItemId : goldItemId.Trim();
         }
 
         public bool TryCaptureState(out string json)
@@ -262,7 +339,7 @@ namespace Landsong.BuildingSystem
                 return true;
             }
 
-            if (string.IsNullOrWhiteSpace(goldItemId) || !inventory.TryRemoveItem(goldItemId, targetSubsidyGoldPerTurn))
+            if (string.IsNullOrWhiteSpace(GoldItemId) || !inventory.TryRemoveItem(GoldItemId, targetSubsidyGoldPerTurn))
             {
                 return false;
             }
@@ -312,7 +389,7 @@ namespace Landsong.BuildingSystem
         {
             var inventory = owner?.GameSystem?.Services.Inventory;
             var cost = CalculateRecruitCost();
-            return CalculateRecruitCount() > 0 && inventory != null && (cost <= 0 || inventory.GetQuantity(goldItemId) >= cost);
+            return CalculateRecruitCount() > 0 && inventory != null && (cost <= 0 || inventory.GetQuantity(GoldItemId) >= cost);
         }
 
         private IReadOnlyList<BuildingWorkforceAttractionFactor> BuildFactors()
@@ -342,27 +419,13 @@ namespace Landsong.BuildingSystem
     {
         public static bool TryGetSource(BuildingBase building, out IBuildingWorkforceFundingSource source)
         {
-            if (building is IBuildingWorkforceModuleHost moduleHost)
+            if (building != null
+                && building.TryGetCapability<IBuildingWorkforceFundingSource>(out source))
             {
-                var module = moduleHost.GetWorkforceModule();
-                if (module != null)
+                if (source is BM_岗位运营 module)
                 {
                     module.Bind(building);
-                    source = module;
-                    return true;
                 }
-            }
-
-            if (building is IBuildingWorkforceFundingSource legacySource)
-            {
-                source = legacySource;
-                return true;
-            }
-
-            if (building != null && building.TryGetModule<BM_岗位运营>(out var workforceModule))
-            {
-                workforceModule.Bind(building);
-                source = workforceModule;
                 return true;
             }
 

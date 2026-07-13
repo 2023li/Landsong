@@ -51,10 +51,10 @@
 
 | 字段 | 说明 |
 | --- | --- |
-| `targetBuilding` | 目标建筑的 `BuildingBase` 预制体引用。 |
+| `targetBuilding` | 目标建筑家族的唯一 Runtime Prefab（`BuildingBase`）引用；任务运行时取其 `FamilyId`。 |
 | `targetBuildingCount` | 需要建造的数量。 |
 
-例如“建造 3 个农田”使用农田预制体和数量 3。建造进度由 `GameSystem` 监听建筑服务刷新，不应在 UI 中手动累加。
+例如“建造 3 个农田”使用 `FarmFieldRuntime` 和数量 3。任务按 `building.farm_field` FamilyId 统计，不引用施工/LV1/LV2 Prefab。建造进度由 `GameSystem` 监听建筑服务刷新，不应在 UI 中手动累加。
 
 当前一个 `GameQuestDefinition` 只能有一种目标类型，且建造任务只能指定一种建筑。若需要“建造 3 个居民房且建造 3 个农田”这种复合目标，需要先扩展任务数据结构和完成判定，不能仅靠 UI 增加两行文本伪造。
 

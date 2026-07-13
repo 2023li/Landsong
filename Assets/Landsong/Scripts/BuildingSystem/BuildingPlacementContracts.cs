@@ -29,7 +29,8 @@ namespace Landsong.BuildingSystem
             int costMultiplier = 1,
             bool spendPlacementCosts = false,
             bool registerImmediately = false,
-            bool logWarnings = true)
+            bool logWarnings = true,
+            string styleId = "")
         {
             BuildingPrefab = buildingPrefab;
             GridMap = gridMap;
@@ -39,6 +40,7 @@ namespace Landsong.BuildingSystem
             SpendPlacementCosts = spendPlacementCosts;
             RegisterImmediately = registerImmediately;
             LogWarnings = logWarnings;
+            StyleId = string.IsNullOrWhiteSpace(styleId) ? string.Empty : styleId.Trim();
         }
 
         public BuildingBase BuildingPrefab { get; }
@@ -49,6 +51,7 @@ namespace Landsong.BuildingSystem
         public bool SpendPlacementCosts { get; }
         public bool RegisterImmediately { get; }
         public bool LogWarnings { get; }
+        public string StyleId { get; }
 
         public BuildingPlacementRequest WithOrigin(GridPosition origin)
         {
@@ -60,7 +63,8 @@ namespace Landsong.BuildingSystem
                 CostMultiplier,
                 SpendPlacementCosts,
                 RegisterImmediately,
-                LogWarnings);
+                LogWarnings,
+                StyleId);
         }
     }
 

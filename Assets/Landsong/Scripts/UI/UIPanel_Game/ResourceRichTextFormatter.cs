@@ -1,3 +1,4 @@
+using Landsong.ExpeditionSystem;
 using Landsong.InventorySystem;
 using TMPro;
 
@@ -16,7 +17,7 @@ namespace Landsong.UISystem
             {
                 return;
             }
-
+           
             target.richText = true;
             if (spriteAsset != null)
             {

@@ -307,7 +307,7 @@ public class LoadScene_Game : SceneLoadingPipeline
             return true;
         }
 
-        var defaultFocusBuildingId = cameraController == null ? "PlayerHomeLV1" : cameraController.DefaultFocusBuildingId;
+        var defaultFocusBuildingId = cameraController == null ? "building.player_home" : cameraController.DefaultFocusBuildingId;
         return TryFindBuildingById(defaultFocusBuildingId, out building);
     }
 
@@ -334,7 +334,7 @@ public class LoadScene_Game : SceneLoadingPipeline
 
         return TryFindBuildingInternal(
             candidate => candidate.HasDefinition
-                         && string.Equals(candidate.Definition.BuildingId, buildingId, StringComparison.Ordinal),
+                         && string.Equals(candidate.FamilyId, buildingId, StringComparison.Ordinal),
             out building);
     }
 

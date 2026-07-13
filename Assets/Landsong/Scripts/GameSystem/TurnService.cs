@@ -10,10 +10,11 @@ namespace Landsong.TurnSystem
         private static readonly IReadOnlyList<BuildingBase> EmptyBuildings = Array.Empty<BuildingBase>();
         private readonly List<BM_科技点产出> technologyPointModules =
             new List<BM_科技点产出>();
-        private readonly List<BM_资源产出> resourceProductionModules =
-            new List<BM_资源产出>();
-        private readonly List<BM_资源加工> resourceProcessingModules =
-            new List<BM_资源加工>();
+        private readonly List<IBuildingResourceConsumptionSource> resourceConsumptionSources =
+            new List<IBuildingResourceConsumptionSource>();
+        private readonly List<IBuildingResourceProductionSource> resourceProductionSources =
+            new List<IBuildingResourceProductionSource>();
+        private readonly List<IBuildingTaxSource> taxSources = new List<IBuildingTaxSource>();
 
         public TurnService(int startingTurn = 1)
         {
@@ -163,18 +164,13 @@ namespace Landsong.TurnSystem
                 return;
             }
 
-            if (building is IBuildingResourceConsumptionSource consumptionSource)
+            resourceConsumptionSources.Clear();
+            building.GetCapabilities(resourceConsumptionSources);
+            for (var i = 0; i < resourceConsumptionSources.Count; i++)
             {
-                NotifyConsumedResources(building, consumptionSource.LastResourceConsumptions);
+                NotifyConsumedResources(building, resourceConsumptionSources[i].LastResourceConsumptions);
             }
-
-            resourceProcessingModules.Clear();
-            building.GetModules(resourceProcessingModules);
-            for (var i = 0; i < resourceProcessingModules.Count; i++)
-            {
-                NotifyConsumedResources(building, resourceProcessingModules[i].LastResourceConsumptions);
-            }
-            resourceProcessingModules.Clear();
+            resourceConsumptionSources.Clear();
         }
 
         private void NotifyConsumedResources(
@@ -205,32 +201,21 @@ namespace Landsong.TurnSystem
                 return;
             }
 
-            if (building is IBuildingResourceProductionSource productionSource)
+            resourceProductionSources.Clear();
+            building.GetCapabilities(resourceProductionSources);
+            for (var i = 0; i < resourceProductionSources.Count; i++)
             {
-                NotifyProvidedResources(building, productionSource.LastResourceProductions);
+                NotifyProvidedResources(building, resourceProductionSources[i].LastResourceProductions);
             }
+            resourceProductionSources.Clear();
 
-            resourceProductionModules.Clear();
-            building.GetModules(resourceProductionModules);
-            for (var i = 0; i < resourceProductionModules.Count; i++)
+            taxSources.Clear();
+            building.GetCapabilities(taxSources);
+            for (var i = 0; i < taxSources.Count; i++)
             {
-                NotifyProvidedResources(building, resourceProductionModules[i].LastResourceProductions);
+                NotifyProvidedResources(building, taxSources[i].LastTaxRewards);
             }
-
-            resourceProductionModules.Clear();
-
-            resourceProcessingModules.Clear();
-            building.GetModules(resourceProcessingModules);
-            for (var i = 0; i < resourceProcessingModules.Count; i++)
-            {
-                NotifyProvidedResources(building, resourceProcessingModules[i].LastResourceProductions);
-            }
-            resourceProcessingModules.Clear();
-
-            if (building is IBuildingTaxSource taxSource)
-            {
-                NotifyProvidedResources(building, taxSource.LastTaxRewards);
-            }
+            taxSources.Clear();
         }
 
         private void NotifyProvidedResources(BuildingBase building, IReadOnlyList<BuildingResourceChange> resources)
@@ -268,7 +253,8 @@ namespace Landsong.TurnSystem
 
             for (var i = 0; i < buildings.Count; i++)
             {
-                if (buildings[i] is IBuildingResourceProvisionAccounting)
+                if (buildings[i] != null
+                    && buildings[i].TryGetCapability<IBuildingResourceProvisionAccounting>(out _))
                 {
                     NotifyProvidedResources(buildings[i]);
                 }
@@ -300,11 +286,6 @@ namespace Landsong.TurnSystem
             }
 
             var points = 0;
-            if (building is IBuildingTechnologyPointSource technologyPointSource)
-            {
-                points += Math.Max(0, technologyPointSource.LastTechnologyPoints);
-            }
-
             technologyPointModules.Clear();
             building.GetModules(technologyPointModules);
             for (var i = 0; i < technologyPointModules.Count; i++)
