@@ -64,18 +64,18 @@ namespace Landsong.BuildingSystem
         [SerializeField, LabelText("税收间隔回合"), Min(1)] private int taxIntervalTurns = 5;
 
         [TitleGroup("运行时")]
-        [SerializeField, ReadOnly] private int currentPopulation;
-        [SerializeField, ReadOnly] private int growthProgress;
-        [SerializeField, ReadOnly] private int taxProgress;
-        [SerializeField, ReadOnly] private int consecutiveFailures;
-        [SerializeField, ReadOnly] private bool isAbandoned;
-        [SerializeField, ReadOnly] private bool lastTurnHadResourceProvider;
-        [SerializeField, ReadOnly] private bool lastTurnConsumptionFailed;
-        [SerializeField, ReadOnly] private bool lastTurnConsumedResources;
-        [SerializeField, ReadOnly] private bool lastTurnPopulationDecayed;
-        [SerializeField, ReadOnly] private bool lastTurnGrewPopulation;
-        [SerializeField, ReadOnly] private bool lastTurnProvidedTax;
-        [SerializeField, ReadOnly] private int lastResourceProviderActionCost;
+        [SerializeField, ReadOnly, LabelText("当前人口")] private int currentPopulation;
+        [SerializeField, ReadOnly, LabelText("增长进度")] private int growthProgress;
+        [SerializeField, ReadOnly, LabelText("税收进度")] private int taxProgress;
+        [SerializeField, ReadOnly, LabelText("连续失败次数")] private int consecutiveFailures;
+        [SerializeField, ReadOnly, LabelText("已荒废")] private bool isAbandoned;
+        [SerializeField, ReadOnly, LabelText("上回合存在资源提供点")] private bool lastTurnHadResourceProvider;
+        [SerializeField, ReadOnly, LabelText("上回合消耗失败")] private bool lastTurnConsumptionFailed;
+        [SerializeField, ReadOnly, LabelText("上回合已消耗资源")] private bool lastTurnConsumedResources;
+        [SerializeField, ReadOnly, LabelText("上回合人口衰减")] private bool lastTurnPopulationDecayed;
+        [SerializeField, ReadOnly, LabelText("上回合人口增长")] private bool lastTurnGrewPopulation;
+        [SerializeField, ReadOnly, LabelText("上回合已提供税收")] private bool lastTurnProvidedTax;
+        [SerializeField, ReadOnly, LabelText("上次资源提供点行动力消耗")] private int lastResourceProviderActionCost;
 
         private string lastAbnormalStatusId = string.Empty;
         private string lastAbnormalStatusText = string.Empty;

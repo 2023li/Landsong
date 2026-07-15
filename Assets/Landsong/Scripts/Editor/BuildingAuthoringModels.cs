@@ -131,6 +131,9 @@ namespace Landsong.EditorTools.Buildings
         [InspectorName("施工 View Prefab"), Tooltip("施工阶段加载的独立纯表现 Prefab。允许暂时留空，不会阻塞玩法资产创建。")]
         public GameObject ConstructionViewPrefab;
 
+        [InspectorName("放置预览 View Prefab"), Tooltip("建造放置预览优先使用的独立纯表现 Prefab。留空时回退到当前样式的 LV1 运营 View。")]
+        public GameObject PlacementPreviewViewPrefab;
+
         [InspectorName("默认 LV1 View Prefab"), Tooltip("无样式建筑进入运营态时使用的默认纯表现 Prefab。允许后续通过 Presentation 替换或补充高等级表现。")]
         public GameObject DefaultOperationalViewPrefab;
 
@@ -231,6 +234,7 @@ namespace Landsong.EditorTools.Buildings
             ResourceProviderPriority = 0;
             BuildingActionPower = 100;
             ConstructionViewPrefab = null;
+            PlacementPreviewViewPrefab = null;
             DefaultOperationalViewPrefab = null;
             Styles = new List<BuildingStyleDraft>();
             MaxWorkers = 3;

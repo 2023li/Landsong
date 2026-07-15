@@ -31,8 +31,6 @@ MonoBehaviour:
     maxBuildCount: 0
     buildLimitGroupId: building.market
     isDevelopmentCompleted: 1
-    useUniqueDetailPanel: 0
-    uniqueDetailPanel: {fileID: 0}
   runtimePrefab: {fileID: 2947250896050977823, guid: bc4b8db94dd7f6147b70f78966de3b80, type: 3}
   construction:
     turns:

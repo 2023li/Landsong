@@ -20,6 +20,14 @@ MonoBehaviour:
       m_SubObjectType: 
       m_SubObjectGUID: 
       m_EditorAssetChanged: 0
+  placementPreviewView:
+    directPrefab: {fileID: 0}
+    addressablePrefab:
+      m_AssetGUID: 
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
   defaultOperationalView:
     directPrefab: {fileID: 0}
     addressablePrefab:
@@ -28,41 +36,109 @@ MonoBehaviour:
       m_SubObjectType: 
       m_SubObjectGUID: 
       m_EditorAssetChanged: 0
-  viewMappings: []
+  viewMappings:
+  - level: 1
+    styleId: 1
+    view:
+      directPrefab: {fileID: 6182212888150925616, guid: defe3f3bba7d2404f921f29b9868ae54, type: 3}
+      addressablePrefab:
+        m_AssetGUID: 
+        m_SubObjectName: 
+        m_SubObjectType: 
+        m_SubObjectGUID: 
+        m_EditorAssetChanged: 0
+  - level: 1
+    styleId: 2
+    view:
+      directPrefab: {fileID: 7073934256629716301, guid: 9891dba6e5573f94c94193876f33a2e1, type: 3}
+      addressablePrefab:
+        m_AssetGUID: 
+        m_SubObjectName: 
+        m_SubObjectType: 
+        m_SubObjectGUID: 
+        m_EditorAssetChanged: 0
+  - level: 1
+    styleId: 3
+    view:
+      directPrefab: {fileID: 8199571956233431541, guid: 4f6345d6b8b946c4aa2291992fed4230, type: 3}
+      addressablePrefab:
+        m_AssetGUID: 
+        m_SubObjectName: 
+        m_SubObjectType: 
+        m_SubObjectGUID: 
+        m_EditorAssetChanged: 0
+  - level: 1
+    styleId: 4
+    view:
+      directPrefab: {fileID: 3063756186243292658, guid: 6a34d0bfda3844b468d59c3550dba625, type: 3}
+      addressablePrefab:
+        m_AssetGUID: 
+        m_SubObjectName: 
+        m_SubObjectType: 
+        m_SubObjectGUID: 
+        m_EditorAssetChanged: 0
+  - level: 1
+    styleId: 5
+    view:
+      directPrefab: {fileID: 7441009914915971920, guid: 5815cc49684e30146a95c91723087a73, type: 3}
+      addressablePrefab:
+        m_AssetGUID: 
+        m_SubObjectName: 
+        m_SubObjectType: 
+        m_SubObjectGUID: 
+        m_EditorAssetChanged: 0
+  - level: 1
+    styleId: 6
+    view:
+      directPrefab: {fileID: 8243433999278481160, guid: 1097919b5ca5e3745a320eecd94591c8, type: 3}
+      addressablePrefab:
+        m_AssetGUID: 
+        m_SubObjectName: 
+        m_SubObjectType: 
+        m_SubObjectGUID: 
+        m_EditorAssetChanged: 0
+  - level: 1
+    styleId: 7
+    view:
+      directPrefab: {fileID: 3045855706304695932, guid: 208037364222a5b41a6a3a707410cde1, type: 3}
+      addressablePrefab:
+        m_AssetGUID: 
+        m_SubObjectName: 
+        m_SubObjectType: 
+        m_SubObjectGUID: 
+        m_EditorAssetChanged: 0
+  - level: 1
+    styleId: 8
+    view:
+      directPrefab: {fileID: 7663275454702388982, guid: 139914d3cfe011445a4270e466b73a25, type: 3}
+      addressablePrefab:
+        m_AssetGUID: 
+        m_SubObjectName: 
+        m_SubObjectType: 
+        m_SubObjectGUID: 
+        m_EditorAssetChanged: 0
   styles:
   - styleId: tree_01
     displayName: "\u6811\u6728 1"
-    icon: {fileID: 0}
+    icon: {fileID: 21300000, guid: e76152101d6d9d3488bcb7ac2e7c5154, type: 3}
   - styleId: tree_02
     displayName: "\u6811\u6728 2"
-    icon: {fileID: 0}
+    icon: {fileID: 21300000, guid: 35dceecb4de69524997ffe418720e012, type: 3}
   - styleId: tree_03
     displayName: "\u6811\u6728 3"
-    icon: {fileID: 0}
+    icon: {fileID: 21300000, guid: 41ef91c0aca46224bb9ab427c1d61dc5, type: 3}
   - styleId: tree_04
     displayName: "\u6811\u6728 4"
-    icon: {fileID: 0}
+    icon: {fileID: 21300000, guid: dd9c72a414e98b04998df07c4f2f8afc, type: 3}
   - styleId: tree_05
     displayName: "\u6811\u6728 5"
-    icon: {fileID: 0}
+    icon: {fileID: 21300000, guid: 715849e2e9a1d8046abcf5a82516ad5b, type: 3}
   - styleId: tree_06
     displayName: "\u6811\u6728 6"
-    icon: {fileID: 0}
+    icon: {fileID: 21300000, guid: c74f6091ec7c0a54ba28b9106d405e59, type: 3}
   - styleId: tree_07
     displayName: "\u6811\u6728 7"
-    icon: {fileID: 0}
+    icon: {fileID: 21300000, guid: 0159d0b919fbb024385c578a74827998, type: 3}
   - styleId: tree_08
     displayName: "\u6811\u6728 8"
-    icon: {fileID: 0}
-  constructionCompleteTransition:
-    duration: 0.35
-    viewSwapNormalizedTime: 0.5
-    allowSkip: 1
-    effectPrefab: {fileID: 0}
-    sound: {fileID: 0}
-  defaultUpgradeTransition:
-    duration: 0.35
-    viewSwapNormalizedTime: 0.5
-    allowSkip: 1
-    effectPrefab: {fileID: 0}
-    sound: {fileID: 0}
+    icon: {fileID: 21300000, guid: ecc97bd4e2ed894429c21340d2559199, type: 3}

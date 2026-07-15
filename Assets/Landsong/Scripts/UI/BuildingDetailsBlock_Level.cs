@@ -10,14 +10,25 @@ using UnityEngine.UI;
 /// </summary>
 public sealed class BuildingDetailsBlock_Level : BuildingDetailsBlockBase
 {
-    [SerializeField, LabelText("旧自动升级开关（终态禁用）")] private Toggle tgl_自动升级;
-    [SerializeField, LabelText("等级进度条")] private Slider sld_经验进度;
-    [SerializeField, LabelText("等级文本")] private TMP_Text txt_经验;
-    [SerializeField, LabelText("升级按钮")] private Button btn_升级;
-    [SerializeField, LabelText("升级消耗/条件文本")] private TMP_Text txt_升级消耗;
+    [SerializeField, Required, LabelText("旧自动升级开关（终态禁用）")] private Toggle tgl_自动升级;
+    [SerializeField, Required, LabelText("等级进度条")] private Slider sld_经验进度;
+    [SerializeField, Required, LabelText("等级文本")] private TMP_Text txt_经验;
+    [SerializeField, Required, LabelText("升级按钮")] private Button btn_升级;
+    [SerializeField, Required, LabelText("升级消耗/条件文本")] private TMP_Text txt_升级消耗;
 
     private BuildingBase building;
     private bool listenersBound;
+
+    public override bool ValidateConfiguration(out string error)
+    {
+        var missing = new List<string>();
+        AddMissingReference(missing, tgl_自动升级, nameof(tgl_自动升级));
+        AddMissingReference(missing, sld_经验进度, nameof(sld_经验进度));
+        AddMissingReference(missing, txt_经验, nameof(txt_经验));
+        AddMissingReference(missing, btn_升级, nameof(btn_升级));
+        AddMissingReference(missing, txt_升级消耗, nameof(txt_升级消耗));
+        return BuildValidationResult(missing, out error);
+    }
 
     public override bool CanShow(BuildingBase targetBuilding)
     {
@@ -27,7 +38,6 @@ public sealed class BuildingDetailsBlock_Level : BuildingDetailsBlockBase
 
     public override void Initialize(Popup_BuildingDetails detailOwner)
     {
-        ResolveFields();
         BindListeners();
         if (tgl_自动升级 != null)
         {
@@ -112,26 +122,11 @@ public sealed class BuildingDetailsBlock_Level : BuildingDetailsBlockBase
 
     private void HandleUpgradeClicked()
     {
-        building?.GameSystem?.Services.Buildings?.Upgrades.TryUpgrade(building);
-        Refresh();
-    }
-
-    private void ResolveFields()
-    {
-        tgl_自动升级 ??= GetComponentInChildren<Toggle>(true);
-        sld_经验进度 ??= GetComponentInChildren<Slider>(true);
-        btn_升级 ??= GetComponentInChildren<Button>(true);
-
-        var texts = GetComponentsInChildren<TMP_Text>(true);
-        for (var i = 0; i < texts.Length; i++)
+        var upgradeService = building?.GameSystem?.Services.Buildings?.Upgrades;
+        if (upgradeService == null || !upgradeService.TryUpgrade(building).Succeeded)
         {
-            var text = texts[i];
-            if (txt_经验 == null && text.name.Contains("经验")) txt_经验 = text;
-            else if (txt_升级消耗 == null && text.name.Contains("消耗")) txt_升级消耗 = text;
+            Refresh();
         }
-
-        if (txt_经验 == null && texts.Length > 0) txt_经验 = texts[0];
-        if (txt_升级消耗 == null && texts.Length > 1) txt_升级消耗 = texts[1];
     }
 
     private static string FormatUpgradeCosts(IReadOnlyList<BuildingCost> costs)

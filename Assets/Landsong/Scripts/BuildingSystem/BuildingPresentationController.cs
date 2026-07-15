@@ -13,17 +13,13 @@ namespace Landsong.BuildingSystem
 
         private BuildingBase owner;
         private GameObject currentView;
-        private GameObject currentEffect;
         private AsyncOperationHandle<GameObject>? currentAddressableHandle;
-        private Coroutine transitionRoutine;
         private int requestVersion;
-        private bool interactionLocked;
 
         private static Sprite placeholderSprite;
 
         public Transform ViewRoot => viewRoot;
         public BuildingView ViewAdapter => viewAdapter;
-        public bool InteractionLocked => interactionLocked;
 
         private void Awake()
         {
@@ -44,104 +40,43 @@ namespace Landsong.BuildingSystem
 
         public void RefreshImmediate()
         {
+            RefreshForEntry(BuildingViewEntryReason.Normal);
+        }
+
+        public void RefreshForEntry(BuildingViewEntryReason entryReason)
+        {
             requestVersion++;
-            if (transitionRoutine != null)
-            {
-                StopCoroutine(transitionRoutine);
-                transitionRoutine = null;
-            }
-
-            interactionLocked = false;
-            DestroyEffect();
-            ResolveAndShowCurrentView(requestVersion);
+            ResolveAndShowCurrentView(requestVersion, entryReason);
         }
 
-        public void PlayStageTransition(BuildingLifecycleStage previous)
+        public void RefreshPlacementPreview()
         {
-            var transition = owner?.FamilyDefinition?.Presentation?.ConstructionCompleteTransition;
-            PlayTransition(transition);
-        }
-
-        public void PlayLevelTransition(int previousLevel)
-        {
-            var transition = owner?.FamilyDefinition?.Presentation?.DefaultUpgradeTransition;
-            PlayTransition(transition);
-        }
-
-        public void SkipTransition()
-        {
-            if (transitionRoutine == null)
+            requestVersion++;
+            if (owner == null)
             {
                 return;
             }
 
-            requestVersion++;
-            StopCoroutine(transitionRoutine);
-            transitionRoutine = null;
-            interactionLocked = false;
-            DestroyEffect();
-            ResolveAndShowCurrentView(requestVersion);
+            var presentation = owner.FamilyDefinition?.Presentation;
+            if (presentation == null
+                || !presentation.TryResolvePlacementPreview(
+                    owner.CurrentLevel,
+                    owner.StyleId,
+                    out var reference))
+            {
+                ShowPlaceholder();
+                return;
+            }
+
+            ShowResolvedReference(
+                reference,
+                requestVersion,
+                BuildingViewEntryReason.Normal);
         }
 
-        private void PlayTransition(BuildingTransitionDefinition transition)
-        {
-            requestVersion++;
-            if (transitionRoutine != null)
-            {
-                StopCoroutine(transitionRoutine);
-            }
-
-            transitionRoutine = StartCoroutine(TransitionRoutine(transition, requestVersion));
-        }
-
-        private IEnumerator TransitionRoutine(
-            BuildingTransitionDefinition transition,
-            int version)
-        {
-            interactionLocked = true;
-            var duration = transition == null ? 0.35f : transition.Duration;
-            var swapTime = duration * (transition == null ? 0.5f : transition.ViewSwapNormalizedTime);
-
-            if (transition?.EffectPrefab != null)
-            {
-                currentEffect = Instantiate(transition.EffectPrefab, viewRoot, false);
-            }
-
-            if (transition?.Sound != null && owner != null)
-            {
-                AudioSource.PlayClipAtPoint(transition.Sound, owner.transform.position);
-            }
-
-            var elapsed = 0f;
-            var swapped = false;
-            while (elapsed < duration)
-            {
-                if (version != requestVersion)
-                {
-                    yield break;
-                }
-
-                elapsed += Time.unscaledDeltaTime;
-                if (!swapped && elapsed >= swapTime)
-                {
-                    swapped = true;
-                    ResolveAndShowCurrentView(version);
-                }
-
-                yield return null;
-            }
-
-            if (!swapped)
-            {
-                ResolveAndShowCurrentView(version);
-            }
-
-            DestroyEffect();
-            interactionLocked = false;
-            transitionRoutine = null;
-        }
-
-        private void ResolveAndShowCurrentView(int version)
+        private void ResolveAndShowCurrentView(
+            int version,
+            BuildingViewEntryReason entryReason)
         {
             if (owner == null)
             {
@@ -160,15 +95,32 @@ namespace Landsong.BuildingSystem
                 return;
             }
 
+            ShowResolvedReference(reference, version, entryReason);
+        }
+
+        private void ShowResolvedReference(
+            BuildingVisualAssetReference reference,
+            int version,
+            BuildingViewEntryReason entryReason)
+        {
+            if (reference == null)
+            {
+                ShowPlaceholder();
+                return;
+            }
+
             if (reference.HasDirectPrefab)
             {
-                ShowPrefab(reference.DirectPrefab);
+                ShowPrefab(reference.DirectPrefab, entryReason);
                 return;
             }
 
             if (reference.HasAddressablePrefab)
             {
-                StartCoroutine(LoadAddressableView(reference.AddressablePrefab, version));
+                StartCoroutine(LoadAddressableView(
+                    reference.AddressablePrefab,
+                    version,
+                    entryReason));
                 return;
             }
 
@@ -177,7 +129,8 @@ namespace Landsong.BuildingSystem
 
         private IEnumerator LoadAddressableView(
             AssetReferenceGameObject reference,
-            int version)
+            int version,
+            BuildingViewEntryReason entryReason)
         {
             ShowPlaceholder();
             var handle = reference.LoadAssetAsync<GameObject>();
@@ -208,10 +161,13 @@ namespace Landsong.BuildingSystem
 
             ReleaseCurrentAddressable();
             currentAddressableHandle = handle;
-            ShowPrefab(handle.Result, false);
+            ShowPrefab(handle.Result, entryReason, false);
         }
 
-        private void ShowPrefab(GameObject prefab, bool releaseAddressable = true)
+        private void ShowPrefab(
+            GameObject prefab,
+            BuildingViewEntryReason entryReason,
+            bool releaseAddressable = true)
         {
             if (prefab == null)
             {
@@ -226,6 +182,7 @@ namespace Landsong.BuildingSystem
 
             DestroyCurrentView();
             currentView = Instantiate(prefab, viewRoot, false);
+            viewAdapter?.PlayEntryAnimation(entryReason);
             if (currentView.GetComponentInChildren<BuildingBase>(true) != null)
             {
                 Debug.LogError(
@@ -254,19 +211,11 @@ namespace Landsong.BuildingSystem
 
         private void DestroyCurrentView()
         {
+            viewAdapter?.InvalidateVisualPlayers();
             if (currentView != null)
             {
                 Destroy(currentView);
                 currentView = null;
-            }
-        }
-
-        private void DestroyEffect()
-        {
-            if (currentEffect != null)
-            {
-                Destroy(currentEffect);
-                currentEffect = null;
             }
         }
 

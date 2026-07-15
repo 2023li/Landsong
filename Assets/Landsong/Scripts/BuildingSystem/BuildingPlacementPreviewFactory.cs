@@ -31,6 +31,7 @@ namespace Landsong.BuildingSystem
                     1,
                     styleId,
                     0);
+                ghostBuilding.PresentationController?.RefreshPlacementPreview();
             }
             DisablePreviewBuildingRuntime(instance);
             view = ghostBuilding == null ? instance.GetComponentInChildren<BuildingView>(true) : ghostBuilding.View;
@@ -38,13 +39,6 @@ namespace Landsong.BuildingSystem
             {
                 Debug.LogWarning($"Building preview '{definition?.DisplayName ?? buildingPrefab.name}' has no BuildingView.", instance);
                 return instance;
-            }
-
-            if (!view.SetPlacementPreview(true))
-            {
-                Debug.LogWarning(
-                    $"Building preview '{definition?.DisplayName ?? buildingPrefab.name}' cannot play preview animation key '{view.PlacementPreviewAnimationKey}'.",
-                    view);
             }
 
             return instance;
@@ -56,11 +50,6 @@ namespace Landsong.BuildingSystem
             {
                 view = null;
                 return;
-            }
-
-            if (view != null)
-            {
-                view.SetPlacementPreview(false);
             }
 
             Object.Destroy(instance);

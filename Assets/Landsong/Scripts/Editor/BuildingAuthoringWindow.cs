@@ -13,8 +13,11 @@ namespace Landsong.EditorTools.Buildings
     public sealed class BuildingAuthoringWindow : EditorWindow
     {
         private const string CatalogPath = "Assets/Landsong/Objects/SO/BuildingCatalog.asset";
-        private const string AuthoringDocumentPath = "Document/建筑编辑器窗口规划与使用.md";
-        private const string NumericDocumentPath = "Document/建筑数值策划表.md";
+        private const string DocumentationRoot = "Document/建筑系统/";
+        private const string AuthoringDocumentPath = DocumentationRoot + "建筑编辑器窗口规划与使用.md";
+        private const string NumericDocumentPath = DocumentationRoot + "建筑数值策划表.md";
+        private const string NumericWorkbookPath =
+            "ConfigSource/Buildings/建筑数值策划表.xlsx";
 
         [SerializeField] private BuildingCatalog catalog;
         [SerializeField] private BuildingAuthoringDraft draft = new BuildingAuthoringDraft();
@@ -132,6 +135,16 @@ namespace Landsong.EditorTools.Buildings
                 if (GUILayout.Button("数值文档", EditorStyles.toolbarButton, GUILayout.Width(70f)))
                 {
                     OpenProjectDocument(NumericDocumentPath);
+                }
+
+                if (GUILayout.Button("数值表", EditorStyles.toolbarButton, GUILayout.Width(58f)))
+                {
+                    OpenProjectDocument(NumericWorkbookPath);
+                }
+
+                if (GUILayout.Button("导表", EditorStyles.toolbarButton, GUILayout.Width(46f)))
+                {
+                    NumericImport.BuildingNumericImportWindow.Open();
                 }
             }
 
@@ -255,6 +268,7 @@ namespace Landsong.EditorTools.Buildings
                 "资源紧张时可以留空，之后直接替换或追加 Presentation 映射。",
                 MessageType.None);
             DrawProperty(draftProperty, "ConstructionViewPrefab");
+            DrawProperty(draftProperty, "PlacementPreviewViewPrefab");
             DrawProperty(draftProperty, "DefaultOperationalViewPrefab");
             DrawProperty(draftProperty, "Styles", true);
             EndSection();
@@ -442,13 +456,13 @@ namespace Landsong.EditorTools.Buildings
                 DrawSelectedFamilyActions();
 
                 UnityEditor.Editor.CreateCachedEditor(selectedFamily, null, ref familyEditor);
-                DrawStableDefaultInspector(
+                DrawInlineAssetInspector(
                     familyEditor,
                     "Family 数据",
                     "这里使用稳定的 Unity 序列化字段视图，避免 Odin 列表嵌套在窗口滚动区时产生异常高度。");
 
                 EditorGUILayout.Space(6f);
-                showModuleEditor = EditorGUILayout.Foldout(showModuleEditor, "ModuleSet", true);
+                showModuleEditor = EditorGUILayout.Foldout(showModuleEditor, "模块集合（ModuleSet）", true);
                 if (showModuleEditor)
                 {
                     if (selectedFamily.ModuleSet == null)
@@ -458,7 +472,7 @@ namespace Landsong.EditorTools.Buildings
                     else
                     {
                         UnityEditor.Editor.CreateCachedEditor(selectedFamily.ModuleSet, null, ref moduleEditor);
-                        DrawStableDefaultInspector(
+                        DrawInlineAssetInspector(
                             moduleEditor,
                             "模块模板与默认参数",
                             "ModuleSet 决定建筑实际拥有的模块；等级差异继续在 Family 的运营等级配置中填写。");
@@ -466,7 +480,7 @@ namespace Landsong.EditorTools.Buildings
                 }
 
                 EditorGUILayout.Space(6f);
-                showPresentationEditor = EditorGUILayout.Foldout(showPresentationEditor, "Presentation", true);
+                showPresentationEditor = EditorGUILayout.Foldout(showPresentationEditor, "表现配置（Presentation）", true);
                 if (showPresentationEditor)
                 {
                     if (selectedFamily.Presentation == null)
@@ -475,11 +489,14 @@ namespace Landsong.EditorTools.Buildings
                     }
                     else
                     {
-                        UnityEditor.Editor.CreateCachedEditor(selectedFamily.Presentation, null, ref presentationEditor);
-                        DrawStableDefaultInspector(
+                        UnityEditor.Editor.CreateCachedEditor(
+                            selectedFamily.Presentation,
+                            null,
+                            ref presentationEditor);
+                        DrawInlinePresentationInspector(
                             presentationEditor,
-                            "表现映射与过渡",
-                            "这里只配置独立 View Prefab、样式和过渡，不把等级美术塞进 Runtime Prefab。");
+                            "表现映射",
+                            "这里只配置施工、运营等级和样式对应的独立 View Prefab，不把等级美术塞进 Runtime Prefab。");
                     }
                 }
 
@@ -487,7 +504,7 @@ namespace Landsong.EditorTools.Buildings
             }
         }
 
-        private static void DrawStableDefaultInspector(
+        private static void DrawInlineAssetInspector(
             UnityEditor.Editor editor,
             string title,
             string tooltip)
@@ -500,6 +517,71 @@ namespace Landsong.EditorTools.Buildings
             EditorGUILayout.Space(4f);
             EditorGUILayout.LabelField(new GUIContent(title, tooltip), EditorStyles.boldLabel);
             editor.DrawDefaultInspector();
+        }
+
+        private static void DrawInlinePresentationInspector(
+            UnityEditor.Editor editor,
+            string title,
+            string tooltip)
+        {
+            if (editor == null)
+            {
+                return;
+            }
+
+            EditorGUILayout.Space(4f);
+            EditorGUILayout.LabelField(new GUIContent(title, tooltip), EditorStyles.boldLabel);
+
+            var serializedObject = editor.serializedObject;
+            serializedObject.UpdateIfRequiredOrScript();
+            DrawPresentationProperty(
+                serializedObject,
+                "constructionView",
+                "施工视图",
+                "建造阶段显示的独立视图预制体。");
+            DrawPresentationProperty(
+                serializedObject,
+                "placementPreviewView",
+                "放置预览视图",
+                "建造放置预览优先使用；留空时回退到当前样式的 LV1 运营视图。");
+            DrawPresentationProperty(
+                serializedObject,
+                "defaultOperationalView",
+                "默认运营视图",
+                "没有匹配到等级或样式映射时使用的运营视图。");
+            DrawPresentationProperty(
+                serializedObject,
+                "viewMappings",
+                "视图映射",
+                "按运营等级和样式 ID 选择视图资源；施工表现只使用上方施工视图。");
+            DrawPresentationProperty(
+                serializedObject,
+                "styles",
+                "视觉样式",
+                "玩家可选择的表现变体，例如不同树种。");
+            if (serializedObject.ApplyModifiedProperties())
+            {
+                EditorUtility.SetDirty(editor.target);
+            }
+        }
+
+        private static void DrawPresentationProperty(
+            SerializedObject serializedObject,
+            string propertyName,
+            string label,
+            string tooltip)
+        {
+            var property = serializedObject.FindProperty(propertyName);
+            if (property == null)
+            {
+                EditorGUILayout.HelpBox($"表现配置缺少序列化字段：{propertyName}", MessageType.Error);
+                return;
+            }
+
+            EditorGUILayout.PropertyField(
+                property,
+                new GUIContent(label, tooltip),
+                true);
         }
 
         private void DrawSelectedFamilyActions()
@@ -677,7 +759,8 @@ namespace Landsong.EditorTools.Buildings
 
         private static void OpenProjectDocument(string relativePath)
         {
-            var absolutePath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), relativePath));
+            var projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
+            var absolutePath = Path.GetFullPath(Path.Combine(projectRoot, relativePath));
             if (!File.Exists(absolutePath))
             {
                 EditorUtility.DisplayDialog("文档不存在", absolutePath, "确定");

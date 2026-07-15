@@ -1,6 +1,6 @@
 # AI_地图系统
 
-> 最后核对：2026-07-13
+> 最后核对：2026-07-14
 > 状态：地图与建筑放置基础重构已完成并通过用户 Play Mode 验收。本文是后续 AI / 开发者维护地图、格子规则、地图加载、初始建筑、放置预览、资源连接和空间范围效果的首要交接入口。
 
 本文只描述当前仓库的真实实现。完整决策过程保留在 [README_地图系统与建筑放置重构.md](README_地图系统与建筑放置重构.md)，策划创建地图的操作步骤见 [开发_创建地图.md](../开发_创建地图.md)，建筑能力配置见 [AI_添加建筑规则.md](建筑系统/AI_添加建筑规则.md)。
@@ -176,6 +176,27 @@ Host 同时负责：
 
 不要再向它加入每种玩法的特例 Tilemap 字段。
 
+### 6.4 玩家显示偏好接口
+
+地图相关显示偏好保存在全局 `AppData.GameplayDisplay`，不是单个 `GameData` 存档的一部分。当前包含：
+
+- `MapGridLinesVisible`：是否显示 `GridRenderer` 网格线。
+- `BaseTilemapVisible`：是否显示 Content Scene 的 Base Tilemap。
+- `SelectedBuildingFootprintVisible`：点击已落地建筑时是否显示 C10 选择 footprint。
+
+设置入口是 `SettingPanelItem_GamePlay`，保存统一通过 `DataManager.SetMapGridLinesVisible(...)`、`SetBaseTilemapVisible(...)`、`SetSelectedBuildingFootprintVisible(...)`。`DataManager.OnGameplayDisplaySettingsChanged` 负责把变化实时广播给运行时消费者。
+
+地图侧公开接口位于 `MapRuntimeHost`：
+
+- `SetGridLinesVisible(bool)`
+- `SetBaseTilemapVisible(bool)`
+- `GridLinesVisible`
+- `BaseTilemapVisible`
+
+建筑选择侧公开 `BuildingSelectionController.SetSelectedBuildingFootprintVisible(bool)` 和 `SelectedBuildingFootprintVisible`。关闭该选项只清理 C10 选择占地，不影响建筑选择、操作条、C11 可达范围或放置预览。
+
+`MapRuntimeHost` 和 `BuildingSelectionController` 会自行读取并订阅 `AppData`，所以玩家不必先打开设置面板。Host 每次 `TryBind(...)` 新地图时都会重新应用当前选择。Base 隐藏只把 `Tilemap.color.a` 设为 0；Base Tile 仍然存在，地图边界、地形和放置判定完全不变。
+
 ## 7. Content Scene 与 Tilemap 真相
 
 ### 7.1 MapContentAuthoring
@@ -185,7 +206,7 @@ Host 同时负责：
 - `Unity Grid`
 - `Base Tilemap`
 - `Terrain Layers`
-- 初始建筑 Gizmo 和吸附容差
+- 初始建筑占地 Gizmo、Scene GUI 文字和吸附容差
 
 Content Scene 禁止放：
 
@@ -262,8 +283,11 @@ Base 同时是：
 
 `MapContentAuthoring` 根据建筑 Definition 的完整 Size，从建筑视觉中心反推占地 origin：
 
+- Scene GUI 文字：显示建筑名称、`施工` 或 `LVN`、非空 `StyleId`；未吸附时追加橙色警告。
 - 青色 Gizmo：预览和实际 footprint 对齐。
 - 橙色 Gizmo：未对齐。
+
+Runtime Prefab 的 `ViewRoot` 按规范保持为空，因此 Content Scene 编辑态不直接实例化建筑 View。策划通过上述文字标牌和占地框识别、选择与摆放初始建筑；真实施工/等级表现只在运行时由 Presentation 加载。`显示建筑文字` 与 `显示占地 Gizmo` 可在 `MapContentAuthoring` 中分别开关。
 
 “吸附初始建筑到格子”会修正位置并把建筑根旋转设为单位旋转。
 

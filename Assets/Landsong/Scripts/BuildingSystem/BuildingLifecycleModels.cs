@@ -5,7 +5,10 @@ namespace Landsong.BuildingSystem
 {
     public enum BuildingLifecycleStage
     {
+        [InspectorName("施工阶段")]
         Construction = 0,
+
+        [InspectorName("运营阶段")]
         Operational = 10
     }
 

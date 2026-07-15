@@ -224,6 +224,7 @@ GameObject:
   - component: {fileID: 7985454996544239464}
   - component: {fileID: 4936718975763458709}
   - component: {fileID: 6101036947669256525}
+  - component: {fileID: 8791720032449195500}
   m_Layer: 5
   m_Name: "\u4F5C\u7269\u9009\u62E9\u6309\u94AE"
   m_TagString: Untagged
@@ -334,3 +335,18 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &8791720032449195500
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8502311678602287866}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30e5d68d896e417c855c631083aedf00, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::BuildingDetailsCropOptionItem
+  button: {fileID: 6101036947669256525}
+  iconImage: {fileID: 4680289510315604612}
+  nameText: {fileID: 8785961490687673169}

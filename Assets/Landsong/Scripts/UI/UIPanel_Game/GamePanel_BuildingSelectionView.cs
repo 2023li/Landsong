@@ -8,6 +8,8 @@ namespace Landsong.UISystem
 {
     public sealed class GamePanel_BuildingSelectionView : MonoBehaviour
     {
+        private const string DefaultDetailPanelAddressKey = "Popup_GeneralBuildingDetails";
+
         [SerializeField] private GamePanel_SelectedBuildingOverview selectedOverview;
         [SerializeField] private Popup_BuildingDetails detailPopup;
         [SerializeField] private Transform detailPopupRoot;
@@ -205,7 +207,17 @@ namespace Landsong.UISystem
 
         private void HandleSelectedBuildingStateChanged(BuildingBase selectedBuilding)
         {
-            RefreshSelectionViews();
+            if (!CanShowBuilding(selectedBuilding))
+            {
+                ClearSelectionViews();
+                return;
+            }
+
+            selectedOverview?.ShowBuilding(selectedBuilding);
+            if (pendingDetailBuilding != null)
+            {
+                pendingDetailBuilding = selectedBuilding;
+            }
         }
 
         private void HandleBuildingDetailRequested(BuildingBase building)
@@ -261,7 +273,7 @@ namespace Landsong.UISystem
         private IEnumerator LoadDefaultDetailPopupRoutine()
         {
             AsyncOperationHandle<GameObject> handle =
-                Addressables.LoadAssetAsync<GameObject>(BuildingBase.DefaultDetailPanelAddressKey);
+                Addressables.LoadAssetAsync<GameObject>(DefaultDetailPanelAddressKey);
             defaultDetailPopupHandle = handle;
             hasDefaultDetailPopupHandle = true;
 
@@ -271,7 +283,7 @@ namespace Landsong.UISystem
             if (handle.Status != AsyncOperationStatus.Succeeded || handle.Result == null)
             {
                 Debug.LogWarning(
-                    $"无法加载建筑详情栏 Addressables 资源：{BuildingBase.DefaultDetailPanelAddressKey}",
+                    $"无法加载建筑详情栏 Addressables 资源：{DefaultDetailPanelAddressKey}",
                     this);
                 Addressables.Release(handle);
                 hasDefaultDetailPopupHandle = false;
@@ -286,7 +298,7 @@ namespace Landsong.UISystem
             if (detailPopup == null)
             {
                 Debug.LogWarning(
-                    $"建筑详情栏资源 '{BuildingBase.DefaultDetailPanelAddressKey}' 缺少 {nameof(Popup_BuildingDetails)} 组件。",
+                    $"建筑详情栏资源 '{DefaultDetailPanelAddressKey}' 缺少 {nameof(Popup_BuildingDetails)} 组件。",
                     instance);
                 Destroy(instance);
                 Addressables.Release(handle);

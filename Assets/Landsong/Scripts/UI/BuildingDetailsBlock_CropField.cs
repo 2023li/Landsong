@@ -7,30 +7,47 @@ using UnityEngine.UI;
 
 public sealed class BuildingDetailsBlock_CropField : BuildingDetailsBlockBase
 {
-    [SerializeField, LabelText("作物状态文本")] private TMP_Text txt_作物状态;
-    [SerializeField, LabelText("成熟回合文本")] private TMP_Text txt_成熟回合;
-    [SerializeField, LabelText("自动收获文本")] private TMP_Text txt_自动收获;
-    [SerializeField, LabelText("选择作物按钮")] private Button btn_选择作物;
-    [SerializeField, LabelText("作物选择面板")] private GameObject go_作物选择面板;
-    [SerializeField, LabelText("作物选项根节点")] private RectTransform root_作物选项;
-    [SerializeField, LabelText("作物选项按钮预制体")]
-    [PropertyTooltip("直接第一个子对象必须挂 Image 作为图标，直接第二个子对象必须挂 TMP_Text 作为名称。")]
-    private Button prefab_作物选项按钮;
-    [SerializeField, LabelText("收获按钮")] private Button btn_收获;
-    [SerializeField, LabelText("铲除按钮")] private Button btn_铲除;
-    [SerializeField, LabelText("自动收获开关")] private Toggle tgl_自动收获;
+    [SerializeField, Required, LabelText("作物状态文本")] private TMP_Text txt_作物状态;
+    [SerializeField, Required, LabelText("成熟回合文本")] private TMP_Text txt_成熟回合;
+    [SerializeField, Required, LabelText("自动收获文本")] private TMP_Text txt_自动收获;
+    [SerializeField, Required, LabelText("选择作物按钮")] private Button btn_选择作物;
+    [SerializeField, Required, LabelText("作物选择面板")] private GameObject go_作物选择面板;
+    [SerializeField, Required, LabelText("作物选项根节点")] private RectTransform root_作物选项;
+    [SerializeField, Required, LabelText("作物选项按钮预制体")]
+    private BuildingDetailsCropOptionItem prefab_作物选项按钮;
+    [SerializeField, Required, LabelText("收获按钮")] private Button btn_收获;
+    [SerializeField, Required, LabelText("铲除按钮")] private Button btn_铲除;
+    [SerializeField, Required, LabelText("自动收获开关")] private Toggle tgl_自动收获;
 
     private readonly List<GameObject> activeCropOptionItems = new List<GameObject>();
-    private Popup_BuildingDetails owner;
     private IBuildingCropFieldSource cropSource;
     private IBuildingCropFieldActions cropActions;
     private bool listenersBound;
     private bool suppressCallbacks;
 
+    public override bool ValidateConfiguration(out string error)
+    {
+        var missing = new List<string>();
+        AddMissingReference(missing, txt_作物状态, nameof(txt_作物状态));
+        AddMissingReference(missing, txt_成熟回合, nameof(txt_成熟回合));
+        AddMissingReference(missing, txt_自动收获, nameof(txt_自动收获));
+        AddMissingReference(missing, btn_选择作物, nameof(btn_选择作物));
+        AddMissingReference(missing, go_作物选择面板, nameof(go_作物选择面板));
+        AddMissingReference(missing, root_作物选项, nameof(root_作物选项));
+        AddMissingReference(missing, prefab_作物选项按钮, nameof(prefab_作物选项按钮));
+        AddMissingReference(missing, btn_收获, nameof(btn_收获));
+        AddMissingReference(missing, btn_铲除, nameof(btn_铲除));
+        AddMissingReference(missing, tgl_自动收获, nameof(tgl_自动收获));
+        if (!BuildValidationResult(missing, out error))
+        {
+            return false;
+        }
+
+        return prefab_作物选项按钮.ValidateConfiguration(out error);
+    }
+
     public override void Initialize(Popup_BuildingDetails detailOwner)
     {
-        owner = detailOwner;
-        ResolveFields();
         BindListeners();
         SetCropSelectionPanelVisible(false);
     }
@@ -196,8 +213,10 @@ public sealed class BuildingDetailsBlock_CropField : BuildingDetailsBlockBase
             return;
         }
 
-        cropActions.TryHarvest();
-        RefreshOwner();
+        if (!cropActions.TryHarvest())
+        {
+            Refresh();
+        }
     }
 
     private void HandleClearCropClicked()
@@ -207,8 +226,10 @@ public sealed class BuildingDetailsBlock_CropField : BuildingDetailsBlockBase
             return;
         }
 
-        cropActions.TryClearCrop();
-        RefreshOwner();
+        if (!cropActions.TryClearCrop())
+        {
+            Refresh();
+        }
     }
 
     private void HandleAutoHarvestChanged(bool enabled)
@@ -218,8 +239,10 @@ public sealed class BuildingDetailsBlock_CropField : BuildingDetailsBlockBase
             return;
         }
 
-        cropActions.TrySetAutoHarvestEnabled(enabled);
-        RefreshOwner();
+        if (!cropActions.TrySetAutoHarvestEnabled(enabled))
+        {
+            Refresh();
+        }
     }
 
     private void HandleCropOptionClicked(string cropId)
@@ -229,9 +252,13 @@ public sealed class BuildingDetailsBlock_CropField : BuildingDetailsBlockBase
             return;
         }
 
-        cropActions.TryPlant(cropId);
-        SetCropSelectionPanelVisible(false);
-        RefreshOwner();
+        if (cropActions.TryPlant(cropId))
+        {
+            SetCropSelectionPanelVisible(false);
+            return;
+        }
+
+        Refresh();
     }
 
     private void RefreshButtons()
@@ -278,38 +305,8 @@ public sealed class BuildingDetailsBlock_CropField : BuildingDetailsBlockBase
         activeCropOptionItems.Add(item.gameObject);
 
         var cropId = option.CropId;
-        item.onClick.AddListener(() => HandleCropOptionClicked(cropId));
-        item.interactable = cropActions != null && cropActions.CanPlant(cropId);
-
-        BindCropOptionIcon(item.transform, option.Icon);
-        BindCropOptionName(item.transform, option);
-    }
-
-    private static void BindCropOptionIcon(Transform optionRoot, Sprite icon)
-    {
-        var iconImage = optionRoot != null && optionRoot.childCount > 0
-            ? optionRoot.GetChild(0).GetComponent<Image>()
-            : null;
-
-        if (iconImage == null)
-        {
-            return;
-        }
-
-        iconImage.sprite = icon;
-        iconImage.enabled = icon != null;
-    }
-
-    private static void BindCropOptionName(Transform optionRoot, BuildingCropOption option)
-    {
-        var nameText = optionRoot != null && optionRoot.childCount > 1
-            ? optionRoot.GetChild(1).GetComponent<TMP_Text>()
-            : null;
-
-        if (nameText != null)
-        {
-            nameText.text = $"{option.DisplayName}（{option.GrowTurns}回合）";
-        }
+        item.Button.onClick.AddListener(() => HandleCropOptionClicked(cropId));
+        item.Bind(option, cropActions != null && cropActions.CanPlant(cropId));
     }
 
     private void ClearCropOptions()
@@ -349,153 +346,6 @@ public sealed class BuildingDetailsBlock_CropField : BuildingDetailsBlockBase
         return $"成熟剩余：{cropSource.RemainingGrowTurns}回合";
     }
 
-    private void ResolveFields()
-    {
-        if (btn_选择作物 == null)
-        {
-            btn_选择作物 = FindButtonByNameOrText(transform, "选择作物")
-                        ?? FindButtonByNameOrText(transform, "种植");
-        }
-
-        if (btn_收获 == null)
-        {
-            btn_收获 = FindButtonByNameOrText(transform, "收获");
-        }
-
-        if (btn_铲除 == null)
-        {
-            btn_铲除 = FindButtonByNameOrText(transform, "铲除");
-        }
-
-        if (tgl_自动收获 == null)
-        {
-            tgl_自动收获 = GetComponentInChildren<Toggle>(true);
-        }
-
-        if (go_作物选择面板 == null)
-        {
-            var panel = FindChildByName(transform, "作物选择面板")
-                     ?? FindChildByName(transform, "crop_selection_panel");
-            go_作物选择面板 = panel == null ? null : panel.gameObject;
-        }
-
-        if (root_作物选项 == null && go_作物选择面板 != null)
-        {
-            root_作物选项 = go_作物选择面板.GetComponentInChildren<RectTransform>(true);
-        }
-
-        ResolveTextFields();
-    }
-
-    private void ResolveTextFields()
-    {
-        var texts = GetComponentsInChildren<TMP_Text>(true);
-        for (var i = 0; i < texts.Length; i++)
-        {
-            var text = texts[i];
-            if (text == null)
-            {
-                continue;
-            }
-
-            if (txt_作物状态 == null && text.name.Contains("作物"))
-            {
-                txt_作物状态 = text;
-                continue;
-            }
-
-            if (txt_成熟回合 == null && (text.name.Contains("成熟") || text.name.Contains("回合")))
-            {
-                txt_成熟回合 = text;
-                continue;
-            }
-
-            if (txt_自动收获 == null && text.name.Contains("自动"))
-            {
-                txt_自动收获 = text;
-            }
-        }
-
-        if (txt_作物状态 == null && texts.Length > 0)
-        {
-            txt_作物状态 = texts[0];
-        }
-
-        if (txt_成熟回合 == null && texts.Length > 1)
-        {
-            txt_成熟回合 = texts[1];
-        }
-
-        if (txt_自动收获 == null && texts.Length > 2)
-        {
-            txt_自动收获 = texts[2];
-        }
-    }
-
-    private static Button FindButtonByNameOrText(Transform root, string keyword)
-    {
-        if (root == null || string.IsNullOrWhiteSpace(keyword))
-        {
-            return null;
-        }
-
-        var buttons = root.GetComponentsInChildren<Button>(true);
-        for (var i = 0; i < buttons.Length; i++)
-        {
-            var button = buttons[i];
-            if (button == null)
-            {
-                continue;
-            }
-
-            if (button.name.Contains(keyword))
-            {
-                return button;
-            }
-
-            var texts = button.GetComponentsInChildren<TMP_Text>(true);
-            for (var j = 0; j < texts.Length; j++)
-            {
-                if (texts[j] != null && texts[j].text.Contains(keyword))
-                {
-                    return button;
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private static Transform FindChildByName(Transform root, string childName)
-    {
-        if (root == null || string.IsNullOrWhiteSpace(childName))
-        {
-            return null;
-        }
-
-        for (var i = 0; i < root.childCount; i++)
-        {
-            var child = root.GetChild(i);
-            if (child == null)
-            {
-                continue;
-            }
-
-            if (child.name == childName)
-            {
-                return child;
-            }
-
-            var nested = FindChildByName(child, childName);
-            if (nested != null)
-            {
-                return nested;
-            }
-        }
-
-        return null;
-    }
-
     private void SetCropSelectionPanelVisible(bool visible)
     {
         SetActive(go_作物选择面板, visible);
@@ -508,17 +358,6 @@ public sealed class BuildingDetailsBlock_CropField : BuildingDetailsBlockBase
     private void SetBlockVisible(bool visible)
     {
         SetActive(gameObject, visible);
-    }
-
-    private void RefreshOwner()
-    {
-        if (owner != null)
-        {
-            owner.RefreshCurrentBuildingDetails();
-            return;
-        }
-
-        Refresh();
     }
 
     private static void SetButtonInteractable(Button button, bool interactable)

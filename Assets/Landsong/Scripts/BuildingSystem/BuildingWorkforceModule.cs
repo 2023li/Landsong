@@ -48,14 +48,14 @@ namespace Landsong.BuildingSystem
         [SerializeField, AssetsOnly, LabelText("金币物品")] private ItemDefinition goldItemDefinition;
 
         [TitleGroup("运行时")]
-        [SerializeField, ReadOnly] private int currentWorkers;
-        [SerializeField, ReadOnly] private int stableWorkers;
-        [SerializeField, ReadOnly] private int stableWorkersWithoutSubsidy;
-        [SerializeField, ReadOnly] private float jobAttraction;
-        [SerializeField, ReadOnly] private float jobAttractionWithoutSubsidy;
-        [SerializeField, ReadOnly] private int targetSubsidyGoldPerTurn;
-        [SerializeField, ReadOnly] private int paidSubsidyGoldThisTurn;
-        [SerializeField, ReadOnly] private bool initialWorkersGranted;
+        [SerializeField, ReadOnly, LabelText("当前工人")] private int currentWorkers;
+        [SerializeField, ReadOnly, LabelText("稳定工人")] private int stableWorkers;
+        [SerializeField, ReadOnly, LabelText("无补贴稳定工人")] private int stableWorkersWithoutSubsidy;
+        [SerializeField, ReadOnly, LabelText("岗位吸引力")] private float jobAttraction;
+        [SerializeField, ReadOnly, LabelText("无补贴岗位吸引力")] private float jobAttractionWithoutSubsidy;
+        [SerializeField, ReadOnly, LabelText("目标每回合补贴金币")] private int targetSubsidyGoldPerTurn;
+        [SerializeField, ReadOnly, LabelText("本回合已付补贴金币")] private int paidSubsidyGoldThisTurn;
+        [SerializeField, ReadOnly, LabelText("已发放初始工人")] private bool initialWorkersGranted;
 
         [NonSerialized] private BuildingBase owner;
         [SerializeField, HideInInspector] private bool defaultsConfigured;

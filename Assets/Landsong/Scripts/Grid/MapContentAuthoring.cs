@@ -50,6 +50,9 @@ namespace Landsong.GridSystem
         [SerializeField, BoxGroup("初始建筑"), LabelText("显示占地 Gizmo")]
         private bool showInitialBuildingFootprints = true;
 
+        [SerializeField, BoxGroup("初始建筑"), LabelText("显示建筑文字"), Tooltip("在 Scene 视图中显示初始建筑的名称、阶段或等级、StyleId，并提示未吸附状态。不会创建建筑美术预览对象。")]
+        private bool showInitialBuildingLabels = true;
+
         [SerializeField, BoxGroup("初始建筑"), LabelText("对齐容差"), Min(0.0001f)]
         private float initialBuildingAlignmentTolerance = 0.01f;
 
@@ -217,6 +220,55 @@ namespace Landsong.GridSystem
         }
 
 #if UNITY_EDITOR
+        private static void DrawInitialBuildingLabels(
+            IReadOnlyList<InitialBuildingTemplate> templates)
+        {
+            var normalStyle = CreateInitialBuildingLabelStyle(Color.white);
+            var warningStyle = CreateInitialBuildingLabelStyle(new Color(1f, 0.65f, 0.1f));
+
+            for (var i = 0; i < templates.Count; i++)
+            {
+                var template = templates[i];
+                var building = template.Context as BuildingBase;
+                if (!template.IsValid || building == null)
+                {
+                    continue;
+                }
+
+                var displayName = template.BuildingPrefab.Definition.DisplayName;
+                var stageText = building.Stage == BuildingLifecycleStage.Construction
+                    ? "施工"
+                    : $"LV{building.CurrentLevel}";
+                var styleText = string.IsNullOrWhiteSpace(building.StyleId)
+                    ? string.Empty
+                    : $" · {building.StyleId}";
+                var alignmentText = template.PreviewAligned ? string.Empty : " · 未吸附";
+                var content = new GUIContent(
+                    $"{displayName}\n{stageText}{styleText}{alignmentText}");
+                var labelPosition = building.transform.position
+                                    + Vector3.up
+                                    * HandleUtility.GetHandleSize(building.transform.position)
+                                    * 0.15f;
+                Handles.Label(
+                    labelPosition,
+                    content,
+                    template.PreviewAligned ? normalStyle : warningStyle);
+            }
+        }
+
+        private static GUIStyle CreateInitialBuildingLabelStyle(Color textColor)
+        {
+            var style = new GUIStyle(EditorStyles.helpBox)
+            {
+                alignment = TextAnchor.MiddleCenter,
+                fontSize = 11,
+                fontStyle = FontStyle.Bold,
+                wordWrap = false
+            };
+            style.normal.textColor = textColor;
+            return style;
+        }
+
         [Button("一键生成基础 Tilemap")]
         [ContextMenu("一键生成基础 Tilemap")]
         private void ConfigureBaseTilemaps()
@@ -442,12 +494,23 @@ namespace Landsong.GridSystem
 
         private void OnDrawGizmos()
         {
-            if (!showInitialBuildingFootprints || Application.isPlaying || unityGrid == null)
+            if (Application.isPlaying || unityGrid == null)
             {
                 return;
             }
 
             var templates = GetInitialBuildingTemplates();
+#if UNITY_EDITOR
+            if (showInitialBuildingLabels)
+            {
+                DrawInitialBuildingLabels(templates);
+            }
+#endif
+            if (!showInitialBuildingFootprints)
+            {
+                return;
+            }
+
             var layout = new GridLayoutService(unityGrid);
             for (var i = 0; i < templates.Length; i++)
             {

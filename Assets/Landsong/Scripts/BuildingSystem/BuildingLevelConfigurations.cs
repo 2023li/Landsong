@@ -20,12 +20,12 @@ namespace Landsong.BuildingSystem
     [Serializable]
     public sealed class BuildingWorkforceLevelConfiguration : BuildingLevelConfigurationBase
     {
-        [SerializeField, Min(1)] private int maxWorkers = 1;
-        [SerializeField, Min(0)] private int initialWorkers;
-        [SerializeField, Min(0f)] private float baseAttraction = 55f;
-        [SerializeField, Min(0)] private int recruitCost = 10;
-        [SerializeField] private bool autoSubsidy;
-        [SerializeField, Min(0)] private int targetStableWorkers;
+        [SerializeField, LabelText("最大岗位"), Min(1)] private int maxWorkers = 1;
+        [SerializeField, LabelText("初始工人"), Min(0)] private int initialWorkers;
+        [SerializeField, LabelText("基础岗位吸引力"), Min(0f)] private float baseAttraction = 55f;
+        [SerializeField, LabelText("单人招工费用"), Min(0)] private int recruitCost = 10;
+        [SerializeField, LabelText("自动补贴")] private bool autoSubsidy;
+        [SerializeField, LabelText("目标稳定工人"), Min(0)] private int targetStableWorkers;
         [SerializeField, AssetsOnly, LabelText("金币物品")] private ItemDefinition goldItemDefinition;
 
         public BuildingWorkforceLevelConfiguration()
@@ -81,7 +81,7 @@ namespace Landsong.BuildingSystem
     public struct BuildingProductionOutputConfiguration
     {
         [SerializeField, AssetsOnly, LabelText("产出物品")] private ItemDefinition itemDefinition;
-        [SerializeField] private WorkerProductionTier[] workerProductionTiers;
+        [SerializeField, LabelText("工人数产量表")] private WorkerProductionTier[] workerProductionTiers;
 
         public BuildingProductionOutputConfiguration(
             ItemDefinition itemDefinition,
@@ -111,8 +111,8 @@ namespace Landsong.BuildingSystem
     [Serializable]
     public sealed class BuildingProductionLevelConfiguration : BuildingLevelConfigurationBase
     {
-        [SerializeField, Min(1)] private int intervalTurns = 1;
-        [SerializeField] private BuildingProductionOutputConfiguration[] outputs =
+        [SerializeField, LabelText("生产周期回合"), Min(1)] private int intervalTurns = 1;
+        [SerializeField, LabelText("产出配置")] private BuildingProductionOutputConfiguration[] outputs =
             Array.Empty<BuildingProductionOutputConfiguration>();
 
         public BuildingProductionLevelConfiguration()
@@ -148,7 +148,7 @@ namespace Landsong.BuildingSystem
     [Serializable]
     public sealed class BuildingInventoryLevelConfiguration : BuildingLevelConfigurationBase
     {
-        [SerializeField, Min(0)] private int providedSlots;
+        [SerializeField, LabelText("提供库存格数"), Min(0)] private int providedSlots;
 
         public BuildingInventoryLevelConfiguration()
         {
@@ -176,7 +176,7 @@ namespace Landsong.BuildingSystem
     [Serializable]
     public sealed class BuildingTechnologyPointLevelConfiguration : BuildingLevelConfigurationBase
     {
-        [SerializeField, Min(0)] private int pointsPerTurn;
+        [SerializeField, LabelText("每回合科技点"), Min(0)] private int pointsPerTurn;
 
         public BuildingTechnologyPointLevelConfiguration()
         {
@@ -205,7 +205,7 @@ namespace Landsong.BuildingSystem
     [Serializable]
     public sealed class PlayerHomeLevelConfiguration : BuildingLevelConfigurationBase
     {
-        [SerializeField, Min(0)] private int population = 10;
+        [SerializeField, LabelText("提供人口"), Min(0)] private int population = 10;
 
         public PlayerHomeLevelConfiguration()
         {
@@ -233,13 +233,13 @@ namespace Landsong.BuildingSystem
     [Serializable]
     public sealed class ResidentialHousingLevelConfiguration : BuildingLevelConfigurationBase
     {
-        [SerializeField, Min(1)] private int initialPopulation = 2;
-        [SerializeField, Min(1)] private int maxPopulation = 5;
+        [SerializeField, LabelText("初始人口"), Min(1)] private int initialPopulation = 2;
+        [SerializeField, LabelText("最大人口"), Min(1)] private int maxPopulation = 5;
         [SerializeField, AssetsOnly, LabelText("食物物品")] private ItemDefinition foodItemDefinition;
-        [SerializeField, Min(1)] private int growthIntervalTurns = 3;
-        [SerializeField, Min(1)] private int failureDecayThreshold = 3;
+        [SerializeField, LabelText("人口增长间隔回合"), Min(1)] private int growthIntervalTurns = 3;
+        [SerializeField, LabelText("失败衰减阈值"), Min(1)] private int failureDecayThreshold = 3;
         [SerializeField, AssetsOnly, LabelText("税收物品")] private ItemDefinition taxItemDefinition;
-        [SerializeField, Min(1)] private int taxIntervalTurns = 5;
+        [SerializeField, LabelText("税收间隔回合"), Min(1)] private int taxIntervalTurns = 5;
 
         public ResidentialHousingLevelConfiguration()
         {
@@ -298,11 +298,11 @@ namespace Landsong.BuildingSystem
     [Serializable]
     public sealed class FishingHutLevelConfiguration : BuildingLevelConfigurationBase
     {
-        [SerializeField] private bool enableSpecialCatch;
+        [SerializeField, LabelText("启用特殊捕获")] private bool enableSpecialCatch;
         [SerializeField, AssetsOnly, LabelText("特殊产出物品")] private ItemDefinition specialItemDefinition;
-        [SerializeField, Min(1)] private int minimumWorkers = 5;
-        [SerializeField, Range(0f, 100f)] private float chancePercent = 1f;
-        [SerializeField, Min(0)] private int amount = 1;
+        [SerializeField, LabelText("最低工人数"), Min(1)] private int minimumWorkers = 5;
+        [SerializeField, LabelText("触发概率百分比"), Range(0f, 100f)] private float chancePercent = 1f;
+        [SerializeField, LabelText("产出数量"), Min(0)] private int amount = 1;
 
         public FishingHutLevelConfiguration()
         {

@@ -45,6 +45,7 @@ public sealed class DataManager : MonoSingleton<DataManager>
     public event Action<GameData> OnRuntimeDataRestoreStarted;
     public event Action<GameData> OnRuntimeDataRestoreCompleted;
     public event Action<AudioSaveData> OnAudioSettingsChanged;
+    public event Action<GameplayDisplaySaveData> OnGameplayDisplaySettingsChanged;
 
     protected override void Init()
     {
@@ -141,6 +142,21 @@ public sealed class DataManager : MonoSingleton<DataManager>
     public void SetMuted(bool muted)
     {
         UpdateAudioSettings(data => data.IsMuted = muted);
+    }
+
+    public void SetMapGridLinesVisible(bool visible)
+    {
+        UpdateGameplayDisplaySettings(data => data.MapGridLinesVisible = visible);
+    }
+
+    public void SetBaseTilemapVisible(bool visible)
+    {
+        UpdateGameplayDisplaySettings(data => data.BaseTilemapVisible = visible);
+    }
+
+    public void SetSelectedBuildingFootprintVisible(bool visible)
+    {
+        UpdateGameplayDisplaySettings(data => data.SelectedBuildingFootprintVisible = visible);
     }
 
     public void LoadGameDataIndex()
@@ -484,6 +500,16 @@ public sealed class DataManager : MonoSingleton<DataManager>
         appData.Audio.Validate();
         SaveAppData();
         OnAudioSettingsChanged?.Invoke(appData.Audio);
+    }
+
+    private void UpdateGameplayDisplaySettings(Action<GameplayDisplaySaveData> update)
+    {
+        EnsureAppDataLoaded();
+        appData.GameplayDisplay ??= GameplayDisplaySaveData.CreateDefault();
+        update?.Invoke(appData.GameplayDisplay);
+        appData.GameplayDisplay.Validate();
+        SaveAppData();
+        OnGameplayDisplaySettingsChanged?.Invoke(appData.GameplayDisplay);
     }
 
     private void EnsureServices()

@@ -9,36 +9,34 @@ using UnityEngine.UI;
 
 public class Popup_BuildingDetails : MonoBehaviour
 {
-    [SerializeField, LabelText("详情侧边栏对象")] private GameObject go_详情侧边栏;
-    [SerializeField, LabelText("详情侧边栏内容根节点")] private RectTransform root_详情侧边栏内容;
-    [SerializeField, LabelText("详情侧边栏文本预制体")] private GameObject prefab_详情侧边栏文本;
+    [SerializeField, Required, LabelText("详情侧边栏对象")] private GameObject go_详情侧边栏;
+    [SerializeField, Required, LabelText("详情侧边栏内容根节点")] private RectTransform root_详情侧边栏内容;
+    [SerializeField, Required, LabelText("详情侧边栏文本预制体")] private TMP_Text prefab_详情侧边栏文本;
 
-    [SerializeField, LabelText("建筑名称文本")] private TMP_Text txt_建筑名称;
-    [SerializeField, LabelText("建筑描述文本")] private TMP_Text txt_建筑描述;
-    [SerializeField, LabelText("建筑图标")] private Image img_建筑图标;
-    [SerializeField, LabelText("关闭弹窗按钮")] private Button btn_关闭弹窗;
+    [SerializeField, Required, LabelText("建筑名称文本")] private TMP_Text txt_建筑名称;
+    [SerializeField, Required, LabelText("建筑描述文本")] private TMP_Text txt_建筑描述;
+    [SerializeField, Required, LabelText("建筑图标")] private Image img_建筑图标;
+    [SerializeField, Required, LabelText("关闭弹窗按钮")] private Button btn_关闭弹窗;
 
-    [SerializeField, LabelText("内容栏根节点")] private RectTransform root_内容栏;
-    [SerializeField, LabelText("标题预制体")] private GameObject prefab_标题;
-    [SerializeField, LabelText("内容文本预制体")] private GameObject prefab_内容文本;
-    [SerializeField, LabelText("详情块列表")] private BuildingDetailsBlockBase[] detailBlocks = Array.Empty<BuildingDetailsBlockBase>();
+    [SerializeField, Required, LabelText("详情块列表")] private BuildingDetailsBlockBase[] detailBlocks = Array.Empty<BuildingDetailsBlockBase>();
 
-    private readonly List<GameObject> activeContentItems = new List<GameObject>();
+    private readonly List<BuildingDetailsBlockBase> initializedDetailBlocks = new List<BuildingDetailsBlockBase>();
     private readonly List<GameObject> activeSidebarItems = new List<GameObject>();
     private BuildingBase building;
+    private BuildingDetailsBlockBase sidebarOwner;
 
     public bool IsVisible => gameObject.activeSelf;
 
     private void Awake()
     {
-        ResolveDetailBlocks();
+        ValidatePopupReferences();
+        InitializeDetailBlocks();
 
         if (btn_关闭弹窗 != null)
         {
             btn_关闭弹窗.onClick.AddListener(Hide);
         }
 
-        ClearContentRoot();
         ClearDetailSidebarRoot();
         Hide();
     }
@@ -82,8 +80,7 @@ public class Popup_BuildingDetails : MonoBehaviour
         SetText(txt_建筑名称, string.Empty);
         SetText(txt_建筑描述, string.Empty);
         SetIcon(null);
-        HideDetailSidebar();
-        ClearContentRoot();
+        HideDetailSidebarImmediately();
         SetActive(gameObject, false);
     }
 
@@ -99,15 +96,6 @@ public class Popup_BuildingDetails : MonoBehaviour
         SetText(txt_建筑描述, BuildDescriptionText(building, displayData));
         SetIcon(building.Definition == null ? null : building.Definition.Icon);
         RefreshDetailBlocks(building);
-        ClearContentRoot();
-    }
-
-    public void RefreshCurrentBuildingDetails()
-    {
-        if (building != null)
-        {
-            Refresh();
-        }
     }
 
     private void HandleBuildingStateChanged(BuildingBase changedBuilding)
@@ -118,69 +106,96 @@ public class Popup_BuildingDetails : MonoBehaviour
         }
     }
 
-    private void ResolveDetailBlocks()
+    private void InitializeDetailBlocks()
     {
-        EnsureFallbackBlockComponent<BuildingDetailsBlock_Function>("info_功能");
-        EnsureFallbackBlockComponent<BuildingDetailsBlock_Level>("info_等级");
-
-        var resolvedBlocks = new List<BuildingDetailsBlockBase>();
-        AddDetailBlocks(detailBlocks, resolvedBlocks);
-        AddDetailBlocks(GetComponentsInChildren<BuildingDetailsBlockBase>(true), resolvedBlocks);
-        detailBlocks = resolvedBlocks.ToArray();
-
-        for (var i = 0; i < detailBlocks.Length; i++)
-        {
-            if (detailBlocks[i] != null)
-            {
-                detailBlocks[i].Initialize(this);
-            }
-        }
-    }
-
-    private void EnsureFallbackBlockComponent<TBlock>(string childName)
-        where TBlock : BuildingDetailsBlockBase
-    {
-        if (GetComponentInChildren<TBlock>(true) != null)
-        {
-            return;
-        }
-
-        var blockRoot = FindChildByName(transform, childName);
-        if (blockRoot != null)
-        {
-            blockRoot.gameObject.AddComponent<TBlock>();
-        }
-    }
-
-    private static void AddDetailBlocks(
-        IReadOnlyList<BuildingDetailsBlockBase> source,
-        List<BuildingDetailsBlockBase> target)
-    {
-        if (source == null || target == null)
-        {
-            return;
-        }
-
-        for (var i = 0; i < source.Count; i++)
-        {
-            var block = source[i];
-            if (block != null && !target.Contains(block))
-            {
-                target.Add(block);
-            }
-        }
-    }
-
-    private void RefreshDetailBlocks(BuildingBase targetBuilding)
-    {
+        initializedDetailBlocks.Clear();
+        var serializedBlocks = new HashSet<BuildingDetailsBlockBase>();
         if (detailBlocks == null)
         {
-            return;
+            detailBlocks = Array.Empty<BuildingDetailsBlockBase>();
         }
 
         for (var i = 0; i < detailBlocks.Length; i++)
         {
             var block = detailBlocks[i];
+            if (block == null)
+            {
+                Debug.LogError($"{nameof(Popup_BuildingDetails)} 的详情块列表第 {i} 项为空。", this);
+                continue;
+            }
+
+            if (!serializedBlocks.Add(block))
+            {
+                Debug.LogError($"{nameof(Popup_BuildingDetails)} 的详情块列表重复引用 {block.name}。", this);
+                continue;
+            }
+
+            if (block.transform != transform && !block.transform.IsChildOf(transform))
+            {
+                Debug.LogError($"详情块 {block.GetType().Name} 不属于当前详情面板层级。", block);
+                continue;
+            }
+
+            if (!block.ValidateConfiguration(out var error))
+            {
+                Debug.LogError($"详情块 {block.GetType().Name} 配置不完整：{error}", block);
+                block.gameObject.SetActive(false);
+                continue;
+            }
+
+            block.Initialize(this);
+            initializedDetailBlocks.Add(block);
+        }
+
+        var childBlocks = GetComponentsInChildren<BuildingDetailsBlockBase>(true);
+        for (var i = 0; i < childBlocks.Length; i++)
+        {
+            var childBlock = childBlocks[i];
+            if (childBlock != null && !serializedBlocks.Contains(childBlock))
+            {
+                Debug.LogError(
+                    $"详情块 {childBlock.GetType().Name} 未加入 {nameof(Popup_BuildingDetails)} 的详情块列表。",
+                    childBlock);
+                childBlock.gameObject.SetActive(false);
+            }
+        }
+    }
+
+    private void ValidatePopupReferences()
+    {
+        var missing = new List<string>();
+        AddMissingReference(missing, go_详情侧边栏, nameof(go_详情侧边栏));
+        AddMissingReference(missing, root_详情侧边栏内容, nameof(root_详情侧边栏内容));
+        AddMissingReference(missing, prefab_详情侧边栏文本, nameof(prefab_详情侧边栏文本));
+        AddMissingReference(missing, txt_建筑名称, nameof(txt_建筑名称));
+        AddMissingReference(missing, txt_建筑描述, nameof(txt_建筑描述));
+        AddMissingReference(missing, img_建筑图标, nameof(img_建筑图标));
+        AddMissingReference(missing, btn_关闭弹窗, nameof(btn_关闭弹窗));
+        if (detailBlocks == null || detailBlocks.Length == 0)
+        {
+            missing.Add(nameof(detailBlocks));
+        }
+
+        if (missing.Count > 0)
+        {
+            Debug.LogError($"{nameof(Popup_BuildingDetails)} 缺少必需引用：{string.Join("、", missing)}", this);
+        }
+
+    }
+
+    private static void AddMissingReference(List<string> missing, UnityEngine.Object target, string fieldName)
+    {
+        if (target == null)
+        {
+            missing.Add(fieldName);
+        }
+    }
+
+    private void RefreshDetailBlocks(BuildingBase targetBuilding)
+    {
+        for (var i = 0; i < initializedDetailBlocks.Count; i++)
+        {
+            var block = initializedDetailBlocks[i];
             if (block == null)
             {
                 continue;
@@ -198,16 +213,11 @@ public class Popup_BuildingDetails : MonoBehaviour
 
     private void UnbindDetailBlocks()
     {
-        if (detailBlocks == null)
+        for (var i = 0; i < initializedDetailBlocks.Count; i++)
         {
-            return;
-        }
-
-        for (var i = 0; i < detailBlocks.Length; i++)
-        {
-            if (detailBlocks[i] != null)
+            if (initializedDetailBlocks[i] != null)
             {
-                detailBlocks[i].Unbind();
+                initializedDetailBlocks[i].Unbind();
             }
         }
     }
@@ -220,14 +230,38 @@ public class Popup_BuildingDetails : MonoBehaviour
         }
     }
 
-    public void ShowDetailSidebar(IReadOnlyList<BuildingDetailsSidebarRow> rows)
+    public bool IsDetailSidebarOwner(BuildingDetailsBlockBase source)
     {
+        return source != null && sidebarOwner == source;
+    }
+
+    public void ShowDetailSidebar(
+        BuildingDetailsBlockBase source,
+        IReadOnlyList<BuildingDetailsSidebarRow> rows)
+    {
+        if (source == null || !initializedDetailBlocks.Contains(source))
+        {
+            return;
+        }
+
+        sidebarOwner = source;
         RebuildDetailSidebar(rows);
         SetDetailSidebarVisible(true);
     }
 
-    public void HideDetailSidebar()
+    public void HideDetailSidebar(BuildingDetailsBlockBase source)
     {
+        if (source == null || sidebarOwner != source)
+        {
+            return;
+        }
+
+        HideDetailSidebarImmediately();
+    }
+
+    private void HideDetailSidebarImmediately()
+    {
+        sidebarOwner = null;
         SetDetailSidebarVisible(false);
         ClearDetailSidebarRoot();
     }
@@ -273,31 +307,12 @@ public class Popup_BuildingDetails : MonoBehaviour
         }
 
         var item = Instantiate(prefab_详情侧边栏文本, root_详情侧边栏内容);
-        item.SetActive(true);
-        activeSidebarItems.Add(item);
-
-        var texts = item.GetComponentsInChildren<TMP_Text>(true);
-        if (texts == null || texts.Length == 0)
-        {
-            return;
-        }
-
-        if (texts.Length == 1)
-        {
-            texts[0].text = FormatSidebarRow(row);
-            if (row.HasSignedValue)
-            {
-                texts[0].color = ResolveSignedColor(row.SignedValue, texts[0].color);
-            }
-
-            return;
-        }
-
-        texts[0].text = row.Label ?? string.Empty;
-        texts[1].text = row.Value ?? string.Empty;
+        item.gameObject.SetActive(true);
+        activeSidebarItems.Add(item.gameObject);
+        item.text = FormatSidebarRow(row);
         if (row.HasSignedValue)
         {
-            texts[1].color = ResolveSignedColor(row.SignedValue, texts[1].color);
+            item.color = ResolveSignedColor(row.SignedValue, item.color);
         }
     }
 
@@ -309,29 +324,6 @@ public class Popup_BuildingDetails : MonoBehaviour
         }
 
         activeSidebarItems.Clear();
-    }
-
-    private GameObject InstantiateContent(GameObject prefab)
-    {
-        if (prefab == null || root_内容栏 == null)
-        {
-            return null;
-        }
-
-        GameObject item = Instantiate(prefab, root_内容栏);
-        item.SetActive(true);
-        activeContentItems.Add(item);
-        return item;
-    }
-
-    private void ClearContentRoot()
-    {
-        for (int i = 0; i < activeContentItems.Count; i++)
-        {
-            DestroyIfNeeded(activeContentItems[i]);
-        }
-
-        activeContentItems.Clear();
     }
 
     private void SetDetailSidebarVisible(bool visible)
@@ -401,36 +393,6 @@ public class Popup_BuildingDetails : MonoBehaviour
         }
 
         return fallback;
-    }
-
-    private static Transform FindChildByName(Transform root, string childName)
-    {
-        if (root == null || string.IsNullOrWhiteSpace(childName))
-        {
-            return null;
-        }
-
-        for (var i = 0; i < root.childCount; i++)
-        {
-            var child = root.GetChild(i);
-            if (child == null)
-            {
-                continue;
-            }
-
-            if (child.name == childName)
-            {
-                return child;
-            }
-
-            var nested = FindChildByName(child, childName);
-            if (nested != null)
-            {
-                return nested;
-            }
-        }
-
-        return null;
     }
 
     private static void SetText(TMP_Text target, string text)

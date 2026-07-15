@@ -7,6 +7,46 @@ using UnityEngine;
 
 namespace Landsong.BuildingSystem
 {
+    public sealed class BuildingCropAuthoringDefinition
+    {
+        public BuildingCropAuthoringDefinition(
+            string cropId,
+            string displayName,
+            int growTurns,
+            IReadOnlyList<BuildingCost> plantCosts,
+            IReadOnlyList<BuildingCropHarvestAuthoringReward> harvestRewards)
+        {
+            CropId = string.IsNullOrWhiteSpace(cropId) ? string.Empty : cropId.Trim();
+            DisplayName = string.IsNullOrWhiteSpace(displayName) ? CropId : displayName.Trim();
+            GrowTurns = Mathf.Max(1, growTurns);
+            PlantCosts = plantCosts ?? Array.Empty<BuildingCost>();
+            HarvestRewards = harvestRewards ?? Array.Empty<BuildingCropHarvestAuthoringReward>();
+        }
+
+        public string CropId { get; }
+        public string DisplayName { get; }
+        public int GrowTurns { get; }
+        public IReadOnlyList<BuildingCost> PlantCosts { get; }
+        public IReadOnlyList<BuildingCropHarvestAuthoringReward> HarvestRewards { get; }
+    }
+
+    public readonly struct BuildingCropHarvestAuthoringReward
+    {
+        public BuildingCropHarvestAuthoringReward(
+            ItemDefinition itemDefinition,
+            int minimumAmount,
+            int maximumAmount)
+        {
+            ItemDefinition = itemDefinition;
+            MinimumAmount = Mathf.Max(0, minimumAmount);
+            MaximumAmount = Mathf.Max(MinimumAmount, maximumAmount);
+        }
+
+        public ItemDefinition ItemDefinition { get; }
+        public int MinimumAmount { get; }
+        public int MaximumAmount { get; }
+    }
+
     [Serializable]
     [BuildingModuleId("crop")]
     public sealed class BuildingCropGrowthModule : BuildingModuleBase,
@@ -56,6 +96,36 @@ namespace Landsong.BuildingSystem
             [SerializeField, LabelText("收获产出")]
             private CropHarvestReward[] harvestRewards = Array.Empty<CropHarvestReward>();
 
+            public CropDefinition()
+            {
+            }
+
+            public CropDefinition(BuildingCropAuthoringDefinition source, Sprite preservedIcon)
+            {
+                cropId = source?.CropId ?? string.Empty;
+                displayName = source?.DisplayName ?? string.Empty;
+                icon = preservedIcon;
+                growTurns = source?.GrowTurns ?? 1;
+                plantCosts = source == null
+                    ? Array.Empty<BuildingCost>()
+                    : new List<BuildingCost>(source.PlantCosts).ToArray();
+
+                if (source == null || source.HarvestRewards.Count == 0)
+                {
+                    harvestRewards = Array.Empty<CropHarvestReward>();
+                }
+                else
+                {
+                    harvestRewards = new CropHarvestReward[source.HarvestRewards.Count];
+                    for (var i = 0; i < source.HarvestRewards.Count; i++)
+                    {
+                        harvestRewards[i] = new CropHarvestReward(source.HarvestRewards[i]);
+                    }
+                }
+
+                Normalize();
+            }
+
             public string CropId => string.IsNullOrWhiteSpace(cropId) ? string.Empty : cropId.Trim();
             public string DisplayName => string.IsNullOrWhiteSpace(displayName) ? CropId : displayName.Trim();
             public Sprite Icon => icon;
@@ -100,6 +170,18 @@ namespace Landsong.BuildingSystem
 
             [SerializeField, LabelText("最大数量"), Min(0)]
             private int maxAmount = 1;
+
+            public CropHarvestReward()
+            {
+            }
+
+            public CropHarvestReward(BuildingCropHarvestAuthoringReward source)
+            {
+                itemDefinition = source.ItemDefinition;
+                minAmount = source.MinimumAmount;
+                maxAmount = source.MaximumAmount;
+                Normalize();
+            }
 
             public string ItemId => itemDefinition == null ? string.Empty : itemDefinition.ItemId;
             public string DisplayName => itemDefinition == null ? ItemId : itemDefinition.DisplayName;
@@ -301,6 +383,47 @@ namespace Landsong.BuildingSystem
             {
                 growthProgressTurns = Mathf.Clamp(growthProgressTurns, 0, crop.GrowTurns);
             }
+        }
+
+        /// <summary>
+        /// 更新作物玩法数据，并按 CropId 保留 Unity 中绑定的作物图标。
+        /// </summary>
+        public void ApplyAuthoringConfiguration(
+            IReadOnlyList<BuildingCropAuthoringDefinition> definitions,
+            IReadOnlyList<BuildingCost> automaticHarvestCosts)
+        {
+            var existingIcons = new Dictionary<string, Sprite>(StringComparer.Ordinal);
+            if (crops != null)
+            {
+                for (var i = 0; i < crops.Length; i++)
+                {
+                    var existing = crops[i];
+                    if (existing != null && existing.IsValid && !existingIcons.ContainsKey(existing.CropId))
+                    {
+                        existingIcons.Add(existing.CropId, existing.Icon);
+                    }
+                }
+            }
+
+            if (definitions == null || definitions.Count == 0)
+            {
+                crops = Array.Empty<CropDefinition>();
+            }
+            else
+            {
+                crops = new CropDefinition[definitions.Count];
+                for (var i = 0; i < definitions.Count; i++)
+                {
+                    var source = definitions[i];
+                    existingIcons.TryGetValue(source?.CropId ?? string.Empty, out var preservedIcon);
+                    crops[i] = new CropDefinition(source, preservedIcon);
+                }
+            }
+
+            autoHarvestCosts = automaticHarvestCosts == null
+                ? Array.Empty<BuildingCost>()
+                : new List<BuildingCost>(automaticHarvestCosts).ToArray();
+            Normalize();
         }
 
         public bool CanPlant(BuildingBase owner, string cropId)

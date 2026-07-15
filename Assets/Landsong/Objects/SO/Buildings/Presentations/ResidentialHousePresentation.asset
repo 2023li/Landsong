@@ -13,7 +13,15 @@ MonoBehaviour:
   m_Name: ResidentialHousePresentation
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingPresentationDefinition
   constructionView:
-    directPrefab: {fileID: 0}
+    directPrefab: {fileID: 6839846032303342213, guid: fdb68028d7db05846b63df1339c6c1f7, type: 3}
+    addressablePrefab:
+      m_AssetGUID: 
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+  placementPreviewView:
+    directPrefab: {fileID: 6839846032303342213, guid: fdb68028d7db05846b63df1339c6c1f7, type: 3}
     addressablePrefab:
       m_AssetGUID: 
       m_SubObjectName: 
@@ -21,24 +29,22 @@ MonoBehaviour:
       m_SubObjectGUID: 
       m_EditorAssetChanged: 0
   defaultOperationalView:
-    directPrefab: {fileID: 0}
+    directPrefab: {fileID: 1159711640317471602, guid: 676b3f1850bdc114293901c7f08e96fc, type: 3}
     addressablePrefab:
       m_AssetGUID: 
       m_SubObjectName: 
       m_SubObjectType: 
       m_SubObjectGUID: 
       m_EditorAssetChanged: 0
-  viewMappings: []
+  viewMappings:
+  - level: 1
+    styleId: 
+    view:
+      directPrefab: {fileID: 1159711640317471602, guid: 676b3f1850bdc114293901c7f08e96fc, type: 3}
+      addressablePrefab:
+        m_AssetGUID: 
+        m_SubObjectName: 
+        m_SubObjectType: 
+        m_SubObjectGUID: 
+        m_EditorAssetChanged: 0
   styles: []
-  constructionCompleteTransition:
-    duration: 0.35
-    viewSwapNormalizedTime: 0.5
-    allowSkip: 1
-    effectPrefab: {fileID: 0}
-    sound: {fileID: 0}
-  defaultUpgradeTransition:
-    duration: 0.35
-    viewSwapNormalizedTime: 0.5
-    allowSkip: 1
-    effectPrefab: {fileID: 0}
-    sound: {fileID: 0}

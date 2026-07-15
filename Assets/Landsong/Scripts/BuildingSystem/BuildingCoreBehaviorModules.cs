@@ -276,6 +276,7 @@ namespace Landsong.BuildingSystem
 
         public override string ModuleDescription => "资源提供点按本回合经手物品基础价值结算金币收入。";
         public ItemDefinition GoldItemDefinition => goldItemDefinition;
+        public float IncomeRatio => Mathf.Max(0f, incomeRatio);
         private string GoldItemId => goldItemDefinition == null ? string.Empty : goldItemDefinition.ItemId;
         public bool IsResourceProviderOperational =>
             owner != null
@@ -287,6 +288,13 @@ namespace Landsong.BuildingSystem
         public override void Normalize()
         {
             incomeRatio = Mathf.Max(0f, incomeRatio);
+        }
+
+        public void ApplyConfiguration(ItemDefinition goldDefinition, float settlementRatio)
+        {
+            goldItemDefinition = goldDefinition;
+            incomeRatio = settlementRatio;
+            Normalize();
         }
 
         public void OnBuildingInitialized(BuildingBase building) => Bind(building);
@@ -449,6 +457,11 @@ namespace Landsong.BuildingSystem
         public override string ModuleDescription => "让建筑可通过双击采集；生命归零时拆除并发放配置的资源。";
         public ItemDefinition WoodItemDefinition => woodItemDefinition;
         public ItemDefinition SaplingItemDefinition => saplingItemDefinition;
+        public int MinHealth => Mathf.Max(1, minHealth);
+        public int MaxHealth => Mathf.Max(MinHealth, maxHealth);
+        public int DamagePerDoubleClick => Mathf.Max(1, damagePerDoubleClick);
+        public int WoodRewardAmount => Mathf.Max(0, woodRewardAmount);
+        public int SaplingRewardAmount => Mathf.Max(0, saplingRewardAmount);
         private string WoodItemId => woodItemDefinition == null ? string.Empty : woodItemDefinition.ItemId;
         private string SaplingItemId => saplingItemDefinition == null ? string.Empty : saplingItemDefinition.ItemId;
 
@@ -460,6 +473,25 @@ namespace Landsong.BuildingSystem
             woodRewardAmount = Mathf.Max(0, woodRewardAmount);
             saplingRewardAmount = Mathf.Max(0, saplingRewardAmount);
             currentHealth = Mathf.Max(0, currentHealth);
+        }
+
+        public void ApplyConfiguration(
+            int minimumHealth,
+            int maximumHealth,
+            int doubleClickDamage,
+            ItemDefinition woodDefinition,
+            int woodAmount,
+            ItemDefinition saplingDefinition,
+            int saplingAmount)
+        {
+            minHealth = minimumHealth;
+            maxHealth = maximumHealth;
+            damagePerDoubleClick = doubleClickDamage;
+            woodItemDefinition = woodDefinition;
+            woodRewardAmount = woodAmount;
+            saplingItemDefinition = saplingDefinition;
+            saplingRewardAmount = saplingAmount;
+            Normalize();
         }
 
         public void OnBuildingInitialized(BuildingBase building)

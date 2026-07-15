@@ -378,4 +378,147 @@ namespace Landsong.EditorTools.Buildings
             return result;
         }
     }
+
+    [CustomPropertyDrawer(typeof(BuildingVisualAssetReference))]
+    internal sealed class BuildingVisualAssetReferenceDrawer : LabeledChildrenDrawer
+    {
+        private static readonly ChildField[] ChildFields =
+        {
+            new ChildField("directPrefab", "直接视图预制体", "直接引用的独立视图预制体。"),
+            new ChildField("addressablePrefab", "可寻址视图预制体", "需要按需加载时使用的 Addressables 视图引用。")
+        };
+
+        protected override IReadOnlyList<ChildField> Fields => ChildFields;
+    }
+
+    [CustomPropertyDrawer(typeof(BuildingStyleDefinition))]
+    internal sealed class BuildingStyleDefinitionDrawer : LabeledChildrenDrawer
+    {
+        private static readonly ChildField[] ChildFields =
+        {
+            new ChildField("styleId", "样式 ID", "用于表现映射匹配的稳定标识。"),
+            new ChildField("displayName", "显示名称", "向玩家或策划显示的样式名称。"),
+            new ChildField("icon", "样式图标", "样式选择界面使用的图标。")
+        };
+
+        protected override IReadOnlyList<ChildField> Fields => ChildFields;
+    }
+
+    [CustomPropertyDrawer(typeof(BuildingViewMapping))]
+    internal sealed class BuildingViewMappingDrawer : LabeledChildrenDrawer
+    {
+        private static readonly ChildField[] ChildFields =
+        {
+            new ChildField("level", "运营等级", "该映射开始生效的运营等级，必须从 1 开始。"),
+            new ChildField("styleId", "样式 ID", "留空表示默认样式；填写后只匹配同 ID 的视觉样式。"),
+            new ChildField("view", "视图资源", "该运营等级和样式对应的独立视图资源。")
+        };
+
+        protected override IReadOnlyList<ChildField> Fields => ChildFields;
+    }
+
+    internal abstract class LabeledChildrenDrawer : PropertyDrawer
+    {
+        private static readonly float LineHeight = EditorGUIUtility.singleLineHeight;
+        private static readonly float Spacing = EditorGUIUtility.standardVerticalSpacing;
+
+        protected abstract IReadOnlyList<ChildField> Fields { get; }
+
+        public override float GetPropertyHeight(
+            SerializedProperty property,
+            GUIContent label)
+        {
+            var height = LineHeight;
+            if (!property.isExpanded)
+            {
+                return height;
+            }
+
+            for (var i = 0; i < Fields.Count; i++)
+            {
+                var field = Fields[i];
+                var child = property.FindPropertyRelative(field.PropertyName);
+                if (child == null)
+                {
+                    continue;
+                }
+
+                height += Spacing + EditorGUI.GetPropertyHeight(child, field.Label, true);
+            }
+
+            return height;
+        }
+
+        public override void OnGUI(
+            Rect position,
+            SerializedProperty property,
+            GUIContent label)
+        {
+            var headerLabel = LocalizeArrayElementLabel(label);
+            EditorGUI.BeginProperty(position, headerLabel, property);
+            var headerRect = new Rect(position.x, position.y, position.width, LineHeight);
+            property.isExpanded = EditorGUI.Foldout(
+                headerRect,
+                property.isExpanded,
+                headerLabel,
+                true);
+
+            if (property.isExpanded)
+            {
+                EditorGUI.indentLevel++;
+                var y = headerRect.yMax + Spacing;
+                for (var i = 0; i < Fields.Count; i++)
+                {
+                    var field = Fields[i];
+                    var child = property.FindPropertyRelative(field.PropertyName);
+                    if (child == null)
+                    {
+                        continue;
+                    }
+
+                    var childHeight = EditorGUI.GetPropertyHeight(child, field.Label, true);
+                    var childRect = new Rect(position.x, y, position.width, childHeight);
+                    EditorGUI.PropertyField(childRect, child, field.Label, true);
+                    y += childHeight + Spacing;
+                }
+
+                EditorGUI.indentLevel--;
+            }
+
+            EditorGUI.EndProperty();
+        }
+
+        private static GUIContent LocalizeArrayElementLabel(GUIContent label)
+        {
+            if (label == null || string.IsNullOrEmpty(label.text))
+            {
+                return GUIContent.none;
+            }
+
+            const string elementPrefix = "Element ";
+            if (!label.text.StartsWith(elementPrefix, StringComparison.Ordinal))
+            {
+                return label;
+            }
+
+            return new GUIContent(
+                $"元素 {label.text.Substring(elementPrefix.Length)}",
+                label.tooltip);
+        }
+
+        protected readonly struct ChildField
+        {
+            public ChildField(
+                string propertyName,
+                string label,
+                string tooltip)
+            {
+                PropertyName = propertyName;
+                Label = new GUIContent(label, tooltip);
+            }
+
+            public string PropertyName { get; }
+            public GUIContent Label { get; }
+        }
+    }
 }

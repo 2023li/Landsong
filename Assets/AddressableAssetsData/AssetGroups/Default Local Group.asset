@@ -30,6 +30,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c72320f4f6ba4464794edfb4efac0266
+    m_Address: UIPanel_Debug
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 69f4857c976d8354f8ed492e371b19d2
     m_Address: UIPanel_Setting
     m_ReadOnly: 0

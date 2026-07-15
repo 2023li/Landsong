@@ -23,12 +23,17 @@ namespace Landsong.GridSystem
         private Transform runtimeBuildingsRoot;
 
         private MapContentAuthoring boundContent;
+        private DataManager subscribedDataManager;
+        private bool gridLinesVisible = true;
+        private bool baseTilemapVisible = true;
 
         public static MapRuntimeHost Active { get; private set; }
         public GridMapBehaviour GridMap => gridMap;
         public GridOverlayService OverlayService => overlayService;
         public MapContentAuthoring BoundContent => boundContent;
         public bool IsBound => boundContent != null && gridMap != null && gridMap.IsInitialized;
+        public bool GridLinesVisible => gridLinesVisible;
+        public bool BaseTilemapVisible => baseTilemapVisible;
 
         private void Awake()
         {
@@ -42,8 +47,14 @@ namespace Landsong.GridSystem
             Active = this;
         }
 
+        private void Start()
+        {
+            SubscribeGameplayDisplaySettings();
+        }
+
         private void OnDestroy()
         {
+            UnsubscribeGameplayDisplaySettings();
             if (Active == this)
             {
                 Active = null;
@@ -89,8 +100,9 @@ namespace Landsong.GridSystem
                     content.TerrainLayers,
                     ruleSet,
                     overlayService);
-                gridMap.GetComponent<GridRenderer>()?.RefreshAll();
                 boundContent = content;
+                gridMap.GetComponent<GridRenderer>()?.RefreshAll();
+                ApplyDisplaySettings();
                 return true;
             }
             catch (Exception exception)
@@ -108,6 +120,26 @@ namespace Landsong.GridSystem
             gridMap?.UnbindContent();
             gridMap?.GetComponent<GridRenderer>()?.RefreshAll();
             boundContent = null;
+        }
+
+        public void SetGridLinesVisible(bool visible)
+        {
+            gridLinesVisible = visible;
+            gridMap?.GetComponent<GridRenderer>()?.SetGridLinesVisible(visible);
+        }
+
+        public void SetBaseTilemapVisible(bool visible)
+        {
+            baseTilemapVisible = visible;
+            var baseTilemap = boundContent == null ? null : boundContent.BaseTilemap;
+            if (baseTilemap == null)
+            {
+                return;
+            }
+
+            Color color = baseTilemap.color;
+            color.a = visible ? 1f : 0f;
+            baseTilemap.color = color;
         }
 
         public bool TryCreateInitialBuildings(
@@ -224,6 +256,53 @@ namespace Landsong.GridSystem
             root.transform.SetParent(transform, false);
             runtimeBuildingsRoot = root.transform;
             return runtimeBuildingsRoot;
+        }
+
+        private void SubscribeGameplayDisplaySettings()
+        {
+            if (!DataManager.TryGetInstance(out var dataManager))
+            {
+                return;
+            }
+
+            if (subscribedDataManager != dataManager)
+            {
+                UnsubscribeGameplayDisplaySettings();
+                subscribedDataManager = dataManager;
+                subscribedDataManager.OnGameplayDisplaySettingsChanged += HandleGameplayDisplaySettingsChanged;
+            }
+
+            subscribedDataManager.EnsureAppDataLoaded();
+            HandleGameplayDisplaySettingsChanged(subscribedDataManager.AppData.GameplayDisplay);
+        }
+
+        private void UnsubscribeGameplayDisplaySettings()
+        {
+            if (subscribedDataManager == null)
+            {
+                return;
+            }
+
+            subscribedDataManager.OnGameplayDisplaySettingsChanged -= HandleGameplayDisplaySettingsChanged;
+            subscribedDataManager = null;
+        }
+
+        private void HandleGameplayDisplaySettingsChanged(GameplayDisplaySaveData settings)
+        {
+            if (settings == null)
+            {
+                return;
+            }
+
+            gridLinesVisible = settings.MapGridLinesVisible;
+            baseTilemapVisible = settings.BaseTilemapVisible;
+            ApplyDisplaySettings();
+        }
+
+        private void ApplyDisplaySettings()
+        {
+            SetGridLinesVisible(gridLinesVisible);
+            SetBaseTilemapVisible(baseTilemapVisible);
         }
 
         private static void Rollback(BuildingService service, IReadOnlyList<BuildingBase> created)

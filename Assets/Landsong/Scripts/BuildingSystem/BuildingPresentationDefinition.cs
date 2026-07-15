@@ -9,10 +9,10 @@ namespace Landsong.BuildingSystem
     [Serializable]
     public sealed class BuildingVisualAssetReference
     {
-        [SerializeField, InspectorName("直接 View Prefab"), LabelText("直接 View Prefab")]
+        [SerializeField, InspectorName("直接视图预制体"), LabelText("直接视图预制体")]
         private GameObject directPrefab;
 
-        [SerializeField, InspectorName("Addressable View Prefab"), LabelText("Addressable View Prefab")]
+        [SerializeField, InspectorName("可寻址视图预制体"), LabelText("可寻址视图预制体")]
         private AssetReferenceGameObject addressablePrefab;
 
         public GameObject DirectPrefab => directPrefab;
@@ -32,9 +32,9 @@ namespace Landsong.BuildingSystem
     [Serializable]
     public sealed class BuildingStyleDefinition
     {
-        [SerializeField, InspectorName("StyleId")] private string styleId;
-        [SerializeField, InspectorName("显示名称")] private string displayName;
-        [SerializeField, InspectorName("样式图标")] private Sprite icon;
+        [SerializeField, InspectorName("样式 ID"), LabelText("样式 ID")] private string styleId;
+        [SerializeField, InspectorName("显示名称"), LabelText("显示名称")] private string displayName;
+        [SerializeField, InspectorName("样式图标"), LabelText("样式图标")] private Sprite icon;
 
         public BuildingStyleDefinition()
         {
@@ -56,48 +56,28 @@ namespace Landsong.BuildingSystem
     [Serializable]
     public sealed class BuildingViewMapping
     {
-        [SerializeField, InspectorName("生命周期阶段")] private BuildingLifecycleStage stage = BuildingLifecycleStage.Operational;
-        [SerializeField, InspectorName("等级"), Min(0)] private int level = 1;
-        [SerializeField, InspectorName("StyleId")] private string styleId;
-        [SerializeField, InspectorName("View 资源")] private BuildingVisualAssetReference view = new BuildingVisualAssetReference();
+        [SerializeField, InspectorName("运营等级"), LabelText("运营等级"), Min(1)] private int level = 1;
+        [SerializeField, InspectorName("样式 ID"), LabelText("样式 ID")] private string styleId;
+        [SerializeField, InspectorName("视图资源"), LabelText("视图资源")] private BuildingVisualAssetReference view = new BuildingVisualAssetReference();
 
         public BuildingViewMapping()
         {
         }
 
         public BuildingViewMapping(
-            BuildingLifecycleStage stage,
             int level,
             string styleId,
             GameObject directPrefab = null)
         {
-            this.stage = stage;
-            this.level = stage == BuildingLifecycleStage.Operational ? Mathf.Max(1, level) : 0;
+            this.level = Mathf.Max(1, level);
             this.styleId = string.IsNullOrWhiteSpace(styleId) ? string.Empty : styleId.Trim();
             view = new BuildingVisualAssetReference();
             view.Configure(directPrefab);
         }
 
-        public BuildingLifecycleStage Stage => stage;
-        public int Level => stage == BuildingLifecycleStage.Operational ? Mathf.Max(1, level) : 0;
+        public int Level => Mathf.Max(1, level);
         public string StyleId => string.IsNullOrWhiteSpace(styleId) ? string.Empty : styleId.Trim();
         public BuildingVisualAssetReference View => view;
-    }
-
-    [Serializable]
-    public sealed class BuildingTransitionDefinition
-    {
-        [SerializeField, InspectorName("持续时间"), Min(0f)] private float duration = 0.35f;
-        [SerializeField, InspectorName("换图归一化时间"), Range(0f, 1f)] private float viewSwapNormalizedTime = 0.5f;
-        [SerializeField, InspectorName("允许跳过")] private bool allowSkip = true;
-        [SerializeField, InspectorName("过渡特效 Prefab")] private GameObject effectPrefab;
-        [SerializeField, InspectorName("过渡音效")] private AudioClip sound;
-
-        public float Duration => Mathf.Max(0f, duration);
-        public float ViewSwapNormalizedTime => Mathf.Clamp01(viewSwapNormalizedTime);
-        public bool AllowSkip => allowSkip;
-        public GameObject EffectPrefab => effectPrefab;
-        public AudioClip Sound => sound;
     }
 
     [CreateAssetMenu(
@@ -105,33 +85,28 @@ namespace Landsong.BuildingSystem
         fileName = "BuildingPresentation")]
     public sealed class BuildingPresentationDefinition : ScriptableObject
     {
-        [SerializeField, InspectorName("施工 View")] private BuildingVisualAssetReference constructionView =
+        [SerializeField, InspectorName("施工视图"), LabelText("施工视图")] private BuildingVisualAssetReference constructionView =
             new BuildingVisualAssetReference();
 
-        [SerializeField, InspectorName("默认运营 View")] private BuildingVisualAssetReference defaultOperationalView =
+        [SerializeField, InspectorName("放置预览视图"), LabelText("放置预览视图")] private BuildingVisualAssetReference placementPreviewView =
             new BuildingVisualAssetReference();
 
-        [SerializeField, InspectorName("等级与样式映射")] private BuildingViewMapping[] viewMappings =
+        [SerializeField, InspectorName("默认运营视图"), LabelText("默认运营视图")] private BuildingVisualAssetReference defaultOperationalView =
+            new BuildingVisualAssetReference();
+
+        [SerializeField, InspectorName("视图映射"), LabelText("视图映射")] private BuildingViewMapping[] viewMappings =
             Array.Empty<BuildingViewMapping>();
 
-        [SerializeField, InspectorName("视觉样式") ] private BuildingStyleDefinition[] styles =
+        [SerializeField, InspectorName("视觉样式"), LabelText("视觉样式")] private BuildingStyleDefinition[] styles =
             Array.Empty<BuildingStyleDefinition>();
 
-        [SerializeField, InspectorName("施工完成过渡")] private BuildingTransitionDefinition constructionCompleteTransition =
-            new BuildingTransitionDefinition();
-        [SerializeField, InspectorName("默认升级过渡")] private BuildingTransitionDefinition defaultUpgradeTransition =
-            new BuildingTransitionDefinition();
-
         public BuildingVisualAssetReference ConstructionView => constructionView;
+        public BuildingVisualAssetReference PlacementPreviewView => placementPreviewView;
         public BuildingVisualAssetReference DefaultOperationalView => defaultOperationalView;
         public IReadOnlyList<BuildingViewMapping> ViewMappings =>
             viewMappings ?? Array.Empty<BuildingViewMapping>();
         public IReadOnlyList<BuildingStyleDefinition> Styles =>
             styles ?? Array.Empty<BuildingStyleDefinition>();
-        public BuildingTransitionDefinition ConstructionCompleteTransition =>
-            constructionCompleteTransition;
-        public BuildingTransitionDefinition DefaultUpgradeTransition =>
-            defaultUpgradeTransition;
 
         public bool TryResolveView(
             BuildingLifecycleStage stage,
@@ -155,7 +130,6 @@ namespace Landsong.BuildingSystem
                 {
                     var mapping = viewMappings[i];
                     if (mapping == null
-                        || mapping.Stage != BuildingLifecycleStage.Operational
                         || mapping.Level > requestedLevel
                         || !string.Equals(mapping.StyleId, styleId, StringComparison.Ordinal)
                         || mapping.View == null
@@ -182,6 +156,24 @@ namespace Landsong.BuildingSystem
 
             result = defaultOperationalView;
             return result != null && result.IsConfigured;
+        }
+
+        public bool TryResolvePlacementPreview(
+            int level,
+            string styleId,
+            out BuildingVisualAssetReference result)
+        {
+            result = placementPreviewView;
+            if (result != null && result.IsConfigured)
+            {
+                return true;
+            }
+
+            return TryResolveView(
+                BuildingLifecycleStage.Operational,
+                Mathf.Max(1, level),
+                styleId,
+                out result);
         }
 
         public bool HasStyle(string styleId)
@@ -219,11 +211,14 @@ namespace Landsong.BuildingSystem
 
         public void ConfigureDefaultViews(
             GameObject constructionPrefab,
+            GameObject placementPreviewPrefab,
             GameObject operationalPrefab)
         {
             constructionView ??= new BuildingVisualAssetReference();
+            placementPreviewView ??= new BuildingVisualAssetReference();
             defaultOperationalView ??= new BuildingVisualAssetReference();
             constructionView.Configure(constructionPrefab);
+            placementPreviewView.Configure(placementPreviewPrefab);
             defaultOperationalView.Configure(operationalPrefab);
             EnsureDefaults();
         }
@@ -241,11 +236,10 @@ namespace Landsong.BuildingSystem
         private void EnsureDefaults()
         {
             constructionView ??= new BuildingVisualAssetReference();
+            placementPreviewView ??= new BuildingVisualAssetReference();
             defaultOperationalView ??= new BuildingVisualAssetReference();
             viewMappings ??= Array.Empty<BuildingViewMapping>();
             styles ??= Array.Empty<BuildingStyleDefinition>();
-            constructionCompleteTransition ??= new BuildingTransitionDefinition();
-            defaultUpgradeTransition ??= new BuildingTransitionDefinition();
         }
     }
 }

@@ -94,17 +94,6 @@ namespace Landsong.BuildingSystem
         [LabelText("开发完成")]
         [SerializeField, InspectorName("开发完成")] private bool isDevelopmentCompleted;
 
-        [TitleGroup("附件")]
-        [SerializeField, InspectorName("使用专用详情面板")]
-        [LabelText("使用专用的详情面板")]
-        private bool useUniqueDetailPanel = false;
-
-        [LabelText("专属的详情面板")]
-        [Tooltip("需要继承 Popup_BuildingDetails")]
-        [ShowIf(nameof(useUniqueDetailPanel))]
-        [SerializeField, InspectorName("专用详情面板")]
-        private Popup_BuildingDetails uniqueDetailPanel;
-
         [NonSerialized] private string[] cachedRequiredTerrainKeys;
 
         public bool IsDevelopmentCompleted => isDevelopmentCompleted;
@@ -142,9 +131,6 @@ namespace Landsong.BuildingSystem
         public bool HasIcon => icon != null;
         public bool HasBuildCountLimit => maxBuildCount > 0;
         public bool IsValid => !string.IsNullOrWhiteSpace(familyId);
-        public bool UseUniqueDetailPanel => useUniqueDetailPanel && uniqueDetailPanel != null;
-        public Popup_BuildingDetails UniqueDetailPanel => UseUniqueDetailPanel ? uniqueDetailPanel : null;
-
         public GridFootprint CreateFootprint(GridPosition origin)
         {
             return new GridFootprint(origin, size);
@@ -176,6 +162,49 @@ namespace Landsong.BuildingSystem
             buildLimitGroupId = string.IsNullOrWhiteSpace(limitGroupId)
                 ? familyId
                 : limitGroupId.Trim();
+            Normalize();
+        }
+
+        /// <summary>
+        /// 由正式建筑数值表更新策划拥有的公共字段。
+        /// FamilyId、图标与显示条件不在此入口中修改，避免导表破坏稳定身份和表现引用。
+        /// </summary>
+        public void ConfigureNumericData(
+            string localizedDisplayName,
+            BuildingCategory buildingCategory,
+            Vector2Int footprintSize,
+            bool ignoreTerrain,
+            IReadOnlyList<string> terrainKeys,
+            int traversalResistance,
+            IReadOnlyList<BuildingCost> costs,
+            bool initiallyLocked,
+            bool hideWhileLocked,
+            int menuSortOrder,
+            int maximumBuildCount,
+            string limitGroupId,
+            bool developmentCompleted)
+        {
+            displayName = string.IsNullOrWhiteSpace(localizedDisplayName)
+                ? familyId
+                : localizedDisplayName.Trim();
+            category = buildingCategory;
+            size = footprintSize;
+            ignoreTerrainRequirement = ignoreTerrain;
+            requiredTerrainKeys = terrainKeys == null
+                ? Array.Empty<string>()
+                : new List<string>(terrainKeys).ToArray();
+            movementResistance = traversalResistance;
+            placementCosts = costs == null
+                ? Array.Empty<BuildingCost>()
+                : new List<BuildingCost>(costs).ToArray();
+            blueprintInitiallyLocked = initiallyLocked;
+            hideWhenBlueprintLocked = hideWhileLocked;
+            buildMenuSortOrder = menuSortOrder;
+            maxBuildCount = maximumBuildCount;
+            buildLimitGroupId = string.IsNullOrWhiteSpace(limitGroupId)
+                ? familyId
+                : limitGroupId.Trim();
+            isDevelopmentCompleted = developmentCompleted;
             Normalize();
         }
 

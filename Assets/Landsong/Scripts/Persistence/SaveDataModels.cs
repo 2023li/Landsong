@@ -24,6 +24,8 @@ public class AppData
 
     public AudioSaveData Audio = new AudioSaveData();
 
+    public GameplayDisplaySaveData GameplayDisplay = new GameplayDisplaySaveData();
+
     public static AppData CreateDefault()
     {
         return new AppData
@@ -32,7 +34,8 @@ public class AppData
             IsFirstLaunch = true,
             LastGameGuid = string.Empty,
             Language = LocalizationSaveData.CreateDefault(),
-            Audio = AudioSaveData.CreateDefault()
+            Audio = AudioSaveData.CreateDefault(),
+            GameplayDisplay = GameplayDisplaySaveData.CreateDefault()
         };
     }
 
@@ -58,8 +61,14 @@ public class AppData
             Audio = AudioSaveData.CreateDefault();
         }
 
+        if (GameplayDisplay == null)
+        {
+            GameplayDisplay = GameplayDisplaySaveData.CreateDefault();
+        }
+
         Language.Validate();
         Audio.Validate();
+        GameplayDisplay.Validate();
     }
 }
 
@@ -664,6 +673,30 @@ public class LocalizationSaveData
             ExternalPackId = string.Empty;
             ExternalPackFileName = string.Empty;
         }
+    }
+}
+
+[Serializable]
+public class GameplayDisplaySaveData
+{
+    public bool MapGridLinesVisible = true;
+
+    public bool BaseTilemapVisible = true;
+
+    public bool SelectedBuildingFootprintVisible = true;
+
+    public static GameplayDisplaySaveData CreateDefault()
+    {
+        return new GameplayDisplaySaveData
+        {
+            MapGridLinesVisible = true,
+            BaseTilemapVisible = true,
+            SelectedBuildingFootprintVisible = true
+        };
+    }
+
+    public void Validate()
+    {
     }
 }
 

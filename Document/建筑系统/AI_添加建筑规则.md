@@ -125,12 +125,13 @@ Runtime Prefab 负责稳定身份、交互和运行时挂点；纯美术 View Pr
 `BuildingPresentationDefinition` 可以直接引用 View Prefab，也可以引用 Addressable。当前解析规则是：
 
 1. 施工态查 `ConstructionView`，缺失则显示统一占位表现。
-2. 运营态按相同 `StyleId` 查不高于当前等级的最高映射；因此 LV3 没美术时可安全沿用 LV1/LV2。
-3. 有样式的建筑绝不静默切到另一个样式。
-4. 无样式建筑查不到等级映射时使用 `DefaultOperationalView`。
-5. 仍缺失时使用统一占位表现，玩法等级和数值不受影响。
+2. 放置预览优先查 `PlacementPreviewView`；未配置时按当前 `StyleId` 回退到 LV1 运营 View。
+3. 运营态按相同 `StyleId` 查不高于当前等级的最高映射；因此 LV3 没美术时可安全沿用 LV1/LV2。
+4. 有样式的建筑绝不静默切到另一个样式。
+5. 无样式建筑查不到等级映射时使用 `DefaultOperationalView`。
+6. 仍缺失时使用统一占位表现，玩法等级和数值不受影响。
 
-升级动画由 `BuildingTransitionDefinition` 配置；表现控制器负责在指定时刻换 View。后续补齐美术时只新增或替换映射，不改存档、Runtime Prefab 和玩法数据。
+升级时表现控制器立即切换到目标等级 View，再向 `BuildingView` 发送 `Upgraded` 入场原因；施工完成使用 `ConstructionCompleted`，读档和普通刷新使用 `Normal`。动画、特效和音效由目标 View 自己持有，禁止创建独立 Transition Prefab。后续补齐美术时只新增或替换映射，不改存档、Runtime Prefab 和玩法数据。
 
 树木是 `building.tree` 的八个可选样式 `tree_01`～`tree_08`，不是八个建筑家族。玩家在建造菜单选择样式，放置请求把 `StyleId` 写入实例。
 
@@ -142,10 +143,10 @@ Runtime Prefab 负责稳定身份、交互和运行时挂点；纯美术 View Pr
 2. 选择基础模块模板或岗位生产模块模板；模板只决定初始 ModuleSet，不决定运行时类型。
 3. 配置固定占地、放置费用、施工回合、初始等级和可缺省的 Presentation View。
 4. 先执行“校验创建参数”，再执行“创建完整建筑资产组”。窗口一次性创建 ModuleSet、Family、Presentation、轻量 Runtime Prefab 并登记标准 Catalog；不会生成脚本，也没有等待编译续跑阶段。
-5. 在窗口“编辑现有家族”给每一级配置条件、升级费用和 LevelConfiguration；未完成的高等级设为 `configured = false`。
+5. 在项目根目录的正式 Excel `ConfigSource/Buildings/建筑数值策划表.xlsx` 增加公共数据、连续等级、费用和所需配置专表行；未完成高等级填写“开放=否”。
 6. 科技、任务和蓝图引用 FamilyId/唯一 Runtime Prefab，不引用等级 Prefab。
-7. 更新 `Document/建筑系统/建筑数值策划表.md` 和美术回填清单。
-8. 执行窗口“架构校验”或 Unity 菜单 `Landsong/Building/Validate Final Architecture`，任何错误都必须修复；美术缺失警告按回填计划处理。
+7. 执行 `Landsong/Building/建筑数值导表工具` 的全表校验和导入；未知 FamilyId、缺模块或任何数值错误都必须先修复。
+8. 更新美术回填清单，并执行窗口“架构校验”或 Unity 菜单 `Landsong/Building/Validate Final Architecture`；美术缺失警告按回填计划处理。
 
 ## 7. 跨系统与存档
 
@@ -179,4 +180,4 @@ Runtime Prefab 负责稳定身份、交互和运行时挂点；纯美术 View Pr
 - 升级条件和费用表示“升入目标等级”。
 - 状态只有一个所有者，所有可持久模块都有稳定 ID。
 - 缺美术时回退正确，不影响真实等级和功能。
-- 建筑校验器零错误；数值文档与资产同步。
+- 正式 Excel 全表导入通过；建筑校验器零错误；不得让导入字段在 Excel 与 SO 中分叉。

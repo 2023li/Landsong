@@ -473,7 +473,7 @@ namespace Landsong.Editor
                     report.Error($"{label} 的 ViewMapping 引用了未声明样式：{mapping.StyleId}");
                 }
 
-                var key = $"{mapping.Stage}:{mapping.Level}:{mapping.StyleId}";
+                var key = $"LV{mapping.Level}:{mapping.StyleId}";
                 if (!mappingKeys.Add(key))
                 {
                     report.Error($"{label} 的 ViewMapping 重复：{key}");
@@ -483,6 +483,7 @@ namespace Landsong.Editor
             }
 
             ValidateViewPrefab(presentation.ConstructionView, $"{label}/Construction", report);
+            ValidateViewPrefab(presentation.PlacementPreviewView, $"{label}/PlacementPreview", report);
             ValidateViewPrefab(presentation.DefaultOperationalView, $"{label}/DefaultOperational", report);
 
             if (presentation.ConstructionView == null || !presentation.ConstructionView.IsConfigured)

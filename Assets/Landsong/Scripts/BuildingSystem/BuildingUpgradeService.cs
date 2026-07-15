@@ -9,13 +9,12 @@ namespace Landsong.BuildingSystem
         None = 0,
         MissingBuilding = 10,
         UnderConstruction = 20,
-        PresentationLocked = 30,
-        MaxLevel = 40,
-        LevelNotConfigured = 50,
-        ConditionNotMet = 60,
-        CannotAfford = 70,
-        SpendFailed = 80,
-        ApplyFailed = 90
+        MaxLevel = 30,
+        LevelNotConfigured = 40,
+        ConditionNotMet = 50,
+        CannotAfford = 60,
+        SpendFailed = 70,
+        ApplyFailed = 80
     }
 
     public readonly struct BuildingUpgradeResult
@@ -57,15 +56,6 @@ namespace Landsong.BuildingSystem
             if (!building.IsOperational)
             {
                 return Fail(BuildingUpgradeFailure.UnderConstruction, 0, "施工阶段不能升级。");
-            }
-
-            if (building.PresentationController != null
-                && building.PresentationController.InteractionLocked)
-            {
-                return Fail(
-                    BuildingUpgradeFailure.PresentationLocked,
-                    building.CurrentLevel + 1,
-                    "当前建筑正在播放过渡表现。");
             }
 
             var targetLevel = building.CurrentLevel + 1;

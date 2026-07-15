@@ -6,23 +6,37 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public sealed class BuildingDetailsBlock_Workforce : BuildingDetailsBlockBase
+public sealed class BuildingDetailsBlock_Workforce : BuildingDetailsBlockBase,
+    IPointerEnterHandler,
+    IPointerExitHandler,
+    IPointerDownHandler,
+    IPointerUpHandler
 {
-    [SerializeField, LabelText("自动补贴满岗位开关")] private Toggle tgl_自动补贴满岗位;
-    [SerializeField, LabelText("目标稳定工人上一档按钮")] private Button btn_目标稳定工人上一档;
-    [SerializeField, LabelText("当前工人文本")] private TMP_Text txt_当前工人;
-    [SerializeField, LabelText("目标稳定工人下一档按钮")] private Button btn_目标稳定工人下一档;
-    [SerializeField, LabelText("当前补贴金币文本")] private TMP_Text txt_当前补贴金币;
-    [SerializeField, LabelText("招募工人按钮")] private Button btn_招募工人;
-    [SerializeField, LabelText("招募消耗文本")] private TMP_Text txt_招募消耗;
-    [SerializeField, LabelText("工人详情触发区")] private GameObject go_工人详情触发区;
+    [SerializeField, Required, LabelText("自动补贴满岗位开关")] private Toggle tgl_自动补贴满岗位;
+    [SerializeField, Required, LabelText("目标稳定工人上一档按钮")] private Button btn_目标稳定工人上一档;
+    [SerializeField, Required, LabelText("当前工人文本")] private TMP_Text txt_当前工人;
+    [SerializeField, Required, LabelText("目标稳定工人下一档按钮")] private Button btn_目标稳定工人下一档;
+    [SerializeField, Required, LabelText("当前补贴金币文本")] private TMP_Text txt_当前补贴金币;
+    [SerializeField, Required, LabelText("招募工人按钮")] private Button btn_招募工人;
+    [SerializeField, Required, LabelText("招募消耗文本")] private TMP_Text txt_招募消耗;
 
     private Popup_BuildingDetails owner;
     private IBuildingWorkforceFundingSource workforceFundingSource;
     private bool suppressWorkforceControlCallback;
     private bool listenersBound;
-    private bool workerDetailTriggerBound;
-    private bool workerDetailSidebarVisible;
+
+    public override bool ValidateConfiguration(out string error)
+    {
+        var missing = new List<string>();
+        AddMissingReference(missing, tgl_自动补贴满岗位, nameof(tgl_自动补贴满岗位));
+        AddMissingReference(missing, btn_目标稳定工人上一档, nameof(btn_目标稳定工人上一档));
+        AddMissingReference(missing, txt_当前工人, nameof(txt_当前工人));
+        AddMissingReference(missing, btn_目标稳定工人下一档, nameof(btn_目标稳定工人下一档));
+        AddMissingReference(missing, txt_当前补贴金币, nameof(txt_当前补贴金币));
+        AddMissingReference(missing, btn_招募工人, nameof(btn_招募工人));
+        AddMissingReference(missing, txt_招募消耗, nameof(txt_招募消耗));
+        return BuildValidationResult(missing, out error);
+    }
 
     public override bool CanShow(BuildingBase targetBuilding)
     {
@@ -33,9 +47,7 @@ public sealed class BuildingDetailsBlock_Workforce : BuildingDetailsBlockBase
         Popup_BuildingDetails detailOwner)
     {
         owner = detailOwner;
-        ResolveTargetStableWorkerStepControls();
         BindControlListeners();
-        BindWorkerDetailTrigger();
     }
 
     public override void Bind(BuildingBase targetBuilding)
@@ -73,7 +85,7 @@ public sealed class BuildingDetailsBlock_Workforce : BuildingDetailsBlockBase
             $"金币/回合 {workforceFundingSource.TargetSubsidyGoldPerTurn}");
         RefreshRecruitControl();
 
-        if (workerDetailSidebarVisible)
+        if (owner != null && owner.IsDetailSidebarOwner(this))
         {
             ShowWorkerDetailSidebar();
         }
@@ -82,7 +94,6 @@ public sealed class BuildingDetailsBlock_Workforce : BuildingDetailsBlockBase
     public override void Unbind()
     {
         workforceFundingSource = null;
-        workerDetailSidebarVisible = false;
         SetText(txt_当前工人, string.Empty);
         SetText(txt_当前补贴金币, string.Empty);
         SetText(txt_招募消耗, string.Empty);
@@ -185,59 +196,6 @@ public sealed class BuildingDetailsBlock_Workforce : BuildingDetailsBlockBase
         SetText(txt_招募消耗, $"消耗{recruitCost}金币 招募1名工人");
     }
 
-    private void ResolveTargetStableWorkerStepControls()
-    {
-        if (btn_目标稳定工人上一档 == null)
-        {
-            btn_目标稳定工人上一档 =
-                FindButtonByNameOrText(transform, "上一档")
-                ?? FindButtonByNameOrText(transform, "btn_上")
-                ?? FindButtonByNameOrText(transform, "上");
-        }
-
-        if (btn_目标稳定工人下一档 == null)
-        {
-            btn_目标稳定工人下一档 =
-                FindButtonByNameOrText(transform, "下一档")
-                ?? FindButtonByNameOrText(transform, "btn_下")
-                ?? FindButtonByNameOrText(transform, "下");
-        }
-    }
-
-    private static Button FindButtonByNameOrText(Transform root, string keyword)
-    {
-        if (root == null || string.IsNullOrWhiteSpace(keyword))
-        {
-            return null;
-        }
-
-        var buttons = root.GetComponentsInChildren<Button>(true);
-        for (var i = 0; i < buttons.Length; i++)
-        {
-            var button = buttons[i];
-            if (button == null)
-            {
-                continue;
-            }
-
-            if (button.name.Contains(keyword))
-            {
-                return button;
-            }
-
-            var texts = button.GetComponentsInChildren<TMP_Text>(true);
-            for (var j = 0; j < texts.Length; j++)
-            {
-                if (texts[j] != null && texts[j].text.Contains(keyword))
-                {
-                    return button;
-                }
-            }
-        }
-
-        return null;
-    }
-
     private void HandleAutoSubsidyChanged(bool enabled)
     {
         if (suppressWorkforceControlCallback || workforceFundingSource == null)
@@ -246,7 +204,6 @@ public sealed class BuildingDetailsBlock_Workforce : BuildingDetailsBlockBase
         }
 
         workforceFundingSource.SetAutoFullWorkerSubsidyEnabled(enabled);
-        RefreshOwner();
     }
 
     private void HandlePreviousTargetStableWorkersClicked()
@@ -279,7 +236,6 @@ public sealed class BuildingDetailsBlock_Workforce : BuildingDetailsBlockBase
         }
 
         workforceFundingSource.SetTargetStableWorkers(nextTarget);
-        RefreshOwner();
     }
 
     private void RefreshTargetStableWorkerControls()
@@ -344,94 +300,17 @@ public sealed class BuildingDetailsBlock_Workforce : BuildingDetailsBlockBase
 
         if (!workforceFundingSource.CanRecruitToFull)
         {
-            RefreshOwner();
+            Refresh();
             return;
         }
 
-        workforceFundingSource.TryRecruitToFull();
-        RefreshOwner();
+        if (!workforceFundingSource.TryRecruitToFull())
+        {
+            Refresh();
+        }
     }
 
-    private void BindWorkerDetailTrigger()
-    {
-        if (workerDetailTriggerBound)
-        {
-            return;
-        }
-
-        var triggerObject = go_工人详情触发区 == null ? gameObject : go_工人详情触发区;
-        if (triggerObject == null)
-        {
-            return;
-        }
-
-        EnsureWorkerDetailTriggerRaycastTarget(triggerObject);
-
-        var eventTrigger = triggerObject.GetComponent<EventTrigger>();
-        if (eventTrigger == null)
-        {
-            eventTrigger = triggerObject.AddComponent<EventTrigger>();
-        }
-
-        AddEventTrigger(eventTrigger, EventTriggerType.PointerEnter, HandleWorkerDetailPointerEnter);
-        AddEventTrigger(eventTrigger, EventTriggerType.PointerExit, _ => HandleWorkerDetailPointerExit());
-        AddEventTrigger(eventTrigger, EventTriggerType.PointerDown, HandleWorkerDetailPointerDown);
-        AddEventTrigger(eventTrigger, EventTriggerType.PointerUp, HandleWorkerDetailPointerUp);
-        workerDetailTriggerBound = true;
-    }
-
-    private static void AddEventTrigger(
-        EventTrigger eventTrigger,
-        EventTriggerType eventType,
-        UnityEngine.Events.UnityAction<BaseEventData> callback)
-    {
-        if (eventTrigger == null || callback == null)
-        {
-            return;
-        }
-
-        var entry = new EventTrigger.Entry { eventID = eventType };
-        entry.callback.AddListener(callback);
-        eventTrigger.triggers.Add(entry);
-    }
-
-    private static void EnsureWorkerDetailTriggerRaycastTarget(GameObject triggerObject)
-    {
-        if (triggerObject == null || HasRaycastableGraphic(triggerObject))
-        {
-            return;
-        }
-
-        if (triggerObject.GetComponent<RectTransform>() == null)
-        {
-            return;
-        }
-
-        var image = triggerObject.GetComponent<Image>();
-        if (image == null)
-        {
-            image = triggerObject.AddComponent<Image>();
-        }
-
-        image.color = new Color(1f, 1f, 1f, 0f);
-        image.raycastTarget = true;
-    }
-
-    private static bool HasRaycastableGraphic(GameObject target)
-    {
-        var graphics = target.GetComponentsInChildren<Graphic>(true);
-        for (var i = 0; i < graphics.Length; i++)
-        {
-            if (graphics[i] != null && graphics[i].raycastTarget)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private void HandleWorkerDetailPointerEnter(BaseEventData eventData)
+    public void OnPointerEnter(PointerEventData eventData)
     {
         if (IsTouchPointer(eventData) || workforceFundingSource == null)
         {
@@ -449,12 +328,12 @@ public sealed class BuildingDetailsBlock_Workforce : BuildingDetailsBlockBase
                && (Application.isMobilePlatform || Input.touchCount > 0);
     }
 
-    private void HandleWorkerDetailPointerExit()
+    public void OnPointerExit(PointerEventData eventData)
     {
         HideWorkerDetailSidebar();
     }
 
-    private void HandleWorkerDetailPointerDown(BaseEventData eventData)
+    public void OnPointerDown(PointerEventData eventData)
     {
         if (!IsTouchPointer(eventData) || workforceFundingSource == null || !isActiveAndEnabled)
         {
@@ -464,7 +343,7 @@ public sealed class BuildingDetailsBlock_Workforce : BuildingDetailsBlockBase
         ShowWorkerDetailSidebar();
     }
 
-    private void HandleWorkerDetailPointerUp(BaseEventData eventData)
+    public void OnPointerUp(PointerEventData eventData)
     {
         if (!IsTouchPointer(eventData))
         {
@@ -481,16 +360,14 @@ public sealed class BuildingDetailsBlock_Workforce : BuildingDetailsBlockBase
             return;
         }
 
-        workerDetailSidebarVisible = true;
-        owner.ShowDetailSidebar(BuildWorkforceSidebarRows(workforceFundingSource));
+        owner.ShowDetailSidebar(this, BuildWorkforceSidebarRows(workforceFundingSource));
     }
 
     private void HideWorkerDetailSidebar()
     {
-        workerDetailSidebarVisible = false;
         if (owner != null)
         {
-            owner.HideDetailSidebar();
+            owner.HideDetailSidebar(this);
         }
     }
 
@@ -530,17 +407,6 @@ public sealed class BuildingDetailsBlock_Workforce : BuildingDetailsBlockBase
         SetActive(gameObject, visible);
     }
 
-    private void RefreshOwner()
-    {
-        if (owner != null)
-        {
-            owner.RefreshCurrentBuildingDetails();
-            return;
-        }
-
-        Refresh();
-    }
-
     private static string FormatSigned(float value)
     {
         return value.ToString("+0.##;-0.##;0");
@@ -567,30 +433,4 @@ public sealed class BuildingDetailsBlock_Workforce : BuildingDetailsBlockBase
         }
     }
 
-}
-
-public readonly struct BuildingDetailsSidebarRow
-{
-    public BuildingDetailsSidebarRow(string label, string value)
-        : this(label, value, 0f, false)
-    {
-    }
-
-    public BuildingDetailsSidebarRow(string label, string value, float signedValue, bool hasSignedValue)
-    {
-        Label = label;
-        Value = value;
-        SignedValue = signedValue;
-        HasSignedValue = hasSignedValue;
-    }
-
-    public string Label { get; }
-
-    public string Value { get; }
-
-    public float SignedValue { get; }
-
-    public bool HasSignedValue { get; }
-
-    public bool IsValid => !string.IsNullOrWhiteSpace(Label) || !string.IsNullOrWhiteSpace(Value);
 }

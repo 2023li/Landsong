@@ -24,10 +24,6 @@ namespace Landsong.BuildingSystem
     [RequireComponent(typeof(BoxCollider2D))]
     public sealed class BuildingBase : MonoBehaviour, IBuildingFunctionBlockSource
     {
-        public static readonly string DefaultDetailPanelAddressKey = "Popup_GeneralBuildingDetails";
-
-
-
         private static readonly IReadOnlyList<BuildingRuntimeStatus> EmptyRuntimeStatuses =
             Array.Empty<BuildingRuntimeStatus>();
 
@@ -182,6 +178,20 @@ namespace Landsong.BuildingSystem
 
         // 建筑用于寻路和范围判断的行动力。
         public int BuildingActionPower => Mathf.Max(0, buildingActionPower);
+
+        /// <summary>
+        /// 由建筑数值导表器更新 Runtime Prefab 上的三个纯数据字段。
+        /// Prefab 结构、组件和表现引用仍由建筑编辑器维护。
+        /// </summary>
+        public void ConfigureNumericAuthoringData(
+            bool resourceProviderPoint,
+            int providerPriority,
+            int actionPower)
+        {
+            isResourceProviderPoint = resourceProviderPoint;
+            resourceProviderPriority = providerPriority;
+            buildingActionPower = Mathf.Max(0, actionPower);
+        }
 
         // 根据 Definition 的尺寸和当前原点计算出的占地范围。
         public GridFootprint Footprint => Definition == null
@@ -401,7 +411,7 @@ namespace Landsong.BuildingSystem
 
             var change = new BuildingLevelChangedEvent(this, previous, targetLevel);
             LevelChanged?.Invoke(change);
-            presentationController?.PlayLevelTransition(previous);
+            presentationController?.RefreshForEntry(BuildingViewEntryReason.Upgraded);
             NotifyStateChanged();
             return true;
         }
@@ -721,7 +731,7 @@ namespace Landsong.BuildingSystem
                 previousStage,
                 BuildingLifecycleStage.Operational);
             StageChanged?.Invoke(change);
-            presentationController?.PlayStageTransition(previousStage);
+            presentationController?.RefreshForEntry(BuildingViewEntryReason.ConstructionCompleted);
         }
 
         private void SetConstructionFailure(string statusId, string statusText)

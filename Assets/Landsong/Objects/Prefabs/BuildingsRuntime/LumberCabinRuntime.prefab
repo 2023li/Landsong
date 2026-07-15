@@ -45,8 +45,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingView
   spriteFrameAnimator: {fileID: 0}
+  animator: {fileID: 0}
   defaultAnimationKey: default
-  placementPreviewAnimationKey: preview
+  constructionCompletedAnimationKey: construction_complete
+  upgradedAnimationKey: upgrade
   playDefaultOnEnable: 1
 --- !u!1 &7085462908727866900
 GameObject:

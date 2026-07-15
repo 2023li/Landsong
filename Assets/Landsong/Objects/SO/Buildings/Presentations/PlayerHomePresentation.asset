@@ -20,7 +20,7 @@ MonoBehaviour:
       m_SubObjectType: 
       m_SubObjectGUID: 
       m_EditorAssetChanged: 0
-  defaultOperationalView:
+  placementPreviewView:
     directPrefab: {fileID: 0}
     addressablePrefab:
       m_AssetGUID: 
@@ -28,17 +28,23 @@ MonoBehaviour:
       m_SubObjectType: 
       m_SubObjectGUID: 
       m_EditorAssetChanged: 0
-  viewMappings: []
+  defaultOperationalView:
+    directPrefab: {fileID: 7604547885815971976, guid: 03f85f64090e9f74b85bb67b066e5ffb, type: 3}
+    addressablePrefab:
+      m_AssetGUID: 
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+  viewMappings:
+  - level: 1
+    styleId: 
+    view:
+      directPrefab: {fileID: 7604547885815971976, guid: 03f85f64090e9f74b85bb67b066e5ffb, type: 3}
+      addressablePrefab:
+        m_AssetGUID: 
+        m_SubObjectName: 
+        m_SubObjectType: 
+        m_SubObjectGUID: 
+        m_EditorAssetChanged: 0
   styles: []
-  constructionCompleteTransition:
-    duration: 0.35
-    viewSwapNormalizedTime: 0.5
-    allowSkip: 1
-    effectPrefab: {fileID: 0}
-    sound: {fileID: 0}
-  defaultUpgradeTransition:
-    duration: 0.35
-    viewSwapNormalizedTime: 0.5
-    allowSkip: 1
-    effectPrefab: {fileID: 0}
-    sound: {fileID: 0}

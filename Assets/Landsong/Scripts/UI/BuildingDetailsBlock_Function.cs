@@ -5,13 +5,15 @@ using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
 
-public sealed class BuildingDetailsBlock_Function : BuildingDetailsBlockBase
+public sealed class BuildingDetailsBlock_Function : BuildingDetailsBlockBase,
+    IPointerEnterHandler,
+    IPointerExitHandler,
+    IPointerDownHandler,
+    IPointerUpHandler
 {
-    [SerializeField, LabelText("资源文本")] private TMP_Text txt_资源;
-    [SerializeField, LabelText("功能性文本")] private TMP_Text txt_功能性;
-    [SerializeField, LabelText("功能详情触发区")] private GameObject go_功能详情触发区;
+    [SerializeField, Required, LabelText("资源文本")] private TMP_Text txt_资源;
+    [SerializeField, Required, LabelText("功能性文本")] private TMP_Text txt_功能性;
 
     private readonly List<BuildingFunctionBlockEntry> sourceEntries = new List<BuildingFunctionBlockEntry>();
     private readonly List<AggregatedEntry> aggregatedEntries = new List<AggregatedEntry>();
@@ -19,8 +21,14 @@ public sealed class BuildingDetailsBlock_Function : BuildingDetailsBlockBase
     private readonly List<BuildingDetailsSidebarRow> sidebarRows = new List<BuildingDetailsSidebarRow>();
     private Popup_BuildingDetails owner;
     private BuildingBase building;
-    private bool detailTriggerBound;
-    private bool detailSidebarVisible;
+
+    public override bool ValidateConfiguration(out string error)
+    {
+        var missing = new List<string>();
+        AddMissingReference(missing, txt_资源, nameof(txt_资源));
+        AddMissingReference(missing, txt_功能性, nameof(txt_功能性));
+        return BuildValidationResult(missing, out error);
+    }
 
     public override bool CanShow(BuildingBase targetBuilding)
     {
@@ -30,8 +38,6 @@ public sealed class BuildingDetailsBlock_Function : BuildingDetailsBlockBase
     public override void Initialize(Popup_BuildingDetails detailOwner)
     {
         owner = detailOwner;
-        ResolveTextFields();
-        BindDetailTrigger();
     }
 
     public override void Bind(BuildingBase targetBuilding)
@@ -59,7 +65,7 @@ public sealed class BuildingDetailsBlock_Function : BuildingDetailsBlockBase
         SetText(txt_资源, BuildGroupSummary(BuildingFunctionBlockGroup.资源组));
         SetText(txt_功能性, BuildGroupSummary(BuildingFunctionBlockGroup.功能性));
 
-        if (detailSidebarVisible)
+        if (owner != null && owner.IsDetailSidebarOwner(this))
         {
             ShowFunctionDetailSidebar();
         }
@@ -72,7 +78,6 @@ public sealed class BuildingDetailsBlock_Function : BuildingDetailsBlockBase
         aggregatedEntries.Clear();
         sidebarAggregatedEntries.Clear();
         sidebarRows.Clear();
-        detailSidebarVisible = false;
         SetText(txt_资源, string.Empty);
         SetText(txt_功能性, string.Empty);
         HideFunctionDetailSidebar();
@@ -225,120 +230,7 @@ public sealed class BuildingDetailsBlock_Function : BuildingDetailsBlockBase
         return $"{prefix}{Mathf.Abs(amount)}{displayName}";
     }
 
-    private void ResolveTextFields()
-    {
-        var texts = GetComponentsInChildren<TMP_Text>(true);
-        for (var i = 0; i < texts.Length; i++)
-        {
-            var text = texts[i];
-            if (text == null)
-            {
-                continue;
-            }
-
-            if (txt_资源 == null && text.name.Contains("资源"))
-            {
-                txt_资源 = text;
-                continue;
-            }
-
-            if (txt_功能性 == null && text.name.Contains("功能"))
-            {
-                txt_功能性 = text;
-            }
-        }
-
-        if (txt_资源 == null && texts.Length > 0)
-        {
-            txt_资源 = texts[0];
-        }
-
-        if (txt_功能性 == null && texts.Length > 1)
-        {
-            txt_功能性 = texts[1];
-        }
-    }
-
-    private void BindDetailTrigger()
-    {
-        if (detailTriggerBound)
-        {
-            return;
-        }
-
-        var triggerObject = go_功能详情触发区 == null ? gameObject : go_功能详情触发区;
-        if (triggerObject == null)
-        {
-            return;
-        }
-
-        EnsureDetailTriggerRaycastTarget(triggerObject);
-
-        var eventTrigger = triggerObject.GetComponent<EventTrigger>();
-        if (eventTrigger == null)
-        {
-            eventTrigger = triggerObject.AddComponent<EventTrigger>();
-        }
-
-        AddEventTrigger(eventTrigger, EventTriggerType.PointerEnter, HandleDetailPointerEnter);
-        AddEventTrigger(eventTrigger, EventTriggerType.PointerExit, _ => HandleDetailPointerExit());
-        AddEventTrigger(eventTrigger, EventTriggerType.PointerDown, HandleDetailPointerDown);
-        AddEventTrigger(eventTrigger, EventTriggerType.PointerUp, HandleDetailPointerUp);
-        detailTriggerBound = true;
-    }
-
-    private static void AddEventTrigger(
-        EventTrigger eventTrigger,
-        EventTriggerType eventType,
-        UnityEngine.Events.UnityAction<BaseEventData> callback)
-    {
-        if (eventTrigger == null || callback == null)
-        {
-            return;
-        }
-
-        var entry = new EventTrigger.Entry { eventID = eventType };
-        entry.callback.AddListener(callback);
-        eventTrigger.triggers.Add(entry);
-    }
-
-    private static void EnsureDetailTriggerRaycastTarget(GameObject triggerObject)
-    {
-        if (triggerObject == null || HasRaycastableGraphic(triggerObject))
-        {
-            return;
-        }
-
-        if (triggerObject.GetComponent<RectTransform>() == null)
-        {
-            return;
-        }
-
-        var image = triggerObject.GetComponent<Image>();
-        if (image == null)
-        {
-            image = triggerObject.AddComponent<Image>();
-        }
-
-        image.color = new Color(1f, 1f, 1f, 0f);
-        image.raycastTarget = true;
-    }
-
-    private static bool HasRaycastableGraphic(GameObject target)
-    {
-        var graphics = target.GetComponentsInChildren<Graphic>(true);
-        for (var i = 0; i < graphics.Length; i++)
-        {
-            if (graphics[i] != null && graphics[i].raycastTarget)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private void HandleDetailPointerEnter(BaseEventData eventData)
+    public void OnPointerEnter(PointerEventData eventData)
     {
         if (IsTouchPointer(eventData) || building == null)
         {
@@ -356,12 +248,12 @@ public sealed class BuildingDetailsBlock_Function : BuildingDetailsBlockBase
                && (Application.isMobilePlatform || Input.touchCount > 0);
     }
 
-    private void HandleDetailPointerExit()
+    public void OnPointerExit(PointerEventData eventData)
     {
         HideFunctionDetailSidebar();
     }
 
-    private void HandleDetailPointerDown(BaseEventData eventData)
+    public void OnPointerDown(PointerEventData eventData)
     {
         if (!IsTouchPointer(eventData) || building == null || !isActiveAndEnabled)
         {
@@ -371,7 +263,7 @@ public sealed class BuildingDetailsBlock_Function : BuildingDetailsBlockBase
         ShowFunctionDetailSidebar();
     }
 
-    private void HandleDetailPointerUp(BaseEventData eventData)
+    public void OnPointerUp(PointerEventData eventData)
     {
         if (!IsTouchPointer(eventData))
         {
@@ -388,9 +280,8 @@ public sealed class BuildingDetailsBlock_Function : BuildingDetailsBlockBase
             return;
         }
 
-        detailSidebarVisible = true;
         RebuildSidebarRows();
-        owner.ShowDetailSidebar(sidebarRows);
+        owner.ShowDetailSidebar(this, sidebarRows);
     }
 
     private void RebuildSidebarRows()
@@ -483,10 +374,9 @@ public sealed class BuildingDetailsBlock_Function : BuildingDetailsBlockBase
 
     private void HideFunctionDetailSidebar()
     {
-        detailSidebarVisible = false;
         if (owner != null)
         {
-            owner.HideDetailSidebar();
+            owner.HideDetailSidebar(this);
         }
     }
 

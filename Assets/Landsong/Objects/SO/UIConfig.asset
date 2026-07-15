@@ -61,3 +61,11 @@ MonoBehaviour:
     canCloseByBack: 1
     blurPreviousOnOpen: 0
     hideSameLayerPanels: 0
+  - panelId: UIPanel_Debug
+    addressableKey: UIPanel_Debug
+    layer: 7
+    cachePolicy: 1
+    destroyOnSceneChange: 1
+    canCloseByBack: 1
+    blurPreviousOnOpen: 0
+    hideSameLayerPanels: 0

@@ -65,12 +65,15 @@ namespace Landsong.BuildingSystem
         private BuildingBase lastClickedBuilding;
         private float lastBuildingClickTime = float.NegativeInfinity;
         private bool showReachableRange;
+        private bool showSelectedBuildingFootprint = true;
+        private DataManager subscribedDataManager;
 
         public event Action<BuildingBase> SelectionChanged;
         public event Action<BuildingBase> SelectedBuildingStateChanged;
         public event Action<BuildingBase> DetailRequested;
 
         public BuildingBase SelectedBuilding => selectedBuilding;
+        public bool SelectedBuildingFootprintVisible => showSelectedBuildingFootprint;
 
         private void Reset()
         {
@@ -86,6 +89,7 @@ namespace Landsong.BuildingSystem
             }
 
             ResolveReferences();
+            SubscribeGameplayDisplaySettings();
             RegisterSelf();
             SubscribeBuildings();
             SubscribeCamera();
@@ -106,6 +110,7 @@ namespace Landsong.BuildingSystem
             selectedBuilding = null;
             showReachableRange = false;
             ClearSelectionVisuals();
+            UnsubscribeGameplayDisplaySettings();
             UnsubscribeCamera();
             UnsubscribeBuildings();
             UnsubscribeBuildingEvents();
@@ -171,6 +176,24 @@ namespace Landsong.BuildingSystem
             SelectedBuildingStateChanged?.Invoke(selectedBuilding);
         }
 
+        public void SetSelectedBuildingFootprintVisible(bool visible)
+        {
+            if (showSelectedBuildingFootprint == visible)
+            {
+                return;
+            }
+
+            showSelectedBuildingFootprint = visible;
+            if (visible)
+            {
+                HighlightSelectedFootprint();
+            }
+            else
+            {
+                ClearSelectionHighlight();
+            }
+        }
+
         public void RequestSelectedBuildingDetail()
         {
             RequestBuildingDetail(selectedBuilding);
@@ -234,7 +257,8 @@ namespace Landsong.BuildingSystem
         {
             ClearSelectionHighlight();
             BuildingBase building = selectedBuilding;
-            if (!CanSelectBuilding(building)
+            if (!showSelectedBuildingFootprint
+                || !CanSelectBuilding(building)
                 || building.GridMap == null
                 || building.GridMap.OverlayService == null
                 || selectionOverlayChannel == null)
@@ -898,6 +922,43 @@ namespace Landsong.BuildingSystem
             }
 
             dataManager.SetLastSelectedBuilding(building);
+        }
+
+        private void SubscribeGameplayDisplaySettings()
+        {
+            if (!DataManager.TryGetInstance(out var dataManager))
+            {
+                return;
+            }
+
+            if (subscribedDataManager != dataManager)
+            {
+                UnsubscribeGameplayDisplaySettings();
+                subscribedDataManager = dataManager;
+                subscribedDataManager.OnGameplayDisplaySettingsChanged += HandleGameplayDisplaySettingsChanged;
+            }
+
+            subscribedDataManager.EnsureAppDataLoaded();
+            HandleGameplayDisplaySettingsChanged(subscribedDataManager.AppData.GameplayDisplay);
+        }
+
+        private void UnsubscribeGameplayDisplaySettings()
+        {
+            if (subscribedDataManager == null)
+            {
+                return;
+            }
+
+            subscribedDataManager.OnGameplayDisplaySettingsChanged -= HandleGameplayDisplaySettingsChanged;
+            subscribedDataManager = null;
+        }
+
+        private void HandleGameplayDisplaySettingsChanged(GameplayDisplaySaveData settings)
+        {
+            if (settings != null)
+            {
+                SetSelectedBuildingFootprintVisible(settings.SelectedBuildingFootprintVisible);
+            }
         }
 
         private static bool IsScreenPositionInsideCamera(Camera sourceCamera, Vector3 screenPosition)

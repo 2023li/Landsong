@@ -98,6 +98,7 @@ namespace Landsong.EditorTools.Buildings
 
             ValidateStyles(draft, errors);
             ValidateViewPrefab(draft.ConstructionViewPrefab, "施工 View", errors);
+            ValidateViewPrefab(draft.PlacementPreviewViewPrefab, "放置预览 View", errors);
             ValidateViewPrefab(draft.DefaultOperationalViewPrefab, "默认 LV1 View", errors);
             if (draft.UsesWorkforceProduction)
             {
@@ -286,6 +287,7 @@ namespace Landsong.EditorTools.Buildings
             var presentation = ScriptableObject.CreateInstance<BuildingPresentationDefinition>();
             presentation.ConfigureDefaultViews(
                 draft.ConstructionViewPrefab,
+                draft.PlacementPreviewViewPrefab,
                 draft.DefaultOperationalViewPrefab);
 
             var styles = new List<BuildingStyleDefinition>();
@@ -305,7 +307,6 @@ namespace Landsong.EditorTools.Buildings
                         Normalize(style.DisplayName),
                         style.Icon));
                     mappings.Add(new BuildingViewMapping(
-                        BuildingLifecycleStage.Operational,
                         1,
                         Normalize(style.StyleId),
                         style.Level1View));

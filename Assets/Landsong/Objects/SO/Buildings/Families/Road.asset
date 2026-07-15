@@ -31,8 +31,6 @@ MonoBehaviour:
     maxBuildCount: 0
     buildLimitGroupId: building.road
     isDevelopmentCompleted: 1
-    useUniqueDetailPanel: 0
-    uniqueDetailPanel: {fileID: 0}
   runtimePrefab: {fileID: 2901782040316237657, guid: 25c77ae3483d4b949a76fd1db5c52afc, type: 3}
   construction:
     turns:

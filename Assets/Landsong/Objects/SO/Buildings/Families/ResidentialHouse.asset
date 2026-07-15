@@ -37,8 +37,6 @@ MonoBehaviour:
     maxBuildCount: 99
     buildLimitGroupId: building.residential_house
     isDevelopmentCompleted: 1
-    useUniqueDetailPanel: 0
-    uniqueDetailPanel: {fileID: 0}
   runtimePrefab: {fileID: 3750083483410662862, guid: cce99397b7253b64a9bf1716a5067150, type: 3}
   construction:
     turns:
