@@ -15,7 +15,7 @@ MonoBehaviour:
   definition:
     familyId: building.lumber_cabin
     displayName: "\u4F10\u6728\u5C0F\u5C4B"
-    category: 2
+    category: 4
     icon: {fileID: 21300000, guid: 5895c2374555bbe4b9fe06ae5fbacdaa, type: 3}
     size: {x: 1, y: 1}
     ignoreTerrainRequirement: 0

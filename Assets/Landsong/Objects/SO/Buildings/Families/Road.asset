@@ -15,7 +15,7 @@ MonoBehaviour:
   definition:
     familyId: building.road
     displayName: "\u6CE5\u8DEF"
-    category: 256
+    category: 128
     icon: {fileID: 3625043607559282579, guid: 0cf6e5beffc32284fae0071e0a50d157, type: 3}
     size: {x: 1, y: 1}
     ignoreTerrainRequirement: 0

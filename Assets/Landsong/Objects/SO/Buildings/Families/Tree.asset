@@ -15,7 +15,7 @@ MonoBehaviour:
   definition:
     familyId: building.tree
     displayName: "\u6811\u6728"
-    category: 32
+    category: 256
     icon: {fileID: 21300000, guid: e76152101d6d9d3488bcb7ac2e7c5154, type: 3}
     size: {x: 1, y: 1}
     ignoreTerrainRequirement: 0

@@ -1403,7 +1403,7 @@ namespace Landsong.BuildingSystem
         private static bool IsRoadPlacementPrefab(BuildingBase buildingPrefab)
         {
             return buildingPrefab?.Definition != null
-                   && (buildingPrefab.Definition.Category & BuildingCategory.道路) != 0;
+                   && (buildingPrefab.Definition.Category & BuildingCategory.交通) != 0;
         }
 
         private static string ResolveDefaultStyleId(BuildingBase buildingPrefab)

@@ -26196,7 +26196,7 @@ MonoBehaviour:
   infoCostLabel: {fileID: 6531984263218427211}
   infoCountLimitLabel: {fileID: 3812441947661967506}
   includeEmptyCategories: 0
-  categoryDisplayOrder: 0100000002000000040000000800000010000000200000004000000080000000
+  categoryDisplayOrder: 01000000020000000400000008000000100000002000000040000000800000000001000000020000
   selectFirstBuildingOnRefresh: 1
   refreshWhenInventoryChanges: 1
   discoverPlacementControllerOnEnable: 1

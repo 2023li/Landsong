@@ -64,6 +64,11 @@ namespace Landsong.EditorTools.Buildings.NumericImport
             "fishing_hut"
         };
 
+        private static readonly HashSet<string> BuildingCategoryNames = new HashSet<string>(
+            Enum.GetNames(typeof(BuildingCategory))
+                .Where(name => !string.Equals(name, nameof(BuildingCategory.None), StringComparison.Ordinal)),
+            StringComparer.OrdinalIgnoreCase);
+
         public static BuildingNumericImportSession Analyze(string projectRelativePath)
         {
             var report = new BuildingNumericImportReport();
@@ -899,7 +904,10 @@ namespace Landsong.EditorTools.Buildings.NumericImport
             if (string.IsNullOrWhiteSpace(value)) return false;
             foreach (var token in value.Split(new[] { '|', ',', ';', '；' }, StringSplitOptions.RemoveEmptyEntries))
             {
-                if (!Enum.TryParse(token.Trim(), true, out BuildingCategory parsed) || parsed == BuildingCategory.None)
+                var normalizedToken = token.Trim();
+                if (!BuildingCategoryNames.Contains(normalizedToken)
+                    || !Enum.TryParse(normalizedToken, true, out BuildingCategory parsed)
+                    || parsed == BuildingCategory.None)
                     return false;
                 category |= parsed;
             }

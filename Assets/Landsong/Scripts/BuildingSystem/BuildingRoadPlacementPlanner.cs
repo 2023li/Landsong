@@ -177,7 +177,7 @@ namespace Landsong.BuildingSystem
         private static bool IsRoad(BuildingBase building)
         {
             return building?.Definition != null
-                   && (building.Definition.Category & BuildingCategory.道路) != 0;
+                   && (building.Definition.Category & BuildingCategory.交通) != 0;
         }
 
         private static void BuildSingleTurnRoadPath(

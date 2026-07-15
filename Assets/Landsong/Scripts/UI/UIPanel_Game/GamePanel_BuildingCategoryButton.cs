@@ -84,12 +84,16 @@ namespace Landsong.UISystem
         {
             return category switch
             {
-                BuildingCategory.Housing => "居住",
-                BuildingCategory.Production => "生产",
-                BuildingCategory.Storage => "仓储",
-                BuildingCategory.后勤 => "物流",
-                BuildingCategory.通用 => "功能",
-                BuildingCategory.美化 => "装饰",
+                BuildingCategory.人口 => "人口",
+                BuildingCategory.农业 => "农业",
+                BuildingCategory.工业 => "工业",
+                BuildingCategory.经济 => "经济",
+                BuildingCategory.科研 => "科研",
+                BuildingCategory.市政 => "市政",
+                BuildingCategory.军事 => "军事",
+                BuildingCategory.交通 => "交通",
+                BuildingCategory.装饰 => "装饰",
+                BuildingCategory.奇观 => "奇观",
                 _ => category.ToString()
             };
         }

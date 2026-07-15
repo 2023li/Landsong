@@ -15,7 +15,7 @@ MonoBehaviour:
   definition:
     familyId: building.player_home
     displayName: "\u738B\u5BAB"
-    category: 1
+    category: 32
     icon: {fileID: -3500720322899650623, guid: 8ea5bedac443ad54ea4d109d5e13e55e, type: 3}
     size: {x: 4, y: 4}
     ignoreTerrainRequirement: 0

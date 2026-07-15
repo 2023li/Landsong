@@ -76,8 +76,8 @@ namespace Landsong.EditorTools.Buildings
         [InspectorName("模块模板"), Tooltip("基础模板只创建通用运行时；岗位生产模板额外创建岗位运营、资源产出模块和等级配置。")]
         public BuildingModuleTemplate ModuleTemplate = BuildingModuleTemplate.Basic;
 
-        [InspectorName("分类"), Tooltip("用于建造菜单筛选和其他按建筑类别判断的规则；支持组合分类。")]
-        public BuildingCategory Category = BuildingCategory.通用;
+        [InspectorName("分类"), Tooltip("用于建造菜单筛选和分类规则；可选人口、农业、工业、经济、科研、市政、军事、交通、装饰、奇观，并支持组合分类。")]
+        public BuildingCategory Category = BuildingCategory.市政;
 
         [InspectorName("建筑图标"), Tooltip("建筑家族在建造菜单和详情界面使用的默认图标；允许后续回填。")]
         public Sprite Icon;
@@ -195,12 +195,12 @@ namespace Landsong.EditorTools.Buildings
             switch (ModuleTemplate)
             {
                 case BuildingModuleTemplate.WorkforceProduction:
-                    Category = BuildingCategory.Production;
+                    Category = BuildingCategory.工业;
                     MovementResistance = 0;
                     IsResourceProviderPoint = false;
                     break;
                 case BuildingModuleTemplate.Basic:
-                    Category = BuildingCategory.通用;
+                    Category = BuildingCategory.市政;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -213,7 +213,7 @@ namespace Landsong.EditorTools.Buildings
             DisplayName = "新建筑";
             AssetName = "NewBuilding";
             ModuleTemplate = BuildingModuleTemplate.Basic;
-            Category = BuildingCategory.通用;
+            Category = BuildingCategory.市政;
             Icon = null;
             Footprint = Vector2Int.one;
             IgnoreTerrainRequirement = false;

@@ -46,14 +46,16 @@ namespace Landsong.UISystem
         [ListDrawerSettings(DefaultExpandedState = true, DraggableItems = true)]
         private BuildingCategory[] categoryDisplayOrder =
         {
-            BuildingCategory.Housing,
-            BuildingCategory.Production,
-            BuildingCategory.Storage,
-            BuildingCategory.后勤,
-            BuildingCategory.通用,
-            BuildingCategory.美化,
-            BuildingCategory.奇迹,
-            BuildingCategory.神迹
+            BuildingCategory.人口,
+            BuildingCategory.农业,
+            BuildingCategory.工业,
+            BuildingCategory.经济,
+            BuildingCategory.科研,
+            BuildingCategory.市政,
+            BuildingCategory.军事,
+            BuildingCategory.交通,
+            BuildingCategory.装饰,
+            BuildingCategory.奇观
         };
 
         [SerializeField, LabelText("刷新后选择第一个建筑")] private bool selectFirstBuildingOnRefresh = true;

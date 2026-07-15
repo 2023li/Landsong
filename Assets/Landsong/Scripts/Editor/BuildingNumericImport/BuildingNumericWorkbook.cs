@@ -271,7 +271,7 @@ namespace Landsong.EditorTools.Buildings.NumericImport
 
     internal static class BuildingNumericWorkbookReader
     {
-        public const int SupportedSchemaVersion = 1;
+        public const int SupportedSchemaVersion = 2;
         private const int HeaderRow = 4;
         private const int FirstDataRow = 5;
 
@@ -291,6 +291,11 @@ namespace Landsong.EditorTools.Buildings.NumericImport
             try
             {
                 workbook = XlsxRawWorkbook.Load(absolutePath);
+            }
+            catch (IOException exception)
+            {
+                report.Error($"无法读取 XLSX。请先保存并关闭 Excel，再重新校验：{exception.Message}");
+                return false;
             }
             catch (Exception exception)
             {
