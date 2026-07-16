@@ -67,9 +67,13 @@ namespace Landsong.UISystem
         [Tooltip("显示当前选中科技节点的名称。")]
         private TMP_Text detailNameLabel;
 
-        [SerializeField, LabelText("详情-科技描述文本")]
+        [SerializeField, Required, LabelText("详情-科技描述文本")]
         [Tooltip("显示当前选中科技节点的描述。")]
         private TMP_Text detailDescriptionLabel;
+
+        [SerializeField, Required, LabelText("详情-解锁与完成效果文本")]
+        [Tooltip("显示当前选中科技的建筑解锁、升级解锁、全局 Buff 和一次性完成效果。必须在科技面板 Prefab 中预先配置，运行时只更新文本内容。")]
+        private TMP_Text detailUnlockEffectsLabel;
 
         [SerializeField, LabelText("详情-研究需求文本")]
         [Tooltip("显示当前选中科技节点完成研究需要累计注入的科技点。")]
@@ -470,6 +474,7 @@ namespace Landsong.UISystem
             {
                 SetText(detailNameLabel, "未选择科技");
                 SetText(detailDescriptionLabel, string.Empty);
+                SetText(detailUnlockEffectsLabel, string.Empty);
                 SetText(detailCostLabel, string.Empty);
                 SetText(detailPrerequisitesLabel, string.Empty);
                 SetText(detailStatusLabel, technology == null ? "科技服务未初始化" : "没有可显示的科技节点");
@@ -477,31 +482,27 @@ namespace Landsong.UISystem
             }
 
             SetText(detailNameLabel, selectedDefinition.DisplayName);
-            SetText(detailDescriptionLabel, FormatDetailDescription(selectedDefinition));
+            SetText(
+                detailDescriptionLabel,
+                string.IsNullOrWhiteSpace(selectedDefinition.Description)
+                    ? string.Empty
+                    : selectedDefinition.Description.Trim());
+            SetText(detailUnlockEffectsLabel, FormatDetailUnlockEffects(selectedDefinition));
             SetText(detailCostLabel, $"研究需求：{selectedDefinition.SciencePointCost} 科技点");
             SetText(detailPrerequisitesLabel, FormatPrerequisites(selectedDefinition));
             SetText(detailStatusLabel, FormatSelectedStatus());
         }
 
-        private string FormatDetailDescription(TechnologyDefinition definition)
+        private string FormatDetailUnlockEffects(TechnologyDefinition definition)
         {
             detailUnlockContents.Clear();
             unlockContentRegistry?.Collect(definition, detailUnlockContents);
-            var description = definition == null || string.IsNullOrWhiteSpace(definition.Description)
-                ? string.Empty
-                : definition.Description.Trim();
             if (detailUnlockContents.Count == 0)
             {
-                return description;
+                return string.Empty;
             }
 
             var builder = new StringBuilder();
-            if (!string.IsNullOrEmpty(description))
-            {
-                builder.AppendLine(description);
-                builder.AppendLine();
-            }
-
             builder.AppendLine("解锁与完成效果");
             for (var i = 0; i < detailUnlockContents.Count; i++)
             {
@@ -636,18 +637,15 @@ namespace Landsong.UISystem
                     generatedRows[row - 1] = rowRoot;
                 }
 
-                ConfigureRow(rowRoot, row);
+                ConfigureRow(rowRoot);
             }
         }
 
-        private static void ConfigureRow(RectTransform rowRoot, int row)
+        private static void ConfigureRow(RectTransform rowRoot)
         {
             rowRoot.anchorMin = new Vector2(0f, 1f);
             rowRoot.anchorMax = new Vector2(0f, 1f);
             rowRoot.pivot = new Vector2(0f, 1f);
-            var height = rowRoot.rect.height > 1f ? rowRoot.rect.height : 216.6f;
-            rowRoot.anchoredPosition = new Vector2(0f, -(row - 1) * height);
-            rowRoot.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
 
             var layout = rowRoot.GetComponent<HorizontalLayoutGroup>();
             if (layout == null)
@@ -668,21 +666,6 @@ namespace Landsong.UISystem
             layout.childControlHeight = true;
             layout.childForceExpandWidth = false;
             layout.childForceExpandHeight = true;
-
-            var fitter = rowRoot.GetComponent<ContentSizeFitter>();
-            if (fitter == null)
-            {
-#if UNITY_EDITOR
-                fitter = Application.isPlaying
-                    ? rowRoot.gameObject.AddComponent<ContentSizeFitter>()
-                    : Undo.AddComponent<ContentSizeFitter>(rowRoot.gameObject);
-#else
-                fitter = rowRoot.gameObject.AddComponent<ContentSizeFitter>();
-#endif
-            }
-
-            fitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
-            fitter.verticalFit = ContentSizeFitter.FitMode.Unconstrained;
         }
 
         private static void ClearRow(RectTransform rowRoot)
@@ -788,8 +771,6 @@ namespace Landsong.UISystem
         {
             Canvas.ForceUpdateCanvases();
 
-            var maximumWidth = 0f;
-            var totalHeight = 0f;
             for (var i = 0; i < generatedRows.Length; i++)
             {
                 var row = generatedRows[i];
@@ -799,14 +780,10 @@ namespace Landsong.UISystem
                 }
 
                 LayoutRebuilder.ForceRebuildLayoutImmediate(row);
-                maximumWidth = Mathf.Max(maximumWidth, LayoutUtility.GetPreferredWidth(row));
-                totalHeight += row.rect.height;
             }
 
             if (nodeRoot is RectTransform content)
             {
-                content.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, maximumWidth);
-                content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, totalHeight);
                 LayoutRebuilder.ForceRebuildLayoutImmediate(content);
             }
 

@@ -148,6 +148,8 @@ Runtime Prefab 负责稳定身份、交互和运行时挂点；纯美术 View Pr
 5. 无样式建筑查不到等级映射时使用 `DefaultOperationalView`。
 6. 仍缺失时使用统一占位表现，玩法等级和数值不受影响。
 
+运营 `ViewMapping` 是派生结构，不是人工数组：等级轴来自 Excel 导入的全部 Family Levels，样式轴来自 Presentation Styles；无 Style 时每级一个默认槽位，有 Style 时每个 `Style × Level` 一个槽位。编辑器中只允许填写槽位 View，禁止手动增删或修改 Level/StyleId。新增等级自动补空槽位；删除等级或 Style 时，仍含 View 的待删除槽位必须阻止操作，禁止静默丢失引用。
+
 升级时表现控制器立即切换到目标等级 View，再向 `BuildingView` 发送 `Upgraded` 入场原因；施工完成使用 `ConstructionCompleted`，读档和普通刷新使用 `Normal`。动画、特效和音效由目标 View 自己持有，禁止创建独立 Transition Prefab。后续补齐美术时只新增或替换映射，不改存档、Runtime Prefab 和玩法数据。
 
 树木是 `building.tree` 的八个可选样式 `tree_01`～`tree_08`，不是八个建筑家族。玩家在建造菜单选择样式，放置请求把 `StyleId` 写入实例。

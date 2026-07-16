@@ -69,4 +69,4 @@ MonoBehaviour:
   - {fileID: 11400000, guid: ef51c213eee64ac183b443d004f25c58, type: 2}
   - {fileID: 11400000, guid: 27ac63415b79445db81eefa845b3244c, type: 2}
   - {fileID: 11400000, guid: e00cb2f5a88b03f7c47bbe029897ab03, type: 2}
-  folderPath: Assets/Landsong/Objects/SO/TechnologyDef
+  folderPath: Assets/Landsong/Objects/SO/SO_Technology/TechnologyDef

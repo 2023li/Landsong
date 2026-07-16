@@ -81,6 +81,11 @@ namespace Landsong.GridSystem
                 return false;
             }
 
+            if (!overlayService.TryValidateConfiguration(out error))
+            {
+                return false;
+            }
+
             if (!gridMap.TryValidateContentGridCompatibility(content.UnityGrid, out error))
             {
                 return false;
@@ -93,6 +98,7 @@ namespace Landsong.GridSystem
 
             try
             {
+                content.ApplyTilemapRendererSorting();
                 overlayService.BindGrid(content.UnityGrid);
                 gridMap.BindContent(
                     content.UnityGrid,

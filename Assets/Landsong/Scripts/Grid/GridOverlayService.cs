@@ -27,6 +27,11 @@ namespace Landsong.GridSystem
             service?.Submit(Channel, OwnerKey, cells, priority);
         }
 
+        public void SetFootprint(GridFootprint footprint, int priority = 0)
+        {
+            SetCells(footprint.Positions(), priority);
+        }
+
         public void Clear()
         {
             service?.Clear(Channel, OwnerKey);
@@ -76,12 +81,25 @@ namespace Landsong.GridSystem
         }
 
         [SerializeField] private UnityEngine.Grid overlayGrid;
+        [SerializeField] private GridOverlayChannelCatalog channelCatalog;
 
         private readonly Dictionary<string, ChannelState> channels =
             new Dictionary<string, ChannelState>(StringComparer.Ordinal);
         private readonly List<GridPosition> changedCells = new List<GridPosition>();
 
         public UnityEngine.Grid OverlayGrid => overlayGrid;
+        public GridOverlayChannelCatalog ChannelCatalog => channelCatalog;
+
+        public bool TryValidateConfiguration(out string error)
+        {
+            if (channelCatalog == null)
+            {
+                error = "GridOverlayService 没有绑定 GridOverlayChannelCatalog。";
+                return false;
+            }
+
+            return channelCatalog.TryValidate(out error);
+        }
 
         public void BindGrid(UnityEngine.Grid targetGrid)
         {
@@ -100,10 +118,11 @@ namespace Landsong.GridSystem
         }
 
         public GridOverlayOwnerHandle AcquireOwner(
-            GridOverlayChannelDefinition channel,
+            string channelId,
             string ownerKey)
         {
-            if (channel == null || !channel.IsValid)
+            if (channelCatalog == null
+                || !channelCatalog.TryGet(channelId, out var channel))
             {
                 return null;
             }
@@ -219,7 +238,7 @@ namespace Landsong.GridSystem
             layer.transform.SetParent(overlayGrid.transform, false);
             var tilemap = layer.AddComponent<Tilemap>();
             var renderer = layer.AddComponent<TilemapRenderer>();
-            renderer.sortingOrder = definition.SortingOrder;
+            renderer.sortingOrder = GridRenderOrder.GetOverlayTilemapOrder(definition.SortingOrder);
 
             var state = new ChannelState
             {

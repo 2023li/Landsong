@@ -14,28 +14,59 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingPresentationDefinition
   constructionViewMode: 0
   constructionView:
-    directPrefab: {fileID: 0}
+    directPrefab: {fileID: 7424146362173049143, guid: cd1b63a3cb13dd94e9e09c75ead97066, type: 3}
     addressablePrefab:
-      m_AssetGUID:
-      m_SubObjectName:
-      m_SubObjectType:
-      m_SubObjectGUID:
+      m_AssetGUID: 
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
       m_EditorAssetChanged: 0
+  constructionViewMappings: []
   placementPreviewView:
-    directPrefab: {fileID: 0}
+    directPrefab: {fileID: 7424146362173049143, guid: cd1b63a3cb13dd94e9e09c75ead97066, type: 3}
     addressablePrefab:
-      m_AssetGUID:
-      m_SubObjectName:
-      m_SubObjectType:
-      m_SubObjectGUID:
+      m_AssetGUID: 
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
       m_EditorAssetChanged: 0
   defaultOperationalView:
-    directPrefab: {fileID: 0}
+    directPrefab: {fileID: 7424146362173049143, guid: cd1b63a3cb13dd94e9e09c75ead97066, type: 3}
     addressablePrefab:
-      m_AssetGUID:
-      m_SubObjectName:
-      m_SubObjectType:
-      m_SubObjectGUID:
+      m_AssetGUID: 
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
       m_EditorAssetChanged: 0
-  viewMappings: []
+  viewMappings:
+  - level: 1
+    styleId: 
+    view:
+      directPrefab: {fileID: 7424146362173049143, guid: f42965787d095454b9f5ba2dce2c24d9, type: 3}
+      addressablePrefab:
+        m_AssetGUID: 
+        m_SubObjectName: 
+        m_SubObjectType: 
+        m_SubObjectGUID: 
+        m_EditorAssetChanged: 0
+  - level: 2
+    styleId: 
+    view:
+      directPrefab: {fileID: 7424146362173049143, guid: fb07a352f63cd9d47b6b8a4eb71ffa75, type: 3}
+      addressablePrefab:
+        m_AssetGUID: 
+        m_SubObjectName: 
+        m_SubObjectType: 
+        m_SubObjectGUID: 
+        m_EditorAssetChanged: 0
+  - level: 3
+    styleId: 
+    view:
+      directPrefab: {fileID: 7424146362173049143, guid: f6bd03d0e62b7494db2c891c074c8acf, type: 3}
+      addressablePrefab:
+        m_AssetGUID: 
+        m_SubObjectName: 
+        m_SubObjectType: 
+        m_SubObjectGUID: 
+        m_EditorAssetChanged: 0
   styles: []

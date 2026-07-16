@@ -59,9 +59,20 @@
 6. 五行因此始终拥有一致的槽位数量，横向位置不会因某行缺少科技而错位。
 7. 生成结果保存进 Prefab；运行时刷新只绑定节点文本、点击和研究状态，不重建整棵树。
 
+科技树滚动区采用单一布局驱动，组件职责固定如下：
+
+- `科技面板滚动视图` 只负责 `ScrollRect` 与横向滚动条。
+- `Viewport` 必须四向拉伸填满滚动区，并保留 `Image + RectMask2D` 负责裁剪。
+- `Content` 负责整棵树的尺寸与五行排列，保留横向 `ContentSizeFitter (Preferred Size)` 和 `VerticalLayoutGroup`。
+- `——1行` 到 `——5行` 只保留各自的 `HorizontalLayoutGroup`，禁止再添加 `ContentSizeFitter`；行的位置和尺寸由 `Content` 的 `VerticalLayoutGroup` 驱动。
+- `GamePanel_Technology` 只触发行与 `Content` 的布局重建，不再手动计算行坐标、行高度或 `Content` 尺寸。
+
+Unity 会对“父节点使用 `LayoutGroup`、直接子节点又使用 `ContentSizeFitter`”的组合报告布局冲突。因此以后调整科技树布局时，应修改 `Content` 的纵向布局参数、行的横向布局参数或节点模板的尺寸，不要把 `ContentSizeFitter` 加回五个行节点。
+
 当前预制体绑定：
 
-- 科技节点：`Assets/Landsong/Objects/Prefabs/UI/UIPanel_Game/科技面板/新科技节点.prefab`，必须保留 `GamePanel_TechnologyNodeItem` 及其按钮、背景、文本、进度条和解锁内容根对象绑定。
+- 科技节点：`Assets/Landsong/Objects/Prefabs/UI/UIPanel_Game/科技面板/科技节点.prefab`，必须保留 `GamePanel_TechnologyNodeItem` 及其按钮、背景、文本、进度条、解锁内容根对象和解锁内容项 Prefab 绑定。
+- 科技解锁内容项：`Assets/Landsong/Objects/Prefabs/UI/UIPanel_Game/科技面板/科技解锁内容项.prefab`。图标尺寸由根 `RectTransform` 控制；有图标时的角标字号在“图标角标”中调整，无图标时的文字字号在“无图标文字”中调整。根组件必须显式引用图标 Image 和两套 TMP 文本；缺少任一引用都属于配置错误。运行时代码只实例化该 Prefab 并填充数据，不按名称搜索子节点，也不会临时创建 Image/TMP 对象。
 - 空节点：`Assets/Landsong/Objects/Prefabs/UI/UIPanel_Game/科技面板/空节点.prefab`，只占布局位置，不应挂 `GamePanel_TechnologyNodeItem`。
 - 列间隙：`Assets/Landsong/Objects/Prefabs/UI/UIPanel_Game/科技面板/间隙.prefab`。
 
@@ -101,12 +112,14 @@
 
 当前研究节点显示数值进度和底部只读 `Slider`；Slider 的最小值为 0、最大值为研究所需科技点、当前值为已投入科技点。队列节点显示从 1 开始的队列序号。面板打开或当前研究项目改变时，`GamePanel_Technology` 会等待一帧完成布局，然后只在节点超出 Viewport 时移动 ScrollRect，使当前研究节点回到可见区域，研究点变化不会反复抢夺玩家的滚动位置。
 
+科技详情栏中的科技描述和“解锁与完成效果”使用两个独立的、预先存在于 `Panel_Game.prefab` 中的 TMP 文本。`GamePanel_Technology.detailUnlockEffectsLabel` 必须显式绑定到 `底栏/txt_解锁与完成效果`；运行时只收集注册表内容并更新该字段的文本，不允许创建 TMP 对象、复制文本模板或把解锁内容拼接进科技描述字段。需要调整字体、字号、颜色、换行和占用高度时，直接修改这个 Prefab 节点。
+
 科技节点 UI 使用 `TechnologyUnlockContentRegistry` 汇总两类内容。注册表是被动容器，UI 只读，不主动搜索各领域资产：
 
 - 一次性研究完成效果：由 `TechnologyUnlockContentRegistry.InjectCompletionEffects(...)` 在注册表重建时统一注入。`TechnologyEffect.TryGetPresentation(...)` 只提供图标、名称、类型和数量，UI 不执行效果。
 - 持续规则解锁：实现 `ITechnologyUnlockContentProducer` 的领域目录通过 `ReplaceSource(...)` 主动注入。当前 `BuildingCatalog` 注入蓝图和等级升级；`TechnologyGlobalBuffCatalog` 注入全局 Buff。其他系统以后按同一接口注入，不把扫描逻辑写进科技节点。
 
-节点的“解锁内容”区域最多显示 5 个位置：建筑或建筑升级优先显示建筑图标，升级内容叠加 `LVx`；全局 Buff 使用 Buff Definition 自己的图标；无图标时才显示文字占位。超过容量时最后一格显示 `+N`，选中科技后的详情说明会列出全部内容。注册表按来源原子替换，一次重建后由全部节点共享。
+节点的“解锁内容”区域最多显示 5 个位置：建筑或建筑升级优先显示建筑图标，升级内容叠加 `LVx`；全局 Buff 使用 Buff Definition 自己的图标；无图标时才显示文字占位。超过容量时最后一格显示 `+N`，选中科技后的详情说明会列出全部内容。注册表按来源原子替换，一次重建后由全部节点共享。节点实例化统一的“科技解锁内容项” Prefab；悬停提示框是科技节点 Prefab 中预先配置并显式引用的固定子对象，不允许运行时自行生成。缺少解锁项 Prefab、提示根节点或提示文本时，节点会报告配置错误并停止运行。旧版本误保存在面板中的动态解锁项会在刷新时按专用容器统一清理，避免重复显示。
 
 建筑解锁只使用一套蓝图状态：`BuildingBlueprintService` 是唯一运行时真相并负责存档。科技解锁建筑时，在 Family 的 `AutomaticBlueprintUnlockCondition` 配置科技并启用 `blueprintInitiallyLocked`；`GameSystem` 在服务建立、科技完成和恢复时统一协调条件并授予蓝图。科技 SO 不再配置 `TechnologyEffect_UnlockBuildingBlueprint`。雕塑的石工术、采石场的采矿都遵循这一规则。
 

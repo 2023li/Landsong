@@ -37,17 +37,6 @@ namespace Landsong.BuildingSystem
         [Header("Demolition")]
         [SerializeField, LabelText("拆除点击最大移动像素"), Min(0f)] private float demolitionClickMaxMovementPixels = 8f;
 
-        [Header("Grid Overlay Channels")]
-        [SerializeField, LabelText("合法占地通道")] private GridOverlayChannelDefinition validFootprintChannel;
-        [SerializeField, LabelText("非法占地通道")] private GridOverlayChannelDefinition invalidFootprintChannel;
-        [SerializeField, LabelText("道路路径通道")] private GridOverlayChannelDefinition roadPathChannel;
-        [SerializeField, LabelText("拆除目标通道")] private GridOverlayChannelDefinition demolitionChannel;
-        [SerializeField, LabelText("资源可达范围通道")] private GridOverlayChannelDefinition resourceReachableChannel;
-        [SerializeField, LabelText("可用资源点通道")] private GridOverlayChannelDefinition resourceProviderChannel;
-        [SerializeField, LabelText("最终资源点通道")] private GridOverlayChannelDefinition selectedResourceProviderChannel;
-        [SerializeField, LabelText("最终资源路径通道")] private GridOverlayChannelDefinition resourcePathChannel;
-        [SerializeField, LabelText("Buff 范围通道")] private GridOverlayChannelDefinition buffRangeChannel;
-
         private readonly List<GridPosition> currentRoadPath = new List<GridPosition>();
         private GridOverlayOwnerHandle validFootprintHandle;
         private GridOverlayOwnerHandle invalidFootprintHandle;
@@ -108,25 +97,6 @@ namespace Landsong.BuildingSystem
             ResolveSceneReferences();
             ResolveInputController();
             ResolvePlacementControls();
-            ValidateOverlayBindings();
-        }
-
-        private void ValidateOverlayBindings()
-        {
-            if (validFootprintChannel == null
-                || invalidFootprintChannel == null
-                || roadPathChannel == null
-                || demolitionChannel == null
-                || resourceReachableChannel == null
-                || resourceProviderChannel == null
-                || selectedResourceProviderChannel == null
-                || resourcePathChannel == null
-                || buffRangeChannel == null)
-            {
-                Debug.LogError(
-                    "BuildingPlacementController 的 Overlay Channel 尚未完整绑定。请按重构文档绑定全部九个通道。",
-                    this);
-            }
         }
 
         private void Update()
@@ -1024,7 +994,7 @@ namespace Landsong.BuildingSystem
                 return;
             }
 
-            UpdateFootprintHighlight(evaluation.Footprint, activeBuildingPrefab?.Definition);
+            UpdateFootprintHighlight(evaluation.Footprint);
 
             var connection = evaluation.ResourceConnection;
             if (connection != null)
@@ -1036,7 +1006,7 @@ namespace Landsong.BuildingSystem
                 }
 
                 resourceReachableHandle = gridMap.OverlayService.AcquireOwner(
-                    resourceReachableChannel,
+                    GridOverlayChannelIds.ResourceReachable,
                     "building-placement-resource-reachable");
                 resourceReachableHandle?.SetCells(reachableCells);
 
@@ -1056,7 +1026,7 @@ namespace Landsong.BuildingSystem
                 }
 
                 resourceProviderHandle = gridMap.OverlayService.AcquireOwner(
-                    resourceProviderChannel,
+                    GridOverlayChannelIds.ResourceProviders,
                     "building-placement-resource-providers");
                 resourceProviderHandle?.SetCells(providerCells);
 
@@ -1069,11 +1039,11 @@ namespace Landsong.BuildingSystem
                     }
 
                     selectedResourceProviderHandle = gridMap.OverlayService.AcquireOwner(
-                        selectedResourceProviderChannel,
+                        GridOverlayChannelIds.SelectedResourceProvider,
                         "building-placement-resource-selected");
                     selectedResourceProviderHandle?.SetCells(selectedCells, 100);
                     resourcePathHandle = gridMap.OverlayService.AcquireOwner(
-                        resourcePathChannel,
+                        GridOverlayChannelIds.ResourcePath,
                         "building-placement-resource-path");
                     resourcePathHandle?.SetCells(connection.Selection.Path);
                 }
@@ -1090,7 +1060,7 @@ namespace Landsong.BuildingSystem
             }
 
             buffRangeHandle = gridMap.OverlayService.AcquireOwner(
-                buffRangeChannel,
+                GridOverlayChannelIds.BuffRange,
                 "building-placement-buff-range");
             buffRangeHandle?.SetCells(buffCells);
         }
@@ -1160,50 +1130,37 @@ namespace Landsong.BuildingSystem
             ClearHighlightedTiles();
             if (!CanDemolishBuilding(building)
                 || building.GridMap == null
-                || building.GridMap.OverlayService == null
-                || demolitionChannel == null)
+                || building.GridMap.OverlayService == null)
             {
                 return;
             }
 
             demolitionHandle = building.GridMap.OverlayService.AcquireOwner(
-                demolitionChannel,
+                GridOverlayChannelIds.DemolitionTarget,
                 "building-placement-demolition");
             if (demolitionHandle == null)
             {
                 return;
             }
 
-            var cells = new List<GridPosition>();
-            foreach (var position in building.Footprint.Positions())
-            {
-                cells.Add(position);
-            }
-
-            demolitionHandle.SetCells(cells);
+            demolitionHandle.SetFootprint(building.Footprint);
         }
 
-        private void UpdateFootprintHighlight(GridFootprint footprint, BuildingDefinition definition)
+        private void UpdateFootprintHighlight(GridFootprint footprint)
         {
             if (gridMap == null || gridMap.OverlayService == null)
             {
                 return;
             }
 
-            var channel = currentCanPlace ? validFootprintChannel : invalidFootprintChannel;
-            if (channel == null)
-            {
-                return;
-            }
+            string channelId = currentCanPlace
+                ? GridOverlayChannelIds.ValidFootprint
+                : GridOverlayChannelIds.InvalidFootprint;
 
-            var cells = new List<GridPosition>();
-            foreach (var position in footprint.Positions())
-            {
-                cells.Add(position);
-            }
-
-            var handle = gridMap.OverlayService.AcquireOwner(channel, "building-placement-footprint");
-            handle?.SetCells(cells);
+            var handle = gridMap.OverlayService.AcquireOwner(
+                channelId,
+                "building-placement-footprint");
+            handle?.SetFootprint(footprint);
             if (currentCanPlace)
             {
                 validFootprintHandle = handle;
@@ -1260,15 +1217,15 @@ namespace Landsong.BuildingSystem
             }
 
             validFootprintHandle = gridMap.OverlayService.AcquireOwner(
-                validFootprintChannel,
+                GridOverlayChannelIds.ValidFootprint,
                 "building-placement-road-endpoints");
             validFootprintHandle?.SetCells(validCells);
             invalidFootprintHandle = gridMap.OverlayService.AcquireOwner(
-                invalidFootprintChannel,
+                GridOverlayChannelIds.InvalidFootprint,
                 "building-placement-road-invalid");
             invalidFootprintHandle?.SetCells(invalidCells);
             roadPathHandle = gridMap.OverlayService.AcquireOwner(
-                roadPathChannel,
+                GridOverlayChannelIds.RoadPath,
                 "building-placement-road-path");
             roadPathHandle?.SetCells(roadCells);
         }

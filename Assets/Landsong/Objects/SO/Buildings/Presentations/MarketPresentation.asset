@@ -37,5 +37,15 @@ MonoBehaviour:
       m_SubObjectType: 
       m_SubObjectGUID: 
       m_EditorAssetChanged: 0
-  viewMappings: []
+  viewMappings:
+  - level: 1
+    styleId: 
+    view:
+      directPrefab: {fileID: 0}
+      addressablePrefab:
+        m_AssetGUID: 
+        m_SubObjectName: 
+        m_SubObjectType: 
+        m_SubObjectGUID: 
+        m_EditorAssetChanged: 0
   styles: []

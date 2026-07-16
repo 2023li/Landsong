@@ -14,28 +14,39 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingPresentationDefinition
   constructionViewMode: 0
   constructionView:
-    directPrefab: {fileID: 0}
+    directPrefab: {fileID: 7424146362173049143, guid: 816dd95e752a365479b73947557b41cc, type: 3}
     addressablePrefab:
       m_AssetGUID: 
       m_SubObjectName: 
       m_SubObjectType: 
       m_SubObjectGUID: 
-      m_EditorAssetChanged: 0
+      m_EditorAssetChanged: 1
+  constructionViewMappings: []
   placementPreviewView:
-    directPrefab: {fileID: 0}
+    directPrefab: {fileID: 7424146362173049143, guid: 816dd95e752a365479b73947557b41cc, type: 3}
     addressablePrefab:
-      m_AssetGUID:
-      m_SubObjectName:
-      m_SubObjectType:
-      m_SubObjectGUID:
+      m_AssetGUID: 
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
       m_EditorAssetChanged: 0
   defaultOperationalView:
-    directPrefab: {fileID: 0}
+    directPrefab: {fileID: 7424146362173049143, guid: 816dd95e752a365479b73947557b41cc, type: 3}
     addressablePrefab:
       m_AssetGUID: 
       m_SubObjectName: 
       m_SubObjectType: 
       m_SubObjectGUID: 
       m_EditorAssetChanged: 0
-  viewMappings: []
+  viewMappings:
+  - level: 1
+    styleId: 
+    view:
+      directPrefab: {fileID: 7424146362173049143, guid: 816dd95e752a365479b73947557b41cc, type: 3}
+      addressablePrefab:
+        m_AssetGUID: 
+        m_SubObjectName: 
+        m_SubObjectType: 
+        m_SubObjectGUID: 
+        m_EditorAssetChanged: 0
   styles: []

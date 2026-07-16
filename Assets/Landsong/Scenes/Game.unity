@@ -395,6 +395,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.GridSystem.GridOverlayService
   overlayGrid: {fileID: 1115393769}
+  channelCatalog: {fileID: 11400000, guid: 8b7e2d451a6c43fa9d10c8b72ef50431, type: 2}
 --- !u!114 &1115393771
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -659,7 +660,7 @@ TilemapRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 100
+  m_SortingOrder: -500
   m_MaskInteraction: 0
   m_ChunkSize: {x: 32, y: 32, z: 32}
   m_ChunkCullingBounds: {x: 0, y: 0, z: 0}

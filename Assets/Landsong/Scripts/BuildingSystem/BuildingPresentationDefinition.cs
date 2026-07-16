@@ -152,7 +152,7 @@ namespace Landsong.BuildingSystem
         [SerializeField, InspectorName("默认运营视图"), LabelText("默认运营视图")] private BuildingVisualAssetReference defaultOperationalView =
             new BuildingVisualAssetReference();
 
-        [SerializeField, InspectorName("视图映射"), LabelText("视图映射")] private BuildingViewMapping[] viewMappings =
+        [SerializeField, HideInInspector] private BuildingViewMapping[] viewMappings =
             Array.Empty<BuildingViewMapping>();
 
         [SerializeField, InspectorName("视觉样式"), LabelText("视觉样式")] private BuildingStyleDefinition[] styles =
@@ -319,6 +319,14 @@ namespace Landsong.BuildingSystem
             styles = styleDefinitions == null
                 ? Array.Empty<BuildingStyleDefinition>()
                 : new List<BuildingStyleDefinition>(styleDefinitions).ToArray();
+            viewMappings = mappings == null
+                ? Array.Empty<BuildingViewMapping>()
+                : new List<BuildingViewMapping>(mappings).ToArray();
+            EnsureDefaults();
+        }
+
+        public void ConfigureViewMappings(IEnumerable<BuildingViewMapping> mappings)
+        {
             viewMappings = mappings == null
                 ? Array.Empty<BuildingViewMapping>()
                 : new List<BuildingViewMapping>(mappings).ToArray();

@@ -19,12 +19,6 @@ namespace Landsong.BuildingSystem
         private GamePanel_BuildingOperationBar operationBarPrefab;
 
         [FoldoutGroup("选填")]
-        [SerializeField] private GridOverlayChannelDefinition selectionOverlayChannel;
-
-        [FoldoutGroup("选填")]
-        [SerializeField] private GridOverlayChannelDefinition reachableRangeOverlayChannel;
-
-        [FoldoutGroup("选填")]
         [SerializeField] private Vector3 operationBarWorldOffset = new Vector3(0f, -0.75f, 0f);
 
         [FoldoutGroup("选填")]
@@ -83,11 +77,6 @@ namespace Landsong.BuildingSystem
 
         private void OnEnable()
         {
-            if (selectionOverlayChannel == null || reachableRangeOverlayChannel == null)
-            {
-                Debug.LogError("BuildingSelectionController 必须绑定选择与可达范围 Overlay Channel。", this);
-            }
-
             ResolveReferences();
             SubscribeGameplayDisplaySettings();
             RegisterSelf();
@@ -260,22 +249,15 @@ namespace Landsong.BuildingSystem
             if (!showSelectedBuildingFootprint
                 || !CanSelectBuilding(building)
                 || building.GridMap == null
-                || building.GridMap.OverlayService == null
-                || selectionOverlayChannel == null)
+                || building.GridMap.OverlayService == null)
             {
                 return;
             }
 
             selectionOverlayHandle = building.GridMap.OverlayService.AcquireOwner(
-                selectionOverlayChannel,
+                GridOverlayChannelIds.SelectedBuildingFootprint,
                 "building-selection");
-            var cells = new List<GridPosition>();
-            foreach (GridPosition position in building.Footprint.Positions())
-            {
-                cells.Add(position);
-            }
-
-            selectionOverlayHandle?.SetCells(cells);
+            selectionOverlayHandle?.SetFootprint(building.Footprint);
         }
 
         private void ClearSelectionHighlight()
@@ -451,8 +433,7 @@ namespace Landsong.BuildingSystem
             BuildingBase building = selectedBuilding;
             if (!CanSelectBuilding(building)
                 || building.GridMap == null
-                || building.GridMap.OverlayService == null
-                || reachableRangeOverlayChannel == null)
+                || building.GridMap.OverlayService == null)
             {
                 return;
             }
@@ -483,7 +464,7 @@ namespace Landsong.BuildingSystem
             }
 
             reachableRangeOverlayHandle = building.GridMap.OverlayService.AcquireOwner(
-                reachableRangeOverlayChannel,
+                GridOverlayChannelIds.SelectedBuildingReachableRange,
                 "building-selection-reachable");
             reachableRangeOverlayHandle?.SetCells(cells);
         }

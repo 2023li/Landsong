@@ -38,5 +38,35 @@ MonoBehaviour:
       m_SubObjectType: 
       m_SubObjectGUID: 
       m_EditorAssetChanged: 0
-  viewMappings: []
+  viewMappings:
+  - level: 1
+    styleId: 
+    view:
+      directPrefab: {fileID: 7424146362173049143, guid: f03e441ff55549c41ac8d304a7b20bad, type: 3}
+      addressablePrefab:
+        m_AssetGUID: 
+        m_SubObjectName: 
+        m_SubObjectType: 
+        m_SubObjectGUID: 
+        m_EditorAssetChanged: 0
+  - level: 2
+    styleId: 
+    view:
+      directPrefab: {fileID: 7424146362173049143, guid: f03e441ff55549c41ac8d304a7b20bad, type: 3}
+      addressablePrefab:
+        m_AssetGUID: 
+        m_SubObjectName: 
+        m_SubObjectType: 
+        m_SubObjectGUID: 
+        m_EditorAssetChanged: 0
+  - level: 3
+    styleId: 
+    view:
+      directPrefab: {fileID: 7424146362173049143, guid: f03e441ff55549c41ac8d304a7b20bad, type: 3}
+      addressablePrefab:
+        m_AssetGUID: 
+        m_SubObjectName: 
+        m_SubObjectType: 
+        m_SubObjectGUID: 
+        m_EditorAssetChanged: 0
   styles: []

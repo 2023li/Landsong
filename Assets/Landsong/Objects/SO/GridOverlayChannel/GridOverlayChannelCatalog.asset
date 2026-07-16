@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4a8c23d91b74e9a8c6d530b7f12e4a1, type: 3}
+  m_Name: GridOverlayChannelCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.GridSystem.GridOverlayChannelCatalog
+  channels:
+  - {fileID: 11400000, guid: 1a672dc4181aa2f439cba334e0ed3878, type: 2}
+  - {fileID: 11400000, guid: acb79da165a197543874e2d27c297837, type: 2}
+  - {fileID: 11400000, guid: 62523fe0e9241ab4498818afae501f73, type: 2}
+  - {fileID: 11400000, guid: 589234903502d92469fe852ce013ff29, type: 2}
+  - {fileID: 11400000, guid: 278fb883e853b534d8cf59e524be326e, type: 2}
+  - {fileID: 11400000, guid: 712c0371c272f504e8ca9a1e869718d9, type: 2}
+  - {fileID: 11400000, guid: ac23de52d895e244797d2c560916ec00, type: 2}
+  - {fileID: 11400000, guid: 0ccca96ec1c54284db348a65a4d90e69, type: 2}
+  - {fileID: 11400000, guid: 17e634dd79a2e12498fd8bf27bcd82b0, type: 2}
+  - {fileID: 11400000, guid: 0c802b033453af240ad275d2e188be7d, type: 2}
+  - {fileID: 11400000, guid: e4fb839be2a756b4591c1c7746cafcd8, type: 2}

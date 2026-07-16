@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using Landsong.BuildingSystem;
 using Landsong.ConditionSystem;
+using Landsong.EditorTools.Buildings;
 using Landsong.InventorySystem;
 using Landsong.TechnologySystem;
 using UnityEditor;
@@ -83,6 +84,7 @@ namespace Landsong.EditorTools.Buildings.NumericImport
     internal sealed class BuildingNumericImportChangePlan
     {
         private readonly HashSet<string> familyAssetIds = new HashSet<string>(StringComparer.Ordinal);
+        private readonly HashSet<string> presentationAssetIds = new HashSet<string>(StringComparer.Ordinal);
         private readonly HashSet<string> moduleSetAssetIds = new HashSet<string>(StringComparer.Ordinal);
         private readonly HashSet<string> runtimePrefabAssetIds = new HashSet<string>(StringComparer.Ordinal);
         private readonly HashSet<string> changedFamilyIds = new HashSet<string>(StringComparer.Ordinal);
@@ -101,6 +103,8 @@ namespace Landsong.EditorTools.Buildings.NumericImport
         public IReadOnlyList<TechnologyGlobalBuffImportChange> GlobalBuffChanges => globalBuffChanges;
 
         public bool ChangesFamilyAsset(string familyId) => familyAssetIds.Contains(familyId);
+        public bool ChangesPresentationAsset(string familyId) =>
+            presentationAssetIds.Contains(familyId);
         public bool ChangesModuleSetAsset(string familyId) => moduleSetAssetIds.Contains(familyId);
         public bool ChangesRuntimePrefabAsset(string familyId) => runtimePrefabAssetIds.Contains(familyId);
 
@@ -109,6 +113,17 @@ namespace Landsong.EditorTools.Buildings.NumericImport
             if (!familyAssetIds.Add(familyId)) return;
             AddAsset(familyId, family);
             messages.Add($"{familyId}：{summary}（{AssetDatabase.GetAssetPath(family)}）");
+        }
+
+        public void AddPresentationAsset(
+            string familyId,
+            BuildingPresentationDefinition presentation,
+            string summary)
+        {
+            if (presentation == null || !presentationAssetIds.Add(familyId)) return;
+            AddAsset(familyId, presentation);
+            messages.Add(
+                $"{familyId}：{summary}（{AssetDatabase.GetAssetPath(presentation)}）");
         }
 
         public void AddModuleSetAsset(
@@ -390,6 +405,19 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                     {
                         Undo.RecordObject(family, "导入建筑家族数值");
                         ApplyFamilyAsset(session, familyRow, family);
+                    }
+
+                    if (plan.ChangesPresentationAsset(familyRow.FamilyId))
+                    {
+                        Undo.RecordObject(family.Presentation, "同步建筑视图映射矩阵");
+                        if (!BuildingPresentationMappingSynchronizer.TrySynchronize(
+                                family,
+                                out var synchronizationError)
+                            && !string.IsNullOrWhiteSpace(synchronizationError))
+                        {
+                            throw new InvalidOperationException(
+                                $"{familyRow.FamilyId} 无法同步视图映射矩阵：{synchronizationError}");
+                        }
                     }
 
                     if (plan.ChangesModuleSetAsset(familyRow.FamilyId))
@@ -1343,6 +1371,27 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                         row.FamilyId,
                         family,
                         $"更新{string.Join("、", changedFamilyScopes)}");
+                }
+
+                var targetLevels = session.Data.Levels
+                    .Where(level => level.FamilyId == row.FamilyId)
+                    .Select(level => level.Level)
+                    .OrderBy(level => level)
+                    .ToArray();
+                if (BuildingPresentationMappingSynchronizer.NeedsSynchronization(
+                        family.Presentation,
+                        targetLevels,
+                        out var mappingError))
+                {
+                    plan.AddPresentationAsset(
+                        row.FamilyId,
+                        family.Presentation,
+                        "同步由运营等级与视觉样式生成的固定 ViewMapping 矩阵");
+                }
+                else if (!string.IsNullOrWhiteSpace(mappingError))
+                {
+                    throw new InvalidOperationException(
+                        $"{row.FamilyId} 无法生成固定 ViewMapping 矩阵：{mappingError}");
                 }
 
                 if (family.ModuleSet != null && HasExcelManagedModuleDefaults(family))

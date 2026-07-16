@@ -547,6 +547,7 @@ namespace Landsong.EditorTools.Buildings
                             null,
                             ref presentationEditor);
                         DrawInlinePresentationInspector(
+                            selectedFamily,
                             presentationEditor,
                             "表现映射",
                             "这里只配置施工、运营等级和样式对应的独立 View Prefab，不把等级美术塞进 Runtime Prefab。");
@@ -573,6 +574,7 @@ namespace Landsong.EditorTools.Buildings
         }
 
         private static void DrawInlinePresentationInspector(
+            BuildingFamilyDefinition family,
             UnityEditor.Editor editor,
             string title,
             string tooltip)
@@ -627,17 +629,104 @@ namespace Landsong.EditorTools.Buildings
                 "没有匹配到等级或样式映射时使用的运营视图。");
             DrawPresentationProperty(
                 serializedObject,
-                "viewMappings",
-                "视图映射",
-                "按运营等级和样式 ID 选择视图资源；这里只负责运营阶段。");
-            DrawPresentationProperty(
-                serializedObject,
                 "styles",
                 "视觉样式",
-                "玩家可选择的表现变体，例如不同树种。");
+                "玩家可选择的表现变体，例如不同树种。Style 不属于数值表；增删样式后，视图映射矩阵会按样式与运营等级自动重建。");
             if (serializedObject.ApplyModifiedProperties())
             {
                 EditorUtility.SetDirty(editor.target);
+            }
+
+            SynchronizePresentationMappings(family, editor.target as BuildingPresentationDefinition);
+            serializedObject.Update();
+            DrawViewMappingMatrix(serializedObject);
+            if (serializedObject.ApplyModifiedProperties())
+            {
+                EditorUtility.SetDirty(editor.target);
+            }
+        }
+
+        private static void SynchronizePresentationMappings(
+            BuildingFamilyDefinition family,
+            BuildingPresentationDefinition presentation)
+        {
+            if (family == null || presentation == null)
+            {
+                return;
+            }
+
+            var levels = new List<int>();
+            for (var i = 0; i < family.Levels.Count; i++)
+            {
+                if (family.Levels[i] != null)
+                {
+                    levels.Add(family.Levels[i].Level);
+                }
+            }
+
+            if (!BuildingPresentationMappingSynchronizer.NeedsSynchronization(
+                    presentation,
+                    levels,
+                    out var error))
+            {
+                if (!string.IsNullOrWhiteSpace(error))
+                {
+                    EditorGUILayout.HelpBox($"无法生成视图映射矩阵：{error}", MessageType.Error);
+                }
+                return;
+            }
+
+            Undo.RecordObject(presentation, "同步建筑视图映射矩阵");
+            if (!BuildingPresentationMappingSynchronizer.TrySynchronize(
+                    presentation,
+                    levels,
+                    out error)
+                && !string.IsNullOrWhiteSpace(error))
+            {
+                EditorGUILayout.HelpBox($"无法生成视图映射矩阵：{error}", MessageType.Error);
+            }
+        }
+
+        private static void DrawViewMappingMatrix(SerializedObject serializedObject)
+        {
+            var mappings = serializedObject.FindProperty("viewMappings");
+            if (mappings == null)
+            {
+                EditorGUILayout.HelpBox("表现配置缺少序列化字段：viewMappings", MessageType.Error);
+                return;
+            }
+
+            EditorGUILayout.Space(4f);
+            EditorGUILayout.LabelField(
+                new GUIContent(
+                    "视图映射",
+                    "槽位由建筑数值表中的运营等级与视觉样式自动生成，不能手动添加、删除或修改键。"),
+                EditorStyles.boldLabel);
+            EditorGUILayout.HelpBox(
+                $"固定槽位共 {mappings.arraySize} 个。View 允许留空；缺少高等级美术时仍按运行时规则回退到同样式低等级或占位表现。",
+                MessageType.None);
+
+            for (var i = 0; i < mappings.arraySize; i++)
+            {
+                var mapping = mappings.GetArrayElementAtIndex(i);
+                var level = mapping.FindPropertyRelative("level");
+                var styleId = mapping.FindPropertyRelative("styleId");
+                var view = mapping.FindPropertyRelative("view");
+                if (level == null || styleId == null || view == null)
+                {
+                    EditorGUILayout.HelpBox($"视图映射槽位 #{i + 1} 的序列化结构无效。", MessageType.Error);
+                    continue;
+                }
+
+                var slotName = string.IsNullOrWhiteSpace(styleId.stringValue)
+                    ? $"默认样式 / LV{level.intValue}"
+                    : $"{styleId.stringValue} / LV{level.intValue}";
+                EditorGUILayout.PropertyField(
+                    view,
+                    new GUIContent(
+                        slotName,
+                        "该样式与运营等级对应的独立纯表现 View。等级和 StyleId 由矩阵自动维护。"),
+                    true);
             }
         }
 

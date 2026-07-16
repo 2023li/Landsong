@@ -708,7 +708,10 @@ namespace Landsong.GridSystem
             Undo.RecordObject(this, "Configure Required Tilemaps");
 
             EnsureUnityGridComponent();
-            occupancyTilemap = EnsureTilemapLayer(occupancyTilemap, "Occupancy Tilemap", 100);
+            occupancyTilemap = EnsureTilemapLayer(
+                occupancyTilemap,
+                "Occupancy Tilemap",
+                GridRenderOrder.OccupancyTilemap);
             EditorUtility.SetDirty(this);
             Undo.CollapseUndoOperations(undoGroup);
         }

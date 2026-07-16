@@ -4,6 +4,9 @@ using Landsong.TechnologySystem;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace Landsong.UISystem
 {
@@ -42,7 +45,11 @@ namespace Landsong.UISystem
 
         [Header("解锁内容")]
         [SerializeField] private Transform unlockIconRoot;
+        [SerializeField] private GameObject unlockContentItemPrefab;
+        [SerializeField] private GameObject unlockTooltipRoot;
+        [SerializeField] private TMP_Text unlockTooltipLabel;
         [SerializeField, Min(0)] private int maxUnlockIcons = 5;
+        [SerializeField, Min(0f)] private float unlockIconSpacing = 6f;
 
         [Header("状态颜色")]
         [SerializeField] private Color invalidColor = new Color(0.18f, 0.18f, 0.18f, 0.8f);
@@ -54,14 +61,14 @@ namespace Landsong.UISystem
         [SerializeField] private Color completedColor = new Color(0.62f, 0.52f, 0.25f, 1f);
         [SerializeField] private Color repeatableColor = new Color(0.46f, 0.32f, 0.58f, 1f);
 
-        private readonly List<GameObject> spawnedUnlockIcons = new List<GameObject>();
+        private readonly List<TechnologyUnlockIconHover> spawnedUnlockIcons =
+            new List<TechnologyUnlockIconHover>();
         private readonly List<TechnologyUnlockContent> unlockContents = new List<TechnologyUnlockContent>();
         private TechnologyDefinition unlockIconsDefinition;
         private TechnologyUnlockContentRegistry unlockContentRegistry;
         private TechnologyUnlockContentRegistry unlockIconsContentRegistry;
+        private TechnologyUnlockIconHover unlockContentItemPrefabView;
         private int unlockIconsContentVersion = -1;
-        private GameObject unlockTooltipRoot;
-        private TMP_Text unlockTooltipLabel;
         private TechnologyService technology;
         private Action<TechnologyDefinition> clicked;
 
@@ -71,6 +78,13 @@ namespace Landsong.UISystem
         private void Awake()
         {
             ResolveReferences();
+            if (!ValidateUnlockPresentationConfiguration(true))
+            {
+                enabled = false;
+                return;
+            }
+
+            unlockTooltipRoot.SetActive(false);
             if (button != null)
             {
                 button.onClick.RemoveListener(HandleClicked);
@@ -91,6 +105,12 @@ namespace Landsong.UISystem
         private void OnValidate()
         {
             ResolveReferences();
+#if UNITY_EDITOR
+            if (PrefabUtility.IsPartOfPrefabAsset(gameObject))
+            {
+                ValidateUnlockPresentationConfiguration(true);
+            }
+#endif
             Refresh();
         }
 
@@ -255,6 +275,11 @@ namespace Landsong.UISystem
 
         private void RefreshUnlockIcons()
         {
+            if (!ValidateUnlockPresentationConfiguration(false))
+            {
+                return;
+            }
+
             var contentVersion = unlockContentRegistry == null ? -1 : unlockContentRegistry.Version;
             if (Application.isPlaying
                 && unlockIconsDefinition == definition
@@ -265,9 +290,7 @@ namespace Landsong.UISystem
             }
 
             ClearUnlockIcons();
-            if (definition == null
-                || unlockIconRoot == null
-                || maxUnlockIcons <= 0)
+            if (definition == null || maxUnlockIcons <= 0)
             {
                 return;
             }
@@ -280,8 +303,10 @@ namespace Landsong.UISystem
 
             for (var i = 0; i < normalIconCount; i++)
             {
-                var icon = CreateUnlockIcon(unlockContents[i], spawnedUnlockIcons.Count);
-                spawnedUnlockIcons.Add(icon);
+                if (CreateUnlockIcon(unlockContents[i], spawnedUnlockIcons.Count, out var icon))
+                {
+                    spawnedUnlockIcons.Add(icon);
+                }
             }
 
             if (hasOverflow)
@@ -293,7 +318,10 @@ namespace Landsong.UISystem
                     $"另有 {remainingCount} 项解锁内容",
                     TechnologyUnlockContentKind.Other,
                     shortLabel: $"+{remainingCount}");
-                spawnedUnlockIcons.Add(CreateUnlockIcon(overflow, spawnedUnlockIcons.Count));
+                if (CreateUnlockIcon(overflow, spawnedUnlockIcons.Count, out var overflowIcon))
+                {
+                    spawnedUnlockIcons.Add(overflowIcon);
+                }
             }
 
             unlockIconRoot.gameObject.SetActive(spawnedUnlockIcons.Count > 0);
@@ -320,18 +348,26 @@ namespace Landsong.UISystem
 
         private void ClearUnlockIcons()
         {
-            for (var i = spawnedUnlockIcons.Count - 1; i >= 0; i--)
+            // 旧版本会把运行时生成的解锁项误保存进面板 Prefab。
+            // 这里以专用容器为边界清理全部子对象，确保迁移后不会重复显示。
+            if (unlockIconRoot != null)
             {
-                var icon = spawnedUnlockIcons[i];
-                if (icon != null)
+                for (var i = unlockIconRoot.childCount - 1; i >= 0; i--)
                 {
+                    var child = unlockIconRoot.GetChild(i);
+                    if (child == null)
+                    {
+                        continue;
+                    }
+
                     if (Application.isPlaying)
                     {
-                        Destroy(icon);
+                        child.SetParent(null, false);
+                        Destroy(child.gameObject);
                     }
                     else
                     {
-                        DestroyImmediate(icon);
+                        DestroyImmediate(child.gameObject);
                     }
                 }
             }
@@ -346,77 +382,48 @@ namespace Landsong.UISystem
             }
         }
 
-        private GameObject CreateUnlockIcon(TechnologyUnlockContent content, int index)
+        private bool CreateUnlockIcon(
+            TechnologyUnlockContent content,
+            int index,
+            out TechnologyUnlockIconHover instance)
         {
-            var instance = new GameObject(
-                "解锁内容",
-                typeof(RectTransform),
-                typeof(CanvasRenderer),
-                typeof(Image));
-            var rect = instance.GetComponent<RectTransform>();
-            rect.SetParent(unlockIconRoot, false);
-            rect.anchorMin = new Vector2(0f, 0.5f);
-            rect.anchorMax = new Vector2(0f, 0.5f);
-            rect.pivot = new Vector2(0f, 0.5f);
-            rect.anchoredPosition = new Vector2(index * 46f, 0f);
-            rect.sizeDelta = new Vector2(40f, 40f);
-
-            var iconImage = instance.GetComponent<Image>();
-            iconImage.sprite = content.Icon;
-            iconImage.preserveAspect = true;
-            iconImage.enabled = true;
-            iconImage.color = content.Icon == null
-                ? new Color(0.12f, 0.12f, 0.12f, 0.92f)
-                : Color.white;
-            iconImage.raycastTarget = true;
-
-            var hover = instance.AddComponent<TechnologyUnlockIconHover>();
-            hover.Bind(() => ShowUnlockTooltip(content), HideUnlockTooltip);
-
-            var amountSuffix = content.Amount > 1 ? $"_x{content.Amount}" : string.Empty;
-            instance.name = string.IsNullOrWhiteSpace(content.DisplayName)
-                ? "解锁内容"
-                : $"解锁_{content.DisplayName}{amountSuffix}";
-
-            var badgeText = ResolveBadgeText(content);
-            if (!string.IsNullOrWhiteSpace(badgeText))
+            instance = Instantiate(unlockContentItemPrefabView, unlockIconRoot, false);
+            if (instance == null)
             {
-                var amountObject = new GameObject(
-                    "解锁标记",
-                    typeof(RectTransform),
-                    typeof(CanvasRenderer),
-                    typeof(TextMeshProUGUI));
-                var amountRect = amountObject.GetComponent<RectTransform>();
-                amountRect.SetParent(rect, false);
-                amountRect.anchorMin = content.Icon == null ? Vector2.zero : new Vector2(0.3f, 0f);
-                amountRect.anchorMax = Vector2.one;
-                amountRect.offsetMin = Vector2.zero;
-                amountRect.offsetMax = Vector2.zero;
-
-                var amountLabel = amountObject.GetComponent<TextMeshProUGUI>();
-                amountLabel.text = badgeText;
-                amountLabel.fontSize = content.Icon == null ? 14f : 12f;
-                amountLabel.fontStyle = FontStyles.Bold;
-                amountLabel.alignment = content.Icon == null
-                    ? TextAlignmentOptions.Center
-                    : TextAlignmentOptions.BottomRight;
-                amountLabel.color = Color.white;
-                amountLabel.outlineColor = Color.black;
-                amountLabel.outlineWidth = 0.15f;
-                amountLabel.raycastTarget = false;
+                Debug.LogError("科技解锁内容项 Prefab 实例化失败。", this);
+                return false;
             }
 
-            return instance;
+            var rect = instance.RectTransform;
+            var itemWidth = Mathf.Max(0f, rect.rect.width);
+            rect.anchoredPosition = new Vector2(
+                index * (itemWidth + unlockIconSpacing),
+                rect.anchoredPosition.y);
+
+            if (instance.Bind(
+                    content,
+                    ResolveBadgeText(content),
+                    () => ShowUnlockTooltip(content),
+                    HideUnlockTooltip))
+            {
+                return true;
+            }
+
+            if (Application.isPlaying)
+            {
+                Destroy(instance.gameObject);
+            }
+            else
+            {
+                DestroyImmediate(instance.gameObject);
+            }
+
+            instance = null;
+            return false;
         }
 
         private void ShowUnlockTooltip(TechnologyUnlockContent content)
         {
-            EnsureUnlockTooltip();
-            if (unlockTooltipRoot == null || unlockTooltipLabel == null)
-            {
-                return;
-            }
-
             unlockTooltipLabel.text = content.Amount > 1
                 ? $"{content.DisplayName} ×{content.Amount}"
                 : content.DisplayName;
@@ -430,50 +437,6 @@ namespace Landsong.UISystem
             {
                 unlockTooltipRoot.SetActive(false);
             }
-        }
-
-        private void EnsureUnlockTooltip()
-        {
-            if (unlockTooltipRoot != null)
-            {
-                return;
-            }
-
-            unlockTooltipRoot = new GameObject(
-                "解锁内容提示",
-                typeof(RectTransform),
-                typeof(CanvasRenderer),
-                typeof(Image));
-            var rect = unlockTooltipRoot.GetComponent<RectTransform>();
-            rect.SetParent(transform, false);
-            rect.anchorMin = new Vector2(0.5f, 0f);
-            rect.anchorMax = new Vector2(0.5f, 0f);
-            rect.pivot = new Vector2(0.5f, 0f);
-            rect.anchoredPosition = new Vector2(0f, 4f);
-            rect.sizeDelta = new Vector2(360f, 34f);
-
-            var background = unlockTooltipRoot.GetComponent<Image>();
-            background.color = new Color(0.05f, 0.05f, 0.05f, 0.94f);
-            background.raycastTarget = false;
-
-            var labelObject = new GameObject(
-                "文字",
-                typeof(RectTransform),
-                typeof(CanvasRenderer),
-                typeof(TextMeshProUGUI));
-            var labelRect = labelObject.GetComponent<RectTransform>();
-            labelRect.SetParent(rect, false);
-            labelRect.anchorMin = Vector2.zero;
-            labelRect.anchorMax = Vector2.one;
-            labelRect.offsetMin = new Vector2(8f, 2f);
-            labelRect.offsetMax = new Vector2(-8f, -2f);
-
-            unlockTooltipLabel = labelObject.GetComponent<TextMeshProUGUI>();
-            unlockTooltipLabel.fontSize = 15f;
-            unlockTooltipLabel.alignment = TextAlignmentOptions.Center;
-            unlockTooltipLabel.color = Color.white;
-            unlockTooltipLabel.raycastTarget = false;
-            unlockTooltipRoot.SetActive(false);
         }
 
         private static string ResolveBadgeText(TechnologyUnlockContent content)
@@ -511,6 +474,58 @@ namespace Landsong.UISystem
         {
             button ??= GetComponent<Button>();
             backgroundImage ??= GetComponent<Image>();
+        }
+
+        private bool ValidateUnlockPresentationConfiguration(bool logError)
+        {
+            unlockContentItemPrefabView = null;
+            string error = null;
+            if (unlockIconRoot == null)
+            {
+                error = "未引用解锁内容根节点。";
+            }
+            else if (unlockContentItemPrefab == null)
+            {
+                error = "未引用科技解锁内容项 Prefab。";
+            }
+            else if (!unlockContentItemPrefab.TryGetComponent(out unlockContentItemPrefabView))
+            {
+                error = "科技解锁内容项 Prefab 缺少 TechnologyUnlockIconHover 组件。";
+            }
+            else if (!unlockContentItemPrefabView.IsConfigurationValid(out var itemError))
+            {
+                error = $"科技解锁内容项 Prefab 配置错误：{itemError}";
+            }
+            else if (unlockTooltipRoot == null)
+            {
+                error = "未引用解锁内容提示根节点。";
+            }
+            else if (unlockTooltipLabel == null)
+            {
+                error = "未引用解锁内容提示文本。";
+            }
+            else if (!unlockTooltipLabel.transform.IsChildOf(unlockTooltipRoot.transform))
+            {
+                error = "解锁内容提示文本必须位于提示根节点之下。";
+            }
+#if UNITY_EDITOR
+            else if (!PrefabUtility.IsPartOfPrefabAsset(unlockContentItemPrefab))
+            {
+                error = "科技解锁内容项引用必须是 Prefab 资产，不能是场景对象。";
+            }
+#endif
+
+            if (string.IsNullOrEmpty(error))
+            {
+                return true;
+            }
+
+            if (logError)
+            {
+                Debug.LogError($"科技节点解锁表现配置错误：{error}", this);
+            }
+
+            return false;
         }
 
         private void HandleClicked()

@@ -365,10 +365,24 @@ namespace Landsong.EditorTools.Buildings
                         Normalize(style.StyleId),
                         Normalize(style.DisplayName),
                         style.Icon));
+                    for (var level = 1; level <= Mathf.Max(1, draft.InitialLevelCount); level++)
+                    {
+                        mappings.Add(new BuildingViewMapping(
+                            level,
+                            Normalize(style.StyleId),
+                            level == 1 ? style.Level1View : null));
+                    }
+                }
+            }
+
+            if (styles.Count == 0)
+            {
+                for (var level = 1; level <= Mathf.Max(1, draft.InitialLevelCount); level++)
+                {
                     mappings.Add(new BuildingViewMapping(
-                        1,
-                        Normalize(style.StyleId),
-                        style.Level1View));
+                        level,
+                        string.Empty,
+                        level == 1 ? draft.DefaultOperationalViewPrefab : null));
                 }
             }
 

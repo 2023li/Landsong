@@ -101,6 +101,17 @@ building-view/tree/tree_03/lv01
 
 因此策划可以先完成数值 LV1～LV4，但美术暂时只交付 LV1。玩家升到 LV4 时真实数值仍为 LV4，外观安全沿用 LV1；以后添加 LV3 映射即可自动替换。
 
+运营 ViewMapping 在建筑编辑器中不是可自由增删的数组，而是固定槽位矩阵：
+
+- 运营等级轴来自正式 Excel 的 `运营等级` 表，导表后写入 Family Levels；
+- 视觉样式轴来自 Unity Presentation 的 Styles；
+- 无 Style 时槽位数为 `等级数`，有 Style 时槽位数为 `等级数 × Style 数`；
+- 每个槽位的 Level 与 StyleId 只读，只允许回填 Direct/Addressable View；
+- 新增等级会自动补空槽位，删除等级或 Style 会移除对应空槽位；
+- 待移除槽位仍配置 View 时同步会被阻止，必须先撤销或明确清空该 View，系统不会静默删除美术引用。
+
+空槽位是合法的美术缺口，不代表数值等级缺失，也不应复制低等级 Prefab 伪装为“已回填”。运行时低等级回退负责在资源未交付期间保持可用。
+
 ## 5. 动画资源
 
 ### 建筑自身循环动画
@@ -126,8 +137,8 @@ building-view/tree/tree_03/lv01
 1. 在 `BuildingViews/<Family>/...` 创建纯 View Prefab。
 2. 对齐 `ViewRoot` 原点、排序层、像素密度和默认朝向。
 3. 确认 Prefab 不含建筑脚本和 Collider。
-4. 在对应 Presentation 中选择单一或逐回合施工视图模式，并配置该模式对应的 Direct/Addressable 引用；再回填运营映射。
-5. 无样式建筑可先填 `DefaultOperationalView`；有多个美术等级时再加 ViewMapping。
+4. 在对应 Presentation 中选择单一或逐回合施工视图模式，并配置该模式对应的 Direct/Addressable 引用；再回填固定运营映射槽位。
+5. 无样式建筑可先填 `DefaultOperationalView`；运营等级槽位由 Excel 等级自动生成，不手动增加 ViewMapping。
 6. 树木必须逐个 StyleId 绑定，不得只填默认图让八个按钮显示同一棵树。
 7. 逐回合推进施工，并在施工中途存档/读档，检查当前回合、完工和目标等级换图。
 8. 执行 `Landsong/Building/Validate Final Architecture`；结构零错误后提交。

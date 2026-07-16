@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a3b70d7f4d394dd9a76b0bc2e5c6a101, type: 3}
-  m_Name: "TN_1_4_哲学"
+  m_Name: "TN_1_4_\u54F2\u5B66"
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.TechnologySystem.TechnologyDefinition
-  icon: {fileID: 0}
-  technologyId: "TN_1_4_哲学"
-  displayName: "哲学"
-  description: "在文字积累的知识基础上追问共同规律，形成系统论证和抽象思考。"
+  icon: {fileID: -8403764793753334010, guid: 8ea5c8b329b92f44a94c233c80dbbc73, type: 3}
+  technologyId: "TN_1_4_\u54F2\u5B66"
+  displayName: "\u54F2\u5B66"
+  description: "\u5728\u6587\u5B57\u79EF\u7D2F\u7684\u77E5\u8BC6\u57FA\u7840\u4E0A\u8FFD\u95EE\u5171\u540C\u89C4\u5F8B\uFF0C\u5F62\u6210\u7CFB\u7EDF\u8BBA\u8BC1\u548C\u62BD\u8C61\u601D\u8003\u3002"
   sciencePointCost: 18
   allowRepeatResearch: 0
   prerequisites:

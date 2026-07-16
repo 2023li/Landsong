@@ -695,6 +695,29 @@ namespace Landsong.Editor
                 }
             }
 
+            var operationalLevels = new HashSet<int>(
+                family.Levels
+                    .Where(level => level != null)
+                    .Select(level => level.Level));
+            var expectedMappingKeys = new HashSet<string>(StringComparer.Ordinal);
+            if (styleIds.Count == 0)
+            {
+                foreach (var level in operationalLevels)
+                {
+                    expectedMappingKeys.Add($"LV{level}:");
+                }
+            }
+            else
+            {
+                foreach (var styleId in styleIds)
+                {
+                    foreach (var level in operationalLevels)
+                    {
+                        expectedMappingKeys.Add($"LV{level}:{styleId}");
+                    }
+                }
+            }
+
             var mappingKeys = new HashSet<string>(StringComparer.Ordinal);
             for (var i = 0; i < presentation.ViewMappings.Count; i++)
             {
@@ -711,12 +734,26 @@ namespace Landsong.Editor
                 }
 
                 var key = $"LV{mapping.Level}:{mapping.StyleId}";
+                if (!expectedMappingKeys.Contains(key))
+                {
+                    report.Error(
+                        $"{label} 的 ViewMapping 不属于数值等级与视觉样式生成的固定矩阵：{key}");
+                }
+
                 if (!mappingKeys.Add(key))
                 {
                     report.Error($"{label} 的 ViewMapping 重复：{key}");
                 }
 
                 ValidateViewPrefab(mapping.View, $"{label}/{key}", report);
+            }
+
+            foreach (var expectedKey in expectedMappingKeys)
+            {
+                if (!mappingKeys.Contains(expectedKey))
+                {
+                    report.Error($"{label} 缺少固定 ViewMapping 槽位：{expectedKey}");
+                }
             }
 
             var requiredConstructionTurns = family.Construction?.RequiredTurns ?? 1;

@@ -35,6 +35,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 816dd95e752a365479b73947557b41cc
+    m_Address: "Assets/Landsong/Objects/Prefabs/BuildingViews/\u519C\u7530/\u4E34\u65F6\u5EFA\u7B51Canvas_\u7530.prefab"
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 8344cbee3c103ae4ca387a12fc3f7082
     m_Address: BuildingCatalog
     m_ReadOnly: 0

@@ -28,10 +28,15 @@ namespace Landsong.UISystem
         [SerializeField] private TMP_Text 数量限制;
         #endregion
 
-        #region 消耗面板
+        #region 详情面板
+        [SerializeField, LabelText("详情面板")] private RectTransform root_详情面板;
+        [SerializeField, LabelText("建筑名称")] private TMP_Text txt_建筑名称;
+        [SerializeField, LabelText("详情数量限制")] private TMP_Text txt_详情数量限制;
+        [SerializeField, LabelText("建筑描述")] private TMP_Text txt_描述;
+        [SerializeField, LabelText("描述布局")] private LayoutElement descriptionLayoutElement;
         [SerializeField,LabelText("消耗面板")] private RectTransform root_消耗面板;
         [SerializeField,LabelText("消耗文本预制体")] private TMP_Text prefab_材料文本预制体;
-        [SerializeField, LabelText("长按显示延迟"), Min(0.05f)] private float longPressDuration = 0.45f;
+        [SerializeField, LabelText("长按显示详情延迟"), Min(0.05f)] private float longPressDuration = 0.45f;
         #endregion
 
 
@@ -40,6 +45,7 @@ namespace Landsong.UISystem
         [SerializeField] private Image icon;
 
         private BuildingBase buildingPrefab;
+        private BuildingStyleDefinition styleDefinition;
         private string styleId = string.Empty;
         private BuildingAvailability availability;
         private Action<BuildingBase, string> clicked;
@@ -47,7 +53,7 @@ namespace Landsong.UISystem
         private Coroutine longPressRoutine;
         private bool pointerPressed;
         private bool longPressTriggered;
-        private bool longPressPanelVisible;
+        private bool longPressDetailVisible;
         private bool suppressNextClick;
 
         private void Reset()
@@ -66,18 +72,18 @@ namespace Landsong.UISystem
 
         private void Awake()
         {
-            PrepareCostPanelRaycasts();
-            HideCostPanel();
+            PrepareDetailPanelRaycasts();
+            HideDetailPanel();
         }
 
         private void OnDisable()
         {
             pointerPressed = false;
             longPressTriggered = false;
-            longPressPanelVisible = false;
+            longPressDetailVisible = false;
             suppressNextClick = false;
             CancelLongPress();
-            HideCostPanel();
+            HideDetailPanel();
         }
 
         private void OnDestroy()
@@ -105,11 +111,12 @@ namespace Landsong.UISystem
 
             pointerPressed = false;
             longPressTriggered = false;
-            longPressPanelVisible = false;
+            longPressDetailVisible = false;
             suppressNextClick = false;
             CancelLongPress();
 
             buildingPrefab = sourceBuildingPrefab;
+            styleDefinition = style;
             styleId = style == null ? string.Empty : style.StyleId;
             availability = buildingAvailability;
             clicked = onClicked;
@@ -128,18 +135,19 @@ namespace Landsong.UISystem
             }
 
             RefreshState();
-            HideCostPanel();
+            HideDetailPanel();
         }
 
         public void Unbind()
         {
             pointerPressed = false;
             longPressTriggered = false;
-            longPressPanelVisible = false;
+            longPressDetailVisible = false;
             suppressNextClick = false;
             CancelLongPress();
 
             buildingPrefab = null;
+            styleDefinition = null;
             styleId = string.Empty;
             availability = BuildingAvailability.Hidden(null, BuildingUnavailableReason.Hidden);
             clicked = null;
@@ -157,7 +165,7 @@ namespace Landsong.UISystem
             }
 
             RefreshState();
-            HideCostPanel();
+            HideDetailPanel();
         }
 
         public void OnPointerEnter(PointerEventData eventData)
@@ -167,34 +175,34 @@ namespace Landsong.UISystem
                 return;
             }
 
-            ShowCostPanel();
+            ShowDetailPanel();
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
-            if (longPressTriggered || longPressPanelVisible)
+            if (longPressTriggered || longPressDetailVisible)
             {
                 suppressNextClick = true;
             }
 
             pointerPressed = false;
             longPressTriggered = false;
-            longPressPanelVisible = false;
+            longPressDetailVisible = false;
             CancelLongPress();
-            HideCostPanel();
+            HideDetailPanel();
         }
 
         public void OnPointerDown(PointerEventData eventData)
         {
             pointerPressed = true;
             longPressTriggered = false;
-            longPressPanelVisible = false;
+            longPressDetailVisible = false;
             suppressNextClick = false;
             CancelLongPress();
 
             if (Application.isMobilePlatform && IsTouchPointer(eventData))
             {
-                longPressRoutine = StartCoroutine(ShowCostPanelAfterLongPress());
+                longPressRoutine = StartCoroutine(ShowDetailPanelAfterLongPress());
             }
         }
 
@@ -203,15 +211,15 @@ namespace Landsong.UISystem
             pointerPressed = false;
             CancelLongPress();
 
-            if (!longPressTriggered && !longPressPanelVisible)
+            if (!longPressTriggered && !longPressDetailVisible)
             {
                 return;
             }
 
             longPressTriggered = false;
-            longPressPanelVisible = false;
+            longPressDetailVisible = false;
             suppressNextClick = true;
-            HideCostPanel();
+            HideDetailPanel();
         }
 
         private void RefreshState()
@@ -275,33 +283,154 @@ namespace Landsong.UISystem
             clicked?.Invoke(buildingPrefab, styleId);
         }
 
-        private void ShowCostPanel()
+        private void ShowDetailPanel()
         {
-            if (root_消耗面板 == null)
+            if (root_详情面板 == null || buildingPrefab == null || !buildingPrefab.HasDefinition)
             {
                 return;
             }
 
-            PrepareCostPanelRaycasts();
+            PrepareDetailPanelRaycasts();
             ClearMaterialTextInstances();
-            var materialCount = CreateMaterialTextInstances();
-            if (materialCount <= 0)
-            {
-                SetActive(root_消耗面板.gameObject, false);
-                return;
-            }
 
-            ConfigureCostPanelLayout();
-            SetActive(root_消耗面板.gameObject, true);
-        }
-
-        private void HideCostPanel()
-        {
-            ClearMaterialTextInstances();
+            SetActive(root_详情面板.gameObject, true);
             if (root_消耗面板 != null)
             {
-                SetActive(root_消耗面板.gameObject, false);
+                SetActive(root_消耗面板.gameObject, true);
             }
+
+            RefreshDetailText();
+            CreateMaterialTextInstances();
+            ConfigureCostPanelLayout();
+            RebuildDetailLayout();
+        }
+
+        private void HideDetailPanel()
+        {
+            ClearMaterialTextInstances();
+            if (root_详情面板 != null)
+            {
+                SetActive(root_详情面板.gameObject, false);
+            }
+        }
+
+        private void RefreshDetailText()
+        {
+            var definition = buildingPrefab == null ? null : buildingPrefab.Definition;
+            SetText(txt_建筑名称, FormatBuildingName(definition, styleDefinition));
+            SetText(txt_描述, BuildDescriptionText());
+            RefreshDetailCountLimitText(definition);
+            RefreshDescriptionLayout();
+        }
+
+        private void RefreshDescriptionLayout()
+        {
+            if (txt_描述 == null || descriptionLayoutElement == null)
+            {
+                return;
+            }
+
+            var availableWidth = root_详情面板 == null
+                ? txt_描述.rectTransform.rect.width
+                : root_详情面板.rect.width;
+
+            if (root_详情面板 != null
+                && root_详情面板.TryGetComponent<VerticalLayoutGroup>(out var layoutGroup))
+            {
+                availableWidth -= layoutGroup.padding.horizontal;
+            }
+
+            availableWidth = Mathf.Max(1f, availableWidth);
+            var preferredSize = txt_描述.GetPreferredValues(
+                txt_描述.text ?? string.Empty,
+                availableWidth,
+                Mathf.Infinity);
+            descriptionLayoutElement.preferredHeight = Mathf.Max(
+                descriptionLayoutElement.minHeight,
+                Mathf.Ceil(preferredSize.y));
+        }
+
+        private void RefreshDetailCountLimitText(BuildingDefinition definition)
+        {
+            if (txt_详情数量限制 == null)
+            {
+                return;
+            }
+
+            var hasDefinition = definition != null;
+            txt_详情数量限制.gameObject.SetActive(hasDefinition);
+            if (!hasDefinition)
+            {
+                txt_详情数量限制.text = string.Empty;
+                return;
+            }
+
+            if (!definition.HasBuildCountLimit)
+            {
+                txt_详情数量限制.text = "无限制";
+                txt_详情数量限制.color = ParseTextColor(
+                    textColor_UnderLimit,
+                    txt_详情数量限制.color);
+                return;
+            }
+
+            var builtCount = Mathf.Max(0, availability.BuiltCount);
+            var maxBuildCount = Mathf.Max(0, availability.MaxBuildCount);
+            txt_详情数量限制.text = $"{builtCount}/{maxBuildCount}";
+            txt_详情数量限制.color = ParseTextColor(
+                builtCount < maxBuildCount ? textColor_UnderLimit : textColor_AtLimit,
+                txt_详情数量限制.color);
+        }
+
+        private static string FormatBuildingName(
+            BuildingDefinition definition,
+            BuildingStyleDefinition style)
+        {
+            if (definition == null)
+            {
+                return string.Empty;
+            }
+
+            return style == null || string.IsNullOrWhiteSpace(style.DisplayName)
+                ? definition.DisplayName
+                : $"{definition.DisplayName} · {style.DisplayName}";
+        }
+
+        private string BuildDescriptionText()
+        {
+            var statusText = GetStatusText(availability);
+            var overviewText = buildingPrefab == null ? string.Empty : buildingPrefab.GetOverviewInfo();
+            overviewText = string.IsNullOrWhiteSpace(overviewText) ? string.Empty : overviewText.Trim();
+
+            if (string.IsNullOrWhiteSpace(statusText))
+            {
+                return overviewText;
+            }
+
+            return string.IsNullOrWhiteSpace(overviewText)
+                ? statusText
+                : $"{statusText}\n{overviewText}";
+        }
+
+        private static string GetStatusText(BuildingAvailability buildingAvailability)
+        {
+            if (buildingAvailability.CanBuild)
+            {
+                return "可建造";
+            }
+
+            if (buildingAvailability.IsAvailable)
+            {
+                return "可用，材料不足";
+            }
+
+            return buildingAvailability.FirstUnavailableReason switch
+            {
+                BuildingUnavailableReason.DevelopmentIncomplete => "建筑未开发完成",
+                BuildingUnavailableReason.BuildLimitReached => "数量已达上限",
+                BuildingUnavailableReason.MissingMaterials => "材料不足",
+                _ => "不可用"
+            };
         }
 
         private int CreateMaterialTextInstances()
@@ -386,6 +515,27 @@ namespace Landsong.UISystem
             gridLayout.constraintCount = 2;
         }
 
+        private void RebuildDetailLayout()
+        {
+            Canvas.ForceUpdateCanvases();
+            RefreshDescriptionLayout();
+
+            if (root_消耗面板 != null)
+            {
+                LayoutRebuilder.ForceRebuildLayoutImmediate(root_消耗面板);
+            }
+
+            if (root_详情面板 != null)
+            {
+                LayoutRebuilder.ForceRebuildLayoutImmediate(root_详情面板);
+            }
+
+            Canvas.ForceUpdateCanvases();
+            txt_建筑名称?.ForceMeshUpdate();
+            txt_详情数量限制?.ForceMeshUpdate();
+            txt_描述?.ForceMeshUpdate();
+        }
+
         private void ClearMaterialTextInstances()
         {
             for (var i = 0; i < materialTextInstances.Count; i++)
@@ -412,7 +562,7 @@ namespace Landsong.UISystem
             return $"{itemName}*{cost.Amount}";
         }
 
-        private IEnumerator ShowCostPanelAfterLongPress()
+        private IEnumerator ShowDetailPanelAfterLongPress()
         {
             var delay = Mathf.Max(0.05f, longPressDuration);
             var elapsed = 0f;
@@ -431,8 +581,8 @@ namespace Landsong.UISystem
             if (pointerPressed)
             {
                 longPressTriggered = true;
-                ShowCostPanel();
-                longPressPanelVisible = root_消耗面板 != null && root_消耗面板.gameObject.activeSelf;
+                ShowDetailPanel();
+                longPressDetailVisible = root_详情面板 != null && root_详情面板.gameObject.activeSelf;
             }
 
             longPressRoutine = null;
@@ -449,14 +599,17 @@ namespace Landsong.UISystem
             longPressRoutine = null;
         }
 
-        private void PrepareCostPanelRaycasts()
+        private void PrepareDetailPanelRaycasts()
         {
+            if (root_详情面板 != null)
+            {
+                SetGraphicRaycasts(root_详情面板.gameObject, false);
+            }
+
             if (root_消耗面板 == null)
             {
                 return;
             }
-
-            SetGraphicRaycasts(root_消耗面板.gameObject, false);
 
             if (prefab_材料文本预制体 == null)
             {
@@ -472,6 +625,14 @@ namespace Landsong.UISystem
             }
 
             HideMaterialTemplateChildren();
+        }
+
+        private static void SetText(TMP_Text target, string value)
+        {
+            if (target != null)
+            {
+                target.text = value ?? string.Empty;
+            }
         }
 
         private void HideMaterialTemplateChildren()

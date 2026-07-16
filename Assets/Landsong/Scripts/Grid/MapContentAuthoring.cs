@@ -63,6 +63,56 @@ namespace Landsong.GridSystem
             : terrainLayers;
         public bool IsValid => TryValidateConfiguration(out _);
 
+        public void ApplyTilemapRendererSorting()
+        {
+            if (unityGrid == null)
+            {
+                return;
+            }
+
+            var configuredTilemaps = new HashSet<Tilemap>();
+            SetTilemapRendererSortingOrder(baseTilemap, GridRenderOrder.BaseTilemap);
+            if (baseTilemap != null)
+            {
+                configuredTilemaps.Add(baseTilemap);
+            }
+
+            if (terrainLayers != null)
+            {
+                for (var i = 0; i < terrainLayers.Count; i++)
+                {
+                    var layer = terrainLayers[i];
+                    if (layer?.Tilemap == null)
+                    {
+                        continue;
+                    }
+
+                    SetTilemapRendererSortingOrder(
+                        layer.Tilemap,
+                        GridRenderOrder.GetTerrainTilemapOrder(layer.Key, i));
+                    configuredTilemaps.Add(layer.Tilemap);
+                }
+            }
+
+            var tilemaps = unityGrid.GetComponentsInChildren<Tilemap>(true);
+            var decorativeIndex = 0;
+            for (var i = 0; i < tilemaps.Length; i++)
+            {
+                var tilemap = tilemaps[i];
+                if (tilemap == null
+                    || configuredTilemaps.Contains(tilemap)
+                    || tilemap.name.StartsWith("Overlay_", StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                SetTilemapRendererSortingOrder(
+                    tilemap,
+                    GridRenderOrder.GetDecorativeTilemapOrder(decorativeIndex));
+                decorativeIndex++;
+            }
+        }
+
         public bool TryValidateConfiguration(out string error)
         {
             error = string.Empty;
@@ -295,22 +345,22 @@ namespace Landsong.GridSystem
                 targetGrid,
                 baseTilemap,
                 "Base Tilemap",
-                0);
+                GridRenderOrder.BaseTilemap);
             var waterTilemap = EnsureTilemapLayer(
                 targetGrid,
                 GetTerrainLayerTilemap(GridTerrainKeys.Water),
                 "水域 Tilemap",
-                10);
+                GridRenderOrder.WaterTerrainTilemap);
             var obstacleTilemap = EnsureTilemapLayer(
                 targetGrid,
                 GetTerrainLayerTilemap(GridTerrainKeys.Obstacle),
                 "障碍 Tilemap",
-                20);
+                GridRenderOrder.ObstacleTerrainTilemap);
             var stoneDepositTilemap = EnsureTilemapLayer(
                 targetGrid,
                 GetTerrainLayerTilemap(GridTerrainKeys.StoneDeposit),
                 "石矿 Tilemap",
-                15);
+                GridRenderOrder.StoneDepositTerrainTilemap);
             EnsureTerrainLayer(GridTerrainKeys.Water, waterTilemap, true);
             EnsureTerrainLayer(GridTerrainKeys.Obstacle, obstacleTilemap, true);
             EnsureTerrainLayer(GridTerrainKeys.StoneDeposit, stoneDepositTilemap, false);
@@ -461,6 +511,20 @@ namespace Landsong.GridSystem
         {
             return tilemap != null
                    && tilemap.GetComponentInParent<UnityEngine.Grid>() == unityGrid;
+        }
+
+        private static void SetTilemapRendererSortingOrder(Tilemap tilemap, int sortingOrder)
+        {
+            if (tilemap == null)
+            {
+                return;
+            }
+
+            var renderer = tilemap.GetComponent<TilemapRenderer>();
+            if (renderer != null)
+            {
+                renderer.sortingOrder = sortingOrder;
+            }
         }
 
         private void Reset()

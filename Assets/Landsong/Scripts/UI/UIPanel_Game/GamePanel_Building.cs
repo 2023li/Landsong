@@ -5,7 +5,6 @@ using Landsong.BuildingSystem;
 using Landsong.InventorySystem;
 using Landsong.TechnologySystem;
 using Sirenix.OdinInspector;
-using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -20,11 +19,11 @@ namespace Landsong.UISystem
 
 
         private UIPanel_Game gamePanel;
-        [ShowInInspector, ReadOnly, LabelText("建筑目录")] private BuildingCatalog buildingCatalog;
-        [ShowInInspector, ReadOnly, LabelText("游戏系统")] private Landsong.GameSystem gameSystem;
-        [ShowInInspector, ReadOnly, LabelText("库存服务")] private InventoryService inventory;
-        [ShowInInspector, ReadOnly, LabelText("建筑服务")] private BuildingService buildings;
-        [ShowInInspector, ReadOnly, LabelText("科技服务")] private TechnologyService technology;
+        private BuildingCatalog buildingCatalog;
+        private Landsong.GameSystem gameSystem;
+        private InventoryService inventory;
+        private BuildingService buildings;
+        private TechnologyService technology;
 
 
 
@@ -35,12 +34,6 @@ namespace Landsong.UISystem
         [SerializeField, LabelText("建筑项根节点")] private Transform buildingItemRoot;
         [SerializeField, LabelText("建筑项预制体")] private GamePanel_BuildingItem buildingItemPrefab;
         [SerializeField, LabelText("建筑项对象池根节点")] private Transform buildingItemPoolRoot;
-        [SerializeField, LabelText("信息面板根节点")] private GameObject infoPanelRoot;
-        [SerializeField, LabelText("信息图标")] private Image infoIcon;
-        [SerializeField, LabelText("信息名称文本")] private TMP_Text infoNameLabel;
-        [SerializeField, LabelText("信息状态文本")] private TMP_Text infoStatusLabel;
-        [SerializeField, LabelText("信息材料文本")] private TMP_Text infoCostLabel;
-        [SerializeField, LabelText("信息数量限制文本")] private TMP_Text infoCountLimitLabel;
         [SerializeField, LabelText("显示空分类")] private bool includeEmptyCategories;
         [SerializeField, LabelText("分类显示顺序")]
         [ListDrawerSettings(DefaultExpandedState = true, DraggableItems = true)]
@@ -58,7 +51,6 @@ namespace Landsong.UISystem
             BuildingCategory.奇观
         };
 
-        [SerializeField, LabelText("刷新后选择第一个建筑")] private bool selectFirstBuildingOnRefresh = true;
         [SerializeField, LabelText("库存变化时刷新")] private bool refreshWhenInventoryChanges = true;
         [SerializeField, LabelText("自动查找建造放置控制器")] private bool discoverPlacementControllerOnEnable = true;
         [SerializeField, LabelText("建造放置控制器")] private BuildingPlacementController placementController;
@@ -70,8 +62,6 @@ namespace Landsong.UISystem
         private readonly List<GamePanel_BuildingItem> buildingItems = new List<GamePanel_BuildingItem>();
         private readonly List<GamePanel_BuildingItem> buildingItemPool = new List<GamePanel_BuildingItem>();
         private BuildingCategory selectedCategory = BuildingCategory.None;
-        private BuildingBase selectedBuildingPrefab;
-        private string selectedBuildingStyleId = string.Empty;
         private BuildingPlacementController subscribedPlacementController;
         private bool subscribedToInventory;
         private bool subscribedToBuildings;
@@ -274,7 +264,6 @@ namespace Landsong.UISystem
 
             RebuildCategoryButtons(categories);
             RebuildBuildingItems();
-            RefreshInfoPanel();
         }
 
         public void SelectCategory(BuildingCategory category)
@@ -282,7 +271,6 @@ namespace Landsong.UISystem
             selectedCategory = category;
             RefreshCategoryButtonSelection();
             RebuildBuildingItems();
-            RefreshInfoPanel();
         }
 
         private void ResolveGameSystem()
@@ -487,13 +475,9 @@ namespace Landsong.UISystem
 
             if (buildingCatalog == null || buildingItemRoot == null || buildingItemPrefab == null)
             {
-                SetSelectedBuilding(null);
                 return;
             }
 
-            var firstVisibleEntry = default(BuildingDisplayEntry);
-            var hasFirstVisibleEntry = false;
-            var selectedStillVisible = false;
             var visibleEntries = new List<BuildingDisplayEntry>();
             var buildingPrefabs = buildingCatalog.BuildingPrefabs;
 
@@ -547,32 +531,6 @@ namespace Landsong.UISystem
                 var item = GetBuildingItemFromPool();
                 item.Bind(buildingPrefab, availability, style, HandleBuildingItemClicked);
                 buildingItems.Add(item);
-
-                if (!hasFirstVisibleEntry)
-                {
-                    firstVisibleEntry = visibleEntries[i];
-                    hasFirstVisibleEntry = true;
-                }
-
-                if (selectedBuildingPrefab == buildingPrefab
-                    && string.Equals(
-                        selectedBuildingStyleId,
-                        style == null ? string.Empty : style.StyleId,
-                        StringComparison.Ordinal))
-                {
-                    selectedStillVisible = true;
-                }
-            }
-
-            if (!selectedStillVisible && selectFirstBuildingOnRefresh)
-            {
-                SetSelectedBuilding(
-                    hasFirstVisibleEntry ? firstVisibleEntry.BuildingPrefab : null,
-                    hasFirstVisibleEntry ? firstVisibleEntry.Style : null);
-            }
-            else if (!selectedStillVisible)
-            {
-                SetSelectedBuilding(null, null);
             }
         }
 
@@ -721,9 +679,6 @@ namespace Landsong.UISystem
 
         private void HandleBuildingItemClicked(BuildingBase buildingPrefab, string styleId)
         {
-            var style = FindStyle(buildingPrefab, styleId);
-            SetSelectedBuilding(buildingPrefab, style);
-
             var availability = Evaluate(buildingPrefab);
             if (!availability.CanBuild)
             {
@@ -784,131 +739,6 @@ namespace Landsong.UISystem
             {
                 btn_拆除模式.SetIsOnWithoutNotify(isOn);
             }
-        }
-
-        private void SetSelectedBuilding(BuildingBase buildingPrefab)
-        {
-            SetSelectedBuilding(buildingPrefab, null);
-        }
-
-        private void SetSelectedBuilding(
-            BuildingBase buildingPrefab,
-            BuildingStyleDefinition style)
-        {
-            selectedBuildingPrefab = buildingPrefab;
-            selectedBuildingStyleId = style == null ? string.Empty : style.StyleId;
-            RefreshInfoPanel();
-        }
-
-        private void RefreshInfoPanel()
-        {
-            if (infoPanelRoot != null)
-            {
-                infoPanelRoot.SetActive(selectedBuildingPrefab != null);
-            }
-
-            if (selectedBuildingPrefab == null || !selectedBuildingPrefab.HasDefinition)
-            {
-                SetInfoIcon(null);
-                SetInfoText(infoNameLabel, string.Empty);
-                SetInfoText(infoStatusLabel, string.Empty);
-                SetInfoText(infoCostLabel, string.Empty);
-                SetInfoText(infoCountLimitLabel, string.Empty);
-                return;
-            }
-
-            var selectedDefinition = selectedBuildingPrefab.Definition;
-            var availability = Evaluate(selectedBuildingPrefab);
-            var selectedStyle = FindStyle(selectedBuildingPrefab, selectedBuildingStyleId);
-            SetInfoIcon(selectedStyle?.Icon != null ? selectedStyle.Icon : selectedDefinition.Icon);
-            SetInfoText(
-                infoNameLabel,
-                selectedStyle == null
-                    ? selectedDefinition.DisplayName
-                    : $"{selectedDefinition.DisplayName} · {selectedStyle.DisplayName}");
-            SetInfoText(infoStatusLabel, GetStatusText(availability));
-            SetInfoText(infoCostLabel, FormatCosts(selectedDefinition.PlacementCosts));
-            SetInfoText(infoCountLimitLabel, selectedDefinition.HasBuildCountLimit
-                ? $"{availability.BuiltCount}/{selectedDefinition.MaxBuildCount}"
-                : "无限制");
-        }
-
-        private static BuildingStyleDefinition FindStyle(BuildingBase prefab, string styleId)
-        {
-            var styles = prefab?.FamilyDefinition?.Presentation?.Styles;
-            if (styles == null || string.IsNullOrWhiteSpace(styleId)) return null;
-            for (var i = 0; i < styles.Count; i++)
-            {
-                if (styles[i] != null
-                    && string.Equals(styles[i].StyleId, styleId, StringComparison.Ordinal))
-                {
-                    return styles[i];
-                }
-            }
-
-            return null;
-        }
-
-        private void SetInfoIcon(Sprite sprite)
-        {
-            if (infoIcon == null)
-            {
-                return;
-            }
-
-            infoIcon.sprite = sprite;
-            infoIcon.enabled = sprite != null;
-        }
-
-        private static void SetInfoText(TMP_Text label, string value)
-        {
-            if (label != null)
-            {
-                label.text = value;
-            }
-        }
-
-        private static string GetStatusText(BuildingAvailability availability)
-        {
-            if (availability.CanBuild)
-            {
-                return "可建造";
-            }
-
-            if (availability.IsAvailable)
-            {
-                return "可用，材料不足";
-            }
-
-            return availability.FirstUnavailableReason switch
-            {
-                BuildingUnavailableReason.DevelopmentIncomplete => "建筑未开发完成",
-                BuildingUnavailableReason.BuildLimitReached => "数量已达上限",
-                BuildingUnavailableReason.MissingMaterials => "材料不足",
-                _ => "不可用"
-            };
-        }
-
-        private static string FormatCosts(IReadOnlyList<BuildingCost> costs)
-        {
-            if (costs == null || costs.Count == 0)
-            {
-                return "无需材料";
-            }
-
-            var parts = new List<string>();
-            for (var i = 0; i < costs.Count; i++)
-            {
-                var cost = costs[i];
-                if (!cost.IsValid)
-                {
-                    continue;
-                }
-
-                parts.Add($"{cost.ItemDefinition.DisplayName} x{cost.Amount}");
-            }
-
-            return parts.Count == 0 ? "无需材料" : string.Join("  ", parts);
         }
 
         private void ClearCategoryButtons()
