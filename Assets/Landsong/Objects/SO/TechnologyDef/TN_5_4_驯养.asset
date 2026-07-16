@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3b70d7f4d394dd9a76b0bc2e5c6a101, type: 3}
+  m_Name: "TN_5_4_\u9A6F\u517B"
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.TechnologySystem.TechnologyDefinition
+  icon: {fileID: 0}
+  technologyId: "TN_5_4_\u9A6F\u517B"
+  displayName: "\u9A6F\u517B"
+  description: "\u5C06\u957F\u671F\u89C2\u5BDF\u548C\u52B3\u4F5C\u9700\u6C42\u7ED3\u5408\u8D77\u6765\uFF0C\u9009\u62E9\u9002\u5408\u9972\u517B\u4E0E\u5F79\u4F7F\u7684\u52A8\u7269\u3002"
+  sciencePointCost: 18
+  allowRepeatResearch: 0
+  prerequisites:
+  - {fileID: 11400000, guid: fef0681c891b44e28689a8416e1a9ddd, type: 2}
+  completionEffects: []
+  graphPosition: {x: 660, y: 600}
+  references:
+    version: 2
+    RefIds: []

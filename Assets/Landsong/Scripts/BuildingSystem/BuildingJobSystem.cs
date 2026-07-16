@@ -20,6 +20,14 @@ namespace Landsong.BuildingSystem
         float JobAttraction { get; }
     }
 
+    /// <summary>
+    /// 声明建筑正常运营所需的最低工人数。最大岗位可以高于最低运营人数。
+    /// </summary>
+    public interface IBuildingWorkforceRequirementSource
+    {
+        int RequiredWorkers { get; }
+    }
+
     public readonly struct BuildingWorkforceAttractionFactor
     {
         public BuildingWorkforceAttractionFactor(string label, float value)
@@ -90,6 +98,14 @@ namespace Landsong.BuildingSystem
     public interface IBuildingJobAttractionModifierProvider
     {
         IReadOnlyList<BuildingJobAttractionModifier> GetJobAttractionModifiers(BuildingBase building);
+    }
+
+    /// <summary>
+    /// 由建筑自身模块提供的局部岗位吸引力修正。
+    /// </summary>
+    public interface IBuildingJobAttractionModifierSource
+    {
+        bool TryGetJobAttractionModifier(out BuildingJobAttractionModifier modifier);
     }
 
     public readonly struct BuildingJobCalculationInput

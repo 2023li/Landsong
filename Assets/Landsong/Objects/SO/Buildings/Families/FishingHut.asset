@@ -42,18 +42,18 @@ MonoBehaviour:
       rid: -2
     upgradeCosts: []
     configurations:
-    - rid: 5711026424309612572
-    - rid: 5711026424309612573
-    - rid: 5711026424309612574
+    - rid: 5711026465592574113
+    - rid: 5711026465592574114
+    - rid: 5711026465592574115
   - level: 2
     configured: 0
     upgradeCondition:
       rid: -2
     upgradeCosts: []
     configurations:
-    - rid: 5711026424309612575
-    - rid: 5711026424309612576
-    - rid: 5711026424309612577
+    - rid: 5711026465592574116
+    - rid: 5711026465592574117
+    - rid: 5711026465592574118
   moduleSet: {fileID: 11400000, guid: 61477c4cb6debf543ab80a80e779ff2a, type: 2}
   presentation: {fileID: 11400000, guid: b6b86a38aec2b1a4bb61e3d836d86cf2, type: 2}
   references:
@@ -61,7 +61,7 @@ MonoBehaviour:
     RefIds:
     - rid: -2
       type: {class: , ns: , asm: }
-    - rid: 5711026424309612572
+    - rid: 5711026465592574113
       type: {class: BuildingWorkforceLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
       data:
         maxWorkers: 3
@@ -71,7 +71,7 @@ MonoBehaviour:
         autoSubsidy: 0
         targetStableWorkers: 0
         goldItemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
-    - rid: 5711026424309612573
+    - rid: 5711026465592574114
       type: {class: BuildingProductionLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
       data:
         intervalTurns: 3
@@ -82,7 +82,7 @@ MonoBehaviour:
             "\u4EA7\u91CF": 1
           - "\u5DE5\u4EBA": 3
             "\u4EA7\u91CF": 2
-    - rid: 5711026424309612574
+    - rid: 5711026465592574115
       type: {class: FishingHutLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
       data:
         enableSpecialCatch: 0
@@ -90,7 +90,7 @@ MonoBehaviour:
         minimumWorkers: 3
         chancePercent: 1
         amount: 1
-    - rid: 5711026424309612575
+    - rid: 5711026465592574116
       type: {class: BuildingWorkforceLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
       data:
         maxWorkers: 3
@@ -100,7 +100,7 @@ MonoBehaviour:
         autoSubsidy: 0
         targetStableWorkers: 0
         goldItemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
-    - rid: 5711026424309612576
+    - rid: 5711026465592574117
       type: {class: BuildingProductionLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
       data:
         intervalTurns: 3
@@ -111,7 +111,7 @@ MonoBehaviour:
             "\u4EA7\u91CF": 1
           - "\u5DE5\u4EBA": 3
             "\u4EA7\u91CF": 2
-    - rid: 5711026424309612577
+    - rid: 5711026465592574118
       type: {class: FishingHutLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
       data:
         enableSpecialCatch: 0

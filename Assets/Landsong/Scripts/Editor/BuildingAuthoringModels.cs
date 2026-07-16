@@ -15,7 +15,10 @@ namespace Landsong.EditorTools.Buildings
         Basic = 0,
 
         [InspectorName("岗位生产建筑（模块配置）")]
-        WorkforceProduction = 1
+        WorkforceProduction = 1,
+
+        [InspectorName("岗位维护生产建筑（模块配置）")]
+        WorkforceMaintenanceProduction = 2
     }
 
     [Serializable]
@@ -33,6 +36,9 @@ namespace Landsong.EditorTools.Buildings
     {
         [InspectorName("本回合费用"), Tooltip("施工推进这一回合时扣除的资源；允许为空，仍然计为一个施工回合。")]
         public List<BuildingCostDraft> Costs = new List<BuildingCostDraft>();
+
+        [InspectorName("本回合产出"), Tooltip("本回合施工成功后发放的资源；与费用在同一个库存事务中结算，库存无法容纳时不会推进施工。")]
+        public List<BuildingCostDraft> Rewards = new List<BuildingCostDraft>();
     }
 
     [Serializable]
@@ -91,6 +97,9 @@ namespace Landsong.EditorTools.Buildings
         [InspectorName("需要的地形 Key"), Tooltip("建筑允许放置的地形标识。未忽略地形要求时至少填写一个，默认是陆地。")]
         public List<string> RequiredTerrainKeys = new List<string> { GridTerrainKeys.Land };
 
+        [InspectorName("占地内至少一格需要的 Key"), Tooltip("列表中的每个 Key 都必须至少出现在占地的一格中；用于石矿、遗迹等覆盖层。普通地形要求仍填写在上一项。")]
+        public List<string> RequiredAnyFootprintTerrainKeys = new List<string>();
+
         [InspectorName("移动阻力"), Tooltip("建筑占地区域对移动/寻路施加的阻力值；0 表示不额外增加阻力。")]
         public int MovementResistance;
 
@@ -100,6 +109,13 @@ namespace Landsong.EditorTools.Buildings
         [InspectorName("施工回合"), Tooltip("每个元素代表一个施工回合及该回合消耗。至少保留一个；空费用回合仍需要推进一次施工。")]
         public List<BuildingConstructionTurnDraft> ConstructionTurns =
             new List<BuildingConstructionTurnDraft> { new BuildingConstructionTurnDraft() };
+
+        [InspectorName("施工视图模式"), Tooltip("单一施工视图在整个施工阶段保持同一表现；逐回合施工视图允许每个施工回合使用不同表现。")]
+        public BuildingConstructionViewMode ConstructionViewMode =
+            BuildingConstructionViewMode.Single;
+
+        [InspectorName("逐回合施工视图"), Tooltip("仅在逐回合施工视图模式下使用。列表与施工回合一一对应，缺失的回合显示统一占位表现。")]
+        public List<GameObject> ConstructionTurnViewPrefabs = new List<GameObject>();
 
         [InspectorName("初始生成等级数量"), Tooltip("创建时生成的连续等级定义数量。建筑运行时仍从 LV1 开始；LV1 可用，LV2～LVN 只生成默认关闭的配置骨架。"), Min(1)]
         public int InitialLevelCount = 1;
@@ -128,7 +144,7 @@ namespace Landsong.EditorTools.Buildings
         [InspectorName("行动力预算"), Tooltip("建筑每回合可供模块或行为消耗的行动力预算；不能小于 0。"), Min(0)]
         public int BuildingActionPower = 100;
 
-        [InspectorName("施工 View Prefab"), Tooltip("施工阶段加载的独立纯表现 Prefab。允许暂时留空，不会阻塞玩法资产创建。")]
+        [InspectorName("施工 View Prefab"), Tooltip("仅在单一施工视图模式下使用；整个施工阶段始终显示这个独立纯表现 Prefab。允许暂时留空，不会阻塞玩法资产创建。")]
         public GameObject ConstructionViewPrefab;
 
         [InspectorName("放置预览 View Prefab"), Tooltip("建造放置预览优先使用的独立纯表现 Prefab。留空时回退到当前样式的 LV1 运营 View。")]
@@ -161,6 +177,12 @@ namespace Landsong.EditorTools.Buildings
         [InspectorName("金币物品"), Tooltip("招工和岗位补贴使用的金币物品定义。运行时会从该资产取得稳定 ItemId。")]
         public ItemDefinition GoldItemDefinition;
 
+        [InspectorName("维护费物品"), Tooltip("岗位维护生产模板每回合先支付的物品。通常选择金币。")]
+        public ItemDefinition MaintenanceItemDefinition;
+
+        [InspectorName("每回合维护费"), Tooltip("维护费模块在生产模块之前结算；支付失败会中止本回合生产。"), Min(0)]
+        public int MaintenanceAmountPerTurn;
+
         [InspectorName("生产周期"), Tooltip("完成一次资源产出需要推进的运营回合数，必须大于 0。"), Min(1)]
         public int ProductionIntervalTurns = 3;
 
@@ -188,13 +210,18 @@ namespace Landsong.EditorTools.Buildings
         public string RuntimePrefabFolder = "Assets/Landsong/Objects/Prefabs/BuildingsRuntime";
 
         public bool UsesWorkforceProduction =>
-            ModuleTemplate == BuildingModuleTemplate.WorkforceProduction;
+            ModuleTemplate == BuildingModuleTemplate.WorkforceProduction
+            || ModuleTemplate == BuildingModuleTemplate.WorkforceMaintenanceProduction;
+
+        public bool UsesMaintenance =>
+            ModuleTemplate == BuildingModuleTemplate.WorkforceMaintenanceProduction;
 
         public void ApplyTemplateDefaults()
         {
             switch (ModuleTemplate)
             {
                 case BuildingModuleTemplate.WorkforceProduction:
+                case BuildingModuleTemplate.WorkforceMaintenanceProduction:
                     Category = BuildingCategory.工业;
                     MovementResistance = 0;
                     IsResourceProviderPoint = false;
@@ -218,12 +245,15 @@ namespace Landsong.EditorTools.Buildings
             Footprint = Vector2Int.one;
             IgnoreTerrainRequirement = false;
             RequiredTerrainKeys = new List<string> { GridTerrainKeys.Land };
+            RequiredAnyFootprintTerrainKeys = new List<string>();
             MovementResistance = 0;
             PlacementCosts = new List<BuildingCostDraft>();
             ConstructionTurns = new List<BuildingConstructionTurnDraft>
             {
                 new BuildingConstructionTurnDraft()
             };
+            ConstructionViewMode = BuildingConstructionViewMode.Single;
+            ConstructionTurnViewPrefabs = new List<GameObject>();
             InitialLevelCount = 1;
             BlueprintInitiallyLocked = false;
             HideWhenBlueprintLocked = false;
@@ -244,6 +274,8 @@ namespace Landsong.EditorTools.Buildings
             AutoSubsidy = false;
             TargetStableWorkers = 0;
             GoldItemDefinition = null;
+            MaintenanceItemDefinition = null;
+            MaintenanceAmountPerTurn = 0;
             ProductionIntervalTurns = 3;
             ProductionItem = null;
             ProductionTiers = new List<BuildingProductionTierDraft>

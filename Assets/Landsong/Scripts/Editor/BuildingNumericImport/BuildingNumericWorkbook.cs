@@ -90,12 +90,14 @@ namespace Landsong.EditorTools.Buildings.NumericImport
         public int SizeY;
         public bool IgnoreTerrain;
         public string TerrainKeys;
+        public string AnyFootprintTerrainKeys;
         public int MovementResistance;
         public int ConstructionTurns;
         public int MaxBuildCount;
         public string BuildLimitGroupId;
         public bool BlueprintInitiallyLocked;
         public bool HideWhenBlueprintLocked;
+        public string BlueprintUnlockConditionId;
         public int BuildMenuSortOrder;
         public bool IsDevelopmentCompleted;
         public bool IsResourceProviderPoint;
@@ -218,6 +220,69 @@ namespace Landsong.EditorTools.Buildings.NumericImport
         public int SaplingReward;
     }
 
+    internal sealed class MaintenanceNumericRow : BuildingNumericSourceRow
+    {
+        public MaintenanceNumericRow(string sheet, int row) : base(sheet, row) { }
+        public string FamilyId;
+        public int Level;
+        public string ItemId;
+        public int AmountPerTurn;
+    }
+
+    internal sealed class OperationalExperienceNumericRow : BuildingNumericSourceRow
+    {
+        public OperationalExperienceNumericRow(string sheet, int row) : base(sheet, row) { }
+        public string FamilyId;
+        public int Level;
+        public int RequiredWorkers;
+        public int ExperiencePerTurn;
+        public int NextLevelExperience;
+    }
+
+    internal sealed class TechnologyGlobalBuffNumericRow : BuildingNumericSourceRow
+    {
+        public TechnologyGlobalBuffNumericRow(string sheet, int row) : base(sheet, row) { }
+        public string BuffId;
+        public string DisplayName;
+        public string ConditionId;
+        public string FamilyId;
+        public string OutputItemId;
+        public int FlatBonus;
+    }
+
+    internal sealed class WarehouseNumericRow : BuildingNumericSourceRow
+    {
+        public WarehouseNumericRow(string sheet, int row) : base(sheet, row) { }
+        public string FamilyId;
+        public int Level;
+        public int RequiredWorkers;
+        public int ProvidedSlots;
+        public string MaintenanceItemId;
+        public int MaintenancePerTurn;
+        public int ExperienceWorkers;
+        public int ExperiencePerTurn;
+        public int NextLevelExperience;
+        public int BonusWorkerThreshold;
+        public int BonusSlots;
+        public float MaintenanceFailureAttractionPenalty;
+    }
+
+    internal sealed class SpatialEffectNumericRow : BuildingNumericSourceRow
+    {
+        public SpatialEffectNumericRow(string sheet, int row) : base(sheet, row) { }
+        public string FamilyId;
+        public string EffectId;
+        public string DisplayName;
+        public string Kind;
+        public string TargetFilter;
+        public int OperationalLevel;
+        public int MinimumWorkers;
+        public int Range;
+        public int Value;
+        public string StackingRule;
+        public bool IncludeSourceFootprint;
+    }
+
     internal sealed class CropNumericRow : BuildingNumericSourceRow
     {
         public CropNumericRow(string sheet, int row) : base(sheet, row) { }
@@ -252,6 +317,7 @@ namespace Landsong.EditorTools.Buildings.NumericImport
         public readonly List<BuildingFamilyNumericRow> Families = new List<BuildingFamilyNumericRow>();
         public readonly List<BuildingCostNumericRow> PlacementCosts = new List<BuildingCostNumericRow>();
         public readonly List<BuildingCostNumericRow> ConstructionCosts = new List<BuildingCostNumericRow>();
+        public readonly List<BuildingCostNumericRow> ConstructionRewards = new List<BuildingCostNumericRow>();
         public readonly List<BuildingLevelNumericRow> Levels = new List<BuildingLevelNumericRow>();
         public readonly List<BuildingCostNumericRow> UpgradeCosts = new List<BuildingCostNumericRow>();
         public readonly List<FixedPopulationNumericRow> FixedPopulation = new List<FixedPopulationNumericRow>();
@@ -261,8 +327,15 @@ namespace Landsong.EditorTools.Buildings.NumericImport
         public readonly List<WorkforceNumericRow> Workforce = new List<WorkforceNumericRow>();
         public readonly List<ProductionNumericRow> Production = new List<ProductionNumericRow>();
         public readonly List<FishingRareNumericRow> FishingRare = new List<FishingRareNumericRow>();
+        public readonly List<MaintenanceNumericRow> Maintenance = new List<MaintenanceNumericRow>();
+        public readonly List<OperationalExperienceNumericRow> OperationalExperience =
+            new List<OperationalExperienceNumericRow>();
+        public readonly List<TechnologyGlobalBuffNumericRow> TechnologyGlobalBuffs =
+            new List<TechnologyGlobalBuffNumericRow>();
+        public readonly List<WarehouseNumericRow> Warehouses = new List<WarehouseNumericRow>();
         public readonly List<MarketNumericRow> Markets = new List<MarketNumericRow>();
         public readonly List<TreeNumericRow> Trees = new List<TreeNumericRow>();
+        public readonly List<SpatialEffectNumericRow> SpatialEffects = new List<SpatialEffectNumericRow>();
         public readonly List<CropNumericRow> Crops = new List<CropNumericRow>();
         public readonly List<CropCostNumericRow> CropPlantCosts = new List<CropCostNumericRow>();
         public readonly List<CropRewardNumericRow> CropHarvestRewards = new List<CropRewardNumericRow>();
@@ -271,7 +344,7 @@ namespace Landsong.EditorTools.Buildings.NumericImport
 
     internal static class BuildingNumericWorkbookReader
     {
-        public const int SupportedSchemaVersion = 2;
+        public const int SupportedSchemaVersion = 6;
         private const int HeaderRow = 4;
         private const int FirstDataRow = 5;
 
@@ -318,6 +391,7 @@ namespace Landsong.EditorTools.Buildings.NumericImport
             ReadFamilies(workbook, data, report);
             ReadSimpleCosts(workbook, "放置消耗", false, "", data.PlacementCosts, report);
             ReadSimpleCosts(workbook, "施工消耗", true, "回合序号", data.ConstructionCosts, report);
+            ReadSimpleCosts(workbook, "施工产出", true, "回合序号", data.ConstructionRewards, report);
             ReadLevels(workbook, data, report);
             ReadSimpleCosts(workbook, "升级消耗", true, "目标Level", data.UpgradeCosts, report);
             ReadFixedPopulation(workbook, data, report);
@@ -327,8 +401,13 @@ namespace Landsong.EditorTools.Buildings.NumericImport
             ReadWorkforce(workbook, data, report);
             ReadProduction(workbook, data, report);
             ReadFishingRare(workbook, data, report);
+            ReadMaintenance(workbook, data, report);
+            ReadOperationalExperience(workbook, data, report);
+            ReadWarehouses(workbook, data, report);
             ReadMarkets(workbook, data, report);
             ReadTrees(workbook, data, report);
+            ReadSpatialEffects(workbook, data, report);
+            ReadTechnologyGlobalBuffs(workbook, data, report);
             ReadCrops(workbook, data, report);
             ReadCropPlantCosts(workbook, data, report);
             ReadCropRewards(workbook, data, report);
@@ -343,8 +422,8 @@ namespace Landsong.EditorTools.Buildings.NumericImport
         {
             const string sheet = "建筑家族";
             var rows = ReadRows(workbook, sheet, report,
-                "FamilyId", "名称", "分类", "SizeX", "SizeY", "忽略地形", "地形Keys", "移动阻力",
-                "施工回合", "数量上限", "数量限制分组ID", "蓝图初始锁定", "锁定时隐藏", "菜单排序",
+                "FamilyId", "名称", "分类", "SizeX", "SizeY", "忽略地形", "地形Keys", "占地内至少一格Keys", "移动阻力",
+                "施工回合", "数量上限", "数量限制分组ID", "蓝图初始锁定", "锁定时隐藏", "蓝图解锁ConditionId", "菜单排序",
                 "开发完成", "资源提供点", "资源提供优先级", "行动力预算", "说明");
             foreach (var row in rows)
             {
@@ -357,12 +436,14 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                     SizeY = Integer(row, "SizeY", report),
                     IgnoreTerrain = Boolean(row, "忽略地形", report),
                     TerrainKeys = Optional(row, "地形Keys"),
+                    AnyFootprintTerrainKeys = Optional(row, "占地内至少一格Keys"),
                     MovementResistance = Integer(row, "移动阻力", report),
                     ConstructionTurns = Integer(row, "施工回合", report),
                     MaxBuildCount = Integer(row, "数量上限", report),
                     BuildLimitGroupId = Optional(row, "数量限制分组ID"),
                     BlueprintInitiallyLocked = Boolean(row, "蓝图初始锁定", report),
                     HideWhenBlueprintLocked = Boolean(row, "锁定时隐藏", report),
+                    BlueprintUnlockConditionId = Required(row, "蓝图解锁ConditionId", report),
                     BuildMenuSortOrder = Integer(row, "菜单排序", report),
                     IsDevelopmentCompleted = Boolean(row, "开发完成", report),
                     IsResourceProviderPoint = Boolean(row, "资源提供点", report),
@@ -543,6 +624,167 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                     MaxHealth = Integer(row, "最高生命", report), DamagePerDoubleClick = Integer(row, "双击伤害", report),
                     WoodItemId = Required(row, "WoodItemId", report), WoodReward = Integer(row, "原木奖励", report),
                     SaplingItemId = Required(row, "SaplingItemId", report), SaplingReward = Integer(row, "树苗奖励", report)
+                });
+            }
+        }
+
+        private static void ReadMaintenance(
+            XlsxRawWorkbook workbook,
+            BuildingNumericWorkbookData data,
+            BuildingNumericImportReport report)
+        {
+            const string sheet = "等级_维护费";
+            foreach (var row in ReadRows(
+                         workbook,
+                         sheet,
+                         report,
+                         "FamilyId",
+                         "Level",
+                         "MaintenanceItemId",
+                         "维护费/回合"))
+            {
+                data.Maintenance.Add(new MaintenanceNumericRow(sheet, row.Row)
+                {
+                    FamilyId = Required(row, "FamilyId", report),
+                    Level = Integer(row, "Level", report),
+                    ItemId = Required(row, "MaintenanceItemId", report),
+                    AmountPerTurn = Integer(row, "维护费/回合", report)
+                });
+            }
+        }
+
+        private static void ReadWarehouses(
+            XlsxRawWorkbook workbook,
+            BuildingNumericWorkbookData data,
+            BuildingNumericImportReport report)
+        {
+            const string sheet = "等级_仓库";
+            foreach (var row in ReadRows(
+                         workbook,
+                         sheet,
+                         report,
+                         "FamilyId",
+                         "Level",
+                         "容量所需工人",
+                         "基础库存格",
+                         "MaintenanceItemId",
+                         "维护费/回合",
+                         "经验所需工人",
+                         "经验/回合",
+                         "下级经验要求",
+                         "奖励工人阈值",
+                         "奖励库存格",
+                         "维护失败吸引力惩罚"))
+            {
+                data.Warehouses.Add(new WarehouseNumericRow(sheet, row.Row)
+                {
+                    FamilyId = Required(row, "FamilyId", report),
+                    Level = Integer(row, "Level", report),
+                    RequiredWorkers = Integer(row, "容量所需工人", report),
+                    ProvidedSlots = Integer(row, "基础库存格", report),
+                    MaintenanceItemId = Required(row, "MaintenanceItemId", report),
+                    MaintenancePerTurn = Integer(row, "维护费/回合", report),
+                    ExperienceWorkers = Integer(row, "经验所需工人", report),
+                    ExperiencePerTurn = Integer(row, "经验/回合", report),
+                    NextLevelExperience = Integer(row, "下级经验要求", report),
+                    BonusWorkerThreshold = Integer(row, "奖励工人阈值", report),
+                    BonusSlots = Integer(row, "奖励库存格", report),
+                    MaintenanceFailureAttractionPenalty = Float(row, "维护失败吸引力惩罚", report)
+                });
+            }
+        }
+
+        private static void ReadOperationalExperience(
+            XlsxRawWorkbook workbook,
+            BuildingNumericWorkbookData data,
+            BuildingNumericImportReport report)
+        {
+            const string sheet = "等级_运营经验";
+            foreach (var row in ReadRows(
+                         workbook,
+                         sheet,
+                         report,
+                         "FamilyId",
+                         "Level",
+                         "经验所需工人",
+                         "经验/回合",
+                         "下级经验要求"))
+            {
+                data.OperationalExperience.Add(new OperationalExperienceNumericRow(sheet, row.Row)
+                {
+                    FamilyId = Required(row, "FamilyId", report),
+                    Level = Integer(row, "Level", report),
+                    RequiredWorkers = Integer(row, "经验所需工人", report),
+                    ExperiencePerTurn = Integer(row, "经验/回合", report),
+                    NextLevelExperience = Integer(row, "下级经验要求", report)
+                });
+            }
+        }
+
+        private static void ReadSpatialEffects(
+            XlsxRawWorkbook workbook,
+            BuildingNumericWorkbookData data,
+            BuildingNumericImportReport report)
+        {
+            const string sheet = "模块_范围效果";
+            foreach (var row in ReadRows(
+                         workbook,
+                         sheet,
+                         report,
+                         "FamilyId",
+                         "EffectId",
+                         "显示名",
+                         "Kind",
+                         "TargetFilter",
+                         "生效Level",
+                         "最低工人",
+                         "曼哈顿半径",
+                         "效果数值",
+                         "StackingRule",
+                         "影响自身占地"))
+            {
+                data.SpatialEffects.Add(new SpatialEffectNumericRow(sheet, row.Row)
+                {
+                    FamilyId = Required(row, "FamilyId", report),
+                    EffectId = Required(row, "EffectId", report),
+                    DisplayName = Required(row, "显示名", report),
+                    Kind = Required(row, "Kind", report),
+                    TargetFilter = Required(row, "TargetFilter", report),
+                    OperationalLevel = Integer(row, "生效Level", report),
+                    MinimumWorkers = Integer(row, "最低工人", report),
+                    Range = Integer(row, "曼哈顿半径", report),
+                    Value = Integer(row, "效果数值", report),
+                    StackingRule = Required(row, "StackingRule", report),
+                    IncludeSourceFootprint = Boolean(row, "影响自身占地", report)
+                });
+            }
+        }
+
+        private static void ReadTechnologyGlobalBuffs(
+            XlsxRawWorkbook workbook,
+            BuildingNumericWorkbookData data,
+            BuildingNumericImportReport report)
+        {
+            const string sheet = "科技_全局生产Buff";
+            foreach (var row in ReadRows(
+                         workbook,
+                         sheet,
+                         report,
+                         "BuffId",
+                         "显示名",
+                         "ConditionId",
+                         "FamilyId",
+                         "OutputItemId",
+                         "固定加成/次"))
+            {
+                data.TechnologyGlobalBuffs.Add(new TechnologyGlobalBuffNumericRow(sheet, row.Row)
+                {
+                    BuffId = Required(row, "BuffId", report),
+                    DisplayName = Required(row, "显示名", report),
+                    ConditionId = Required(row, "ConditionId", report),
+                    FamilyId = Required(row, "FamilyId", report),
+                    OutputItemId = Required(row, "OutputItemId", report),
+                    FlatBonus = Integer(row, "固定加成/次", report)
                 });
             }
         }

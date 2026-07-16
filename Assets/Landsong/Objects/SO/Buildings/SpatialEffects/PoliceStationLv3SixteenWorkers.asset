@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 773b9ec209e130e47ad11620ce87f1f2, type: 3}
+  m_Name: PoliceStationLv3SixteenWorkers
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingSpatialEffectDefinition
+  effectId: security.police_station.lv3.16_workers
+  displayName: "\u8B66\u5C40 LV3 \u6EE1\u5C97\u6CBB\u5B89"
+  kind: 40
+  targetFilter: 20
+  operationalLevel: 3
+  minimumWorkers: 16
+  range: 18
+  value: 3
+  stackingRule: 20
+  includeSourceFootprint: 0

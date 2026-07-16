@@ -7,7 +7,9 @@
 
 建筑系统已经固定为“一个家族定义 + 一个 ModuleSet + 一个 Presentation + 一个轻量 Runtime Prefab”。所有建筑直接使用密封的 `BuildingBase`；施工和 LV1～LVN 是同一实例的状态，玩法差异由模块承担，表现资源独立加载。
 
-仓库、云中城、高等级正式数值、农田作物、捕鱼后续内容和缺失美术属于内容生产待办，不是架构或交接阻塞项。树木普通拆除是否发放采集奖励仍是明确记录的策划决策项。
+建筑蓝图与等级的科技要求分别以 `BuildingDefinition.AutomaticBlueprintUnlockCondition`、`BuildingFamilyDefinition.Levels[].UpgradeCondition` 为唯一来源。`BuildingCatalog` 作为生产者主动把“科技 -> 建筑/等级”内容注入中央注册表；科技 UI 只读取注册表，不主动扫描建筑。不要在科技 SO 中再手工补一条同义完成效果。
+
+仓库是第 9 个正式家族；雕塑是第 10 个正式家族；采石场是第 11 个正式家族；医院是第 12 个正式家族。警局是第 13 个正式家族，与医院共用 `workforce -> maintenance -> operational_experience -> spatial_effect` 通用组合：岗位与维护费控制运营经验，医疗或治安按运营等级和当前工人数选择范围档位，同格统一取最高值。五类内容都直接使用统一 `BuildingBase`，没有家族专属脚本。
 
 ## 2. 按职责阅读
 
@@ -17,7 +19,7 @@
 | AI 或新增建筑 | [AI_添加建筑规则.md](AI_添加建筑规则.md) | 强制接入流程、禁止形态和交付检查 |
 | 回顾架构原因 | [README_建筑架构审计与终态决策.md](README_建筑架构审计与终态决策.md) | 问题根因、冻结决策和重构结果 |
 | 使用创建工具 | [建筑编辑器窗口规划与使用.md](建筑编辑器窗口规划与使用.md) | 字段含义、创建流程、模块选择和故障处理 |
-| 查看当前资产 | [建筑说明.md](建筑说明.md) | 8 个家族、模块组成、资源位置和现状 |
+| 查看当前资产 | [建筑说明.md](建筑说明.md) | 13 个家族、模块组成、资源位置和现状 |
 | 策划调数值 | [建筑数值策划表.md](建筑数值策划表.md) / [正式 Excel](../../ConfigSource/Buildings/建筑数值策划表.xlsx) | Excel 权属、导表流程、表结构和内容待办 |
 | 美术回填 | [建筑Prefab与表现资源回填指南.md](建筑Prefab与表现资源回填指南.md) | View Prefab 存放、命名、回退和动画替换 |
 | 查阅旧问题 | [历史_建筑系统深度研究报告.md](历史_建筑系统深度研究报告.md) | 重构前问题及其当前处置，仅作历史索引 |
@@ -38,7 +40,7 @@
 
 LevelConfiguration 通过自己的 `Apply(BuildingBase)` 明确取得目标模块类型，例如资源产出配置调用 `GetRequiredModule<BM_资源产出>()`。运行时匹配依据是模块 C# 类型，不是 `ConfigurationId` 字符串；`ModuleId` 用于唯一性、顺序、存档和编辑期依赖校验。
 
-新增等级配置时，必须同时保证目标模块存在、启用且顺序正确。当前校验器会检查已登记配置与 ModuleId 的依赖关系。
+新增等级配置时，必须同时保证目标模块存在、启用且顺序正确。当前校验器会检查已登记配置与 ModuleId 的依赖关系；通用生产链为 `workforce -> maintenance -> production`，医院/警局经验链为 `workforce -> maintenance -> operational_experience -> spatial_effect`。
 
 ## 5. 完成修改后的验证
 

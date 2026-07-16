@@ -21,10 +21,13 @@ MonoBehaviour:
     ignoreTerrainRequirement: 0
     requiredTerrainKeys:
     - "\u9646\u5730"
+    requiredAnyFootprintTerrainKeys: []
     movementResistance: 0
     placementCosts: []
     visibleCondition:
       rid: -2
+    automaticBlueprintUnlockCondition:
+      rid: 5711026465592574106
     blueprintInitiallyLocked: 1
     hideWhenBlueprintLocked: 1
     buildMenuSortOrder: 0
@@ -42,18 +45,18 @@ MonoBehaviour:
       rid: -2
     upgradeCosts: []
     configurations:
-    - rid: 5711026424309612564
-    - rid: 5711026424309612565
+    - rid: 5711026465592574107
+    - rid: 5711026465592574108
   - level: 2
     configured: 1
     upgradeCondition:
-      rid: 5711026424309612566
+      rid: 5711026465592574109
     upgradeCosts:
     - itemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
       amount: 30
     configurations:
-    - rid: 5711026424309612567
-    - rid: 5711026424309612568
+    - rid: 5711026465592574110
+    - rid: 5711026465592574111
   moduleSet: {fileID: 11400000, guid: a55785c68a452714ca52c820a79afc5d, type: 2}
   presentation: {fileID: 11400000, guid: a713f548cb0987543b29448fa2d1da4e, type: 2}
   references:
@@ -61,7 +64,11 @@ MonoBehaviour:
     RefIds:
     - rid: -2
       type: {class: , ns: , asm: }
-    - rid: 5711026424309612564
+    - rid: 5711026465592574106
+      type: {class: GameCondition_TechnologyUnlocked, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
+      data:
+        TechnologyDefinition: {fileID: 11400000, guid: 006213b12ed0bbc4091a2f3c95bc2f65, type: 2}
+    - rid: 5711026465592574107
       type: {class: BuildingWorkforceLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
       data:
         maxWorkers: 3
@@ -71,7 +78,7 @@ MonoBehaviour:
         autoSubsidy: 0
         targetStableWorkers: 0
         goldItemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
-    - rid: 5711026424309612565
+    - rid: 5711026465592574108
       type: {class: BuildingProductionLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
       data:
         intervalTurns: 3
@@ -82,11 +89,11 @@ MonoBehaviour:
             "\u4EA7\u91CF": 1
           - "\u5DE5\u4EBA": 3
             "\u4EA7\u91CF": 2
-    - rid: 5711026424309612566
+    - rid: 5711026465592574109
       type: {class: GameCondition_TechnologyUnlocked, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
       data:
         TechnologyDefinition: {fileID: 11400000, guid: 006213b12ed0bbc4091a2f3c95bc2f65, type: 2}
-    - rid: 5711026424309612567
+    - rid: 5711026465592574110
       type: {class: BuildingWorkforceLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
       data:
         maxWorkers: 5
@@ -96,7 +103,7 @@ MonoBehaviour:
         autoSubsidy: 0
         targetStableWorkers: 0
         goldItemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
-    - rid: 5711026424309612568
+    - rid: 5711026465592574111
       type: {class: BuildingProductionLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
       data:
         intervalTurns: 3

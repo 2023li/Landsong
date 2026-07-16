@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3b70d7f4d394dd9a76b0bc2e5c6a101, type: 3}
+  m_Name: "TN_5_15_体系战争"
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.TechnologySystem.TechnologyDefinition
+  icon: {fileID: 0}
+  technologyId: "TN_5_15_体系战争"
+  displayName: "体系战争"
+  description: "把工业生产、后勤、情报和军事行动视为相互依赖的完整体系。"
+  sciencePointCost: 240
+  allowRepeatResearch: 0
+  prerequisites:
+  - {fileID: 11400000, guid: 45e17157529b489e9aa3f9bbeda75797, type: 2}
+  - {fileID: 11400000, guid: 336f8fe0f5fe4dd8a14256dfe1c5a3ed, type: 2}
+  completionEffects: []
+  graphPosition: {x: 3080, y: 600}
+  references:
+    version: 2
+    RefIds: []

@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: af71cba28d7028e40b73600b54394a96, type: 3}
   m_Name: TreePresentation
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingPresentationDefinition
+  constructionViewMode: 0
   constructionView:
     directPrefab: {fileID: 0}
     addressablePrefab:
@@ -38,7 +39,7 @@ MonoBehaviour:
       m_EditorAssetChanged: 0
   viewMappings:
   - level: 1
-    styleId: 1
+    styleId: tree_01
     view:
       directPrefab: {fileID: 6182212888150925616, guid: defe3f3bba7d2404f921f29b9868ae54, type: 3}
       addressablePrefab:
@@ -48,7 +49,7 @@ MonoBehaviour:
         m_SubObjectGUID: 
         m_EditorAssetChanged: 0
   - level: 1
-    styleId: 2
+    styleId: tree_02
     view:
       directPrefab: {fileID: 7073934256629716301, guid: 9891dba6e5573f94c94193876f33a2e1, type: 3}
       addressablePrefab:
@@ -58,7 +59,7 @@ MonoBehaviour:
         m_SubObjectGUID: 
         m_EditorAssetChanged: 0
   - level: 1
-    styleId: 3
+    styleId: tree_03
     view:
       directPrefab: {fileID: 8199571956233431541, guid: 4f6345d6b8b946c4aa2291992fed4230, type: 3}
       addressablePrefab:
@@ -68,7 +69,7 @@ MonoBehaviour:
         m_SubObjectGUID: 
         m_EditorAssetChanged: 0
   - level: 1
-    styleId: 4
+    styleId: tree_04
     view:
       directPrefab: {fileID: 3063756186243292658, guid: 6a34d0bfda3844b468d59c3550dba625, type: 3}
       addressablePrefab:
@@ -78,7 +79,7 @@ MonoBehaviour:
         m_SubObjectGUID: 
         m_EditorAssetChanged: 0
   - level: 1
-    styleId: 5
+    styleId: tree_05
     view:
       directPrefab: {fileID: 7441009914915971920, guid: 5815cc49684e30146a95c91723087a73, type: 3}
       addressablePrefab:
@@ -88,7 +89,7 @@ MonoBehaviour:
         m_SubObjectGUID: 
         m_EditorAssetChanged: 0
   - level: 1
-    styleId: 6
+    styleId: tree_06
     view:
       directPrefab: {fileID: 8243433999278481160, guid: 1097919b5ca5e3745a320eecd94591c8, type: 3}
       addressablePrefab:
@@ -98,7 +99,7 @@ MonoBehaviour:
         m_SubObjectGUID: 
         m_EditorAssetChanged: 0
   - level: 1
-    styleId: 7
+    styleId: tree_07
     view:
       directPrefab: {fileID: 3045855706304695932, guid: 208037364222a5b41a6a3a707410cde1, type: 3}
       addressablePrefab:
@@ -108,7 +109,7 @@ MonoBehaviour:
         m_SubObjectGUID: 
         m_EditorAssetChanged: 0
   - level: 1
-    styleId: 8
+    styleId: tree_08
     view:
       directPrefab: {fileID: 7663275454702388982, guid: 139914d3cfe011445a4270e466b73a25, type: 3}
       addressablePrefab:

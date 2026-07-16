@@ -7,6 +7,7 @@ namespace Landsong.GridSystem
         public const string Obstacle = "障碍";
         public const string Road = "道路";
         public const string AdvancedRoad = "高级道路";
+        public const string StoneDeposit = "石矿";
 
         public static string Normalize(string key)
         {

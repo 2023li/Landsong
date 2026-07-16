@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3b70d7f4d394dd9a76b0bc2e5c6a101, type: 3}
+  m_Name: "TN_5_3_采矿"
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.TechnologySystem.TechnologyDefinition
+  icon: {fileID: 0}
+  technologyId: "TN_5_3_采矿"
+  displayName: "采矿"
+  description: "利用支护工具和野外勘察经验开采地下矿脉，获得稳定矿石来源。"
+  sciencePointCost: 12
+  allowRepeatResearch: 0
+  prerequisites:
+  - {fileID: 11400000, guid: 7b8e4b4acf054a8086c6c03ebbeabd0a, type: 2}
+  - {fileID: 11400000, guid: b561d310aff84f7ea6070ac39f3c4a64, type: 2}
+  completionEffects: []
+  graphPosition: {x: 440, y: 600}
+  references:
+    version: 2
+    RefIds: []

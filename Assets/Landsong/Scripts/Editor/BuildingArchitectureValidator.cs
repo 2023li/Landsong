@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Landsong.BuildingSystem;
+using Landsong.ConditionSystem;
 using Landsong.InventorySystem;
+using Landsong.TechnologySystem;
 using UnityEditor;
 using UnityEngine;
 
@@ -11,6 +13,8 @@ namespace Landsong.Editor
     public static class BuildingArchitectureValidator
     {
         private const string CatalogPath = "Assets/Landsong/Objects/SO/BuildingCatalog.asset";
+        private const string GlobalBuffCatalogPath =
+            "Assets/Landsong/Objects/SO/TechnologyGlobalBuffCatalog.asset";
         private const string FamilyFolder = "Assets/Landsong/Objects/SO/Buildings/Families";
         private const string RuntimePrefabFolder = "Assets/Landsong/Objects/Prefabs/BuildingsRuntime";
         private const string ForbiddenLegacyPrefabFolder = "Assets/Landsong/Objects/Prefabs/建筑";
@@ -71,8 +75,76 @@ namespace Landsong.Editor
             }
 
             ValidateRuntimePrefabFolder(prefabPaths, report);
+            ValidateGlobalBuffCatalog(catalogFamilies, report);
             report.RuntimePrefabCount = prefabPaths.Count;
             return report;
+        }
+
+        private static void ValidateGlobalBuffCatalog(
+            IReadOnlyCollection<BuildingFamilyDefinition> catalogFamilies,
+            ValidationReport report)
+        {
+            var catalog = AssetDatabase.LoadAssetAtPath<TechnologyGlobalBuffCatalog>(
+                GlobalBuffCatalogPath);
+            if (catalog == null)
+            {
+                report.Error($"找不到全局 Buff 目录：{GlobalBuffCatalogPath}");
+                return;
+            }
+
+            var knownFamilies = new HashSet<BuildingFamilyDefinition>(catalogFamilies);
+            var buffIds = new HashSet<string>(StringComparer.Ordinal);
+            for (var i = 0; i < catalog.Definitions.Count; i++)
+            {
+                var definition = catalog.Definitions[i];
+                if (definition == null || !definition.IsValid)
+                {
+                    report.Error($"全局 Buff 目录包含无效项 #{i + 1}。");
+                    continue;
+                }
+
+                if (!buffIds.Add(definition.BuffId))
+                {
+                    report.Error($"全局 Buff ID 重复：{definition.BuffId}");
+                }
+
+                if (definition.Icon == null)
+                {
+                    report.Warn($"全局 Buff {definition.BuffId} 未配置 UI 图标。");
+                }
+
+                if (definition.ActivationCondition
+                    is not GameCondition_TechnologyUnlocked technologyCondition
+                    || technologyCondition.TechnologyDefinition == null)
+                {
+                    report.Error($"全局 Buff {definition.BuffId} 必须配置有效科技解锁条件。");
+                }
+
+                for (var effectIndex = 0; effectIndex < definition.Effects.Count; effectIndex++)
+                {
+                    if (definition.Effects[effectIndex]
+                        is not TechnologyGlobalBuffEffect_BuildingProductionFlat effect)
+                    {
+                        report.Error(
+                            $"全局 Buff {definition.BuffId} 含未登记效果类型 #{effectIndex + 1}。");
+                        continue;
+                    }
+
+                    if (effect.TargetFamily == null || !knownFamilies.Contains(effect.TargetFamily))
+                    {
+                        report.Error($"全局 Buff {definition.BuffId} 的目标家族未登记。 ");
+                    }
+
+                    ValidateItemDefinition(
+                        effect.ItemDefinition,
+                        $"全局 Buff {definition.BuffId} 的产出物品",
+                        report);
+                    if (effect.FlatBonus <= 0)
+                    {
+                        report.Error($"全局 Buff {definition.BuffId} 的固定加成必须大于 0。");
+                    }
+                }
+            }
         }
 
         [MenuItem("Landsong/Building/Normalize Runtime Prefabs")]
@@ -139,6 +211,7 @@ namespace Landsong.Editor
 
             ValidateLevels(family, label, report);
             ValidateModules(family, label, report);
+            ValidateCosts(family, label, report);
             ValidatePresentation(family, label, report);
 
             var prefab = family.RuntimePrefab;
@@ -296,7 +369,7 @@ namespace Landsong.Editor
                     moduleIndexes[module.ModuleId] = i;
                 }
 
-                ValidateModuleItemDefinitions(module, label, report);
+                ValidateModuleItemDefinitions(module, family, label, report);
             }
 
 
@@ -305,6 +378,68 @@ namespace Landsong.Editor
             ValidateModuleOrder(label, moduleIndexes, "production.rare_bonus", "workforce", report);
             ValidateModuleOrder(label, moduleIndexes, "production.rare_bonus", "production", report);
             ValidateModuleOrder(label, moduleIndexes, "market.resource_accounting", "workforce", report);
+            ValidateModuleOrder(label, moduleIndexes, "warehouse.operation", "workforce", report);
+            ValidateModuleOrder(label, moduleIndexes, "operational_experience", "workforce", report);
+            ValidateOptionalModuleOrder(label, moduleIndexes, "maintenance", "workforce", report);
+            ValidateOptionalModuleOrder(label, moduleIndexes, "production", "maintenance", report);
+            ValidateOptionalModuleOrder(label, moduleIndexes, "operational_experience", "maintenance", report);
+
+            var conditionalSpatialSource = family.ModuleSet.BuildingModules
+                .OfType<BM_空间效果源>()
+                .FirstOrDefault(module => module.IsEnabled && module.RequiresWorkforce);
+            if (conditionalSpatialSource != null)
+            {
+                ValidateModuleOrder(label, moduleIndexes, "spatial_effect", "workforce", report);
+            }
+        }
+
+        private static void ValidateCosts(
+            BuildingFamilyDefinition family,
+            string label,
+            ValidationReport report)
+        {
+            if (family.Definition != null)
+            {
+                ValidateCostList(family.Definition.PlacementCosts, $"{label}/放置消耗", report);
+            }
+
+            if (family.Construction == null)
+            {
+                report.Error($"{label} 未配置施工阶段。");
+                return;
+            }
+
+            for (var turnIndex = 0; turnIndex < family.Construction.Turns.Count; turnIndex++)
+            {
+                var turn = family.Construction.Turns[turnIndex];
+                if (turn == null)
+                {
+                    report.Error($"{label} 的第 {turnIndex + 1} 个施工回合为空。");
+                    continue;
+                }
+
+                ValidateCostList(turn.Costs, $"{label}/施工回合{turnIndex + 1}/消耗", report);
+                ValidateCostList(turn.Rewards, $"{label}/施工回合{turnIndex + 1}/产出", report);
+            }
+        }
+
+        private static void ValidateCostList(
+            IReadOnlyList<BuildingCost> costs,
+            string label,
+            ValidationReport report)
+        {
+            if (costs == null)
+            {
+                return;
+            }
+
+            for (var i = 0; i < costs.Count; i++)
+            {
+                if (!costs[i].IsValid)
+                {
+                    report.Error($"{label} #{i + 1} 必须引用有效 ItemDefinition，且数量必须大于 0。");
+                }
+            }
         }
 
         private static void ValidateLevelItemDefinitions(
@@ -334,6 +469,9 @@ namespace Landsong.Editor
                             report);
                     }
                     break;
+                case BuildingMaintenanceLevelConfiguration maintenance:
+                    ValidateItemDefinition(maintenance.ItemDefinition, $"{prefix} 维护费物品", report);
+                    break;
                 case ResidentialHousingLevelConfiguration residential:
                     ValidateItemDefinition(residential.FoodItemDefinition, $"{prefix} 食物物品", report);
                     ValidateItemDefinition(residential.TaxItemDefinition, $"{prefix} 税收物品", report);
@@ -341,11 +479,15 @@ namespace Landsong.Editor
                 case FishingHutLevelConfiguration fishing when fishing.EnableSpecialCatch:
                     ValidateItemDefinition(fishing.SpecialItemDefinition, $"{prefix} 特殊产出物品", report);
                     break;
+                case WarehouseLevelConfiguration warehouse:
+                    ValidateItemDefinition(warehouse.MaintenanceItemDefinition, $"{prefix} 维护费物品", report);
+                    break;
             }
         }
 
         private static void ValidateModuleItemDefinitions(
             BuildingModuleBase module,
+            BuildingFamilyDefinition family,
             string label,
             ValidationReport report)
         {
@@ -357,6 +499,9 @@ namespace Landsong.Editor
                     break;
                 case BM_资源产出 production when !production.HasOnlyValidConfiguredItemDefinitions:
                     report.Error($"{prefix} 包含空物品引用或无 ItemId 的产出配置。");
+                    break;
+                case BM_维护费 maintenance:
+                    ValidateItemDefinition(maintenance.ItemDefinition, $"{prefix} 维护费物品", report);
                     break;
                 case BM_居民运营 residential:
                     ValidateItemDefinition(residential.FoodItemDefinition, $"{prefix} 食物物品", report);
@@ -371,6 +516,75 @@ namespace Landsong.Editor
                 case BM_树木采集 tree:
                     ValidateItemDefinition(tree.WoodItemDefinition, $"{prefix} 原木物品", report);
                     ValidateItemDefinition(tree.SaplingItemDefinition, $"{prefix} 树苗物品", report);
+                    break;
+                case BM_仓库运营 warehouse:
+                    ValidateItemDefinition(warehouse.MaintenanceItemDefinition, $"{prefix} 维护费物品", report);
+                    break;
+                case BM_空间效果源 spatialEffectSource:
+                    var effectIds = new HashSet<string>(StringComparer.Ordinal);
+                    for (var i = 0; i < spatialEffectSource.Effects.Count; i++)
+                    {
+                        var effect = spatialEffectSource.Effects[i];
+                        if (effect == null)
+                        {
+                            report.Error($"{prefix} 的空间效果 #{i + 1} 未选择效果资产。");
+                            continue;
+                        }
+
+                        if (!effect.IsValid)
+                        {
+                            report.Error(
+                                $"{prefix} 的空间效果 #{i + 1} 缺少 EffectId 或效果数值不大于 0：" +
+                                AssetDatabase.GetAssetPath(effect));
+                            continue;
+                        }
+
+                        if (!effectIds.Add(effect.EffectId))
+                        {
+                            report.Error($"{prefix} 的空间效果 ID 重复：{effect.EffectId}");
+                        }
+
+                        if (!effect.IncludeSourceFootprint && effect.Range < 1)
+                        {
+                            report.Error($"{prefix}/{effect.EffectId} 不影响自身占地时，范围必须至少为 1。");
+                        }
+
+                        if (effect.Kind == BuildingSpatialEffectKind.Beauty
+                            || effect.Kind == BuildingSpatialEffectKind.Medical
+                            || effect.Kind == BuildingSpatialEffectKind.Security)
+                        {
+                            if (effect.TargetFilter != BuildingSpatialTargetFilter.Cell)
+                            {
+                                report.Error($"{prefix}/{effect.EffectId} 是格子效果，目标过滤必须为 Cell。");
+                            }
+                        }
+
+                        if (effect.OperationalLevel > 0
+                            && (family == null
+                                || !family.TryGetLevel(effect.OperationalLevel, out var effectLevel)
+                                || !effectLevel.IsConfigured))
+                        {
+                            report.Error(
+                                $"{prefix}/{effect.EffectId} 引用了不存在或未开放的运营等级：" +
+                                $"LV{effect.OperationalLevel}。");
+                        }
+
+                        if (effect.MinimumWorkers > 0
+                            && effect.OperationalLevel > 0
+                            && family != null
+                            && family.TryGetLevel(effect.OperationalLevel, out var workerLevel))
+                        {
+                            var workforce = workerLevel.Configurations
+                                .OfType<BuildingWorkforceLevelConfiguration>()
+                                .FirstOrDefault();
+                            if (workforce == null || effect.MinimumWorkers > workforce.MaxWorkers)
+                            {
+                                report.Error(
+                                    $"{prefix}/{effect.EffectId} 的最低工人 {effect.MinimumWorkers} " +
+                                    $"超过 LV{effect.OperationalLevel} 岗位上限或缺少岗位配置。");
+                            }
+                        }
+                    }
                     break;
             }
         }
@@ -415,17 +629,40 @@ namespace Landsong.Editor
             }
         }
 
+        private static void ValidateOptionalModuleOrder(
+            string label,
+            IReadOnlyDictionary<string, int> moduleIndexes,
+            string moduleId,
+            string earlierModuleId,
+            ValidationReport report)
+        {
+            if (!moduleIndexes.TryGetValue(moduleId, out var moduleIndex)
+                || !moduleIndexes.TryGetValue(earlierModuleId, out var earlierModuleIndex))
+            {
+                return;
+            }
+
+            if (earlierModuleIndex > moduleIndex)
+            {
+                report.Error(
+                    $"{label} 的模块顺序无效：{earlierModuleId} 必须位于 {moduleId} 之前。");
+            }
+        }
+
         private static string GetRequiredModuleId(BuildingLevelConfigurationBase configuration)
         {
             return configuration switch
             {
                 BuildingWorkforceLevelConfiguration _ => "workforce",
                 BuildingProductionLevelConfiguration _ => "production",
+                BuildingMaintenanceLevelConfiguration _ => "maintenance",
+                BuildingOperationalExperienceLevelConfiguration _ => "operational_experience",
                 BuildingInventoryLevelConfiguration _ => "inventory.capacity",
                 BuildingTechnologyPointLevelConfiguration _ => "technology.points",
                 PlayerHomeLevelConfiguration _ => "population.fixed",
                 ResidentialHousingLevelConfiguration _ => "residential.operation",
                 FishingHutLevelConfiguration _ => "production.rare_bonus",
+                WarehouseLevelConfiguration _ => "warehouse.operation",
                 _ => string.Empty
             };
         }
@@ -482,14 +719,34 @@ namespace Landsong.Editor
                 ValidateViewPrefab(mapping.View, $"{label}/{key}", report);
             }
 
-            ValidateViewPrefab(presentation.ConstructionView, $"{label}/Construction", report);
+            var requiredConstructionTurns = family.Construction?.RequiredTurns ?? 1;
+            switch (presentation.ConstructionViewMode)
+            {
+                case BuildingConstructionViewMode.Single:
+                    ValidateViewPrefab(
+                        presentation.ConstructionView,
+                        $"{label}/单一施工视图",
+                        report);
+                    if (!presentation.TryResolveConstructionView(1, string.Empty, out _))
+                    {
+                        report.Warn($"{label}/单一施工视图尚未回填 View Prefab，将使用统一占位表现。");
+                    }
+                    break;
+                case BuildingConstructionViewMode.PerTurn:
+                    ValidatePerTurnConstructionViews(
+                        presentation,
+                        requiredConstructionTurns,
+                        styleIds,
+                        label,
+                        report);
+                    break;
+                default:
+                    report.Error($"{label} 使用了无效的施工视图模式：{presentation.ConstructionViewMode}");
+                    break;
+            }
+
             ValidateViewPrefab(presentation.PlacementPreviewView, $"{label}/PlacementPreview", report);
             ValidateViewPrefab(presentation.DefaultOperationalView, $"{label}/DefaultOperational", report);
-
-            if (presentation.ConstructionView == null || !presentation.ConstructionView.IsConfigured)
-            {
-                report.Warn($"{label} 尚未回填施工 View Prefab，将使用统一占位表现。");
-            }
 
             if (styleIds.Count == 0)
             {
@@ -506,6 +763,81 @@ namespace Landsong.Editor
                     {
                         report.Warn($"{label}/{styleId} 尚未回填 LV1 View Prefab，将使用统一占位表现。");
                     }
+                }
+            }
+        }
+
+        private static void ValidatePerTurnConstructionViews(
+            BuildingPresentationDefinition presentation,
+            int requiredConstructionTurns,
+            HashSet<string> styleIds,
+            string label,
+            ValidationReport report)
+        {
+            var constructionMappingKeys = new HashSet<string>(StringComparer.Ordinal);
+            for (var i = 0; i < presentation.ConstructionViewMappings.Count; i++)
+            {
+                var mapping = presentation.ConstructionViewMappings[i];
+                if (mapping == null)
+                {
+                    report.Error($"{label} 的逐回合施工视图包含空项。");
+                    continue;
+                }
+
+                if (mapping.Turn < 1 || mapping.Turn > requiredConstructionTurns)
+                {
+                    report.Error(
+                        $"{label} 的施工视图映射回合超出有效范围：{mapping.Turn}/1～{requiredConstructionTurns}");
+                }
+
+                if (!string.IsNullOrWhiteSpace(mapping.StyleId) && !styleIds.Contains(mapping.StyleId))
+                {
+                    report.Error($"{label} 的施工视图映射引用了未声明样式：{mapping.StyleId}");
+                }
+
+                var key = $"Turn{mapping.Turn}:{mapping.StyleId}";
+                if (!constructionMappingKeys.Add(key))
+                {
+                    report.Error($"{label} 的施工视图映射重复：{key}");
+                }
+
+                ValidateViewPrefab(mapping.View, $"{label}/{key}", report);
+            }
+
+            if (styleIds.Count == 0)
+            {
+                WarnMissingConstructionViews(
+                    presentation,
+                    requiredConstructionTurns,
+                    string.Empty,
+                    label,
+                    report);
+                return;
+            }
+
+            foreach (var styleId in styleIds)
+            {
+                WarnMissingConstructionViews(
+                    presentation,
+                    requiredConstructionTurns,
+                    styleId,
+                    $"{label}/{styleId}",
+                    report);
+            }
+        }
+
+        private static void WarnMissingConstructionViews(
+            BuildingPresentationDefinition presentation,
+            int requiredConstructionTurns,
+            string styleId,
+            string label,
+            ValidationReport report)
+        {
+            for (var turn = 1; turn <= requiredConstructionTurns; turn++)
+            {
+                if (!presentation.TryResolveConstructionView(turn, styleId, out _))
+                {
+                    report.Warn($"{label}/施工回合{turn} 尚未回填 View Prefab，将使用统一占位表现。");
                 }
             }
         }

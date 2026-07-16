@@ -201,6 +201,8 @@ namespace Landsong.TurnSystem
                 return;
             }
 
+            NotifyProvidedResources(building, building.LastConstructionRewards);
+
             resourceProductionSources.Clear();
             building.GetCapabilities(resourceProductionSources);
             for (var i = 0; i < resourceProductionSources.Count; i++)

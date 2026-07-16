@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: af71cba28d7028e40b73600b54394a96, type: 3}
   m_Name: FishingHutPresentation
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingPresentationDefinition
+  constructionViewMode: 0
   constructionView:
     directPrefab: {fileID: 0}
     addressablePrefab:

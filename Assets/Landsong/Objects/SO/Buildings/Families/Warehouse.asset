@@ -1,0 +1,156 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad4cbf49b35f06744b7e4297512a9e5f, type: 3}
+  m_Name: Warehouse
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingFamilyDefinition
+  definition:
+    familyId: building.warehouse
+    displayName: "\u4ED3\u5E93"
+    category: 13
+    icon: {fileID: 0}
+    size: {x: 2, y: 2}
+    ignoreTerrainRequirement: 0
+    requiredTerrainKeys:
+    - "\u9646\u5730"
+    movementResistance: 0
+    placementCosts:
+    - itemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+      amount: 30
+    visibleCondition:
+      rid: -2
+    blueprintInitiallyLocked: 0
+    hideWhenBlueprintLocked: 0
+    buildMenuSortOrder: 30
+    maxBuildCount: 0
+    buildLimitGroupId: building.warehouse
+    isDevelopmentCompleted: 1
+  runtimePrefab: {fileID: 1295300410160850688, guid: 24d60d3ba68b4274934208418c04237d, type: 3}
+  construction:
+    turns:
+    - costs:
+      - itemDefinition: {fileID: 11400000, guid: 83207646c27978649aad0c621fe5e93d, type: 2}
+        amount: 10
+    - costs:
+      - itemDefinition: {fileID: 11400000, guid: 6293531210d744e8b03f1b99017467c3, type: 2}
+        amount: 10
+    - costs:
+      - itemDefinition: {fileID: 11400000, guid: 52d28e7de1d658444b6a2fb735c56e85, type: 2}
+        amount: 10
+  levels:
+  - level: 1
+    configured: 1
+    upgradeCondition:
+      rid: -2
+    upgradeCosts: []
+    configurations:
+    - rid: 5711026465592574138
+    - rid: 5711026465592574139
+  - level: 2
+    configured: 1
+    upgradeCondition:
+      rid: 5711026465592574140
+    upgradeCosts: []
+    configurations:
+    - rid: 5711026465592574141
+    - rid: 5711026465592574142
+  - level: 3
+    configured: 1
+    upgradeCondition:
+      rid: 5711026465592574143
+    upgradeCosts: []
+    configurations:
+    - rid: 5711026465592574144
+    - rid: 5711026465592574145
+  moduleSet: {fileID: 11400000, guid: 1f59536e386a4b4f9c209cacda6c338a, type: 2}
+  presentation: {fileID: 11400000, guid: 627dd380f70f494f8a307fddada0364e, type: 2}
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 5711026465592574138
+      type: {class: BuildingWorkforceLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        maxWorkers: 2
+        initialWorkers: 0
+        baseAttraction: 55
+        recruitCost: 10
+        autoSubsidy: 0
+        targetStableWorkers: 0
+        goldItemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+    - rid: 5711026465592574139
+      type: {class: WarehouseLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        requiredWorkers: 2
+        providedSlots: 1
+        maintenanceItemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+        maintenancePerTurn: 1
+        experienceWorkers: 2
+        experiencePerTurn: 1
+        nextLevelExperience: 30
+        bonusWorkerThreshold: 0
+        bonusSlots: 0
+        maintenanceFailureAttractionPenalty: 10
+    - rid: 5711026465592574140
+      type: {class: GameCondition_TechnologyUnlocked, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
+      data:
+        TechnologyDefinition: {fileID: 11400000, guid: dcd01ab1673e38748ace913b29c49655, type: 2}
+    - rid: 5711026465592574141
+      type: {class: BuildingWorkforceLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        maxWorkers: 3
+        initialWorkers: 0
+        baseAttraction: 55
+        recruitCost: 10
+        autoSubsidy: 0
+        targetStableWorkers: 0
+        goldItemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+    - rid: 5711026465592574142
+      type: {class: WarehouseLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        requiredWorkers: 3
+        providedSlots: 2
+        maintenanceItemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+        maintenancePerTurn: 2
+        experienceWorkers: 2
+        experiencePerTurn: 1
+        nextLevelExperience: 50
+        bonusWorkerThreshold: 0
+        bonusSlots: 0
+        maintenanceFailureAttractionPenalty: 10
+    - rid: 5711026465592574143
+      type: {class: GameCondition_TechnologyUnlocked, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
+      data:
+        TechnologyDefinition: {fileID: 11400000, guid: 3d0b3372695742a9b7f9d0a007d299ae, type: 2}
+    - rid: 5711026465592574144
+      type: {class: BuildingWorkforceLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        maxWorkers: 5
+        initialWorkers: 0
+        baseAttraction: 55
+        recruitCost: 10
+        autoSubsidy: 0
+        targetStableWorkers: 0
+        goldItemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+    - rid: 5711026465592574145
+      type: {class: WarehouseLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        requiredWorkers: 4
+        providedSlots: 3
+        maintenanceItemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+        maintenancePerTurn: 3
+        experienceWorkers: 0
+        experiencePerTurn: 0
+        nextLevelExperience: 0
+        bonusWorkerThreshold: 5
+        bonusSlots: 1
+        maintenanceFailureAttractionPenalty: 10

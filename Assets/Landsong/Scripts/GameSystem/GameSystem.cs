@@ -43,8 +43,10 @@ namespace Landsong
         private const string InspectorTurn = "回合";
         private const string GameplayDebugGoldItemId = "金币";
 
-        private readonly List<BM_库存格容量> inventorySlotCapacityModules =
-            new List<BM_库存格容量>();
+        private readonly List<IBuildingInventoryCapacitySource> inventorySlotCapacitySources =
+            new List<IBuildingInventoryCapacitySource>();
+        private readonly List<IBuildingJobAttractionModifierSource> localJobAttractionModifierSources =
+            new List<IBuildingJobAttractionModifierSource>();
         private readonly List<BuildingJobAttractionModifier> activeJobAttractionModifiers =
             new List<BuildingJobAttractionModifier>();
 
@@ -60,6 +62,11 @@ namespace Landsong
         [SerializeField, FoldoutGroup(InspectorTechnology), LabelText("初始当前研究科技")] private TechnologyDefinition startingResearchTechnology;
         [SerializeField, FoldoutGroup(InspectorTechnology), LabelText("初始当前研究进度"), Min(0)] private int startingResearchProgress;
         [SerializeField, FoldoutGroup(InspectorTechnology), LabelText("初始已解锁科技")] private string[] startingUnlockedTechnologies = Array.Empty<string>();
+        [SerializeField, FoldoutGroup(InspectorTechnology), LabelText("全局 Buff 目录")]
+        private TechnologyGlobalBuffCatalog technologyGlobalBuffCatalog;
+        [SerializeField, FoldoutGroup(InspectorTechnology), LabelText("额外科技内容生产者")]
+        [Tooltip("实现 ITechnologyUnlockContentProducer 的领域目录。它们在初始化时主动向中央注册表注入完整快照；UI 不会扫描这些资产。")]
+        private ScriptableObject[] technologyUnlockContentProducerAssets = Array.Empty<ScriptableObject>();
 
         [SerializeField, FoldoutGroup(InspectorPolicy), LabelText("政策目录")] private PolicyCatalog policyCatalog;
         [SerializeField, FoldoutGroup(InspectorPolicy), LabelText("初始民意"), Min(0)] private int startingPublicOpinion;
@@ -102,6 +109,12 @@ namespace Landsong
         [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeServices), LabelText("科技服务")]
         internal TechnologyService Technology { get; private set; }
 
+        [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeServices), LabelText("科技解锁内容注册表")]
+        internal TechnologyUnlockContentRegistry TechnologyUnlockContents { get; private set; }
+
+        [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeServices), LabelText("全局 Buff 服务")]
+        internal TechnologyGlobalBuffService GlobalBuffs { get; private set; }
+
         [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeServices), LabelText("政策服务")]
         internal PolicyService Policies { get; private set; }
 
@@ -143,6 +156,30 @@ namespace Landsong
 
         public event Action<GameSystem, GameOverReason> GameEnded;
 
+        internal void RebuildTechnologyUnlockContentRegistry()
+        {
+            TechnologyUnlockContents ??= new TechnologyUnlockContentRegistry();
+            TechnologyUnlockContents.Clear();
+            TechnologyUnlockContentRegistry.InjectCompletionEffects(
+                Technology?.Catalog ?? technologyCatalog,
+                TechnologyUnlockContents);
+            buildingCatalog?.InjectTechnologyUnlockContents(TechnologyUnlockContents);
+            technologyGlobalBuffCatalog?.InjectTechnologyUnlockContents(TechnologyUnlockContents);
+
+            if (technologyUnlockContentProducerAssets == null)
+            {
+                return;
+            }
+
+            for (var i = 0; i < technologyUnlockContentProducerAssets.Length; i++)
+            {
+                if (technologyUnlockContentProducerAssets[i] is ITechnologyUnlockContentProducer producer)
+                {
+                    producer.InjectTechnologyUnlockContents(TechnologyUnlockContents);
+                }
+            }
+        }
+
         public IReadOnlyList<BuildingJobAttractionModifier> GetJobAttractionModifiers(BuildingBase building)
         {
             activeJobAttractionModifiers.Clear();
@@ -158,6 +195,18 @@ namespace Landsong
                         "Expedition",
                         "远征失败补贴不足造成的全局岗位吸引力惩罚。"));
             }
+
+            localJobAttractionModifierSources.Clear();
+            building?.GetCapabilities(localJobAttractionModifierSources);
+            for (var i = 0; i < localJobAttractionModifierSources.Count; i++)
+            {
+                if (localJobAttractionModifierSources[i].TryGetJobAttractionModifier(out var modifier)
+                    && modifier.IsValid)
+                {
+                    activeJobAttractionModifiers.Add(modifier);
+                }
+            }
+            localJobAttractionModifierSources.Clear();
 
             return activeJobAttractionModifiers.Count == 0
                 ? EmptyJobAttractionModifiers
@@ -207,6 +256,9 @@ namespace Landsong
             {
                 CreateTechnologyService();
             }
+
+            GlobalBuffs ??= new TechnologyGlobalBuffService(this, technologyGlobalBuffCatalog);
+            TechnologyUnlockContents ??= new TechnologyUnlockContentRegistry();
 
             if (Policies == null)
             {
@@ -411,7 +463,7 @@ namespace Landsong
         {
             BuildingBlueprints = new BuildingBlueprintService(startingUnlockedBuildingBlueprintIds);
             ReconcileInitiallyUnlockedBuildingBlueprints();
-            ReconcileBuildingBlueprintsFromUnlockedTechnologies();
+            ReconcileBuildingBlueprintsFromAutomaticConditions();
         }
 
         internal void ReconcileInitiallyUnlockedBuildingBlueprints()
@@ -434,36 +486,26 @@ namespace Landsong
             }
         }
 
-        internal void ReconcileBuildingBlueprintsFromUnlockedTechnologies()
+        internal void ReconcileBuildingBlueprintsFromAutomaticConditions()
         {
-            if (Technology == null || BuildingBlueprints == null || Technology.Catalog == null)
+            if (BuildingCatalog == null || BuildingBlueprints == null)
             {
                 return;
             }
 
-            var definitions = Technology.Catalog.Definitions;
-            for (var i = 0; i < definitions.Count; i++)
+            var families = BuildingCatalog.Families;
+            for (var i = 0; i < families.Count; i++)
             {
-                var technology = definitions[i];
-                if (technology == null || !Technology.IsUnlocked(technology.TechnologyId))
+                var definition = families[i]?.Definition;
+                var condition = definition?.AutomaticBlueprintUnlockCondition;
+                if (definition == null
+                    || condition == null
+                    || !condition.IsMet(this))
                 {
                     continue;
                 }
 
-                var effects = technology.CompletionEffects;
-                for (var j = 0; j < effects.Count; j++)
-                {
-                    if (effects[j] is not TechnologyEffect_UnlockBuildingBlueprint unlockEffect)
-                    {
-                        continue;
-                    }
-
-                    var building = unlockEffect.BuildingPrefab;
-                    if (building != null && building.HasDefinition)
-                    {
-                        BuildingBlueprints.Unlock(building.FamilyId);
-                    }
-                }
+                BuildingBlueprints.Unlock(definition.FamilyId);
             }
         }
 
@@ -1053,6 +1095,8 @@ namespace Landsong
                 startingResearchTechnology == null ? null : startingResearchTechnology.TechnologyId,
                 startingResearchProgress);
             Technology.StateChanged += HandleTechnologyStateChanged;
+            GlobalBuffs = new TechnologyGlobalBuffService(this, technologyGlobalBuffCatalog);
+            RebuildTechnologyUnlockContentRegistry();
             HandleTechnologyStateChanged(Technology);
         }
 
@@ -1064,6 +1108,7 @@ namespace Landsong
         private void HandleTechnologyStateChanged(TechnologyService changedTechnology)
         {
             SyncStartingResearchFromService();
+            ReconcileBuildingBlueprintsFromAutomaticConditions();
             if (changedTechnology != null && changedTechnology.HasCurrentResearch)
             {
                 ClearMissingResearchWarning();
@@ -1151,7 +1196,7 @@ namespace Landsong
             RefreshQuestSubscriptions();
         }
 
-        private void RefreshInventorySlotCapacity()
+        internal void RefreshInventorySlotCapacity()
         {
             if (Inventory == null)
             {
@@ -1195,15 +1240,15 @@ namespace Landsong
                     continue;
                 }
 
-                inventorySlotCapacityModules.Clear();
-                building.GetModules(inventorySlotCapacityModules);
-                for (var j = 0; j < inventorySlotCapacityModules.Count; j++)
+                inventorySlotCapacitySources.Clear();
+                building.GetCapabilities(inventorySlotCapacitySources);
+                for (var j = 0; j < inventorySlotCapacitySources.Count; j++)
                 {
-                    total += inventorySlotCapacityModules[j].ProvidedSlotCount;
+                    total += inventorySlotCapacitySources[j].CurrentProvidedSlotCount;
                 }
             }
 
-            inventorySlotCapacityModules.Clear();
+            inventorySlotCapacitySources.Clear();
             return Mathf.Max(0, total);
         }
 

@@ -1,0 +1,163 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad4cbf49b35f06744b7e4297512a9e5f, type: 3}
+  m_Name: PoliceStation
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingFamilyDefinition
+  definition:
+    familyId: building.police_station
+    displayName: "\u8B66\u5C40"
+    category: 32
+    icon: {fileID: 0}
+    size: {x: 2, y: 2}
+    ignoreTerrainRequirement: 0
+    requiredTerrainKeys:
+    - "\u9646\u5730"
+    requiredAnyFootprintTerrainKeys: []
+    movementResistance: 0
+    placementCosts:
+    - itemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+      amount: 20
+    visibleCondition:
+      rid: -2
+    automaticBlueprintUnlockCondition:
+      rid: 5711026700000000100
+    blueprintInitiallyLocked: 1
+    hideWhenBlueprintLocked: 1
+    buildMenuSortOrder: 36
+    maxBuildCount: 0
+    buildLimitGroupId: building.police_station
+    isDevelopmentCompleted: 1
+  runtimePrefab: {fileID: 1295300410160850688, guid: 7cba24ee39ef4d7192dee80c364d62ea, type: 3}
+  construction:
+    turns:
+    - costs:
+      - itemDefinition: {fileID: 11400000, guid: 6293531210d744e8b03f1b99017467c3, type: 2}
+        amount: 10
+      rewards: []
+    - costs:
+      - itemDefinition: {fileID: 11400000, guid: 52d28e7de1d658444b6a2fb735c56e85, type: 2}
+        amount: 10
+      rewards: []
+  levels:
+  - level: 1
+    configured: 1
+    upgradeCondition:
+      rid: -2
+    upgradeCosts: []
+    configurations:
+    - rid: 5711026700000000201
+    - rid: 5711026700000000202
+    - rid: 5711026700000000203
+  - level: 2
+    configured: 1
+    upgradeCondition:
+      rid: 5711026700000000204
+    upgradeCosts:
+    - itemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+      amount: 300
+    configurations:
+    - rid: 5711026700000000205
+    - rid: 5711026700000000206
+    - rid: 5711026700000000207
+  - level: 3
+    configured: 1
+    upgradeCondition:
+      rid: 5711026700000000208
+    upgradeCosts:
+    - itemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+      amount: 1000
+    configurations:
+    - rid: 5711026700000000209
+    - rid: 5711026700000000210
+    - rid: 5711026700000000211
+  moduleSet: {fileID: 11400000, guid: f60c1364019b43e2b6743ac75e847d3b, type: 2}
+  presentation: {fileID: 11400000, guid: 9e4cd7efa13f4d7d8a7d74aaa50b2c60, type: 2}
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 5711026700000000100
+      type: {class: GameCondition_TechnologyUnlocked, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
+      data:
+        TechnologyDefinition: {fileID: 11400000, guid: 342fa6b729cdf5c47bb162f923bc11f8, type: 2}
+    - rid: 5711026700000000201
+      type: {class: BuildingWorkforceLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        maxWorkers: 4
+        initialWorkers: 0
+        baseAttraction: 55
+        recruitCost: 10
+        autoSubsidy: 0
+        targetStableWorkers: 0
+        goldItemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+    - rid: 5711026700000000202
+      type: {class: BuildingMaintenanceLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        itemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+        amountPerTurn: 1
+    - rid: 5711026700000000203
+      type: {class: BuildingOperationalExperienceLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        requiredWorkers: 3
+        experiencePerTurn: 1
+        nextLevelExperience: 30
+    - rid: 5711026700000000204
+      type: {class: GameCondition_TechnologyUnlocked, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
+      data:
+        TechnologyDefinition: {fileID: 11400000, guid: e2e4868175c945de98cc29a95fef6866, type: 2}
+    - rid: 5711026700000000205
+      type: {class: BuildingWorkforceLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        maxWorkers: 8
+        initialWorkers: 0
+        baseAttraction: 55
+        recruitCost: 10
+        autoSubsidy: 0
+        targetStableWorkers: 0
+        goldItemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+    - rid: 5711026700000000206
+      type: {class: BuildingMaintenanceLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        itemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+        amountPerTurn: 3
+    - rid: 5711026700000000207
+      type: {class: BuildingOperationalExperienceLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        requiredWorkers: 8
+        experiencePerTurn: 1
+        nextLevelExperience: 100
+    - rid: 5711026700000000208
+      type: {class: GameCondition_TechnologyUnlocked, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
+      data:
+        TechnologyDefinition: {fileID: 11400000, guid: f2f08debc2d446d8aa1b7a41f7fdf236, type: 2}
+    - rid: 5711026700000000209
+      type: {class: BuildingWorkforceLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        maxWorkers: 16
+        initialWorkers: 0
+        baseAttraction: 55
+        recruitCost: 10
+        autoSubsidy: 0
+        targetStableWorkers: 0
+        goldItemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+    - rid: 5711026700000000210
+      type: {class: BuildingMaintenanceLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        itemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+        amountPerTurn: 6
+    - rid: 5711026700000000211
+      type: {class: BuildingOperationalExperienceLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        requiredWorkers: 0
+        experiencePerTurn: 0
+        nextLevelExperience: 0

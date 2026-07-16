@@ -19,6 +19,16 @@ MonoBehaviour:
   references:
     version: 2
     RefIds:
+    - rid: 5711026424309612569
+      type: {class: "BM_\u7A00\u6709\u4EA7\u51FA", ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        enabled: 1
+        rareProductionEnabled: 0
+        itemDefinition: {fileID: 11400000, guid: e02568ca797180a449171f8ae5a538f7, type: 2}
+        minimumWorkers: 3
+        chancePercent: 1
+        amount: 1
+        lastTurnProduced: 0
     - rid: 5711026424309612570
       type: {class: "BM_\u5C97\u4F4D\u8FD0\u8425", ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
       data:
@@ -46,13 +56,3 @@ MonoBehaviour:
         productionIntervalTurns: 1
         outputs: []
         productionProgress: 0
-    - rid: 5711026424309612569
-      type: {class: "BM_\u7A00\u6709\u4EA7\u51FA", ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
-      data:
-        enabled: 1
-        rareProductionEnabled: 0
-        itemDefinition: {fileID: 11400000, guid: e02568ca797180a449171f8ae5a538f7, type: 2}
-        minimumWorkers: 3
-        chancePercent: 1
-        amount: 1
-        lastTurnProduced: 0

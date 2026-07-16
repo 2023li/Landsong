@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3b70d7f4d394dd9a76b0bc2e5c6a101, type: 3}
+  m_Name: "TN_5_17_军工理论"
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.TechnologySystem.TechnologyDefinition
+  icon: {fileID: 0}
+  technologyId: "TN_5_17_军工理论"
+  displayName: "军工理论"
+  description: "将体系战争经验、工业产能与军事需求统一规划，形成持续迭代的军工体系。"
+  sciencePointCost: 335
+  allowRepeatResearch: 0
+  prerequisites:
+  - {fileID: 11400000, guid: b51c4afa6d0146a8aad3654dc5d04226, type: 2}
+  - {fileID: 11400000, guid: 1f5d82443dfd4908b3a245734e0c8c67, type: 2}
+  completionEffects: []
+  graphPosition: {x: 3520, y: 600}
+  references:
+    version: 2
+    RefIds: []

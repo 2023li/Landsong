@@ -4,6 +4,11 @@ using UnityEngine;
 
 namespace Landsong.BuildingSystem
 {
+    public interface IBuildingUpgradeRequirementSource
+    {
+        bool CanUpgradeToLevel(BuildingBase building, int targetLevel, out string failureMessage);
+    }
+
     public enum BuildingUpgradeFailure
     {
         None = 0,
@@ -78,6 +83,20 @@ namespace Landsong.BuildingSystem
                     BuildingUpgradeFailure.ConditionNotMet,
                     targetLevel,
                     "升级科技或其他条件尚未满足。");
+            }
+
+            var requirementSources = building.GetCapabilities<IBuildingUpgradeRequirementSource>();
+            for (var i = 0; i < requirementSources.Count; i++)
+            {
+                if (!requirementSources[i].CanUpgradeToLevel(building, targetLevel, out var failureMessage))
+                {
+                    return Fail(
+                        BuildingUpgradeFailure.ConditionNotMet,
+                        targetLevel,
+                        string.IsNullOrWhiteSpace(failureMessage)
+                            ? "建筑升级条件尚未满足。"
+                            : failureMessage);
+                }
             }
 
             var inventory = gameSystem?.Services.Inventory;

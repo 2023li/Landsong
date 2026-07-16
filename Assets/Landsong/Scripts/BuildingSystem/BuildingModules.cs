@@ -504,9 +504,12 @@ namespace Landsong.BuildingSystem
             }
         }
 
-        public IReadOnlyList<BuildingResourceChange> PreviewResourceProductions(int workers, int maxWorkers)
+        public IReadOnlyList<BuildingResourceChange> PreviewResourceProductions(
+            BuildingBase building,
+            int workers,
+            int maxWorkers)
         {
-            currentResourceProductions = CreateResourceProductions(workers, maxWorkers);
+            currentResourceProductions = CreateResourceProductions(building, workers, maxWorkers);
             return currentResourceProductions;
         }
 
@@ -543,7 +546,7 @@ namespace Landsong.BuildingSystem
             int maxWorkers)
         {
             ClearLastResourceProductions();
-            var productionChanges = CreateResourceProductions(workers, maxWorkers);
+            var productionChanges = CreateResourceProductions(building, workers, maxWorkers);
             currentResourceProductions = productionChanges;
             if (productionChanges.Count == 0)
             {
@@ -646,7 +649,7 @@ namespace Landsong.BuildingSystem
                 return;
             }
 
-            var changes = PreviewResourceProductions(workers, maxWorkers);
+            var changes = PreviewResourceProductions(building, workers, maxWorkers);
             if (changes == null)
             {
                 return;
@@ -670,7 +673,10 @@ namespace Landsong.BuildingSystem
             }
         }
 
-        private IReadOnlyList<BuildingResourceChange> CreateResourceProductions(int workers, int maxWorkers)
+        private IReadOnlyList<BuildingResourceChange> CreateResourceProductions(
+            BuildingBase building,
+            int workers,
+            int maxWorkers)
         {
             Normalize();
             if (outputs == null || outputs.Length == 0)
@@ -683,6 +689,13 @@ namespace Landsong.BuildingSystem
             {
                 var output = outputs[i];
                 var amount = output.GetAmountForWorkers(workers, maxWorkers);
+                if (amount > 0)
+                {
+                    amount = checked(amount + Mathf.Max(
+                        0,
+                        building?.GameSystem?.Services?.GlobalBuffs?
+                            .GetBuildingResourceProductionFlatBonus(building, output.ItemId) ?? 0));
+                }
                 var change = new BuildingResourceChange(output.ItemId, amount);
                 if (!change.IsValid)
                 {
@@ -776,7 +789,7 @@ namespace Landsong.BuildingSystem
 
     [Serializable]
     [BuildingModuleId("inventory.capacity")]
-    public sealed class BM_库存格容量 : BuildingModuleBase
+    public sealed class BM_库存格容量 : BuildingModuleBase, IBuildingInventoryCapacitySource
     {
         [SerializeField, LabelText("提供库存格数"), Min(0)]
         [PropertyTooltip("单位：格。该建筑存在时提供的额外库存格子数量。")]
@@ -784,6 +797,7 @@ namespace Landsong.BuildingSystem
 
         public override string ModuleDescription => "让建筑存在时提供额外库存格子，GameSystem 会汇总所有启用的库存容量模块。";
         public int ProvidedSlotCount => Mathf.Max(0, providedSlotCount);
+        public int CurrentProvidedSlotCount => ProvidedSlotCount;
 
         public void SetProvidedSlotCount(int slotCount)
         {

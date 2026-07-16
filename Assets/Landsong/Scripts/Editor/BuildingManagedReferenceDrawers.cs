@@ -417,6 +417,19 @@ namespace Landsong.EditorTools.Buildings
         protected override IReadOnlyList<ChildField> Fields => ChildFields;
     }
 
+    [CustomPropertyDrawer(typeof(BuildingConstructionViewMapping))]
+    internal sealed class BuildingConstructionViewMappingDrawer : LabeledChildrenDrawer
+    {
+        private static readonly ChildField[] ChildFields =
+        {
+            new ChildField("turn", "施工回合", "从 1 开始。建筑进入该施工回合时使用这条表现映射。"),
+            new ChildField("styleId", "样式 ID", "留空表示所有样式的默认映射；填写后优先匹配同 ID 的视觉样式。"),
+            new ChildField("view", "视图资源", "该施工回合和样式对应的独立纯表现资源。")
+        };
+
+        protected override IReadOnlyList<ChildField> Fields => ChildFields;
+    }
+
     internal abstract class LabeledChildrenDrawer : PropertyDrawer
     {
         private static readonly float LineHeight = EditorGUIUtility.singleLineHeight;

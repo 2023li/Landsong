@@ -91,13 +91,40 @@ namespace Landsong.EditorTools.Buildings
                     }
                     else
                     {
-                        ValidateCosts(turn.Costs, $"施工回合 #{i + 1}", errors);
+                        ValidateCosts(turn.Costs, $"施工回合 #{i + 1} 消耗", errors);
+                        ValidateCosts(turn.Rewards, $"施工回合 #{i + 1} 产出", errors);
                     }
                 }
             }
 
+            switch (draft.ConstructionViewMode)
+            {
+                case BuildingConstructionViewMode.Single:
+                    ValidateViewPrefab(draft.ConstructionViewPrefab, "单一施工 View", errors);
+                    break;
+                case BuildingConstructionViewMode.PerTurn:
+                    if (draft.ConstructionTurnViewPrefabs == null
+                        || draft.ConstructionTurnViewPrefabs.Count
+                        != (draft.ConstructionTurns?.Count ?? 0))
+                    {
+                        errors.Add("逐回合施工视图必须与施工回合数量一致；允许某一回合的 View 暂时留空。");
+                        break;
+                    }
+
+                    for (var i = 0; i < draft.ConstructionTurnViewPrefabs.Count; i++)
+                    {
+                        ValidateViewPrefab(
+                            draft.ConstructionTurnViewPrefabs[i],
+                            $"施工回合 #{i + 1} View",
+                            errors);
+                    }
+                    break;
+                default:
+                    errors.Add($"不支持的施工视图模式：{draft.ConstructionViewMode}");
+                    break;
+            }
+
             ValidateStyles(draft, errors);
-            ValidateViewPrefab(draft.ConstructionViewPrefab, "施工 View", errors);
             ValidateViewPrefab(draft.PlacementPreviewViewPrefab, "放置预览 View", errors);
             ValidateViewPrefab(draft.DefaultOperationalViewPrefab, "默认 LV1 View", errors);
             if (draft.UsesWorkforceProduction)
@@ -275,6 +302,14 @@ namespace Landsong.EditorTools.Buildings
                     tiers);
 
                 modules.Add(workforce);
+                if (draft.UsesMaintenance)
+                {
+                    var maintenance = new BM_维护费();
+                    maintenance.ApplyConfiguration(
+                        draft.MaintenanceItemDefinition,
+                        draft.MaintenanceAmountPerTurn);
+                    modules.Add(maintenance);
+                }
                 modules.Add(production);
             }
 
@@ -286,9 +321,33 @@ namespace Landsong.EditorTools.Buildings
         {
             var presentation = ScriptableObject.CreateInstance<BuildingPresentationDefinition>();
             presentation.ConfigureDefaultViews(
-                draft.ConstructionViewPrefab,
+                draft.ConstructionViewMode == BuildingConstructionViewMode.Single
+                    ? draft.ConstructionViewPrefab
+                    : null,
                 draft.PlacementPreviewViewPrefab,
                 draft.DefaultOperationalViewPrefab);
+
+            var constructionMappings = new List<BuildingConstructionViewMapping>();
+            if (draft.ConstructionViewMode == BuildingConstructionViewMode.PerTurn
+                && draft.ConstructionTurnViewPrefabs != null)
+            {
+                for (var i = 0; i < draft.ConstructionTurnViewPrefabs.Count; i++)
+                {
+                    var viewPrefab = draft.ConstructionTurnViewPrefabs[i];
+                    if (viewPrefab == null)
+                    {
+                        continue;
+                    }
+
+                    constructionMappings.Add(new BuildingConstructionViewMapping(
+                        i + 1,
+                        string.Empty,
+                        viewPrefab));
+                }
+            }
+            presentation.ConfigureConstructionViews(
+                draft.ConstructionViewMode,
+                constructionMappings);
 
             var styles = new List<BuildingStyleDefinition>();
             var mappings = new List<BuildingViewMapping>();
@@ -323,12 +382,14 @@ namespace Landsong.EditorTools.Buildings
             BuildingPresentationDefinition presentation)
         {
             var construction = new BuildingConstructionDefinition();
-            var constructionTurns = new List<IReadOnlyList<BuildingCost>>();
+            var constructionCosts = new List<IReadOnlyList<BuildingCost>>();
+            var constructionRewards = new List<IReadOnlyList<BuildingCost>>();
             for (var i = 0; i < draft.ConstructionTurns.Count; i++)
             {
-                constructionTurns.Add(ConvertCosts(draft.ConstructionTurns[i].Costs));
+                constructionCosts.Add(ConvertCosts(draft.ConstructionTurns[i].Costs));
+                constructionRewards.Add(ConvertCosts(draft.ConstructionTurns[i].Rewards));
             }
-            construction.Configure(constructionTurns);
+            construction.Configure(constructionCosts, constructionRewards);
 
             var family = ScriptableObject.CreateInstance<BuildingFamilyDefinition>();
             family.ConfigureRuntime(null, construction, CreateLevels(draft), moduleSet, presentation);
@@ -347,6 +408,11 @@ namespace Landsong.EditorTools.Buildings
             SetStringArray(
                 definition.FindPropertyRelative("requiredTerrainKeys"),
                 draft.IgnoreTerrainRequirement ? Array.Empty<string>() : draft.RequiredTerrainKeys);
+            SetStringArray(
+                definition.FindPropertyRelative("requiredAnyFootprintTerrainKeys"),
+                draft.IgnoreTerrainRequirement
+                    ? Array.Empty<string>()
+                    : draft.RequiredAnyFootprintTerrainKeys);
             definition.FindPropertyRelative("movementResistance").intValue = draft.MovementResistance;
             SetCostArray(definition.FindPropertyRelative("placementCosts"), draft.PlacementCosts);
             definition.FindPropertyRelative("blueprintInitiallyLocked").boolValue =
@@ -379,6 +445,13 @@ namespace Landsong.EditorTools.Buildings
                         draft.AutoSubsidy,
                         draft.TargetStableWorkers,
                         draft.GoldItemDefinition));
+
+                    if (draft.UsesMaintenance)
+                    {
+                        configurations.Add(new BuildingMaintenanceLevelConfiguration(
+                            draft.MaintenanceItemDefinition,
+                            draft.MaintenanceAmountPerTurn));
+                    }
 
                     var tiers = new List<WorkerProductionTier>();
                     for (var i = 0; i < draft.ProductionTiers.Count; i++)
@@ -483,6 +556,25 @@ namespace Landsong.EditorTools.Buildings
                     errors.Add($"地形 Key 重复：{key}");
                 }
             }
+
+            var anyFootprintKeys = new HashSet<string>(StringComparer.Ordinal);
+            if (draft.RequiredAnyFootprintTerrainKeys == null)
+            {
+                return;
+            }
+
+            for (var i = 0; i < draft.RequiredAnyFootprintTerrainKeys.Count; i++)
+            {
+                var key = Normalize(draft.RequiredAnyFootprintTerrainKeys[i]);
+                if (string.IsNullOrEmpty(key))
+                {
+                    errors.Add($"占地内至少一格需要的 Key #{i + 1} 为空。");
+                }
+                else if (!anyFootprintKeys.Add(key))
+                {
+                    errors.Add($"占地内至少一格需要的 Key 重复：{key}");
+                }
+            }
         }
 
         private static void ValidateCosts(
@@ -571,6 +663,12 @@ namespace Landsong.EditorTools.Buildings
             if (draft.GoldItemDefinition == null)
             {
                 errors.Add("岗位生产模板必须选择金币物品。");
+            }
+            if (draft.UsesMaintenance
+                && draft.MaintenanceAmountPerTurn > 0
+                && draft.MaintenanceItemDefinition == null)
+            {
+                errors.Add("岗位维护生产模板配置正维护费时必须选择维护费物品。");
             }
             if (draft.ProductionItem == null)
             {

@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3b70d7f4d394dd9a76b0bc2e5c6a101, type: 3}
+  m_Name: "TN_2_15_银行学"
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.TechnologySystem.TechnologyDefinition
+  icon: {fileID: 0}
+  technologyId: "TN_2_15_银行学"
+  displayName: "银行学"
+  description: "以人口、资源和资产生命周期评估组织储蓄、借贷与大规模长期投资。"
+  sciencePointCost: 240
+  allowRepeatResearch: 0
+  prerequisites:
+  - {fileID: 11400000, guid: 97a7edf31bbd4c8893dfe1640d3d71d9, type: 2}
+  - {fileID: 11400000, guid: e41e594ac25044c3a948fd01c634140e, type: 2}
+  completionEffects: []
+  graphPosition: {x: 3080, y: 150}
+  references:
+    version: 2
+    RefIds: []

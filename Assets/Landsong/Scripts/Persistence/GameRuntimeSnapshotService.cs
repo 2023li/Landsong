@@ -148,7 +148,7 @@ namespace Landsong.Persistence
             services.Policies?.RestoreSaveData(gameData.PolicyData);
             services.BuildingBlueprints?.RestoreSaveData(gameData.UnlockedBuildingBlueprintIds);
             gameSystem.ReconcileInitiallyUnlockedBuildingBlueprints();
-            gameSystem.ReconcileBuildingBlueprintsFromUnlockedTechnologies();
+            gameSystem.ReconcileBuildingBlueprintsFromAutomaticConditions();
             if (services.Inventory != null && gameData.InventoryData != null)
             {
                 services.Inventory.RestoreSaveData(gameData.InventoryData);

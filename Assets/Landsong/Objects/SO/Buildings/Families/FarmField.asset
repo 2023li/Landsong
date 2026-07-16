@@ -42,7 +42,7 @@ MonoBehaviour:
       rid: -2
     upgradeCosts: []
     configurations:
-    - rid: 5711026424309612580
+    - rid: 5711026465592574125
   moduleSet: {fileID: 11400000, guid: a3a9306dcb9100b4bb3a769c79a7c5e1, type: 2}
   presentation: {fileID: 11400000, guid: 63829c772b1d1bc4c8e05026a0d602cb, type: 2}
   references:
@@ -50,7 +50,7 @@ MonoBehaviour:
     RefIds:
     - rid: -2
       type: {class: , ns: , asm: }
-    - rid: 5711026424309612580
+    - rid: 5711026465592574125
       type: {class: BuildingWorkforceLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
       data:
         maxWorkers: 2

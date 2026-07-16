@@ -12,26 +12,23 @@ namespace Landsong.BuildingSystem
         [SerializeField, InspectorName("本回合消耗"), LabelText("本回合消耗")]
         private BuildingCost[] costs = new BuildingCost[0];
 
+        [SerializeField, InspectorName("本回合产出"), LabelText("本回合产出")]
+        private BuildingCost[] rewards = new BuildingCost[0];
+
         public BuildingConstructionTurnDefinition()
         {
         }
 
-        public BuildingConstructionTurnDefinition(IReadOnlyList<BuildingCost> source)
+        public BuildingConstructionTurnDefinition(
+            IReadOnlyList<BuildingCost> sourceCosts,
+            IReadOnlyList<BuildingCost> sourceRewards = null)
         {
-            if (source == null || source.Count == 0)
-            {
-                costs = Array.Empty<BuildingCost>();
-                return;
-            }
-
-            costs = new BuildingCost[source.Count];
-            for (var i = 0; i < source.Count; i++)
-            {
-                costs[i] = source[i].Normalized();
-            }
+            costs = CopyCosts(sourceCosts);
+            rewards = CopyCosts(sourceRewards);
         }
 
         public IReadOnlyList<BuildingCost> Costs => costs ?? Array.Empty<BuildingCost>();
+        public IReadOnlyList<BuildingCost> Rewards => rewards ?? Array.Empty<BuildingCost>();
 
         public void Normalize()
         {
@@ -39,6 +36,12 @@ namespace Landsong.BuildingSystem
             for (var i = 0; i < costs.Length; i++)
             {
                 costs[i] = costs[i].Normalized();
+            }
+
+            rewards ??= Array.Empty<BuildingCost>();
+            for (var i = 0; i < rewards.Length; i++)
+            {
+                rewards[i] = rewards[i].Normalized();
             }
         }
 
@@ -53,6 +56,35 @@ namespace Landsong.BuildingSystem
             }
 
             return false;
+        }
+
+        public bool HasAnyReward()
+        {
+            for (var i = 0; i < Rewards.Count; i++)
+            {
+                if (Rewards[i].IsValid)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static BuildingCost[] CopyCosts(IReadOnlyList<BuildingCost> source)
+        {
+            if (source == null || source.Count == 0)
+            {
+                return Array.Empty<BuildingCost>();
+            }
+
+            var result = new BuildingCost[source.Count];
+            for (var i = 0; i < source.Count; i++)
+            {
+                result[i] = source[i].Normalized();
+            }
+
+            return result;
         }
 
     }
@@ -76,18 +108,30 @@ namespace Landsong.BuildingSystem
                 : Array.Empty<BuildingCost>();
         }
 
-        public void Configure(IReadOnlyList<IReadOnlyList<BuildingCost>> turnCosts)
+        public IReadOnlyList<BuildingCost> GetRewards(int turnIndex)
         {
-            if (turnCosts == null || turnCosts.Count == 0)
+            return turnIndex >= 0 && turnIndex < Turns.Count && Turns[turnIndex] != null
+                ? Turns[turnIndex].Rewards
+                : Array.Empty<BuildingCost>();
+        }
+
+        public void Configure(
+            IReadOnlyList<IReadOnlyList<BuildingCost>> turnCosts,
+            IReadOnlyList<IReadOnlyList<BuildingCost>> turnRewards = null)
+        {
+            var turnCount = Mathf.Max(turnCosts?.Count ?? 0, turnRewards?.Count ?? 0);
+            if (turnCount == 0)
             {
                 turns = new[] { new BuildingConstructionTurnDefinition() };
                 return;
             }
 
-            turns = new BuildingConstructionTurnDefinition[turnCosts.Count];
-            for (var i = 0; i < turnCosts.Count; i++)
+            turns = new BuildingConstructionTurnDefinition[turnCount];
+            for (var i = 0; i < turnCount; i++)
             {
-                turns[i] = new BuildingConstructionTurnDefinition(turnCosts[i]);
+                turns[i] = new BuildingConstructionTurnDefinition(
+                    i < (turnCosts?.Count ?? 0) ? turnCosts[i] : null,
+                    i < (turnRewards?.Count ?? 0) ? turnRewards[i] : null);
             }
 
             Normalize();
@@ -112,6 +156,19 @@ namespace Landsong.BuildingSystem
             for (var i = 0; i < Turns.Count; i++)
             {
                 if (Turns[i] != null && Turns[i].HasAnyCost())
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public bool HasAnyReward()
+        {
+            for (var i = 0; i < Turns.Count; i++)
+            {
+                if (Turns[i] != null && Turns[i].HasAnyReward())
                 {
                     return true;
                 }
@@ -374,7 +431,27 @@ namespace Landsong.BuildingSystem
             Normalize();
         }
 
+        /// <summary>
+        /// 由正式建筑数值表更新施工与等级数据。
+        /// 不触碰 Runtime Prefab、ModuleSet、Presentation，也不会顺带规范化这些 Unity 管理的资产。
+        /// </summary>
+        public void ConfigureImportedNumericData(
+            BuildingConstructionDefinition constructionDefinition,
+            IEnumerable<BuildingLevelDefinition> levelDefinitions)
+        {
+            construction = constructionDefinition ?? new BuildingConstructionDefinition();
+            levels = levelDefinitions == null
+                ? new[] { new BuildingLevelDefinition(1, true) }
+                : new List<BuildingLevelDefinition>(levelDefinitions).ToArray();
+            Normalize(false);
+        }
+
         private void Normalize()
+        {
+            Normalize(true);
+        }
+
+        private void Normalize(bool normalizeModuleSet)
         {
             definition ??= new BuildingDefinition();
             definition.Normalize();
@@ -393,7 +470,10 @@ namespace Landsong.BuildingSystem
                 levels[i].Normalize();
             }
 
-            moduleSet?.Normalize();
+            if (normalizeModuleSet)
+            {
+                moduleSet?.Normalize();
+            }
         }
 
         private static int CompareLevels(BuildingLevelDefinition left, BuildingLevelDefinition right)

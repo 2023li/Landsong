@@ -798,22 +798,15 @@ public sealed class TechnologyEditorWindow : EditorWindow
             return false;
         }
 
-        var targetPositionValid = TechnologyNodeId.TryParse(
-            targetDefinition.TechnologyId,
-            out _,
-            out var targetColumn);
-        var prerequisitePositionValid = TechnologyNodeId.TryParse(
-            prerequisiteDefinition.TechnologyId,
-            out _,
-            out var prerequisiteColumn);
-        if (!targetPositionValid
-            || !prerequisitePositionValid
-            || prerequisiteColumn != targetColumn - 1)
+        if (!ValidatePrerequisiteConnection(
+                targetDefinition,
+                prerequisiteDefinition,
+                catalog != null ? catalog.Definitions : null,
+                out var connectionError))
         {
             EditorUtility.DisplayDialog(
                 "无法添加依赖",
-                $"{targetDefinition.DisplayName} 位于第 {targetColumn} 列，只能依赖第 {targetColumn - 1} 列的科技。\n"
-                + $"{prerequisiteDefinition.DisplayName} 位于第 {prerequisiteColumn} 列。",
+                connectionError,
                 "确定");
             return false;
         }
@@ -972,11 +965,18 @@ public sealed class TechnologyEditorWindow : EditorWindow
                 return false;
             }
 
+            if (column > 1 && prerequisites.Count == 0)
+            {
+                invalidDefinition = definition;
+                errorMessage = $"第 {column} 列科技“{definition.DisplayName}”至少需要一个前置科技。";
+                return false;
+            }
+
             for (var prerequisiteIndex = 0; prerequisiteIndex < prerequisites.Count; prerequisiteIndex++)
             {
                 var prerequisite = prerequisites[prerequisiteIndex];
                 if (prerequisite == null
-                    || !TechnologyNodeId.TryParse(prerequisite.TechnologyId, out _, out var prerequisiteColumn))
+                    || !TechnologyNodeId.TryParse(prerequisite.TechnologyId, out _, out _))
                 {
                     invalidDefinition = definition;
                     errorMessage = $"科技“{definition.DisplayName}”包含空引用或 ID 无效的前置科技。";
@@ -992,18 +992,93 @@ public sealed class TechnologyEditorWindow : EditorWindow
                     return false;
                 }
 
-                if (prerequisiteColumn != column - 1)
+                if (!ValidatePrerequisiteConnection(
+                        definition,
+                        prerequisite,
+                        definitions,
+                        out var connectionError))
                 {
                     invalidDefinition = definition;
-                    errorMessage =
-                        $"科技“{definition.DisplayName}”位于第 {column} 列，只能依赖第 {column - 1} 列。\n"
-                        + $"当前前置“{prerequisite.DisplayName}”位于第 {prerequisiteColumn} 列。";
+                    errorMessage = connectionError;
                     return false;
                 }
             }
         }
 
         return true;
+    }
+
+    private static bool ValidatePrerequisiteConnection(
+        TechnologyDefinition targetDefinition,
+        TechnologyDefinition prerequisiteDefinition,
+        IReadOnlyList<TechnologyDefinition> definitions,
+        out string errorMessage)
+    {
+        errorMessage = string.Empty;
+        if (targetDefinition == null || prerequisiteDefinition == null)
+        {
+            errorMessage = "目标科技或前置科技为空。";
+            return false;
+        }
+
+        if (!TechnologyNodeId.TryParse(targetDefinition.TechnologyId, out _, out var targetColumn))
+        {
+            errorMessage = $"目标科技“{targetDefinition.DisplayName}”的节点 ID 无法解析。";
+            return false;
+        }
+
+        if (!TechnologyNodeId.TryParse(
+                prerequisiteDefinition.TechnologyId,
+                out var prerequisiteRow,
+                out var prerequisiteColumn))
+        {
+            errorMessage = $"前置科技“{prerequisiteDefinition.DisplayName}”的节点 ID 无法解析。";
+            return false;
+        }
+
+        if (prerequisiteColumn >= targetColumn)
+        {
+            errorMessage =
+                $"科技“{targetDefinition.DisplayName}”位于第 {targetColumn} 列，"
+                + $"前置“{prerequisiteDefinition.DisplayName}”必须位于它的左侧；"
+                + $"当前前置位于第 {prerequisiteColumn} 列。";
+            return false;
+        }
+
+        TechnologyDefinition nearestSkippedDefinition = null;
+        var nearestSkippedColumn = int.MinValue;
+        if (definitions != null)
+        {
+            for (var i = 0; i < definitions.Count; i++)
+            {
+                var candidate = definitions[i];
+                if (candidate == null
+                    || candidate == prerequisiteDefinition
+                    || candidate == targetDefinition
+                    || !TechnologyNodeId.TryParse(candidate.TechnologyId, out var candidateRow, out var candidateColumn)
+                    || candidateRow != prerequisiteRow
+                    || candidateColumn <= prerequisiteColumn
+                    || candidateColumn >= targetColumn
+                    || candidateColumn <= nearestSkippedColumn)
+                {
+                    continue;
+                }
+
+                nearestSkippedDefinition = candidate;
+                nearestSkippedColumn = candidateColumn;
+            }
+        }
+
+        if (nearestSkippedDefinition == null)
+        {
+            return true;
+        }
+
+        errorMessage =
+            $"科技“{targetDefinition.DisplayName}”不能依赖“{prerequisiteDefinition.DisplayName}”："
+            + $"前置所在的第 {prerequisiteRow} 行在第 {nearestSkippedColumn} 列已经存在"
+            + $"“{nearestSkippedDefinition.DisplayName}”，不能跳过已有中间节点。";
+        return false;
     }
 
     private static bool ValidateTechnologyNodeIdFormat(string technologyId, out string errorMessage)

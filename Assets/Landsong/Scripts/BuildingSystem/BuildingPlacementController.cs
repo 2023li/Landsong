@@ -351,7 +351,12 @@ namespace Landsong.BuildingSystem
             }
 
             var definition = buildingPrefab.Definition;
-            if (!gridMap.CanOccupy(origin, definition.Size, definition.RequiredTerrainKeys, out var failureReason))
+            if (!gridMap.CanOccupy(
+                    origin,
+                    definition.Size,
+                    definition.RequiredTerrainKeys,
+                    definition.RequiredAnyFootprintTerrainKeys,
+                    out var failureReason))
             {
                 Debug.LogWarning($"Cannot place building '{definition.DisplayName}' at {origin}: {failureReason}.", this);
                 isConfirming = false;

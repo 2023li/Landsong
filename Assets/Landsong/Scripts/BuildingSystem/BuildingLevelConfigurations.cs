@@ -347,4 +347,165 @@ namespace Landsong.BuildingSystem
             amount = Mathf.Max(0, amount);
         }
     }
+
+    [Serializable]
+    public sealed class BuildingMaintenanceLevelConfiguration : BuildingLevelConfigurationBase
+    {
+        [SerializeField, AssetsOnly, LabelText("维护费物品")]
+        private ItemDefinition itemDefinition;
+
+        [SerializeField, LabelText("每回合维护费"), Min(0)]
+        private int amountPerTurn;
+
+        public BuildingMaintenanceLevelConfiguration()
+        {
+        }
+
+        public BuildingMaintenanceLevelConfiguration(ItemDefinition itemDefinition, int amountPerTurn)
+        {
+            this.itemDefinition = itemDefinition;
+            this.amountPerTurn = amountPerTurn;
+            Normalize();
+        }
+
+        public override string ConfigurationId => "maintenance";
+        public ItemDefinition ItemDefinition => itemDefinition;
+        public int AmountPerTurn => Mathf.Max(0, amountPerTurn);
+
+        public override void Apply(BuildingBase building)
+        {
+            building.GetRequiredModule<BM_维护费>().ApplyConfiguration(itemDefinition, AmountPerTurn);
+        }
+
+        public override void Normalize()
+        {
+            amountPerTurn = Mathf.Max(0, amountPerTurn);
+        }
+    }
+
+    [Serializable]
+    public sealed class BuildingOperationalExperienceLevelConfiguration : BuildingLevelConfigurationBase
+    {
+        [SerializeField, LabelText("获得经验所需工人"), Min(0)]
+        private int requiredWorkers;
+
+        [SerializeField, LabelText("每回合经验"), Min(0)]
+        private int experiencePerTurn;
+
+        [SerializeField, LabelText("升下一级所需经验"), Min(0)]
+        private int nextLevelExperience;
+
+        public BuildingOperationalExperienceLevelConfiguration()
+        {
+        }
+
+        public BuildingOperationalExperienceLevelConfiguration(
+            int requiredWorkers,
+            int experiencePerTurn,
+            int nextLevelExperience)
+        {
+            this.requiredWorkers = requiredWorkers;
+            this.experiencePerTurn = experiencePerTurn;
+            this.nextLevelExperience = nextLevelExperience;
+            Normalize();
+        }
+
+        public override string ConfigurationId => "operational_experience";
+        public int RequiredWorkers => Mathf.Max(0, requiredWorkers);
+        public int ExperiencePerTurn => Mathf.Max(0, experiencePerTurn);
+        public int NextLevelExperience => Mathf.Max(0, nextLevelExperience);
+
+        public override void Apply(BuildingBase building)
+        {
+            building.GetRequiredModule<BM_运营经验>().ApplyConfiguration(
+                RequiredWorkers,
+                ExperiencePerTurn,
+                NextLevelExperience);
+        }
+
+        public override void Normalize()
+        {
+            requiredWorkers = Mathf.Max(0, requiredWorkers);
+            experiencePerTurn = Mathf.Max(0, experiencePerTurn);
+            nextLevelExperience = Mathf.Max(0, nextLevelExperience);
+        }
+    }
+
+    [Serializable]
+    public sealed class WarehouseLevelConfiguration : BuildingLevelConfigurationBase
+    {
+        [SerializeField, LabelText("容量所需工人"), Min(0)] private int requiredWorkers = 2;
+        [SerializeField, LabelText("基础库存格"), Min(0)] private int providedSlots = 1;
+        [SerializeField, AssetsOnly, LabelText("维护费物品")] private ItemDefinition maintenanceItemDefinition;
+        [SerializeField, LabelText("每回合维护费"), Min(0)] private int maintenancePerTurn = 1;
+        [SerializeField, LabelText("获得经验所需工人"), Min(0)] private int experienceWorkers = 2;
+        [SerializeField, LabelText("每回合经验"), Min(0)] private int experiencePerTurn = 1;
+        [SerializeField, LabelText("升下一级所需经验"), Min(0)] private int nextLevelExperience = 30;
+        [SerializeField, LabelText("奖励工人阈值"), Min(0)] private int bonusWorkerThreshold;
+        [SerializeField, LabelText("奖励库存格"), Min(0)] private int bonusSlots;
+        [SerializeField, LabelText("维护失败吸引力惩罚"), Min(0f)] private float maintenanceFailureAttractionPenalty = 10f;
+
+        public WarehouseLevelConfiguration()
+        {
+        }
+
+        public WarehouseLevelConfiguration(
+            int requiredWorkers,
+            int providedSlots,
+            ItemDefinition maintenanceItemDefinition,
+            int maintenancePerTurn,
+            int experienceWorkers,
+            int experiencePerTurn,
+            int nextLevelExperience,
+            int bonusWorkerThreshold,
+            int bonusSlots,
+            float maintenanceFailureAttractionPenalty)
+        {
+            this.requiredWorkers = requiredWorkers;
+            this.providedSlots = providedSlots;
+            this.maintenanceItemDefinition = maintenanceItemDefinition;
+            this.maintenancePerTurn = maintenancePerTurn;
+            this.experienceWorkers = experienceWorkers;
+            this.experiencePerTurn = experiencePerTurn;
+            this.nextLevelExperience = nextLevelExperience;
+            this.bonusWorkerThreshold = bonusWorkerThreshold;
+            this.bonusSlots = bonusSlots;
+            this.maintenanceFailureAttractionPenalty = maintenanceFailureAttractionPenalty;
+            Normalize();
+        }
+
+        public override string ConfigurationId => "warehouse.operation";
+        public ItemDefinition MaintenanceItemDefinition => maintenanceItemDefinition;
+        public int RequiredWorkers => Mathf.Max(0, requiredWorkers);
+        public int ExperienceWorkers => Mathf.Max(0, experienceWorkers);
+        public int BonusWorkerThreshold => Mathf.Max(0, bonusWorkerThreshold);
+
+        public override void Apply(BuildingBase building)
+        {
+            building.GetRequiredModule<BM_仓库运营>().ApplyConfiguration(
+                requiredWorkers,
+                providedSlots,
+                maintenanceItemDefinition,
+                maintenancePerTurn,
+                experienceWorkers,
+                experiencePerTurn,
+                nextLevelExperience,
+                bonusWorkerThreshold,
+                bonusSlots,
+                maintenanceFailureAttractionPenalty);
+        }
+
+        public override void Normalize()
+        {
+            requiredWorkers = Mathf.Max(0, requiredWorkers);
+            providedSlots = Mathf.Max(0, providedSlots);
+            maintenancePerTurn = Mathf.Max(0, maintenancePerTurn);
+            experienceWorkers = Mathf.Max(0, experienceWorkers);
+            experiencePerTurn = Mathf.Max(0, experiencePerTurn);
+            nextLevelExperience = Mathf.Max(0, nextLevelExperience);
+            bonusWorkerThreshold = Mathf.Max(0, bonusWorkerThreshold);
+            bonusSlots = Mathf.Max(0, bonusSlots);
+            maintenanceFailureAttractionPenalty = Mathf.Max(0f, maintenanceFailureAttractionPenalty);
+        }
+    }
 }

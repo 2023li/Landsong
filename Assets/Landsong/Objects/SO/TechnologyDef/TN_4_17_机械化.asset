@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3b70d7f4d394dd9a76b0bc2e5c6a101, type: 3}
+  m_Name: "TN_4_17_机械化"
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.TechnologySystem.TechnologyDefinition
+  icon: {fileID: 0}
+  technologyId: "TN_4_17_机械化"
+  displayName: "机械化"
+  description: "把动力、控制和标准部件广泛部署到生产与运输中，降低对人工操作的依赖。"
+  sciencePointCost: 335
+  allowRepeatResearch: 0
+  prerequisites:
+  - {fileID: 11400000, guid: 1f5d82443dfd4908b3a245734e0c8c67, type: 2}
+  - {fileID: 11400000, guid: d7cb1504739846abbb752e6dba090371, type: 2}
+  completionEffects: []
+  graphPosition: {x: 3520, y: 450}
+  references:
+    version: 2
+    RefIds: []

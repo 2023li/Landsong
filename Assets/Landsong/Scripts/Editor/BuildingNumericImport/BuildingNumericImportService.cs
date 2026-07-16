@@ -1,7 +1,9 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Landsong.BuildingSystem;
 using Landsong.ConditionSystem;
 using Landsong.InventorySystem;
@@ -20,7 +22,8 @@ namespace Landsong.EditorTools.Buildings.NumericImport
             BuildingNumericImportReport report,
             Dictionary<string, BuildingFamilyDefinition> families,
             Dictionary<string, ItemDefinition> items,
-            Dictionary<string, TechnologyDefinition> technologies)
+            Dictionary<string, TechnologyDefinition> technologies,
+            Dictionary<string, TechnologyGlobalBuffDefinition> globalBuffs)
         {
             ProjectRelativePath = projectRelativePath;
             AbsolutePath = absolutePath;
@@ -29,6 +32,7 @@ namespace Landsong.EditorTools.Buildings.NumericImport
             Families = families;
             Items = items;
             Technologies = technologies;
+            GlobalBuffs = globalBuffs;
         }
 
         public string ProjectRelativePath { get; }
@@ -38,7 +42,126 @@ namespace Landsong.EditorTools.Buildings.NumericImport
         public Dictionary<string, BuildingFamilyDefinition> Families { get; }
         public Dictionary<string, ItemDefinition> Items { get; }
         public Dictionary<string, TechnologyDefinition> Technologies { get; }
+        public Dictionary<string, TechnologyGlobalBuffDefinition> GlobalBuffs { get; }
+        public BuildingNumericImportChangePlan ChangePlan { get; internal set; } =
+            new BuildingNumericImportChangePlan();
         public bool IsValid => Data != null && Report != null && !Report.HasErrors;
+        public bool HasChanges => IsValid && ChangePlan.HasChanges;
+    }
+
+    internal sealed class BuildingSpatialEffectImportChange
+    {
+        public BuildingSpatialEffectImportChange(
+            string familyId,
+            string effectId,
+            BuildingSpatialEffectDefinition definition)
+        {
+            FamilyId = familyId;
+            EffectId = effectId;
+            Definition = definition;
+        }
+
+        public string FamilyId { get; }
+        public string EffectId { get; }
+        public BuildingSpatialEffectDefinition Definition { get; }
+    }
+
+    internal sealed class TechnologyGlobalBuffImportChange
+    {
+        public TechnologyGlobalBuffImportChange(
+            string buffId,
+            TechnologyGlobalBuffDefinition definition)
+        {
+            BuffId = buffId;
+            Definition = definition;
+        }
+
+        public string BuffId { get; }
+        public TechnologyGlobalBuffDefinition Definition { get; }
+    }
+
+    internal sealed class BuildingNumericImportChangePlan
+    {
+        private readonly HashSet<string> familyAssetIds = new HashSet<string>(StringComparer.Ordinal);
+        private readonly HashSet<string> moduleSetAssetIds = new HashSet<string>(StringComparer.Ordinal);
+        private readonly HashSet<string> runtimePrefabAssetIds = new HashSet<string>(StringComparer.Ordinal);
+        private readonly HashSet<string> changedFamilyIds = new HashSet<string>(StringComparer.Ordinal);
+        private readonly HashSet<UnityEngine.Object> changedAssets = new HashSet<UnityEngine.Object>();
+        private readonly List<BuildingSpatialEffectImportChange> spatialEffectChanges =
+            new List<BuildingSpatialEffectImportChange>();
+        private readonly List<TechnologyGlobalBuffImportChange> globalBuffChanges =
+            new List<TechnologyGlobalBuffImportChange>();
+        private readonly List<string> messages = new List<string>();
+
+        public bool HasChanges => changedAssets.Count > 0;
+        public int ChangedAssetCount => changedAssets.Count;
+        public int ChangedFamilyCount => changedFamilyIds.Count;
+        public IReadOnlyList<string> Messages => messages;
+        public IReadOnlyList<BuildingSpatialEffectImportChange> SpatialEffectChanges => spatialEffectChanges;
+        public IReadOnlyList<TechnologyGlobalBuffImportChange> GlobalBuffChanges => globalBuffChanges;
+
+        public bool ChangesFamilyAsset(string familyId) => familyAssetIds.Contains(familyId);
+        public bool ChangesModuleSetAsset(string familyId) => moduleSetAssetIds.Contains(familyId);
+        public bool ChangesRuntimePrefabAsset(string familyId) => runtimePrefabAssetIds.Contains(familyId);
+
+        public void AddFamilyAsset(string familyId, BuildingFamilyDefinition family, string summary)
+        {
+            if (!familyAssetIds.Add(familyId)) return;
+            AddAsset(familyId, family);
+            messages.Add($"{familyId}：{summary}（{AssetDatabase.GetAssetPath(family)}）");
+        }
+
+        public void AddModuleSetAsset(
+            string familyId,
+            BuildingModuleSetDefinition moduleSet,
+            string summary)
+        {
+            if (moduleSet == null || !moduleSetAssetIds.Add(familyId)) return;
+            AddAsset(familyId, moduleSet);
+            messages.Add($"{familyId}：{summary}（{AssetDatabase.GetAssetPath(moduleSet)}）");
+        }
+
+        public void AddRuntimePrefabAsset(string familyId, BuildingBase runtimePrefab, string summary)
+        {
+            if (runtimePrefab == null || !runtimePrefabAssetIds.Add(familyId)) return;
+            AddAsset(familyId, runtimePrefab.transform.root.gameObject);
+            messages.Add($"{familyId}：{summary}（{AssetDatabase.GetAssetPath(runtimePrefab)}）");
+        }
+
+        public void AddSpatialEffectAsset(
+            string familyId,
+            string effectId,
+            BuildingSpatialEffectDefinition definition)
+        {
+            if (definition == null || spatialEffectChanges.Any(change => change.Definition == definition)) return;
+            spatialEffectChanges.Add(new BuildingSpatialEffectImportChange(familyId, effectId, definition));
+            AddAsset(familyId, definition);
+            messages.Add(
+                $"{familyId}：更新空间效果 {effectId} 的数值（{AssetDatabase.GetAssetPath(definition)}）");
+        }
+
+        public void AddGlobalBuffAsset(
+            string buffId,
+            TechnologyGlobalBuffDefinition definition)
+        {
+            if (definition == null || globalBuffChanges.Any(change => change.Definition == definition)) return;
+            globalBuffChanges.Add(new TechnologyGlobalBuffImportChange(buffId, definition));
+            changedAssets.Add(definition);
+            messages.Add($"global-buff:{buffId}：更新全局生产 Buff 数值（{AssetDatabase.GetAssetPath(definition)}）");
+        }
+
+        private void AddAsset(string familyId, UnityEngine.Object asset)
+        {
+            if (asset != null)
+            {
+                changedAssets.Add(asset);
+            }
+
+            if (!string.IsNullOrWhiteSpace(familyId))
+            {
+                changedFamilyIds.Add(familyId);
+            }
+        }
     }
 
     internal static class BuildingNumericImportService
@@ -61,13 +184,19 @@ namespace Landsong.EditorTools.Buildings.NumericImport
             "residential_housing",
             "workforce",
             "production",
-            "fishing_hut"
+            "fishing_hut",
+            "maintenance",
+            "operational_experience",
+            "warehouse.operation"
         };
 
         private static readonly HashSet<string> BuildingCategoryNames = new HashSet<string>(
             Enum.GetNames(typeof(BuildingCategory))
                 .Where(name => !string.Equals(name, nameof(BuildingCategory.None), StringComparison.Ordinal)),
             StringComparer.OrdinalIgnoreCase);
+
+        private static readonly Dictionary<Type, FieldInfo[]> SerializableFieldCache =
+            new Dictionary<Type, FieldInfo[]>();
 
         public static BuildingNumericImportSession Analyze(string projectRelativePath)
         {
@@ -86,7 +215,8 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                     report,
                     new Dictionary<string, BuildingFamilyDefinition>(),
                     new Dictionary<string, ItemDefinition>(),
-                    new Dictionary<string, TechnologyDefinition>());
+                    new Dictionary<string, TechnologyDefinition>(),
+                    new Dictionary<string, TechnologyGlobalBuffDefinition>());
             }
 
             BuildingNumericWorkbookReader.TryRead(absolutePath, report, out var data);
@@ -106,21 +236,43 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                 technology => technology == null ? string.Empty : technology.TechnologyId,
                 "科技",
                 report);
+            var globalBuffs = FindAssetsByStableId<TechnologyGlobalBuffDefinition>(
+                "t:TechnologyGlobalBuffDefinition",
+                definition => definition == null ? string.Empty : definition.BuffId,
+                "全局 Buff",
+                report);
 
-            if (data != null)
-            {
-                Validate(data, families, items, technologies, report);
-                BuildImpactPreview(data, families, report);
-            }
-
-            return new BuildingNumericImportSession(
+            var session = new BuildingNumericImportSession(
                 normalizedProjectPath,
                 absolutePath,
                 data,
                 report,
                 families,
                 items,
-                technologies);
+                technologies,
+                globalBuffs);
+
+            if (data != null)
+            {
+                Validate(data, families, items, technologies, globalBuffs, report);
+                if (!report.HasErrors)
+                {
+                    try
+                    {
+                        session.ChangePlan = BuildChangePlan(session);
+                        foreach (var message in session.ChangePlan.Messages)
+                        {
+                            report.Change(message);
+                        }
+                    }
+                    catch (Exception exception)
+                    {
+                        report.Error($"无法生成导入差异预览：{exception.Message}");
+                    }
+                }
+            }
+
+            return session;
         }
 
         public static bool TryResolveWorkbookPath(
@@ -208,6 +360,24 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                 return false;
             }
 
+            BuildingNumericImportChangePlan plan;
+            try
+            {
+                plan = BuildChangePlan(session);
+                session.ChangePlan = plan;
+            }
+            catch (Exception exception)
+            {
+                session.Report.Error($"执行导入前重新计算差异失败：{exception.Message}");
+                Debug.LogException(exception);
+                return false;
+            }
+
+            if (!plan.HasChanges)
+            {
+                return true;
+            }
+
             Undo.IncrementCurrentGroup();
             var undoGroup = Undo.GetCurrentGroup();
             Undo.SetCurrentGroupName("导入建筑数值表");
@@ -216,15 +386,51 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                 foreach (var familyRow in session.Data.Families)
                 {
                     var family = session.Families[familyRow.FamilyId];
-                    ApplyFamily(session, familyRow, family);
+                    if (plan.ChangesFamilyAsset(familyRow.FamilyId))
+                    {
+                        Undo.RecordObject(family, "导入建筑家族数值");
+                        ApplyFamilyAsset(session, familyRow, family);
+                    }
+
+                    if (plan.ChangesModuleSetAsset(familyRow.FamilyId))
+                    {
+                        Undo.RecordObject(family.ModuleSet, "导入建筑模块数值");
+                        ApplyManagedModuleDefaults(session, familyRow.FamilyId, family.ModuleSet);
+                        family.ModuleSet.Normalize();
+                        EditorUtility.SetDirty(family.ModuleSet);
+                    }
+
+                    if (plan.ChangesRuntimePrefabAsset(familyRow.FamilyId))
+                    {
+                        Undo.RecordObject(family.RuntimePrefab, "导入建筑 Prefab 数值");
+                        family.RuntimePrefab.ConfigureNumericAuthoringData(
+                            familyRow.IsResourceProviderPoint,
+                            familyRow.ResourceProviderPriority,
+                            familyRow.BuildingActionPower);
+                        EditorUtility.SetDirty(family.RuntimePrefab);
+                    }
+                }
+
+                foreach (var change in plan.SpatialEffectChanges)
+                {
+                    var row = session.Data.SpatialEffects.Single(value =>
+                        value.FamilyId == change.FamilyId && value.EffectId == change.EffectId);
+                    Undo.RecordObject(change.Definition, "导入建筑范围效果数值");
+                    ApplySpatialEffectDefaults(row, change.Definition);
+                    EditorUtility.SetDirty(change.Definition);
+                }
+
+                foreach (var change in plan.GlobalBuffChanges)
+                {
+                    var row = session.Data.TechnologyGlobalBuffs.Single(value =>
+                        value.BuffId == change.BuffId);
+                    Undo.RecordObject(change.Definition, "导入科技全局 Buff 数值");
+                    ApplyTechnologyGlobalBuff(row, change.Definition, session);
+                    EditorUtility.SetDirty(change.Definition);
                 }
 
                 Landsong.Editor.BuildingArchitectureValidator.Execute();
-                AssetDatabase.SaveAssets();
-
-                SaveRuntimePrefabs(session.Families.Values);
-                AssetDatabase.SaveAssets();
-                AssetDatabase.Refresh();
+                SaveChangedAssets(session, plan);
                 Undo.CollapseUndoOperations(undoGroup);
                 return true;
             }
@@ -234,8 +440,7 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                 try
                 {
                     Undo.RevertAllDownToGroup(undoGroup);
-                    SaveRuntimePrefabs(session.Families.Values);
-                    AssetDatabase.SaveAssets();
+                    SaveChangedAssets(session, plan);
                 }
                 catch (Exception rollbackException)
                 {
@@ -251,11 +456,24 @@ namespace Landsong.EditorTools.Buildings.NumericImport
             }
         }
 
-        private static void SaveRuntimePrefabs(IEnumerable<BuildingFamilyDefinition> families)
+        private static void SaveChangedAssets(
+            BuildingNumericImportSession session,
+            BuildingNumericImportChangePlan plan)
         {
-            foreach (var family in families)
+            foreach (var familyRow in session.Data.Families)
             {
-                if (family == null || family.RuntimePrefab == null)
+                var family = session.Families[familyRow.FamilyId];
+                if (plan.ChangesFamilyAsset(familyRow.FamilyId))
+                {
+                    AssetDatabase.SaveAssetIfDirty(family);
+                }
+
+                if (plan.ChangesModuleSetAsset(familyRow.FamilyId) && family.ModuleSet != null)
+                {
+                    AssetDatabase.SaveAssetIfDirty(family.ModuleSet);
+                }
+
+                if (!plan.ChangesRuntimePrefabAsset(familyRow.FamilyId) || family.RuntimePrefab == null)
                 {
                     continue;
                 }
@@ -266,24 +484,30 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                     PrefabUtility.SavePrefabAsset(root);
                 }
             }
+
+            foreach (var change in plan.SpatialEffectChanges)
+            {
+                if (change.Definition != null)
+                {
+                    AssetDatabase.SaveAssetIfDirty(change.Definition);
+                }
+            }
+
+
+            foreach (var change in plan.GlobalBuffChanges)
+            {
+                if (change.Definition != null)
+                {
+                    AssetDatabase.SaveAssetIfDirty(change.Definition);
+                }
+            }
         }
 
-        private static void ApplyFamily(
+        private static void ApplyFamilyAsset(
             BuildingNumericImportSession session,
             BuildingFamilyNumericRow row,
             BuildingFamilyDefinition family)
         {
-            Undo.RecordObject(family, "导入建筑家族数值");
-            if (family.ModuleSet != null)
-            {
-                Undo.RecordObject(family.ModuleSet, "导入建筑模块数值");
-            }
-
-            if (family.RuntimePrefab != null)
-            {
-                Undo.RecordObject(family.RuntimePrefab, "导入建筑 Prefab 数值");
-            }
-
             var placementCosts = session.Data.PlacementCosts
                 .Where(cost => cost.FamilyId == row.FamilyId)
                 .Select(cost => BuildCost(cost, session.Items))
@@ -296,8 +520,10 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                 new Vector2Int(row.SizeX, row.SizeY),
                 row.IgnoreTerrain,
                 terrainKeys,
+                SplitStableKeys(row.AnyFootprintTerrainKeys),
                 row.MovementResistance,
                 placementCosts,
+                BuildAutomaticCondition(row.BlueprintUnlockConditionId, session.Technologies),
                 row.BlueprintInitiallyLocked,
                 row.HideWhenBlueprintLocked,
                 row.BuildMenuSortOrder,
@@ -306,16 +532,21 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                 row.IsDevelopmentCompleted);
 
             var constructionTurns = new IReadOnlyList<BuildingCost>[row.ConstructionTurns];
+            var constructionRewards = new IReadOnlyList<BuildingCost>[row.ConstructionTurns];
             for (var turn = 1; turn <= row.ConstructionTurns; turn++)
             {
                 constructionTurns[turn - 1] = session.Data.ConstructionCosts
                     .Where(cost => cost.FamilyId == row.FamilyId && cost.LevelOrTurn == turn)
                     .Select(cost => BuildCost(cost, session.Items))
                     .ToArray();
+                constructionRewards[turn - 1] = session.Data.ConstructionRewards
+                    .Where(reward => reward.FamilyId == row.FamilyId && reward.LevelOrTurn == turn)
+                    .Select(reward => BuildCost(reward, session.Items))
+                    .ToArray();
             }
 
             var construction = new BuildingConstructionDefinition();
-            construction.Configure(constructionTurns);
+            construction.Configure(constructionTurns, constructionRewards);
 
             var existingLevels = family.Levels
                 .Where(level => level != null)
@@ -323,37 +554,15 @@ namespace Landsong.EditorTools.Buildings.NumericImport
             var levels = session.Data.Levels
                 .Where(level => level.FamilyId == row.FamilyId)
                 .OrderBy(level => level.Level)
-                .Select(level => BuildLevel(session, family, level, existingLevels))
+                .Select(level => BuildLevel(session, level, existingLevels))
                 .ToArray();
 
-            family.ConfigureRuntime(
-                family.RuntimePrefab,
-                construction,
-                levels,
-                family.ModuleSet,
-                family.Presentation);
-
-            if (family.RuntimePrefab != null)
-            {
-                family.RuntimePrefab.ConfigureNumericAuthoringData(
-                    row.IsResourceProviderPoint,
-                    row.ResourceProviderPriority,
-                    row.BuildingActionPower);
-                EditorUtility.SetDirty(family.RuntimePrefab);
-            }
-
-            ApplyModuleDefaults(session, row.FamilyId, family);
-            family.ModuleSet?.Normalize();
+            family.ConfigureImportedNumericData(construction, levels);
             EditorUtility.SetDirty(family);
-            if (family.ModuleSet != null)
-            {
-                EditorUtility.SetDirty(family.ModuleSet);
-            }
         }
 
         private static BuildingLevelDefinition BuildLevel(
             BuildingNumericImportSession session,
-            BuildingFamilyDefinition family,
             BuildingLevelNumericRow levelRow,
             IReadOnlyDictionary<int, BuildingLevelDefinition> existingLevels)
         {
@@ -365,6 +574,27 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                     .Where(configuration => configuration != null
                                             && !ImportedConfigurationIds.Contains(configuration.ConfigurationId)));
             }
+
+            configurations.AddRange(BuildImportedLevelConfigurations(session, levelRow));
+
+            var upgradeCosts = session.Data.UpgradeCosts
+                .Where(cost => cost.FamilyId == levelRow.FamilyId && cost.LevelOrTurn == levelRow.Level)
+                .Select(cost => BuildCost(cost, session.Items))
+                .ToArray();
+            var condition = BuildCondition(levelRow.ConditionId, existingLevel, session.Technologies);
+            return new BuildingLevelDefinition(
+                levelRow.Level,
+                levelRow.Configured,
+                upgradeCosts,
+                condition,
+                configurations);
+        }
+
+        private static IReadOnlyList<BuildingLevelConfigurationBase> BuildImportedLevelConfigurations(
+            BuildingNumericImportSession session,
+            BuildingLevelNumericRow levelRow)
+        {
+            var configurations = new List<BuildingLevelConfigurationBase>();
 
             var fixedPopulation = session.Data.FixedPopulation
                 .SingleOrDefault(value => IsLevel(value.FamilyId, value.Level, levelRow));
@@ -415,6 +645,25 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                     session.Items[workforce.GoldItemId]));
             }
 
+            var maintenance = session.Data.Maintenance
+                .SingleOrDefault(value => IsLevel(value.FamilyId, value.Level, levelRow));
+            if (maintenance != null)
+            {
+                configurations.Add(new BuildingMaintenanceLevelConfiguration(
+                    session.Items[maintenance.ItemId],
+                    maintenance.AmountPerTurn));
+            }
+
+            var operationalExperience = session.Data.OperationalExperience
+                .SingleOrDefault(value => IsLevel(value.FamilyId, value.Level, levelRow));
+            if (operationalExperience != null)
+            {
+                configurations.Add(new BuildingOperationalExperienceLevelConfiguration(
+                    operationalExperience.RequiredWorkers,
+                    operationalExperience.ExperiencePerTurn,
+                    operationalExperience.NextLevelExperience));
+            }
+
             var productionRows = session.Data.Production
                 .Where(value => IsLevel(value.FamilyId, value.Level, levelRow))
                 .ToArray();
@@ -444,25 +693,32 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                     fishing.Amount));
             }
 
-            var upgradeCosts = session.Data.UpgradeCosts
-                .Where(cost => cost.FamilyId == levelRow.FamilyId && cost.LevelOrTurn == levelRow.Level)
-                .Select(cost => BuildCost(cost, session.Items))
-                .ToArray();
-            var condition = BuildCondition(levelRow.ConditionId, existingLevel, session.Technologies);
-            return new BuildingLevelDefinition(
-                levelRow.Level,
-                levelRow.Configured,
-                upgradeCosts,
-                condition,
-                configurations);
+            var warehouse = session.Data.Warehouses
+                .SingleOrDefault(value => IsLevel(value.FamilyId, value.Level, levelRow));
+            if (warehouse != null)
+            {
+                configurations.Add(new WarehouseLevelConfiguration(
+                    warehouse.RequiredWorkers,
+                    warehouse.ProvidedSlots,
+                    session.Items[warehouse.MaintenanceItemId],
+                    warehouse.MaintenancePerTurn,
+                    warehouse.ExperienceWorkers,
+                    warehouse.ExperiencePerTurn,
+                    warehouse.NextLevelExperience,
+                    warehouse.BonusWorkerThreshold,
+                    warehouse.BonusSlots,
+                    warehouse.MaintenanceFailureAttractionPenalty));
+            }
+
+            return configurations;
         }
 
-        private static void ApplyModuleDefaults(
+        private static void ApplyManagedModuleDefaults(
             BuildingNumericImportSession session,
             string familyId,
-            BuildingFamilyDefinition family)
+            BuildingModuleSetDefinition moduleSet)
         {
-            var modules = family.ModuleSet?.BuildingModules ?? Array.Empty<BuildingModuleBase>();
+            var modules = moduleSet?.BuildingModules ?? Array.Empty<BuildingModuleBase>();
             var market = modules.OfType<BM_市场资源结算>().FirstOrDefault();
             if (market != null)
             {
@@ -514,6 +770,44 @@ namespace Landsong.EditorTools.Buildings.NumericImport
             }
         }
 
+        private static void ApplySpatialEffectDefaults(
+            SpatialEffectNumericRow row,
+            BuildingSpatialEffectDefinition definition)
+        {
+            TryParseSpatialEffectKind(row.Kind, out var kind);
+            TryParseSpatialTargetFilter(row.TargetFilter, out var targetFilter);
+            TryParseSpatialStackingRule(row.StackingRule, out var stackingRule);
+            definition.ConfigureNumericData(
+                row.EffectId,
+                row.DisplayName,
+                kind,
+                targetFilter,
+                row.OperationalLevel,
+                row.MinimumWorkers,
+                row.Range,
+                row.Value,
+                stackingRule,
+                row.IncludeSourceFootprint);
+        }
+
+        private static void ApplyTechnologyGlobalBuff(
+            TechnologyGlobalBuffNumericRow row,
+            TechnologyGlobalBuffDefinition definition,
+            BuildingNumericImportSession session)
+        {
+            var effect = new TechnologyGlobalBuffEffect_BuildingProductionFlat();
+            effect.Configure(
+                session.Families[row.FamilyId],
+                session.Items[row.OutputItemId],
+                row.FlatBonus);
+            definition.ConfigureNumericData(
+                row.BuffId,
+                row.DisplayName,
+                definition.Icon,
+                BuildAutomaticCondition(row.ConditionId, session.Technologies),
+                new TechnologyGlobalBuffEffect[] { effect });
+        }
+
         private static GameCondition BuildCondition(
             string conditionId,
             BuildingLevelDefinition existingLevel,
@@ -537,11 +831,29 @@ namespace Landsong.EditorTools.Buildings.NumericImport
             };
         }
 
+        private static GameCondition BuildAutomaticCondition(
+            string conditionId,
+            IReadOnlyDictionary<string, TechnologyDefinition> technologies)
+        {
+            var normalized = NormalizeStableId(conditionId);
+            if (string.Equals(normalized, ConditionNone, StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            var technologyId = normalized.Substring(TechnologyConditionPrefix.Length);
+            return new GameCondition_TechnologyUnlocked
+            {
+                TechnologyDefinition = technologies[technologyId]
+            };
+        }
+
         private static void Validate(
             BuildingNumericWorkbookData data,
             IReadOnlyDictionary<string, BuildingFamilyDefinition> families,
             IReadOnlyDictionary<string, ItemDefinition> items,
             IReadOnlyDictionary<string, TechnologyDefinition> technologies,
+            IReadOnlyDictionary<string, TechnologyGlobalBuffDefinition> globalBuffs,
             BuildingNumericImportReport report)
         {
             ValidateUnique(data.Families, row => row.FamilyId, "FamilyId 重复", report);
@@ -559,6 +871,12 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                 if (row.BuildingActionPower < 0) report.Error("行动力预算不能小于 0。", row.Sheet, row.Row);
                 if (row.HideWhenBlueprintLocked && !row.BlueprintInitiallyLocked)
                     report.Warning("已勾选锁定时隐藏，但蓝图并非初始锁定。", row.Sheet, row.Row);
+                ValidateAutomaticCondition(
+                    row.BlueprintUnlockConditionId,
+                    "蓝图解锁ConditionId",
+                    row,
+                    technologies,
+                    report);
             }
 
             foreach (var family in families)
@@ -571,6 +889,7 @@ namespace Landsong.EditorTools.Buildings.NumericImport
 
             ValidateCosts(data.PlacementCosts, data, families, items, false, report);
             ValidateCosts(data.ConstructionCosts, data, families, items, true, report);
+            ValidateCosts(data.ConstructionRewards, data, families, items, true, report);
             ValidateCosts(data.UpgradeCosts, data, families, items, true, report);
             ValidateUnique(data.Levels, row => LevelKey(row.FamilyId, row.Level), "FamilyId + Level 重复", report);
             ValidateLevels(data, families, technologies, report);
@@ -581,8 +900,20 @@ namespace Landsong.EditorTools.Buildings.NumericImport
             ValidateLevelTable(data.Residential, row => row.FamilyId, row => row.Level, families, data, typeof(BM_居民运营), "住宅", report);
             ValidateLevelTable(data.Workforce, row => row.FamilyId, row => row.Level, families, data, typeof(BM_岗位运营), "岗位", report);
             ValidateLevelTable(data.FishingRare, row => row.FamilyId, row => row.Level, families, data, typeof(BM_稀有产出), "捕鱼稀有产出", report);
+            ValidateLevelTable(data.Maintenance, row => row.FamilyId, row => row.Level, families, data, typeof(BM_维护费), "维护费", report);
+            ValidateLevelTable(
+                data.OperationalExperience,
+                row => row.FamilyId,
+                row => row.Level,
+                families,
+                data,
+                typeof(BM_运营经验),
+                "运营经验",
+                report);
+            ValidateLevelTable(data.Warehouses, row => row.FamilyId, row => row.Level, families, data, typeof(BM_仓库运营), "仓库运营", report);
             ValidateProduction(data, families, items, report);
             ValidateModuleRows(data, families, items, report);
+            ValidateTechnologyGlobalBuffs(data, families, items, technologies, globalBuffs, report);
 
             foreach (var row in data.FixedPopulation) if (row.Population < 0) report.Error("提供人口不能小于 0。", row.Sheet, row.Row);
             foreach (var row in data.InventoryCapacity) if (row.Slots < 0) report.Error("提供库存格不能小于 0。", row.Sheet, row.Row);
@@ -671,15 +1002,15 @@ namespace Landsong.EditorTools.Buildings.NumericImport
         {
             ValidateUnique(rows,
                 row => indexed ? $"{row.FamilyId}\u001f{row.LevelOrTurn}\u001f{row.ItemId}" : $"{row.FamilyId}\u001f{row.ItemId}",
-                "消耗键重复",
+                "资源行键重复",
                 report);
             foreach (var row in rows)
             {
                 if (!families.ContainsKey(row.FamilyId)) report.Error($"未知 FamilyId：{row.FamilyId}", row.Sheet, row.Row);
                 RequireItem(row.ItemId, row, items, report);
-                if (row.Amount <= 0) report.Error("消耗数量必须大于 0。", row.Sheet, row.Row);
+                if (row.Amount <= 0) report.Error("数量必须大于 0。", row.Sheet, row.Row);
                 if (!indexed) continue;
-                if (row.Sheet == "施工消耗")
+                if (row.Sheet == "施工消耗" || row.Sheet == "施工产出")
                 {
                     var family = data.Families.SingleOrDefault(value => value.FamilyId == row.FamilyId);
                     if (family != null && (row.LevelOrTurn < 1 || row.LevelOrTurn > family.ConstructionTurns))
@@ -729,6 +1060,11 @@ namespace Landsong.EditorTools.Buildings.NumericImport
         {
             ValidateUnique(data.Markets, row => row.FamilyId, "市场模块 FamilyId 重复", report);
             ValidateUnique(data.Trees, row => row.FamilyId, "树木模块 FamilyId 重复", report);
+            ValidateUnique(
+                data.SpatialEffects,
+                row => $"{row.FamilyId}\u001f{row.EffectId}",
+                "范围效果 FamilyId + EffectId 重复",
+                report);
             foreach (var row in data.Markets)
             {
                 ValidateModulePresence(row.FamilyId, row, families, typeof(BM_市场资源结算), report);
@@ -743,6 +1079,118 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                 if (row.MinHealth < 1 || row.MaxHealth < row.MinHealth || row.DamagePerDoubleClick < 1 || row.WoodReward < 0 || row.SaplingReward < 0)
                     report.Error("树木生命、伤害或奖励参数非法。", row.Sheet, row.Row);
             }
+            foreach (var row in data.Maintenance)
+            {
+                RequireItem(row.ItemId, row, items, report);
+                if (row.AmountPerTurn < 0) report.Error("维护费不能小于 0。", row.Sheet, row.Row);
+            }
+            foreach (var row in data.OperationalExperience)
+            {
+                if (row.RequiredWorkers < 0
+                    || row.ExperiencePerTurn < 0
+                    || row.NextLevelExperience < 0)
+                {
+                    report.Error("运营经验数值不能小于 0。", row.Sheet, row.Row);
+                }
+
+                var workforce = data.Workforce.SingleOrDefault(value =>
+                    IsLevel(value.FamilyId, value.Level, row.FamilyId, row.Level));
+                if (workforce != null && row.RequiredWorkers > workforce.MaxWorkers)
+                {
+                    report.Error("运营经验工人阈值不能超过该等级岗位上限。", row.Sheet, row.Row);
+                }
+            }
+            foreach (var row in data.Warehouses)
+            {
+                RequireItem(row.MaintenanceItemId, row, items, report);
+                if (row.RequiredWorkers < 0
+                    || row.ProvidedSlots < 0
+                    || row.MaintenancePerTurn < 0
+                    || row.ExperienceWorkers < 0
+                    || row.ExperiencePerTurn < 0
+                    || row.NextLevelExperience < 0
+                    || row.BonusWorkerThreshold < 0
+                    || row.BonusSlots < 0
+                    || row.MaintenanceFailureAttractionPenalty < 0f)
+                {
+                    report.Error("仓库运营数值不能小于 0。", row.Sheet, row.Row);
+                }
+
+                var workforce = data.Workforce.SingleOrDefault(value =>
+                    IsLevel(value.FamilyId, value.Level, row.FamilyId, row.Level));
+                if (workforce != null
+                    && (row.RequiredWorkers > workforce.MaxWorkers
+                        || row.ExperienceWorkers > workforce.MaxWorkers
+                        || row.BonusWorkerThreshold > workforce.MaxWorkers))
+                {
+                    report.Error("仓库工人阈值不能超过该等级岗位上限。", row.Sheet, row.Row);
+                }
+            }
+            foreach (var row in data.SpatialEffects)
+            {
+                ValidateModulePresence(row.FamilyId, row, families, typeof(BM_空间效果源), report);
+                if (!families.TryGetValue(row.FamilyId, out var family))
+                {
+                    continue;
+                }
+
+                var source = family.ModuleSet?.BuildingModules
+                    .OfType<BM_空间效果源>()
+                    .FirstOrDefault(module => module.IsEnabled);
+                var definition = source?.Effects.FirstOrDefault(effect =>
+                    effect != null && effect.EffectId == row.EffectId);
+                if (definition == null)
+                {
+                    report.Error(
+                        $"家族范围效果模块中找不到 EffectId：{row.EffectId}。必须先在 Unity 中创建效果资产并挂入 ModuleSet。",
+                        row.Sheet,
+                        row.Row);
+                }
+
+                var kindValid = TryParseSpatialEffectKind(row.Kind, out var kind);
+                var targetValid = TryParseSpatialTargetFilter(row.TargetFilter, out var targetFilter);
+                var stackingValid = TryParseSpatialStackingRule(row.StackingRule, out _);
+                if (!kindValid)
+                    report.Error("Kind 只支持 beauty、medical、security 或 production_percent。", row.Sheet, row.Row);
+                if (!targetValid)
+                    report.Error("TargetFilter 只支持 cell、any_building 或 farmland。", row.Sheet, row.Row);
+                if (!stackingValid)
+                    report.Error("StackingRule 只支持 additive、no_stack 或 highest_value。", row.Sheet, row.Row);
+                if (row.OperationalLevel < 0 || row.MinimumWorkers < 0)
+                    report.Error("生效Level 和最低工人不能小于 0。", row.Sheet, row.Row);
+                if (row.Range < 0 || row.Value <= 0)
+                    report.Error("范围效果半径不能小于 0，效果数值必须大于 0。", row.Sheet, row.Row);
+                if (!row.IncludeSourceFootprint && row.Range < 1)
+                    report.Error("不影响自身占地时，曼哈顿半径必须至少为 1。", row.Sheet, row.Row);
+                if (kindValid && targetValid
+                    && (kind == BuildingSpatialEffectKind.Beauty
+                        || kind == BuildingSpatialEffectKind.Medical
+                        || kind == BuildingSpatialEffectKind.Security)
+                    && targetFilter != BuildingSpatialTargetFilter.Cell)
+                    report.Error("美化、医疗和治安效果的 TargetFilter 必须为 cell。", row.Sheet, row.Row);
+                if (kindValid && targetValid
+                    && kind == BuildingSpatialEffectKind.ProductionPercent
+                    && targetFilter == BuildingSpatialTargetFilter.Cell)
+                    report.Error("生产百分比效果不能使用 cell 目标。", row.Sheet, row.Row);
+
+                if (row.OperationalLevel > 0)
+                {
+                    var level = data.Levels.SingleOrDefault(value =>
+                        IsLevel(value.FamilyId, value.Level, row.FamilyId, row.OperationalLevel));
+                    if (level == null || !level.Configured)
+                    {
+                        report.Error("范围效果的生效Level 必须存在且已经开放。", row.Sheet, row.Row);
+                    }
+
+                    var workforce = data.Workforce.SingleOrDefault(value =>
+                        IsLevel(value.FamilyId, value.Level, row.FamilyId, row.OperationalLevel));
+                    if (row.MinimumWorkers > 0
+                        && (workforce == null || row.MinimumWorkers > workforce.MaxWorkers))
+                    {
+                        report.Error("范围效果最低工人超过该等级岗位上限或缺少岗位配置。", row.Sheet, row.Row);
+                    }
+                }
+            }
 
             foreach (var family in families.Values)
             {
@@ -750,6 +1198,27 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                     report.Error($"{family.FamilyId} 的市场模块必须有且只有一行配置。");
                 if (HasModule(family, typeof(BM_树木采集)) && data.Trees.Count(row => row.FamilyId == family.FamilyId) != 1)
                     report.Error($"{family.FamilyId} 的树木模块必须有且只有一行配置。");
+                var spatialEffectSource = family.ModuleSet?.BuildingModules
+                    .OfType<BM_空间效果源>()
+                    .FirstOrDefault(module => module.IsEnabled);
+                if (spatialEffectSource != null)
+                {
+                    foreach (var effect in spatialEffectSource.Effects)
+                    {
+                        if (effect == null || string.IsNullOrWhiteSpace(effect.EffectId))
+                        {
+                            report.Error($"{family.FamilyId} 的范围效果模块包含空引用或无 EffectId 的效果资产。");
+                            continue;
+                        }
+
+                        if (data.SpatialEffects.Count(row =>
+                                row.FamilyId == family.FamilyId && row.EffectId == effect.EffectId) != 1)
+                        {
+                            report.Error(
+                                $"{family.FamilyId} 的范围效果 {effect.EffectId} 必须有且只有一行配置。");
+                        }
+                    }
+                }
             }
 
             ValidateUnique(data.Crops, row => $"{row.FamilyId}\u001f{row.CropId}", "作物 ID 重复", report);
@@ -845,22 +1314,529 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                 report.Error($"找不到 ItemDefinition：{itemId}", row.Sheet, row.Row);
         }
 
-        private static void BuildImpactPreview(
-            BuildingNumericWorkbookData data,
-            IReadOnlyDictionary<string, BuildingFamilyDefinition> families,
+        private static BuildingNumericImportChangePlan BuildChangePlan(
+            BuildingNumericImportSession session)
+        {
+            var plan = new BuildingNumericImportChangePlan();
+            foreach (var row in session.Data.Families.OrderBy(value => value.FamilyId, StringComparer.Ordinal))
+            {
+                var family = session.Families[row.FamilyId];
+                var changedFamilyScopes = new List<string>();
+                if (!DoesDefinitionMatch(session, row, family.Definition))
+                {
+                    changedFamilyScopes.Add("公共数值");
+                }
+
+                if (!DoesConstructionMatch(session, row, family.Construction))
+                {
+                    changedFamilyScopes.Add("施工阶段");
+                }
+
+                if (!DoLevelsMatch(session, row.FamilyId, family.Levels))
+                {
+                    changedFamilyScopes.Add("运营等级");
+                }
+
+                if (changedFamilyScopes.Count > 0)
+                {
+                    plan.AddFamilyAsset(
+                        row.FamilyId,
+                        family,
+                        $"更新{string.Join("、", changedFamilyScopes)}");
+                }
+
+                if (family.ModuleSet != null && HasExcelManagedModuleDefaults(family))
+                {
+                    var desiredModuleSet = family.ModuleSet.CreateRuntimeClone();
+                    try
+                    {
+                        ApplyManagedModuleDefaults(session, row.FamilyId, desiredModuleSet);
+                        desiredModuleSet.Normalize();
+                        if (!AreSerializedValuesEqual(
+                                family.ModuleSet.BuildingModules,
+                                desiredModuleSet.BuildingModules))
+                        {
+                            plan.AddModuleSetAsset(
+                                row.FamilyId,
+                                family.ModuleSet,
+                                "更新 Excel 管理的模块默认值");
+                        }
+                    }
+                    finally
+                    {
+                        UnityEngine.Object.DestroyImmediate(desiredModuleSet);
+                    }
+                }
+
+                if (family.RuntimePrefab != null)
+                {
+                    var runtimeFields = GetChangedRuntimePrefabFields(row, family.RuntimePrefab);
+                    if (runtimeFields.Count > 0)
+                    {
+                        plan.AddRuntimePrefabAsset(
+                            row.FamilyId,
+                            family.RuntimePrefab,
+                            $"更新 Prefab 数值字段：{string.Join("、", runtimeFields)}");
+                    }
+                }
+
+                var spatialEffectSource = family.ModuleSet?.BuildingModules
+                    .OfType<BM_空间效果源>()
+                    .FirstOrDefault();
+                if (spatialEffectSource == null)
+                {
+                    continue;
+                }
+
+                foreach (var effectRow in session.Data.SpatialEffects
+                             .Where(value => value.FamilyId == row.FamilyId)
+                             .OrderBy(value => value.EffectId, StringComparer.Ordinal))
+                {
+                    var definition = spatialEffectSource.Effects.Single(value =>
+                        value != null && value.EffectId == effectRow.EffectId);
+                    if (!DoesSpatialEffectMatch(effectRow, definition))
+                    {
+                        plan.AddSpatialEffectAsset(row.FamilyId, effectRow.EffectId, definition);
+                    }
+                }
+            }
+
+            foreach (var row in session.Data.TechnologyGlobalBuffs
+                         .OrderBy(value => value.BuffId, StringComparer.Ordinal))
+            {
+                var definition = session.GlobalBuffs[row.BuffId];
+                if (!DoesTechnologyGlobalBuffMatch(row, definition, session))
+                {
+                    plan.AddGlobalBuffAsset(row.BuffId, definition);
+                }
+            }
+
+            return plan;
+        }
+
+        private static bool DoesTechnologyGlobalBuffMatch(
+            TechnologyGlobalBuffNumericRow row,
+            TechnologyGlobalBuffDefinition definition,
+            BuildingNumericImportSession session)
+        {
+            if (definition == null
+                || !string.Equals(definition.BuffId, row.BuffId, StringComparison.Ordinal)
+                || !string.Equals(definition.DisplayName, row.DisplayName, StringComparison.Ordinal)
+                || definition.ActivationCondition is not GameCondition_TechnologyUnlocked condition)
+            {
+                return false;
+            }
+
+            var technologyId = NormalizeStableId(row.ConditionId)
+                .Substring(TechnologyConditionPrefix.Length);
+            if (condition.TechnologyDefinition == null
+                || !string.Equals(
+                    condition.TechnologyDefinition.TechnologyId,
+                    technologyId,
+                    StringComparison.Ordinal)
+                || definition.Effects.Count != 1
+                || definition.Effects[0]
+                    is not TechnologyGlobalBuffEffect_BuildingProductionFlat effect)
+            {
+                return false;
+            }
+
+            return ReferenceEquals(effect.TargetFamily, session.Families[row.FamilyId])
+                   && ReferenceEquals(effect.ItemDefinition, session.Items[row.OutputItemId])
+                   && effect.FlatBonus == row.FlatBonus;
+        }
+
+        private static void ValidateAutomaticCondition(
+            string conditionId,
+            string label,
+            BuildingNumericSourceRow row,
+            IReadOnlyDictionary<string, TechnologyDefinition> technologies,
             BuildingNumericImportReport report)
         {
-            foreach (var row in data.Families.OrderBy(value => value.FamilyId, StringComparer.Ordinal))
+            var condition = NormalizeStableId(conditionId);
+            if (condition.Equals(ConditionNone, StringComparison.OrdinalIgnoreCase))
             {
-                if (!families.TryGetValue(row.FamilyId, out var family)) continue;
-                var levelCount = data.Levels.Count(level => level.FamilyId == row.FamilyId);
-                var assetPath = AssetDatabase.GetAssetPath(family);
-                report.Change($"{row.FamilyId}：覆盖公共数值、{row.ConstructionTurns} 个施工阶段、{levelCount} 个运营等级（{assetPath}）");
-                if (family.ModuleSet != null && (HasModule(family, typeof(BM_市场资源结算)) || HasModule(family, typeof(BM_树木采集)) || HasModule(family, typeof(BuildingCropGrowthModule))))
-                    report.Change($"{row.FamilyId}：覆盖 Excel 管理的模块默认值（{AssetDatabase.GetAssetPath(family.ModuleSet)}）");
-                if (family.RuntimePrefab != null)
-                    report.Change($"{row.FamilyId}：更新资源点/优先级/行动力三个 Prefab 数据字段（{AssetDatabase.GetAssetPath(family.RuntimePrefab)}）");
+                return;
             }
+
+            if (!condition.StartsWith(TechnologyConditionPrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                report.Error($"{label} 只支持 none 或 technology.<科技ID>。", row.Sheet, row.Row);
+                return;
+            }
+
+            var technologyId = condition.Substring(TechnologyConditionPrefix.Length);
+            if (!technologies.ContainsKey(technologyId))
+            {
+                report.Error($"找不到科技：{technologyId}", row.Sheet, row.Row);
+            }
+        }
+
+        private static void ValidateTechnologyGlobalBuffs(
+            BuildingNumericWorkbookData data,
+            IReadOnlyDictionary<string, BuildingFamilyDefinition> families,
+            IReadOnlyDictionary<string, ItemDefinition> items,
+            IReadOnlyDictionary<string, TechnologyDefinition> technologies,
+            IReadOnlyDictionary<string, TechnologyGlobalBuffDefinition> globalBuffs,
+            BuildingNumericImportReport report)
+        {
+            ValidateUnique(data.TechnologyGlobalBuffs, row => row.BuffId, "BuffId 重复", report);
+            foreach (var row in data.TechnologyGlobalBuffs)
+            {
+                if (!globalBuffs.ContainsKey(row.BuffId))
+                    report.Error($"找不到全局 Buff 资产：{row.BuffId}", row.Sheet, row.Row);
+                if (!families.ContainsKey(row.FamilyId))
+                    report.Error($"未知 FamilyId：{row.FamilyId}", row.Sheet, row.Row);
+                RequireItem(row.OutputItemId, row, items, report);
+                ValidateAutomaticCondition(row.ConditionId, "ConditionId", row, technologies, report);
+                if (row.FlatBonus <= 0)
+                    report.Error("固定加成/次必须大于 0。", row.Sheet, row.Row);
+            }
+
+            foreach (var pair in globalBuffs)
+            {
+                if (data.TechnologyGlobalBuffs.All(row => row.BuffId != pair.Key))
+                {
+                    report.Error($"正式表缺少现有全局 Buff：{pair.Key}");
+                }
+            }
+        }
+
+        private static bool DoesDefinitionMatch(
+            BuildingNumericImportSession session,
+            BuildingFamilyNumericRow row,
+            BuildingDefinition current)
+        {
+            if (current == null)
+            {
+                return false;
+            }
+
+            ParseCategory(row.Category, out var category);
+            var desired = new BuildingDefinition();
+            desired.ConfigureIdentity(current.FamilyId, row.DisplayName, row.BuildLimitGroupId);
+            desired.ConfigureNumericData(
+                row.DisplayName,
+                category,
+                new Vector2Int(row.SizeX, row.SizeY),
+                row.IgnoreTerrain,
+                SplitStableKeys(row.TerrainKeys),
+                SplitStableKeys(row.AnyFootprintTerrainKeys),
+                row.MovementResistance,
+                session.Data.PlacementCosts
+                    .Where(cost => cost.FamilyId == row.FamilyId)
+                    .Select(cost => BuildCost(cost, session.Items))
+                    .ToArray(),
+                BuildAutomaticCondition(row.BlueprintUnlockConditionId, session.Technologies),
+                row.BlueprintInitiallyLocked,
+                row.HideWhenBlueprintLocked,
+                row.BuildMenuSortOrder,
+                row.MaxBuildCount,
+                row.BuildLimitGroupId,
+                row.IsDevelopmentCompleted);
+
+            return string.Equals(current.DisplayName, desired.DisplayName, StringComparison.Ordinal)
+                   && current.Category == desired.Category
+                   && current.Size == desired.Size
+                   && current.MovementResistance == desired.MovementResistance
+                   && AreStringsEqual(current.RequiredTerrainKeys, desired.RequiredTerrainKeys)
+                   && AreStringsEqual(
+                       current.RequiredAnyFootprintTerrainKeys,
+                       desired.RequiredAnyFootprintTerrainKeys)
+                   && AreCostsEqual(current.PlacementCosts, desired.PlacementCosts)
+                   && AreSerializedValuesEqual(
+                       current.AutomaticBlueprintUnlockCondition,
+                       desired.AutomaticBlueprintUnlockCondition)
+                   && current.BlueprintInitiallyLocked == desired.BlueprintInitiallyLocked
+                   && current.HideWhenBlueprintLocked == desired.HideWhenBlueprintLocked
+                   && current.BuildMenuSortOrder == desired.BuildMenuSortOrder
+                   && current.MaxBuildCount == desired.MaxBuildCount
+                   && string.Equals(current.BuildLimitGroupId, desired.BuildLimitGroupId, StringComparison.Ordinal)
+                   && current.IsDevelopmentCompleted == desired.IsDevelopmentCompleted;
+        }
+
+        private static bool DoesConstructionMatch(
+            BuildingNumericImportSession session,
+            BuildingFamilyNumericRow row,
+            BuildingConstructionDefinition current)
+        {
+            if (current == null || current.RequiredTurns != row.ConstructionTurns)
+            {
+                return false;
+            }
+
+            for (var turn = 1; turn <= row.ConstructionTurns; turn++)
+            {
+                var desiredCosts = session.Data.ConstructionCosts
+                    .Where(cost => cost.FamilyId == row.FamilyId && cost.LevelOrTurn == turn)
+                    .Select(cost => BuildCost(cost, session.Items))
+                    .ToArray();
+                if (!AreCostsEqual(current.GetCosts(turn - 1), desiredCosts))
+                {
+                    return false;
+                }
+
+                var desiredRewards = session.Data.ConstructionRewards
+                    .Where(reward => reward.FamilyId == row.FamilyId && reward.LevelOrTurn == turn)
+                    .Select(reward => BuildCost(reward, session.Items))
+                    .ToArray();
+                if (!AreCostsEqual(current.GetRewards(turn - 1), desiredRewards))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool DoLevelsMatch(
+            BuildingNumericImportSession session,
+            string familyId,
+            IReadOnlyList<BuildingLevelDefinition> currentLevels)
+        {
+            var rows = session.Data.Levels
+                .Where(value => value.FamilyId == familyId)
+                .OrderBy(value => value.Level)
+                .ToArray();
+            if (currentLevels == null || currentLevels.Count != rows.Length)
+            {
+                return false;
+            }
+
+            for (var index = 0; index < rows.Length; index++)
+            {
+                var row = rows[index];
+                var current = currentLevels[index];
+                if (current == null
+                    || current.Level != row.Level
+                    || current.IsConfigured != (row.Level == 1 || row.Configured))
+                {
+                    return false;
+                }
+
+                var desiredUpgradeCosts = session.Data.UpgradeCosts
+                    .Where(cost => cost.FamilyId == row.FamilyId && cost.LevelOrTurn == row.Level)
+                    .Select(cost => BuildCost(cost, session.Items))
+                    .ToArray();
+                if (!AreCostsEqual(current.UpgradeCosts, desiredUpgradeCosts)
+                    || !DoesConditionMatch(
+                        row.ConditionId,
+                        current.UpgradeCondition,
+                        session.Technologies))
+                {
+                    return false;
+                }
+
+                var currentConfigurations = current.Configurations
+                    .Where(configuration => configuration != null
+                                            && ImportedConfigurationIds.Contains(configuration.ConfigurationId))
+                    .ToArray();
+                var desiredConfigurations = BuildImportedLevelConfigurations(session, row);
+                if (currentConfigurations.Length != desiredConfigurations.Count)
+                {
+                    return false;
+                }
+
+                for (var configurationIndex = 0;
+                     configurationIndex < currentConfigurations.Length;
+                     configurationIndex++)
+                {
+                    if (!AreSerializedValuesEqual(
+                            currentConfigurations[configurationIndex],
+                            desiredConfigurations[configurationIndex]))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        private static bool DoesConditionMatch(
+            string conditionId,
+            GameCondition current,
+            IReadOnlyDictionary<string, TechnologyDefinition> technologies)
+        {
+            var normalized = NormalizeStableId(conditionId);
+            if (string.Equals(normalized, ConditionKeep, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            if (string.Equals(normalized, ConditionNone, StringComparison.OrdinalIgnoreCase))
+            {
+                return current == null;
+            }
+
+            var technologyId = normalized.Substring(TechnologyConditionPrefix.Length);
+            return current is GameCondition_TechnologyUnlocked technologyCondition
+                   && technologyCondition.TechnologyDefinition == technologies[technologyId];
+        }
+
+        private static bool HasExcelManagedModuleDefaults(BuildingFamilyDefinition family)
+        {
+            return HasModule(family, typeof(BM_市场资源结算))
+                   || HasModule(family, typeof(BM_树木采集))
+                   || HasModule(family, typeof(BuildingCropGrowthModule));
+        }
+
+        private static IReadOnlyList<string> GetChangedRuntimePrefabFields(
+            BuildingFamilyNumericRow row,
+            BuildingBase runtimePrefab)
+        {
+            var fields = new List<string>(3);
+            if (runtimePrefab.IsResourceProviderPoint != row.IsResourceProviderPoint)
+            {
+                fields.Add("资源点");
+            }
+
+            if (runtimePrefab.ResourceProviderPriority != row.ResourceProviderPriority)
+            {
+                fields.Add("优先级");
+            }
+
+            if (runtimePrefab.BuildingActionPower != Mathf.Max(0, row.BuildingActionPower))
+            {
+                fields.Add("行动力");
+            }
+
+            return fields;
+        }
+
+        private static bool DoesSpatialEffectMatch(
+            SpatialEffectNumericRow row,
+            BuildingSpatialEffectDefinition current)
+        {
+            TryParseSpatialEffectKind(row.Kind, out var kind);
+            TryParseSpatialTargetFilter(row.TargetFilter, out var targetFilter);
+            TryParseSpatialStackingRule(row.StackingRule, out var stackingRule);
+            return current != null
+                   && string.Equals(current.EffectId, row.EffectId, StringComparison.Ordinal)
+                   && string.Equals(current.DisplayName, row.DisplayName, StringComparison.Ordinal)
+                   && current.Kind == kind
+                   && current.TargetFilter == targetFilter
+                   && current.OperationalLevel == Mathf.Max(0, row.OperationalLevel)
+                   && current.MinimumWorkers == Mathf.Max(0, row.MinimumWorkers)
+                   && current.Range == Mathf.Max(0, row.Range)
+                   && current.Value == Mathf.Max(0, row.Value)
+                   && current.StackingRule == stackingRule
+                   && current.IncludeSourceFootprint == row.IncludeSourceFootprint;
+        }
+
+        private static bool AreCostsEqual(
+            IReadOnlyList<BuildingCost> current,
+            IReadOnlyList<BuildingCost> desired)
+        {
+            if (ReferenceEquals(current, desired)) return true;
+            if (current == null || desired == null || current.Count != desired.Count) return false;
+            for (var i = 0; i < current.Count; i++)
+            {
+                if (current[i].ItemDefinition != desired[i].ItemDefinition
+                    || current[i].Amount != desired[i].Amount)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool AreStringsEqual(
+            IReadOnlyList<string> current,
+            IReadOnlyList<string> desired)
+        {
+            if (ReferenceEquals(current, desired)) return true;
+            if (current == null || desired == null || current.Count != desired.Count) return false;
+            for (var i = 0; i < current.Count; i++)
+            {
+                if (!string.Equals(current[i], desired[i], StringComparison.Ordinal))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool AreSerializedValuesEqual(object current, object desired)
+        {
+            if (ReferenceEquals(current, desired)) return true;
+            if (current == null || desired == null) return false;
+
+            if (current is UnityEngine.Object currentObject)
+            {
+                return desired is UnityEngine.Object desiredObject && currentObject == desiredObject;
+            }
+
+            var currentType = current.GetType();
+            if (currentType != desired.GetType()) return false;
+            if (currentType.IsPrimitive
+                || currentType.IsEnum
+                || currentType == typeof(string)
+                || currentType == typeof(decimal))
+            {
+                return current.Equals(desired);
+            }
+
+            if (current is IList currentList && desired is IList desiredList)
+            {
+                if (currentList.Count != desiredList.Count) return false;
+                for (var i = 0; i < currentList.Count; i++)
+                {
+                    if (!AreSerializedValuesEqual(currentList[i], desiredList[i]))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            foreach (var field in GetSerializableFields(currentType))
+            {
+                if (!AreSerializedValuesEqual(field.GetValue(current), field.GetValue(desired)))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static IReadOnlyList<FieldInfo> GetSerializableFields(Type type)
+        {
+            if (SerializableFieldCache.TryGetValue(type, out var cachedFields))
+            {
+                return cachedFields;
+            }
+
+            var fields = new List<FieldInfo>();
+            for (var currentType = type;
+                 currentType != null && currentType != typeof(object);
+                 currentType = currentType.BaseType)
+            {
+                foreach (var field in currentType.GetFields(
+                             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic |
+                             BindingFlags.DeclaredOnly))
+                {
+                    if (field.IsStatic || field.IsInitOnly || field.IsNotSerialized)
+                    {
+                        continue;
+                    }
+
+                    if (field.IsPublic
+                        || field.GetCustomAttribute<SerializeField>() != null
+                        || field.GetCustomAttribute<SerializeReference>() != null)
+                    {
+                        fields.Add(field);
+                    }
+                }
+            }
+
+            cachedFields = fields.ToArray();
+            SerializableFieldCache[type] = cachedFields;
+            return cachedFields;
         }
 
         private static BuildingCost BuildCost(
@@ -912,6 +1888,72 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                 category |= parsed;
             }
             return category != BuildingCategory.None;
+        }
+
+        private static bool TryParseSpatialEffectKind(
+            string value,
+            out BuildingSpatialEffectKind kind)
+        {
+            switch (NormalizeStableId(value).ToLowerInvariant())
+            {
+                case "beauty":
+                    kind = BuildingSpatialEffectKind.Beauty;
+                    return true;
+                case "medical":
+                    kind = BuildingSpatialEffectKind.Medical;
+                    return true;
+                case "security":
+                    kind = BuildingSpatialEffectKind.Security;
+                    return true;
+                case "production_percent":
+                    kind = BuildingSpatialEffectKind.ProductionPercent;
+                    return true;
+                default:
+                    kind = default;
+                    return false;
+            }
+        }
+
+        private static bool TryParseSpatialTargetFilter(
+            string value,
+            out BuildingSpatialTargetFilter targetFilter)
+        {
+            switch (NormalizeStableId(value).ToLowerInvariant())
+            {
+                case "cell":
+                    targetFilter = BuildingSpatialTargetFilter.Cell;
+                    return true;
+                case "any_building":
+                    targetFilter = BuildingSpatialTargetFilter.AnyBuilding;
+                    return true;
+                case "farmland":
+                    targetFilter = BuildingSpatialTargetFilter.Farmland;
+                    return true;
+                default:
+                    targetFilter = default;
+                    return false;
+            }
+        }
+
+        private static bool TryParseSpatialStackingRule(
+            string value,
+            out BuildingSpatialStackingRule stackingRule)
+        {
+            switch (NormalizeStableId(value).ToLowerInvariant())
+            {
+                case "additive":
+                    stackingRule = BuildingSpatialStackingRule.Additive;
+                    return true;
+                case "no_stack":
+                    stackingRule = BuildingSpatialStackingRule.NoStack;
+                    return true;
+                case "highest_value":
+                    stackingRule = BuildingSpatialStackingRule.HighestValue;
+                    return true;
+                default:
+                    stackingRule = default;
+                    return false;
+            }
         }
 
         private static Dictionary<string, T> FindAssetsByStableId<T>(

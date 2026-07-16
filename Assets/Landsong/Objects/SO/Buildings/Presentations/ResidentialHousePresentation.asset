@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: af71cba28d7028e40b73600b54394a96, type: 3}
   m_Name: ResidentialHousePresentation
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingPresentationDefinition
+  constructionViewMode: 0
   constructionView:
     directPrefab: {fileID: 6839846032303342213, guid: fdb68028d7db05846b63df1339c6c1f7, type: 3}
     addressablePrefab:

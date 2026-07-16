@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Landsong.ConditionSystem;
+using Landsong.TechnologySystem;
 using Moyo.Unity;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -11,7 +13,7 @@ using UnityEditor;
 namespace Landsong.BuildingSystem
 {
     [CreateAssetMenu(menuName = "Landsong/Building/Building Catalog", fileName = "BuildingCatalog")]
-    public sealed class BuildingCatalog : SingletonScriptableObject<BuildingCatalog>
+    public sealed class BuildingCatalog : SingletonScriptableObject<BuildingCatalog>, ITechnologyUnlockContentProducer
     {
         [SerializeField, LabelText("建筑家族")]
         private BuildingFamilyDefinition[] families = Array.Empty<BuildingFamilyDefinition>();
@@ -23,6 +25,7 @@ namespace Landsong.BuildingSystem
         public IReadOnlyList<BuildingFamilyDefinition> Families =>
             families ?? Array.Empty<BuildingFamilyDefinition>();
         public IReadOnlyList<BuildingBase> BuildingPrefabs => runtimePrefabs;
+        public string TechnologyUnlockContentSourceId => "building.catalog";
 
         public static Task<BuildingCatalog> LoadAsync(string addressableKey)
         {
@@ -78,6 +81,70 @@ namespace Landsong.BuildingSystem
         public bool Contains(string familyId)
         {
             return TryGetBuildingPrefab(familyId, out _);
+        }
+
+        public void InjectTechnologyUnlockContents(TechnologyUnlockContentRegistry registry)
+        {
+            if (registry == null)
+            {
+                return;
+            }
+
+            var bindings = new List<TechnologyUnlockContentBinding>();
+            if (families == null)
+            {
+                registry.ReplaceSource(TechnologyUnlockContentSourceId, bindings);
+                return;
+            }
+
+            for (var familyIndex = 0; familyIndex < families.Length; familyIndex++)
+            {
+                var family = families[familyIndex];
+                var definition = family == null ? null : family.Definition;
+                if (family == null || definition == null || !definition.IsValid)
+                {
+                    continue;
+                }
+
+                if (definition.AutomaticBlueprintUnlockCondition
+                    is GameCondition_TechnologyUnlocked blueprintTechnology
+                    && blueprintTechnology.TechnologyDefinition != null)
+                {
+                    bindings.Add(new TechnologyUnlockContentBinding(
+                        blueprintTechnology.TechnologyDefinition.TechnologyId,
+                        new TechnologyUnlockContent(
+                            $"building-blueprint:{family.FamilyId}",
+                            definition.Icon,
+                            $"解锁建筑：{definition.DisplayName}",
+                            TechnologyUnlockContentKind.Building,
+                            shortLabel: "建筑")));
+                }
+
+                var levels = family.Levels;
+                for (var levelIndex = 0; levelIndex < levels.Count; levelIndex++)
+                {
+                    var level = levels[levelIndex];
+                    if (level == null
+                        || level.Level <= 1
+                        || !level.IsConfigured
+                        || level.UpgradeCondition is not GameCondition_TechnologyUnlocked technologyCondition
+                        || technologyCondition.TechnologyDefinition == null)
+                    {
+                        continue;
+                    }
+
+                    bindings.Add(new TechnologyUnlockContentBinding(
+                        technologyCondition.TechnologyDefinition.TechnologyId,
+                        new TechnologyUnlockContent(
+                            $"building-upgrade:{family.FamilyId}:lv{level.Level}",
+                            definition.Icon,
+                            $"允许{definition.DisplayName}升级至 LV{level.Level}",
+                            TechnologyUnlockContentKind.BuildingUpgrade,
+                            shortLabel: $"LV{level.Level}")));
+                }
+            }
+
+            registry.ReplaceSource(TechnologyUnlockContentSourceId, bindings);
         }
 
         public void RebuildIndex()

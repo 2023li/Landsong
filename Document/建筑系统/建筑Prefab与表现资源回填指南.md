@@ -82,9 +82,12 @@ building-view/tree/tree_03/lv01
 
 ### 施工
 
-所有样式默认共用 `ConstructionView`。如果某家族未来确需“样式不同的施工图”，应扩展 Presentation 映射能力，不得把多个施工图塞回 Runtime Prefab。
+施工表现先读取 `ConstructionViewMode`，两种模式互斥：
 
-`ConstructionView` 缺失时，运行时显示统一占位表现。
+- `Single`（单一施工视图）：整个施工阶段始终使用 `ConstructionView`，不读取逐回合映射。适合只有一套施工美术或美术尚未完整交付的建筑。
+- `PerTurn`（逐回合施工视图）：按 `当前施工回合 + StyleId` 解析 `ConstructionViewMappings`，先匹配相同回合和 StyleId，再匹配相同回合、空 StyleId 的通用映射；仍未命中则显示统一占位表现，不读取 `ConstructionView`。
+
+`ConstructionProgress` 是已完成回合数，因此新放置建筑显示第 1 回合，成功结算后切换到第 2 回合。映射回合从 1 开始且不能超过 Family 的施工总回合数。不同树种等视觉样式可使用样式专属映射；空 StyleId 映射可覆盖该回合的所有样式。全部施工 Prefab 都必须是独立纯 View，不得塞回 Runtime Prefab。
 
 ### 运营等级
 
@@ -123,28 +126,33 @@ building-view/tree/tree_03/lv01
 1. 在 `BuildingViews/<Family>/...` 创建纯 View Prefab。
 2. 对齐 `ViewRoot` 原点、排序层、像素密度和默认朝向。
 3. 确认 Prefab 不含建筑脚本和 Collider。
-4. 在对应 Presentation 中配置 Direct 或 Addressable 引用。
+4. 在对应 Presentation 中选择单一或逐回合施工视图模式，并配置该模式对应的 Direct/Addressable 引用；再回填运营映射。
 5. 无样式建筑可先填 `DefaultOperationalView`；有多个美术等级时再加 ViewMapping。
 6. 树木必须逐个 StyleId 绑定，不得只填默认图让八个按钮显示同一棵树。
-7. 进入施工、完工、目标等级和读档场景检查换图。
+7. 逐回合推进施工，并在施工中途存档/读档，检查当前回合、完工和目标等级换图。
 8. 执行 `Landsong/Building/Validate Final Architecture`；结构零错误后提交。
 
 替换已有美术时只替换 View Prefab 内容或 Presentation 引用。不得修改 FamilyId、Runtime Prefab、模块、存档数据或任务引用。
 
-## 7. 当前回填清单（23 项）
+## 7. 当前回填清单
 
 | 家族 | 施工 View | 运营 View | 图标/样式 | 优先级 |
 | --- | --- | --- | --- | --- |
-| 王宫 | 缺 | 默认 LV1 缺 | 家族图标已有 | P0 |
-| 居民房 | 缺 | 默认 LV1 缺 | 家族图标已有 | P0 |
+| 王宫 | 缺 | 默认 LV1 已配置 | 家族图标已有 | P0 |
+| 居民房 | 已配置 | 默认 LV1 已配置 | 家族图标已有 | - |
 | 伐木小屋 | 缺 | 默认 LV1 缺；LV2 可先回退 LV1 | 家族图标已有 | P0 |
 | 捕鱼小屋 | 缺 | 默认 LV1 缺 | 家族图标缺 | P1 |
 | 农田 | 缺 | 默认 LV1 缺 | 家族图标缺 | P1 |
 | 市场 | 缺 | 默认 LV1 缺 | 当前临时复用伐木图标 | P1 |
+| 仓库 | 已配置 | LV1～LV3 已配置 | 家族图标缺 | P1 |
 | 泥路 | 缺 | 默认 LV1 缺 | 家族图标已有 | P1 |
-| 树木 | 缺 | `tree_01`～`tree_08` 各缺 LV1，共 8 项 | 8 个样式图标均缺 | P0 |
+| 树木 | 缺 | `tree_01`～`tree_08` 的 LV1 均已配置 | 8 个样式图标均已配置 | P1 |
+| 雕塑 | 缺 | `sculpture_goddess`、`sculpture_deer` 的 LV1 均已配置 | 2 个样式图标均已配置 | P1 |
+| 采石场 | 缺 | 默认 LV1 缺；LV2/LV3 可先回退 LV1 | 当前临时使用石头图标 | P1 |
+| 医院 | 第 1、2 施工回合均缺 | 默认 LV1 缺；LV2/LV3 可先回退 LV1 | 家族图标缺 | P1 |
+| 警局 | 第 1、2 施工回合均缺 | 默认 LV1 缺；LV2/LV3 可先回退 LV1 | 家族图标缺 | P1 |
 
-计数口径：8 个施工 + 7 个无样式家族 LV1 + 8 个树样式 LV1 = 23 个 View 回填提醒。
+校验器按模式检查施工表现：单一模式缺图只产生一条家族级提醒；逐回合模式按“家族/样式/施工回合”列出缺口。美术不完整时应明确使用单一模式，不能依赖逐回合模式回退到单一字段。树木与雕塑的 Style LV1 View 已完成，不计入运营缺口。
 
 ## 8. 验收清单
 
@@ -155,4 +163,5 @@ building-view/tree/tree_03/lv01
 - 高等级无图时只回退同 Style 的低等级，不改变 UI 等级。
 - 快速连续升级或加载延迟不会让旧等级 View 覆盖新等级。
 - 树木菜单八个样式与实际落地样式一致，读档后 StyleId 不变。
+- 雕塑菜单显示女神与神鹿两个样式；二者放置后保持同一 `building.sculpture` 家族和各自 StyleId。
 - 替换美术不改变建筑数值、任务统计、占地和存档身份。

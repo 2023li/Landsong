@@ -25,6 +25,10 @@ namespace Landsong.BuildingSystem
         public const string BS_招工金币不足 = "recruit_gold_missing";
         public const string BS_补贴金币不足 = "subsidy_gold_missing";
         public const string BS_道路不通 = "road_blocked";
+        public const string BS_仓库维护费不足 = "warehouse_maintenance_missing";
+        public const string BS_仓库维护配置异常 = "warehouse_maintenance_invalid";
+        public const string BS_维护费不足 = "maintenance_missing";
+        public const string BS_维护配置异常 = "maintenance_invalid";
 
         private static readonly HashSet<string> AbnormalStatusIds =
             new HashSet<string>(StringComparer.Ordinal)
@@ -45,7 +49,11 @@ namespace Landsong.BuildingSystem
                 BS_缺工,
                 BS_招工金币不足,
                 BS_补贴金币不足,
-                BS_道路不通
+                BS_道路不通,
+                BS_仓库维护费不足,
+                BS_仓库维护配置异常,
+                BS_维护费不足,
+                BS_维护配置异常
             };
 
         public static bool IsAbnormalStatus(BuildingRuntimeStatus status)

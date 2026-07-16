@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3b70d7f4d394dd9a76b0bc2e5c6a101, type: 3}
+  m_Name: "TN_3_18_未来"
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.TechnologySystem.TechnologyDefinition
+  icon: {fileID: 0}
+  technologyId: "TN_3_18_未来"
+  displayName: "未来"
+  description: "汇合科学、生态、魔导、机械与军工路线，开启仍未被定义的下一阶段文明。"
+  sciencePointCost: 500
+  allowRepeatResearch: 0
+  prerequisites:
+  - {fileID: 11400000, guid: 1e859f23a67444e6bfd0584c8643cbdc, type: 2}
+  - {fileID: 11400000, guid: 2552ef57a1ca4cecbe18d50e50153a3a, type: 2}
+  - {fileID: 11400000, guid: df67543573f34c5084597ff5b0c657e4, type: 2}
+  - {fileID: 11400000, guid: ef51c213eee64ac183b443d004f25c58, type: 2}
+  - {fileID: 11400000, guid: 27ac63415b79445db81eefa845b3244c, type: 2}
+  completionEffects: []
+  graphPosition: {x: 3740, y: 300}
+  references:
+    version: 2
+    RefIds: []

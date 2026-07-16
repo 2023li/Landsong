@@ -237,7 +237,14 @@ namespace Landsong.GridSystem
             IReadOnlyList<string> requiredTerrainKeys,
             out GridPlacementFailureReason failureReason)
         {
-            return TryOccupy(origin, size, occupantId, requiredTerrainKeys, 0, out failureReason);
+            return TryOccupy(
+                origin,
+                size,
+                occupantId,
+                requiredTerrainKeys,
+                null,
+                0,
+                out failureReason);
         }
 
         public bool TryOccupy(
@@ -248,6 +255,25 @@ namespace Landsong.GridSystem
             int movementResistance,
             out GridPlacementFailureReason failureReason)
         {
+            return TryOccupy(
+                origin,
+                size,
+                occupantId,
+                requiredTerrainKeys,
+                null,
+                movementResistance,
+                out failureReason);
+        }
+
+        public bool TryOccupy(
+            GridPosition origin,
+            Vector2Int size,
+            string occupantId,
+            IReadOnlyList<string> requiredTerrainKeys,
+            IReadOnlyList<string> requiredAnyFootprintTerrainKeys,
+            int movementResistance,
+            out GridPlacementFailureReason failureReason)
+        {
             EnsureInitialized();
             if (string.IsNullOrWhiteSpace(occupantId))
             {
@@ -255,7 +281,12 @@ namespace Landsong.GridSystem
                 return false;
             }
 
-            if (!CanOccupy(origin, size, requiredTerrainKeys, out failureReason))
+            if (!CanOccupy(
+                    origin,
+                    size,
+                    requiredTerrainKeys,
+                    requiredAnyFootprintTerrainKeys,
+                    out failureReason))
             {
                 return false;
             }
@@ -279,6 +310,23 @@ namespace Landsong.GridSystem
             GridPosition origin,
             Vector2Int size,
             IReadOnlyList<string> requiredTerrainKeys,
+            out GridPlacementFailureReason failureReason,
+            string ignoredOccupantId = null)
+        {
+            return CanOccupy(
+                origin,
+                size,
+                requiredTerrainKeys,
+                null,
+                out failureReason,
+                ignoredOccupantId);
+        }
+
+        public bool CanOccupy(
+            GridPosition origin,
+            Vector2Int size,
+            IReadOnlyList<string> requiredTerrainKeys,
+            IReadOnlyList<string> requiredAnyFootprintTerrainKeys,
             out GridPlacementFailureReason failureReason,
             string ignoredOccupantId = null)
         {
@@ -321,6 +369,12 @@ namespace Landsong.GridSystem
                     failureReason = GridPlacementFailureReason.Occupied;
                     return false;
                 }
+            }
+
+            if (!HasRequiredKeysWithinFootprint(footprint, requiredAnyFootprintTerrainKeys))
+            {
+                failureReason = GridPlacementFailureReason.TerrainMismatch;
+                return false;
             }
 
             failureReason = GridPlacementFailureReason.None;
@@ -746,6 +800,38 @@ namespace Landsong.GridSystem
             for (var i = 0; i < terrainKeys.Count; i++)
             {
                 if (!HasTerrainKeyInternal(position, terrainKeys[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private bool HasRequiredKeysWithinFootprint(
+            GridFootprint footprint,
+            IReadOnlyList<string> terrainKeys)
+        {
+            if (terrainKeys == null || terrainKeys.Count == 0)
+            {
+                return true;
+            }
+
+            for (var keyIndex = 0; keyIndex < terrainKeys.Count; keyIndex++)
+            {
+                var found = false;
+                foreach (var position in footprint.Positions())
+                {
+                    if (!HasTerrainKeyInternal(position, terrainKeys[keyIndex]))
+                    {
+                        continue;
+                    }
+
+                    found = true;
+                    break;
+                }
+
+                if (!found)
                 {
                     return false;
                 }

@@ -100,6 +100,8 @@ namespace Landsong.BuildingSystem
         private BuildingModuleSetDefinition runtimeModuleSet;
         private string lastConstructionFailureStatusId = string.Empty;
         private string lastConstructionFailureStatusText = string.Empty;
+        private IReadOnlyList<BuildingResourceChange> lastConstructionRewards =
+            Array.Empty<BuildingResourceChange>();
 
         public event Action<BuildingBase> StateChanged;
         public event Action<BuildingBase> Clicked;
@@ -121,6 +123,12 @@ namespace Landsong.BuildingSystem
         public int CurrentLevel => runtimeIdentity == null ? 1 : runtimeIdentity.Level;
         public string StyleId => runtimeIdentity == null ? string.Empty : runtimeIdentity.StyleId;
         public int ConstructionProgress => runtimeIdentity == null ? 0 : runtimeIdentity.ConstructionProgress;
+        public int CurrentConstructionTurn => !IsUnderConstruction
+            ? 0
+            : Mathf.Clamp(
+                ConstructionProgress + 1,
+                1,
+                Mathf.Max(1, familyDefinition?.Construction?.RequiredTurns ?? 1));
         public bool IsUnderConstruction => Stage == BuildingLifecycleStage.Construction;
         public bool IsOperational => Stage == BuildingLifecycleStage.Operational;
         public BuildingPresentationController PresentationController => presentationController;
@@ -178,6 +186,8 @@ namespace Landsong.BuildingSystem
 
         // 建筑用于寻路和范围判断的行动力。
         public int BuildingActionPower => Mathf.Max(0, buildingActionPower);
+        public IReadOnlyList<BuildingResourceChange> LastConstructionRewards =>
+            lastConstructionRewards ?? Array.Empty<BuildingResourceChange>();
 
         /// <summary>
         /// 由建筑数值导表器更新 Runtime Prefab 上的三个纯数据字段。
@@ -361,6 +371,7 @@ namespace Landsong.BuildingSystem
             runtimeIdentity.BeginConstruction(selectedStyleId);
             lastConstructionFailureStatusId = string.Empty;
             lastConstructionFailureStatusText = string.Empty;
+            lastConstructionRewards = Array.Empty<BuildingResourceChange>();
             presentationController?.Bind(this);
             presentationController?.RefreshImmediate();
             NotifyStateChanged();
@@ -663,9 +674,13 @@ namespace Landsong.BuildingSystem
 
             var turnIndex = ConstructionProgress;
             var costs = construction.GetCosts(turnIndex);
-            if (HasAnyValidCost(costs))
+            var rewards = construction.GetRewards(turnIndex);
+            var hasCosts = HasAnyValidCost(costs);
+            var hasRewards = HasAnyValidCost(rewards);
+            ResourceProviderSelection providerSelection = default;
+            if (hasCosts)
             {
-                if (!BuildingResourceProviderSystem.TrySelectProvider(this, out var providerSelection))
+                if (!BuildingResourceProviderSystem.TrySelectProvider(this, out providerSelection))
                 {
                     SetConstructionFailure(
                         BuildingRuntimeStatusCatalog.BS_无法连接资源点,
@@ -673,24 +688,30 @@ namespace Landsong.BuildingSystem
                     return false;
                 }
 
-                var inventory = GameSystem?.Services.Inventory;
-                if (inventory == null)
-                {
-                    SetConstructionFailure(
-                        BuildingRuntimeStatusCatalog.BS_库存缺失,
-                        "库存服务缺失");
-                    return false;
-                }
+            }
 
-                if (!inventory.CanAffordBuildingCosts(costs)
-                    || !inventory.TrySpendBuildingCosts(costs))
-                {
-                    SetConstructionFailure(
-                        BuildingRuntimeStatusCatalog.BS_消耗失败,
-                        "施工材料不足");
-                    return false;
-                }
+            var inventory = GameSystem?.Services.Inventory;
+            if ((hasCosts || hasRewards) && inventory == null)
+            {
+                SetConstructionFailure(
+                    BuildingRuntimeStatusCatalog.BS_库存缺失,
+                    "库存服务缺失");
+                return false;
+            }
 
+            if ((hasCosts || hasRewards)
+                && !inventory.TryExchangeItems(ToItemAmounts(costs), ToItemAmounts(rewards)))
+            {
+                SetConstructionFailure(
+                    BuildingRuntimeStatusCatalog.BS_消耗失败,
+                    hasCosts && !inventory.CanAffordBuildingCosts(costs)
+                        ? "施工材料不足"
+                        : "施工产出无法存入库存");
+                return false;
+            }
+
+            if (hasCosts)
+            {
                 for (var i = 0; i < costs.Count; i++)
                 {
                     var cost = costs[i];
@@ -706,10 +727,16 @@ namespace Landsong.BuildingSystem
                 }
             }
 
+            lastConstructionRewards = ToResourceChanges(rewards);
+
             runtimeIdentity.AdvanceConstruction();
             if (ConstructionProgress >= construction.RequiredTurns)
             {
                 CompleteConstruction();
+            }
+            else
+            {
+                presentationController?.RefreshForEntry(BuildingViewEntryReason.ConstructionAdvanced);
             }
 
             return true;
@@ -760,6 +787,46 @@ namespace Landsong.BuildingSystem
             }
 
             return false;
+        }
+
+        private static ItemAmount[] ToItemAmounts(IReadOnlyList<BuildingCost> costs)
+        {
+            if (costs == null || costs.Count == 0)
+            {
+                return Array.Empty<ItemAmount>();
+            }
+
+            var result = new List<ItemAmount>(costs.Count);
+            for (var i = 0; i < costs.Count; i++)
+            {
+                var cost = costs[i];
+                if (cost.IsValid)
+                {
+                    result.Add(new ItemAmount(cost.ItemDefinition, cost.Amount));
+                }
+            }
+
+            return result.ToArray();
+        }
+
+        private static BuildingResourceChange[] ToResourceChanges(IReadOnlyList<BuildingCost> costs)
+        {
+            if (costs == null || costs.Count == 0)
+            {
+                return Array.Empty<BuildingResourceChange>();
+            }
+
+            var result = new List<BuildingResourceChange>(costs.Count);
+            for (var i = 0; i < costs.Count; i++)
+            {
+                var change = new BuildingResourceChange(costs[i].ItemId, costs[i].Amount);
+                if (change.IsValid)
+                {
+                    result.Add(change);
+                }
+            }
+
+            return result.ToArray();
         }
 
         public BuildingDataBase CaptureSaveData()

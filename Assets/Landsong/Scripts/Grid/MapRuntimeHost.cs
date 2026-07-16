@@ -226,6 +226,7 @@ namespace Landsong.GridSystem
                         template.Origin,
                         definition.Size,
                         definition.RequiredTerrainKeys,
+                        definition.RequiredAnyFootprintTerrainKeys,
                         out var failure))
                 {
                     error = $"初始建筑模板无法放置：{template.DisplayName}，{failure}";

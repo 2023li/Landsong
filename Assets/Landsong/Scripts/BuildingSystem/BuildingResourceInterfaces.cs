@@ -3,6 +3,15 @@ using System.Collections.Generic;
 namespace Landsong.BuildingSystem
 {
     /// <summary>
+    /// 向库存系统暴露建筑当前实际提供的额外库存格。
+    /// 实现可以根据等级、工人或运行状态动态返回容量。
+    /// </summary>
+    public interface IBuildingInventoryCapacitySource
+    {
+        int CurrentProvidedSlotCount { get; }
+    }
+
+    /// <summary>
     /// 向 UI 或统计系统暴露建筑的资源消耗信息。
     /// </summary>
     public interface IBuildingResourceConsumptionSource

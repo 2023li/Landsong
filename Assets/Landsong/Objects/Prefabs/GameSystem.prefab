@@ -52,18 +52,14 @@ MonoBehaviour:
   itemCatalog: {fileID: 11400000, guid: e2c81a8a674606a49a32677d2a1b16d5, type: 2}
   inventorySlotCount: 10
   startingItems:
-  - itemDefinition: {fileID: 11400000, guid: d6237768df153c2449612f25cd386e53, type: 2}
-    amount: 250
-  - itemDefinition: {fileID: 11400000, guid: 83207646c27978649aad0c621fe5e93d, type: 2}
-    amount: 199
-  - itemDefinition: {fileID: 11400000, guid: 52d28e7de1d658444b6a2fb735c56e85, type: 2}
-    amount: 199
-  - itemDefinition: {fileID: 11400000, guid: 3083d7b285a48b34384cf36253389185, type: 2}
-    amount: 199
   - itemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
-    amount: 199
+    amount: 300
+  - itemDefinition: {fileID: 11400000, guid: 83207646c27978649aad0c621fe5e93d, type: 2}
+    amount: 50
   - itemDefinition: {fileID: 11400000, guid: 6293531210d744e8b03f1b99017467c3, type: 2}
-    amount: 199
+    amount: 50
+  - itemDefinition: {fileID: 11400000, guid: 52d28e7de1d658444b6a2fb735c56e85, type: 2}
+    amount: 50
   startingDynastyName: "\u65E0\u540D\u738B\u671D"
   startingPopulation: 0
   endGameWhenNoPalaceAtTurnEnd: 1
@@ -71,6 +67,8 @@ MonoBehaviour:
   startingResearchTechnology: {fileID: 0}
   startingResearchProgress: 0
   startingUnlockedTechnologies: []
+  technologyGlobalBuffCatalog: {fileID: 11400000, guid: c8639d0e1f2a4134b5c6d7e8f9012a3c, type: 2}
+  technologyUnlockContentProducerAssets: []
   policyCatalog: {fileID: 11400000, guid: 2c44ed9de03142fca98c63198b3f2ab5, type: 2}
   startingPublicOpinion: 0
   startingSelectedPolicies: []

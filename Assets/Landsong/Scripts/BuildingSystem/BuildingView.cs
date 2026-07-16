@@ -6,6 +6,7 @@ namespace Landsong.BuildingSystem
     public enum BuildingViewEntryReason
     {
         Normal = 0,
+        ConstructionAdvanced = 5,
         ConstructionCompleted = 10,
         Upgraded = 20
     }

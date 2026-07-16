@@ -113,7 +113,12 @@ namespace Landsong.BuildingSystem
                 return false;
             }
 
-            return gridMap.CanOccupy(origin, definition.Size, definition.RequiredTerrainKeys, out _)
+            return gridMap.CanOccupy(
+                       origin,
+                       definition.Size,
+                       definition.RequiredTerrainKeys,
+                       definition.RequiredAnyFootprintTerrainKeys,
+                       out _)
                    || IsExistingRoadAt(gridMap, buildings, origin, definition);
         }
 

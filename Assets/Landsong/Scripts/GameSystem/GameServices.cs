@@ -39,6 +39,9 @@ namespace Landsong
         public BuildingSelectionController BuildingSelection => owner.BuildingSelection;
         public BuildingCatalog BuildingCatalog => owner.BuildingCatalog;
         public PolicyCatalog PolicyCatalog => owner.PolicyCatalog;
+
+        public TechnologyUnlockContentRegistry TechnologyUnlockContents => owner.TechnologyUnlockContents;
+        public TechnologyGlobalBuffService GlobalBuffs => owner.GlobalBuffs;
     }
 
     public sealed partial class GameSystem

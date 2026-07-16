@@ -157,7 +157,12 @@ namespace Landsong.BuildingSystem
                 return BuildingPlacementResult.Fail(BuildingPlacementFailure.MissingGridMap, "缺少 GridMap。");
             }
 
-            if (!request.GridMap.CanOccupy(request.Origin, definition.Size, definition.RequiredTerrainKeys, out var failureReason))
+            if (!request.GridMap.CanOccupy(
+                    request.Origin,
+                    definition.Size,
+                    definition.RequiredTerrainKeys,
+                    definition.RequiredAnyFootprintTerrainKeys,
+                    out var failureReason))
             {
                 LogWarning(request.LogWarnings, $"Cannot place building '{definition.DisplayName}' at {request.Origin}: {failureReason}.", request.BuildingPrefab);
                 return BuildingPlacementResult.Fail(BuildingPlacementFailure.InvalidOrigin, "目标格子不可放置。", failureReason);
@@ -175,6 +180,7 @@ namespace Landsong.BuildingSystem
                     definition.Size,
                     occupancyId,
                     definition.RequiredTerrainKeys,
+                    definition.RequiredAnyFootprintTerrainKeys,
                     definition.MovementResistance,
                     out failureReason))
             {

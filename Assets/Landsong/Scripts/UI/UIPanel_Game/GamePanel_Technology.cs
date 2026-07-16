@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
+using Landsong.BuildingSystem;
 using Landsong.TechnologySystem;
 using Sirenix.OdinInspector;
 using TMPro;
@@ -30,6 +32,18 @@ namespace Landsong.UISystem
         [SerializeField, LabelText("编辑器预览科技目录")]
         [Tooltip("在 Prefab 编辑模式点击生成按钮时使用；不影响运行时 TechnologyService 的目录。")]
         private TechnologyCatalog editorPreviewCatalog;
+
+        [SerializeField, LabelText("编辑器预览建筑目录")]
+        [Tooltip("生成科技树预览时反向读取建筑解锁与等级升级条件，用于显示建筑图标和 LV 标记。")]
+        private BuildingCatalog editorPreviewBuildingCatalog;
+
+        [SerializeField, LabelText("编辑器预览全局 Buff 目录")]
+        [Tooltip("生成科技树预览时读取科技激活的全局 Buff，用 Buff 自己的图标显示解锁内容。未配置时自动读取项目正式目录。")]
+        private TechnologyGlobalBuffCatalog editorPreviewGlobalBuffCatalog;
+
+        [SerializeField, LabelText("编辑器预览额外内容生产者")]
+        [Tooltip("实现 ITechnologyUnlockContentProducer 的领域目录。生成预览前由生产者主动注入本地注册表。")]
+        private ScriptableObject[] editorPreviewUnlockContentProducers = Array.Empty<ScriptableObject>();
 
         [SerializeField, LabelText("科技节点预制体")]
         [Tooltip("必须带有 GamePanel_TechnologyNodeItem，用于生成真实科技节点。")]
@@ -73,11 +87,17 @@ namespace Landsong.UISystem
         private readonly Dictionary<TechnologyDefinition, RectTransform> generatedNodeRects =
             new Dictionary<TechnologyDefinition, RectTransform>();
         private readonly RectTransform[] generatedRows = new RectTransform[TechnologyNodeId.MaximumRow];
+        private readonly List<TechnologyUnlockContent> detailUnlockContents =
+            new List<TechnologyUnlockContent>();
+        private readonly TechnologyUnlockContentRegistry editorPreviewUnlockContentRegistry =
+            new TechnologyUnlockContentRegistry();
+        private TechnologyUnlockContentRegistry unlockContentRegistry;
         private UIPanel_Game gamePanel;
         private TechnologyService technology;
         private TechnologyDefinition selectedDefinition;
         private TechnologyTreeConnectionGraphic connectionGraphic;
         private bool subscribedToTechnology;
+        private bool subscribedToUnlockContents;
         private string lastAutoScrolledTechnologyId = string.Empty;
         private Coroutine autoScrollRoutine;
 
@@ -105,6 +125,7 @@ namespace Landsong.UISystem
         {
             StopAutoScrollRoutine();
             UnsubscribeTechnology();
+            UnsubscribeUnlockContents();
         }
 
         private void OnDestroy()
@@ -112,6 +133,7 @@ namespace Landsong.UISystem
             StopAutoScrollRoutine();
             UnbindButtons();
             UnsubscribeTechnology();
+            UnsubscribeUnlockContents();
         }
 
         public void Show()
@@ -155,6 +177,11 @@ namespace Landsong.UISystem
                         : "请先配置编辑器预览科技目录。",
                     this);
                 return;
+            }
+
+            if (!Application.isPlaying)
+            {
+                ResolveEditorPreviewUnlockContentSources();
             }
 
 #if UNITY_EDITOR
@@ -275,6 +302,84 @@ namespace Landsong.UISystem
         {
             var gameSystem = Landsong.GameSystem.Instance;
             technology = gameSystem == null ? null : gameSystem.Services.Technology;
+            SetUnlockContentRegistry(gameSystem?.Services.TechnologyUnlockContents);
+        }
+
+        private void ResolveEditorPreviewUnlockContentSources()
+        {
+            editorPreviewUnlockContentRegistry.Clear();
+            TechnologyUnlockContentRegistry.InjectCompletionEffects(
+                editorPreviewCatalog,
+                editorPreviewUnlockContentRegistry);
+            var buildingCatalog = editorPreviewBuildingCatalog;
+#if UNITY_EDITOR
+            if (buildingCatalog == null)
+            {
+                buildingCatalog = AssetDatabase.LoadAssetAtPath<BuildingCatalog>(
+                    "Assets/Landsong/Objects/SO/BuildingCatalog.asset");
+            }
+#endif
+            buildingCatalog?.InjectTechnologyUnlockContents(editorPreviewUnlockContentRegistry);
+
+            var globalBuffCatalog = editorPreviewGlobalBuffCatalog;
+#if UNITY_EDITOR
+            if (globalBuffCatalog == null)
+            {
+                globalBuffCatalog = AssetDatabase.LoadAssetAtPath<TechnologyGlobalBuffCatalog>(
+                    "Assets/Landsong/Objects/SO/TechnologyGlobalBuffCatalog.asset");
+            }
+#endif
+            globalBuffCatalog?.InjectTechnologyUnlockContents(editorPreviewUnlockContentRegistry);
+
+            if (editorPreviewUnlockContentProducers != null)
+            {
+                for (var i = 0; i < editorPreviewUnlockContentProducers.Length; i++)
+                {
+                    if (editorPreviewUnlockContentProducers[i] is ITechnologyUnlockContentProducer producer)
+                    {
+                        producer.InjectTechnologyUnlockContents(editorPreviewUnlockContentRegistry);
+                    }
+                }
+            }
+
+            SetUnlockContentRegistry(editorPreviewUnlockContentRegistry);
+        }
+
+        private void SetUnlockContentRegistry(TechnologyUnlockContentRegistry registry)
+        {
+            if (ReferenceEquals(unlockContentRegistry, registry))
+            {
+                if (!subscribedToUnlockContents && isActiveAndEnabled && unlockContentRegistry != null)
+                {
+                    unlockContentRegistry.Changed += HandleUnlockContentsChanged;
+                    subscribedToUnlockContents = true;
+                }
+                return;
+            }
+
+            UnsubscribeUnlockContents();
+            unlockContentRegistry = registry;
+            if (isActiveAndEnabled && unlockContentRegistry != null)
+            {
+                unlockContentRegistry.Changed += HandleUnlockContentsChanged;
+                subscribedToUnlockContents = true;
+            }
+        }
+
+        private void UnsubscribeUnlockContents()
+        {
+            if (subscribedToUnlockContents && unlockContentRegistry != null)
+            {
+                unlockContentRegistry.Changed -= HandleUnlockContentsChanged;
+            }
+
+            subscribedToUnlockContents = false;
+        }
+
+        private void HandleUnlockContentsChanged(TechnologyUnlockContentRegistry registry)
+        {
+            RefreshNodes();
+            RefreshDetail();
         }
 
         private void BindButtons()
@@ -350,7 +455,11 @@ namespace Landsong.UISystem
                 var item = nodeItems[i];
                 if (item != null)
                 {
-                    item.Bind(technology, HandleNodeClicked, item.Definition != null && item.Definition == selectedDefinition);
+                    item.Bind(
+                        technology,
+                        unlockContentRegistry,
+                        HandleNodeClicked,
+                        item.Definition != null && item.Definition == selectedDefinition);
                 }
             }
         }
@@ -368,10 +477,50 @@ namespace Landsong.UISystem
             }
 
             SetText(detailNameLabel, selectedDefinition.DisplayName);
-            SetText(detailDescriptionLabel, selectedDefinition.Description);
+            SetText(detailDescriptionLabel, FormatDetailDescription(selectedDefinition));
             SetText(detailCostLabel, $"研究需求：{selectedDefinition.SciencePointCost} 科技点");
             SetText(detailPrerequisitesLabel, FormatPrerequisites(selectedDefinition));
             SetText(detailStatusLabel, FormatSelectedStatus());
+        }
+
+        private string FormatDetailDescription(TechnologyDefinition definition)
+        {
+            detailUnlockContents.Clear();
+            unlockContentRegistry?.Collect(definition, detailUnlockContents);
+            var description = definition == null || string.IsNullOrWhiteSpace(definition.Description)
+                ? string.Empty
+                : definition.Description.Trim();
+            if (detailUnlockContents.Count == 0)
+            {
+                return description;
+            }
+
+            var builder = new StringBuilder();
+            if (!string.IsNullOrEmpty(description))
+            {
+                builder.AppendLine(description);
+                builder.AppendLine();
+            }
+
+            builder.AppendLine("解锁与完成效果");
+            for (var i = 0; i < detailUnlockContents.Count; i++)
+            {
+                var content = detailUnlockContents[i];
+                builder.Append("• ");
+                builder.Append(content.DisplayName);
+                if (content.Amount > 1)
+                {
+                    builder.Append(" ×");
+                    builder.Append(content.Amount);
+                }
+
+                if (i < detailUnlockContents.Count - 1)
+                {
+                    builder.AppendLine();
+                }
+            }
+
+            return builder.ToString();
         }
 
         private void CollectExistingNodeItems()
@@ -595,6 +744,11 @@ namespace Landsong.UISystem
 
             item.name = $"科技_{row}_{column}_{definition.DisplayName}";
             item.SetDefinition(definition);
+            item.Bind(
+                Application.isPlaying ? technology : null,
+                unlockContentRegistry,
+                Application.isPlaying ? HandleNodeClicked : null,
+                false);
             generatedNodeRects[definition] = (RectTransform)item.transform;
         }
 

@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp:Landsong.BuildingSystem:BuildingModuleSetDefinition
   buildingModules:
   - rid: 5711026424309612585
+  - rid: 5711026424309612586
   references:
     version: 2
     RefIds:
@@ -29,3 +30,9 @@ MonoBehaviour:
         saplingItemDefinition: {fileID: 11400000, guid: dd8a28cea30e0b64c89b0b4be4e74ce0, type: 2}
         saplingRewardAmount: 3
         currentHealth: 0
+    - rid: 5711026424309612586
+      type: {class: "BM_\u7A7A\u95F4\u6548\u679C\u6E90", ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        enabled: 1
+        effects:
+        - {fileID: 11400000, guid: 7fb6a7e81e174082bf4d7a7482242c11, type: 2}

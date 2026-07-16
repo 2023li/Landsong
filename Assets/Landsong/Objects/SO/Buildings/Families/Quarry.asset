@@ -1,0 +1,199 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad4cbf49b35f06744b7e4297512a9e5f, type: 3}
+  m_Name: Quarry
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingFamilyDefinition
+  definition:
+    familyId: building.quarry
+    displayName: "\u91C7\u77F3\u573A"
+    category: 4
+    icon: {fileID: 21300000, guid: cfdcfaaf30eb3b647afb4ea2414cef08, type: 3}
+    size: {x: 3, y: 3}
+    ignoreTerrainRequirement: 0
+    requiredTerrainKeys:
+    - "\u9646\u5730"
+    - "\u77F3\u77FF"
+    requiredAnyFootprintTerrainKeys: []
+    movementResistance: 0
+    placementCosts:
+    - itemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+      amount: 100
+    visibleCondition:
+      rid: -2
+    automaticBlueprintUnlockCondition:
+      rid: 5711026500000000100
+    blueprintInitiallyLocked: 1
+    hideWhenBlueprintLocked: 1
+    buildMenuSortOrder: 40
+    maxBuildCount: 0
+    buildLimitGroupId: building.quarry
+    isDevelopmentCompleted: 1
+  runtimePrefab: {fileID: 100103, guid: a6417b8c9d0e4f12a3b4c5d6e7f8091a, type: 3}
+  construction:
+    turns:
+    - costs: []
+      rewards:
+      - itemDefinition: {fileID: 11400000, guid: 83207646c27978649aad0c621fe5e93d, type: 2}
+        amount: 10
+      - itemDefinition: {fileID: 11400000, guid: 52d28e7de1d658444b6a2fb735c56e85, type: 2}
+        amount: 20
+    - costs:
+      - itemDefinition: {fileID: 11400000, guid: d6237768df153c2449612f25cd386e53, type: 2}
+        amount: 30
+      rewards: []
+    - costs: []
+      rewards:
+      - itemDefinition: {fileID: 11400000, guid: 52d28e7de1d658444b6a2fb735c56e85, type: 2}
+        amount: 100
+  levels:
+  - level: 1
+    configured: 1
+    upgradeCondition:
+      rid: -2
+    upgradeCosts: []
+    configurations:
+    - rid: 5711026500000000201
+    - rid: 5711026500000000202
+    - rid: 5711026500000000203
+  - level: 2
+    configured: 1
+    upgradeCondition:
+      rid: 5711026500000000204
+    upgradeCosts: []
+    configurations:
+    - rid: 5711026500000000205
+    - rid: 5711026500000000206
+    - rid: 5711026500000000207
+  - level: 3
+    configured: 1
+    upgradeCondition:
+      rid: 5711026500000000208
+    upgradeCosts: []
+    configurations:
+    - rid: 5711026500000000209
+    - rid: 5711026500000000210
+    - rid: 5711026500000000211
+  moduleSet: {fileID: 11400000, guid: e42f3a5b6c7d4890a1b2c3d4e5f60718, type: 2}
+  presentation: {fileID: 11400000, guid: f5304b6c7d8e4901a2b3c4d5e6f70819, type: 2}
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 5711026500000000100
+      type: {class: GameCondition_TechnologyUnlocked, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
+      data:
+        TechnologyDefinition: {fileID: 11400000, guid: fef0681c891b44e28689a8416e1a9ddd, type: 2}
+    - rid: 5711026500000000201
+      type: {class: BuildingWorkforceLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        maxWorkers: 6
+        initialWorkers: 0
+        baseAttraction: 55
+        recruitCost: 10
+        autoSubsidy: 0
+        targetStableWorkers: 0
+        goldItemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+    - rid: 5711026500000000202
+      type: {class: BuildingMaintenanceLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        itemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+        amountPerTurn: 3
+    - rid: 5711026500000000203
+      type: {class: BuildingProductionLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        intervalTurns: 1
+        outputs:
+        - itemDefinition: {fileID: 11400000, guid: 52d28e7de1d658444b6a2fb735c56e85, type: 2}
+          workerProductionTiers:
+          - "\u5DE5\u4EBA": 2
+            "\u4EA7\u91CF": 1
+          - "\u5DE5\u4EBA": 4
+            "\u4EA7\u91CF": 2
+          - "\u5DE5\u4EBA": 6
+            "\u4EA7\u91CF": 4
+    - rid: 5711026500000000204
+      type: {class: GameCondition_TechnologyUnlocked, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
+      data:
+        TechnologyDefinition: {fileID: 11400000, guid: 316d3e20dedf414fb929452cf4c9987f, type: 2}
+    - rid: 5711026500000000205
+      type: {class: BuildingWorkforceLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        maxWorkers: 6
+        initialWorkers: 0
+        baseAttraction: 55
+        recruitCost: 10
+        autoSubsidy: 0
+        targetStableWorkers: 0
+        goldItemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+    - rid: 5711026500000000206
+      type: {class: BuildingMaintenanceLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        itemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+        amountPerTurn: 5
+    - rid: 5711026500000000207
+      type: {class: BuildingProductionLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        intervalTurns: 1
+        outputs:
+        - itemDefinition: {fileID: 11400000, guid: 52d28e7de1d658444b6a2fb735c56e85, type: 2}
+          workerProductionTiers:
+          - "\u5DE5\u4EBA": 1
+            "\u4EA7\u91CF": 1
+          - "\u5DE5\u4EBA": 2
+            "\u4EA7\u91CF": 2
+          - "\u5DE5\u4EBA": 3
+            "\u4EA7\u91CF": 3
+          - "\u5DE5\u4EBA": 4
+            "\u4EA7\u91CF": 4
+          - "\u5DE5\u4EBA": 5
+            "\u4EA7\u91CF": 5
+          - "\u5DE5\u4EBA": 6
+            "\u4EA7\u91CF": 9
+    - rid: 5711026500000000208
+      type: {class: GameCondition_TechnologyUnlocked, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
+      data:
+        TechnologyDefinition: {fileID: 11400000, guid: ef51c213eee64ac183b443d004f25c58, type: 2}
+    - rid: 5711026500000000209
+      type: {class: BuildingWorkforceLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        maxWorkers: 6
+        initialWorkers: 0
+        baseAttraction: 55
+        recruitCost: 10
+        autoSubsidy: 0
+        targetStableWorkers: 0
+        goldItemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+    - rid: 5711026500000000210
+      type: {class: BuildingMaintenanceLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        itemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
+        amountPerTurn: 10
+    - rid: 5711026500000000211
+      type: {class: BuildingProductionLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        intervalTurns: 1
+        outputs:
+        - itemDefinition: {fileID: 11400000, guid: 52d28e7de1d658444b6a2fb735c56e85, type: 2}
+          workerProductionTiers:
+          - "\u5DE5\u4EBA": 1
+            "\u4EA7\u91CF": 2
+          - "\u5DE5\u4EBA": 2
+            "\u4EA7\u91CF": 4
+          - "\u5DE5\u4EBA": 3
+            "\u4EA7\u91CF": 6
+          - "\u5DE5\u4EBA": 4
+            "\u4EA7\u91CF": 8
+          - "\u5DE5\u4EBA": 5
+            "\u4EA7\u91CF": 10
+          - "\u5DE5\u4EBA": 6
+            "\u4EA7\u91CF": 22

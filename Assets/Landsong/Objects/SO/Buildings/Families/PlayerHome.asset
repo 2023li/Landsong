@@ -42,36 +42,36 @@ MonoBehaviour:
       rid: -2
     upgradeCosts: []
     configurations:
-    - rid: 5711026424309612546
-    - rid: 5711026424309612547
-    - rid: 5711026424309612548
+    - rid: 5711026465592574126
+    - rid: 5711026465592574127
+    - rid: 5711026465592574128
   - level: 2
     configured: 0
     upgradeCondition:
       rid: -2
     upgradeCosts: []
     configurations:
-    - rid: 5711026424309612549
-    - rid: 5711026424309612550
-    - rid: 5711026424309612551
+    - rid: 5711026465592574129
+    - rid: 5711026465592574130
+    - rid: 5711026465592574131
   - level: 3
     configured: 0
     upgradeCondition:
       rid: -2
     upgradeCosts: []
     configurations:
-    - rid: 5711026424309612552
-    - rid: 5711026424309612553
-    - rid: 5711026424309612554
+    - rid: 5711026465592574132
+    - rid: 5711026465592574133
+    - rid: 5711026465592574134
   - level: 4
     configured: 0
     upgradeCondition:
       rid: -2
     upgradeCosts: []
     configurations:
-    - rid: 5711026424309612555
-    - rid: 5711026424309612556
-    - rid: 5711026424309612557
+    - rid: 5711026465592574135
+    - rid: 5711026465592574136
+    - rid: 5711026465592574137
   moduleSet: {fileID: 11400000, guid: 3856a77226b33f64d8e76e212827b399, type: 2}
   presentation: {fileID: 11400000, guid: 26b2a3b1728dc6b4bbe49e3b31a83a9d, type: 2}
   references:
@@ -79,54 +79,54 @@ MonoBehaviour:
     RefIds:
     - rid: -2
       type: {class: , ns: , asm: }
-    - rid: 5711026424309612546
-      type: {class: PlayerHomeLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
-      data:
-        population: 10
-    - rid: 5711026424309612547
-      type: {class: BuildingInventoryLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
-      data:
-        providedSlots: 5
-    - rid: 5711026424309612548
-      type: {class: BuildingTechnologyPointLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
-      data:
-        pointsPerTurn: 1
-    - rid: 5711026424309612549
-      type: {class: PlayerHomeLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
-      data:
-        population: 10
-    - rid: 5711026424309612550
-      type: {class: BuildingInventoryLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
-      data:
-        providedSlots: 5
-    - rid: 5711026424309612551
-      type: {class: BuildingTechnologyPointLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
-      data:
-        pointsPerTurn: 1
-    - rid: 5711026424309612552
-      type: {class: PlayerHomeLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
-      data:
-        population: 10
-    - rid: 5711026424309612553
-      type: {class: BuildingInventoryLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
-      data:
-        providedSlots: 5
-    - rid: 5711026424309612554
-      type: {class: BuildingTechnologyPointLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
-      data:
-        pointsPerTurn: 1
-    - rid: 5711026424309612555
-      type: {class: PlayerHomeLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
-      data:
-        population: 10
-    - rid: 5711026424309612556
-      type: {class: BuildingInventoryLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
-      data:
-        providedSlots: 5
-    - rid: 5711026424309612557
-      type: {class: BuildingTechnologyPointLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
-      data:
-        pointsPerTurn: 1
     - rid: 5711026424601640960
       type: {class: GameCondition_False, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
-      data: 
+      data:
+    - rid: 5711026465592574126
+      type: {class: PlayerHomeLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        population: 10
+    - rid: 5711026465592574127
+      type: {class: BuildingInventoryLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        providedSlots: 5
+    - rid: 5711026465592574128
+      type: {class: BuildingTechnologyPointLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        pointsPerTurn: 1
+    - rid: 5711026465592574129
+      type: {class: PlayerHomeLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        population: 10
+    - rid: 5711026465592574130
+      type: {class: BuildingInventoryLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        providedSlots: 5
+    - rid: 5711026465592574131
+      type: {class: BuildingTechnologyPointLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        pointsPerTurn: 1
+    - rid: 5711026465592574132
+      type: {class: PlayerHomeLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        population: 10
+    - rid: 5711026465592574133
+      type: {class: BuildingInventoryLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        providedSlots: 5
+    - rid: 5711026465592574134
+      type: {class: BuildingTechnologyPointLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        pointsPerTurn: 1
+    - rid: 5711026465592574135
+      type: {class: PlayerHomeLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        population: 10
+    - rid: 5711026465592574136
+      type: {class: BuildingInventoryLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        providedSlots: 5
+    - rid: 5711026465592574137
+      type: {class: BuildingTechnologyPointLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
+      data:
+        pointsPerTurn: 1

@@ -30,11 +30,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: c72320f4f6ba4464794edfb4efac0266
-    m_Address: UIPanel_Debug
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 69f4857c976d8354f8ed492e371b19d2
     m_Address: UIPanel_Setting
     m_ReadOnly: 0
@@ -50,6 +45,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a5c9b469d0b948a42b25c988ea33c8ba
+    m_Address: "Assets/Landsong/Objects/Prefabs/BuildingViews/\u4ED3\u5E93/\u4ED3\u5E93\u65BD\u5DE5.prefab"
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a8413fcd44142e14eb93897ea1ecddec
     m_Address: Popup_GeneralBuildingDetails
     m_ReadOnly: 0
@@ -62,6 +62,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: c55bd9175cbf32745be4494db4b58946
     m_Address: UIConfig
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c72320f4f6ba4464794edfb4efac0266
+    m_Address: UIPanel_Debug
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

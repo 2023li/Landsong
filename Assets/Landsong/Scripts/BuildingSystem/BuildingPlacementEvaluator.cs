@@ -56,6 +56,7 @@ namespace Landsong.BuildingSystem
                 origin,
                 definition.Size,
                 definition.RequiredTerrainKeys,
+                definition.RequiredAnyFootprintTerrainKeys,
                 out var gridFailure,
                 ignoredOccupantId);
 

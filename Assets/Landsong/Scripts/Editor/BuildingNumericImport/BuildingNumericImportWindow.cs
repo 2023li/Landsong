@@ -50,7 +50,7 @@ namespace Landsong.EditorTools.Buildings.NumericImport
             EditorGUILayout.LabelField("建筑正式数值导表", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
                 "Excel 是策划源，Unity Family / LevelConfiguration / ModuleSet / Runtime Prefab 是生成后的运行时资产。" +
-                "导入会先读取并校验整张工作簿；任一错误都会阻止全部写入。Prefab 只更新资源点、优先级和行动力三个数据字段，不改结构与表现。",
+                "导入会全表读取、全表校验和全表比较，但只写入实际变化的资产。Prefab 只更新资源点、优先级和行动力三个数据字段，不改结构与表现。",
                 MessageType.Info);
         }
 
@@ -128,7 +128,7 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                     Analyze();
                 }
 
-                using (new EditorGUI.DisabledScope(session == null || !session.IsValid))
+                using (new EditorGUI.DisabledScope(session == null || !session.HasChanges))
                 {
                     if (GUILayout.Button("执行导入", GUILayout.Height(28f)))
                     {
@@ -149,7 +149,8 @@ namespace Landsong.EditorTools.Buildings.NumericImport
             var report = session.Report;
             EditorGUILayout.Space(4f);
             EditorGUILayout.LabelField(
-                $"校验结果：{report.ErrorCount} 个错误，{report.WarningCount} 个警告，{report.Changes.Count} 项影响",
+                $"校验结果：{report.ErrorCount} 个错误，{report.WarningCount} 个警告，" +
+                $"{session.ChangePlan.ChangedAssetCount} 个资产存在实际变化",
                 EditorStyles.boldLabel);
 
             scroll = EditorGUILayout.BeginScrollView(scroll);
@@ -164,12 +165,16 @@ namespace Landsong.EditorTools.Buildings.NumericImport
             {
                 using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
                 {
-                    EditorGUILayout.LabelField("导入影响预览", EditorStyles.boldLabel);
+                    EditorGUILayout.LabelField("实际差异预览", EditorStyles.boldLabel);
                     foreach (var change in report.Changes)
                     {
                         EditorGUILayout.LabelField("• " + change, EditorStyles.wordWrappedLabel);
                     }
                 }
+            }
+            else if (session.IsValid)
+            {
+                EditorGUILayout.HelpBox("当前 Unity 资产已与 Excel 正式数值表同步，无需导入。", MessageType.Info);
             }
             EditorGUILayout.EndScrollView();
         }
@@ -177,9 +182,11 @@ namespace Landsong.EditorTools.Buildings.NumericImport
         private void Analyze()
         {
             session = BuildingNumericImportService.Analyze(workbookProjectPath);
-            statusMessage = session.IsValid
-                ? "全表校验通过，可以执行导入。"
-                : $"校验未通过：{session.Report.ErrorCount} 个错误。未修改任何资产。";
+            statusMessage = !session.IsValid
+                ? $"校验未通过：{session.Report.ErrorCount} 个错误。未修改任何资产。"
+                : session.HasChanges
+                    ? $"全表校验通过：{session.ChangePlan.ChangedAssetCount} 个资产存在实际变化，可以执行增量导入。"
+                    : "全表校验通过：当前资产已与 Excel 同步，无需导入。";
             statusType = session.IsValid ? MessageType.Info : MessageType.Error;
         }
 
@@ -223,15 +230,19 @@ namespace Landsong.EditorTools.Buildings.NumericImport
 
         private void Apply()
         {
-            if (session == null || !session.IsValid)
+            if (session == null || !session.HasChanges)
             {
                 return;
             }
 
+            var changedAssetCount = session.ChangePlan.ChangedAssetCount;
+            var changedFamilyCount = session.ChangePlan.ChangedFamilyCount;
+
             if (!EditorUtility.DisplayDialog(
                     "执行建筑数值导入",
-                    $"将按 Excel 覆盖 {session.Data.Families.Count} 个建筑家族的正式数值。\n" +
-                    "已通过全表校验，操作支持一次 Undo。是否继续？",
+                    $"已完成全表校验和差异比较。\n" +
+                    $"本次只会写入 {changedAssetCount} 个实际变化资产，涉及 {changedFamilyCount} 个建筑家族。\n" +
+                    "操作支持一次 Undo。是否继续？",
                     "执行导入",
                     "取消"))
             {
@@ -240,9 +251,10 @@ namespace Landsong.EditorTools.Buildings.NumericImport
 
             if (BuildingNumericImportService.Apply(session))
             {
-                statusMessage = $"导入完成：已更新 {session.Data.Families.Count} 个建筑家族。";
-                statusType = MessageType.Info;
                 Analyze();
+                statusMessage = $"增量导入完成：已更新 {changedAssetCount} 个资产；重新校验后剩余 " +
+                                $"{session.ChangePlan.ChangedAssetCount} 个差异。";
+                statusType = MessageType.Info;
                 BuildingAuthoringWindow.RepaintOpenWindow();
             }
             else

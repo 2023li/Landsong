@@ -48,6 +48,12 @@ namespace Landsong.BuildingSystem
         [PropertyTooltip("建筑 footprint 内每个格子都必须包含这些 key。默认 land；水上建筑填 water；特殊区域建筑填对应区域 key。")]
         [SerializeField, InspectorName("需要的地形 Key")] private string[] requiredTerrainKeys = { GridTerrainKeys.Land };
 
+        [TitleGroup("建造位置")]
+        [LabelText("占地内至少一格需要的 Key")]
+        [PropertyTooltip("每个 Key 都必须至少出现在 footprint 的一个格子中。用于石矿、遗迹等覆盖层；普通陆地要求仍写在上方。")]
+        [SerializeField, InspectorName("占地内至少一格需要的 Key")]
+        private string[] requiredAnyFootprintTerrainKeys = Array.Empty<string>();
+
         [TitleGroup("寻路")]
         [LabelText("移动阻力")]
         [PropertyTooltip("该建筑占用格的通行行动力消耗。小于等于 0 表示不可通行；道路等可通行建筑填正数。")]
@@ -63,6 +69,12 @@ namespace Landsong.BuildingSystem
         [LabelText("显示条件")]
         [PropertyTooltip("None/空引用表示无显示条件，默认显示。配置条件且不满足时，该建筑从建造菜单隐藏。")]
         [SerializeReference, InspectorName("显示条件")] private GameCondition visibleCondition;
+
+        [TitleGroup("建筑蓝图")]
+        [LabelText("自动解锁条件")]
+        [PropertyTooltip("条件满足后由建筑蓝图服务自动授予蓝图。科技解锁关系配置在这里，不再写进科技的一次性完成效果。")]
+        [SerializeReference, InspectorName("自动解锁条件")]
+        private GameCondition automaticBlueprintUnlockCondition;
 
         [TitleGroup("建筑蓝图")]
         [LabelText("初始未拥有蓝图")]
@@ -95,6 +107,7 @@ namespace Landsong.BuildingSystem
         [SerializeField, InspectorName("开发完成")] private bool isDevelopmentCompleted;
 
         [NonSerialized] private string[] cachedRequiredTerrainKeys;
+        [NonSerialized] private string[] cachedRequiredAnyFootprintTerrainKeys;
 
         public bool IsDevelopmentCompleted => isDevelopmentCompleted;
         public string FamilyId => familyId;
@@ -121,8 +134,24 @@ namespace Landsong.BuildingSystem
             }
         }
 
+        public IReadOnlyList<string> RequiredAnyFootprintTerrainKeys
+        {
+            get
+            {
+                if (ignoreTerrainRequirement)
+                {
+                    return Array.Empty<string>();
+                }
+
+                cachedRequiredAnyFootprintTerrainKeys ??=
+                    BuildRuntimeTerrainKeys(requiredAnyFootprintTerrainKeys);
+                return cachedRequiredAnyFootprintTerrainKeys;
+            }
+        }
+
         public BuildingCategory Category => category;
         public GameCondition VisibleCondition => visibleCondition;
+        public GameCondition AutomaticBlueprintUnlockCondition => automaticBlueprintUnlockCondition;
         public bool BlueprintInitiallyLocked => blueprintInitiallyLocked;
         public bool HideWhenBlueprintLocked => hideWhenBlueprintLocked;
         public int BuildMenuSortOrder => buildMenuSortOrder;
@@ -145,7 +174,9 @@ namespace Landsong.BuildingSystem
             maxBuildCount = Mathf.Max(0, maxBuildCount);
             NormalizeCosts(ref placementCosts);
             NormalizeTerrainKeysForInspector(ref requiredTerrainKeys);
+            NormalizeTerrainKeysForInspector(ref requiredAnyFootprintTerrainKeys);
             cachedRequiredTerrainKeys = null;
+            cachedRequiredAnyFootprintTerrainKeys = null;
         }
 
         public void ConfigureIdentity(
@@ -175,8 +206,10 @@ namespace Landsong.BuildingSystem
             Vector2Int footprintSize,
             bool ignoreTerrain,
             IReadOnlyList<string> terrainKeys,
+            IReadOnlyList<string> anyFootprintTerrainKeys,
             int traversalResistance,
             IReadOnlyList<BuildingCost> costs,
+            GameCondition blueprintUnlockCondition,
             bool initiallyLocked,
             bool hideWhileLocked,
             int menuSortOrder,
@@ -193,10 +226,14 @@ namespace Landsong.BuildingSystem
             requiredTerrainKeys = terrainKeys == null
                 ? Array.Empty<string>()
                 : new List<string>(terrainKeys).ToArray();
+            requiredAnyFootprintTerrainKeys = anyFootprintTerrainKeys == null
+                ? Array.Empty<string>()
+                : new List<string>(anyFootprintTerrainKeys).ToArray();
             movementResistance = traversalResistance;
             placementCosts = costs == null
                 ? Array.Empty<BuildingCost>()
                 : new List<BuildingCost>(costs).ToArray();
+            automaticBlueprintUnlockCondition = blueprintUnlockCondition;
             blueprintInitiallyLocked = initiallyLocked;
             hideWhenBlueprintLocked = hideWhileLocked;
             buildMenuSortOrder = menuSortOrder;

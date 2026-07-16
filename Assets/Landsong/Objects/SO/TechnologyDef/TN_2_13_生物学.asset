@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3b70d7f4d394dd9a76b0bc2e5c6a101, type: 3}
+  m_Name: "TN_2_13_生物学"
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.TechnologySystem.TechnologyDefinition
+  icon: {fileID: 0}
+  technologyId: "TN_2_13_生物学"
+  displayName: "生物学"
+  description: "以实验方法研究生命结构、繁衍与环境适应，建立可验证的生命科学。"
+  sciencePointCost: 168
+  allowRepeatResearch: 0
+  prerequisites:
+  - {fileID: 11400000, guid: a2d1e13e924b415cbefd00c4b00d396d, type: 2}
+  - {fileID: 11400000, guid: 27303df3048a40268db1251af2c4d3b0, type: 2}
+  completionEffects: []
+  graphPosition: {x: 2640, y: 150}
+  references:
+    version: 2
+    RefIds: []

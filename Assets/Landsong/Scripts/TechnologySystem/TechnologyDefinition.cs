@@ -43,7 +43,7 @@ namespace Landsong.TechnologySystem
         [SerializeField, Min(0), LabelText("研究需求科技点")] private int sciencePointCost = 1;
         [SerializeField, LabelText("允许重复研究")] private bool allowRepeatResearch;
         [SerializeField, LabelText("前置科技")] private TechnologyDefinition[] prerequisites = Array.Empty<TechnologyDefinition>();
-        [SerializeReference, LabelText("研究完成效果")] private TechnologyEffect[] completionEffects = Array.Empty<TechnologyEffect>();
+        [SerializeReference, LabelText("一次性完成效果")] private TechnologyEffect[] completionEffects = Array.Empty<TechnologyEffect>();
         [SerializeField, LabelText("编辑器节点位置")] private Vector2 graphPosition;
 
         public Sprite Icon => icon;

@@ -234,6 +234,7 @@ namespace Landsong.EditorTools.Buildings
             if (!ignoreTerrain.boolValue)
             {
                 DrawProperty(draftProperty, "RequiredTerrainKeys", true);
+                DrawProperty(draftProperty, "RequiredAnyFootprintTerrainKeys", true);
             }
 
             DrawProperty(draftProperty, "MovementResistance");
@@ -252,12 +253,59 @@ namespace Landsong.EditorTools.Buildings
         private static void DrawConstructionAndLevelSection(SerializedProperty draftProperty)
         {
             BeginSection("3. 施工与等级");
+            var modeProperty = DrawProperty(draftProperty, "ConstructionViewMode");
+            var mode = (BuildingConstructionViewMode)modeProperty.intValue;
             EditorGUILayout.HelpBox(
-                "施工是独立阶段；施工回合列表决定每回合消耗。运营等级始终从 LV1 开始，升级保留同一个运行时实例。",
+                mode == BuildingConstructionViewMode.Single
+                    ? "施工是独立阶段。当前选择单一施工视图：整个施工期保持同一个 View；每回合仍可分别填写消耗与产出。运营等级始终从 LV1 开始。"
+                    : "施工是独立阶段。当前选择逐回合施工视图：每个施工回合拥有独立 View；完成当前回合后切换到下一回合 View。运营等级始终从 LV1 开始。",
                 MessageType.None);
+            if (mode == BuildingConstructionViewMode.Single)
+            {
+                DrawProperty(draftProperty, "ConstructionViewPrefab");
+            }
+
             DrawProperty(draftProperty, "ConstructionTurns", true);
+            if (mode == BuildingConstructionViewMode.PerTurn)
+            {
+                DrawPerTurnConstructionViews(draftProperty);
+            }
+
             DrawProperty(draftProperty, "InitialLevelCount");
             EndSection();
+        }
+
+        private static void DrawPerTurnConstructionViews(SerializedProperty draftProperty)
+        {
+            var turnsProperty = draftProperty.FindPropertyRelative("ConstructionTurns");
+            var viewsProperty = draftProperty.FindPropertyRelative("ConstructionTurnViewPrefabs");
+            if (turnsProperty == null || viewsProperty == null)
+            {
+                EditorGUILayout.HelpBox("创建草稿缺少逐回合施工视图字段。", MessageType.Error);
+                return;
+            }
+
+            if (viewsProperty.arraySize != turnsProperty.arraySize)
+            {
+                viewsProperty.arraySize = turnsProperty.arraySize;
+            }
+
+            EditorGUILayout.Space(3f);
+            EditorGUILayout.LabelField(
+                new GUIContent(
+                    "逐回合施工视图",
+                    "列表与上方施工回合一一对应。允许暂时留空；缺失回合会显示统一占位表现。"),
+                EditorStyles.boldLabel);
+            EditorGUI.indentLevel++;
+            for (var i = 0; i < viewsProperty.arraySize; i++)
+            {
+                EditorGUILayout.PropertyField(
+                    viewsProperty.GetArrayElementAtIndex(i),
+                    new GUIContent(
+                        $"第 {i + 1} 回合 View Prefab",
+                        $"进入第 {i + 1} 个施工回合时显示的独立纯表现 Prefab。"));
+            }
+            EditorGUI.indentLevel--;
         }
 
         private static void DrawPresentationSection(SerializedProperty draftProperty)
@@ -267,7 +315,6 @@ namespace Landsong.EditorTools.Buildings
                 "这里只引用独立 View Prefab。不要把施工、LV1～LVN 美术节点塞入 Runtime Prefab。" +
                 "资源紧张时可以留空，之后直接替换或追加 Presentation 映射。",
                 MessageType.None);
-            DrawProperty(draftProperty, "ConstructionViewPrefab");
             DrawProperty(draftProperty, "PlacementPreviewViewPrefab");
             DrawProperty(draftProperty, "DefaultOperationalViewPrefab");
             DrawProperty(draftProperty, "Styles", true);
@@ -278,7 +325,8 @@ namespace Landsong.EditorTools.Buildings
         {
             var templateProperty = draftProperty.FindPropertyRelative("ModuleTemplate");
             var template = (BuildingModuleTemplate)templateProperty.enumValueIndex;
-            if (template != BuildingModuleTemplate.WorkforceProduction)
+            if (template != BuildingModuleTemplate.WorkforceProduction
+                && template != BuildingModuleTemplate.WorkforceMaintenanceProduction)
             {
                 return;
             }
@@ -291,6 +339,11 @@ namespace Landsong.EditorTools.Buildings
             DrawProperty(draftProperty, "AutoSubsidy");
             DrawProperty(draftProperty, "TargetStableWorkers");
             DrawProperty(draftProperty, "GoldItemDefinition");
+            if (template == BuildingModuleTemplate.WorkforceMaintenanceProduction)
+            {
+                DrawProperty(draftProperty, "MaintenanceItemDefinition");
+                DrawProperty(draftProperty, "MaintenanceAmountPerTurn");
+            }
             DrawProperty(draftProperty, "ProductionIntervalTurns");
             DrawProperty(draftProperty, "ProductionItem");
             DrawProperty(draftProperty, "ProductionTiers", true);
@@ -534,11 +587,34 @@ namespace Landsong.EditorTools.Buildings
 
             var serializedObject = editor.serializedObject;
             serializedObject.UpdateIfRequiredOrScript();
-            DrawPresentationProperty(
+            var constructionViewMode = DrawPresentationProperty(
                 serializedObject,
-                "constructionView",
-                "施工视图",
-                "建造阶段显示的独立视图预制体。");
+                "constructionViewMode",
+                "施工视图模式",
+                "单一模式在整个施工阶段保持同一视图；逐回合模式按当前施工回合选择视图。使用逐回合模式时，缺失映射不会回退单一视图。");
+            var mode = constructionViewMode == null
+                ? BuildingConstructionViewMode.Single
+                : (BuildingConstructionViewMode)constructionViewMode.intValue;
+            if (mode == BuildingConstructionViewMode.Single)
+            {
+                DrawPresentationProperty(
+                    serializedObject,
+                    "constructionView",
+                    "施工视图",
+                    "整个施工阶段使用的同一个独立纯表现 View。");
+            }
+            else if (mode == BuildingConstructionViewMode.PerTurn)
+            {
+                DrawPresentationProperty(
+                    serializedObject,
+                    "constructionViewMappings",
+                    "逐回合施工视图",
+                    "按施工回合和可选样式 ID 选择独立视图；回合从 1 开始，缺失映射显示占位表现。");
+            }
+            else
+            {
+                EditorGUILayout.HelpBox($"不支持的施工视图模式值：{constructionViewMode?.intValue}", MessageType.Error);
+            }
             DrawPresentationProperty(
                 serializedObject,
                 "placementPreviewView",
@@ -553,7 +629,7 @@ namespace Landsong.EditorTools.Buildings
                 serializedObject,
                 "viewMappings",
                 "视图映射",
-                "按运营等级和样式 ID 选择视图资源；施工表现只使用上方施工视图。");
+                "按运营等级和样式 ID 选择视图资源；这里只负责运营阶段。");
             DrawPresentationProperty(
                 serializedObject,
                 "styles",
@@ -565,7 +641,7 @@ namespace Landsong.EditorTools.Buildings
             }
         }
 
-        private static void DrawPresentationProperty(
+        private static SerializedProperty DrawPresentationProperty(
             SerializedObject serializedObject,
             string propertyName,
             string label,
@@ -575,13 +651,14 @@ namespace Landsong.EditorTools.Buildings
             if (property == null)
             {
                 EditorGUILayout.HelpBox($"表现配置缺少序列化字段：{propertyName}", MessageType.Error);
-                return;
+                return null;
             }
 
             EditorGUILayout.PropertyField(
                 property,
                 new GUIContent(label, tooltip),
                 true);
+            return property;
         }
 
         private void DrawSelectedFamilyActions()

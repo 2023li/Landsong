@@ -306,13 +306,19 @@ namespace Landsong.GridSystem
                 GetTerrainLayerTilemap(GridTerrainKeys.Obstacle),
                 "障碍 Tilemap",
                 20);
+            var stoneDepositTilemap = EnsureTilemapLayer(
+                targetGrid,
+                GetTerrainLayerTilemap(GridTerrainKeys.StoneDeposit),
+                "石矿 Tilemap",
+                15);
             EnsureTerrainLayer(GridTerrainKeys.Water, waterTilemap, true);
             EnsureTerrainLayer(GridTerrainKeys.Obstacle, obstacleTilemap, true);
+            EnsureTerrainLayer(GridTerrainKeys.StoneDeposit, stoneDepositTilemap, false);
 
             EditorUtility.SetDirty(this);
             EditorSceneManager.MarkSceneDirty(gameObject.scene);
             Undo.CollapseUndoOperations(undoGroup);
-            Debug.Log("已生成 Base/水域/障碍 Tilemap，并登记水域与障碍地形规则。", this);
+            Debug.Log("已生成 Base/水域/石矿/障碍 Tilemap；石矿作为不替换陆地的资源覆盖层。", this);
         }
 
         private void EnsureTerrainLayer(string key, Tilemap tilemap, bool replaceDefault)

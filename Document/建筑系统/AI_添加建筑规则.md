@@ -1,6 +1,6 @@
 # AI 添加建筑规则
 
-> 适用版本：2026-07-13 建筑终态架构。本文是新增或修改建筑时的强制执行规范。
+> 适用版本：2026-07-15 建筑终态架构。本文是新增或修改建筑时的强制执行规范。
 
 ## 1. 唯一合法形态
 
@@ -32,6 +32,7 @@
 
 - 家族：`Assets/Landsong/Objects/SO/Buildings/Families`
 - 模块集：`Assets/Landsong/Objects/SO/Buildings/Modules`
+- 范围效果：`Assets/Landsong/Objects/SO/Buildings/SpatialEffects`
 - 表现定义：`Assets/Landsong/Objects/SO/Buildings/Presentations`
 - Runtime Prefab：`Assets/Landsong/Objects/Prefabs/BuildingsRuntime`
 - View Prefab：按《建筑Prefab与表现资源回填指南》建立在独立目录，不得放入 Runtime Prefab 内。
@@ -52,12 +53,15 @@
 
 占地已经被产品规则冻结为全等级不变，所以占地只存在一份。禁止在等级配置或 View Prefab 中再次表达占地。
 
+`RequiredTerrainKeys` 中的每个 Key 都要求 footprint 的每一个格子具备；采石场使用 `陆地 + 石矿`，因此 3×3 的 9 格必须全部在石矿覆盖层上。`RequiredAnyFootprintTerrainKeys` 只表达“整个 footprint 至少出现一次”的其他机制，不得用于采石场。
+
 ### `BuildingConstructionDefinition`
 
 施工是生命周期阶段，不是 LV0。每个家族都必须有施工定义：
 
 - `turns` 的每一项代表一个施工回合；
-- 该回合费用扣除成功后，进度加一；
+- 每回合分别保存非负的 `Costs` 与 `Rewards`；二者由一次库存交换事务原子结算，任一侧无法满足都不推进；
+- Presentation 可选择整个施工阶段共用一个 View，或让每回合拥有独立 View；表现模式和映射不写入本数值定义，也不进入 Runtime Prefab；
 - 全部回合完成后，同一实例进入 `Operational/LV1`；
 - 空费用回合仍是一个有效施工回合；
 - 放置费用和逐回合施工费用是两套独立费用，策划必须明确是否都需要。
@@ -77,11 +81,14 @@
 
 - `workforce`：岗位；
 - `production`：资源生产；
+- `maintenance`：通用固定维护费；必须位于 `production` 前，支付失败时中止本回合后续自动模块；
+- `operational_experience`：通用累计运营经验和升级门槛；依赖 `workforce`，有维护费时必须排在 `maintenance` 后；
 - `processing`：资源加工；
 - `inventory.capacity`：库存容量；
+- `warehouse.operation`：仓库的动态库存、维护费、经验升级和维护失败吸引力惩罚；依赖 `workforce` 且排在其后；
 - `technology.points`：科技点；
 - `crop`：作物；
-- `spatial_effect`：空间效果。
+- `spatial_effect`：范围效果源；配置资产使用稳定 `EffectId`，负责美化、医疗、治安或生产百分比等曼哈顿范围规则；
 - `population.fixed`：王宫等固定人口；
 - `residential.operation`：居民人口、消费、增长、税收和荒废；
 - `market.resource_accounting`：市场经手价值；
@@ -91,6 +98,14 @@
 模块类必须带稳定的 `[BuildingModuleId("...")]`。同一家族内 ModuleId 不得重复。需要存档的模块实现 `IBuildingModuleStateSerializer`，存档按 ModuleId 恢复，不能依赖数组下标。
 
 ModuleSet 数组顺序就是生命周期和自动回合执行顺序，依赖必须排在使用者之前。模块通过可选生命周期接口参与初始化、注册、施工、等级、回合、点击、注销和拆除；通过能力接口供外部系统查询。禁止运行时用 `EnsureModule` 临时创造配置缺失的模块；缺模块应尽早报错。
+
+范围效果由 `BM_空间效果源` 引用一个或多个 `BuildingSpatialEffectDefinition`。模块表达“建筑拥有范围效果能力”，效果资产表达 `EffectId + 类型 + 目标 + 生效运营等级 + 最低工人 + 半径 + 数值 + 叠加规则 + 是否影响自身占地`。结构先在 Unity 创建，策划数值写入正式 Excel 的 `模块_范围效果`。运营前、拆除中、已移除建筑、等级不符或工人未达门槛时不得提供效果；放置预览按当前等级显示可配置的覆盖范围。
+
+医疗、治安与美化都属于格子值，`TargetFilter` 必须为 `cell`。需要“同格只取最高”的规则时使用 `HighestValue`；同一建筑可挂多条相同数值、不同门槛/半径的 Definition，较高工人档位会自然扩展覆盖范围，不会在重叠格重复叠加。
+
+当前树木规则固定为：`beauty.tree`、`Beauty/Cell`、曼哈顿半径 1、每格 +1、排除自身占地、`HighestValue`。因为树木占地为 1×1，所以只影响正交四邻格；多棵树或雕塑覆盖同一格时，在 `HighestValue` 通道中只取最高值。
+
+当前雕塑规则固定为：`building.sculpture + beauty.sculpture`，参数同样是 `Beauty/Cell`、半径 1、每格 +1、排除自身占地、`HighestValue`。`sculpture_goddess` 与 `sculpture_deer` 是同一家族的表现 Style，不允许为两种雕塑复制玩法家族或模块数据。
 
 ### 模块与能力接口
 
@@ -126,7 +141,7 @@ Runtime Prefab 负责稳定身份、交互和运行时挂点；纯美术 View Pr
 
 `BuildingPresentationDefinition` 可以直接引用 View Prefab，也可以引用 Addressable。当前解析规则是：
 
-1. 施工态查 `ConstructionView`，缺失则显示统一占位表现。
+1. 施工态先读取 `ConstructionViewMode`：`Single` 始终读取一个 `ConstructionView`；`PerTurn` 按当前回合和 StyleId 查 `ConstructionViewMappings`，未命中只回退同回合空 StyleId 映射，再缺失就显示统一占位表现。两种模式不互相回退。
 2. 放置预览优先查 `PlacementPreviewView`；未配置时按当前 `StyleId` 回退到 LV1 运营 View。
 3. 运营态按相同 `StyleId` 查不高于当前等级的最高映射；因此 LV3 没美术时可安全沿用 LV1/LV2。
 4. 有样式的建筑绝不静默切到另一个样式。
@@ -142,8 +157,8 @@ Runtime Prefab 负责稳定身份、交互和运行时挂点；纯美术 View Pr
 标准入口是 Unity 菜单 `Landsong/Building/建筑编辑器`，详细字段和失败恢复见 [建筑编辑器窗口规划与使用.md](建筑编辑器窗口规划与使用.md)。除修复/迁移任务外，不再手工拼装整套新家族资产。
 
 1. 在窗口定义稳定 `FamilyId`，格式为 `building.<snake_case>`；上线后不得因改名或升级而改变。
-2. 选择基础模块模板或岗位生产模块模板；模板只决定初始 ModuleSet，不决定运行时类型。
-3. 配置固定占地、放置费用、施工回合、初始等级和可缺省的 Presentation View。
+2. 选择基础、岗位生产或岗位维护生产模板；模板只决定初始 ModuleSet，不决定运行时类型。
+3. 配置固定占地、放置费用、施工回合、初始等级，明确选择单一或逐回合施工视图模式，并填写可缺省的 Presentation View。
 4. 先执行“校验创建参数”，再执行“创建完整建筑资产组”。窗口一次性创建 ModuleSet、Family、Presentation、轻量 Runtime Prefab 并登记标准 Catalog；不会生成脚本，也没有等待编译续跑阶段。
 5. 在项目根目录的正式 Excel `ConfigSource/Buildings/建筑数值策划表.xlsx` 增加公共数据、连续等级、费用和所需配置专表行；未完成高等级填写“开放=否”。
 6. 科技、任务和蓝图引用 FamilyId/唯一 Runtime Prefab，不引用等级 Prefab。

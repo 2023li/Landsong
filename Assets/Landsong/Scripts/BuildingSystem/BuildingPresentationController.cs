@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -14,6 +15,8 @@ namespace Landsong.BuildingSystem
         private BuildingBase owner;
         private GameObject currentView;
         private AsyncOperationHandle<GameObject>? currentAddressableHandle;
+        private readonly List<AsyncOperationHandle<GameObject>> pendingAddressableHandles =
+            new List<AsyncOperationHandle<GameObject>>();
         private int requestVersion;
 
         private static Sprite placeholderSprite;
@@ -29,6 +32,7 @@ namespace Landsong.BuildingSystem
         private void OnDestroy()
         {
             requestVersion++;
+            ReleasePendingAddressables();
             ReleaseCurrentAddressable();
         }
 
@@ -84,12 +88,24 @@ namespace Landsong.BuildingSystem
             }
 
             var presentation = owner.FamilyDefinition?.Presentation;
-            if (presentation == null
-                || !presentation.TryResolveView(
+            if (presentation == null)
+            {
+                ShowPlaceholder();
+                return;
+            }
+
+            BuildingVisualAssetReference reference;
+            var resolved = owner.IsUnderConstruction
+                ? presentation.TryResolveConstructionView(
+                    owner.CurrentConstructionTurn,
+                    owner.StyleId,
+                    out reference)
+                : presentation.TryResolveView(
                     owner.Stage,
                     owner.CurrentLevel,
                     owner.StyleId,
-                    out var reference))
+                    out reference);
+            if (!resolved)
             {
                 ShowPlaceholder();
                 return;
@@ -133,25 +149,29 @@ namespace Landsong.BuildingSystem
             BuildingViewEntryReason entryReason)
         {
             ShowPlaceholder();
-            var handle = reference.LoadAssetAsync<GameObject>();
+            // AssetReference belongs to the shared Presentation SO and therefore exposes only one
+            // OperationHandle. Multiple building instances must load by key so each controller owns
+            // an independently releasable handle without competing for AssetReference.OperationHandle.
+            var handle = Addressables.LoadAssetAsync<GameObject>(reference.RuntimeKey);
+            pendingAddressableHandles.Add(handle);
             yield return handle;
+            pendingAddressableHandles.Remove(handle);
+
+            if (!handle.IsValid())
+            {
+                yield break;
+            }
 
             if (version != requestVersion)
             {
-                if (handle.IsValid())
-                {
-                    Addressables.Release(handle);
-                }
+                Addressables.Release(handle);
 
                 yield break;
             }
 
             if (handle.Status != AsyncOperationStatus.Succeeded || handle.Result == null)
             {
-                if (handle.IsValid())
-                {
-                    Addressables.Release(handle);
-                }
+                Addressables.Release(handle);
 
                 Debug.LogWarning(
                     $"建筑 '{owner?.FamilyId}' 的表现资源加载失败，已使用占位 View。",
@@ -233,6 +253,20 @@ namespace Landsong.BuildingSystem
             }
 
             currentAddressableHandle = null;
+        }
+
+        private void ReleasePendingAddressables()
+        {
+            for (var i = 0; i < pendingAddressableHandles.Count; i++)
+            {
+                var handle = pendingAddressableHandles[i];
+                if (handle.IsValid())
+                {
+                    Addressables.Release(handle);
+                }
+            }
+
+            pendingAddressableHandles.Clear();
         }
 
         private void ResolveReferences()

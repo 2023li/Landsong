@@ -261,14 +261,15 @@ namespace Landsong.BuildingSystem
             ref List<BuildingRuntimeStatus> statuses)
         {
             Bind(building);
+            var requiredWorkers = ResolveRequiredWorkers(building);
             AddRuntimeStatus(
                 ref statuses,
-                CurrentWorkers < MaxWorkers
+                CurrentWorkers < requiredWorkers
                     ? new BuildingRuntimeStatus(
                         BuildingRuntimeStatusCatalog.BS_工人不足,
                         "工人不足",
                         CurrentWorkers,
-                        MaxWorkers)
+                        requiredWorkers)
                     : default);
         }
 
@@ -307,6 +308,7 @@ namespace Landsong.BuildingSystem
             targetStableWorkers = Mathf.Clamp(state.TargetStableWorkers, 0, maxWorkers);
             initialWorkersGranted = state.InitialWorkersGranted;
             Recalculate(false);
+            owner?.GameSystem?.RefreshInventorySlotCapacity();
         }
 
         private void Recalculate(bool allowEvent = true)
@@ -367,6 +369,7 @@ namespace Landsong.BuildingSystem
 
         private void RefreshEmployedPopulation()
         {
+            owner?.GameSystem?.RefreshInventorySlotCapacity();
             if (owner?.GameSystem?.Services.Dynasty == null || owner.GameSystem.Services.Buildings == null)
             {
                 return;
@@ -412,6 +415,23 @@ namespace Landsong.BuildingSystem
         private static bool RollChance(float chancePercent)
         {
             return UnityEngine.Random.value * 100f < Mathf.Clamp(chancePercent, 0f, 100f);
+        }
+
+        private int ResolveRequiredWorkers(BuildingBase building)
+        {
+            var requirements = building?.GetCapabilities<IBuildingWorkforceRequirementSource>();
+            if (requirements == null || requirements.Count == 0)
+            {
+                return MaxWorkers;
+            }
+
+            var required = 0;
+            for (var i = 0; i < requirements.Count; i++)
+            {
+                required = Mathf.Max(required, requirements[i].RequiredWorkers);
+            }
+
+            return Mathf.Clamp(required, 0, MaxWorkers);
         }
     }
 
