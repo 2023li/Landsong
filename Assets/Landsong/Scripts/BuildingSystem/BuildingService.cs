@@ -25,6 +25,29 @@ namespace Landsong.BuildingSystem
         public IReadOnlyList<BuildingBase> Buildings => buildings.Count == 0 ? EmptyBuildings : buildings;
         public BuildingUpgradeService Upgrades { get; }
 
+        public bool TryGetBuilding(string instanceId, out BuildingBase building)
+        {
+            if (!string.IsNullOrWhiteSpace(instanceId))
+            {
+                var normalized = instanceId.Trim();
+                for (var i = 0; i < buildings.Count; i++)
+                {
+                    if (buildings[i] != null
+                        && string.Equals(
+                            buildings[i].InstanceId,
+                            normalized,
+                            StringComparison.Ordinal))
+                    {
+                        building = buildings[i];
+                        return true;
+                    }
+                }
+            }
+
+            building = null;
+            return false;
+        }
+
         public BuildingAvailability EvaluateAvailability(BuildingBase buildingPrefab)
         {
             return BuildingAvailabilityEvaluator.Evaluate(buildingPrefab, gameSystem, CountExistingBuildings(buildingPrefab));
@@ -279,6 +302,15 @@ namespace Landsong.BuildingSystem
         {
             if (building == null)
             {
+                return;
+            }
+
+            if (gameSystem != null
+                && !gameSystem.CanDemolishInventoryProvider(building, out var failureMessage))
+            {
+                Debug.LogWarning(
+                    $"Cannot demolish building '{building.name}': {failureMessage}",
+                    building);
                 return;
             }
 

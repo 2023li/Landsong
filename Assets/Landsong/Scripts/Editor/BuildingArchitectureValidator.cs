@@ -14,7 +14,7 @@ namespace Landsong.Editor
     {
         private const string CatalogPath = "Assets/Landsong/Objects/SO/BuildingCatalog.asset";
         private const string GlobalBuffCatalogPath =
-            "Assets/Landsong/Objects/SO/TechnologyGlobalBuffCatalog.asset";
+            "Assets/Landsong/Objects/SO/SO_Technology/TechnologyGlobalBuffCatalog.asset";
         private const string FamilyFolder = "Assets/Landsong/Objects/SO/Buildings/Families";
         private const string RuntimePrefabFolder = "Assets/Landsong/Objects/Prefabs/BuildingsRuntime";
         private const string ForbiddenLegacyPrefabFolder = "Assets/Landsong/Objects/Prefabs/建筑";
@@ -122,26 +122,43 @@ namespace Landsong.Editor
 
                 for (var effectIndex = 0; effectIndex < definition.Effects.Count; effectIndex++)
                 {
-                    if (definition.Effects[effectIndex]
-                        is not TechnologyGlobalBuffEffect_BuildingProductionFlat effect)
+                    switch (definition.Effects[effectIndex])
                     {
-                        report.Error(
-                            $"全局 Buff {definition.BuffId} 含未登记效果类型 #{effectIndex + 1}。");
-                        continue;
-                    }
+                        case TechnologyGlobalBuffEffect_BuildingProductionFlat
+                            productionEffect:
+                            if (productionEffect.TargetFamily == null
+                                || !knownFamilies.Contains(
+                                    productionEffect.TargetFamily))
+                            {
+                                report.Error(
+                                    $"全局 Buff {definition.BuffId} 的目标家族未登记。");
+                            }
 
-                    if (effect.TargetFamily == null || !knownFamilies.Contains(effect.TargetFamily))
-                    {
-                        report.Error($"全局 Buff {definition.BuffId} 的目标家族未登记。 ");
-                    }
+                            ValidateItemDefinition(
+                                productionEffect.ItemDefinition,
+                                $"全局 Buff {definition.BuffId} 的产出物品",
+                                report);
+                            if (productionEffect.FlatBonus <= 0)
+                            {
+                                report.Error(
+                                    $"全局 Buff {definition.BuffId} 的固定加成必须大于 0。");
+                            }
 
-                    ValidateItemDefinition(
-                        effect.ItemDefinition,
-                        $"全局 Buff {definition.BuffId} 的产出物品",
-                        report);
-                    if (effect.FlatBonus <= 0)
-                    {
-                        report.Error($"全局 Buff {definition.BuffId} 的固定加成必须大于 0。");
+                            break;
+                        case TechnologyGlobalBuffEffect_InventoryLossReduction
+                            inventoryLossEffect:
+                            if (inventoryLossEffect.ReductionPercent <= 0f
+                                || inventoryLossEffect.ReductionPercent > 100f)
+                            {
+                                report.Error(
+                                    $"全局 Buff {definition.BuffId} 的库存损耗降低百分比必须在 (0, 100]。");
+                            }
+
+                            break;
+                        default:
+                            report.Error(
+                                $"全局 Buff {definition.BuffId} 含未登记效果类型 #{effectIndex + 1}。");
+                            break;
                     }
                 }
             }

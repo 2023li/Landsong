@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Landsong.BuildingSystem;
+using Landsong.InventorySystem;
 
 namespace Landsong.TurnSystem
 {
@@ -15,10 +16,12 @@ namespace Landsong.TurnSystem
         private readonly List<IBuildingResourceProductionSource> resourceProductionSources =
             new List<IBuildingResourceProductionSource>();
         private readonly List<IBuildingTaxSource> taxSources = new List<IBuildingTaxSource>();
+        private readonly InventoryService inventory;
 
-        public TurnService(int startingTurn = 1)
+        public TurnService(int startingTurn = 1, InventoryService inventory = null)
         {
             CurrentTurn = Math.Max(1, startingTurn);
+            this.inventory = inventory;
         }
 
         public event Action<TurnService> BeforeTurnAdvanced;
@@ -53,6 +56,7 @@ namespace Landsong.TurnSystem
                 }
 
                 CompleteResourceProvisionTurn(snapshot);
+                ProcessInventoryLosses(ref summary);
                 CompleteTurnAdvance(summary);
                 return summary;
             }
@@ -94,6 +98,7 @@ namespace Landsong.TurnSystem
                 }
 
                 CompleteResourceProvisionTurn(snapshot);
+                ProcessInventoryLosses(ref summary);
                 CompleteTurnAdvance(summary);
                 completed?.Invoke(summary);
             }
@@ -121,6 +126,21 @@ namespace Landsong.TurnSystem
         {
             CurrentTurn = summary.ToTurn;
             TurnAdvanced?.Invoke(this, summary);
+        }
+
+        private void ProcessInventoryLosses(ref TurnAdvanceSummary summary)
+        {
+            var losses = inventory?.ProcessTurnLosses();
+            if (losses == null)
+            {
+                return;
+            }
+
+            for (var i = 0; i < losses.Count; i++)
+            {
+                summary.InventoryLostQuantity += losses[i].AmountLost;
+                summary.InventorySlotsWithLoss++;
+            }
         }
 
         private static BuildingBase[] CreateBuildingSnapshot(IReadOnlyList<BuildingBase> runtimeBuildings)
@@ -363,6 +383,8 @@ namespace Landsong.TurnSystem
             OperatingConsumed = 0;
             Failed = 0;
             Skipped = 0;
+            InventoryLostQuantity = 0;
+            InventorySlotsWithLoss = 0;
         }
 
         public int FromTurn { get; }
@@ -370,5 +392,7 @@ namespace Landsong.TurnSystem
         public int OperatingConsumed { get; internal set; }
         public int Failed { get; internal set; }
         public int Skipped { get; internal set; }
+        public int InventoryLostQuantity { get; internal set; }
+        public int InventorySlotsWithLoss { get; internal set; }
     }
 }

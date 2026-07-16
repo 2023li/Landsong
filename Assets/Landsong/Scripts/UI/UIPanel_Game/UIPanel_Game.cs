@@ -14,6 +14,7 @@ public class UIPanel_Game : UIPanelBase
     [SerializeField] private RectTransform gameMarkRoot;
     [SerializeField] private GamePanel_HUD hudPanel;
     [SerializeField] private GamePanel_Inventory inventoryPanel;
+    [SerializeField] private GamePanel_EconomyForecast economyForecastPanel;
     [SerializeField] private GamePanel_Technology technologyPanel;
     [SerializeField] private GamePanel_Building buildingPanel;
     [SerializeField] private GamePanel_BuildingPlacementControls buildingPlacementControls;
@@ -38,6 +39,7 @@ public class UIPanel_Game : UIPanelBase
     public GamePanel_BuildingSelectionView BuildingSelectionView => buildingSelectionView;
     public GamePanel_BuildingPlacementControls BuildingPlacementControls => buildingPlacementControls;
     public GamePanel_Technology TechnologyPanel => technologyPanel;
+    public GamePanel_EconomyForecast EconomyForecastPanel => economyForecastPanel;
     public GamePanel_Quest QuestPanel => questPanel;
     public GamePanel_Expedition ExpeditionPanel => expeditionPanel;
     public GamePanel_Talent TalentPanel => talentPanel;
@@ -116,6 +118,27 @@ public class UIPanel_Game : UIPanelBase
             inventoryPanel.Hide();
         }
 
+        Show_HUD();
+    }
+
+    public void Show_EconomyForecast()
+    {
+        GetReference();
+        HideAllPanels();
+
+        if (economyForecastPanel != null)
+        {
+            economyForecastPanel.Show();
+        }
+        else
+        {
+            Debug.LogWarning($"{nameof(UIPanel_Game)} has no economy forecast panel assigned.", this);
+        }
+    }
+
+    internal void Hide_EconomyForecast()
+    {
+        economyForecastPanel?.Hide();
         Show_HUD();
     }
 
@@ -319,6 +342,7 @@ public class UIPanel_Game : UIPanelBase
     {
         hudPanel?.Hide();
         inventoryPanel?.Hide();
+        economyForecastPanel?.Hide();
         technologyPanel?.Hide();
         buildingPanel?.Hide();
         buildingStatusOverview?.Hide();
@@ -347,6 +371,11 @@ public class UIPanel_Game : UIPanelBase
         if (inventoryPanel == null)
         {
             inventoryPanel = GetComponentInChildren<GamePanel_Inventory>(true);
+        }
+
+        if (economyForecastPanel == null)
+        {
+            economyForecastPanel = GetComponentInChildren<GamePanel_EconomyForecast>(true);
         }
 
         if (technologyPanel == null)

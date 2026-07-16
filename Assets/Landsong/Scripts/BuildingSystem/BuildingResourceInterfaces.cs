@@ -1,14 +1,14 @@
 using System.Collections.Generic;
+using Landsong.InventorySystem;
 
 namespace Landsong.BuildingSystem
 {
     /// <summary>
-    /// 向库存系统暴露建筑当前实际提供的额外库存格。
-    /// 实现可以根据等级、工人或运行状态动态返回容量。
+    /// 向库存系统暴露由建筑提供、具有稳定本地 ID 的库存格。
     /// </summary>
-    public interface IBuildingInventoryCapacitySource
+    public interface IBuildingInventorySlotProvider
     {
-        int CurrentProvidedSlotCount { get; }
+        IReadOnlyList<InventorySlotProvision> GetInventorySlotProvisions(BuildingBase building);
     }
 
     /// <summary>

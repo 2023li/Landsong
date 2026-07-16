@@ -6,25 +6,44 @@ namespace Landsong.InventorySystem
     [Serializable]
     public struct InventorySlotData
     {
-        [SerializeField, Min(0)] private int slotIndex;
+        [SerializeField] private string providerBuildingInstanceId;
+        [SerializeField] private string localSlotId;
         [SerializeField] private string itemId;
         [SerializeField, Min(0)] private int quantity;
 
-        public InventorySlotData(int slotIndex, string itemId, int quantity)
+        public InventorySlotData(
+            string providerBuildingInstanceId,
+            string localSlotId,
+            string itemId,
+            int quantity)
         {
-            this.slotIndex = Mathf.Max(0, slotIndex);
+            this.providerBuildingInstanceId = Normalize(providerBuildingInstanceId);
+            this.localSlotId = Normalize(localSlotId);
             this.itemId = string.IsNullOrWhiteSpace(itemId) ? string.Empty : itemId.Trim();
             this.quantity = Mathf.Max(0, quantity);
         }
 
-        public int SlotIndex => slotIndex;
+        public string ProviderBuildingInstanceId => providerBuildingInstanceId;
+        public string LocalSlotId => localSlotId;
+        public string StorageSlotId =>
+            InventorySlotProvision.BuildStorageSlotId(providerBuildingInstanceId, localSlotId);
         public string ItemId => itemId;
         public int Quantity => quantity;
-        public bool IsValid => slotIndex >= 0 && !string.IsNullOrWhiteSpace(itemId) && quantity > 0;
+        public bool IsValid =>
+            !string.IsNullOrWhiteSpace(StorageSlotId)
+            && !string.IsNullOrWhiteSpace(itemId)
+            && quantity > 0;
 
         public InventorySlotData Normalized()
         {
-            return new InventorySlotData(slotIndex, itemId, quantity);
+            return new InventorySlotData(
+                providerBuildingInstanceId,
+                localSlotId,
+                itemId,
+                quantity);
         }
+
+        private static string Normalize(string value) =>
+            string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
     }
 }

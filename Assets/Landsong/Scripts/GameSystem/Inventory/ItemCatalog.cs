@@ -78,6 +78,40 @@ namespace Landsong.InventorySystem
             return Mathf.Max(1, fallbackStackSize);
         }
 
+        public bool IsInGroup(string itemId, ItemGroupDefinition itemGroup)
+        {
+            return itemGroup != null
+                   && TryGetDefinition(itemId, out var definition)
+                   && definition.BelongsTo(itemGroup);
+        }
+
+        public IReadOnlyList<ItemDefinition> GetDefinitionsInGroup(ItemGroupDefinition itemGroup)
+        {
+            if (itemGroup == null || definitions == null)
+            {
+                return Array.Empty<ItemDefinition>();
+            }
+
+            var result = new List<ItemDefinition>();
+            for (var i = 0; i < definitions.Length; i++)
+            {
+                if (definitions[i] != null && definitions[i].BelongsTo(itemGroup))
+                {
+                    result.Add(definitions[i]);
+                }
+            }
+
+            return result;
+        }
+
+        public void ConfigureDefinitions(IEnumerable<ItemDefinition> source)
+        {
+            definitions = source == null
+                ? Array.Empty<ItemDefinition>()
+                : new List<ItemDefinition>(source).ToArray();
+            RebuildIndex();
+        }
+
         public void RebuildIndex()
         {
             definitionsById = new Dictionary<string, ItemDefinition>(StringComparer.Ordinal);

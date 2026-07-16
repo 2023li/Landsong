@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a714b8f2e7bf4fa1b1e7b984328eef11, type: 3}
+  m_Name: "ItemGroupDefinition_\u98DF\u7269"
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.InventorySystem.ItemGroupDefinition
+  groupId: food
+  displayName: "\u98DF\u7269"
+  description: "\u6240\u6709\u53EF\u98DF\u7528\u7269\u54C1\u7684\u7236\u7EA7\u5206\u7C7B\uFF0C\u7528\u4E8E\u51BB\u5E93\u7B49\u901A\u7528\u98DF\u7269\u89C4\u5219\u3002"
+  icon: {fileID: 0}
+  parentGroup: {fileID: 0}

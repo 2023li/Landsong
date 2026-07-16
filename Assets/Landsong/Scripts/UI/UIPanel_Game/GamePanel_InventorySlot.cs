@@ -15,6 +15,13 @@ public sealed class GamePanel_InventorySlot : MonoBehaviour, IPointerEnterHandle
     [SerializeField, Min(1f)]
     private float iconHoverScale = 1.08f;
 
+    [Header("Visual References")]
+    [SerializeField] private Image backgroundImage;
+    [SerializeField] private Image itemIcon;
+    [SerializeField] private TMP_Text itemQuantityLabel;
+    [SerializeField] private Image presentationOverlay;
+    [SerializeField] private TMP_Text providerLabel;
+
     private GamePanel_Inventory panel;
     private InventorySlot slot;
     private Image icon;
@@ -27,6 +34,10 @@ public sealed class GamePanel_InventorySlot : MonoBehaviour, IPointerEnterHandle
     private int slotIndex = -1;
     private bool pointerHeld;
     private bool dragging;
+    private bool capturedDefaultVisuals;
+    private Sprite defaultBackgroundSprite;
+    private Color defaultBackgroundColor = Color.white;
+    private Color defaultIconColor = Color.white;
 
     public int SlotIndex => slotIndex;
     public bool HasItem => slot != null && !slot.IsEmpty;
@@ -34,6 +45,73 @@ public sealed class GamePanel_InventorySlot : MonoBehaviour, IPointerEnterHandle
     private void Awake()
     {
         EnsureCanvasGroup();
+        ResolveVisualReferences(out _, out _);
+        CaptureDefaultVisuals();
+    }
+
+    public void ResolveVisualReferences(out Image resolvedIcon, out TMP_Text resolvedQuantityLabel)
+    {
+        if (backgroundImage == null)
+        {
+            backgroundImage = GetComponent<Image>();
+            if (backgroundImage == null && transform.childCount > 0)
+            {
+                backgroundImage = transform.GetChild(0).GetComponent<Image>();
+            }
+        }
+
+        if (itemIcon == null && transform.childCount > 1)
+        {
+            itemIcon = transform.GetChild(1).GetComponent<Image>();
+        }
+
+        if (itemQuantityLabel == null && transform.childCount > 2)
+        {
+            itemQuantityLabel = transform.GetChild(2).GetComponent<TMP_Text>();
+        }
+
+        resolvedIcon = itemIcon;
+        resolvedQuantityLabel = itemQuantityLabel;
+    }
+
+    public void ApplySlotTypePresentation(InventorySlot inventorySlot)
+    {
+        ResolveVisualReferences(out _, out _);
+        CaptureDefaultVisuals();
+
+        var slotType = inventorySlot == null
+            ? InventorySlotType.Default
+            : inventorySlot.SlotType;
+        ResolveSlotTypeColors(slotType, out var backgroundTint, out var contentTint, out var overlayTint);
+
+        if (backgroundImage != null)
+        {
+            backgroundImage.sprite = defaultBackgroundSprite;
+            backgroundImage.color = backgroundTint;
+        }
+
+        if (itemIcon != null)
+        {
+            itemIcon.color = contentTint;
+        }
+
+        if (itemQuantityLabel != null)
+        {
+            itemQuantityLabel.color = contentTint;
+        }
+
+        if (presentationOverlay != null)
+        {
+            presentationOverlay.color = overlayTint;
+            presentationOverlay.enabled = presentationOverlay.sprite != null;
+        }
+
+        if (providerLabel != null)
+        {
+            providerLabel.text = inventorySlot == null
+                ? string.Empty
+                : inventorySlot.ProviderDisplayName;
+        }
     }
 
     public void Bind(GamePanel_Inventory owner, int index, InventorySlot inventorySlot, Image slotIcon, TMP_Text slotQuantityLabel)
@@ -183,6 +261,68 @@ public sealed class GamePanel_InventorySlot : MonoBehaviour, IPointerEnterHandle
         if (canvasGroup == null)
         {
             canvasGroup = gameObject.AddComponent<CanvasGroup>();
+        }
+    }
+
+    private void CaptureDefaultVisuals()
+    {
+        if (capturedDefaultVisuals)
+        {
+            return;
+        }
+
+        defaultBackgroundSprite = backgroundImage == null ? null : backgroundImage.sprite;
+        defaultBackgroundColor = backgroundImage == null ? Color.white : backgroundImage.color;
+        defaultIconColor = itemIcon == null ? Color.white : itemIcon.color;
+        capturedDefaultVisuals = true;
+    }
+
+    private void ResolveSlotTypeColors(
+        InventorySlotType slotType,
+        out Color backgroundTint,
+        out Color contentTint,
+        out Color overlayTint)
+    {
+        contentTint = defaultIconColor;
+        overlayTint = Color.white;
+        switch (slotType)
+        {
+            case InventorySlotType.Palace:
+            case InventorySlotType.PalaceImproved:
+            case InventorySlotType.PalaceAdvanced:
+            case InventorySlotType.PalaceRoyal:
+                backgroundTint = new Color(0.72f, 0.53f, 0.22f, 1f);
+                overlayTint = new Color(1f, 0.86f, 0.38f, 1f);
+                break;
+            case InventorySlotType.BasicWarehouse:
+                backgroundTint = new Color(0.45f, 0.31f, 0.20f, 1f);
+                overlayTint = new Color(0.75f, 0.55f, 0.32f, 1f);
+                break;
+            case InventorySlotType.Warehouse:
+                backgroundTint = new Color(0.35f, 0.43f, 0.48f, 1f);
+                overlayTint = new Color(0.70f, 0.78f, 0.82f, 1f);
+                break;
+            case InventorySlotType.AdvancedWarehouse:
+                backgroundTint = new Color(0.20f, 0.34f, 0.52f, 1f);
+                overlayTint = new Color(0.96f, 0.76f, 0.30f, 1f);
+                break;
+            case InventorySlotType.ColdStorage:
+                backgroundTint = new Color(0.48f, 0.78f, 0.94f, 1f);
+                contentTint = new Color(0.92f, 0.98f, 1f, 1f);
+                overlayTint = new Color(0.78f, 0.95f, 1f, 1f);
+                break;
+            case InventorySlotType.Cellar:
+                backgroundTint = new Color(0.30f, 0.23f, 0.18f, 1f);
+                break;
+            case InventorySlotType.Granary:
+                backgroundTint = new Color(0.66f, 0.52f, 0.25f, 1f);
+                break;
+            case InventorySlotType.Armory:
+                backgroundTint = new Color(0.31f, 0.34f, 0.38f, 1f);
+                break;
+            default:
+                backgroundTint = defaultBackgroundColor;
+                break;
         }
     }
 

@@ -71,11 +71,17 @@ namespace Landsong.Persistence
                 quest.BeginRuntimeRestore();
                 quest.RestoreSaveData(gameData.QuestData);
                 RestoreBuildingInstances(gameData, gameSystem);
+                gameSystem.Services.Inventory?.CompleteRuntimeRestore(gameData.InventoryData);
                 succeeded = true;
                 return true;
             }
             finally
             {
+                if (!succeeded)
+                {
+                    gameSystem.Services.Inventory?.CancelRuntimeRestore();
+                }
+
                 quest.EndRuntimeRestore();
                 if (!succeeded)
                 {
@@ -98,10 +104,16 @@ namespace Landsong.Persistence
                 quest.BeginRuntimeRestore();
                 quest.RestoreSaveData(gameData.QuestData);
                 yield return RestoreBuildingInstancesRoutine(gameData, gameSystem, buildingsPerFrame);
+                gameSystem.Services.Inventory?.CompleteRuntimeRestore(gameData.InventoryData);
                 succeeded = true;
             }
             finally
             {
+                if (!succeeded)
+                {
+                    gameSystem.Services.Inventory?.CancelRuntimeRestore();
+                }
+
                 quest.EndRuntimeRestore();
                 completed?.Invoke(succeeded);
             }
@@ -149,11 +161,6 @@ namespace Landsong.Persistence
             services.BuildingBlueprints?.RestoreSaveData(gameData.UnlockedBuildingBlueprintIds);
             gameSystem.ReconcileInitiallyUnlockedBuildingBlueprints();
             gameSystem.ReconcileBuildingBlueprintsFromAutomaticConditions();
-            if (services.Inventory != null && gameData.InventoryData != null)
-            {
-                services.Inventory.RestoreSaveData(gameData.InventoryData);
-            }
-
             services.Expeditions?.RestoreSaveData(gameData.ExpeditionData);
             services.Talents?.RestoreSaveData(gameData.TalentData);
             services.Inheritance?.RestoreSaveData(gameData.RoyalInheritanceData);
@@ -164,6 +171,7 @@ namespace Landsong.Persistence
                 return false;
             }
 
+            services.Inventory?.BeginRuntimeRestore();
             return true;
         }
 

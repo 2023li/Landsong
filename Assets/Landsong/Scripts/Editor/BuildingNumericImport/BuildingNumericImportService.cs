@@ -23,6 +23,7 @@ namespace Landsong.EditorTools.Buildings.NumericImport
             BuildingNumericImportReport report,
             Dictionary<string, BuildingFamilyDefinition> families,
             Dictionary<string, ItemDefinition> items,
+            Dictionary<string, ItemGroupDefinition> itemGroups,
             Dictionary<string, TechnologyDefinition> technologies,
             Dictionary<string, TechnologyGlobalBuffDefinition> globalBuffs)
         {
@@ -32,6 +33,7 @@ namespace Landsong.EditorTools.Buildings.NumericImport
             Report = report;
             Families = families;
             Items = items;
+            ItemGroups = itemGroups;
             Technologies = technologies;
             GlobalBuffs = globalBuffs;
         }
@@ -42,6 +44,7 @@ namespace Landsong.EditorTools.Buildings.NumericImport
         public BuildingNumericImportReport Report { get; }
         public Dictionary<string, BuildingFamilyDefinition> Families { get; }
         public Dictionary<string, ItemDefinition> Items { get; }
+        public Dictionary<string, ItemGroupDefinition> ItemGroups { get; }
         public Dictionary<string, TechnologyDefinition> Technologies { get; }
         public Dictionary<string, TechnologyGlobalBuffDefinition> GlobalBuffs { get; }
         public BuildingNumericImportChangePlan ChangePlan { get; internal set; } =
@@ -162,7 +165,7 @@ namespace Landsong.EditorTools.Buildings.NumericImport
             if (definition == null || globalBuffChanges.Any(change => change.Definition == definition)) return;
             globalBuffChanges.Add(new TechnologyGlobalBuffImportChange(buffId, definition));
             changedAssets.Add(definition);
-            messages.Add($"global-buff:{buffId}：更新全局生产 Buff 数值（{AssetDatabase.GetAssetPath(definition)}）");
+            messages.Add($"global-buff:{buffId}：更新科技全局 Buff 数值（{AssetDatabase.GetAssetPath(definition)}）");
         }
 
         private void AddAsset(string familyId, UnityEngine.Object asset)
@@ -230,6 +233,7 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                     report,
                     new Dictionary<string, BuildingFamilyDefinition>(),
                     new Dictionary<string, ItemDefinition>(),
+                    new Dictionary<string, ItemGroupDefinition>(),
                     new Dictionary<string, TechnologyDefinition>(),
                     new Dictionary<string, TechnologyGlobalBuffDefinition>());
             }
@@ -245,6 +249,11 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                 "t:ItemDefinition",
                 item => item == null ? string.Empty : item.ItemId,
                 "物品",
+                report);
+            var itemGroups = FindAssetsByStableId<ItemGroupDefinition>(
+                "t:ItemGroupDefinition",
+                group => group == null ? string.Empty : group.GroupId,
+                "物品组",
                 report);
             var technologies = FindAssetsByStableId<TechnologyDefinition>(
                 "t:TechnologyDefinition",
@@ -264,12 +273,13 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                 report,
                 families,
                 items,
+                itemGroups,
                 technologies,
                 globalBuffs);
 
             if (data != null)
             {
-                Validate(data, families, items, technologies, globalBuffs, report);
+                Validate(data, families, items, itemGroups, technologies, globalBuffs, report);
                 if (!report.HasErrors)
                 {
                     try
@@ -450,10 +460,28 @@ namespace Landsong.EditorTools.Buildings.NumericImport
 
                 foreach (var change in plan.GlobalBuffChanges)
                 {
-                    var row = session.Data.TechnologyGlobalBuffs.Single(value =>
-                        value.BuffId == change.BuffId);
                     Undo.RecordObject(change.Definition, "导入科技全局 Buff 数值");
-                    ApplyTechnologyGlobalBuff(row, change.Definition, session);
+                    var productionRow =
+                        session.Data.TechnologyGlobalBuffs.SingleOrDefault(
+                            value => value.BuffId == change.BuffId);
+                    if (productionRow != null)
+                    {
+                        ApplyTechnologyGlobalBuff(
+                            productionRow,
+                            change.Definition,
+                            session);
+                    }
+                    else
+                    {
+                        var inventoryRow =
+                            session.Data.TechnologyInventoryLossBuffs.Single(
+                                value => value.BuffId == change.BuffId);
+                        ApplyTechnologyInventoryLossBuff(
+                            inventoryRow,
+                            change.Definition,
+                            session);
+                    }
+
                     EditorUtility.SetDirty(change.Definition);
                 }
 
@@ -603,7 +631,7 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                                             && !ImportedConfigurationIds.Contains(configuration.ConfigurationId)));
             }
 
-            configurations.AddRange(BuildImportedLevelConfigurations(session, levelRow));
+            configurations.AddRange(BuildImportedLevelConfigurations(session, levelRow, existingLevel));
 
             var upgradeCosts = session.Data.UpgradeCosts
                 .Where(cost => cost.FamilyId == levelRow.FamilyId && cost.LevelOrTurn == levelRow.Level)
@@ -620,7 +648,8 @@ namespace Landsong.EditorTools.Buildings.NumericImport
 
         private static IReadOnlyList<BuildingLevelConfigurationBase> BuildImportedLevelConfigurations(
             BuildingNumericImportSession session,
-            BuildingLevelNumericRow levelRow)
+            BuildingLevelNumericRow levelRow,
+            BuildingLevelDefinition existingLevel)
         {
             var configurations = new List<BuildingLevelConfigurationBase>();
 
@@ -635,7 +664,10 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                 .SingleOrDefault(value => IsLevel(value.FamilyId, value.Level, levelRow));
             if (inventory != null)
             {
-                configurations.Add(new BuildingInventoryLevelConfiguration(inventory.Slots));
+                TryParseEnum(inventory.SlotType, out InventorySlotType slotType);
+                configurations.Add(new BuildingInventoryLevelConfiguration(
+                    inventory.Slots,
+                    slotType));
             }
 
             var technology = session.Data.TechnologyPoints
@@ -649,14 +681,23 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                 .SingleOrDefault(value => IsLevel(value.FamilyId, value.Level, levelRow));
             if (residential != null)
             {
+                var foodDefinition = session.Items[residential.FoodItemId];
+                TryParseEnum(
+                    residential.FoodSelectionPolicy,
+                    out ItemRequirementSelectionPolicy foodSelectionPolicy);
                 configurations.Add(new ResidentialHousingLevelConfiguration(
                     residential.InitialPopulation,
                     residential.MaxPopulation,
-                    session.Items[residential.FoodItemId],
+                    foodDefinition,
                     residential.GrowthIntervalTurns,
                     residential.FailureDecayThreshold,
                     session.Items[residential.TaxItemId],
-                    residential.TaxIntervalTurns));
+                    residential.TaxIntervalTurns,
+                    session.ItemGroups[residential.FoodGroupId],
+                    foodSelectionPolicy,
+                    residential.TargetDietVariety,
+                    residential.MaxLifeQualityChangePerTurn,
+                    residential.HighQualityGrowthThreshold));
             }
 
             var workforce = session.Data.Workforce
@@ -725,9 +766,16 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                 .SingleOrDefault(value => IsLevel(value.FamilyId, value.Level, levelRow));
             if (warehouse != null)
             {
+                TryParseEnum(
+                    warehouse.BaseSlotType,
+                    out InventorySlotType baseSlotType);
+                TryParseEnum(
+                    warehouse.BonusSlotType,
+                    out InventorySlotType bonusSlotType);
                 configurations.Add(new WarehouseLevelConfiguration(
                     warehouse.RequiredWorkers,
                     warehouse.ProvidedSlots,
+                    baseSlotType,
                     session.Items[warehouse.MaintenanceItemId],
                     warehouse.MaintenancePerTurn,
                     warehouse.ExperienceWorkers,
@@ -735,6 +783,7 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                     warehouse.NextLevelExperience,
                     warehouse.BonusWorkerThreshold,
                     warehouse.BonusSlots,
+                    bonusSlotType,
                     warehouse.MaintenanceFailureAttractionPenalty));
             }
 
@@ -836,6 +885,24 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                 new TechnologyGlobalBuffEffect[] { effect });
         }
 
+        private static void ApplyTechnologyInventoryLossBuff(
+            TechnologyInventoryLossBuffNumericRow row,
+            TechnologyGlobalBuffDefinition definition,
+            BuildingNumericImportSession session)
+        {
+            var effect =
+                new TechnologyGlobalBuffEffect_InventoryLossReduction();
+            effect.Configure(row.ReductionPercent);
+            definition.ConfigureNumericData(
+                row.BuffId,
+                row.DisplayName,
+                definition.Icon,
+                BuildAutomaticCondition(
+                    row.ConditionId,
+                    session.Technologies),
+                new TechnologyGlobalBuffEffect[] { effect });
+        }
+
         private static GameCondition BuildCondition(
             string conditionId,
             BuildingLevelDefinition existingLevel,
@@ -880,6 +947,7 @@ namespace Landsong.EditorTools.Buildings.NumericImport
             BuildingNumericWorkbookData data,
             IReadOnlyDictionary<string, BuildingFamilyDefinition> families,
             IReadOnlyDictionary<string, ItemDefinition> items,
+            IReadOnlyDictionary<string, ItemGroupDefinition> itemGroups,
             IReadOnlyDictionary<string, TechnologyDefinition> technologies,
             IReadOnlyDictionary<string, TechnologyGlobalBuffDefinition> globalBuffs,
             BuildingNumericImportReport report)
@@ -944,14 +1012,47 @@ namespace Landsong.EditorTools.Buildings.NumericImport
             ValidateTechnologyGlobalBuffs(data, families, items, technologies, globalBuffs, report);
 
             foreach (var row in data.FixedPopulation) if (row.Population < 0) report.Error("提供人口不能小于 0。", row.Sheet, row.Row);
-            foreach (var row in data.InventoryCapacity) if (row.Slots < 0) report.Error("提供库存格不能小于 0。", row.Sheet, row.Row);
+            foreach (var row in data.InventoryCapacity)
+            {
+                if (row.Slots < 0)
+                {
+                    report.Error("提供库存格不能小于 0。", row.Sheet, row.Row);
+                }
+                if (!TryParseEnum(row.SlotType, out InventorySlotType _))
+                {
+                    report.Error(
+                        $"未知槽位类型：{row.SlotType}。可选值：{string.Join("、", Enum.GetNames(typeof(InventorySlotType)))}",
+                        row.Sheet,
+                        row.Row);
+                }
+            }
             foreach (var row in data.TechnologyPoints) if (row.PointsPerTurn < 0) report.Error("科技点不能小于 0。", row.Sheet, row.Row);
             foreach (var row in data.Residential)
             {
                 RequireItem(row.FoodItemId, row, items, report);
                 RequireItem(row.TaxItemId, row, items, report);
+                if (!itemGroups.ContainsKey(row.FoodGroupId))
+                {
+                    report.Error($"未知 FoodGroupId：{row.FoodGroupId}", row.Sheet, row.Row);
+                }
+                if (!TryParseEnum(
+                        row.FoodSelectionPolicy,
+                        out ItemRequirementSelectionPolicy _))
+                {
+                    report.Error(
+                        $"未知饮食选择策略：{row.FoodSelectionPolicy}。可选值：{string.Join("、", Enum.GetNames(typeof(ItemRequirementSelectionPolicy)))}",
+                        row.Sheet,
+                        row.Row);
+                }
                 if (row.InitialPopulation < 1 || row.MaxPopulation < row.InitialPopulation) report.Error("住宅人口范围非法。", row.Sheet, row.Row);
                 if (row.GrowthIntervalTurns < 1 || row.FailureDecayThreshold < 1 || row.TaxIntervalTurns < 1) report.Error("住宅回合/阈值必须至少为 1。", row.Sheet, row.Row);
+                if (row.TargetDietVariety < 1
+                    || row.MaxLifeQualityChangePerTurn < 0f
+                    || row.HighQualityGrowthThreshold < 0f
+                    || row.HighQualityGrowthThreshold > 100f)
+                {
+                    report.Error("住宅饮食和生活质量参数非法。", row.Sheet, row.Row);
+                }
             }
             foreach (var row in data.Workforce)
             {
@@ -1131,6 +1232,20 @@ namespace Landsong.EditorTools.Buildings.NumericImport
             foreach (var row in data.Warehouses)
             {
                 RequireItem(row.MaintenanceItemId, row, items, report);
+                if (!TryParseEnum(row.BaseSlotType, out InventorySlotType _))
+                {
+                    report.Error(
+                        $"未知基础槽位类型：{row.BaseSlotType}",
+                        row.Sheet,
+                        row.Row);
+                }
+                if (!TryParseEnum(row.BonusSlotType, out InventorySlotType _))
+                {
+                    report.Error(
+                        $"未知奖励槽位类型：{row.BonusSlotType}",
+                        row.Sheet,
+                        row.Row);
+                }
                 if (row.RequiredWorkers < 0
                     || row.ProvidedSlots < 0
                     || row.MaintenancePerTurn < 0
@@ -1460,6 +1575,19 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                 }
             }
 
+            foreach (var row in session.Data.TechnologyInventoryLossBuffs
+                         .OrderBy(value => value.BuffId, StringComparer.Ordinal))
+            {
+                var definition = session.GlobalBuffs[row.BuffId];
+                if (!DoesTechnologyInventoryLossBuffMatch(
+                        row,
+                        definition,
+                        session))
+                {
+                    plan.AddGlobalBuffAsset(row.BuffId, definition);
+                }
+            }
+
             return plan;
         }
 
@@ -1493,6 +1621,45 @@ namespace Landsong.EditorTools.Buildings.NumericImport
             return ReferenceEquals(effect.TargetFamily, session.Families[row.FamilyId])
                    && ReferenceEquals(effect.ItemDefinition, session.Items[row.OutputItemId])
                    && effect.FlatBonus == row.FlatBonus;
+        }
+
+        private static bool DoesTechnologyInventoryLossBuffMatch(
+            TechnologyInventoryLossBuffNumericRow row,
+            TechnologyGlobalBuffDefinition definition,
+            BuildingNumericImportSession session)
+        {
+            if (definition == null
+                || !string.Equals(
+                    definition.BuffId,
+                    row.BuffId,
+                    StringComparison.Ordinal)
+                || !string.Equals(
+                    definition.DisplayName,
+                    row.DisplayName,
+                    StringComparison.Ordinal)
+                || definition.ActivationCondition
+                    is not GameCondition_TechnologyUnlocked condition)
+            {
+                return false;
+            }
+
+            var technologyId = NormalizeStableId(row.ConditionId)
+                .Substring(TechnologyConditionPrefix.Length);
+            if (condition.TechnologyDefinition == null
+                || !string.Equals(
+                    condition.TechnologyDefinition.TechnologyId,
+                    technologyId,
+                    StringComparison.Ordinal)
+                || definition.Effects.Count != 1
+                || definition.Effects[0]
+                    is not TechnologyGlobalBuffEffect_InventoryLossReduction effect)
+            {
+                return false;
+            }
+
+            return Mathf.Approximately(
+                effect.ReductionPercent,
+                row.ReductionPercent);
         }
 
         private static void ValidateAutomaticCondition(
@@ -1530,6 +1697,25 @@ namespace Landsong.EditorTools.Buildings.NumericImport
             BuildingNumericImportReport report)
         {
             ValidateUnique(data.TechnologyGlobalBuffs, row => row.BuffId, "BuffId 重复", report);
+            ValidateUnique(
+                data.TechnologyInventoryLossBuffs,
+                row => row.BuffId,
+                "BuffId 重复",
+                report);
+            var allBuffIds = new HashSet<string>(
+                data.TechnologyGlobalBuffs.Select(row => row.BuffId),
+                StringComparer.Ordinal);
+            foreach (var row in data.TechnologyInventoryLossBuffs)
+            {
+                if (!allBuffIds.Add(row.BuffId))
+                {
+                    report.Error(
+                        $"BuffId 在多个科技全局 Buff 表中重复：{row.BuffId}",
+                        row.Sheet,
+                        row.Row);
+                }
+            }
+
             foreach (var row in data.TechnologyGlobalBuffs)
             {
                 if (!globalBuffs.ContainsKey(row.BuffId))
@@ -1542,9 +1728,35 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                     report.Error("固定加成/次必须大于 0。", row.Sheet, row.Row);
             }
 
+            foreach (var row in data.TechnologyInventoryLossBuffs)
+            {
+                if (!globalBuffs.ContainsKey(row.BuffId))
+                {
+                    report.Error(
+                        $"找不到全局 Buff 资产：{row.BuffId}",
+                        row.Sheet,
+                        row.Row);
+                }
+
+                ValidateAutomaticCondition(
+                    row.ConditionId,
+                    "ConditionId",
+                    row,
+                    technologies,
+                    report);
+                if (row.ReductionPercent <= 0f
+                    || row.ReductionPercent > 100f)
+                {
+                    report.Error(
+                        "库存损耗降低%必须大于 0 且不超过 100。",
+                        row.Sheet,
+                        row.Row);
+                }
+            }
+
             foreach (var pair in globalBuffs)
             {
-                if (data.TechnologyGlobalBuffs.All(row => row.BuffId != pair.Key))
+                if (!allBuffIds.Contains(pair.Key))
                 {
                     report.Error($"正式表缺少现有全局 Buff：{pair.Key}");
                 }
@@ -1680,7 +1892,7 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                     .Where(configuration => configuration != null
                                             && ImportedConfigurationIds.Contains(configuration.ConfigurationId))
                     .ToArray();
-                var desiredConfigurations = BuildImportedLevelConfigurations(session, row);
+                var desiredConfigurations = BuildImportedLevelConfigurations(session, row, current);
                 if (currentConfigurations.Length != desiredConfigurations.Count)
                 {
                     return false;
@@ -1898,6 +2110,13 @@ namespace Landsong.EditorTools.Buildings.NumericImport
 
         private static bool IsLevel(string familyId, int level, string targetFamilyId, int targetLevel) =>
             familyId == targetFamilyId && level == targetLevel;
+
+        private static bool TryParseEnum<T>(string value, out T result)
+            where T : struct
+        {
+            return Enum.TryParse(value?.Trim(), true, out result)
+                   && Enum.IsDefined(typeof(T), result);
+        }
 
         private static string LevelKey(string familyId, int level) => $"{familyId}\u001f{level}";
 

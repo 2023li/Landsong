@@ -94,37 +94,57 @@ MonoBehaviour:
         initialPopulation: 2
         maxPopulation: 5
         foodItemDefinition: {fileID: 11400000, guid: 3083d7b285a48b34384cf36253389185, type: 2}
+        foodItemGroup: {fileID: 11400000, guid: d047eb251ae24dd4b41aec1765b11244, type: 2}
+        foodSelectionPolicy: 10
+        targetDietVariety: 2
         growthIntervalTurns: 3
         failureDecayThreshold: 3
         taxItemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
         taxIntervalTurns: 5
+        maxLifeQualityChangePerTurn: 10
+        highQualityGrowthThreshold: 80
     - rid: 5711026465592574104
       type: {class: ResidentialHousingLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
       data:
         initialPopulation: 2
         maxPopulation: 5
         foodItemDefinition: {fileID: 11400000, guid: 3083d7b285a48b34384cf36253389185, type: 2}
+        foodItemGroup: {fileID: 11400000, guid: d047eb251ae24dd4b41aec1765b11244, type: 2}
+        foodSelectionPolicy: 10
+        targetDietVariety: 2
         growthIntervalTurns: 3
         failureDecayThreshold: 3
         taxItemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
         taxIntervalTurns: 5
+        maxLifeQualityChangePerTurn: 10
+        highQualityGrowthThreshold: 80
     - rid: 5711026465592574105
       type: {class: ResidentialHousingLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
       data:
         initialPopulation: 2
         maxPopulation: 5
         foodItemDefinition: {fileID: 11400000, guid: 3083d7b285a48b34384cf36253389185, type: 2}
+        foodItemGroup: {fileID: 11400000, guid: d047eb251ae24dd4b41aec1765b11244, type: 2}
+        foodSelectionPolicy: 10
+        targetDietVariety: 2
         growthIntervalTurns: 3
         failureDecayThreshold: 3
         taxItemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
         taxIntervalTurns: 5
+        maxLifeQualityChangePerTurn: 10
+        highQualityGrowthThreshold: 80
     - rid: 5711026465592574106
       type: {class: ResidentialHousingLevelConfiguration, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
       data:
         initialPopulation: 2
         maxPopulation: 5
         foodItemDefinition: {fileID: 11400000, guid: 3083d7b285a48b34384cf36253389185, type: 2}
+        foodItemGroup: {fileID: 11400000, guid: d047eb251ae24dd4b41aec1765b11244, type: 2}
+        foodSelectionPolicy: 10
+        targetDietVariety: 2
         growthIntervalTurns: 3
         failureDecayThreshold: 3
         taxItemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
         taxIntervalTurns: 5
+        maxLifeQualityChangePerTurn: 10
+        highQualityGrowthThreshold: 80

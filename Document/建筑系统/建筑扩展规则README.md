@@ -88,7 +88,7 @@ BuildingCatalog
 | 树木生命与采集奖励 | `BM_树木采集` |
 | 范围效果定义与数值 | `BM_空间效果源` 引用的 `BuildingSpatialEffectDefinition` |
 | 通用运营经验与下级经验门槛 | `BM_运营经验` |
-| 仓库容量、维护结果、累计经验与满员奖励 | `BM_仓库运营` |
+| 仓库槽位数量/类型、维护结果、累计经验、运行异常倍率与满员奖励 | `BM_仓库运营` |
 
 新增字段前先判断是否已有同义状态。禁止镜像缓存成为第二真相；只读派生值可即时计算。
 
@@ -103,6 +103,8 @@ BuildingCatalog
 模块是所有建筑玩法差异的唯一扩展单元，不要求跨家族复用。必须有稳定 `BuildingModuleId`；有状态则实现模块序列化；等级参数由新的 LevelConfiguration 应用；需要生命周期、自动回合、UI 或对外能力时实现相应接口。模块不能自行修改建筑等级或占格。
 
 模块模板和 LevelConfiguration 中所有策划可选物品必须直接引用 `ItemDefinition`，禁止暴露可手填的字符串 ItemId。模块执行库存操作、生成资源变化事件或写入存档时，再读取 `ItemDefinition.ItemId`；运行时 DTO 与存档仍只保存 ItemId。
+
+建筑库存能力统一通过 `InventorySlotType` 与库存系统协作。建筑表拥有槽位类型和数量；库存表拥有该类型的固定损耗倍率、物品组修正和自动存放优先级；UI 拥有槽位视觉。建筑模块只允许提供缺工、维护失败等运行时临时倍率，不得保存 `InventorySlotPresentationDefinition`、视觉主题或固定分类损耗数组。
 
 无运行时进度的范围规则使用 `BM_空间效果源 + BuildingSpatialEffectDefinition`：ModuleSet 负责声明能力和引用关系，效果资产保存稳定 `EffectId`、效果种类、目标过滤、精确生效运营等级、最低工人、曼哈顿半径、数值、叠加规则和是否影响自身占地。策划数值由正式 Excel 的 `模块_范围效果` 单向导入，不把树木、美化、医疗、治安或邻接判断硬编码进家族类。
 

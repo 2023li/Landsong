@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.TechnologySystem.TechnologyGlobalBuffCatalog
   definitions:
   - {fileID: 11400000, guid: b7528c9d0e1f4023a4b5c6d7e8f9012b, type: 2}
+  - {fileID: 11400000, guid: 7021ad7f23ca481ab8a3cfe163b85775, type: 2}

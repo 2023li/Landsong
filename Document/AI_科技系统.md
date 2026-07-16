@@ -123,7 +123,12 @@ Unity 会对“父节点使用 `LayoutGroup`、直接子节点又使用 `Content
 
 建筑解锁只使用一套蓝图状态：`BuildingBlueprintService` 是唯一运行时真相并负责存档。科技解锁建筑时，在 Family 的 `AutomaticBlueprintUnlockCondition` 配置科技并启用 `blueprintInitiallyLocked`；`GameSystem` 在服务建立、科技完成和恢复时统一协调条件并授予蓝图。科技 SO 不再配置 `TechnologyEffect_UnlockBuildingBlueprint`。雕塑的石工术、采石场的采矿都遵循这一规则。
 
-`TechnologyGlobalBuffCatalog` 既是解锁内容生产者，也是运行时 Buff 真相。当前 `buff.quarry.masonry` 由 `TN_4_3_石工术` 激活，对所有采石场的有效石头生产固定 +1；科技 UI 显示 Buff 图标，生产模块通过 `TechnologyGlobalBuffService` 查询实际加成。
+`TechnologyGlobalBuffCatalog` 既是解锁内容生产者，也是运行时 Buff 真相。当前包含：
+
+- `buff.quarry.masonry`：由 `TN_4_3_石工术` 激活，对所有采石场的有效石头生产固定 +1；生产模块通过 `TechnologyGlobalBuffService` 查询实际加成。
+- `buff.inventory.wheel_preservation`：由 `TN_4_5_轮子` 激活，使所有物资的库存自然损耗结果乘 `0.90`；`Inventory` 在每次实际损耗和模拟预测时动态查询该倍率。
+
+多个同类全局倍率效果按乘法叠加。科技 UI 通过 Buff Definition 的图标和 `Describe()` 文案显示解锁内容；库存系统不读取科技树，也不把效果复制到物品、槽位类型或建筑等级。
 
 ## 主要代码职责
 

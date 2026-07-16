@@ -22,4 +22,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
   - {fileID: 11400000, guid: 3ae6bc649b9f3ae408d2edd483824b8f, type: 2}
   - {fileID: 11400000, guid: e02568ca797180a449171f8ae5a538f7, type: 2}
+  - {fileID: 11400000, guid: 17b24f695e2671186c5e206ba9f55688, type: 2}
+  - {fileID: 11400000, guid: 28c3507a6f3782297d6f317cb0a66799, type: 2}
   folderPath: Assets/Landsong/Objects/SO/ItemDef

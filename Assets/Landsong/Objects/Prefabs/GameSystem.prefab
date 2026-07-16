@@ -50,7 +50,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.GameSystem
   itemCatalog: {fileID: 11400000, guid: e2c81a8a674606a49a32677d2a1b16d5, type: 2}
-  inventorySlotCount: 10
+  inventorySlotTypeCatalog: {fileID: 11400000, guid: 96251d877b8023642902d042afcafa11, type: 2}
   startingItems:
   - itemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
     amount: 300

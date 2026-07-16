@@ -149,22 +149,30 @@ namespace Landsong.BuildingSystem
     public sealed class BuildingInventoryLevelConfiguration : BuildingLevelConfigurationBase
     {
         [SerializeField, LabelText("提供库存格数"), Min(0)] private int providedSlots;
+        [SerializeField, LabelText("槽位类型")]
+        private InventorySlotType slotType = InventorySlotType.Default;
 
         public BuildingInventoryLevelConfiguration()
         {
         }
 
-        public BuildingInventoryLevelConfiguration(int providedSlots)
+        public BuildingInventoryLevelConfiguration(
+            int providedSlots,
+            InventorySlotType slotType = InventorySlotType.Default)
         {
             this.providedSlots = Mathf.Max(0, providedSlots);
+            this.slotType = slotType;
         }
 
         public override string ConfigurationId => "inventory.capacity";
         public int ProvidedSlots => Mathf.Max(0, providedSlots);
+        public InventorySlotType SlotType => slotType;
 
         public override void Apply(BuildingBase building)
         {
-            building.GetRequiredModule<BM_库存格容量>().SetProvidedSlotCount(ProvidedSlots);
+            building.GetRequiredModule<BM_库存格容量>().ApplyStorageConfiguration(
+                ProvidedSlots,
+                slotType);
         }
 
         public override void Normalize()
@@ -236,10 +244,19 @@ namespace Landsong.BuildingSystem
         [SerializeField, LabelText("初始人口"), Min(1)] private int initialPopulation = 2;
         [SerializeField, LabelText("最大人口"), Min(1)] private int maxPopulation = 5;
         [SerializeField, AssetsOnly, LabelText("食物物品")] private ItemDefinition foodItemDefinition;
+        [SerializeField, AssetsOnly, LabelText("食物分类")] private ItemGroupDefinition foodItemGroup;
+        [SerializeField, LabelText("饮食选择策略")]
+        private ItemRequirementSelectionPolicy foodSelectionPolicy =
+            ItemRequirementSelectionPolicy.PreferVariety;
+        [SerializeField, LabelText("目标饮食种类"), Min(1)] private int targetDietVariety = 2;
         [SerializeField, LabelText("人口增长间隔回合"), Min(1)] private int growthIntervalTurns = 3;
         [SerializeField, LabelText("失败衰减阈值"), Min(1)] private int failureDecayThreshold = 3;
         [SerializeField, AssetsOnly, LabelText("税收物品")] private ItemDefinition taxItemDefinition;
         [SerializeField, LabelText("税收间隔回合"), Min(1)] private int taxIntervalTurns = 5;
+        [SerializeField, LabelText("每回合生活质量最大变化"), Min(0f)]
+        private float maxLifeQualityChangePerTurn = 10f;
+        [SerializeField, LabelText("高质量增长阈值"), Range(0f, 100f)]
+        private float highQualityGrowthThreshold = 80f;
 
         public ResidentialHousingLevelConfiguration()
         {
@@ -252,15 +269,26 @@ namespace Landsong.BuildingSystem
             int growthIntervalTurns,
             int failureDecayThreshold,
             ItemDefinition taxItemDefinition,
-            int taxIntervalTurns)
+            int taxIntervalTurns,
+            ItemGroupDefinition foodItemGroup = null,
+            ItemRequirementSelectionPolicy foodSelectionPolicy =
+                ItemRequirementSelectionPolicy.PreferVariety,
+            int targetDietVariety = 2,
+            float maxLifeQualityChangePerTurn = 10f,
+            float highQualityGrowthThreshold = 80f)
         {
             this.initialPopulation = initialPopulation;
             this.maxPopulation = maxPopulation;
             this.foodItemDefinition = foodItemDefinition;
+            this.foodItemGroup = foodItemGroup;
+            this.foodSelectionPolicy = foodSelectionPolicy;
+            this.targetDietVariety = targetDietVariety;
             this.growthIntervalTurns = growthIntervalTurns;
             this.failureDecayThreshold = failureDecayThreshold;
             this.taxItemDefinition = taxItemDefinition;
             this.taxIntervalTurns = taxIntervalTurns;
+            this.maxLifeQualityChangePerTurn = maxLifeQualityChangePerTurn;
+            this.highQualityGrowthThreshold = highQualityGrowthThreshold;
             Normalize();
         }
 
@@ -268,10 +296,15 @@ namespace Landsong.BuildingSystem
         public int InitialPopulation => Mathf.Max(1, initialPopulation);
         public int MaxPopulation => Mathf.Max(InitialPopulation, maxPopulation);
         public ItemDefinition FoodItemDefinition => foodItemDefinition;
+        public ItemGroupDefinition FoodItemGroup => foodItemGroup;
+        public ItemRequirementSelectionPolicy FoodSelectionPolicy => foodSelectionPolicy;
+        public int TargetDietVariety => Mathf.Max(1, targetDietVariety);
         public int GrowthIntervalTurns => Mathf.Max(1, growthIntervalTurns);
         public int FailureDecayThreshold => Mathf.Max(1, failureDecayThreshold);
         public ItemDefinition TaxItemDefinition => taxItemDefinition;
         public int TaxIntervalTurns => Mathf.Max(1, taxIntervalTurns);
+        public float MaxLifeQualityChangePerTurn => Mathf.Max(0f, maxLifeQualityChangePerTurn);
+        public float HighQualityGrowthThreshold => Mathf.Clamp(highQualityGrowthThreshold, 0f, 100f);
 
         public override void Apply(BuildingBase building)
         {
@@ -282,16 +315,24 @@ namespace Landsong.BuildingSystem
                 GrowthIntervalTurns,
                 FailureDecayThreshold,
                 TaxItemDefinition,
-                TaxIntervalTurns);
+                TaxIntervalTurns,
+                foodItemGroup,
+                foodSelectionPolicy,
+                targetDietVariety,
+                maxLifeQualityChangePerTurn,
+                highQualityGrowthThreshold);
         }
 
         public override void Normalize()
         {
             initialPopulation = Mathf.Max(1, initialPopulation);
             maxPopulation = Mathf.Max(initialPopulation, maxPopulation);
+            targetDietVariety = Mathf.Max(1, targetDietVariety);
             growthIntervalTurns = Mathf.Max(1, growthIntervalTurns);
             failureDecayThreshold = Mathf.Max(1, failureDecayThreshold);
             taxIntervalTurns = Mathf.Max(1, taxIntervalTurns);
+            maxLifeQualityChangePerTurn = Mathf.Max(0f, maxLifeQualityChangePerTurn);
+            highQualityGrowthThreshold = Mathf.Clamp(highQualityGrowthThreshold, 0f, 100f);
         }
     }
 
@@ -434,8 +475,10 @@ namespace Landsong.BuildingSystem
     [Serializable]
     public sealed class WarehouseLevelConfiguration : BuildingLevelConfigurationBase
     {
-        [SerializeField, LabelText("容量所需工人"), Min(0)] private int requiredWorkers = 2;
+        [SerializeField, LabelText("正常仓储所需工人"), Min(0)] private int requiredWorkers = 2;
         [SerializeField, LabelText("基础库存格"), Min(0)] private int providedSlots = 1;
+        [SerializeField, LabelText("基础槽位类型")]
+        private InventorySlotType baseSlotType = InventorySlotType.BasicWarehouse;
         [SerializeField, AssetsOnly, LabelText("维护费物品")] private ItemDefinition maintenanceItemDefinition;
         [SerializeField, LabelText("每回合维护费"), Min(0)] private int maintenancePerTurn = 1;
         [SerializeField, LabelText("获得经验所需工人"), Min(0)] private int experienceWorkers = 2;
@@ -443,6 +486,8 @@ namespace Landsong.BuildingSystem
         [SerializeField, LabelText("升下一级所需经验"), Min(0)] private int nextLevelExperience = 30;
         [SerializeField, LabelText("奖励工人阈值"), Min(0)] private int bonusWorkerThreshold;
         [SerializeField, LabelText("奖励库存格"), Min(0)] private int bonusSlots;
+        [SerializeField, LabelText("奖励槽位类型")]
+        private InventorySlotType bonusSlotType = InventorySlotType.BasicWarehouse;
         [SerializeField, LabelText("维护失败吸引力惩罚"), Min(0f)] private float maintenanceFailureAttractionPenalty = 10f;
 
         public WarehouseLevelConfiguration()
@@ -452,6 +497,7 @@ namespace Landsong.BuildingSystem
         public WarehouseLevelConfiguration(
             int requiredWorkers,
             int providedSlots,
+            InventorySlotType baseSlotType,
             ItemDefinition maintenanceItemDefinition,
             int maintenancePerTurn,
             int experienceWorkers,
@@ -459,10 +505,12 @@ namespace Landsong.BuildingSystem
             int nextLevelExperience,
             int bonusWorkerThreshold,
             int bonusSlots,
+            InventorySlotType bonusSlotType,
             float maintenanceFailureAttractionPenalty)
         {
             this.requiredWorkers = requiredWorkers;
             this.providedSlots = providedSlots;
+            this.baseSlotType = baseSlotType;
             this.maintenanceItemDefinition = maintenanceItemDefinition;
             this.maintenancePerTurn = maintenancePerTurn;
             this.experienceWorkers = experienceWorkers;
@@ -470,6 +518,7 @@ namespace Landsong.BuildingSystem
             this.nextLevelExperience = nextLevelExperience;
             this.bonusWorkerThreshold = bonusWorkerThreshold;
             this.bonusSlots = bonusSlots;
+            this.bonusSlotType = bonusSlotType;
             this.maintenanceFailureAttractionPenalty = maintenanceFailureAttractionPenalty;
             Normalize();
         }
@@ -477,14 +526,23 @@ namespace Landsong.BuildingSystem
         public override string ConfigurationId => "warehouse.operation";
         public ItemDefinition MaintenanceItemDefinition => maintenanceItemDefinition;
         public int RequiredWorkers => Mathf.Max(0, requiredWorkers);
+        public int ProvidedSlots => Mathf.Max(0, providedSlots);
+        public InventorySlotType BaseSlotType => baseSlotType;
+        public int MaintenancePerTurn => Mathf.Max(0, maintenancePerTurn);
         public int ExperienceWorkers => Mathf.Max(0, experienceWorkers);
+        public int ExperiencePerTurn => Mathf.Max(0, experiencePerTurn);
+        public int NextLevelExperience => Mathf.Max(0, nextLevelExperience);
         public int BonusWorkerThreshold => Mathf.Max(0, bonusWorkerThreshold);
-
+        public int BonusSlots => Mathf.Max(0, bonusSlots);
+        public InventorySlotType BonusSlotType => bonusSlotType;
+        public float MaintenanceFailureAttractionPenalty =>
+            Mathf.Max(0f, maintenanceFailureAttractionPenalty);
         public override void Apply(BuildingBase building)
         {
             building.GetRequiredModule<BM_仓库运营>().ApplyConfiguration(
                 requiredWorkers,
                 providedSlots,
+                baseSlotType,
                 maintenanceItemDefinition,
                 maintenancePerTurn,
                 experienceWorkers,
@@ -492,6 +550,7 @@ namespace Landsong.BuildingSystem
                 nextLevelExperience,
                 bonusWorkerThreshold,
                 bonusSlots,
+                bonusSlotType,
                 maintenanceFailureAttractionPenalty);
         }
 

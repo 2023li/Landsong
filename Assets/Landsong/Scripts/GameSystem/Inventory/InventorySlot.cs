@@ -6,19 +6,32 @@ namespace Landsong.InventorySystem
     [Serializable]
     public sealed class InventorySlot
     {
+        [SerializeField] private InventorySlotProvision provision;
         [SerializeField] private string itemId;
         [SerializeField, Min(0)] private int quantity;
 
-        public InventorySlot()
+        public InventorySlot(InventorySlotProvision provision)
         {
+            UpdateProvision(provision);
             Clear();
         }
 
-        public InventorySlot(string itemId, int quantity)
+        public InventorySlot(InventorySlotProvision provision, string itemId, int quantity)
         {
+            UpdateProvision(provision);
             Set(itemId, quantity);
         }
 
+        public InventorySlotProvision Provision => provision;
+        public string StorageSlotId => provision == null ? string.Empty : provision.StorageSlotId;
+        public string ProviderBuildingInstanceId =>
+            provision == null ? string.Empty : provision.ProviderBuildingInstanceId;
+        public string ProviderFamilyId => provision == null ? string.Empty : provision.ProviderFamilyId;
+        public string ProviderDisplayName =>
+            provision == null ? string.Empty : provision.ProviderDisplayName;
+        public string LocalSlotId => provision == null ? string.Empty : provision.LocalSlotId;
+        public InventorySlotType SlotType =>
+            provision == null ? InventorySlotType.Default : provision.SlotType;
         public string ItemId => itemId;
         public int Quantity => quantity;
         public bool IsEmpty => string.IsNullOrWhiteSpace(itemId) || quantity <= 0;
@@ -33,9 +46,39 @@ namespace Landsong.InventorySystem
             return IsEmpty || Contains(targetItemId);
         }
 
-        public InventorySlotData ToData(int slotIndex)
+        public float GetEffectiveLossRate(
+            ItemDefinition definition,
+            InventorySlotTypeCatalog slotTypeCatalog)
         {
-            return new InventorySlotData(slotIndex, itemId, quantity);
+            return provision == null
+                ? definition == null ? 0f : definition.LossRatePerTurn
+                : provision.CalculateLossRate(definition, slotTypeCatalog);
+        }
+
+        public int GetAutoStorePriority(InventorySlotTypeCatalog slotTypeCatalog)
+        {
+            return provision == null
+                ? 0
+                : provision.GetAutoStorePriority(slotTypeCatalog);
+        }
+
+        public InventorySlotData ToData()
+        {
+            return new InventorySlotData(
+                ProviderBuildingInstanceId,
+                LocalSlotId,
+                itemId,
+                quantity);
+        }
+
+        internal void UpdateProvision(InventorySlotProvision newProvision)
+        {
+            if (newProvision == null || !newProvision.IsValid)
+            {
+                throw new ArgumentException("Inventory slots require a valid building slot provision.", nameof(newProvision));
+            }
+
+            provision = newProvision;
         }
 
         internal void Set(string newItemId, int newQuantity)

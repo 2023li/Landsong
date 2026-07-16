@@ -36,6 +36,10 @@
 
 策划配置中的物品统一引用 `ItemDefinition`；只有库存 API、运行时 DTO、字典键和存档使用由其派生的 ItemId。
 
+建筑库存能力通过 `InventorySlotType` 与库存系统解耦：建筑等级配置只保存槽位数量和类型，库存系统统一解析该类型的固定损耗倍率、物品组修正和自动存放优先级，槽位视觉由 UI 代码处理。库存导表器不读取或写入建筑家族。
+
+科技对库存损耗的全局持续影响通过 `TechnologyGlobalBuffCatalog` 汇总，不复制到建筑等级或槽位类型。建筑正式工作簿的 `科技_全局库存Buff` 维护已接入效果的条件和百分比；当前轮子使所有物资库存自然损耗结果乘 `0.90`。
+
 ## 4. 配置与模块关联
 
 LevelConfiguration 通过自己的 `Apply(BuildingBase)` 明确取得目标模块类型，例如资源产出配置调用 `GetRequiredModule<BM_资源产出>()`。运行时匹配依据是模块 C# 类型，不是 `ConfigurationId` 字符串；`ModuleId` 用于唯一性、顺序、存档和编辑期依赖校验。

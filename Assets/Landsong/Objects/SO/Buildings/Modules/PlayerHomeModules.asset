@@ -30,6 +30,7 @@ MonoBehaviour:
       data:
         enabled: 1
         providedSlotCount: 5
+        slotType: 10
     - rid: 5711026424309612545
       type: {class: "BM_\u79D1\u6280\u70B9\u4EA7\u51FA", ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
       data:

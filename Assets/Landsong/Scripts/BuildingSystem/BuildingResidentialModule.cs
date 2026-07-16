@@ -48,6 +48,10 @@ namespace Landsong.BuildingSystem
             public int LastResourceProviderActionCost;
             public string LastAbnormalStatusId;
             public string LastAbnormalStatusText;
+            public float CurrentLifeQuality;
+            public float TargetLifeQuality;
+            public float LastDietScore;
+            public int LastDietDistinctItemCount;
         }
 
         [TitleGroup("人口")]
@@ -56,8 +60,17 @@ namespace Landsong.BuildingSystem
 
         [TitleGroup("消耗与增长")]
         [SerializeField, AssetsOnly, LabelText("食物物品")] private ItemDefinition foodItemDefinition;
+        [SerializeField, AssetsOnly, LabelText("食物分类")] private ItemGroupDefinition foodItemGroup;
+        [SerializeField, LabelText("饮食选择策略")]
+        private ItemRequirementSelectionPolicy foodSelectionPolicy =
+            ItemRequirementSelectionPolicy.PreferVariety;
+        [SerializeField, LabelText("目标饮食种类"), Min(1)] private int targetDietVariety = 2;
         [SerializeField, LabelText("增长间隔回合"), Min(1)] private int growthIntervalTurns = 3;
         [SerializeField, LabelText("失败衰减阈值"), Min(1)] private int failureDecayThreshold = 3;
+        [SerializeField, LabelText("每回合生活质量最大变化"), Min(0f)]
+        private float maxLifeQualityChangePerTurn = 10f;
+        [SerializeField, LabelText("高质量增长阈值"), Range(0f, 100f)]
+        private float highQualityGrowthThreshold = 80f;
 
         [TitleGroup("税收")]
         [SerializeField, AssetsOnly, LabelText("税收物品")] private ItemDefinition taxItemDefinition;
@@ -76,6 +89,14 @@ namespace Landsong.BuildingSystem
         [SerializeField, ReadOnly, LabelText("上回合人口增长")] private bool lastTurnGrewPopulation;
         [SerializeField, ReadOnly, LabelText("上回合已提供税收")] private bool lastTurnProvidedTax;
         [SerializeField, ReadOnly, LabelText("上次资源提供点行动力消耗")] private int lastResourceProviderActionCost;
+        [SerializeField, ReadOnly, LabelText("当前生活质量"), Range(0f, 100f)]
+        private float currentLifeQuality = 50f;
+        [SerializeField, ReadOnly, LabelText("目标生活质量"), Range(0f, 100f)]
+        private float targetLifeQuality = 50f;
+        [SerializeField, ReadOnly, LabelText("上回合饮食评分"), Range(0f, 100f)]
+        private float lastDietScore;
+        [SerializeField, ReadOnly, LabelText("上回合饮食种类")]
+        private int lastDietDistinctItemCount;
 
         private string lastAbnormalStatusId = string.Empty;
         private string lastAbnormalStatusText = string.Empty;
@@ -89,13 +110,19 @@ namespace Landsong.BuildingSystem
         public override string ModuleDescription => "完整持有居民人口、食物消耗、增长、税收、失败衰减、荒废、UI与存档。";
         public int CurrentPopulation => owner != null && owner.IsOperational && !isAbandoned ? currentPopulation : 0;
         public ItemDefinition FoodItemDefinition => foodItemDefinition;
+        public ItemGroupDefinition FoodItemGroup => foodItemGroup;
         public ItemDefinition TaxItemDefinition => taxItemDefinition;
+        public float CurrentLifeQuality => Mathf.Clamp(currentLifeQuality, 0f, 100f);
+        public float TargetLifeQuality => Mathf.Clamp(targetLifeQuality, 0f, 100f);
+        public float LastDietScore => Mathf.Clamp(lastDietScore, 0f, 100f);
+        public int LastDietDistinctItemCount => Mathf.Max(0, lastDietDistinctItemCount);
         private string FoodItemId => foodItemDefinition == null ? string.Empty : foodItemDefinition.ItemId;
+        private string FoodRequirementId => foodItemGroup == null ? FoodItemId : foodItemGroup.GroupId;
         private string TaxItemId => taxItemDefinition == null ? string.Empty : taxItemDefinition.ItemId;
         public IReadOnlyList<BuildingResourceChange> CurrentResourceConsumptions =>
             isAbandoned || currentPopulation <= 0
                 ? Array.Empty<BuildingResourceChange>()
-                : OneChange(FoodItemId, currentPopulation);
+                : OneChange(FoodRequirementId, currentPopulation);
         public IReadOnlyList<BuildingResourceChange> LastResourceConsumptions => lastResourceConsumptions;
         public IReadOnlyList<BuildingResourceChange> CurrentTaxRewards =>
             !isAbandoned && currentPopulation >= maxPopulation
@@ -104,6 +131,62 @@ namespace Landsong.BuildingSystem
         public IReadOnlyList<BuildingResourceChange> LastTaxRewards => lastTaxRewards;
         public IReadOnlyList<string> RequiredConnectionTypeIds => RequiredConnections;
 
+        public bool TryForecastFoodConsumption(
+            Inventory inventory,
+            out ItemConsumptionReceipt receipt)
+        {
+            receipt = null;
+            if (inventory == null || isAbandoned || currentPopulation <= 0)
+            {
+                return true;
+            }
+
+            if (foodItemGroup == null && string.IsNullOrWhiteSpace(FoodItemId))
+            {
+                return false;
+            }
+
+            return inventory.TryConsumeRequirements(
+                new[] { CreateFoodRequirement(currentPopulation) },
+                out receipt);
+        }
+
+        public float CalculateDietScore(
+            ItemConsumptionReceipt receipt,
+            ItemCatalog catalog,
+            int requiredAmount)
+        {
+            if (requiredAmount <= 0 || receipt == null)
+            {
+                return requiredAmount <= 0 ? 100f : 0f;
+            }
+
+            var satietyScore = Mathf.Clamp01((float)receipt.TotalConsumed / requiredAmount) * 100f;
+            var varietyScore = Mathf.Clamp01(
+                (float)receipt.DistinctItemCount / Mathf.Max(1, targetDietVariety)) * 100f;
+            var qualityTotal = 0f;
+            var qualityWeight = 0;
+            for (var i = 0; i < receipt.Lines.Count; i++)
+            {
+                var line = receipt.Lines[i];
+                if (catalog == null
+                    || !catalog.TryGetDefinition(line.ItemId, out var definition)
+                    || line.Amount <= 0)
+                {
+                    continue;
+                }
+
+                qualityTotal += definition.FoodProfile.DietQuality * line.Amount;
+                qualityWeight += line.Amount;
+            }
+
+            var qualityScore = qualityWeight <= 0 ? 50f : qualityTotal / qualityWeight;
+            return Mathf.Clamp(
+                satietyScore * 0.5f + varietyScore * 0.3f + qualityScore * 0.2f,
+                0f,
+                100f);
+        }
+
         public void ApplyConfiguration(
             int initial,
             int maximum,
@@ -111,7 +194,13 @@ namespace Landsong.BuildingSystem
             int growthTurns,
             int decayThreshold,
             ItemDefinition taxItem,
-            int taxTurns)
+            int taxTurns,
+            ItemGroupDefinition foodGroup = null,
+            ItemRequirementSelectionPolicy selectionPolicy =
+                ItemRequirementSelectionPolicy.PreferVariety,
+            int dietVarietyTarget = 2,
+            float lifeQualityChangePerTurn = 10f,
+            float qualityGrowthThreshold = 80f)
         {
             initialPopulation = Mathf.Max(1, initial);
             maxPopulation = Mathf.Max(initialPopulation, maximum);
@@ -121,10 +210,15 @@ namespace Landsong.BuildingSystem
             }
 
             foodItemDefinition = foodItem;
+            foodItemGroup = foodGroup;
+            foodSelectionPolicy = selectionPolicy;
+            targetDietVariety = dietVarietyTarget;
             growthIntervalTurns = growthTurns;
             failureDecayThreshold = decayThreshold;
             taxItemDefinition = taxItem;
             taxIntervalTurns = taxTurns;
+            maxLifeQualityChangePerTurn = lifeQualityChangePerTurn;
+            highQualityGrowthThreshold = qualityGrowthThreshold;
             Normalize();
             if (!isAbandoned && currentPopulation <= 0)
             {
@@ -141,6 +235,13 @@ namespace Landsong.BuildingSystem
             growthIntervalTurns = Mathf.Max(1, growthIntervalTurns);
             failureDecayThreshold = Mathf.Max(1, failureDecayThreshold);
             taxIntervalTurns = Mathf.Max(1, taxIntervalTurns);
+            targetDietVariety = Mathf.Max(1, targetDietVariety);
+            maxLifeQualityChangePerTurn = Mathf.Max(0f, maxLifeQualityChangePerTurn);
+            highQualityGrowthThreshold = Mathf.Clamp(highQualityGrowthThreshold, 0f, 100f);
+            currentLifeQuality = Mathf.Clamp(currentLifeQuality, 0f, 100f);
+            targetLifeQuality = Mathf.Clamp(targetLifeQuality, 0f, 100f);
+            lastDietScore = Mathf.Clamp(lastDietScore, 0f, 100f);
+            lastDietDistinctItemCount = Mathf.Max(0, lastDietDistinctItemCount);
             currentPopulation = Mathf.Clamp(currentPopulation, 0, maxPopulation);
             growthProgress = Mathf.Clamp(growthProgress, 0, growthIntervalTurns);
             taxProgress = Mathf.Clamp(taxProgress, 0, taxIntervalTurns);
@@ -198,7 +299,7 @@ namespace Landsong.BuildingSystem
                 return RegisterConsumptionFailure(StatusMissingInventory, "库存服务缺失");
             }
 
-            if (string.IsNullOrWhiteSpace(FoodItemId))
+            if (foodItemGroup == null && string.IsNullOrWhiteSpace(FoodItemId))
             {
                 return RegisterConsumptionFailure(StatusInvalidFoodItem, "食物配置异常");
             }
@@ -211,21 +312,27 @@ namespace Landsong.BuildingSystem
             lastTurnHadResourceProvider = true;
             lastResourceProviderActionCost = providerSelection.ActionCost;
             var foodAmount = Mathf.Max(0, currentPopulation);
-            if (foodAmount > 0 && !inventory.TryRemoveItem(FoodItemId, foodAmount))
+            var foodRequirement = CreateFoodRequirement(foodAmount);
+            ItemConsumptionReceipt consumptionReceipt = null;
+            if (foodAmount > 0
+                && !inventory.TryConsumeRequirements(
+                    new[] { foodRequirement },
+                    out consumptionReceipt))
             {
-                return RegisterConsumptionFailure(StatusMissingFood, $"{FoodItemId}不足");
+                return RegisterConsumptionFailure(StatusMissingFood, $"{FoodRequirementId}不足");
             }
 
             consecutiveFailures = 0;
             ClearStatus();
             lastTurnConsumedResources = foodAmount > 0;
-            lastResourceConsumptions = OneChange(FoodItemId, foodAmount);
-            if (foodAmount > 0)
+            lastResourceConsumptions = ToResourceChanges(consumptionReceipt);
+            UpdateDietAndLifeQuality(consumptionReceipt, inventory.ItemCatalog, foodAmount);
+            for (var i = 0; i < lastResourceConsumptions.Count; i++)
             {
                 BuildingResourceProviderSystem.RecordProvidedResource(
                     providerSelection,
                     building,
-                    new BuildingResourceChange(FoodItemId, foodAmount));
+                    lastResourceConsumptions[i]);
             }
 
             return ProcessSuccessfulConsumption(inventory);
@@ -271,13 +378,15 @@ namespace Landsong.BuildingSystem
                     ref entries,
                     new BuildingFunctionBlockEntry(
                         BuildingFunctionBlockGroup.资源组,
-                        FoodItemId,
+                        FoodRequirementId,
                         -currentPopulation,
                         new[]
                         {
                             new BuildingFunctionBlockSidebarRow("当前人口", currentPopulation.ToString()),
                             new BuildingFunctionBlockSidebarRow("增长进度", $"{growthProgress}/{growthIntervalTurns}"),
-                            new BuildingFunctionBlockSidebarRow("资源路径行动力", lastResourceProviderActionCost.ToString())
+                            new BuildingFunctionBlockSidebarRow("资源路径行动力", lastResourceProviderActionCost.ToString()),
+                            new BuildingFunctionBlockSidebarRow("饮食评分", $"{LastDietScore:0.#}"),
+                            new BuildingFunctionBlockSidebarRow("饮食种类", $"{LastDietDistinctItemCount}/{targetDietVariety}")
                         }));
             }
 
@@ -291,7 +400,8 @@ namespace Landsong.BuildingSystem
                     {
                         new BuildingFunctionBlockSidebarRow("人口上限", maxPopulation.ToString()),
                         new BuildingFunctionBlockSidebarRow("税收进度", $"{taxProgress}/{taxIntervalTurns}"),
-                        new BuildingFunctionBlockSidebarRow("失败衰减", $"{consecutiveFailures}/{failureDecayThreshold}")
+                        new BuildingFunctionBlockSidebarRow("失败衰减", $"{consecutiveFailures}/{failureDecayThreshold}"),
+                        new BuildingFunctionBlockSidebarRow("生活质量", $"{CurrentLifeQuality:0.#}/100")
                     }));
         }
 
@@ -312,7 +422,11 @@ namespace Landsong.BuildingSystem
                 LastTurnProvidedTax = lastTurnProvidedTax,
                 LastResourceProviderActionCost = lastResourceProviderActionCost,
                 LastAbnormalStatusId = lastAbnormalStatusId,
-                LastAbnormalStatusText = lastAbnormalStatusText
+                LastAbnormalStatusText = lastAbnormalStatusText,
+                CurrentLifeQuality = currentLifeQuality,
+                TargetLifeQuality = targetLifeQuality,
+                LastDietScore = lastDietScore,
+                LastDietDistinctItemCount = lastDietDistinctItemCount
             });
             return true;
         }
@@ -339,6 +453,10 @@ namespace Landsong.BuildingSystem
             lastResourceProviderActionCost = state.LastResourceProviderActionCost;
             lastAbnormalStatusId = NormalizeText(state.LastAbnormalStatusId);
             lastAbnormalStatusText = NormalizeText(state.LastAbnormalStatusText);
+            currentLifeQuality = state.CurrentLifeQuality;
+            targetLifeQuality = state.TargetLifeQuality;
+            lastDietScore = state.LastDietScore;
+            lastDietDistinctItemCount = state.LastDietDistinctItemCount;
             Normalize();
             RefreshPopulationContribution();
         }
@@ -353,7 +471,7 @@ namespace Landsong.BuildingSystem
             }
 
             taxProgress = 0;
-            growthProgress++;
+            growthProgress += CurrentLifeQuality >= highQualityGrowthThreshold ? 2 : 1;
             if (growthProgress < growthIntervalTurns)
             {
                 return true;
@@ -404,6 +522,9 @@ namespace Landsong.BuildingSystem
         {
             lastTurnConsumptionFailed = true;
             SetStatus(statusId, statusText);
+            lastDietScore = 0f;
+            lastDietDistinctItemCount = 0;
+            UpdateLifeQuality(0f);
             growthProgress = 0;
             taxProgress = 0;
             consecutiveFailures++;
@@ -469,6 +590,7 @@ namespace Landsong.BuildingSystem
             lastResourceConsumptions = Array.Empty<BuildingResourceChange>();
             lastTaxRewards = Array.Empty<BuildingResourceChange>();
             lastResourceProviderActionCost = 0;
+            lastDietDistinctItemCount = 0;
         }
 
         private void SetStatus(string id, string text)
@@ -491,5 +613,69 @@ namespace Landsong.BuildingSystem
 
         private static string NormalizeText(string value) =>
             string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+
+        private ItemRequirement CreateFoodRequirement(int amount)
+        {
+            return foodItemGroup != null
+                ? new ItemRequirement(foodItemGroup, amount, foodSelectionPolicy)
+                : new ItemRequirement(foodItemDefinition, amount, foodSelectionPolicy);
+        }
+
+        private void UpdateDietAndLifeQuality(
+            ItemConsumptionReceipt receipt,
+            ItemCatalog catalog,
+            int requiredAmount)
+        {
+            if (requiredAmount <= 0 || receipt == null)
+            {
+                lastDietScore = 100f;
+                lastDietDistinctItemCount = 0;
+                UpdateLifeQuality(lastDietScore);
+                return;
+            }
+
+            lastDietDistinctItemCount = receipt.DistinctItemCount;
+            lastDietScore = CalculateDietScore(receipt, catalog, requiredAmount);
+            UpdateLifeQuality(lastDietScore);
+        }
+
+        private void UpdateLifeQuality(float newTarget)
+        {
+            targetLifeQuality = Mathf.Clamp(newTarget, 0f, 100f);
+            currentLifeQuality = Mathf.MoveTowards(
+                currentLifeQuality,
+                targetLifeQuality,
+                maxLifeQualityChangePerTurn);
+        }
+
+        private static IReadOnlyList<BuildingResourceChange> ToResourceChanges(
+            ItemConsumptionReceipt receipt)
+        {
+            if (receipt == null || receipt.Lines.Count == 0)
+            {
+                return Array.Empty<BuildingResourceChange>();
+            }
+
+            var amounts = new Dictionary<string, int>(StringComparer.Ordinal);
+            for (var i = 0; i < receipt.Lines.Count; i++)
+            {
+                var line = receipt.Lines[i];
+                if (!line.IsValid)
+                {
+                    continue;
+                }
+
+                amounts.TryGetValue(line.ItemId, out var current);
+                amounts[line.ItemId] = current + line.Amount;
+            }
+
+            var result = new List<BuildingResourceChange>(amounts.Count);
+            foreach (var pair in amounts)
+            {
+                result.Add(new BuildingResourceChange(pair.Key, pair.Value));
+            }
+
+            return result;
+        }
     }
 }

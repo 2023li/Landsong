@@ -25,6 +25,7 @@ namespace Landsong
         }
 
         public InventoryService Inventory => owner.Inventory;
+        public EconomyForecastService EconomyForecast => owner.EconomyForecast;
         public TurnService Turn => owner.Turn;
         public DynastyService Dynasty => owner.Dynasty;
         public BuildingService Buildings => owner.Buildings;

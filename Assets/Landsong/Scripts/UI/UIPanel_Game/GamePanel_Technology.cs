@@ -330,7 +330,7 @@ namespace Landsong.UISystem
             if (globalBuffCatalog == null)
             {
                 globalBuffCatalog = AssetDatabase.LoadAssetAtPath<TechnologyGlobalBuffCatalog>(
-                    "Assets/Landsong/Objects/SO/TechnologyGlobalBuffCatalog.asset");
+                    "Assets/Landsong/Objects/SO/SO_Technology/TechnologyGlobalBuffCatalog.asset");
             }
 #endif
             globalBuffCatalog?.InjectTechnologyUnlockContents(editorPreviewUnlockContentRegistry);

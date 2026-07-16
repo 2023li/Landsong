@@ -9,7 +9,7 @@ namespace Landsong.BuildingSystem
     [Serializable]
     [BuildingModuleId("warehouse.operation")]
     public sealed class BM_仓库运营 : BuildingModuleBase,
-        IBuildingInventoryCapacitySource,
+        IBuildingInventorySlotProvider,
         IBuildingWorkforceRequirementSource,
         IBuildingJobAttractionModifierSource,
         IBuildingUpgradeRequirementSource,
@@ -29,11 +29,14 @@ namespace Landsong.BuildingSystem
             public bool MaintenanceFailed;
             public bool LastMaintenancePaid;
             public int LastExperienceGained;
+            public bool BonusSlotsUnlocked;
         }
 
         [TitleGroup("运营要求")]
-        [SerializeField, LabelText("容量所需工人"), Min(0)] private int requiredWorkers = 2;
+        [SerializeField, LabelText("正常仓储所需工人"), Min(0)] private int requiredWorkers = 2;
         [SerializeField, LabelText("基础库存格"), Min(0)] private int baseProvidedSlots = 1;
+        [SerializeField, LabelText("基础槽位类型")]
+        private InventorySlotType baseSlotType = InventorySlotType.BasicWarehouse;
         [SerializeField, AssetsOnly, LabelText("维护费物品")] private ItemDefinition maintenanceItemDefinition;
         [SerializeField, LabelText("每回合维护费"), Min(0)] private int maintenanceAmountPerTurn = 1;
 
@@ -45,15 +48,22 @@ namespace Landsong.BuildingSystem
         [TitleGroup("满员奖励")]
         [SerializeField, LabelText("奖励工人阈值"), Min(0)] private int bonusWorkerThreshold;
         [SerializeField, LabelText("奖励库存格"), Min(0)] private int bonusProvidedSlots;
+        [SerializeField, LabelText("奖励槽位类型")]
+        private InventorySlotType bonusSlotType = InventorySlotType.BasicWarehouse;
 
         [TitleGroup("维护失败")]
         [SerializeField, LabelText("吸引力惩罚"), Min(0f)] private float maintenanceFailureAttractionPenalty = 10f;
+
+        [TitleGroup("运行时仓储修正")]
+        [SerializeField, LabelText("缺工损耗倍率"), Min(0f)] private float understaffedLossRateMultiplier = 1.25f;
+        [SerializeField, LabelText("维护失败损耗倍率"), Min(0f)] private float maintenanceFailureLossRateMultiplier = 1.5f;
 
         [TitleGroup("运行时")]
         [SerializeField, ReadOnly, LabelText("当前经验")] private int experience;
         [SerializeField, ReadOnly, LabelText("维护费不足")] private bool maintenanceFailed;
         [SerializeField, ReadOnly, LabelText("上回合已支付维护费")] private bool lastMaintenancePaid;
         [SerializeField, ReadOnly, LabelText("上回合获得经验")] private int lastExperienceGained;
+        [SerializeField, ReadOnly, LabelText("奖励库存格已解锁")] private bool bonusSlotsUnlocked;
 
         [NonSerialized] private BuildingBase owner;
         private IReadOnlyList<BuildingResourceChange> lastResourceConsumptions = Array.Empty<BuildingResourceChange>();
@@ -63,7 +73,7 @@ namespace Landsong.BuildingSystem
         public int Experience => Mathf.Max(0, experience);
         public int ExperienceRequiredForNextLevel => Mathf.Max(0, experienceRequiredForNextLevel);
         public ItemDefinition MaintenanceItemDefinition => maintenanceItemDefinition;
-        public int CurrentProvidedSlotCount => CalculateProvidedSlots();
+        public int CurrentProvidedSlotCount => CalculatePhysicalSlotCount();
         public IReadOnlyList<BuildingResourceChange> CurrentResourceConsumptions =>
             owner != null && owner.IsOperational && maintenanceAmountPerTurn > 0
                 ? OneChange(MaintenanceItemId, maintenanceAmountPerTurn)
@@ -77,6 +87,7 @@ namespace Landsong.BuildingSystem
         public void ApplyConfiguration(
             int capacityWorkers,
             int providedSlots,
+            InventorySlotType configuredBaseSlotType,
             ItemDefinition maintenanceItem,
             int maintenanceAmount,
             int experienceWorkers,
@@ -84,10 +95,12 @@ namespace Landsong.BuildingSystem
             int nextLevelExperience,
             int rewardWorkerThreshold,
             int rewardSlots,
+            InventorySlotType configuredBonusSlotType,
             float failureAttractionPenalty)
         {
             requiredWorkers = capacityWorkers;
             baseProvidedSlots = providedSlots;
+            baseSlotType = configuredBaseSlotType;
             maintenanceItemDefinition = maintenanceItem;
             maintenanceAmountPerTurn = maintenanceAmount;
             experienceWorkerRequirement = experienceWorkers;
@@ -95,15 +108,27 @@ namespace Landsong.BuildingSystem
             experienceRequiredForNextLevel = nextLevelExperience;
             bonusWorkerThreshold = rewardWorkerThreshold;
             bonusProvidedSlots = rewardSlots;
+            bonusSlotType = configuredBonusSlotType;
             maintenanceFailureAttractionPenalty = failureAttractionPenalty;
             Normalize();
             RefreshCapacity();
         }
 
         public void OnBuildingInitialized(BuildingBase building) => Bind(building);
-        public void OnBuildingRegistered(BuildingBase building) => Bind(building);
+
+        public void OnBuildingRegistered(BuildingBase building)
+        {
+            Bind(building);
+            RefreshCapacity();
+        }
+
         public void OnBuildingPlaced(BuildingBase building) => Bind(building);
-        public void OnBuildingLevelApplied(BuildingBase building, int previousLevel, int currentLevel) => Bind(building);
+
+        public void OnBuildingLevelApplied(BuildingBase building, int previousLevel, int currentLevel)
+        {
+            Bind(building);
+            RefreshCapacity();
+        }
 
         public void OnBuildingUnregistered(BuildingBase building)
         {
@@ -119,6 +144,7 @@ namespace Landsong.BuildingSystem
             lastExperienceGained = 0;
             lastResourceConsumptions = Array.Empty<BuildingResourceChange>();
 
+            TryUnlockBonusSlots();
             var inventory = owner?.GameSystem?.Services.Inventory;
             if (inventory == null)
             {
@@ -156,6 +182,31 @@ namespace Landsong.BuildingSystem
 
             RefreshAfterTurn();
             return true;
+        }
+
+        public IReadOnlyList<InventorySlotProvision> GetInventorySlotProvisions(BuildingBase building)
+        {
+            var target = building == null ? owner : building;
+            var slotCount = CalculatePhysicalSlotCount(target);
+            if (!IsEnabled || target == null || !target.IsOperational || slotCount <= 0)
+            {
+                return Array.Empty<InventorySlotProvision>();
+            }
+
+            var runtimeMultiplier = CalculateRuntimeLossRateMultiplier(target);
+            var result = new InventorySlotProvision[slotCount];
+            for (var i = 0; i < result.Length; i++)
+            {
+                result[i] = new InventorySlotProvision(
+                    target.InstanceId,
+                    target.FamilyId,
+                    target.Definition == null ? target.name : target.Definition.DisplayName,
+                    $"warehouse.{i + 1:D3}",
+                    i < baseProvidedSlots ? baseSlotType : bonusSlotType,
+                    runtimeMultiplier);
+            }
+
+            return result;
         }
 
         public bool TryGetJobAttractionModifier(out BuildingJobAttractionModifier modifier)
@@ -254,6 +305,8 @@ namespace Landsong.BuildingSystem
             bonusWorkerThreshold = Mathf.Max(0, bonusWorkerThreshold);
             bonusProvidedSlots = Mathf.Max(0, bonusProvidedSlots);
             maintenanceFailureAttractionPenalty = Mathf.Max(0f, maintenanceFailureAttractionPenalty);
+            understaffedLossRateMultiplier = Mathf.Max(0f, understaffedLossRateMultiplier);
+            maintenanceFailureLossRateMultiplier = Mathf.Max(0f, maintenanceFailureLossRateMultiplier);
             experience = Mathf.Max(0, experience);
         }
 
@@ -264,7 +317,8 @@ namespace Landsong.BuildingSystem
                 Experience = experience,
                 MaintenanceFailed = maintenanceFailed,
                 LastMaintenancePaid = lastMaintenancePaid,
-                LastExperienceGained = lastExperienceGained
+                LastExperienceGained = lastExperienceGained,
+                BonusSlotsUnlocked = bonusSlotsUnlocked
             });
             return !string.IsNullOrWhiteSpace(json);
         }
@@ -281,6 +335,7 @@ namespace Landsong.BuildingSystem
             maintenanceFailed = state.MaintenanceFailed;
             lastMaintenancePaid = state.LastMaintenancePaid;
             lastExperienceGained = Mathf.Max(0, state.LastExperienceGained);
+            bonusSlotsUnlocked = state.BonusSlotsUnlocked;
             RefreshCapacity();
         }
 
@@ -288,18 +343,18 @@ namespace Landsong.BuildingSystem
         {
             owner = building;
             Normalize();
-            RefreshCapacity();
         }
 
-        private int CalculateProvidedSlots()
+        private int CalculatePhysicalSlotCount(BuildingBase building = null)
         {
-            if (owner == null || !owner.IsOperational || !TryGetWorkers(out var workers) || workers < requiredWorkers)
+            var target = building == null ? owner : building;
+            if (target == null || !target.IsOperational)
             {
                 return 0;
             }
 
             var result = baseProvidedSlots;
-            if (bonusProvidedSlots > 0 && bonusWorkerThreshold > 0 && workers >= bonusWorkerThreshold)
+            if (bonusSlotsUnlocked)
             {
                 result += bonusProvidedSlots;
             }
@@ -307,9 +362,45 @@ namespace Landsong.BuildingSystem
             return Mathf.Max(0, result);
         }
 
+        private float CalculateRuntimeLossRateMultiplier(BuildingBase building)
+        {
+            var multiplier = 1f;
+            if (!TryGetWorkers(building, out var workers) || workers < requiredWorkers)
+            {
+                multiplier *= understaffedLossRateMultiplier;
+            }
+
+            if (maintenanceFailed)
+            {
+                multiplier *= maintenanceFailureLossRateMultiplier;
+            }
+
+            return Mathf.Max(0f, multiplier);
+        }
+
+        private void TryUnlockBonusSlots()
+        {
+            if (bonusSlotsUnlocked
+                || bonusProvidedSlots <= 0
+                || bonusWorkerThreshold <= 0
+                || !TryGetWorkers(out var workers)
+                || workers < bonusWorkerThreshold)
+            {
+                return;
+            }
+
+            bonusSlotsUnlocked = true;
+            RefreshCapacity();
+        }
+
         private bool TryGetWorkers(out int workers)
         {
-            if (owner != null && BuildingWorkforceUtility.TryGetSource(owner, out var workforce))
+            return TryGetWorkers(owner, out workers);
+        }
+
+        private static bool TryGetWorkers(BuildingBase building, out int workers)
+        {
+            if (building != null && BuildingWorkforceUtility.TryGetSource(building, out var workforce))
             {
                 workers = workforce.CurrentWorkers;
                 return true;

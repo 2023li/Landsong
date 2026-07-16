@@ -43,15 +43,18 @@ namespace Landsong
         private const string InspectorTurn = "回合";
         private const string GameplayDebugGoldItemId = "金币";
 
-        private readonly List<IBuildingInventoryCapacitySource> inventorySlotCapacitySources =
-            new List<IBuildingInventoryCapacitySource>();
+        private readonly List<IBuildingInventorySlotProvider> inventorySlotProviders =
+            new List<IBuildingInventorySlotProvider>();
+        private readonly List<InventorySlotProvision> inventorySlotProvisions =
+            new List<InventorySlotProvision>();
         private readonly List<IBuildingJobAttractionModifierSource> localJobAttractionModifierSources =
             new List<IBuildingJobAttractionModifierSource>();
         private readonly List<BuildingJobAttractionModifier> activeJobAttractionModifiers =
             new List<BuildingJobAttractionModifier>();
 
         [SerializeField, FoldoutGroup(InspectorInventory), LabelText("物品目录")] private ItemCatalog itemCatalog;
-        [SerializeField, FoldoutGroup(InspectorInventory), LabelText("库存格子数量"), Min(0)] private int inventorySlotCount = 24;
+        [SerializeField, FoldoutGroup(InspectorInventory), LabelText("库存槽位类型目录")]
+        private InventorySlotTypeCatalog inventorySlotTypeCatalog;
         [SerializeField, FoldoutGroup(InspectorInventory), LabelText("初始物品")] private ItemAmount[] startingItems = Array.Empty<ItemAmount>();
 
         [SerializeField, FoldoutGroup(InspectorDynasty), LabelText("初始王朝名称")] private string startingDynastyName = DynastyService.DefaultDynastyName;
@@ -93,6 +96,9 @@ namespace Landsong
 
         [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeServices), LabelText("库存服务")]
         internal InventoryService Inventory { get; private set; }
+
+        [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeServices), LabelText("经济预测服务")]
+        internal EconomyForecastService EconomyForecast { get; private set; }
 
         [ShowInInspector, ReadOnly, FoldoutGroup(InspectorRuntimeServices), LabelText("回合服务")]
         internal TurnService Turn { get; private set; }
@@ -290,6 +296,11 @@ namespace Landsong
                 CreateGameEventService();
             }
 
+            if (EconomyForecast == null)
+            {
+                CreateEconomyForecastService();
+            }
+
             if (BuildingBlueprints == null)
             {
                 CreateBuildingBlueprintService();
@@ -333,7 +344,6 @@ namespace Landsong
         private void OnValidate()
         {
             startingDynastyName = DynastyService.NormalizeDynastyName(startingDynastyName);
-            inventorySlotCount = Mathf.Max(0, inventorySlotCount);
             startingPopulation = Mathf.Max(0, startingPopulation);
             startingResearchProgress = Mathf.Max(0, startingResearchProgress);
             startingPublicOpinion = Mathf.Max(0, startingPublicOpinion);
@@ -1192,7 +1202,12 @@ namespace Landsong
 
         private void CreateInventoryService()
         {
-            Inventory = new InventoryService(itemCatalog, CalculateTargetInventorySlotCount(), startingItems);
+            Inventory = new InventoryService(
+                itemCatalog,
+                inventorySlotTypeCatalog,
+                startingItems,
+                () => GlobalBuffs?.GetInventoryLossRateMultiplier() ?? 1f);
+            RefreshInventorySlotCapacity();
             RefreshQuestSubscriptions();
         }
 
@@ -1203,73 +1218,62 @@ namespace Landsong
                 return;
             }
 
-            var targetSlotCount = CalculateTargetInventorySlotCount();
-            var currentSlotCount = Inventory.SlotCount;
-            if (targetSlotCount == currentSlotCount)
-            {
-                return;
-            }
-
-            if (targetSlotCount < currentSlotCount && !CanShrinkInventoryTo(targetSlotCount))
-            {
-                return;
-            }
-
-            Inventory.SetSlotCount(targetSlotCount);
-        }
-
-        private int CalculateTargetInventorySlotCount()
-        {
-            return Mathf.Max(0, inventorySlotCount) + CalculateBuildingInventorySlotCapacity();
-        }
-
-        private int CalculateBuildingInventorySlotCapacity()
-        {
+            inventorySlotProvisions.Clear();
             var buildings = Buildings == null ? null : Buildings.Buildings;
-            if (buildings == null || buildings.Count == 0)
+            if (buildings != null)
             {
-                return 0;
+                for (var i = 0; i < buildings.Count; i++)
+                {
+                    var building = buildings[i];
+                    if (building == null || !building.isActiveAndEnabled || building.IsDemolishing)
+                    {
+                        continue;
+                    }
+
+                    inventorySlotProviders.Clear();
+                    building.GetCapabilities(inventorySlotProviders);
+                    for (var j = 0; j < inventorySlotProviders.Count; j++)
+                    {
+                        var provisions = inventorySlotProviders[j]
+                            .GetInventorySlotProvisions(building);
+                        if (provisions == null)
+                        {
+                            continue;
+                        }
+
+                        for (var k = 0; k < provisions.Count; k++)
+                        {
+                            if (provisions[k] != null && provisions[k].IsValid)
+                            {
+                                inventorySlotProvisions.Add(provisions[k]);
+                            }
+                        }
+                    }
+                }
             }
 
-            var total = 0;
-            for (var i = 0; i < buildings.Count; i++)
+            inventorySlotProviders.Clear();
+            if (!Inventory.SynchronizeSlots(inventorySlotProvisions))
             {
-                var building = buildings[i];
-                if (building == null || !building.isActiveAndEnabled || building.IsDemolishing)
-                {
-                    continue;
-                }
-
-                inventorySlotCapacitySources.Clear();
-                building.GetCapabilities(inventorySlotCapacitySources);
-                for (var j = 0; j < inventorySlotCapacitySources.Count; j++)
-                {
-                    total += inventorySlotCapacitySources[j].CurrentProvidedSlotCount;
-                }
+                Debug.LogWarning(
+                    "库存槽位拓扑更新被拒绝：将被撤销的建筑槽位中仍存有物品。请先清空对应建筑的槽位。");
             }
 
-            inventorySlotCapacitySources.Clear();
-            return Mathf.Max(0, total);
+            inventorySlotProvisions.Clear();
         }
 
-        private bool CanShrinkInventoryTo(int targetSlotCount)
+        internal bool CanDemolishInventoryProvider(BuildingBase building, out string failureMessage)
         {
-            var inventory = Inventory == null ? null : Inventory.Inventory;
-            if (inventory == null || targetSlotCount >= inventory.SlotCount)
+            if (building == null
+                || Inventory == null
+                || !Inventory.HasStoredItemsForProvider(building.InstanceId))
             {
+                failureMessage = string.Empty;
                 return true;
             }
 
-            var slots = inventory.Slots;
-            for (var i = Mathf.Max(0, targetSlotCount); i < slots.Count; i++)
-            {
-                if (slots[i] != null && !slots[i].IsEmpty)
-                {
-                    return false;
-                }
-            }
-
-            return true;
+            failureMessage = "该建筑提供的库存格中仍有物品，请先清空这些槽位。";
+            return false;
         }
 
         private void CreateDynastyService()
@@ -1367,7 +1371,7 @@ namespace Landsong
                 Turn.BuildingTechnologyPointsProvided -= HandleBuildingTechnologyPointsProvided;
             }
 
-            Turn = new TurnService(startingTurn);
+            Turn = new TurnService(startingTurn, Inventory);
             pendingTechnologyPointsThisTurn = 0;
             Turn.BeforeTurnAdvanced += HandleBeforeTurnAdvanced;
             Turn.BuildingTechnologyPointsProvided += HandleBuildingTechnologyPointsProvided;
@@ -1384,6 +1388,11 @@ namespace Landsong
         private void CreateGameEventService()
         {
             Events = new GameEventService();
+        }
+
+        private void CreateEconomyForecastService()
+        {
+            EconomyForecast = new EconomyForecastService(this);
         }
 
         internal void RegisterBuildingSelectionController(BuildingSelectionController controller)
@@ -1435,7 +1444,7 @@ namespace Landsong
             }
 
             Debug.Log(
-               $"已推进至回合 {summary.ToTurn}。已处理：{summary.OperatingConsumed}，失败：{summary.Failed}，跳过：{summary.Skipped}。",
+               $"已推进至回合 {summary.ToTurn}。已处理：{summary.OperatingConsumed}，失败：{summary.Failed}，跳过：{summary.Skipped}，自然损耗：{summary.InventoryLostQuantity}（{summary.InventorySlotsWithLoss} 格）。",
                 this);
         }
 

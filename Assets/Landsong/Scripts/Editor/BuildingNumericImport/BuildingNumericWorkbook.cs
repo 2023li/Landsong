@@ -2,9 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
-using System.Xml.Linq;
+using Landsong.EditorTools.NumericImport;
 
 namespace Landsong.EditorTools.Buildings.NumericImport
 {
@@ -138,6 +137,7 @@ namespace Landsong.EditorTools.Buildings.NumericImport
         public string FamilyId;
         public int Level;
         public int Slots;
+        public string SlotType;
     }
 
     internal sealed class TechnologyPointsNumericRow : BuildingNumericSourceRow
@@ -160,6 +160,11 @@ namespace Landsong.EditorTools.Buildings.NumericImport
         public int FailureDecayThreshold;
         public string TaxItemId;
         public int TaxIntervalTurns;
+        public string FoodGroupId;
+        public string FoodSelectionPolicy;
+        public int TargetDietVariety;
+        public float MaxLifeQualityChangePerTurn;
+        public float HighQualityGrowthThreshold;
     }
 
     internal sealed class WorkforceNumericRow : BuildingNumericSourceRow
@@ -250,6 +255,20 @@ namespace Landsong.EditorTools.Buildings.NumericImport
         public int FlatBonus;
     }
 
+    internal sealed class TechnologyInventoryLossBuffNumericRow :
+        BuildingNumericSourceRow
+    {
+        public TechnologyInventoryLossBuffNumericRow(string sheet, int row)
+            : base(sheet, row)
+        {
+        }
+
+        public string BuffId;
+        public string DisplayName;
+        public string ConditionId;
+        public float ReductionPercent;
+    }
+
     internal sealed class WarehouseNumericRow : BuildingNumericSourceRow
     {
         public WarehouseNumericRow(string sheet, int row) : base(sheet, row) { }
@@ -257,6 +276,7 @@ namespace Landsong.EditorTools.Buildings.NumericImport
         public int Level;
         public int RequiredWorkers;
         public int ProvidedSlots;
+        public string BaseSlotType;
         public string MaintenanceItemId;
         public int MaintenancePerTurn;
         public int ExperienceWorkers;
@@ -264,6 +284,7 @@ namespace Landsong.EditorTools.Buildings.NumericImport
         public int NextLevelExperience;
         public int BonusWorkerThreshold;
         public int BonusSlots;
+        public string BonusSlotType;
         public float MaintenanceFailureAttractionPenalty;
     }
 
@@ -332,6 +353,9 @@ namespace Landsong.EditorTools.Buildings.NumericImport
             new List<OperationalExperienceNumericRow>();
         public readonly List<TechnologyGlobalBuffNumericRow> TechnologyGlobalBuffs =
             new List<TechnologyGlobalBuffNumericRow>();
+        public readonly List<TechnologyInventoryLossBuffNumericRow>
+            TechnologyInventoryLossBuffs =
+                new List<TechnologyInventoryLossBuffNumericRow>();
         public readonly List<WarehouseNumericRow> Warehouses = new List<WarehouseNumericRow>();
         public readonly List<MarketNumericRow> Markets = new List<MarketNumericRow>();
         public readonly List<TreeNumericRow> Trees = new List<TreeNumericRow>();
@@ -344,7 +368,7 @@ namespace Landsong.EditorTools.Buildings.NumericImport
 
     internal static class BuildingNumericWorkbookReader
     {
-        public const int SupportedSchemaVersion = 6;
+        public const int SupportedSchemaVersion = 8;
         private const int HeaderRow = 4;
         private const int FirstDataRow = 5;
 
@@ -408,6 +432,7 @@ namespace Landsong.EditorTools.Buildings.NumericImport
             ReadTrees(workbook, data, report);
             ReadSpatialEffects(workbook, data, report);
             ReadTechnologyGlobalBuffs(workbook, data, report);
+            ReadTechnologyInventoryLossBuffs(workbook, data, report);
             ReadCrops(workbook, data, report);
             ReadCropPlantCosts(workbook, data, report);
             ReadCropRewards(workbook, data, report);
@@ -509,12 +534,20 @@ namespace Landsong.EditorTools.Buildings.NumericImport
         private static void ReadInventoryCapacity(XlsxRawWorkbook workbook, BuildingNumericWorkbookData data, BuildingNumericImportReport report)
         {
             const string sheet = "等级_库存容量";
-            foreach (var row in ReadRows(workbook, sheet, report, "FamilyId", "Level", "提供库存格"))
+            foreach (var row in ReadRows(
+                         workbook,
+                         sheet,
+                         report,
+                         "FamilyId",
+                         "Level",
+                         "提供库存格",
+                         "槽位类型"))
             {
                 data.InventoryCapacity.Add(new InventoryCapacityNumericRow(sheet, row.Row)
                 {
                     FamilyId = Required(row, "FamilyId", report), Level = Integer(row, "Level", report),
-                    Slots = Integer(row, "提供库存格", report)
+                    Slots = Integer(row, "提供库存格", report),
+                    SlotType = Required(row, "槽位类型", report)
                 });
             }
         }
@@ -537,7 +570,8 @@ namespace Landsong.EditorTools.Buildings.NumericImport
             const string sheet = "等级_住宅";
             foreach (var row in ReadRows(workbook, sheet, report,
                          "FamilyId", "Level", "初始人口", "人口上限", "FoodItemId", "增长回合",
-                         "失败衰减阈值", "TaxItemId", "税收回合"))
+                         "失败衰减阈值", "TaxItemId", "税收回合", "FoodGroupId", "选择策略",
+                         "目标饮食种类", "生活质量变化/回合", "高质量增长阈值"))
             {
                 data.Residential.Add(new ResidentialNumericRow(sheet, row.Row)
                 {
@@ -545,7 +579,12 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                     InitialPopulation = Integer(row, "初始人口", report), MaxPopulation = Integer(row, "人口上限", report),
                     FoodItemId = Required(row, "FoodItemId", report), GrowthIntervalTurns = Integer(row, "增长回合", report),
                     FailureDecayThreshold = Integer(row, "失败衰减阈值", report), TaxItemId = Required(row, "TaxItemId", report),
-                    TaxIntervalTurns = Integer(row, "税收回合", report)
+                    TaxIntervalTurns = Integer(row, "税收回合", report),
+                    FoodGroupId = Required(row, "FoodGroupId", report),
+                    FoodSelectionPolicy = Required(row, "选择策略", report),
+                    TargetDietVariety = Integer(row, "目标饮食种类", report),
+                    MaxLifeQualityChangePerTurn = Float(row, "生活质量变化/回合", report),
+                    HighQualityGrowthThreshold = Float(row, "高质量增长阈值", report)
                 });
             }
         }
@@ -665,8 +704,9 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                          report,
                          "FamilyId",
                          "Level",
-                         "容量所需工人",
+                         "正常仓储所需工人",
                          "基础库存格",
+                         "基础槽位类型",
                          "MaintenanceItemId",
                          "维护费/回合",
                          "经验所需工人",
@@ -674,14 +714,16 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                          "下级经验要求",
                          "奖励工人阈值",
                          "奖励库存格",
+                         "奖励槽位类型",
                          "维护失败吸引力惩罚"))
             {
                 data.Warehouses.Add(new WarehouseNumericRow(sheet, row.Row)
                 {
                     FamilyId = Required(row, "FamilyId", report),
                     Level = Integer(row, "Level", report),
-                    RequiredWorkers = Integer(row, "容量所需工人", report),
+                    RequiredWorkers = Integer(row, "正常仓储所需工人", report),
                     ProvidedSlots = Integer(row, "基础库存格", report),
+                    BaseSlotType = Required(row, "基础槽位类型", report),
                     MaintenanceItemId = Required(row, "MaintenanceItemId", report),
                     MaintenancePerTurn = Integer(row, "维护费/回合", report),
                     ExperienceWorkers = Integer(row, "经验所需工人", report),
@@ -689,6 +731,7 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                     NextLevelExperience = Integer(row, "下级经验要求", report),
                     BonusWorkerThreshold = Integer(row, "奖励工人阈值", report),
                     BonusSlots = Integer(row, "奖励库存格", report),
+                    BonusSlotType = Required(row, "奖励槽位类型", report),
                     MaintenanceFailureAttractionPenalty = Float(row, "维护失败吸引力惩罚", report)
                 });
             }
@@ -786,6 +829,37 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                     OutputItemId = Required(row, "OutputItemId", report),
                     FlatBonus = Integer(row, "固定加成/次", report)
                 });
+            }
+        }
+
+        private static void ReadTechnologyInventoryLossBuffs(
+            XlsxRawWorkbook workbook,
+            BuildingNumericWorkbookData data,
+            BuildingNumericImportReport report)
+        {
+            const string sheet = "科技_全局库存Buff";
+            foreach (var row in ReadRows(
+                         workbook,
+                         sheet,
+                         report,
+                         "BuffId",
+                         "显示名",
+                         "ConditionId",
+                         "库存损耗降低%"))
+            {
+                data.TechnologyInventoryLossBuffs.Add(
+                    new TechnologyInventoryLossBuffNumericRow(
+                        sheet,
+                        row.Row)
+                    {
+                        BuffId = Required(row, "BuffId", report),
+                        DisplayName = Required(row, "显示名", report),
+                        ConditionId = Required(row, "ConditionId", report),
+                        ReductionPercent = Float(
+                            row,
+                            "库存损耗降低%",
+                            report)
+                    });
             }
         }
 
@@ -958,203 +1032,4 @@ namespace Landsong.EditorTools.Buildings.NumericImport
         }
     }
 
-    internal sealed class XlsxRawWorkbook
-    {
-        private static readonly XNamespace SpreadsheetNamespace =
-            "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
-        private static readonly XNamespace RelationshipNamespace =
-            "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
-        private static readonly XNamespace PackageRelationshipNamespace =
-            "http://schemas.openxmlformats.org/package/2006/relationships";
-
-        private readonly Dictionary<string, XlsxRawSheet> sheets =
-            new Dictionary<string, XlsxRawSheet>(StringComparer.Ordinal);
-
-        public static XlsxRawWorkbook Load(string path)
-        {
-            using var file = File.OpenRead(path);
-            using var archive = new ZipArchive(file, ZipArchiveMode.Read, false);
-            var sharedStrings = ReadSharedStrings(archive);
-            var workbookDocument = LoadXml(archive, "xl/workbook.xml");
-            var relationsDocument = LoadXml(archive, "xl/_rels/workbook.xml.rels");
-            var targets = relationsDocument.Root?
-                .Elements(PackageRelationshipNamespace + "Relationship")
-                .Where(element => element.Attribute("Id") != null && element.Attribute("Target") != null)
-                .ToDictionary(
-                    element => element.Attribute("Id")?.Value ?? string.Empty,
-                    element => NormalizeEntryPath("xl/", element.Attribute("Target")?.Value ?? string.Empty),
-                    StringComparer.Ordinal) ?? new Dictionary<string, string>(StringComparer.Ordinal);
-
-            var result = new XlsxRawWorkbook();
-            foreach (var element in workbookDocument.Descendants(SpreadsheetNamespace + "sheet"))
-            {
-                var name = element.Attribute("name")?.Value ?? string.Empty;
-                var relationId = element.Attribute(RelationshipNamespace + "id")?.Value ?? string.Empty;
-                if (string.IsNullOrWhiteSpace(name)
-                    || !targets.TryGetValue(relationId, out var target)
-                    || archive.GetEntry(target) == null)
-                {
-                    continue;
-                }
-
-                result.sheets[name] = ReadSheet(archive, target, sharedStrings);
-            }
-
-            return result;
-        }
-
-        public bool TryGetSheet(string name, out XlsxRawSheet sheet) => sheets.TryGetValue(name, out sheet);
-
-        public string GetCell(string sheet, int row, int column) =>
-            sheets.TryGetValue(sheet, out var value) ? value.GetCell(row, column) : string.Empty;
-
-        private static XlsxRawSheet ReadSheet(
-            ZipArchive archive,
-            string entryName,
-            IReadOnlyList<string> sharedStrings)
-        {
-            var document = LoadXml(archive, entryName);
-            var sheet = new XlsxRawSheet();
-            foreach (var rowElement in document.Descendants(SpreadsheetNamespace + "row"))
-            {
-                var rowNumber = ParseInt(rowElement.Attribute("r")?.Value);
-                if (rowNumber <= 0)
-                {
-                    continue;
-                }
-
-                foreach (var cell in rowElement.Elements(SpreadsheetNamespace + "c"))
-                {
-                    var reference = cell.Attribute("r")?.Value ?? string.Empty;
-                    var column = ParseColumn(reference);
-                    if (column <= 0)
-                    {
-                        continue;
-                    }
-
-                    var type = cell.Attribute("t")?.Value ?? string.Empty;
-                    string value;
-                    if (string.Equals(type, "inlineStr", StringComparison.Ordinal))
-                    {
-                        value = string.Concat(cell.Descendants(SpreadsheetNamespace + "t").Select(text => text.Value));
-                    }
-                    else
-                    {
-                        value = cell.Element(SpreadsheetNamespace + "v")?.Value ?? string.Empty;
-                        if (string.Equals(type, "s", StringComparison.Ordinal)
-                            && int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var stringIndex)
-                            && stringIndex >= 0
-                            && stringIndex < sharedStrings.Count)
-                        {
-                            value = sharedStrings[stringIndex];
-                        }
-                        else if (string.Equals(type, "b", StringComparison.Ordinal))
-                        {
-                            value = value == "1" ? "TRUE" : "FALSE";
-                        }
-                    }
-
-                    sheet.SetCell(rowNumber, column, value);
-                }
-            }
-
-            return sheet;
-        }
-
-        private static List<string> ReadSharedStrings(ZipArchive archive)
-        {
-            var entry = archive.GetEntry("xl/sharedStrings.xml");
-            if (entry == null)
-            {
-                return new List<string>();
-            }
-
-            using var stream = entry.Open();
-            var document = XDocument.Load(stream);
-            return document.Descendants(SpreadsheetNamespace + "si")
-                .Select(item => string.Concat(item.Descendants(SpreadsheetNamespace + "t").Select(text => text.Value)))
-                .ToList();
-        }
-
-        private static XDocument LoadXml(ZipArchive archive, string entryName)
-        {
-            var entry = archive.GetEntry(entryName)
-                        ?? throw new InvalidDataException($"XLSX 缺少条目：{entryName}");
-            using var stream = entry.Open();
-            return XDocument.Load(stream);
-        }
-
-        private static string NormalizeEntryPath(string basePath, string target)
-        {
-            var segments = (target.StartsWith("/", StringComparison.Ordinal)
-                    ? target.TrimStart('/')
-                    : basePath + target)
-                .Replace('\\', '/')
-                .Split('/');
-            var stack = new List<string>();
-            foreach (var segment in segments)
-            {
-                if (string.IsNullOrWhiteSpace(segment) || segment == ".")
-                {
-                    continue;
-                }
-
-                if (segment == "..")
-                {
-                    if (stack.Count > 0) stack.RemoveAt(stack.Count - 1);
-                    continue;
-                }
-
-                stack.Add(segment);
-            }
-
-            return string.Join("/", stack);
-        }
-
-        private static int ParseColumn(string reference)
-        {
-            var result = 0;
-            for (var i = 0; i < reference.Length && char.IsLetter(reference[i]); i++)
-            {
-                result = result * 26 + char.ToUpperInvariant(reference[i]) - 'A' + 1;
-            }
-
-            return result;
-        }
-
-        private static int ParseInt(string value) =>
-            int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var result) ? result : 0;
-    }
-
-    internal sealed class XlsxRawSheet
-    {
-        private readonly Dictionary<long, string> cells = new Dictionary<long, string>();
-        public int MaxRow { get; private set; }
-
-        public void SetCell(int row, int column, string value)
-        {
-            cells[Key(row, column)] = value ?? string.Empty;
-            MaxRow = Math.Max(MaxRow, row);
-        }
-
-        public string GetCell(int row, int column) =>
-            cells.TryGetValue(Key(row, column), out var value) ? value ?? string.Empty : string.Empty;
-
-        public Dictionary<string, int> GetHeaders(int row)
-        {
-            var result = new Dictionary<string, int>(StringComparer.Ordinal);
-            for (var column = 1; column <= 256; column++)
-            {
-                var value = GetCell(row, column).Trim();
-                if (!string.IsNullOrWhiteSpace(value) && !result.ContainsKey(value))
-                {
-                    result.Add(value, column);
-                }
-            }
-
-            return result;
-        }
-
-        private static long Key(int row, int column) => ((long)row << 32) | (uint)column;
-    }
 }

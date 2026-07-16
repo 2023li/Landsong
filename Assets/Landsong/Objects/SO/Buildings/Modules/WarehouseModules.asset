@@ -44,6 +44,7 @@ MonoBehaviour:
         enabled: 1
         requiredWorkers: 2
         baseProvidedSlots: 1
+        baseSlotType: 20
         maintenanceItemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
         maintenanceAmountPerTurn: 1
         experienceWorkerRequirement: 2
@@ -51,8 +52,12 @@ MonoBehaviour:
         experienceRequiredForNextLevel: 30
         bonusWorkerThreshold: 0
         bonusProvidedSlots: 0
+        bonusSlotType: 20
         maintenanceFailureAttractionPenalty: 10
+        understaffedLossRateMultiplier: 1.25
+        maintenanceFailureLossRateMultiplier: 1.5
         experience: 0
         maintenanceFailed: 0
         lastMaintenancePaid: 0
         lastExperienceGained: 0
+        bonusSlotsUnlocked: 0

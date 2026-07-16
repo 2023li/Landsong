@@ -101,7 +101,7 @@ public sealed class GamePanel_Inventory : MonoBehaviour
             ResolveInventory();
         }
 
-        if (inventory == null || slotRoot == null || slotPrefab == null)
+        if (inventory == null || slotRoot == null)
         {
             SyncSlotCount(0);
             return;
@@ -112,6 +112,7 @@ public sealed class GamePanel_Inventory : MonoBehaviour
 
         for (var i = 0; i < slots.Count; i++)
         {
+            EnsureSlotObject(i);
             RenderSlot(slotObjects[i], i, slots[i], inventory.ItemCatalog);
         }
     }
@@ -184,9 +185,7 @@ public sealed class GamePanel_Inventory : MonoBehaviour
     {
         while (slotObjects.Count < count)
         {
-            var slotObject = Instantiate(slotPrefab, slotRoot);
-            slotObject.SetActive(true);
-            slotObjects.Add(slotObject);
+            slotObjects.Add(null);
         }
 
         while (slotObjects.Count > count)
@@ -195,24 +194,25 @@ public sealed class GamePanel_Inventory : MonoBehaviour
             var slotObject = slotObjects[lastIndex];
             slotObjects.RemoveAt(lastIndex);
 
-            if (slotObject != null)
-            {
-                var slotView = slotObject.GetComponent<GamePanel_InventorySlot>();
-                if (slotView != null)
-                {
-                    slotView.Unbind();
-                }
-
-                if (Application.isPlaying)
-                {
-                    Destroy(slotObject);
-                }
-                else
-                {
-                    DestroyImmediate(slotObject);
-                }
-            }
+            DestroySlotObject(slotObject);
         }
+    }
+
+    private void EnsureSlotObject(int slotIndex)
+    {
+        if (slotIndex < 0 || slotIndex >= slotObjects.Count || slotPrefab == null)
+        {
+            return;
+        }
+
+        if (slotObjects[slotIndex] != null)
+        {
+            return;
+        }
+
+        var slotObject = Instantiate(slotPrefab, slotRoot);
+        slotObject.SetActive(true);
+        slotObjects[slotIndex] = slotObject;
     }
 
     private void RenderSlot(GameObject slotObject, int slotIndex, InventorySlot slot, ItemCatalog catalog)
@@ -223,11 +223,17 @@ public sealed class GamePanel_Inventory : MonoBehaviour
         }
 
         var definition = GetItemDefinition(slot, catalog);
-        var icon = GetIcon(slotObject);
-        var quantityLabel = GetQuantityLabel(slotObject);
+        var slotView = slotObject.GetComponent<GamePanel_InventorySlot>();
+        if (slotView == null)
+        {
+            slotView = slotObject.AddComponent<GamePanel_InventorySlot>();
+        }
+
+        slotView.ResolveVisualReferences(out var icon, out var quantityLabel);
+        slotView.ApplySlotTypePresentation(slot);
         SetIcon(icon, definition == null ? null : definition.Icon);
         SetQuantity(quantityLabel, slot);
-        BindSlot(slotObject, slotIndex, slot, icon, quantityLabel);
+        slotView.Bind(this, slotIndex, slot, icon, quantityLabel);
 
         slotObject.name = slot == null || slot.IsEmpty
             ? "InventorySlot_Empty"
@@ -244,38 +250,46 @@ public sealed class GamePanel_Inventory : MonoBehaviour
         return catalog.TryGetDefinition(slot.ItemId, out var definition) ? definition : null;
     }
 
-    private static Image GetIcon(GameObject slotObject)
-    {
-        return slotObject.transform.GetChild(1).GetComponent<Image>();
-    }
-
-    private static TMP_Text GetQuantityLabel(GameObject slotObject)
-    {
-        return slotObject.transform.GetChild(2).GetComponent<TMP_Text>();
-    }
-
     private static void SetIcon(Image icon, Sprite sprite)
     {
+        if (icon == null)
+        {
+            return;
+        }
+
         icon.sprite = sprite;
         icon.enabled = sprite != null;
     }
 
     private void SetQuantity(TMP_Text quantityLabel, InventorySlot slot)
     {
+        if (quantityLabel == null)
+        {
+            return;
+        }
+
         quantityLabel.text = slot == null || slot.IsEmpty || (!showQuantityWhenOne && slot.Quantity <= 1)
             ? string.Empty
             : slot.Quantity.ToString();
     }
 
-    private void BindSlot(GameObject slotObject, int slotIndex, InventorySlot slot, Image icon, TMP_Text quantityLabel)
+    private void DestroySlotObject(GameObject slotObject)
     {
-        var slotView = slotObject.GetComponent<GamePanel_InventorySlot>();
-        if (slotView == null)
+        if (slotObject == null)
         {
-            slotView = slotObject.AddComponent<GamePanel_InventorySlot>();
+            return;
         }
 
-        slotView.Bind(this, slotIndex, slot, icon, quantityLabel);
+        var slotView = slotObject.GetComponent<GamePanel_InventorySlot>();
+        slotView?.Unbind();
+        if (Application.isPlaying)
+        {
+            Destroy(slotObject);
+        }
+        else
+        {
+            DestroyImmediate(slotObject);
+        }
     }
 
     private void SubscribeInventory()

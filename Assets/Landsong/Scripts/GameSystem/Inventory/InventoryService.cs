@@ -4,26 +4,36 @@ using UnityEngine;
 
 namespace Landsong.InventorySystem
 {
-    public class InventoryService
+    public sealed class InventoryService
     {
         private ItemCatalog itemCatalog;
-        private int slotCount;
+        private InventorySlotTypeCatalog slotTypeCatalog;
+        private Func<float> globalLossRateMultiplierProvider;
         private ItemAmount[] startingItems;
         private Inventory inventory;
+        private bool startingItemsApplied;
+        private bool restoringRuntime;
 
-        public InventoryService(ItemCatalog itemCatalog, int slotCount, IEnumerable<ItemAmount> startingItems = null)
+        public InventoryService(
+            ItemCatalog itemCatalog,
+            InventorySlotTypeCatalog slotTypeCatalog,
+            IEnumerable<ItemAmount> startingItems = null,
+            Func<float> globalLossRateMultiplierProvider = null)
         {
             this.itemCatalog = itemCatalog;
-            this.slotCount = Mathf.Max(0, slotCount);
+            this.slotTypeCatalog = slotTypeCatalog;
+            this.globalLossRateMultiplierProvider =
+                globalLossRateMultiplierProvider;
             this.startingItems = NormalizeStartingItems(startingItems);
-
             Initialize();
         }
 
         public event Action<InventoryService> InventoryChanged;
+        public event Action<InventoryService, IReadOnlyList<InventorySlotLoss>> TurnLossProcessed;
 
         public ItemCatalog ItemCatalog => itemCatalog;
-        public int SlotCount => slotCount;
+        public InventorySlotTypeCatalog SlotTypeCatalog => slotTypeCatalog;
+        public int SlotCount => Inventory.SlotCount;
         public Inventory Inventory
         {
             get
@@ -34,13 +44,16 @@ namespace Landsong.InventorySystem
         }
 
         public bool IsInitialized => inventory != null;
+        public bool StartingItemsApplied => startingItemsApplied;
+        public bool IsRestoringRuntime => restoringRuntime;
 
         public void Initialize()
         {
             UnsubscribeInventory();
-
-            inventory = new Inventory(slotCount, itemCatalog);
-            ApplyStartingItems(inventory);
+            inventory = new Inventory(
+                itemCatalog,
+                slotTypeCatalog,
+                globalLossRateMultiplierProvider);
             inventory.InventoryChanged += HandleInventoryChanged;
             HandleInventoryChanged();
         }
@@ -48,22 +61,78 @@ namespace Landsong.InventorySystem
         public void SetCatalog(ItemCatalog newCatalog)
         {
             itemCatalog = newCatalog;
-
-            if (inventory != null)
-            {
-                inventory.SetCatalog(itemCatalog);
-            }
+            inventory?.SetCatalog(itemCatalog);
         }
 
-        public void SetSlotCount(int newSlotCount)
+        public void SetSlotTypeCatalog(InventorySlotTypeCatalog newCatalog)
         {
-            slotCount = Mathf.Max(0, newSlotCount);
-            Inventory.Resize(slotCount);
+            slotTypeCatalog = newCatalog;
+            inventory?.SetSlotTypeCatalog(slotTypeCatalog);
+        }
+
+        public void SetGlobalLossRateMultiplierProvider(Func<float> provider)
+        {
+            globalLossRateMultiplierProvider = provider;
+            inventory?.SetGlobalLossRateMultiplierProvider(provider);
+        }
+
+        public bool SynchronizeSlots(IEnumerable<InventorySlotProvision> provisions)
+        {
+            var synchronized = Inventory.SynchronizeSlots(provisions);
+            if (synchronized)
+            {
+                TryApplyStartingItems();
+            }
+
+            return synchronized;
         }
 
         public void SetStartingItems(IEnumerable<ItemAmount> newStartingItems)
         {
             startingItems = NormalizeStartingItems(newStartingItems);
+            startingItemsApplied = false;
+            TryApplyStartingItems();
+        }
+
+        public bool TryApplyStartingItems()
+        {
+            if (startingItemsApplied || restoringRuntime)
+            {
+                return true;
+            }
+
+            if (!Inventory.CanAddItems(startingItems))
+            {
+                return false;
+            }
+
+            if (!Inventory.TryAddItems(startingItems))
+            {
+                return false;
+            }
+
+            startingItemsApplied = true;
+            return true;
+        }
+
+        public void BeginRuntimeRestore()
+        {
+            restoringRuntime = true;
+            startingItemsApplied = true;
+            Inventory.Clear();
+        }
+
+        public void CompleteRuntimeRestore(InventorySaveData saveData)
+        {
+            Inventory.RestoreSaveData(saveData);
+            startingItemsApplied = true;
+            restoringRuntime = false;
+        }
+
+        public void CancelRuntimeRestore()
+        {
+            restoringRuntime = false;
+            startingItemsApplied = true;
         }
 
         public int AddItem(ItemDefinition definition, int quantity)
@@ -131,12 +200,28 @@ namespace Landsong.InventorySystem
             return Inventory.TryRemoveItems(requirements);
         }
 
-        public bool CanExchangeItems(IEnumerable<ItemAmount> inputs, IEnumerable<ItemAmount> outputs)
+        public bool CanConsumeRequirements(IEnumerable<ItemRequirement> requirements)
+        {
+            return Inventory.CanConsumeRequirements(requirements);
+        }
+
+        public bool TryConsumeRequirements(
+            IEnumerable<ItemRequirement> requirements,
+            out ItemConsumptionReceipt receipt)
+        {
+            return Inventory.TryConsumeRequirements(requirements, out receipt);
+        }
+
+        public bool CanExchangeItems(
+            IEnumerable<ItemAmount> inputs,
+            IEnumerable<ItemAmount> outputs)
         {
             return Inventory.CanExchangeItems(inputs, outputs);
         }
 
-        public bool TryExchangeItems(IEnumerable<ItemAmount> inputs, IEnumerable<ItemAmount> outputs)
+        public bool TryExchangeItems(
+            IEnumerable<ItemAmount> inputs,
+            IEnumerable<ItemAmount> outputs)
         {
             return Inventory.TryExchangeItems(inputs, outputs);
         }
@@ -144,6 +229,11 @@ namespace Landsong.InventorySystem
         public int GetQuantity(string itemId)
         {
             return Inventory.GetQuantity(itemId);
+        }
+
+        public bool HasStoredItemsForProvider(string providerBuildingInstanceId)
+        {
+            return Inventory.HasStoredItemsForProvider(providerBuildingInstanceId);
         }
 
         public bool Move(int fromSlotIndex, int toSlotIndex, int quantity = int.MaxValue)
@@ -171,15 +261,27 @@ namespace Landsong.InventorySystem
             Inventory.Clear();
         }
 
+        public IReadOnlyList<InventorySlotLoss> CalculateTurnLosses()
+        {
+            return Inventory.CalculateTurnLosses();
+        }
+
+        public IReadOnlyList<InventorySlotLoss> ProcessTurnLosses()
+        {
+            var losses = Inventory.ProcessTurnLosses();
+            TurnLossProcessed?.Invoke(this, losses);
+            return losses;
+        }
+
         public InventorySaveData CaptureSaveData()
         {
             return Inventory.CaptureSaveData();
         }
 
-        public void RestoreSaveData(InventorySaveData saveData, bool resizeToSaveSlotCount = true)
+        public void RestoreSaveData(InventorySaveData saveData)
         {
-            Inventory.RestoreSaveData(saveData, resizeToSaveSlotCount);
-            slotCount = Inventory.SlotCount;
+            Inventory.RestoreSaveData(saveData);
+            startingItemsApplied = true;
         }
 
         public void LogInventoryContents()
@@ -195,7 +297,8 @@ namespace Landsong.InventorySystem
             foreach (var itemTotal in totalsByItemId)
             {
                 var label = itemTotal.Key;
-                if (itemCatalog != null && itemCatalog.TryGetDefinition(itemTotal.Key, out var definition))
+                if (itemCatalog != null
+                    && itemCatalog.TryGetDefinition(itemTotal.Key, out var definition))
                 {
                     label = definition.DisplayName;
                 }
@@ -204,29 +307,6 @@ namespace Landsong.InventorySystem
             }
 
             Debug.Log($"Inventory contents:\n{string.Join("\n", lines)}");
-        }
-
-        private void ApplyStartingItems(Inventory targetInventory)
-        {
-            if (startingItems == null)
-            {
-                return;
-            }
-
-            foreach (var item in startingItems)
-            {
-                var normalized = item.Normalized();
-                if (!normalized.IsValid)
-                {
-                    continue;
-                }
-
-                var added = targetInventory.Add(normalized.ItemId, normalized.Amount);
-                if (added < normalized.Amount)
-                {
-                    Debug.LogWarning($"Inventory could not fit all starting item '{normalized.ItemId}'. Requested {normalized.Amount}, added {added}.");
-                }
-            }
         }
 
         private void EnsureInitialized()
@@ -254,20 +334,16 @@ namespace Landsong.InventorySystem
         {
             var totalsByItemId = new Dictionary<string, int>(StringComparer.Ordinal);
             var currentInventory = Inventory;
-
-            foreach (var slot in currentInventory.Slots)
+            for (var i = 0; i < currentInventory.Slots.Count; i++)
             {
+                var slot = currentInventory.Slots[i];
                 if (slot.IsEmpty)
                 {
                     continue;
                 }
 
-                if (!totalsByItemId.ContainsKey(slot.ItemId))
-                {
-                    totalsByItemId.Add(slot.ItemId, 0);
-                }
-
-                totalsByItemId[slot.ItemId] += slot.Quantity;
+                totalsByItemId.TryGetValue(slot.ItemId, out var current);
+                totalsByItemId[slot.ItemId] = current + slot.Quantity;
             }
 
             return totalsByItemId;
@@ -283,7 +359,11 @@ namespace Landsong.InventorySystem
             var normalizedItems = new List<ItemAmount>();
             foreach (var item in source)
             {
-                normalizedItems.Add(item.Normalized());
+                var normalized = item.Normalized();
+                if (normalized.IsValid)
+                {
+                    normalizedItems.Add(normalized);
+                }
             }
 
             return normalizedItems.ToArray();

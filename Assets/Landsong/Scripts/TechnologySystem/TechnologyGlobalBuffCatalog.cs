@@ -37,6 +37,19 @@ namespace Landsong.TechnologySystem
             return total;
         }
 
+        public float GetInventoryLossRateMultiplier(GameSystem context)
+        {
+            var multiplier = 1f;
+            for (var i = 0; i < Definitions.Count; i++)
+            {
+                multiplier *= Mathf.Max(
+                    0f,
+                    Definitions[i]?.GetInventoryLossRateMultiplier(context) ?? 1f);
+            }
+
+            return Mathf.Max(0f, multiplier);
+        }
+
         public void InjectTechnologyUnlockContents(TechnologyUnlockContentRegistry registry)
         {
             if (registry == null)
@@ -97,6 +110,11 @@ namespace Landsong.TechnologySystem
             string itemId)
         {
             return Catalog?.GetBuildingResourceProductionFlatBonus(context, building, itemId) ?? 0;
+        }
+
+        public float GetInventoryLossRateMultiplier()
+        {
+            return Catalog?.GetInventoryLossRateMultiplier(context) ?? 1f;
         }
     }
 }

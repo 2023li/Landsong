@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f619c16fddb14cefa0d1d712f719175e, type: 3}
+  m_Name: InventorySlotTypeCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.InventorySystem.InventorySlotTypeCatalog
+  definitions:
+  - {fileID: 11400000, guid: 5c2ba0b5f097c8749a37318aa16942b2, type: 2}
+  - {fileID: 11400000, guid: da3107cb14a17594b9251616647d84e0, type: 2}
+  - {fileID: 11400000, guid: 35e458aa852fc214baaac842bfeb2915, type: 2}
+  - {fileID: 11400000, guid: c6b8c414a4d7ac54cb807128f30b659c, type: 2}
+  - {fileID: 11400000, guid: 96ba8f72e04bcd246aee7ca65338e82f, type: 2}
+  - {fileID: 11400000, guid: e74c980e15a20c54ea89d6af011636e0, type: 2}
+  - {fileID: 11400000, guid: 77d3eb6973ffa8346b733fc6aaba93ac, type: 2}
+  - {fileID: 11400000, guid: 3d1bce10d6a1e284c8eaca2e2bc88f9b, type: 2}
+  - {fileID: 11400000, guid: 61958ef78030a7b49b4d3a070dcaaf3a, type: 2}
+  - {fileID: 11400000, guid: 47324424ad505dc42802596a280ae60b, type: 2}
+  - {fileID: 11400000, guid: 2b9294f5bfba031498c01f7247e9e919, type: 2}
+  - {fileID: 11400000, guid: 1861d152d5f46ee4f83205a3f7bf054b, type: 2}

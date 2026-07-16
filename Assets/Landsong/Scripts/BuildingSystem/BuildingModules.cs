@@ -789,24 +789,87 @@ namespace Landsong.BuildingSystem
 
     [Serializable]
     [BuildingModuleId("inventory.capacity")]
-    public sealed class BM_库存格容量 : BuildingModuleBase, IBuildingInventoryCapacitySource
+    public sealed class BM_库存格容量 : BuildingModuleBase,
+        IBuildingInventorySlotProvider,
+        IBuildingModuleInitialized,
+        IBuildingModuleRegistered,
+        IBuildingModuleConstructionCompleted,
+        IBuildingModuleLevelApplied,
+        IBuildingModuleUnregistered
     {
         [SerializeField, LabelText("提供库存格数"), Min(0)]
-        [PropertyTooltip("单位：格。该建筑存在时提供的额外库存格子数量。")]
+        [PropertyTooltip("单位：格。建筑竣工后提供，每格都以建筑实例与本地槽位 ID 标识。")]
         private int providedSlotCount = 5;
 
-        public override string ModuleDescription => "让建筑存在时提供额外库存格子，GameSystem 会汇总所有启用的库存容量模块。";
+        [SerializeField, LabelText("槽位类型")]
+        [PropertyTooltip("建筑只声明提供哪种槽位；损耗倍率、物品组修正和自动存放优先级由库存槽位类型目录统一解析。")]
+        private InventorySlotType slotType = InventorySlotType.Default;
+
+        [NonSerialized] private BuildingBase owner;
+
+        public override string ModuleDescription => "建筑竣工后提供具有稳定来源与槽位类型的库存格。";
         public int ProvidedSlotCount => Mathf.Max(0, providedSlotCount);
-        public int CurrentProvidedSlotCount => ProvidedSlotCount;
 
         public void SetProvidedSlotCount(int slotCount)
         {
             providedSlotCount = Mathf.Max(0, slotCount);
+            RefreshTopology();
+        }
+
+        public void ApplyStorageConfiguration(
+            int slotCount,
+            InventorySlotType configuredSlotType)
+        {
+            providedSlotCount = Mathf.Max(0, slotCount);
+            slotType = configuredSlotType;
+            RefreshTopology();
+        }
+
+        public IReadOnlyList<InventorySlotProvision> GetInventorySlotProvisions(BuildingBase building)
+        {
+            var target = building == null ? owner : building;
+            if (!IsEnabled || target == null || !target.IsOperational || ProvidedSlotCount <= 0)
+            {
+                return Array.Empty<InventorySlotProvision>();
+            }
+
+            var result = new InventorySlotProvision[ProvidedSlotCount];
+            for (var i = 0; i < result.Length; i++)
+            {
+                result[i] = new InventorySlotProvision(
+                    target.InstanceId,
+                    target.FamilyId,
+                    target.Definition == null ? target.name : target.Definition.DisplayName,
+                    $"capacity.{i + 1:D3}",
+                    slotType);
+            }
+
+            return result;
         }
 
         public override void Normalize()
         {
             providedSlotCount = Mathf.Max(0, providedSlotCount);
+        }
+
+        public void OnBuildingInitialized(BuildingBase building) => Bind(building);
+        public void OnBuildingRegistered(BuildingBase building) => Bind(building);
+
+        public void OnBuildingConstructionCompleted(BuildingBase building)
+        {
+            Bind(building);
+            RefreshTopology();
+        }
+
+        public void OnBuildingLevelApplied(BuildingBase building, int previousLevel, int currentLevel)
+        {
+            Bind(building);
+            RefreshTopology();
+        }
+
+        public void OnBuildingUnregistered(BuildingBase building)
+        {
+            owner = null;
         }
 
         public override void AppendFunctionBlockEntries(
@@ -824,6 +887,17 @@ namespace Landsong.BuildingSystem
                     BuildingFunctionBlockGroup.功能性,
                     "库存格",
                     ProvidedSlotCount));
+        }
+
+        private void Bind(BuildingBase building)
+        {
+            owner = building;
+            Normalize();
+        }
+
+        private void RefreshTopology()
+        {
+            owner?.GameSystem?.RefreshInventorySlotCapacity();
         }
     }
 

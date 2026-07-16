@@ -60,6 +60,24 @@ namespace Landsong.TechnologySystem
             return total;
         }
 
+        public float GetInventoryLossRateMultiplier(GameSystem context)
+        {
+            if (!IsValid || !IsActive(context))
+            {
+                return 1f;
+            }
+
+            var multiplier = 1f;
+            for (var i = 0; i < Effects.Count; i++)
+            {
+                multiplier *= Mathf.Max(
+                    0f,
+                    Effects[i]?.GetInventoryLossRateMultiplier() ?? 1f);
+            }
+
+            return Mathf.Max(0f, multiplier);
+        }
+
         public string Describe()
         {
             var descriptions = new List<string>();
@@ -112,9 +130,11 @@ namespace Landsong.TechnologySystem
     [Serializable]
     public abstract class TechnologyGlobalBuffEffect
     {
-        public abstract int GetBuildingResourceProductionFlatBonus(
+        public virtual int GetBuildingResourceProductionFlatBonus(
             BuildingBase building,
-            string itemId);
+            string itemId) => 0;
+
+        public virtual float GetInventoryLossRateMultiplier() => 1f;
 
         public abstract string Describe();
 
@@ -174,6 +194,34 @@ namespace Landsong.TechnologySystem
         public override void Normalize()
         {
             flatBonus = Mathf.Max(0, flatBonus);
+        }
+    }
+
+    [Serializable]
+    public sealed class TechnologyGlobalBuffEffect_InventoryLossReduction :
+        TechnologyGlobalBuffEffect
+    {
+        [SerializeField, LabelText("库存损耗降低百分比"), Range(0f, 100f)]
+        private float reductionPercent = 10f;
+
+        public float ReductionPercent => Mathf.Clamp(reductionPercent, 0f, 100f);
+        public float LossRateMultiplier => Mathf.Clamp01(1f - ReductionPercent / 100f);
+
+        public void Configure(float percent)
+        {
+            reductionPercent = percent;
+            Normalize();
+        }
+
+        public override float GetInventoryLossRateMultiplier() =>
+            LossRateMultiplier;
+
+        public override string Describe() =>
+            $"所有物资库存损耗率降低 {ReductionPercent:0.#}%";
+
+        public override void Normalize()
+        {
+            reductionPercent = Mathf.Clamp(reductionPercent, 0f, 100f);
         }
     }
 }

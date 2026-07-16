@@ -22,3 +22,10 @@ MonoBehaviour:
   baseValue: 1
   addressableKey: 
   tags: []
+  lossRatePerTurn: 0.05
+  itemGroups:
+  - {fileID: 11400000, guid: d047eb251ae24dd4b41aec1765b11244, type: 2}
+  foodProfile:
+    isFood: 1
+    nutritionValue: 1
+    dietQuality: 60
