@@ -26,4 +26,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: d31e2c4b5a6f4789a0b1c2d3e4f56789, type: 2}
   - {fileID: 11400000, guid: b933e10f9dda43038b55c49e8ac133b6, type: 2}
   - {fileID: 11400000, guid: 6a0c3d764e7d4859bac3ac6247b6bd17, type: 2}
+  - {fileID: 11400000, guid: ae2d0c365624e0948bb50ff025f3f1cb, type: 2}
   folderPath: Assets/Landsong/Objects/SO/Buildings/Families

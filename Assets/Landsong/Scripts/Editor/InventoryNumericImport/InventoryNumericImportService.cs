@@ -715,7 +715,6 @@ namespace Landsong.EditorTools.Inventory.NumericImport
                    && Mathf.Approximately(
                        current.BaseLossRateMultiplier,
                        row.BaseLossRateMultiplier)
-                   && current.AutoStorePriority == row.AutoStorePriority
                    && AreLossModifiersEqual(
                        current.LossModifiers,
                        BuildLossModifiers(session, slotType));
@@ -915,8 +914,7 @@ namespace Landsong.EditorTools.Inventory.NumericImport
                     slotType,
                     row.DisplayName,
                     row.BaseLossRateMultiplier,
-                    BuildLossModifiers(session, slotType),
-                    row.AutoStorePriority);
+                    BuildLossModifiers(session, slotType));
                 EditorUtility.SetDirty(definition);
             }
         }

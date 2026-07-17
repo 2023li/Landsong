@@ -2,17 +2,12 @@ using System;
 using System.Collections.Generic;
 using Landsong.BuildingSystem;
 using Landsong.CameraSystem;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Landsong.UISystem
 {
     public sealed class GamePanel_BuildingStatusOverview : MonoBehaviour
     {
-        private UIPanel_Game gamePanel;
-        [SerializeField] private Button btn_关闭;
-
         [SerializeField] private Transform itemRoot;
         [SerializeField] private GamePanel_BuildingStatusOverviewItem itemPrefab;
         private Transform itemPoolRoot = null;
@@ -40,12 +35,6 @@ namespace Landsong.UISystem
             SubscribeBuildings();
             RefreshBuildingSubscriptions();
             Refresh();
-        }
-
-        private void Awake()
-        {
-            gamePanel = GetComponentInParent<UIPanel_Game>();
-            btn_关闭.onClick.AddListener(gamePanel.Hide_Overview);
         }
 
         private void OnDisable()
@@ -76,7 +65,6 @@ namespace Landsong.UISystem
 
         private void ResolveReferences()
         {
-            gamePanel = GetComponentInParent<UIPanel_Game>();
             gameSystem = Landsong.GameSystem.Instance;
             buildings = gameSystem == null ? null : gameSystem.Services.Buildings;
 
@@ -259,13 +247,5 @@ namespace Landsong.UISystem
             Refresh();
         }
 
-        internal void Show()
-        {
-          gameObject.SetActive(true);
-        }
-        public void Hide()
-        {
-            gameObject.SetActive(false);
-        }
     }
 }

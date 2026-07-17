@@ -36,7 +36,7 @@ namespace Landsong.BuildingSystem
         [SerializeField, LabelText("正常仓储所需工人"), Min(0)] private int requiredWorkers = 2;
         [SerializeField, LabelText("基础库存格"), Min(0)] private int baseProvidedSlots = 1;
         [SerializeField, LabelText("基础槽位类型")]
-        private InventorySlotType baseSlotType = InventorySlotType.BasicWarehouse;
+        private InventorySlotType baseSlotType = InventorySlotType.简陋库存;
         [SerializeField, AssetsOnly, LabelText("维护费物品")] private ItemDefinition maintenanceItemDefinition;
         [SerializeField, LabelText("每回合维护费"), Min(0)] private int maintenanceAmountPerTurn = 1;
 
@@ -49,7 +49,7 @@ namespace Landsong.BuildingSystem
         [SerializeField, LabelText("奖励工人阈值"), Min(0)] private int bonusWorkerThreshold;
         [SerializeField, LabelText("奖励库存格"), Min(0)] private int bonusProvidedSlots;
         [SerializeField, LabelText("奖励槽位类型")]
-        private InventorySlotType bonusSlotType = InventorySlotType.BasicWarehouse;
+        private InventorySlotType bonusSlotType = InventorySlotType.简陋库存;
 
         [TitleGroup("维护失败")]
         [SerializeField, LabelText("吸引力惩罚"), Min(0f)] private float maintenanceFailureAttractionPenalty = 10f;

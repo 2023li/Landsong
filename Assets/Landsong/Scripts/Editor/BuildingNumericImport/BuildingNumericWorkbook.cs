@@ -368,7 +368,7 @@ namespace Landsong.EditorTools.Buildings.NumericImport
 
     internal static class BuildingNumericWorkbookReader
     {
-        public const int SupportedSchemaVersion = 8;
+        public const int SupportedSchemaVersion = 9;
         private const int HeaderRow = 4;
         private const int FirstDataRow = 5;
 

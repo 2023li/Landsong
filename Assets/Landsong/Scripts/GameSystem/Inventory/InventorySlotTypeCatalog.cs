@@ -40,13 +40,6 @@ namespace Landsong.InventorySystem
                         item.LossRatePerTurn * Mathf.Max(0f, runtimeLossRateMultiplier));
         }
 
-        public int GetAutoStorePriority(InventorySlotType slotType)
-        {
-            return TryGetDefinition(slotType, out var definition)
-                ? definition.AutoStorePriority
-                : 0;
-        }
-
         public void ConfigureDefinitions(IEnumerable<InventorySlotTypeDefinition> source)
         {
             definitions = source == null

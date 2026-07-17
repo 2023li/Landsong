@@ -112,6 +112,16 @@ namespace Landsong.BuildingSystem
         public ItemDefinition FoodItemDefinition => foodItemDefinition;
         public ItemGroupDefinition FoodItemGroup => foodItemGroup;
         public ItemDefinition TaxItemDefinition => taxItemDefinition;
+        public int MaximumPopulation => Mathf.Max(1, maxPopulation);
+        public int GrowthProgress => Mathf.Clamp(growthProgress, 0, GrowthIntervalTurns);
+        public int GrowthIntervalTurns => Mathf.Max(1, growthIntervalTurns);
+        public int TaxProgress => Mathf.Clamp(taxProgress, 0, TaxIntervalTurns);
+        public int TaxIntervalTurns => Mathf.Max(1, taxIntervalTurns);
+        public int ConsecutiveFailures => Mathf.Max(0, consecutiveFailures);
+        public int FailureDecayThreshold => Mathf.Max(1, failureDecayThreshold);
+        public bool IsAbandoned => isAbandoned;
+        public float MaxLifeQualityChangePerTurn => Mathf.Max(0f, maxLifeQualityChangePerTurn);
+        public float HighQualityGrowthThreshold => Mathf.Clamp(highQualityGrowthThreshold, 0f, 100f);
         public float CurrentLifeQuality => Mathf.Clamp(currentLifeQuality, 0f, 100f);
         public float TargetLifeQuality => Mathf.Clamp(targetLifeQuality, 0f, 100f);
         public float LastDietScore => Mathf.Clamp(lastDietScore, 0f, 100f);
@@ -135,8 +145,17 @@ namespace Landsong.BuildingSystem
             Inventory inventory,
             out ItemConsumptionReceipt receipt)
         {
+            return TryForecastFoodConsumption(inventory, currentPopulation, out receipt);
+        }
+
+        public bool TryForecastFoodConsumption(
+            Inventory inventory,
+            int population,
+            out ItemConsumptionReceipt receipt)
+        {
             receipt = null;
-            if (inventory == null || isAbandoned || currentPopulation <= 0)
+            population = Mathf.Max(0, population);
+            if (inventory == null || isAbandoned || population <= 0)
             {
                 return true;
             }
@@ -147,7 +166,7 @@ namespace Landsong.BuildingSystem
             }
 
             return inventory.TryConsumeRequirements(
-                new[] { CreateFoodRequirement(currentPopulation) },
+                new[] { CreateFoodRequirement(population) },
                 out receipt);
         }
 

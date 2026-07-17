@@ -203,7 +203,7 @@ public class GameData
     public const string DefaultDynastyName = DynastyService.DefaultDynastyName;
 
     //data 版本号
-    public const int CurrentDataVersion = 11;
+    public const int CurrentDataVersion = 12;
 
     public int DataVersion = CurrentDataVersion;
 

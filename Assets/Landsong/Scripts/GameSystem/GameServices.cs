@@ -40,6 +40,7 @@ namespace Landsong
         public BuildingSelectionController BuildingSelection => owner.BuildingSelection;
         public BuildingCatalog BuildingCatalog => owner.BuildingCatalog;
         public PolicyCatalog PolicyCatalog => owner.PolicyCatalog;
+        public QuestCatalog QuestCatalog => owner.QuestCatalog;
 
         public TechnologyUnlockContentRegistry TechnologyUnlockContents => owner.TechnologyUnlockContents;
         public TechnologyGlobalBuffService GlobalBuffs => owner.GlobalBuffs;

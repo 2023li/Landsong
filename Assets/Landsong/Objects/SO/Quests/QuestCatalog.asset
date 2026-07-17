@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5371321eb3ab44e39787df47d1df2189, type: 3}
+  m_Name: QuestCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.QuestCatalog
+  definitions:
+  - {fileID: 11400000, guid: eedeac8ab5284f0f95dfeede5ec46f23, type: 2}
+  - {fileID: 11400000, guid: 65f9e333c83144f9bf9bca0cd1be3cb5, type: 2}
+  runtimeExchangeQuestRules: []
+  folderPath: Assets/Landsong/Objects/SO/Quests

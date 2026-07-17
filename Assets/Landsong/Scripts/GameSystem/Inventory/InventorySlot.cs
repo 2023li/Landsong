@@ -31,7 +31,7 @@ namespace Landsong.InventorySystem
             provision == null ? string.Empty : provision.ProviderDisplayName;
         public string LocalSlotId => provision == null ? string.Empty : provision.LocalSlotId;
         public InventorySlotType SlotType =>
-            provision == null ? InventorySlotType.Default : provision.SlotType;
+            provision == null ? InventorySlotType.简陋库存 : provision.SlotType;
         public string ItemId => itemId;
         public int Quantity => quantity;
         public bool IsEmpty => string.IsNullOrWhiteSpace(itemId) || quantity <= 0;
@@ -53,13 +53,6 @@ namespace Landsong.InventorySystem
             return provision == null
                 ? definition == null ? 0f : definition.LossRatePerTurn
                 : provision.CalculateLossRate(definition, slotTypeCatalog);
-        }
-
-        public int GetAutoStorePriority(InventorySlotTypeCatalog slotTypeCatalog)
-        {
-            return provision == null
-                ? 0
-                : provision.GetAutoStorePriority(slotTypeCatalog);
         }
 
         public InventorySlotData ToData()

@@ -1,4 +1,7 @@
+using System;
+using System.Collections.Generic;
 using Landsong.InventorySystem;
+using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -12,6 +15,21 @@ using UnityEditor;
 public sealed class GamePanel_InventorySlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler,
     IPointerUpHandler, IBeginDragHandler, IDragHandler, IEndDragHandler, IDropHandler
 {
+    [Serializable]
+    private sealed class SlotTypeRootMapping
+    {
+        [SerializeField, LabelText("槽位类型")]
+        [Tooltip("该映射匹配的库存槽位类型。简陋库存同时作为未配置类型的视觉回退。")]
+        private InventorySlotType slotType;
+
+        [SerializeField, LabelText("显示 Root")]
+        [Tooltip("匹配该槽位类型时启用的 Prefab 直属子节点。所有映射 Root 必须互为同级，不能填写槽位根对象自身。")]
+        private GameObject rootGameObject;
+
+        public InventorySlotType SlotType => slotType;
+        public GameObject RootGameObject => rootGameObject;
+    }
+
     [SerializeField, Min(1f)]
     private float iconHoverScale = 1.08f;
 
@@ -21,6 +39,13 @@ public sealed class GamePanel_InventorySlot : MonoBehaviour, IPointerEnterHandle
     [SerializeField] private TMP_Text itemQuantityLabel;
     [SerializeField] private Image presentationOverlay;
     [SerializeField] private TMP_Text providerLabel;
+
+    [SerializeField, LabelText("槽位类型 Root 映射")]
+    [ListDrawerSettings(DefaultExpandedState = true, DraggableItems = true, ShowFoldout = true)]
+    [ValidateInput(nameof(ValidateRootMappings), "必须配置唯一的简陋库存回退；每种类型只能出现一次，Root 必须是本槽位的非空直属子节点。")]
+    [Tooltip("切换规则：优先使用精确类型；未命中时使用简陋库存；没有有效映射时关闭全部映射 Root。物品图标和数量文本应放在这些 Root 外部以便共用。")]
+    private SlotTypeRootMapping[] slotTypeRootMappings =
+        Array.Empty<SlotTypeRootMapping>();
 
     private GamePanel_Inventory panel;
     private InventorySlot slot;
@@ -80,8 +105,9 @@ public sealed class GamePanel_InventorySlot : MonoBehaviour, IPointerEnterHandle
         CaptureDefaultVisuals();
 
         var slotType = inventorySlot == null
-            ? InventorySlotType.Default
+            ? InventorySlotType.简陋库存
             : inventorySlot.SlotType;
+        ApplySlotTypeRoot(slotType);
         ResolveSlotTypeColors(slotType, out var backgroundTint, out var contentTint, out var overlayTint);
 
         if (backgroundImage != null)
@@ -287,43 +313,109 @@ public sealed class GamePanel_InventorySlot : MonoBehaviour, IPointerEnterHandle
         overlayTint = Color.white;
         switch (slotType)
         {
-            case InventorySlotType.Palace:
-            case InventorySlotType.PalaceImproved:
-            case InventorySlotType.PalaceAdvanced:
-            case InventorySlotType.PalaceRoyal:
-                backgroundTint = new Color(0.72f, 0.53f, 0.22f, 1f);
-                overlayTint = new Color(1f, 0.86f, 0.38f, 1f);
-                break;
-            case InventorySlotType.BasicWarehouse:
+            case InventorySlotType.简陋库存:
                 backgroundTint = new Color(0.45f, 0.31f, 0.20f, 1f);
                 overlayTint = new Color(0.75f, 0.55f, 0.32f, 1f);
                 break;
-            case InventorySlotType.Warehouse:
+            case InventorySlotType.普通库存:
                 backgroundTint = new Color(0.35f, 0.43f, 0.48f, 1f);
                 overlayTint = new Color(0.70f, 0.78f, 0.82f, 1f);
                 break;
-            case InventorySlotType.AdvancedWarehouse:
+            case InventorySlotType.高级库存:
                 backgroundTint = new Color(0.20f, 0.34f, 0.52f, 1f);
                 overlayTint = new Color(0.96f, 0.76f, 0.30f, 1f);
                 break;
-            case InventorySlotType.ColdStorage:
+            case InventorySlotType.冻库:
                 backgroundTint = new Color(0.48f, 0.78f, 0.94f, 1f);
                 contentTint = new Color(0.92f, 0.98f, 1f, 1f);
                 overlayTint = new Color(0.78f, 0.95f, 1f, 1f);
                 break;
-            case InventorySlotType.Cellar:
-                backgroundTint = new Color(0.30f, 0.23f, 0.18f, 1f);
-                break;
-            case InventorySlotType.Granary:
+            case InventorySlotType.粮库:
                 backgroundTint = new Color(0.66f, 0.52f, 0.25f, 1f);
-                break;
-            case InventorySlotType.Armory:
-                backgroundTint = new Color(0.31f, 0.34f, 0.38f, 1f);
                 break;
             default:
                 backgroundTint = defaultBackgroundColor;
                 break;
         }
+    }
+
+    private void ApplySlotTypeRoot(InventorySlotType slotType)
+    {
+        var mappings = slotTypeRootMappings;
+        if (mappings == null || mappings.Length == 0)
+        {
+            return;
+        }
+
+        GameObject exactRoot = null;
+        GameObject fallbackRoot = null;
+        for (var i = 0; i < mappings.Length; i++)
+        {
+            var mapping = mappings[i];
+            var root = GetOwnedVisualRoot(mapping);
+            if (root == null)
+            {
+                continue;
+            }
+
+            if (mapping.SlotType == InventorySlotType.简陋库存 && fallbackRoot == null)
+            {
+                fallbackRoot = root;
+            }
+
+            if (mapping.SlotType == slotType && exactRoot == null)
+            {
+                exactRoot = root;
+            }
+        }
+
+        var selectedRoot = exactRoot != null ? exactRoot : fallbackRoot;
+        for (var i = 0; i < mappings.Length; i++)
+        {
+            var root = GetOwnedVisualRoot(mappings[i]);
+            if (root != null && root.activeSelf != ReferenceEquals(root, selectedRoot))
+            {
+                root.SetActive(ReferenceEquals(root, selectedRoot));
+            }
+        }
+    }
+
+    private GameObject GetOwnedVisualRoot(SlotTypeRootMapping mapping)
+    {
+        var root = mapping?.RootGameObject;
+        return root != null
+               && !ReferenceEquals(root, gameObject)
+               && ReferenceEquals(root.transform.parent, transform)
+            ? root
+            : null;
+    }
+
+    private bool ValidateRootMappings(SlotTypeRootMapping[] mappings)
+    {
+        if (mappings == null || mappings.Length == 0)
+        {
+            return true;
+        }
+
+        var types = new HashSet<InventorySlotType>();
+        var hasFallback = false;
+        for (var i = 0; i < mappings.Length; i++)
+        {
+            var mapping = mappings[i];
+            var root = mapping?.RootGameObject;
+            if (mapping == null
+                || root == null
+                || ReferenceEquals(root, gameObject)
+                || !ReferenceEquals(root.transform.parent, transform)
+                || !types.Add(mapping.SlotType))
+            {
+                return false;
+            }
+
+            hasFallback |= mapping.SlotType == InventorySlotType.简陋库存;
+        }
+
+        return hasFallback;
     }
 
     private void SetIconHighlighted(bool highlighted)

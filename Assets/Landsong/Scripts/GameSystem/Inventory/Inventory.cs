@@ -223,25 +223,28 @@ namespace Landsong.InventorySystem
 
             var remaining = quantity;
             var maxStackSize = GetMaxStackSize(itemId);
-            var candidates = GetStorageCandidates(itemId, false);
+            var candidates = GetStorageCandidates(itemId);
             for (var i = 0; i < candidates.Count && remaining > 0; i++)
             {
-                var space = Mathf.Max(0, maxStackSize - candidates[i].Quantity);
+                var candidate = candidates[i];
+                var space = candidate.IsEmpty
+                    ? maxStackSize
+                    : Mathf.Max(0, maxStackSize - candidate.Quantity);
                 if (space <= 0)
                 {
                     continue;
                 }
 
                 var added = Mathf.Min(space, remaining);
-                candidates[i].Add(added);
-                remaining -= added;
-            }
+                if (candidate.IsEmpty)
+                {
+                    candidate.Set(itemId, added);
+                }
+                else
+                {
+                    candidate.Add(added);
+                }
 
-            candidates = GetStorageCandidates(itemId, true);
-            for (var i = 0; i < candidates.Count && remaining > 0; i++)
-            {
-                var added = Mathf.Min(maxStackSize, remaining);
-                candidates[i].Set(itemId, added);
                 remaining -= added;
             }
 
@@ -790,12 +793,12 @@ namespace Landsong.InventorySystem
                 : string.Compare(left.StorageSlotId, right.StorageSlotId, StringComparison.Ordinal);
         }
 
-        private List<InventorySlot> GetStorageCandidates(string itemId, bool empty)
+        private List<InventorySlot> GetStorageCandidates(string itemId)
         {
             var result = new List<InventorySlot>();
             for (var i = 0; i < slots.Count; i++)
             {
-                if (empty ? slots[i].IsEmpty : slots[i].Contains(itemId))
+                if (slots[i].IsEmpty || slots[i].Contains(itemId))
                 {
                     result.Add(slots[i]);
                 }
@@ -811,8 +814,7 @@ namespace Landsong.InventorySystem
                     return comparison;
                 }
 
-                comparison = right.GetAutoStorePriority(slotTypeCatalog)
-                    .CompareTo(left.GetAutoStorePriority(slotTypeCatalog));
+                comparison = left.IsEmpty.CompareTo(right.IsEmpty);
                 return comparison != 0
                     ? comparison
                     : string.Compare(left.StorageSlotId, right.StorageSlotId, StringComparison.Ordinal);

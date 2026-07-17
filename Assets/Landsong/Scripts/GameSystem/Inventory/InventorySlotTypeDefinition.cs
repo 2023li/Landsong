@@ -23,17 +23,12 @@ namespace Landsong.InventorySystem
         private InventorySlotLossModifier[] lossModifiers =
             Array.Empty<InventorySlotLossModifier>();
 
-        [SerializeField, LabelText("自动存放优先级")]
-        private int autoStorePriority;
-
         public InventorySlotType SlotType => slotType;
         public string DisplayName =>
             string.IsNullOrWhiteSpace(displayName) ? slotType.ToString() : displayName.Trim();
         public float BaseLossRateMultiplier => Mathf.Max(0f, baseLossRateMultiplier);
         public IReadOnlyList<InventorySlotLossModifier> LossModifiers =>
             lossModifiers ?? Array.Empty<InventorySlotLossModifier>();
-        public int AutoStorePriority => autoStorePriority;
-
         public float CalculateLossRate(ItemDefinition item, float runtimeLossRateMultiplier = 1f)
         {
             if (item == null || item.LossRatePerTurn <= 0f)
@@ -62,8 +57,7 @@ namespace Landsong.InventorySystem
             InventorySlotType type,
             string typeDisplayName,
             float lossRateMultiplier,
-            IEnumerable<InventorySlotLossModifier> typeLossModifiers,
-            int storagePriority)
+            IEnumerable<InventorySlotLossModifier> typeLossModifiers)
         {
             slotType = type;
             displayName = string.IsNullOrWhiteSpace(typeDisplayName)
@@ -73,7 +67,6 @@ namespace Landsong.InventorySystem
             lossModifiers = typeLossModifiers == null
                 ? Array.Empty<InventorySlotLossModifier>()
                 : new List<InventorySlotLossModifier>(typeLossModifiers).ToArray();
-            autoStorePriority = storagePriority;
             Normalize();
         }
 

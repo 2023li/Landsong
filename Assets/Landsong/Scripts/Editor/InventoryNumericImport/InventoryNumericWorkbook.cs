@@ -125,7 +125,6 @@ namespace Landsong.EditorTools.Inventory.NumericImport
         public string SlotType;
         public string DisplayName;
         public float BaseLossRateMultiplier;
-        public int AutoStorePriority;
     }
 
     internal sealed class SlotTypeLossModifierNumericRow : InventoryNumericSourceRow
@@ -148,7 +147,7 @@ namespace Landsong.EditorTools.Inventory.NumericImport
 
     internal static class InventoryNumericWorkbookReader
     {
-        public const int SupportedSchemaVersion = 3;
+        public const int SupportedSchemaVersion = 5;
         private const int HeaderRow = 4;
         private const int FirstDataRow = 5;
 
@@ -289,15 +288,13 @@ namespace Landsong.EditorTools.Inventory.NumericImport
                          report,
                          "SlotType",
                          "名称",
-                         "基础损耗倍率",
-                         "自动存放优先级"))
+                         "基础损耗倍率"))
             {
                 data.SlotTypes.Add(new SlotTypeNumericRow(sheet, row.Row)
                 {
                     SlotType = Required(row, "SlotType", report),
                     DisplayName = Required(row, "名称", report),
-                    BaseLossRateMultiplier = Float(row, "基础损耗倍率", report),
-                    AutoStorePriority = Integer(row, "自动存放优先级", report)
+                    BaseLossRateMultiplier = Float(row, "基础损耗倍率", report)
                 });
             }
         }

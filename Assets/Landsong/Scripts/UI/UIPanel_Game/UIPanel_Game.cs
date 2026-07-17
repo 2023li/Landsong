@@ -14,11 +14,10 @@ public class UIPanel_Game : UIPanelBase
     [SerializeField] private RectTransform gameMarkRoot;
     [SerializeField] private GamePanel_HUD hudPanel;
     [SerializeField] private GamePanel_Inventory inventoryPanel;
-    [SerializeField] private GamePanel_EconomyForecast economyForecastPanel;
+    [SerializeField] private GamePanel_Overview overviewPanel;
     [SerializeField] private GamePanel_Technology technologyPanel;
     [SerializeField] private GamePanel_Building buildingPanel;
     [SerializeField] private GamePanel_BuildingPlacementControls buildingPlacementControls;
-    [SerializeField] private GamePanel_BuildingStatusOverview buildingStatusOverview;
     [SerializeField] private GamePanel_Quest questPanel;
     [SerializeField] private GamePanel_Expedition expeditionPanel;
     [SerializeField] private GamePanel_Talent talentPanel;
@@ -39,7 +38,8 @@ public class UIPanel_Game : UIPanelBase
     public GamePanel_BuildingSelectionView BuildingSelectionView => buildingSelectionView;
     public GamePanel_BuildingPlacementControls BuildingPlacementControls => buildingPlacementControls;
     public GamePanel_Technology TechnologyPanel => technologyPanel;
-    public GamePanel_EconomyForecast EconomyForecastPanel => economyForecastPanel;
+    public GamePanel_Overview OverviewPanel => overviewPanel;
+    public GamePanel_EconomyForecast EconomyForecastPanel => overviewPanel?.EconomyForecastPanel;
     public GamePanel_Quest QuestPanel => questPanel;
     public GamePanel_Expedition ExpeditionPanel => expeditionPanel;
     public GamePanel_Talent TalentPanel => talentPanel;
@@ -126,19 +126,19 @@ public class UIPanel_Game : UIPanelBase
         GetReference();
         HideAllPanels();
 
-        if (economyForecastPanel != null)
+        if (overviewPanel != null)
         {
-            economyForecastPanel.Show();
+            overviewPanel.Show(GamePanel_Overview.OverviewTab.Economy);
         }
         else
         {
-            Debug.LogWarning($"{nameof(UIPanel_Game)} has no economy forecast panel assigned.", this);
+            Debug.LogWarning($"{nameof(UIPanel_Game)} has no overview panel assigned.", this);
         }
     }
 
     internal void Hide_EconomyForecast()
     {
-        economyForecastPanel?.Hide();
+        overviewPanel?.Hide();
         Show_HUD();
     }
 
@@ -315,22 +315,19 @@ public class UIPanel_Game : UIPanelBase
         GetReference();
         HideAllPanels();
 
-        if (buildingStatusOverview != null)
+        if (overviewPanel != null)
         {
-            buildingStatusOverview.Show();
+            overviewPanel.Show();
         }
         else
         {
-            Debug.LogWarning($"{nameof(UIPanel_Game)} has no building status overview assigned.", this);
+            Debug.LogWarning($"{nameof(UIPanel_Game)} has no overview panel assigned.", this);
         }
     }
 
     internal void Hide_Overview()
     {
-        if (buildingStatusOverview != null)
-        {
-            buildingStatusOverview.Hide();
-        }
+        overviewPanel?.Hide();
 
         Show_HUD();
     }
@@ -342,10 +339,9 @@ public class UIPanel_Game : UIPanelBase
     {
         hudPanel?.Hide();
         inventoryPanel?.Hide();
-        economyForecastPanel?.Hide();
+        overviewPanel?.Hide();
         technologyPanel?.Hide();
         buildingPanel?.Hide();
-        buildingStatusOverview?.Hide();
         questPanel?.Hide();
         expeditionPanel?.Hide();
         talentPanel?.Hide();
@@ -373,10 +369,7 @@ public class UIPanel_Game : UIPanelBase
             inventoryPanel = GetComponentInChildren<GamePanel_Inventory>(true);
         }
 
-        if (economyForecastPanel == null)
-        {
-            economyForecastPanel = GetComponentInChildren<GamePanel_EconomyForecast>(true);
-        }
+        overviewPanel ??= GetComponentInChildren<GamePanel_Overview>(true);
 
         if (technologyPanel == null)
         {
@@ -412,11 +405,6 @@ public class UIPanel_Game : UIPanelBase
         {
             buildingSelectionView = gameObject.AddComponent<GamePanel_BuildingSelectionView>();
         }
-        if (buildingStatusOverview == null)
-        {
-            buildingStatusOverview = GetComponentInChildren<GamePanel_BuildingStatusOverview>(true);
-        }
-
         if (questPanel == null)
         {
             questPanel = GetComponentInChildren<GamePanel_Quest>(true);

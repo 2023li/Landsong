@@ -7,23 +7,16 @@ namespace Landsong.InventorySystem
 {
     /// <summary>
     /// 建筑系统与库存系统之间的稳定槽位类型契约。
-    /// 建筑只决定提供哪种槽位；库存系统根据类型解析损耗规则和存放优先级；
+    /// 建筑只决定提供哪种槽位；库存系统根据类型解析损耗规则，并按物品有效损耗率选择自动入库槽位；
     /// UI 根据类型选择固定的视觉表现。
     /// </summary>
     public enum InventorySlotType
     {
-        Default = 0,
-        Palace = 10,
-        PalaceImproved = 11,
-        PalaceAdvanced = 12,
-        PalaceRoyal = 13,
-        BasicWarehouse = 20,
-        Warehouse = 30,
-        AdvancedWarehouse = 40,
-        ColdStorage = 50,
-        Cellar = 60,
-        Granary = 70,
-        Armory = 80
+        简陋库存 = 0,
+        普通库存 = 10,
+        高级库存 = 20,
+        冻库 = 30,
+        粮库 = 40
     }
 
     public enum ItemRequirementSelectionPolicy
@@ -71,7 +64,7 @@ namespace Landsong.InventorySystem
             string providerFamilyId,
             string providerDisplayName,
             string localSlotId,
-            InventorySlotType slotType = InventorySlotType.Default,
+            InventorySlotType slotType = InventorySlotType.简陋库存,
             float runtimeLossRateMultiplier = 1f)
         {
             this.providerBuildingInstanceId = NormalizeId(providerBuildingInstanceId);
@@ -109,13 +102,6 @@ namespace Landsong.InventorySystem
                     slotType,
                     definition,
                     RuntimeLossRateMultiplier);
-        }
-
-        public int GetAutoStorePriority(InventorySlotTypeCatalog slotTypeCatalog)
-        {
-            return slotTypeCatalog == null
-                ? 0
-                : slotTypeCatalog.GetAutoStorePriority(slotType);
         }
 
         public static string BuildStorageSlotId(string providerBuildingInstanceId, string localSlotId)

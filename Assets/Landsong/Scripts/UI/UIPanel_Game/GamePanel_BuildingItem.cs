@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Landsong.BuildingSystem;
+using Landsong.InputSystem;
 using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
@@ -36,7 +37,6 @@ namespace Landsong.UISystem
         [SerializeField, LabelText("描述布局")] private LayoutElement descriptionLayoutElement;
         [SerializeField,LabelText("消耗面板")] private RectTransform root_消耗面板;
         [SerializeField,LabelText("消耗文本预制体")] private TMP_Text prefab_材料文本预制体;
-        [SerializeField, LabelText("长按显示详情延迟"), Min(0.05f)] private float longPressDuration = 0.45f;
         #endregion
 
 
@@ -564,7 +564,7 @@ namespace Landsong.UISystem
 
         private IEnumerator ShowDetailPanelAfterLongPress()
         {
-            var delay = Mathf.Max(0.05f, longPressDuration);
+            var delay = InteractionConstants.LongPressDurationSeconds;
             var elapsed = 0f;
             while (elapsed < delay)
             {

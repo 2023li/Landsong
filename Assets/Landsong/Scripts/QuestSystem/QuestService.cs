@@ -52,16 +52,21 @@ namespace Landsong
         private int CurrentTurn => Turn == null ? 1 : Turn.CurrentTurn;
 
         internal void Configure(
-            GameQuestDefinition[] newStartingQuests,
-            GameQuestDefinition[] newRandomQuestPool,
-            RandomExchangeQuestRule[] newRuntimeExchangeQuestRules,
+            QuestCatalog catalog,
+            IReadOnlyList<string> startingQuestIds,
             int newStartingRandomQuestCount,
             int newMaxActiveRandomQuests,
             int newRandomQuestRefreshIntervalTurns)
         {
-            startingQuests = newStartingQuests ?? Array.Empty<GameQuestDefinition>();
-            randomQuestPool = newRandomQuestPool ?? Array.Empty<GameQuestDefinition>();
-            runtimeExchangeQuestRules = newRuntimeExchangeQuestRules ?? Array.Empty<RandomExchangeQuestRule>();
+            startingQuests = catalog == null
+                ? Array.Empty<GameQuestDefinition>()
+                : catalog.Resolve(startingQuestIds);
+            randomQuestPool = catalog == null
+                ? Array.Empty<GameQuestDefinition>()
+                : catalog.GetDefinitions(QuestCategory.Random);
+            runtimeExchangeQuestRules = catalog == null
+                ? Array.Empty<RandomExchangeQuestRule>()
+                : catalog.CopyRuntimeExchangeQuestRules();
             startingRandomQuestCount = Mathf.Max(0, newStartingRandomQuestCount);
             maxActiveRandomQuests = Mathf.Max(0, newMaxActiveRandomQuests);
             randomQuestRefreshIntervalTurns = Mathf.Max(1, newRandomQuestRefreshIntervalTurns);
@@ -150,7 +155,6 @@ namespace Landsong
         {
             var saveData = new QuestSaveData
             {
-                Version = QuestSaveData.CurrentVersion,
                 Quests = new List<QuestStateSaveData>(),
                 NextRandomQuestRefreshTurn = Mathf.Max(1, nextRandomQuestRefreshTurn),
                 GeneratedRandomQuestSerial = Mathf.Max(0, generatedRandomQuestSerial)
@@ -730,13 +734,6 @@ namespace Landsong
                 questData.Validate();
                 if (!string.IsNullOrWhiteSpace(questData.QuestId))
                 {
-                    if (saveData.Version < QuestSaveData.CurrentVersion
-                        && questData.Status == QuestStatus.Completed)
-                    {
-                        // 旧版本会在任务完成时自动发奖，恢复后不能重复领取。
-                        questData.Status = QuestStatus.RewardClaimed;
-                    }
-
                     result[questData.QuestId] = questData;
                 }
             }

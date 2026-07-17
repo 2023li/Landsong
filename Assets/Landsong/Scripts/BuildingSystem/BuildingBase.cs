@@ -58,10 +58,6 @@ namespace Landsong.BuildingSystem
 
         [Tooltip("建筑用于寻路和范围判断的行动力。普通格默认消耗 10 点，道路等地形由 GridMapBehaviour 配置。")]
         [SerializeField, Min(0)] private int buildingActionPower = 100;
-
-
-        private float doubleClickInterval = 0.3f;
-
         //点击回调
         //是否播放点击缩放反馈
         private bool playClickScaleFeedback = true;
@@ -111,8 +107,6 @@ namespace Landsong.BuildingSystem
 
         public AudioClip ClickSound => clickSound;
         public AudioClip DoubleClickSound => doubleClickSound;
-        internal float DoubleClickInterval => doubleClickInterval;
-
         public BuildingFamilyDefinition FamilyDefinition => familyDefinition;
         public BuildingDefinition Definition => familyDefinition?.Definition;
         public string FamilyId => Definition == null ? string.Empty : Definition.FamilyId;
@@ -1358,7 +1352,6 @@ namespace Landsong.BuildingSystem
 
         private void NormalizeClickFeedback()
         {
-            doubleClickInterval = Mathf.Max(0.05f, doubleClickInterval);
             clickScaleMultiplier = Mathf.Max(1f, clickScaleMultiplier);
             clickScaleDuration = Mathf.Max(0f, clickScaleDuration);
         }

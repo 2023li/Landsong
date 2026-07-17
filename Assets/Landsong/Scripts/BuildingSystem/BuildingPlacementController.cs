@@ -34,9 +34,6 @@ namespace Landsong.BuildingSystem
         [SerializeField, LabelText("放置控制 UI")] private GamePanel_BuildingPlacementControls placementControls;
         [SerializeField] private bool cancelPlacementOnDisable = true;
 
-        [Header("Demolition")]
-        [SerializeField, LabelText("拆除点击最大移动像素"), Min(0f)] private float demolitionClickMaxMovementPixels = 8f;
-
         private readonly List<GridPosition> currentRoadPath = new List<GridPosition>();
         private GridOverlayOwnerHandle validFootprintHandle;
         private GridOverlayOwnerHandle invalidFootprintHandle;
@@ -468,7 +465,7 @@ namespace Landsong.BuildingSystem
             SetCameraInputBlocked(false);
 
             var isClick = (pointerState.ScreenPosition - demolitionClickStartPosition).sqrMagnitude
-                          <= demolitionClickMaxMovementPixels * demolitionClickMaxMovementPixels;
+                          <= InteractionConstants.ClickMovementTolerancePixels * InteractionConstants.ClickMovementTolerancePixels;
             var releasedOverUi = IsPointerOverUi(pointerState.ScreenPosition);
             BuildingBase releasedBuilding = null;
             var releasedOverBuilding = !releasedOverUi

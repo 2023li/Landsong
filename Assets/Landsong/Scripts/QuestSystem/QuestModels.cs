@@ -333,16 +333,12 @@ namespace Landsong
     [Serializable]
     public sealed class QuestSaveData
     {
-        public const int CurrentVersion = 3;
-
-        public int Version;
         public List<QuestStateSaveData> Quests = new List<QuestStateSaveData>();
         public int NextRandomQuestRefreshTurn = 1;
         public int GeneratedRandomQuestSerial;
 
         public void Validate()
         {
-            Version = Mathf.Max(0, Version);
             Quests ??= new List<QuestStateSaveData>();
             NextRandomQuestRefreshTurn = Mathf.Max(1, NextRandomQuestRefreshTurn);
             GeneratedRandomQuestSerial = Mathf.Max(0, GeneratedRandomQuestSerial);
@@ -414,7 +410,6 @@ namespace Landsong
                 QuestStatus.Failed => QuestStatus.Failed,
                 QuestStatus.RewardClaimed => QuestStatus.RewardClaimed,
                 QuestStatus.Abandoned => QuestStatus.Abandoned,
-                (QuestStatus)3 => QuestStatus.Active,
                 _ => QuestStatus.Active
             };
         }

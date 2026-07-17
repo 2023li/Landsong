@@ -226,7 +226,10 @@ public sealed class GamePanel_Inventory : MonoBehaviour
         var slotView = slotObject.GetComponent<GamePanel_InventorySlot>();
         if (slotView == null)
         {
-            slotView = slotObject.AddComponent<GamePanel_InventorySlot>();
+            Debug.LogError(
+                $"库存槽位 Prefab '{slotPrefab.name}' 缺少 GamePanel_InventorySlot，无法使用槽位类型 Root 映射。",
+                slotPrefab);
+            return;
         }
 
         slotView.ResolveVisualReferences(out var icon, out var quantityLabel);

@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 79ee311cc89142d7a526e65d22d4df7c, type: 3}
+  m_Name: Q_Main_Build_Farms_3
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.QuestDefinition
+  definition:
+    questId: main_build_farms_3
+    displayName: "\u6574\u5907\u7530\u5784"
+    description: "\u5148\u5EFA\u9020 3 \u5EA7\u519C\u7530\uFF0C\u4E3A\u540E\u7EED\u5C45\u6C11\u6269\u5F20\u51C6\u5907\u7A33\u5B9A\u7684\u98DF\u7269\u6765\u6E90\u3002"
+    category: 1
+    objectiveType: 1
+    turnLimit: 10
+    prerequisiteQuestIds: []
+    targetBuilding: {fileID: 8640536483753721910, guid: f14acff9a80333a428b3f2920c7920e4, type: 3}
+    targetBuildingCount: 3
+    requiredResources: []
+    rewards:
+    - itemDefinition: {fileID: 11400000, guid: 3083d7b285a48b34384cf36253389185, type: 2}
+      amount: 500
+    runtimeGenerated: 0

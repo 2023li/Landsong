@@ -1,0 +1,72 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: af71cba28d7028e40b73600b54394a96, type: 3}
+  m_Name: GranaryPresentation
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingPresentationDefinition
+  constructionViewMode: 0
+  constructionView:
+    directPrefab: {fileID: 0}
+    addressablePrefab:
+      m_AssetGUID: 
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+  constructionViewMappings: []
+  placementPreviewView:
+    directPrefab: {fileID: 0}
+    addressablePrefab:
+      m_AssetGUID: 
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+  defaultOperationalView:
+    directPrefab: {fileID: 0}
+    addressablePrefab:
+      m_AssetGUID: 
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+  viewMappings:
+  - level: 1
+    styleId: 
+    view:
+      directPrefab: {fileID: 0}
+      addressablePrefab:
+        m_AssetGUID: 
+        m_SubObjectName: 
+        m_SubObjectType: 
+        m_SubObjectGUID: 
+        m_EditorAssetChanged: 0
+  - level: 2
+    styleId: 
+    view:
+      directPrefab: {fileID: 0}
+      addressablePrefab:
+        m_AssetGUID: 
+        m_SubObjectName: 
+        m_SubObjectType: 
+        m_SubObjectGUID: 
+        m_EditorAssetChanged: 0
+  - level: 3
+    styleId: 
+    view:
+      directPrefab: {fileID: 0}
+      addressablePrefab:
+        m_AssetGUID: 
+        m_SubObjectName: 
+        m_SubObjectType: 
+        m_SubObjectGUID: 
+        m_EditorAssetChanged: 0
+  styles: []

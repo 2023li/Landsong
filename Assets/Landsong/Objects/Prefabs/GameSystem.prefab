@@ -108,39 +108,10 @@ MonoBehaviour:
   nextTurnKey: 28
   turnBuildingsPerFrame: 4
   logTurnResult: 1
-  startingQuests:
-  - questId: main_build_farms_3
-    displayName: "\u6574\u5907\u7530\u5784"
-    description: "\u5148\u5EFA\u9020 3 \u5EA7\u519C\u7530\uFF0C\u4E3A\u540E\u7EED\u5C45\u6C11\u6269\u5F20\u51C6\u5907\u7A33\u5B9A\u7684\u98DF\u7269\u6765\u6E90\u3002"
-    category: 1
-    objectiveType: 1
-    turnLimit: 10
-    prerequisiteQuestIds: []
-    targetBuilding: {fileID: 8640536483753721910, guid: f14acff9a80333a428b3f2920c7920e4, type: 3}
-    targetBuildingCount: 3
-    requiredResources: []
-    rewards:
-    - itemDefinition: {fileID: 11400000, guid: 3083d7b285a48b34384cf36253389185, type: 2}
-      amount: 500
-    runtimeGenerated: 0
-  - questId: main_build_residential_houses_3
-    displayName: "\u5B89\u7F6E\u65B0\u6C11"
-    description: "\u519C\u7530\u521D\u5177\u89C4\u6A21\u540E\uFF0C\u5EFA\u9020 3
-      \u5EA7\u5C45\u6C11\u623FLV0\uFF0C\u8BA9\u65B0\u6765\u7684\u5C45\u6C11\u6709\u53EF\u4EE5\u843D\u811A\u7684\u5C45\u6240\u3002"
-    category: 1
-    objectiveType: 1
-    turnLimit: 12
-    prerequisiteQuestIds:
-    - main_build_farms_3
-    targetBuilding: {fileID: 3750083483410662862, guid: cce99397b7253b64a9bf1716a5067150, type: 3}
-    targetBuildingCount: 3
-    requiredResources: []
-    rewards:
-    - itemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
-      amount: 1000
-    runtimeGenerated: 0
-  randomQuestPool: []
-  runtimeExchangeQuestRules: []
+  questCatalog: {fileID: 11400000, guid: c0b27c22afc24a00b819e316442cdb10, type: 2}
+  startingQuestIds:
+  - main_build_farms_3
+  - main_build_residential_houses_3
   startingRandomQuestCount: 1
   maxActiveRandomQuests: 2
   randomQuestRefreshIntervalTurns: 3

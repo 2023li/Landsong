@@ -9,8 +9,11 @@ using Moyo.Unity;
         [ES3NonSerializable]
         private class ToggleToGO
         {
-            public Toggle toggle;
-            public GameObject gameObject;
+            [SerializeField] private Toggle toggle;
+            [SerializeField] private GameObject gameObject;
+
+            public Toggle Toggle => toggle;
+            public GameObject GameObject => gameObject;
         }
 
         [SerializeField] private ToggleToGO[] toggleObjects;
@@ -48,13 +51,13 @@ using Moyo.Unity;
 
             foreach (ToggleToGO item in toggleObjects)
             {
-                if (item == null || item.toggle == null || item.gameObject == null)
+                if (item == null || item.Toggle == null || item.GameObject == null)
                 {
                     continue;
                 }
 
-                Toggle toggle = item.toggle;
-                GameObject targetGO = item.gameObject;
+                Toggle toggle = item.Toggle;
+                GameObject targetGO = item.GameObject;
 
                 // 初始化时同步一次状态
                 targetGO.SetActive(toggle.isOn);

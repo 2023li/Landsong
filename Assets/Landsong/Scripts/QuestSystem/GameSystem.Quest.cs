@@ -7,18 +7,15 @@ using UnityEngine;
 namespace Landsong
 {
     /// <summary>
-    /// GameSystem 上仅保留任务配置和服务装配；任务公开 API 统一由 GameSystem.Services.Quest 提供。
+    /// GameSystem 上仅保留任务目录引用、起始任务 ID 和服务装配；任务公开 API 统一由 GameSystem.Services.Quest 提供。
     /// </summary>
     public sealed partial class GameSystem
     {
-        [SerializeField, FoldoutGroup(InspectorQuest), LabelText("主线任务")]
-        private GameQuestDefinition[] startingQuests = Array.Empty<GameQuestDefinition>();
+        [SerializeField, FoldoutGroup(InspectorQuest), LabelText("任务目录")]
+        private QuestCatalog questCatalog;
 
-        [SerializeField, FoldoutGroup(InspectorQuest), LabelText("随机任务池")]
-        private GameQuestDefinition[] randomQuestPool = Array.Empty<GameQuestDefinition>();
-
-        [SerializeField, FoldoutGroup(InspectorQuest), LabelText("运行时交换任务规则")]
-        private RandomExchangeQuestRule[] runtimeExchangeQuestRules = Array.Empty<RandomExchangeQuestRule>();
+        [SerializeField, FoldoutGroup(InspectorQuest), LabelText("起始任务 ID")]
+        private string[] startingQuestIds = Array.Empty<string>();
 
         [SerializeField, FoldoutGroup(InspectorQuest), LabelText("开局随机任务数量"), Min(0)]
         private int startingRandomQuestCount = 1;
@@ -30,6 +27,7 @@ namespace Landsong
         private int randomQuestRefreshIntervalTurns = 3;
 
         internal ItemCatalog QuestItemCatalog => itemCatalog;
+        internal QuestCatalog QuestCatalog => questCatalog;
 
         [Button("重新初始化任务")]
         private void ReinitializeQuests()
@@ -47,9 +45,8 @@ namespace Landsong
         private void ConfigureQuestService(QuestService service)
         {
             service?.Configure(
-                startingQuests,
-                randomQuestPool,
-                runtimeExchangeQuestRules,
+                questCatalog,
+                startingQuestIds,
                 startingRandomQuestCount,
                 maxActiveRandomQuests,
                 randomQuestRefreshIntervalTurns);
@@ -96,30 +93,12 @@ namespace Landsong
             return Events;
         }
 
-        private void NormalizeStartingQuests()
+        private void NormalizeQuestConfiguration()
         {
-            startingQuests ??= Array.Empty<GameQuestDefinition>();
-            for (var i = 0; i < startingQuests.Length; i++)
+            startingQuestIds ??= Array.Empty<string>();
+            for (var i = 0; i < startingQuestIds.Length; i++)
             {
-                startingQuests[i]?.Normalize();
-            }
-        }
-
-        private void NormalizeRandomQuestPool()
-        {
-            randomQuestPool ??= Array.Empty<GameQuestDefinition>();
-            for (var i = 0; i < randomQuestPool.Length; i++)
-            {
-                randomQuestPool[i]?.Normalize();
-            }
-        }
-
-        private void NormalizeRuntimeExchangeQuestRules()
-        {
-            runtimeExchangeQuestRules ??= Array.Empty<RandomExchangeQuestRule>();
-            for (var i = 0; i < runtimeExchangeQuestRules.Length; i++)
-            {
-                runtimeExchangeQuestRules[i]?.Normalize();
+                startingQuestIds[i] = GameQuestDefinition.NormalizeQuestId(startingQuestIds[i]);
             }
         }
     }

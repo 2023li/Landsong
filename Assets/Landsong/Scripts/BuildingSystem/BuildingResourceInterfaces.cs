@@ -140,4 +140,23 @@ namespace Landsong.BuildingSystem
         /// </summary>
         public bool IsValid => !string.IsNullOrWhiteSpace(ItemId) && Amount > 0;
     }
+
+    /// <summary>
+    /// 用于经济预测的资源数量范围。随机收获不会提前掷骰，只暴露最小值和最大值。
+    /// </summary>
+    public readonly struct BuildingResourceRange
+    {
+        public BuildingResourceRange(string itemId, int minimumAmount, int maximumAmount)
+        {
+            ItemId = string.IsNullOrWhiteSpace(itemId) ? string.Empty : itemId.Trim();
+            MinimumAmount = minimumAmount < 0 ? 0 : minimumAmount;
+            MaximumAmount = maximumAmount < MinimumAmount ? MinimumAmount : maximumAmount;
+        }
+
+        public string ItemId { get; }
+        public int MinimumAmount { get; }
+        public int MaximumAmount { get; }
+        public bool IsValid => !string.IsNullOrWhiteSpace(ItemId) && MaximumAmount > 0;
+        public bool IsRange => MinimumAmount != MaximumAmount;
+    }
 }

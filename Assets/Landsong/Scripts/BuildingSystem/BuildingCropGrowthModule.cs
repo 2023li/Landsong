@@ -260,6 +260,60 @@ namespace Landsong.BuildingSystem
         public IReadOnlyList<BuildingCropOption> CropOptions => cropOptions ?? EmptyCropOptions;
         public IReadOnlyList<BuildingResourceChange> LastHarvestRewards => lastHarvestRewards ?? EmptyHarvestRewards;
 
+        public IReadOnlyList<BuildingResourceChange> GetAutomaticHarvestCostForecast()
+        {
+            if (autoHarvestCosts == null || autoHarvestCosts.Length == 0)
+            {
+                return Array.Empty<BuildingResourceChange>();
+            }
+
+            var result = new List<BuildingResourceChange>(autoHarvestCosts.Length);
+            for (var i = 0; i < autoHarvestCosts.Length; i++)
+            {
+                var cost = autoHarvestCosts[i];
+                var change = new BuildingResourceChange(cost.ItemId, cost.Amount);
+                if (change.IsValid)
+                {
+                    result.Add(change);
+                }
+            }
+
+            return result;
+        }
+
+        public IReadOnlyList<BuildingResourceRange> GetHarvestRewardForecast()
+        {
+            if (!HasCrop || !TryGetCrop(PlantedCropId, out var crop)
+                         || crop.HarvestRewards == null)
+            {
+                return Array.Empty<BuildingResourceRange>();
+            }
+
+            var result = new List<BuildingResourceRange>(crop.HarvestRewards.Count);
+            for (var i = 0; i < crop.HarvestRewards.Count; i++)
+            {
+                var reward = crop.HarvestRewards[i];
+                if (reward == null || !reward.IsValid)
+                {
+                    continue;
+                }
+
+                var minimum = BuildingSpatialEffectService.ApplyProductionPercent(
+                    owner,
+                    reward.MinAmount);
+                var maximum = BuildingSpatialEffectService.ApplyProductionPercent(
+                    owner,
+                    reward.MaxAmount);
+                var range = new BuildingResourceRange(reward.ItemId, minimum, maximum);
+                if (range.IsValid)
+                {
+                    result.Add(range);
+                }
+            }
+
+            return result;
+        }
+
         public override string ToString()
         {
             return "BM_作物种植";

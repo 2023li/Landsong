@@ -513,6 +513,14 @@ namespace Landsong.BuildingSystem
             return currentResourceProductions;
         }
 
+        /// <summary>
+        /// 返回当前工人数对应的周期产出，但不修改运行时模块状态。
+        /// </summary>
+        public IReadOnlyList<BuildingResourceChange> GetForecastResourceProductions(
+            BuildingBase building,
+            int workers,
+            int maxWorkers) => CreateResourceProductions(building, workers, maxWorkers);
+
         public int GetMinimumWorkersForProduction(int maxWorkers)
         {
             Normalize();
@@ -802,8 +810,8 @@ namespace Landsong.BuildingSystem
         private int providedSlotCount = 5;
 
         [SerializeField, LabelText("槽位类型")]
-        [PropertyTooltip("建筑只声明提供哪种槽位；损耗倍率、物品组修正和自动存放优先级由库存槽位类型目录统一解析。")]
-        private InventorySlotType slotType = InventorySlotType.Default;
+        [PropertyTooltip("建筑只声明提供哪种槽位；损耗倍率和物品组修正由库存槽位类型目录统一解析，自动入库始终选择该物品有效损耗率最低的可用槽位。")]
+        private InventorySlotType slotType = InventorySlotType.简陋库存;
 
         [NonSerialized] private BuildingBase owner;
 

@@ -1,55 +1,204 @@
-# Landsong 建筑系统交接总览
+# Landsong 建筑系统
 
-> 交接版本：2026-07-15
-> 状态：终态架构、现有建筑迁移、创建编辑器、正式 Excel 数值源、原子导表工具、架构校验器和交接文档均已完成。
+> 当前事实版本：2026-07-17
+> 当前规模：14 个 Family、14 个 ModuleSet、14 个 Presentation、14 个唯一 Runtime Prefab。
 
-## 1. 当前结论
+## 1. 文档入口
 
-建筑系统已经固定为“一个家族定义 + 一个 ModuleSet + 一个 Presentation + 一个轻量 Runtime Prefab”。所有建筑直接使用密封的 `BuildingBase`；施工和 LV1～LVN 是同一实例的状态，玩法差异由模块承担，表现资源独立加载。
+| 任务 | 文档 |
+| --- | --- |
+| 理解终态架构、生命周期、状态与扩展边界 | 本文 |
+| 查询所有正式建筑和当前内容缺口 | [建筑目录](建筑目录.md) |
+| 创建新家族、选择模块、使用编辑器 | [新增建筑与编辑器](新增建筑与编辑器.md) |
+| 修改 Excel、导表、ID 和数据权属 | [数值与导表](数值与导表.md) |
+| 回填 View Prefab、图标和动画 | [表现资源](表现资源.md) |
+| 修改占地、地形、连接、Overlay 或初始建筑 | [地图系统](../地图系统/README.md) |
+| 修改槽位类型固定规则或库存自动存放 | [库存系统](../库存系统/README.md) |
 
-建筑蓝图与等级的科技要求分别以 `BuildingDefinition.AutomaticBlueprintUnlockCondition`、`BuildingFamilyDefinition.Levels[].UpgradeCondition` 为唯一来源。`BuildingCatalog` 作为生产者主动把“科技 -> 建筑/等级”内容注入中央注册表；科技 UI 只读取注册表，不主动扫描建筑。不要在科技 SO 中再手工补一条同义完成效果。
+## 2. 唯一合法形态
 
-仓库是第 9 个正式家族；雕塑是第 10 个正式家族；采石场是第 11 个正式家族；医院是第 12 个正式家族。警局是第 13 个正式家族，与医院共用 `workforce -> maintenance -> operational_experience -> spatial_effect` 通用组合：岗位与维护费控制运营经验，医疗或治安按运营等级和当前工人数选择范围档位，同格统一取最高值。五类内容都直接使用统一 `BuildingBase`，没有家族专属脚本。
+普通建筑固定为：
 
-## 2. 按职责阅读
+```text
+BuildingFamilyDefinition
+  + BuildingModuleSetDefinition
+  + BuildingPresentationDefinition
+  + lightweight Runtime Prefab
+  + shared sealed BuildingBase
+```
 
-| 读者/任务 | 首要文档 | 用途 |
+施工与 LV1～LVN 是同一实例的阶段/等级状态：
+
+```text
+Construction -> Operational/LV1 -> LV2 -> ... -> LVN
+```
+
+禁止：
+
+- 每个等级一个 Runtime Prefab；
+- `XXXLV1`、`XXXLV2`、`XXXUnderConstruction` 等家族/等级脚本；
+- 升级时替换 Prefab；
+- 把施工和全部等级美术塞进 Runtime Prefab 的禁用子节点；
+- UI 或其他系统按具体建筑类分支；
+- 用行为树替代固定生命周期和模块契约。
+
+## 3. 分层职责
+
+| 层 | 拥有内容 | 不拥有 |
 | --- | --- | --- |
-| 新接手开发者 | [建筑扩展规则README.md](建筑扩展规则README.md) | 终态领域模型、状态所有权、模块和存档边界 |
-| AI 或新增建筑 | [AI_添加建筑规则.md](AI_添加建筑规则.md) | 强制接入流程、禁止形态和交付检查 |
-| 回顾架构原因 | [README_建筑架构审计与终态决策.md](README_建筑架构审计与终态决策.md) | 问题根因、冻结决策和重构结果 |
-| 使用创建工具 | [建筑编辑器窗口规划与使用.md](建筑编辑器窗口规划与使用.md) | 字段含义、创建流程、模块选择和故障处理 |
-| 查看当前资产 | [建筑说明.md](建筑说明.md) | 13 个家族、模块组成、资源位置和现状 |
-| 策划调数值 | [建筑数值策划表.md](建筑数值策划表.md) / [正式 Excel](../../ConfigSource/Buildings/建筑数值策划表.xlsx) | Excel 权属、导表流程、表结构和内容待办 |
-| 美术回填 | [建筑Prefab与表现资源回填指南.md](建筑Prefab与表现资源回填指南.md) | View Prefab 存放、命名、回退和动画替换 |
-| 查阅旧问题 | [历史_建筑系统深度研究报告.md](历史_建筑系统深度研究报告.md) | 重构前问题及其当前处置，仅作历史索引 |
+| `BuildingDefinition` | FamilyId、名称、分类、图标、占地、地形、放置费、蓝图与菜单规则 | 实例状态、等级美术 |
+| `BuildingConstructionDefinition` | 逐回合施工消耗/产出 | 施工视觉对象 |
+| `BuildingLevelDefinition` | Level 是否开放、升级条件/费用、LevelConfiguration | 模块运行时状态 |
+| `BuildingModuleSetDefinition` | 模块类型、稳定 ModuleId、执行顺序和默认配置 | 第二套家族/等级数据 |
+| Runtime Prefab | `BuildingBase`、碰撞、交互、空 ViewRoot、表现控制器 | 施工/等级 Sprite、Animator、内联玩法分支 |
+| Runtime Module | 一项能力的配置、状态、生命周期、存档、能力接口和状态说明 | 修改占地、替换实例、跨领域全局真相 |
+| Presentation | 放置预览、施工模式、Level/Style → View、过渡配置 | 玩法数值 |
+| View Prefab | SpriteRenderer、Animator、粒子、音效挂点 | `BuildingBase`、Collider、玩法脚本 |
 
-## 3. 权威顺序
+## 4. BuildingBase
 
-发生冲突时按以下顺序处理：
+`BuildingBase` 是密封的运行时 Facade，统一负责：
 
-1. 当前代码中的领域契约，以及《建筑扩展规则》和《AI 添加建筑规则》。
-2. 导入范围内的正式 Excel 数值源 `ConfigSource/Buildings/建筑数值策划表.xlsx`（项目根目录，不进入 AssetDatabase）。
-3. Unity 中的 ModuleSet 结构、Presentation、Runtime Prefab 结构和其他非 Excel 字段。
-4. 导表生成的 Family/LevelConfiguration/模块数值资产；这些字段不得再与 Excel 双向手工维护。
-5. 《建筑说明》、终态决策和历史研究文档。
+- 家族定义和稳定实例身份；
+- 格子位置、占用 ID 与生命周期阶段；
+- 从 ModuleSet 克隆模块；
+- 初始化、注册、施工、回合、点击、升级、拆除和注销生命周期分发；
+- 能力查询；
+- 模块状态捕获/恢复；
+- 表现控制器与 ViewRoot 协调。
 
-策划配置中的物品统一引用 `ItemDefinition`；只有库存 API、运行时 DTO、字典键和存档使用由其派生的 ItemId。
+家族差异不能通过继承 `BuildingBase` 实现。新增玩法能力应先判断是否可复用现有 Module；确有新状态机时新增职责单一的 Module 和必要的 LevelConfiguration。
 
-建筑库存能力通过 `InventorySlotType` 与库存系统解耦：建筑等级配置只保存槽位数量和类型，库存系统统一解析该类型的固定损耗倍率、物品组修正和自动存放优先级，槽位视觉由 UI 代码处理。库存导表器不读取或写入建筑家族。
+## 5. 模块与等级配置
 
-科技对库存损耗的全局持续影响通过 `TechnologyGlobalBuffCatalog` 汇总，不复制到建筑等级或槽位类型。建筑正式工作簿的 `科技_全局库存Buff` 维护已接入效果的条件和百分比；当前轮子使所有物资库存自然损耗结果乘 `0.90`。
+Module 是运行时能力与状态，LevelConfiguration 是某等级如何重配该 Module 的数据。
 
-## 4. 配置与模块关联
+LevelConfiguration 通过 C# 类型明确找到目标 Module，例如生产配置取得 `BM_资源产出`；匹配不依赖可编辑字符串。`ModuleId` 用于：
 
-LevelConfiguration 通过自己的 `Apply(BuildingBase)` 明确取得目标模块类型，例如资源产出配置调用 `GetRequiredModule<BM_资源产出>()`。运行时匹配依据是模块 C# 类型，不是 `ConfigurationId` 字符串；`ModuleId` 用于唯一性、顺序、存档和编辑期依赖校验。
+- ModuleSet 内唯一性；
+- 生命周期/自动回合顺序；
+- 存档状态 Key；
+- 编辑器依赖和架构校验。
 
-新增等级配置时，必须同时保证目标模块存在、启用且顺序正确。当前校验器会检查已登记配置与 ModuleId 的依赖关系；通用生产链为 `workforce -> maintenance -> production`，医院/警局经验链为 `workforce -> maintenance -> operational_experience -> spatial_effect`。
+ModuleSet 顺序就是执行顺序。常见组合：
 
-## 5. 完成修改后的验证
+```text
+生产：workforce -> maintenance -> production
+医院/警局：workforce -> maintenance -> operational_experience -> spatial_effect
+仓库/粮仓：workforce -> warehouse.operation
+```
 
-1. 数值修改先写正式 Excel，再用 `Landsong/Building/建筑数值导表工具` 全表校验并导入。
-2. 编译运行时与 Editor 程序集。
-3. 执行 Unity 菜单 `Landsong/Building/Validate Final Architecture`。
-4. 在 Play Mode 验证建造、施工完成、升级、主要模块回合行为和保存/读取。
-5. 美术变化同步回填指南；不得手工回写导入字段后让 Excel 与 SO 分叉。
+依赖模块必须在消费者之前。配置引用的模块必须存在并启用；不允许运行时 `EnsureModule` 临时补齐错误资产。
+
+## 6. 生命周期事务
+
+### 放置与施工
+
+1. UI/放置器创建放置请求。
+2. `BuildingPlacementEvaluator` 使用完整占地、地形、数量、蓝图、连接与资源规则评估。
+3. 确认后原子扣除放置费、占用格子并创建同一个 Runtime 实例。
+4. 实例进入 Construction；每回合原子结算该施工回合的消耗与产出。
+5. 全部施工回合完成后切换为 Operational/LV1，不替换 GameObject。
+
+### 原地升级
+
+1. `BuildingUpgradeService` 读取目标等级。
+2. 同时校验目标 Level、科技/条件、模块升级条件和费用。
+3. 全部满足后原子扣费并修改 `runtimeIdentity.Level`。
+4. 按目标 LevelConfiguration 重配现有 Module。
+5. 模块状态保留，只对超过新合法范围的值做钳制。
+6. Presentation 异步切换 View，玩法等级不依赖美术是否存在。
+
+占地永不随等级变化。需要不同占地或完全不同交互状态机的内容应建成不同家族或独立系统。
+
+## 7. 状态所有权
+
+| 状态 | 所有者 |
+| --- | --- |
+| FamilyId、固定占地、成本、等级结构 | FamilyDefinition / 正式 Excel |
+| InstanceId、Stage、Level、StyleId、施工进度 | `BuildingRuntimeIdentity` |
+| 工人、岗位吸引力、补贴 | `BM_岗位运营` |
+| 生产周期与进度 | 生产 Module |
+| 作物、种植、生长、收获 | `BuildingCropGrowthModule` |
+| 仓库经验、维护失败、奖励槽位 | `BM_仓库运营` |
+| 通用运营经验 | `BM_运营经验` |
+| 居民人口、饮食、生活质量、税收、荒废 | 住宅 Module |
+| 范围效果定义 | `BuildingSpatialEffectDefinition` |
+| 范围效果当前贡献 | 空间效果 Module + 地图查询 |
+| View 与动画 | Presentation / View Prefab |
+
+同一状态不得同时存在于家族脚本、模块、UI 和存档多个结构中。
+
+## 8. 能力接口
+
+外部系统使用 `BuildingBase.TryGetCapability<T>` / `GetCapabilities<T>`，或建筑系统提供的公共 Utility。常见能力包括：
+
+- 人口与岗位；
+- 资源生产/消费/提供点；
+- 库存槽位 Provision；
+- 科技点；
+- 维护费与运营经验；
+- 范围效果；
+- 作物与只读预测。
+
+库存、任务、UI、地图和回合系统不得判断 `PlayerHome`、`Warehouse` 等具体类型；仓库与粮仓共享同一模块正是此规则的标准案例。
+
+## 9. 科技与蓝图
+
+- 蓝图科技条件唯一存放在 `BuildingDefinition.AutomaticBlueprintUnlockCondition`。
+- 等级科技条件唯一存放在目标 `BuildingLevelDefinition.UpgradeCondition`。
+- `BuildingBlueprintService` 是蓝图运行时真相并负责存档。
+- `BuildingCatalog` 主动把科技 → 蓝图/等级内容注入 `TechnologyUnlockContentRegistry`。
+- 科技 SO 不再保存重复的“解锁建筑蓝图”完成效果。
+
+## 10. 表现与 Style
+
+Style 是同一家族内玩家可选择的表现变体：共享占地、费用、施工、等级、模块和存档规则，只改变图标与 View 映射。树木和雕塑使用 Style；不同 Style 不会被当成独立建筑计数。
+
+没有美术资源时允许：
+
+- 使用统一占位 View；
+- 同一 Style 的高等级回退到已有低等级 View；
+- 后续只替换 Presentation 引用，不改 Family、Module、存档或 Runtime Prefab。
+
+放置预览是独立字段；施工可选择单一视图或逐回合视图，两种模式不混用回退。详见 [表现资源](表现资源.md)。
+
+## 11. 存档
+
+建筑存档保存：
+
+- 稳定 FamilyId 和 InstanceId；
+- Stage、Level、StyleId、施工进度；
+- 格子位置与占用身份；
+- 按稳定 ModuleId 保存的模块状态。
+
+恢复时由 `BuildingCatalog` 找到唯一 Runtime Prefab，再按 ModuleId 恢复状态。不能依赖 ModuleSet 数组下标，也不能保存 View Prefab 或 Animator 状态作为玩法真相。
+
+## 12. 行为树边界
+
+建筑不使用一棵独立行为树替代建筑类。原因：
+
+- 当前建造、施工、升级、回合和存档顺序是固定事务，不需要自由图调度；
+- 行为树会引入第二套状态/生命周期/存档语义；
+- 大多数建筑差异是参数和可复用模块组合；
+- 编辑器校验、导表和预测器更适合明确类型契约。
+
+未来若出现复杂自治单位式建筑，可在一个专用 Module 内使用行为树实现局部决策；行为树仍不能拥有 Family、Stage、Level、占地、升级或通用存档。
+
+## 13. 权威顺序
+
+发生冲突时：
+
+1. 当前 C# 领域契约。
+2. 正式 Excel 的导入范围字段。
+3. Unity 中的 ModuleSet 结构、Presentation、Runtime/View Prefab 和非 Excel 字段。
+4. 导表生成的 Family/LevelConfiguration/模块数值资产。
+5. 文档。
+
+## 14. 验证
+
+1. `Landsong/Building/建筑数值导表工具`：Analyze 后导入，最终应无错误、无待同步差异。
+2. 编译 Runtime 与 Editor 程序集。
+3. `Landsong/Building/Validate Final Architecture`：结构错误必须为零；缺 View 可作为明确的美术提醒。
+4. Play Mode 验证放置、逐回合施工、升级、拆除、主要 Module 回合行为和存读档。
+5. 新建筑同步更新 [建筑目录](建筑目录.md)、正式 Excel 和必要表现清单。

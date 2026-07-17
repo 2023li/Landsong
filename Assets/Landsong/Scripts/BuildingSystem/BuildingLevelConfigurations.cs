@@ -150,7 +150,7 @@ namespace Landsong.BuildingSystem
     {
         [SerializeField, LabelText("提供库存格数"), Min(0)] private int providedSlots;
         [SerializeField, LabelText("槽位类型")]
-        private InventorySlotType slotType = InventorySlotType.Default;
+        private InventorySlotType slotType = InventorySlotType.简陋库存;
 
         public BuildingInventoryLevelConfiguration()
         {
@@ -158,7 +158,7 @@ namespace Landsong.BuildingSystem
 
         public BuildingInventoryLevelConfiguration(
             int providedSlots,
-            InventorySlotType slotType = InventorySlotType.Default)
+            InventorySlotType slotType = InventorySlotType.简陋库存)
         {
             this.providedSlots = Mathf.Max(0, providedSlots);
             this.slotType = slotType;
@@ -478,7 +478,7 @@ namespace Landsong.BuildingSystem
         [SerializeField, LabelText("正常仓储所需工人"), Min(0)] private int requiredWorkers = 2;
         [SerializeField, LabelText("基础库存格"), Min(0)] private int providedSlots = 1;
         [SerializeField, LabelText("基础槽位类型")]
-        private InventorySlotType baseSlotType = InventorySlotType.BasicWarehouse;
+        private InventorySlotType baseSlotType = InventorySlotType.简陋库存;
         [SerializeField, AssetsOnly, LabelText("维护费物品")] private ItemDefinition maintenanceItemDefinition;
         [SerializeField, LabelText("每回合维护费"), Min(0)] private int maintenancePerTurn = 1;
         [SerializeField, LabelText("获得经验所需工人"), Min(0)] private int experienceWorkers = 2;
@@ -487,7 +487,7 @@ namespace Landsong.BuildingSystem
         [SerializeField, LabelText("奖励工人阈值"), Min(0)] private int bonusWorkerThreshold;
         [SerializeField, LabelText("奖励库存格"), Min(0)] private int bonusSlots;
         [SerializeField, LabelText("奖励槽位类型")]
-        private InventorySlotType bonusSlotType = InventorySlotType.BasicWarehouse;
+        private InventorySlotType bonusSlotType = InventorySlotType.简陋库存;
         [SerializeField, LabelText("维护失败吸引力惩罚"), Min(0f)] private float maintenanceFailureAttractionPenalty = 10f;
 
         public WarehouseLevelConfiguration()

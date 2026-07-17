@@ -33,9 +33,6 @@ namespace Landsong.BuildingSystem
         [FoldoutGroup("选择输入")]
         [SerializeField, LabelText("点击世界更新选择")] private bool updateSelectionOnWorldClick = true;
 
-        [FoldoutGroup("选择输入")]
-        [SerializeField, Min(0f), LabelText("选择点击最大移动像素")] private float selectionClickMaxMovementPixels = 8f;
-
         private readonly HashSet<BuildingBase> subscribedBuildings = new HashSet<BuildingBase>();
         private Landsong.GameSystem gameSystem;
         private BuildingService buildings;
@@ -711,7 +708,7 @@ namespace Landsong.BuildingSystem
             }
 
             bool isClick = (pointerState.ScreenPosition - selectionClickStartPosition).sqrMagnitude
-                           <= selectionClickMaxMovementPixels * selectionClickMaxMovementPixels;
+                           <= InteractionConstants.ClickMovementTolerancePixels * InteractionConstants.ClickMovementTolerancePixels;
             bool releasedOverUi = IsPointerOverUi(pointerState.ScreenPosition);
             bool releasedOverBuilding = TryGetBuildingAtScreenPosition(pointerState.ScreenPosition, out BuildingBase releasedBuilding);
 
@@ -814,7 +811,7 @@ namespace Landsong.BuildingSystem
 
             float now = Time.unscaledTime;
             bool isDoubleClick = lastClickedBuilding == building
-                                 && now - lastBuildingClickTime <= Mathf.Max(0.05f, building.DoubleClickInterval);
+                                 && now - lastBuildingClickTime <= InteractionConstants.DoubleClickIntervalSeconds;
             lastClickedBuilding = building;
             lastBuildingClickTime = now;
             building.DispatchPointerClick(isDoubleClick);

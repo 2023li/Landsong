@@ -143,6 +143,11 @@ namespace Landsong.BuildingSystem
 
         public override string ModuleDescription => "在前置岗位与普通生产成功后，按概率追加一项稀有产出。";
         public ItemDefinition ItemDefinition => itemDefinition;
+        public bool RareProductionEnabled => rareProductionEnabled;
+        public int MinimumWorkers => Mathf.Max(1, minimumWorkers);
+        public float ChancePercent => Mathf.Clamp(chancePercent, 0f, 100f);
+        public int Amount => Mathf.Max(0, amount);
+        public string ForecastItemId => ItemId;
         private string ItemId => itemDefinition == null ? string.Empty : itemDefinition.ItemId;
 
         public void ApplyConfiguration(

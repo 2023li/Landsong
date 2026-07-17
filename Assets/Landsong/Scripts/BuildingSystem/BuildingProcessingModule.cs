@@ -56,6 +56,9 @@ namespace Landsong.BuildingSystem
         public IReadOnlyList<BuildingResourceChange> LastResourceProductions => lastProductions;
         public int ProductionProgress => Mathf.Clamp(progress, 0, ProductionIntervalTurns);
         public int ProductionIntervalTurns => Mathf.Max(1, productionIntervalTurns);
+        public int MinimumWorkers => Mathf.Max(1, minimumWorkers);
+        public bool HasForecastRecipe => CurrentResourceConsumptions.Count > 0
+                                         && CurrentResourceProductions.Count > 0;
 
         public override void Normalize()
         {

@@ -14,8 +14,8 @@ namespace Landsong.EditorTools.Buildings
     {
         private const string CatalogPath = "Assets/Landsong/Objects/SO/BuildingCatalog.asset";
         private const string DocumentationRoot = "Document/建筑系统/";
-        private const string AuthoringDocumentPath = DocumentationRoot + "建筑编辑器窗口规划与使用.md";
-        private const string NumericDocumentPath = DocumentationRoot + "建筑数值策划表.md";
+        private const string AuthoringDocumentPath = DocumentationRoot + "新增建筑与编辑器.md";
+        private const string NumericDocumentPath = DocumentationRoot + "数值与导表.md";
         private const string NumericWorkbookPath =
             "ConfigSource/Buildings/建筑数值策划表.xlsx";
 
