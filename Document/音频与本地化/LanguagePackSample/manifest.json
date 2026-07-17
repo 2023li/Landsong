@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "packId": "sample.es",
+  "displayName": "Español (Ejemplo)",
+  "localeCode": "es-ES",
+  "fallbackLocaleCode": "en",
+  "author": "Landsong",
+  "description": "Minimal example pack. Missing entries fall back to English.",
+  "targetKeysetVersion": 1
+}

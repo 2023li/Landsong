@@ -31,6 +31,7 @@ namespace Landsong.UISystem
 
         private void OnEnable()
         {
+            Landsong.Localization.L10n.LanguageChanged += Refresh;
             ResolveReferences();
             SubscribeBuildings();
             RefreshBuildingSubscriptions();
@@ -39,6 +40,7 @@ namespace Landsong.UISystem
 
         private void OnDisable()
         {
+            Landsong.Localization.L10n.LanguageChanged -= Refresh;
             UnsubscribeBuildings();
             UnsubscribeBuildingStates();
         }

@@ -1,0 +1,864 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: Content_en
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.StringTable
+  m_LocaleId:
+    m_Code: en
+  m_SharedData: {fileID: 11400000, guid: 982814519614c164cb80978f9924c051, type: 2}
+  m_Metadata:
+    m_Items: []
+  m_TableData:
+  - m_Id: 9295318999040
+    m_Localized: Logs
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295654543360
+    m_Localized: Wheat
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295654543361
+    m_Localized: Wood
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295654543362
+    m_Localized: Sapling
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295654543363
+    m_Localized: Cabbage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295658737664
+    m_Localized: Stone
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295658737665
+    m_Localized: Dirt
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295658737666
+    m_Localized: Carrot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295658737667
+    m_Localized: Vegetables
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295658737668
+    m_Localized: Gold
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295662931968
+    m_Localized: Fish
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295662931969
+    m_Localized: Golden Fish
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295675514880
+    m_Localized: Counts as grain for residents' dietary needs and can also be sown
+      on farms.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295675514881
+    m_Localized: Counts as a vegetable for residents' dietary needs.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295675514882
+    m_Localized: Counts as a vegetable for residents' dietary needs.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295688097792
+    m_Localized: Vegetables
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295688097793
+    m_Localized: Grain
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295688097794
+    m_Localized: Food
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295700680704
+    m_Localized: Vegetables such as carrots and cabbage can satisfy residents' vegetable
+      needs interchangeably.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295700680705
+    m_Localized: Grains such as wheat can feed residents and serve as farm seed.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295700680706
+    m_Localized: Parent category for all edible items, used by general food rules
+      such as cold storage.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295713263616
+    m_Localized: Cold Storage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295713263617
+    m_Localized: Standard Storage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295713263618
+    m_Localized: Rudimentary Storage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295713263619
+    m_Localized: Food Storage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295717457920
+    m_Localized: Advanced Storage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295734235136
+    m_Localized: Text
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295734235137
+    m_Localized: Philosophy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295738429440
+    m_Localized: Law
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295738429441
+    m_Localized: Mathematics
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295738429442
+    m_Localized: Physics
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295738429443
+    m_Localized: Mechanics
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295755206656
+    m_Localized: Optics
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295755206657
+    m_Localized: Astronomy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295759400960
+    m_Localized: Materials Science
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295767789568
+    m_Localized: Scientific Theory
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295767789569
+    m_Localized: Agriculture
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295767789570
+    m_Localized: Fishing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295767789571
+    m_Localized: Calendar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295767789572
+    m_Localized: Medicine
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295767789573
+    m_Localized: Currency
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295767789574
+    m_Localized: Education System
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295767789575
+    m_Localized: Economic Theory
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295767789576
+    m_Localized: Chemistry
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295767789577
+    m_Localized: Biology
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295767789578
+    m_Localized: Banking
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295767789579
+    m_Localized: Industrialization
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295771983872
+    m_Localized: Ecological Engineering
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295771983873
+    m_Localized: Enlightenment
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295771983874
+    m_Localized: Astrology
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295771983875
+    m_Localized: Spellcraft
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295771983876
+    m_Localized: Theology
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295771983877
+    m_Localized: Elemental Studies
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295771983878
+    m_Localized: Spiritualism
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295771983879
+    m_Localized: Alchemy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295771983880
+    m_Localized: Enchanting
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295771983881
+    m_Localized: Archaeology
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295776178176
+    m_Localized: Runology
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295776178177
+    m_Localized: Arcane Engineering Theory
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295776178178
+    m_Localized: The Future
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295776178179
+    m_Localized: Carpentry
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295776178180
+    m_Localized: Masonry
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295776178181
+    m_Localized: The Wheel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295776178182
+    m_Localized: Components
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295776178183
+    m_Localized: Architecture
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295776178184
+    m_Localized: Engineering
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295776178185
+    m_Localized: Navigation
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295776178186
+    m_Localized: Steam Power
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295776178187
+    m_Localized: Information Technology
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295776178188
+    m_Localized: Aviation
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295776178189
+    m_Localized: Mechanization
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295776178190
+    m_Localized: Hunting
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295780372480
+    m_Localized: Mining
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295780372481
+    m_Localized: Domestication
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295780372482
+    m_Localized: Bronze
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295780372483
+    m_Localized: Formation Warfare
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295780372484
+    m_Localized: Ironworking
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295780372485
+    m_Localized: Gunpowder
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295780372486
+    m_Localized: Tactics
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295780372487
+    m_Localized: Coordinated Operations
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295780372488
+    m_Localized: Systems Warfare
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295780372489
+    m_Localized: Military Industry Theory
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295784566784
+    m_Localized: Record language with stable symbols so experience, contracts, and
+      theories can endure beyond any one person.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761088
+    m_Localized: Seek common principles in recorded knowledge to develop systematic
+      argument and abstract thought.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761089
+    m_Localized: Turn ethical debate and shared timekeeping into public rules defining
+      rights, duties, and judgment.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761090
+    m_Localized: Derive numerical relationships from standardized measurement and
+      wheel-and-axle ratios to establish reusable calculation methods.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761091
+    m_Localized: Use mathematics to study the universal laws of motion, force, and
+      energy through elemental change.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761092
+    m_Localized: Apply physical laws to beams, levers, and transmissions to analyze
+      forces on machines and buildings.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761093
+    m_Localized: Study light propagation, reflection, and refraction to make instruments
+      for observation and precise aiming.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761094
+    m_Localized: Build celestial models with optical instruments and navigational
+      observations to improve time and position calculations.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761095
+    m_Localized: Combine precise observation and enchanting to design strength, toughness,
+      and conductivity for each use.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761096
+    m_Localized: Unify material experiments and industrial verification into a modern
+      scientific method that continually self-corrects.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761097
+    m_Localized: Move from seasonal gathering to planned sowing and harvesting to
+      establish a stable food supply.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761098
+    m_Localized: Develop fishing from food-storage and hunting experience, adding
+      food sources independent of farmland.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761099
+    m_Localized: Record solar and lunar cycles through fishing seasons and celestial
+      observation to establish a shared calendar.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761100
+    m_Localized: Organize long-term records, care standards, and ritual experience
+      into diagnosis and treatment.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761101
+    m_Localized: Create a universal store of value through measurement and stable
+      institutions, reducing exchange and tax costs.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761102
+    m_Localized: Fund tiered education so foundational knowledge and professional
+      skills can be reproduced continuously.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761103
+    m_Localized: Analyze knowledge, tools, labor organization, and scarce resources
+      to develop methods for economic allocation.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761104
+    m_Localized: Reinterpret alchemical reactions with standard measurement to establish
+      experimental elements, compounds, and conservation.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761105
+    m_Localized: Study life, reproduction, and environmental adaptation experimentally
+      to establish verifiable biological science.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761106
+    m_Localized: Use population, resources, and asset life cycles to organize savings,
+      lending, and large-scale long-term investment.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761107
+    m_Localized: Organize standardized production through capital allocation and
+      information management, scaling industry beyond workshops.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761108
+    m_Localized: Redesign industrial processes through large-scale environmental
+      observation, balancing development with ecological capacity.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761109
+    m_Localized: Organize scattered experience into testable knowledge and begin
+      structured research.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761110
+    m_Localized: Observe stars and day-night cycles to establish shared references
+      for time, direction, and ritual.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761111
+    m_Localized: Combine celestial signs, sound, and inscribed symbols into repeatable
+      basic spells.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761112
+    m_Localized: Use philosophy to explain ritual and mystical experience, forming
+      doctrine for faith and magical tradition.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761113
+    m_Localized: Compare ritual, bodily, and natural properties to explain change
+      as interaction among elements.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761114
+    m_Localized: Study communication between consciousness and spirits through systematic
+      training and elemental perception.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761115
+    m_Localized: Develop purification, synthesis, and transmutation using spiritual
+      media, standardized materials, and controlled reactions.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761116
+    m_Localized: Combine stable material reactions with precise control to give items
+      repeatable, sustained enchantments.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761117
+    m_Localized: Reconstruct lost technologies and ideas from enchantment traces,
+      material dating, and ruin structures.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761118
+    m_Localized: Decode ancient symbols and reconstruct a composable, transmissible
+      high runic language through information encoding.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761119
+    m_Localized: Describe magical conduction with industrial standards and runic
+      language to create a calculable, reproducible system.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761120
+    m_Localized: Unite science, ecology, magic, machinery, and military industry
+      to open civilization's next undefined age.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761121
+    m_Localized: Master timber selection, cutting, and joinery to make wood reliable
+      for buildings and tools.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955392
+    m_Localized: Apply toolmaking experience to cutting and laying stone, enabling
+      durable construction.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955393
+    m_Localized: Develop wheel-and-axle systems from stoneworking and animal power
+      to improve transport and transmission.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955394
+    m_Localized: Make interchangeable parts to standard dimensions so complex machines
+      can be disassembled, repaired, and reused.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955395
+    m_Localized: Turn standard components and organized cooperation into structural
+      design for larger buildings.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955396
+    m_Localized: Combine building experience and mechanical calculation into verifiable
+      design, construction, and maintenance.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955397
+    m_Localized: Combine surveying, route costs, and equipment reliability to plan
+      long-distance voyages.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955398
+    m_Localized: Use sealed controls and coordinated machinery to convert heat into
+      continuous power.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955399
+    m_Localized: Use standard media and automated devices to record, copy, transmit,
+      and process information at scale.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955400
+    m_Localized: Enable sustained flight through information control, propulsion,
+      and systematic support.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955401
+    m_Localized: Deploy power, controls, and standard parts across production and
+      transport to reduce manual dependence.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955402
+    m_Localized: Systematize tracking, ambush, and game processing to expand the
+      settlement's use of wild resources.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955403
+    m_Localized: Mine underground veins with supports and field-survey knowledge
+      to secure a steady ore supply.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955404
+    m_Localized: Combine long observation with labor needs to select animals suited
+      for breeding and work.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955405
+    m_Localized: Master bronze smelting through draft power and rotary tools to supply
+      dependable tools and arms.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955406
+    m_Localized: Organize formations with numbered units and standardized arms, turning
+      individual strength into coordinated action.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955407
+    m_Localized: Improve iron smelting and forging with standardized arms and structural
+      knowledge to produce tougher metal goods.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955408
+    m_Localized: Control rapid reactions in metal vessels to store and direct explosive
+      force.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955409
+    m_Localized: Use firearms, terrain, and timing to organize local actions and
+      improve battlefield adaptability.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955410
+    m_Localized: Coordinate multiple combat units through synchronized timing, long-range
+      observation, and divided responsibilities.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955411
+    m_Localized: Treat industrial production, logistics, intelligence, and military
+      action as one interdependent system.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955412
+    m_Localized: Unify systems-warfare experience, industrial capacity, and military
+      needs into an evolving defense industry.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295805538304
+    m_Localized: Break New Ground
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295822315520
+    m_Localized: A Settlement to Call Home
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295822315521
+    m_Localized: Survey the Territory
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295826509824
+    m_Localized: Gather the Foundations
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295826509825
+    m_Localized: Sow the Seeds of Hope
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295830704128
+    m_Localized: Kindle Wisdom
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295830704129
+    m_Localized: Food sustains the settlement. Build 3 farms and turn barren ground
+      toward a future harvest.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295830704130
+    m_Localized: The fields are growing, but the people need homes. Build 3 residences
+      so the settlement can truly take root.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295830704131
+    m_Localized: A new territory lies before you. Survey the surroundings and choose
+      where the settlement will take root.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295830704132
+    m_Localized: A settlement needs basic materials. Gather dirt, logs, and stone
+      for the first farms.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295830704133
+    m_Localized: Empty fields yield nothing. Open farm details, choose crops for
+      3 farms, and sow them.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295830704134
+    m_Localized: With survival secured, the settlement can look ahead. Open Technology
+      and select a current research project.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295847481344
+    m_Localized: Farm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295847481345
+    m_Localized: Fishing Hut
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295860064256
+    m_Localized: Granary
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295864258560
+    m_Localized: Hospital
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295864258561
+    m_Localized: Logging Hut
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295864258562
+    m_Localized: Market
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295885230080
+    m_Localized: Royal Palace
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295889424384
+    m_Localized: Police Station
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295897812992
+    m_Localized: Quarry
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295897812993
+    m_Localized: Residence
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295902007296
+    m_Localized: Dirt Road
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295906201600
+    m_Localized: Statue
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295910395904
+    m_Localized: Small Dirt Pile
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295914590208
+    m_Localized: Small Stone Pile
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295956533248
+    m_Localized: Tree
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295964921856
+    m_Localized: Warehouse
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295969116160
+    m_Localized: Goddess Statue
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295969116161
+    m_Localized: Sacred Deer Statue
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295969116162
+    m_Localized: Tree 1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295969116163
+    m_Localized: Tree 2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295969116164
+    m_Localized: Tree 3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295969116165
+    m_Localized: Tree 4
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295969116166
+    m_Localized: Tree 5
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295969116167
+    m_Localized: Tree 6
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295969116168
+    m_Localized: Tree 7
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295969116169
+    m_Localized: Tree 8
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295990087680
+    m_Localized: Hospital Lv.1 Fully Staffed Care
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295990087681
+    m_Localized: Hospital Lv.1 Basic Care
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295990087682
+    m_Localized: Hospital Lv.2 Fully Staffed Care
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295990087683
+    m_Localized: Hospital Lv.2 Basic Care
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295990087684
+    m_Localized: Hospital Lv.3 Basic Care
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295990087685
+    m_Localized: Hospital Lv.3 Fully Staffed Care
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295990087686
+    m_Localized: Police Station Lv.1 Fully Staffed Security
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295990087687
+    m_Localized: Police Station Lv.1 Basic Security
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295990087688
+    m_Localized: Police Station Lv.2 Fully Staffed Security
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295990087689
+    m_Localized: Police Station Lv.2 Basic Security
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295990087690
+    m_Localized: Police Station Lv.3 Basic Security
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295990087691
+    m_Localized: Police Station Lv.3 Fully Staffed Security
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295990087692
+    m_Localized: Statue Beauty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295990087693
+    m_Localized: Tree Beauty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295998476288
+    m_Localized: Test Map
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295998476289
+    m_Localized: This is test map 01.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9296048807936
+    m_Localized: Masonry Quarry Bonus
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9296053002240
+    m_Localized: Wheel Storage Preservation
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds: []

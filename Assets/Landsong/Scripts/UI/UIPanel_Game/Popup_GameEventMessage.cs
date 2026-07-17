@@ -1,6 +1,7 @@
 using System;
 using System.Text;
 using Landsong.GameEventSystem;
+using Landsong.Localization;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -46,6 +47,7 @@ namespace Landsong.UISystem
 
         private void OnEnable()
         {
+            L10n.LanguageChanged += RefreshLocalization;
             if (confirmButton == null)
             {
                 Debug.LogError($"{nameof(Popup_GameEventMessage)} 配置错误：confirmButton 未绑定。", this);
@@ -58,6 +60,7 @@ namespace Landsong.UISystem
 
         private void OnDisable()
         {
+            L10n.LanguageChanged -= RefreshLocalization;
             if (confirmButton != null)
             {
                 confirmButton.onClick.RemoveListener(HandleConfirmClicked);
@@ -124,6 +127,17 @@ namespace Landsong.UISystem
             Hide();
         }
 
+        private void RefreshLocalization()
+        {
+            if (!showingMessage || !message.IsValid)
+            {
+                return;
+            }
+
+            SetText(eventNameLabel, FormatEventName(message));
+            SetText(eventContentLabel, FormatEventContent(message));
+        }
+
         private static string FormatEventName(GameEventMessage eventMessage)
         {
             if (!eventMessage.IsValid)
@@ -143,7 +157,10 @@ namespace Landsong.UISystem
             }
 
             var builder = new StringBuilder();
-            AppendLine(builder, $"第 {eventMessage.Turn} 回合");
+            AppendLine(builder, L10n.Gameplay(
+                "gameplay.common.turn_heading",
+                "第 {0} 回合",
+                eventMessage.Turn));
             AppendLine(builder, ResolveSourceName(eventMessage));
             AppendLine(builder, eventMessage.Message);
             return builder.ToString();

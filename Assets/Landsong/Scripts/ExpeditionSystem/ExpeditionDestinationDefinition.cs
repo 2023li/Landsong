@@ -4,6 +4,7 @@ using System.Text;
 using Landsong.BuildingSystem;
 using Landsong.ConditionSystem;
 using Landsong.InventorySystem;
+using Landsong.Localization;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -76,10 +77,16 @@ namespace Landsong.ExpeditionSystem
         private BuildingBase[] blueprintRewards = Array.Empty<BuildingBase>();
 
         public string DestinationId => NormalizeId(destinationId);
-        public string DisplayName => string.IsNullOrWhiteSpace(displayName)
-            ? (string.IsNullOrWhiteSpace(DestinationId) ? "未命名目的地" : DestinationId)
-            : displayName.Trim();
-        public string Description => string.IsNullOrWhiteSpace(description) ? string.Empty : description.Trim();
+        public string DisplayName => L10n.ContentName(
+            "expedition",
+            DestinationId,
+            string.IsNullOrWhiteSpace(displayName)
+                ? (string.IsNullOrWhiteSpace(DestinationId) ? "未命名目的地" : DestinationId)
+                : displayName.Trim());
+        public string Description => L10n.ContentDescription(
+            "expedition",
+            DestinationId,
+            string.IsNullOrWhiteSpace(description) ? string.Empty : description.Trim());
         public Sprite Icon => icon;
         public bool Repeatable => repeatable;
         public GameCondition VisibleCondition => visibleCondition;

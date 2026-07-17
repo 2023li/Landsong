@@ -61,7 +61,7 @@ public class LoadGamePanelItem_SaveItem : MonoBehaviour
         {
             if (txt_PlayerName != null)
             {
-                txt_PlayerName.text = "无效存档";
+            txt_PlayerName.text = Landsong.Localization.L10n.Ui("ui.save.invalid", "无效存档");
             }
 
             if (txt_LastPlayedTime != null)

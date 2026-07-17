@@ -30,8 +30,15 @@ namespace Landsong.UISystem
 
             SetText(titleLabel, character.DisplayName);
             SetText(metaLabel, $"{GamePanel_InheritanceText.FormatRole(character.Role)} / {GamePanel_InheritanceText.FormatStatus(character.Status)}");
-            SetText(ageLabel, $"年龄 {character.Age} / 寿命 {character.EffectiveMaxLifespan} / 剩余 {character.RemainingLifespan}");
-            SetText(reignLabel, character.IsReigning ? $"统治 {character.CurrentReignTurns} 回合" : BuildHeirText(character, legalHeirAge));
+            SetText(ageLabel, Landsong.Localization.L10n.Gameplay(
+                "gameplay.inheritance.ui.age_summary",
+                "年龄 {0} / 寿命 {1} / 剩余 {2}",
+                character.Age,
+                character.EffectiveMaxLifespan,
+                character.RemainingLifespan));
+            SetText(reignLabel, character.IsReigning
+                ? Landsong.Localization.L10n.Gameplay("gameplay.inheritance.ui.reign_turns", "统治 {0} 回合", character.CurrentReignTurns)
+                : BuildHeirText(character, legalHeirAge));
             SetText(relationLabel, GamePanel_InheritanceText.FormatRelations(character));
             SetText(traitsLabel, GamePanel_InheritanceText.FormatTraits(character));
             SetMarkerColor(character);
@@ -59,8 +66,8 @@ namespace Landsong.UISystem
             }
 
             return character.IsLegalHeir(legalHeirAge)
-                ? "可继承"
-                : $"未成年：{character.Age}/{legalHeirAge}";
+                ? Landsong.Localization.L10n.Gameplay("gameplay.inheritance.ui.eligible", "可继承")
+                : Landsong.Localization.L10n.Gameplay("gameplay.inheritance.ui.underage_progress", "未成年：{0}/{1}", character.Age, legalHeirAge);
         }
 
         private void SetMarkerColor(RoyalCharacterState character)

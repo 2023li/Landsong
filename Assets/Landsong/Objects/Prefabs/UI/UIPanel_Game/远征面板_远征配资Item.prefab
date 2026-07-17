@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 451700525029357686}
   - component: {fileID: 3524377202143474888}
   - component: {fileID: 6107580864946394697}
+  - component: {fileID: 4136221476453953632}
   m_Layer: 5
   m_Name: "txt_\u6570\u91CF"
   m_TagString: Untagged
@@ -55,7 +56,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -137,6 +138,21 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &4136221476453953632
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 322548407493386763}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3a0eb435e77db048a33c306315169c7, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.Localization.LocalizedTextBinding
+  tableName: UI
+  key: ui.asset.item_uf26bd147.d2c4bd0b
+  sourceFallback: "\u52A0\u6210"
 --- !u!1 &889540726919836835
 GameObject:
   m_ObjectHideFlags: 0
@@ -186,7 +202,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 67db9e8f0e2ae9c40bc1e2b64352a6b4, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Slider
   m_Navigation:
     m_Mode: 3
@@ -282,7 +298,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -364,7 +380,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 0.46540874, g: 0.2853921, b: 0.2853921, a: 1}
@@ -394,7 +410,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff93b743bcfd4ac459bd677f4d34a2f2, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.UISystem.GamePanel_ExpeditionSupplyInput
   icon: {fileID: 6263356503341636986}
   nameLabel: {fileID: 6383917684351870460}
@@ -486,6 +502,7 @@ GameObject:
   - component: {fileID: 3289911505178601951}
   - component: {fileID: 1636553104729905719}
   - component: {fileID: 5967542701137840428}
+  - component: {fileID: 6251101318377802204}
   m_Layer: 5
   m_Name: "txt_\u52A0\u6210"
   m_TagString: Untagged
@@ -530,7 +547,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -612,6 +629,21 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &6251101318377802204
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4237750259910977119}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3a0eb435e77db048a33c306315169c7, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.Localization.LocalizedTextBinding
+  tableName: UI
+  key: ui.asset.item_uf26bd147.e2b9b01e
+  sourceFallback: "\u52A0\u6210"
 --- !u!1 &6362498846162080176
 GameObject:
   m_ObjectHideFlags: 0
@@ -667,7 +699,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -742,7 +774,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -773,6 +805,7 @@ GameObject:
   - component: {fileID: 4295700523965378110}
   - component: {fileID: 4853116234187873552}
   - component: {fileID: 6383917684351870460}
+  - component: {fileID: 1953402611923958582}
   m_Layer: 5
   m_Name: "txt_\u540D\u79F0"
   m_TagString: Untagged
@@ -817,7 +850,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -899,6 +932,21 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &1953402611923958582
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7735789397321776932}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3a0eb435e77db048a33c306315169c7, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.Localization.LocalizedTextBinding
+  tableName: UI
+  key: ui.asset.item_uf26bd147.c8704f69
+  sourceFallback: "\u540D\u79F0"
 --- !u!1 &8479034152952306843
 GameObject:
   m_ObjectHideFlags: 0
@@ -910,6 +958,7 @@ GameObject:
   - component: {fileID: 8969922731102098437}
   - component: {fileID: 3111237936394851281}
   - component: {fileID: 7699503598880975384}
+  - component: {fileID: 2796583787884015787}
   m_Layer: 5
   m_Name: "txt_\u9700\u6C42"
   m_TagString: Untagged
@@ -954,7 +1003,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -1036,6 +1085,21 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &2796583787884015787
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8479034152952306843}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3a0eb435e77db048a33c306315169c7, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.Localization.LocalizedTextBinding
+  tableName: UI
+  key: ui.asset.item_uf26bd147.3d96150b
+  sourceFallback: "\u9700\u6C42"
 --- !u!1 &9222226044887613388
 GameObject:
   m_ObjectHideFlags: 0
@@ -1047,6 +1111,7 @@ GameObject:
   - component: {fileID: 5191955458975613000}
   - component: {fileID: 8454093677943535569}
   - component: {fileID: 3397203971666127023}
+  - component: {fileID: 1847622842051681958}
   m_Layer: 5
   m_Name: "txt_\u5E93\u5B58"
   m_TagString: Untagged
@@ -1091,7 +1156,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -1173,3 +1238,18 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &1847622842051681958
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9222226044887613388}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3a0eb435e77db048a33c306315169c7, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.Localization.LocalizedTextBinding
+  tableName: UI
+  key: ui.asset.item_uf26bd147.276f7005
+  sourceFallback: "\u5E93\u5B58"

@@ -82,7 +82,10 @@ public sealed class BuildingDetailsBlock_Workforce : BuildingDetailsBlockBase,
         RefreshWorkerCountText();
         SetText(
             txt_当前补贴金币,
-            $"金币/回合 {workforceFundingSource.TargetSubsidyGoldPerTurn}");
+            Landsong.Localization.L10n.Gameplay(
+                "gameplay.building.workforce.gold_per_turn",
+                "金币/回合 {0}",
+                workforceFundingSource.TargetSubsidyGoldPerTurn));
         RefreshRecruitControl();
 
         if (owner != null && owner.IsDetailSidebarOwner(this))
@@ -193,7 +196,10 @@ public sealed class BuildingDetailsBlock_Workforce : BuildingDetailsBlockBase,
             btn_招募工人.interactable = workforceFundingSource.CanRecruitToFull;
         }
 
-        SetText(txt_招募消耗, $"消耗{recruitCost}金币 招募1名工人");
+        SetText(txt_招募消耗, Landsong.Localization.L10n.Gameplay(
+            "gameplay.building.workforce.recruit_cost",
+            "消耗{0}金币 招募1名工人",
+            recruitCost));
     }
 
     private void HandleAutoSubsidyChanged(bool enabled)
@@ -268,7 +274,12 @@ public sealed class BuildingDetailsBlock_Workforce : BuildingDetailsBlockBase,
 
         SetText(
             txt_当前工人,
-            $"工人：{workforceFundingSource.CurrentWorkers}/{workforceFundingSource.MaxWorkers}（稳定：{workforceFundingSource.StableWorkers}）");
+            Landsong.Localization.L10n.Gameplay(
+                "gameplay.building.workforce.summary",
+                "工人：{0}/{1}（稳定：{2}）",
+                workforceFundingSource.CurrentWorkers,
+                workforceFundingSource.MaxWorkers,
+                workforceFundingSource.StableWorkers));
     }
 
     private void SetTargetStableWorkerButtonsInteractable(bool canGoPrevious, bool canGoNext)

@@ -49,6 +49,7 @@ public sealed class GamePanel_Inventory : MonoBehaviour
     }
     private void OnEnable()
     {
+        Landsong.Localization.L10n.LanguageChanged += RefreshInventory;
         ResolveInventory();
         SubscribeInventory();
         RefreshInventory();
@@ -56,6 +57,7 @@ public sealed class GamePanel_Inventory : MonoBehaviour
 
     private void OnDisable()
     {
+        Landsong.Localization.L10n.LanguageChanged -= RefreshInventory;
         UnsubscribeInventory();
     }
 

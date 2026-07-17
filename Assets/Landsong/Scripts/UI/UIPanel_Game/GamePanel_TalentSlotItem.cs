@@ -77,10 +77,14 @@ namespace Landsong.UISystem
             var canAssignSelected = selectedTalent != null && slot.Accepts(selectedTalent);
             SetText(titleLabel, slot.DisplayName);
             SetText(restrictionLabel, GamePanel_TalentText.FormatSlotRestriction(slot));
-            SetText(assignedTalentLabel, slot.AssignedTalent == null ? "空槽" : slot.AssignedTalent.DisplayName);
+            SetText(assignedTalentLabel, slot.AssignedTalent == null
+                ? Landsong.Localization.L10n.Gameplay("gameplay.talent.ui.empty_slot", "空槽")
+                : slot.AssignedTalent.DisplayName);
             SetText(statusLabel, BuildStatusText(canAssignSelected));
-            SetText(assignButtonLabel, selectedTalent == null ? "选择人才" : "任命");
-            SetText(clearButtonLabel, "清空");
+            SetText(assignButtonLabel, selectedTalent == null
+                ? Landsong.Localization.L10n.Gameplay("gameplay.talent.ui.select_talent", "选择人才")
+                : Landsong.Localization.L10n.Gameplay("gameplay.talent.ui.assign", "任命"));
+            SetText(clearButtonLabel, Landsong.Localization.L10n.Gameplay("gameplay.talent.ui.clear", "清空"));
             SetActive(assignableRoot, canAssignSelected);
 
             if (assignButton != null)
@@ -99,12 +103,12 @@ namespace Landsong.UISystem
         {
             if (selectedTalent == null)
             {
-                return "先从人才池选择人才";
+                return Landsong.Localization.L10n.Gameplay("gameplay.talent.ui.select_from_pool", "先从人才池选择人才");
             }
 
             return canAssignSelected
-                ? $"可任命：{selectedTalent.DisplayName}"
-                : $"不可任命：{selectedTalent.DisplayName} 职业不匹配";
+                ? Landsong.Localization.L10n.Gameplay("gameplay.talent.ui.can_assign", "可任命：{0}", selectedTalent.DisplayName)
+                : Landsong.Localization.L10n.Gameplay("gameplay.talent.ui.cannot_assign", "不可任命：{0} 职业不匹配", selectedTalent.DisplayName);
         }
 
         private void RegisterButtons()

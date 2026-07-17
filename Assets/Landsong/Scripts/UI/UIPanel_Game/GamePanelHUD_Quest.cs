@@ -279,13 +279,13 @@ namespace Landsong.UISystem
                     AddResourceRequirements(quest);
                     break;
                 case QuestObjectiveType.MoveCamera:
-                    AddNumericRequirement(quest, "移动视野");
+                    AddNumericRequirement(quest, Landsong.Localization.L10n.Gameplay("gameplay.quest.target.move_camera", "移动视野"));
                     break;
                 case QuestObjectiveType.PlantCrops:
-                    AddNumericRequirement(quest, "播种农田");
+                    AddNumericRequirement(quest, Landsong.Localization.L10n.Gameplay("gameplay.quest.target.plant_crops", "播种农田"));
                     break;
                 case QuestObjectiveType.SelectTechnology:
-                    AddNumericRequirement(quest, "选择研究科技");
+                    AddNumericRequirement(quest, Landsong.Localization.L10n.Gameplay("gameplay.quest.target.select_technology", "选择研究科技"));
                     break;
                 default:
                     AddRequirement($"{quest.CurrentAmount}/{quest.TargetAmount}", quest.IsCompleted);
@@ -296,12 +296,14 @@ namespace Landsong.UISystem
         private void AddBuildRequirement(GameQuestState quest)
         {
             var targetName = string.IsNullOrWhiteSpace(quest.TargetDisplayName)
-                ? "目标建筑"
+                ? Landsong.Localization.L10n.Gameplay("gameplay.quest.ui.target_building", "目标建筑")
                 : quest.TargetDisplayName;
             var targetAmount = Mathf.Max(1, quest.TargetAmount);
             var currentAmount = Mathf.Clamp(quest.CurrentAmount, 0, targetAmount);
             var isCompleted = quest.IsCompleted || currentAmount >= targetAmount;
-            AddRequirement($"建造 {targetName}：{currentAmount}/{targetAmount}", isCompleted);
+            AddRequirement(
+                Landsong.Localization.L10n.Gameplay("gameplay.quest.ui.build_progress", "建造 {0}：{1}/{2}", targetName, currentAmount, targetAmount),
+                isCompleted);
         }
 
         private void AddResourceRequirements(GameQuestState quest)
@@ -315,8 +317,7 @@ namespace Landsong.UISystem
                     continue;
                 }
 
-                var action = quest.IsResourceCollection ? "收集 " : "提交 ";
-                var text = action + ResourceRichTextFormatter.FormatProgress(
+                var progressText = ResourceRichTextFormatter.FormatProgress(
                     progress.ItemDefinition,
                     progress.ItemId,
                     progress.DisplayName,
@@ -324,6 +325,9 @@ namespace Landsong.UISystem
                     Mathf.Max(0, progress.RequiredAmount),
                     progress.InventoryAmount,
                     false);
+                var text = quest.IsResourceCollection
+                    ? Landsong.Localization.L10n.Gameplay("gameplay.quest.ui.collect_progress", "收集 {0}", progressText)
+                    : Landsong.Localization.L10n.Gameplay("gameplay.quest.ui.submit_progress", "提交 {0}", progressText);
                 var isCompleted = quest.IsCompleted || progress.IsComplete;
                 AddRequirement(text, isCompleted);
             }
@@ -567,12 +571,15 @@ namespace Landsong.UISystem
 
             if (quest.IsCompleted)
             {
-                return "已完成";
+                return Landsong.Localization.L10n.Gameplay("gameplay.common.completed", "已完成");
             }
 
             var gameSystem = GameSystem.Instance;
             var currentTurn = gameSystem == null ? quest.StartedTurn : gameSystem.Services.Turn.CurrentTurn;
-            return $"剩余 {quest.GetRemainingTurns(currentTurn)} 回合";
+            return Landsong.Localization.L10n.Gameplay(
+                "gameplay.quest.ui.remaining_turns",
+                "剩余 {0} 回合",
+                quest.GetRemainingTurns(currentTurn));
         }
 
         private void EnsureTitleColorInitialized()

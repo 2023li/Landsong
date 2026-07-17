@@ -98,28 +98,37 @@ namespace Landsong.UISystem
 
             SetIcon(option.Icon);
             SetText(nameLabel, option.DisplayName);
-            SetText(requiredLabel, option.RequiredAmount > 0 ? $"最低 {option.RequiredAmount}" : "可选");
+            SetText(requiredLabel, option.RequiredAmount > 0
+                ? Landsong.Localization.L10n.Gameplay("gameplay.expedition.supply.minimum", "最低 {0}", option.RequiredAmount)
+                : Landsong.Localization.L10n.Gameplay("gameplay.common.optional", "可选"));
 
             availableAmount = inventory == null || string.IsNullOrWhiteSpace(option.ItemId)
                 ? 0
                 : inventory.GetQuantity(option.ItemId);
-            SetText(availableLabel, $"库存 {availableAmount}");
+            SetText(availableLabel, Landsong.Localization.L10n.Gameplay("gameplay.expedition.supply.inventory", "库存 {0}", availableAmount));
 
             RefreshSliderRange();
             RefreshAmountText();
 
             var successText = option.SuccessChancePerItem > 0f
-                ? $"+{option.SuccessChancePerItem * 100f:0.#}%成功/额外"
+                ? Landsong.Localization.L10n.Gameplay("gameplay.expedition.supply.success_per_extra", "+{0:0.#}%成功/额外", option.SuccessChancePerItem * 100f)
                 : string.Empty;
             var rewardText = option.RewardYieldBonusPerItem > 0f
-                ? $"+{option.RewardYieldBonusPerItem * 100f:0.#}%收益/额外"
+                ? Landsong.Localization.L10n.Gameplay("gameplay.expedition.supply.yield_per_extra", "+{0:0.#}%收益/额外", option.RewardYieldBonusPerItem * 100f)
                 : string.Empty;
             var separator = !string.IsNullOrWhiteSpace(successText) && !string.IsNullOrWhiteSpace(rewardText)
                 ? "，"
                 : string.Empty;
             SetText(
                 bonusLabel,
-                $"额外最多 {option.ExtraAmountLimit}{(string.IsNullOrWhiteSpace(successText + rewardText) ? string.Empty : "，")}{successText}{separator}{rewardText}");
+                Landsong.Localization.L10n.Gameplay(
+                    "gameplay.expedition.supply.extra_limit",
+                    "额外最多 {0}{1}{2}{3}{4}",
+                    option.ExtraAmountLimit,
+                    string.IsNullOrWhiteSpace(successText + rewardText) ? string.Empty : Landsong.Localization.L10n.Gameplay("gameplay.common.comma", "，"),
+                    successText,
+                    separator,
+                    rewardText));
         }
 
         private void RefreshSliderRange()
@@ -156,7 +165,9 @@ namespace Landsong.UISystem
 
             var amount = Amount;
             var extra = option.GetExtraAssignedAmount(amount);
-            SetText(amountLabel, extra > 0 ? $"携带 {amount}（额外 {extra}）" : $"携带 {amount}");
+            SetText(amountLabel, extra > 0
+                ? Landsong.Localization.L10n.Gameplay("gameplay.expedition.supply.amount_extra", "携带 {0}（额外 {1}）", amount, extra)
+                : Landsong.Localization.L10n.Gameplay("gameplay.expedition.supply.amount", "携带 {0}", amount));
         }
 
         private void HandleAmountChanged(float _)

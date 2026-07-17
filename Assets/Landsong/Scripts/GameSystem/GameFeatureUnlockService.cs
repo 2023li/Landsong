@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Landsong.Localization;
 
 namespace Landsong
 {
@@ -71,7 +72,7 @@ namespace Landsong
 
         public static string GetDisplayName(GameFeature feature)
         {
-            return feature switch
+            var fallback = feature switch
             {
                 GameFeature.Building => "建造系统",
                 GameFeature.Inventory => "库存系统",
@@ -81,6 +82,7 @@ namespace Landsong
                 GameFeature.Congress => "国会系统",
                 _ => "未知系统"
             };
+            return L10n.Gameplay($"gameplay.feature.{L10n.NormalizeKeyPart(feature.ToString())}", fallback);
         }
 
         public static bool IsValid(GameFeature feature)

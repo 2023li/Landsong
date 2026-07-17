@@ -1,0 +1,2052 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b11a58205ec3474ca216360e9fa74a8, type: 3}
+  m_Name: Gameplay Shared Data
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.SharedTableData
+  m_TableCollectionName: Gameplay
+  m_TableCollectionNameGuidString: 7fb02ea4f942710429b0688dc3ad1b2e
+  m_Entries:
+  - m_Id: 16124988088320
+    m_Key: gameplay.event.population_decayed.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125059391488
+    m_Key: gameplay.event.worker_resigned.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974400
+    m_Key: gameplay.event.no_available_population.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974401
+    m_Key: gameplay.event.subsidy_auto_decreased.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974402
+    m_Key: gameplay.event.subsidy_auto_increased.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974403
+    m_Key: gameplay.event.subsidy_gold_missing.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974404
+    m_Key: gameplay.event.recruit_partially_done.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974405
+    m_Key: gameplay.event.technology_research_completed.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974406
+    m_Key: gameplay.event.technology_research_not_selected.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974407
+    m_Key: gameplay.event.technology_repeat_research_continued.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974408
+    m_Key: gameplay.event.quest_added.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974409
+    m_Key: gameplay.event.quest_completed.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974410
+    m_Key: gameplay.event.quest_failed.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974411
+    m_Key: gameplay.event.quest_reward_claim_failed.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974412
+    m_Key: gameplay.event.quest_resource_submitted.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974413
+    m_Key: gameplay.event.quest_random_added.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974414
+    m_Key: gameplay.event.expedition_started.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974415
+    m_Key: gameplay.event.expedition_succeeded.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974416
+    m_Key: gameplay.event.expedition_failed.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974417
+    m_Key: gameplay.event.expedition_rewards_pending.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974418
+    m_Key: gameplay.event.expedition_rewards_claimed.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974419
+    m_Key: gameplay.event.expedition_subsidy_missing.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974420
+    m_Key: gameplay.event.talent_refreshed.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974421
+    m_Key: gameplay.event.talent_recruited.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974422
+    m_Key: gameplay.event.talent_assigned.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974423
+    m_Key: gameplay.event.talent_unassigned.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974424
+    m_Key: gameplay.event.talent_upgraded.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974425
+    m_Key: gameplay.event.talent_salary_paid.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974426
+    m_Key: gameplay.event.talent_salary_missing.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974427
+    m_Key: gameplay.event.talent_effect_triggered.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974428
+    m_Key: gameplay.event.talent_trait_discovered.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974429
+    m_Key: gameplay.event.talent_trait_activated.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974430
+    m_Key: gameplay.event.royal_prince_born.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974431
+    m_Key: gameplay.event.royal_trait_discovered.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974432
+    m_Key: gameplay.event.royal_trait_activated.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974433
+    m_Key: gameplay.event.royal_acquired_trait_added.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974434
+    m_Key: gameplay.event.royal_lifetime_warning.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974435
+    m_Key: gameplay.event.royal_king_died.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974436
+    m_Key: gameplay.event.royal_succession.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974437
+    m_Key: gameplay.event.royal_succession_crisis.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974438
+    m_Key: gameplay.event.royal_trait_effect_triggered.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974439
+    m_Key: gameplay.common.turn_heading
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168704
+    m_Key: gameplay.common.unknown_character
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168705
+    m_Key: gameplay.common.previous_king
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168706
+    m_Key: gameplay.common.unknown_destination
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168707
+    m_Key: gameplay.common.item_amount
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168708
+    m_Key: gameplay.common.list_separator
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168709
+    m_Key: gameplay.quest.category.random
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168710
+    m_Key: gameplay.quest.category.mainline
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168711
+    m_Key: gameplay.quest.target.move_camera
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168712
+    m_Key: gameplay.quest.target.any_technology
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168713
+    m_Key: gameplay.quest.target.multiple_resources
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168714
+    m_Key: gameplay.quest.template.random_exchange.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168715
+    m_Key: gameplay.quest.template.random_exchange.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168716
+    m_Key: gameplay.quest.template.debug_delivery.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168717
+    m_Key: gameplay.quest.template.debug_delivery.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168718
+    m_Key: gameplay.quest.requester.distant_empire.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168719
+    m_Key: gameplay.technology.research_completed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168720
+    m_Key: gameplay.technology.research_completed_with_effects
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168721
+    m_Key: gameplay.technology.repeat_continued
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168722
+    m_Key: gameplay.technology.no_research_selected
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168723
+    m_Key: gameplay.talent.refreshed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168724
+    m_Key: gameplay.talent.recruited
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168725
+    m_Key: gameplay.talent.assigned
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168726
+    m_Key: gameplay.talent.unassigned
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168727
+    m_Key: gameplay.talent.upgraded
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168728
+    m_Key: gameplay.talent.salary_missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168729
+    m_Key: gameplay.talent.salary_paid
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168730
+    m_Key: gameplay.talent.effect_triggered
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168731
+    m_Key: gameplay.talent.trait_discovered
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168732
+    m_Key: gameplay.talent.trait_activated
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168733
+    m_Key: gameplay.inheritance.prince_born
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168734
+    m_Key: gameplay.inheritance.trait_effect_triggered
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168735
+    m_Key: gameplay.inheritance.acquired_trait_added
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168736
+    m_Key: gameplay.inheritance.trait_discovered
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168737
+    m_Key: gameplay.inheritance.trait_activated
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168738
+    m_Key: gameplay.inheritance.lifetime_warning
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168739
+    m_Key: gameplay.inheritance.succession_crisis
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168740
+    m_Key: gameplay.inheritance.succession
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168741
+    m_Key: gameplay.inheritance.reason.abdication
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168742
+    m_Key: gameplay.inheritance.reason.death
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168743
+    m_Key: gameplay.expedition.subsidy_penalty.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168744
+    m_Key: gameplay.expedition.subsidy_penalty.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168745
+    m_Key: gameplay.expedition.started
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168746
+    m_Key: gameplay.expedition.rewards_claimed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168747
+    m_Key: gameplay.expedition.returned_rewards_pending
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168748
+    m_Key: gameplay.expedition.returned_success
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168749
+    m_Key: gameplay.expedition.failed_subsidy_missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168750
+    m_Key: gameplay.expedition.failed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168751
+    m_Key: gameplay.common.preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168752
+    m_Key: gameplay.common.upgrade
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168753
+    m_Key: gameplay.common.building
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168754
+    m_Key: gameplay.common.reward
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168755
+    m_Key: gameplay.common.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168756
+    m_Key: gameplay.common.waiting
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168757
+    m_Key: gameplay.common.unlimited
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168758
+    m_Key: gameplay.common.conditions_not_met
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168759
+    m_Key: gameplay.common.completed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168760
+    m_Key: gameplay.common.unavailable
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168761
+    m_Key: gameplay.common.optional
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168762
+    m_Key: gameplay.common.comma
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168763
+    m_Key: gameplay.common.none
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168764
+    m_Key: gameplay.common.not_configured
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168765
+    m_Key: gameplay.technology.ui.none_selected
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168766
+    m_Key: gameplay.technology.ui.not_initialized
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168767
+    m_Key: gameplay.technology.ui.no_nodes
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168768
+    m_Key: gameplay.technology.ui.research_cost
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168769
+    m_Key: gameplay.technology.ui.unlocks_and_effects
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168770
+    m_Key: gameplay.technology.ui.repeating
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168771
+    m_Key: gameplay.technology.ui.researching
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168772
+    m_Key: gameplay.technology.ui.queued
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168773
+    m_Key: gameplay.technology.ui.completed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168774
+    m_Key: gameplay.technology.ui.repeatable_switch
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168775
+    m_Key: gameplay.technology.ui.repeatable_start
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168776
+    m_Key: gameplay.technology.ui.available_switch
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168777
+    m_Key: gameplay.technology.ui.available_start
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168778
+    m_Key: gameplay.technology.ui.prerequisites_locked_queue
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168779
+    m_Key: gameplay.technology.ui.invalid
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168780
+    m_Key: gameplay.technology.ui.unavailable
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168781
+    m_Key: gameplay.technology.ui.no_points_required
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168782
+    m_Key: gameplay.technology.ui.no_prerequisites
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168783
+    m_Key: gameplay.technology.ui.prerequisites
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168784
+    m_Key: gameplay.technology.ui.point_cost
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168785
+    m_Key: gameplay.technology.node.unconfigured
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168786
+    m_Key: gameplay.technology.node.prerequisite_incomplete
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168787
+    m_Key: gameplay.technology.node.available
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168788
+    m_Key: gameplay.technology.node.repeatable
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168789
+    m_Key: gameplay.technology.node.in_queue
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168790
+    m_Key: gameplay.technology.node.queue_position
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168791
+    m_Key: gameplay.technology.node.more_unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168792
+    m_Key: gameplay.technology.ui.waiting_queue
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168793
+    m_Key: gameplay.technology.ui.waiting_for
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168794
+    m_Key: gameplay.expedition.ui.not_initialized
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168795
+    m_Key: gameplay.expedition.ui.no_destinations
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168796
+    m_Key: gameplay.expedition.ui.none_selected
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168797
+    m_Key: gameplay.expedition.ui.allocate
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168798
+    m_Key: gameplay.expedition.ui.select_destination
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168799
+    m_Key: gameplay.expedition.ui.penalty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168800
+    m_Key: gameplay.expedition.ui.assigned_population
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168801
+    m_Key: gameplay.expedition.ui.success_with_bonus
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168802
+    m_Key: gameplay.expedition.ui.success
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168803
+    m_Key: gameplay.expedition.ui.population_range
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168804
+    m_Key: gameplay.expedition.ui.population_min
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168805
+    m_Key: gameplay.expedition.ui.depart
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168806
+    m_Key: gameplay.expedition.ui.available
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168807
+    m_Key: gameplay.expedition.ui.destination_summary
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168808
+    m_Key: gameplay.expedition.ui.team_full
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168809
+    m_Key: gameplay.expedition.ui.population_insufficient
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168810
+    m_Key: gameplay.expedition.ui.population_exceeded
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168811
+    m_Key: gameplay.expedition.ui.base_population_insufficient
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168812
+    m_Key: gameplay.expedition.ui.cannot_depart
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168813
+    m_Key: gameplay.expedition.ui.return_progress
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168814
+    m_Key: gameplay.expedition.supply.minimum
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168815
+    m_Key: gameplay.expedition.supply.inventory
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168816
+    m_Key: gameplay.expedition.supply.success_per_extra
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168817
+    m_Key: gameplay.expedition.supply.yield_per_extra
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168818
+    m_Key: gameplay.expedition.supply.extra_limit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168819
+    m_Key: gameplay.expedition.supply.amount_extra
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168820
+    m_Key: gameplay.expedition.supply.amount
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168821
+    m_Key: gameplay.talent.profession.any
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168822
+    m_Key: gameplay.talent.profession.steward
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168823
+    m_Key: gameplay.talent.profession.archmage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168824
+    m_Key: gameplay.talent.profession.general
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168825
+    m_Key: gameplay.talent.profession.scholar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168826
+    m_Key: gameplay.talent.rarity.common
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168827
+    m_Key: gameplay.talent.rarity.uncommon
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168828
+    m_Key: gameplay.talent.rarity.rare
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168829
+    m_Key: gameplay.talent.rarity.epic
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168830
+    m_Key: gameplay.talent.rarity.legendary
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168831
+    m_Key: gameplay.talent.level.max
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168832
+    m_Key: gameplay.talent.level.progress
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168833
+    m_Key: gameplay.talent.salary
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168834
+    m_Key: gameplay.talent.offer_details
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168835
+    m_Key: gameplay.talent.no_unlocked_effects
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168836
+    m_Key: gameplay.talent.no_base_effects
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168837
+    m_Key: gameplay.talent.no_hidden_traits
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168838
+    m_Key: gameplay.talent.trait_active
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168839
+    m_Key: gameplay.talent.trait_discovered_label
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168840
+    m_Key: gameplay.talent.any_profession
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168841
+    m_Key: gameplay.talent.restricted_profession
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168842
+    m_Key: gameplay.talent.ui.unassigned
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168843
+    m_Key: gameplay.talent.ui.max_level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168844
+    m_Key: gameplay.talent.ui.unassign
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168845
+    m_Key: gameplay.talent.ui.has_hidden_traits
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168846
+    m_Key: gameplay.talent.ui.recruit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168847
+    m_Key: gameplay.talent.ui.empty_slot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168848
+    m_Key: gameplay.talent.ui.select_talent
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168849
+    m_Key: gameplay.talent.ui.assign
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168850
+    m_Key: gameplay.talent.ui.clear
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168851
+    m_Key: gameplay.talent.ui.select_from_pool
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168852
+    m_Key: gameplay.talent.ui.can_assign
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168853
+    m_Key: gameplay.talent.ui.cannot_assign
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168854
+    m_Key: gameplay.talent.ui.not_initialized
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168855
+    m_Key: gameplay.talent.ui.none_selected
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168856
+    m_Key: gameplay.talent.ui.selected
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168857
+    m_Key: gameplay.talent.ui.refresh
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168858
+    m_Key: gameplay.talent.ui.salary_summary
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168859
+    m_Key: gameplay.talent.ui.pool_summary
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168860
+    m_Key: gameplay.talent.ui.assigned_to
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168861
+    m_Key: gameplay.talent.result.catalog_missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168862
+    m_Key: gameplay.talent.result.no_candidates
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168863
+    m_Key: gameplay.talent.result.refreshed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168864
+    m_Key: gameplay.talent.result.offer_missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168865
+    m_Key: gameplay.talent.result.unique_recruited
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168866
+    m_Key: gameplay.talent.result.recruited
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168867
+    m_Key: gameplay.talent.result.talent_missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168868
+    m_Key: gameplay.talent.result.slot_missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168869
+    m_Key: gameplay.talent.result.profession_mismatch
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168870
+    m_Key: gameplay.talent.result.assigned
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168871
+    m_Key: gameplay.talent.result.slot_empty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168872
+    m_Key: gameplay.talent.result.unassigned
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168873
+    m_Key: gameplay.talent.result.not_assigned
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168874
+    m_Key: gameplay.talent.result.upgrade_unavailable
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168875
+    m_Key: gameplay.talent.result.upgraded
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168876
+    m_Key: gameplay.talent.result.inventory_missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168877
+    m_Key: gameplay.talent.result.gold_item_missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168878
+    m_Key: gameplay.talent.result.refresh_gold_missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168879
+    m_Key: gameplay.talent.result.refresh_spend_failed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168880
+    m_Key: gameplay.effect.item_added
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168881
+    m_Key: gameplay.effect.item_storage_full
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168882
+    m_Key: gameplay.effect.research_added
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168883
+    m_Key: gameplay.effect.blueprint_unlocked
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168884
+    m_Key: gameplay.effect.blueprint_already_unlocked
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168885
+    m_Key: gameplay.technology.buff.production_bonus
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168886
+    m_Key: gameplay.inheritance.role.king
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168887
+    m_Key: gameplay.inheritance.role.queen
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168888
+    m_Key: gameplay.inheritance.role.prince
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168889
+    m_Key: gameplay.inheritance.status.reigning
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168890
+    m_Key: gameplay.inheritance.status.consort
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168891
+    m_Key: gameplay.inheritance.status.heir
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168892
+    m_Key: gameplay.inheritance.status.retired
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168893
+    m_Key: gameplay.inheritance.status.dead
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168894
+    m_Key: gameplay.inheritance.legal_heir
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363008
+    m_Key: gameplay.inheritance.underage_heir
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363009
+    m_Key: gameplay.inheritance.character_line
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363010
+    m_Key: gameplay.inheritance.no_traits
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363011
+    m_Key: gameplay.inheritance.unknown_trait
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363012
+    m_Key: gameplay.inheritance.trait_state.active
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363013
+    m_Key: gameplay.inheritance.trait_state.discovered
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363014
+    m_Key: gameplay.inheritance.trait_origin.acquired
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363015
+    m_Key: gameplay.inheritance.trait_origin.innate
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363016
+    m_Key: gameplay.inheritance.trait_line
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363017
+    m_Key: gameplay.inheritance.relation.father
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363018
+    m_Key: gameplay.inheritance.relation.mother
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363019
+    m_Key: gameplay.inheritance.relation.children
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363020
+    m_Key: gameplay.inheritance.ui.age_summary
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363021
+    m_Key: gameplay.inheritance.ui.reign_turns
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363022
+    m_Key: gameplay.inheritance.ui.underage_progress
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363023
+    m_Key: gameplay.inheritance.ui.not_initialized
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363024
+    m_Key: gameplay.inheritance.ui.dynasty_continues
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363025
+    m_Key: gameplay.inheritance.ui.generation
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363026
+    m_Key: gameplay.inheritance.ui.current_king
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363027
+    m_Key: gameplay.inheritance.ui.current_queen
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363028
+    m_Key: gameplay.inheritance.ui.prince_born
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363029
+    m_Key: gameplay.inheritance.ui.prince_unavailable
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363030
+    m_Key: gameplay.inheritance.ui.new_king
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363031
+    m_Key: gameplay.inheritance.ui.abdication_failed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363032
+    m_Key: gameplay.building.status.normal
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363033
+    m_Key: gameplay.building.status.progress
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363034
+    m_Key: gameplay.building.status.abandoned
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363035
+    m_Key: gameplay.building.status.consumption_failed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363036
+    m_Key: gameplay.building.status.missing_inventory
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363037
+    m_Key: gameplay.building.status.invalid_food_item
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363038
+    m_Key: gameplay.building.status.missing_resource_provider
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363039
+    m_Key: gameplay.building.status.missing_food
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363040
+    m_Key: gameplay.building.status.invalid_tax_item
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363041
+    m_Key: gameplay.building.status.tax_reward_failed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363042
+    m_Key: gameplay.building.status.market_income_failed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363043
+    m_Key: gameplay.building.status.invalid_wood_item
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363044
+    m_Key: gameplay.building.status.invalid_gold_item
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363045
+    m_Key: gameplay.building.status.wood_storage_failed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363046
+    m_Key: gameplay.building.status.insufficient_workers
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363047
+    m_Key: gameplay.building.status.worker_shortage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363048
+    m_Key: gameplay.building.status.recruit_gold_missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363049
+    m_Key: gameplay.building.status.subsidy_gold_missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363050
+    m_Key: gameplay.building.status.road_blocked
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363051
+    m_Key: gameplay.building.status.warehouse_maintenance_missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363052
+    m_Key: gameplay.building.status.warehouse_maintenance_invalid
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363053
+    m_Key: gameplay.building.status.maintenance_missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363054
+    m_Key: gameplay.building.status.maintenance_invalid
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363055
+    m_Key: gameplay.building.available
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363056
+    m_Key: gameplay.building.available_materials_missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363057
+    m_Key: gameplay.building.development_incomplete
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363058
+    m_Key: gameplay.building.limit_reached
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363059
+    m_Key: gameplay.building.materials_missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363060
+    m_Key: gameplay.building.placement_cost
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363061
+    m_Key: gameplay.building.construction_cost
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363062
+    m_Key: gameplay.building.unnamed_material
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363063
+    m_Key: gameplay.building.crop.auto_harvest_on
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363064
+    m_Key: gameplay.building.crop.auto_harvest_off
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363065
+    m_Key: gameplay.building.crop.none_planted
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363066
+    m_Key: gameplay.building.crop.current_ready
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363067
+    m_Key: gameplay.building.crop.current
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363068
+    m_Key: gameplay.building.crop.no_growth
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363069
+    m_Key: gameplay.building.crop.growth_progress
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363070
+    m_Key: gameplay.building.crop.turns_remaining
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363071
+    m_Key: gameplay.building.crop.option
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363072
+    m_Key: gameplay.building.workforce.recruit_cost
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363073
+    m_Key: gameplay.building.workforce.summary
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363074
+    m_Key: gameplay.building.upgrade.not_initialized
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363075
+    m_Key: gameplay.building.upgrade.no_cost
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363076
+    m_Key: gameplay.building.upgrade.cost
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363077
+    m_Key: gameplay.building.function.group_summary
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363078
+    m_Key: gameplay.building.function.functional
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363079
+    m_Key: gameplay.building.function.resources
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363080
+    m_Key: gameplay.building.details.none
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363081
+    m_Key: gameplay.building.details.status
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363082
+    m_Key: gameplay.building.overview.construction
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363083
+    m_Key: gameplay.building.overview.level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363084
+    m_Key: gameplay.building.label.population
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363085
+    m_Key: gameplay.building.label.resource_provider
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363086
+    m_Key: gameplay.building.label.harvestable_tree
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363087
+    m_Key: gameplay.building.label.limited_harvest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363088
+    m_Key: gameplay.building.label.not_planted
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363089
+    m_Key: gameplay.building.label.ready_to_harvest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363090
+    m_Key: gameplay.building.label.growth_turns_remaining
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363091
+    m_Key: gameplay.building.label.inventory_slots
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363092
+    m_Key: gameplay.building.label.expedition_yield
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363093
+    m_Key: gameplay.building.label.research_per_turn
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363094
+    m_Key: gameplay.building.label.operational_experience
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363095
+    m_Key: gameplay.building.label.crop_options
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363096
+    m_Key: gameplay.building.label.current_crop
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363097
+    m_Key: gameplay.building.label.growth_progress
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363098
+    m_Key: gameplay.building.label.auto_harvest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363099
+    m_Key: gameplay.building.label.auto_harvest_cost
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363100
+    m_Key: gameplay.building.label.harvest_output
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363101
+    m_Key: gameplay.building.label.minimum_workers
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363102
+    m_Key: gameplay.building.label.trigger_chance
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363103
+    m_Key: gameplay.building.label.provider_priority
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363104
+    m_Key: gameplay.building.label.last_turn_value
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363105
+    m_Key: gameplay.building.label.gold_settlement
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363106
+    m_Key: gameplay.building.label.health
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363107
+    m_Key: gameplay.building.label.wood_reward
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363108
+    m_Key: gameplay.building.label.sapling_reward
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363109
+    m_Key: gameplay.building.label.harvests_remaining
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363110
+    m_Key: gameplay.building.label.reward_per_harvest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363111
+    m_Key: gameplay.building.label.remaining_output
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363112
+    m_Key: gameplay.building.label.production_cycle
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363113
+    m_Key: gameplay.building.label.manhattan_radius
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363114
+    m_Key: gameplay.building.label.stacking_rule
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363115
+    m_Key: gameplay.building.label.current_population
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363116
+    m_Key: gameplay.building.label.population_growth
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363117
+    m_Key: gameplay.building.label.resource_path_cost
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363118
+    m_Key: gameplay.building.label.diet_score
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363119
+    m_Key: gameplay.building.label.diet_variety
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363120
+    m_Key: gameplay.building.label.population_limit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363121
+    m_Key: gameplay.building.label.tax_progress
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363122
+    m_Key: gameplay.building.label.failure_decay
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363123
+    m_Key: gameplay.building.label.life_quality
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363124
+    m_Key: gameplay.building.label.worker_requirement
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363125
+    m_Key: gameplay.building.label.maintenance_cost
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363126
+    m_Key: gameplay.common.enabled
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363127
+    m_Key: gameplay.common.disabled
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363128
+    m_Key: gameplay.building.fragment.per_turn
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363129
+    m_Key: gameplay.building.fragment.total_value_multiplier
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363130
+    m_Key: gameplay.building.overview.population_bonus
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363131
+    m_Key: gameplay.building.overview.last_turn_gold
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363132
+    m_Key: gameplay.building.overview.health
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363133
+    m_Key: gameplay.building.overview.harvests_remaining
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363134
+    m_Key: gameplay.building.overview.production
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363135
+    m_Key: gameplay.building.overview.maintenance
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363136
+    m_Key: gameplay.building.overview.crop_ready
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363137
+    m_Key: gameplay.building.overview.crop_turns
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363138
+    m_Key: gameplay.building.overview.experience
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363139
+    m_Key: gameplay.building.overview.experience_max
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363140
+    m_Key: gameplay.building.overview.abandoned
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363141
+    m_Key: gameplay.building.overview.population
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363142
+    m_Key: gameplay.building.overview.workers_protected
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363143
+    m_Key: gameplay.building.overview.workers
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363144
+    m_Key: gameplay.building.overview.warehouse
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363145
+    m_Key: gameplay.building.overview.warehouse_max
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363146
+    m_Key: gameplay.building.placement.prefab_invalid
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363147
+    m_Key: gameplay.building.placement.grid_missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363148
+    m_Key: gameplay.building.placement.invalid_cell
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363149
+    m_Key: gameplay.building.placement.materials_missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363150
+    m_Key: gameplay.building.placement.occupy_failed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363151
+    m_Key: gameplay.building.placement.instantiate_failed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363152
+    m_Key: gameplay.building.placement.spend_failed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363153
+    m_Key: gameplay.building.placement.no_cells
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363154
+    m_Key: gameplay.building.placement.spatial_legal
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363155
+    m_Key: gameplay.building.placement.spatial_invalid
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363156
+    m_Key: gameplay.building.placement.provider
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363157
+    m_Key: gameplay.building.placement.provider_unreachable_optional
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363158
+    m_Key: gameplay.building.placement.buff_range
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363159
+    m_Key: gameplay.building.upgrade.building_missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363160
+    m_Key: gameplay.building.upgrade.under_construction
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363161
+    m_Key: gameplay.building.upgrade.max_level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363162
+    m_Key: gameplay.building.upgrade.level_not_configured
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363163
+    m_Key: gameplay.building.upgrade.conditions_not_met
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363164
+    m_Key: gameplay.building.upgrade.requirements_not_met
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363165
+    m_Key: gameplay.building.upgrade.resources_missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363166
+    m_Key: gameplay.building.production.workers_equals
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363167
+    m_Key: gameplay.building.upgrade.operational_experience_missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363168
+    m_Key: gameplay.building.upgrade.warehouse_experience_missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363169
+    m_Key: gameplay.building.demolish.inventory_not_empty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363170
+    m_Key: gameplay.building.workforce.gold_per_turn
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363171
+    m_Key: gameplay.building.label.full_workforce_attraction
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363172
+    m_Key: gameplay.building.label.current_job_attraction
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363173
+    m_Key: gameplay.building.label.full_workforce_gap
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363174
+    m_Key: gameplay.building.label.job_attraction_factors
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363175
+    m_Key: gameplay.building.label.current_modifiers
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363176
+    m_Key: gameplay.inheritance.ui.eligible
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363177
+    m_Key: gameplay.quest.reward.invalid
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363178
+    m_Key: gameplay.quest.reward.inventory_uninitialized
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363179
+    m_Key: gameplay.quest.reward.inventory_full
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363180
+    m_Key: gameplay.quest.reward.delivery_failed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363181
+    m_Key: gameplay.quest.failed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363182
+    m_Key: gameplay.quest.new
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363183
+    m_Key: gameplay.quest.target.plant_crops
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363184
+    m_Key: gameplay.quest.target.select_technology
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363185
+    m_Key: gameplay.quest.ui.claim_rewards
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363186
+    m_Key: gameplay.quest.ui.submit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363187
+    m_Key: gameplay.quest.ui.resources_missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363188
+    m_Key: gameplay.quest.ui.abandon
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363189
+    m_Key: gameplay.quest.ui.completed_by_deadline
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363190
+    m_Key: gameplay.quest.ui.remaining_turns
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363191
+    m_Key: gameplay.quest.ui.deadline
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363192
+    m_Key: gameplay.quest.ui.target
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363193
+    m_Key: gameplay.quest.ui.target_building
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363194
+    m_Key: gameplay.quest.ui.build_progress
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363195
+    m_Key: gameplay.quest.ui.collect_progress
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363196
+    m_Key: gameplay.quest.ui.submit_progress
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363197
+    m_Key: gameplay.quest.ui.numeric_progress
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363198
+    m_Key: gameplay.quest.ui.unlock_reward
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363199
+    m_Key: gameplay.resource.with_inventory
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363200
+    m_Key: gameplay.economy.not_initialized
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363201
+    m_Key: gameplay.economy.summary.range
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363202
+    m_Key: gameplay.economy.summary.conservative
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363203
+    m_Key: gameplay.economy.summary.exact
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363204
+    m_Key: gameplay.economy.summary.slots
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363205
+    m_Key: gameplay.economy.summary.no_risk
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363206
+    m_Key: gameplay.economy.summary.risk
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363207
+    m_Key: gameplay.economy.resources.empty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363208
+    m_Key: gameplay.economy.resources.current
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363209
+    m_Key: gameplay.economy.resources.more
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363210
+    m_Key: gameplay.economy.cell.consume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363211
+    m_Key: gameplay.economy.cell.produce
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363212
+    m_Key: gameplay.economy.cell.produce_range
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363213
+    m_Key: gameplay.economy.cell.loss
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363214
+    m_Key: gameplay.economy.cell.shortage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363215
+    m_Key: gameplay.economy.cell.overflow
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363216
+    m_Key: gameplay.economy.cell.details
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363217
+    m_Key: gameplay.economy.events.empty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363218
+    m_Key: gameplay.economy.events.more
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363219
+    m_Key: gameplay.economy.residential.empty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363220
+    m_Key: gameplay.economy.residential.line
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363221
+    m_Key: gameplay.economy.residential.satisfied
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363222
+    m_Key: gameplay.economy.residential.insufficient
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363223
+    m_Key: gameplay.economy.warnings.more
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363224
+    m_Key: gameplay.economy.event.construction
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363225
+    m_Key: gameplay.economy.event.production
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363226
+    m_Key: gameplay.economy.event.processing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363227
+    m_Key: gameplay.economy.event.harvest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363228
+    m_Key: gameplay.economy.event.tax
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363229
+    m_Key: gameplay.economy.event.market
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363230
+    m_Key: gameplay.economy.event.population
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363231
+    m_Key: gameplay.economy.event.risk
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363232
+    m_Key: gameplay.economy.certainty.range
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363233
+    m_Key: gameplay.economy.certainty.conditional
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363234
+    m_Key: gameplay.economy.certainty.manual
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363235
+    m_Key: gameplay.economy.service.inventory_missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363236
+    m_Key: gameplay.economy.service.assumptions
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363237
+    m_Key: gameplay.economy.service.construction_completed_note
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363238
+    m_Key: gameplay.economy.service.construction_config_missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363239
+    m_Key: gameplay.economy.service.construction_provider_missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363240
+    m_Key: gameplay.economy.service.construction_resources_missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363241
+    m_Key: gameplay.economy.service.construction_storage_blocked
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363242
+    m_Key: gameplay.economy.service.construction_progress
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363243
+    m_Key: gameplay.economy.service.expected_completion
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363244
+    m_Key: gameplay.economy.service.food_shortage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363245
+    m_Key: gameplay.economy.service.provider_unreachable
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363246
+    m_Key: gameplay.economy.service.tax_storage_blocked
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363247
+    m_Key: gameplay.economy.service.tax_income
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363248
+    m_Key: gameplay.economy.service.population_growth
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363249
+    m_Key: gameplay.economy.service.production_workforce_missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363250
+    m_Key: gameplay.economy.service.workers_missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363251
+    m_Key: gameplay.economy.service.production_progress
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363252
+    m_Key: gameplay.economy.service.item_storage_blocked
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363253
+    m_Key: gameplay.economy.service.production_cycle
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363254
+    m_Key: gameplay.economy.service.processing_recipe_invalid
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363255
+    m_Key: gameplay.economy.service.processing_workers_missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363256
+    m_Key: gameplay.economy.service.processing_progress
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363257
+    m_Key: gameplay.economy.service.processing_provider_missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363258
+    m_Key: gameplay.economy.service.processing_inputs_missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363259
+    m_Key: gameplay.economy.service.processing_storage_blocked
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363260
+    m_Key: gameplay.economy.service.processing_complete
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363261
+    m_Key: gameplay.economy.service.crop_workers_missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363262
+    m_Key: gameplay.economy.service.crop_turns_remaining
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363263
+    m_Key: gameplay.economy.service.crop_manual_harvest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363264
+    m_Key: gameplay.economy.service.auto_harvest_storage_blocked
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363265
+    m_Key: gameplay.economy.service.auto_harvest_cost_missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363266
+    m_Key: gameplay.economy.service.auto_harvest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363267
+    m_Key: gameplay.economy.service.rare_production_range
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363268
+    m_Key: gameplay.economy.service.rare_production
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363269
+    m_Key: gameplay.economy.service.resource_shortage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363270
+    m_Key: gameplay.economy.service.market_storage_blocked
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363271
+    m_Key: gameplay.economy.service.market_income
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363272
+    m_Key: gameplay.economy.service.blocked_warning
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363273
+    m_Key: gameplay.economy.service.resource_changes
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363274
+    m_Key: gameplay.feature.building
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363275
+    m_Key: gameplay.feature.inventory
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363276
+    m_Key: gameplay.feature.technology
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363277
+    m_Key: gameplay.feature.expedition
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363278
+    m_Key: gameplay.feature.inheritance
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363279
+    m_Key: gameplay.feature.congress
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363280
+    m_Key: gameplay.feature.unknown
+    m_Metadata:
+      m_Items: []
+  m_Metadata:
+    m_Items: []
+  m_KeyGenerator:
+    rid: 5711026527637340162
+  references:
+    version: 2
+    RefIds:
+    - rid: 5711026527637340162
+      type: {class: DistributedUIDGenerator, ns: UnityEngine.Localization.Tables, asm: Unity.Localization}
+      data:
+        m_CustomEpoch: 1784323498411

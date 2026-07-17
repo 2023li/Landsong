@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 2931092788841221284}
   - component: {fileID: 8377494645448052707}
   - component: {fileID: 520603955949489094}
+  - component: {fileID: 6304080817508225280}
   m_Layer: 5
   m_Name: "\u5EFA\u7B51\u6750\u6599\u6D88\u8017Item\uFF08TMP\u9EC4\u8272\u5B57\u4F53\uFF09"
   m_TagString: Untagged
@@ -55,7 +56,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -137,3 +138,18 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &6304080817508225280
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7025190734330792725}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3a0eb435e77db048a33c306315169c7, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.Localization.LocalizedTextBinding
+  tableName: UI
+  key: ui.asset.item_tmp_u214beddb.f830956b
+  sourceFallback: "\u91D1\u5E01*30"

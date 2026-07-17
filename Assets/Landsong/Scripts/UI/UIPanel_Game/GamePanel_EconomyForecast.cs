@@ -4,6 +4,7 @@ using System.Text;
 using Landsong;
 using Landsong.BuildingSystem;
 using Landsong.InventorySystem;
+using Landsong.Localization;
 using Landsong.TurnSystem;
 using TMPro;
 using UnityEngine;
@@ -49,6 +50,7 @@ public sealed class GamePanel_EconomyForecast : MonoBehaviour
 
     private void OnEnable()
     {
+        Landsong.Localization.L10n.LanguageChanged += RefreshForecast;
         ResolveServices();
         Subscribe();
 
@@ -60,6 +62,7 @@ public sealed class GamePanel_EconomyForecast : MonoBehaviour
 
     private void OnDisable()
     {
+        Landsong.Localization.L10n.LanguageChanged -= RefreshForecast;
         Unsubscribe();
     }
 
@@ -84,7 +87,7 @@ public sealed class GamePanel_EconomyForecast : MonoBehaviour
         var service = gameSystem?.Services.EconomyForecast;
         if (service == null)
         {
-            RenderUnavailable("经济预测服务未初始化。");
+            RenderUnavailable(L10n.Gameplay("gameplay.economy.not_initialized", "经济预测服务未初始化。"));
             return;
         }
 
@@ -137,32 +140,36 @@ public sealed class GamePanel_EconomyForecast : MonoBehaviour
         }
 
         var builder = new StringBuilder();
-        builder.Append("未来 ")
-            .Append(forecast.ForecastTurns)
-            .Append(" 回合")
-            .Append(forecast.IsApproximate ? " · 保守预测" : " · 精确预测")
-            .AppendLine();
-        builder.Append("库存格 ")
-            .Append(forecast.OccupiedSlots)
-            .Append('/')
-            .Append(forecast.TotalSlots)
-            .Append("  →  ")
-            .Append(forecast.ProjectedOccupiedSlots)
-            .Append('/')
-            .Append(forecast.TotalSlots)
-            .Append("（T+")
-            .Append(forecast.ForecastTurns)
-            .Append("）")
-            .AppendLine();
+        builder.AppendLine(L10n.Gameplay(
+            "gameplay.economy.summary.range",
+            "未来 {0} 回合{1}",
+            forecast.ForecastTurns,
+            forecast.IsApproximate
+                ? L10n.Gameplay("gameplay.economy.summary.conservative", " · 保守预测")
+                : L10n.Gameplay("gameplay.economy.summary.exact", " · 精确预测")));
+        builder.AppendLine(L10n.Gameplay(
+            "gameplay.economy.summary.slots",
+            "库存格 {0}/{1}  →  {2}/{1}（T+{3}）",
+            forecast.OccupiedSlots,
+            forecast.TotalSlots,
+            forecast.ProjectedOccupiedSlots,
+            forecast.ForecastTurns));
 
         if (riskyResources == 0 && blockedEvents == 0)
         {
-            builder.Append(Colorize("预测范围内未发现明确的短缺或入库阻塞。", PositiveColor));
+            builder.Append(Colorize(L10n.Gameplay(
+                "gameplay.economy.summary.no_risk",
+                "预测范围内未发现明确的短缺或入库阻塞。"), PositiveColor));
         }
         else
         {
             builder.Append(Colorize(
-                $"T+{earliestRiskTurn} 起存在风险：{riskyResources} 种资源异常，{blockedEvents} 个计划事件受阻。",
+                L10n.Gameplay(
+                    "gameplay.economy.summary.risk",
+                    "T+{0} 起存在风险：{1} 种资源异常，{2} 个计划事件受阻。",
+                    earliestRiskTurn,
+                    riskyResources,
+                    blockedEvents),
                 RiskColor));
         }
 
@@ -178,7 +185,7 @@ public sealed class GamePanel_EconomyForecast : MonoBehaviour
 
         if (forecast.ResourceTimelines.Count == 0)
         {
-            resourceTimelineText.text = "预测范围内没有库存物品变化。";
+            resourceTimelineText.text = L10n.Gameplay("gameplay.economy.resources.empty", "预测范围内没有库存物品变化。");
             return;
         }
 
@@ -189,8 +196,8 @@ public sealed class GamePanel_EconomyForecast : MonoBehaviour
             var timeline = forecast.ResourceTimelines[i];
             builder.Append("<b>")
                 .Append(EscapeRichText(ResolveItemName(timeline.ItemId)))
-                .Append("</b>  当前 ")
-                .Append(timeline.CurrentQuantity)
+                .Append("</b>  ")
+                .Append(L10n.Gameplay("gameplay.economy.resources.current", "当前 {0}", timeline.CurrentQuantity))
                 .AppendLine();
 
             for (var turnIndex = 0; turnIndex < timeline.Turns.Count; turnIndex++)
@@ -213,7 +220,10 @@ public sealed class GamePanel_EconomyForecast : MonoBehaviour
         {
             builder.AppendLine()
                 .AppendLine()
-                .Append(Colorize($"另有 {forecast.ResourceTimelines.Count - visibleCount} 种资源未展开。", MutedColor));
+                .Append(Colorize(L10n.Gameplay(
+                    "gameplay.economy.resources.more",
+                    "另有 {0} 种资源未展开。",
+                    forecast.ResourceTimelines.Count - visibleCount), MutedColor));
         }
 
         resourceTimelineText.text = builder.ToString();
@@ -237,34 +247,37 @@ public sealed class GamePanel_EconomyForecast : MonoBehaviour
         var details = new List<string>();
         if (turn.ExpectedConsumption > 0)
         {
-            details.Add($"耗{turn.ExpectedConsumption}");
+            details.Add(L10n.Gameplay("gameplay.economy.cell.consume", "耗{0}", turn.ExpectedConsumption));
         }
 
         if (turn.MaximumProduction > 0)
         {
             details.Add(turn.MinimumProduction == turn.MaximumProduction
-                ? $"产{turn.MaximumProduction}"
-                : $"产{turn.MinimumProduction}~{turn.MaximumProduction}");
+                ? L10n.Gameplay("gameplay.economy.cell.produce", "产{0}", turn.MaximumProduction)
+                : L10n.Gameplay("gameplay.economy.cell.produce_range", "产{0}~{1}", turn.MinimumProduction, turn.MaximumProduction));
         }
 
         if (turn.ExpectedLoss > 0)
         {
-            details.Add($"损{turn.ExpectedLoss}");
+            details.Add(L10n.Gameplay("gameplay.economy.cell.loss", "损{0}", turn.ExpectedLoss));
         }
 
         if (turn.Shortage > 0)
         {
-            details.Add($"缺{turn.Shortage}");
+            details.Add(L10n.Gameplay("gameplay.economy.cell.shortage", "缺{0}", turn.Shortage));
         }
 
         if (turn.Overflow > 0)
         {
-            details.Add($"溢{turn.Overflow}");
+            details.Add(L10n.Gameplay("gameplay.economy.cell.overflow", "溢{0}", turn.Overflow));
         }
 
         if (details.Count > 0)
         {
-            cell.Append("（").Append(string.Join("，", details)).Append('）');
+            cell.Append(L10n.Gameplay(
+                "gameplay.economy.cell.details",
+                "（{0}）",
+                string.Join(L10n.Gameplay("gameplay.common.comma", "，"), details)));
         }
 
         builder.Append(turn.HasRisk
@@ -281,7 +294,7 @@ public sealed class GamePanel_EconomyForecast : MonoBehaviour
 
         if (forecast.Events.Count == 0)
         {
-            scheduledEventsText.text = "预测范围内没有周期产出、施工、收获或税收事件。";
+            scheduledEventsText.text = L10n.Gameplay("gameplay.economy.events.empty", "预测范围内没有周期产出、施工、收获或税收事件。");
             return;
         }
 
@@ -305,7 +318,10 @@ public sealed class GamePanel_EconomyForecast : MonoBehaviour
         if (visibleCount < forecast.Events.Count)
         {
             builder.AppendLine()
-                .Append(Colorize($"另有 {forecast.Events.Count - visibleCount} 个计划事件未展开。", MutedColor));
+                .Append(Colorize(L10n.Gameplay(
+                    "gameplay.economy.events.more",
+                    "另有 {0} 个计划事件未展开。",
+                    forecast.Events.Count - visibleCount), MutedColor));
         }
 
         scheduledEventsText.text = builder.ToString();
@@ -320,7 +336,7 @@ public sealed class GamePanel_EconomyForecast : MonoBehaviour
 
         if (forecast.ResidentialForecasts.Count == 0)
         {
-            residentialForecastText.text = "当前没有居民饮食与生活质量预测。";
+            residentialForecastText.text = L10n.Gameplay("gameplay.economy.residential.empty", "当前没有居民饮食与生活质量预测。");
             return;
         }
 
@@ -359,9 +375,19 @@ public sealed class GamePanel_EconomyForecast : MonoBehaviour
             for (var rowIndex = 0; rowIndex < rows.Count; rowIndex++)
             {
                 var row = rows[rowIndex];
-                var line = $"T+{row.TurnOffset}  人口 {row.Population}→{row.PredictedPopulation}  "
-                           + $"饮食{(row.FoodSatisfied ? "满足" : "不足")} · {row.PredictedDietVariety}类 · {row.PredictedDietScore:0.#}分  "
-                           + $"生活质量 {row.CurrentLifeQuality:0.#}→{row.PredictedLifeQuality:0.#}";
+                var line = L10n.Gameplay(
+                    "gameplay.economy.residential.line",
+                    "T+{0}  人口 {1}→{2}  饮食{3} · {4}类 · {5:0.#}分  生活质量 {6:0.#}→{7:0.#}",
+                    row.TurnOffset,
+                    row.Population,
+                    row.PredictedPopulation,
+                    row.FoodSatisfied
+                        ? L10n.Gameplay("gameplay.economy.residential.satisfied", "满足")
+                        : L10n.Gameplay("gameplay.economy.residential.insufficient", "不足"),
+                    row.PredictedDietVariety,
+                    row.PredictedDietScore,
+                    row.CurrentLifeQuality,
+                    row.PredictedLifeQuality);
                 builder.Append(row.FoodSatisfied ? line : Colorize(line, RiskColor));
                 if (rowIndex < rows.Count - 1)
                 {
@@ -404,7 +430,10 @@ public sealed class GamePanel_EconomyForecast : MonoBehaviour
 
         if (visibleCount < forecast.Warnings.Count)
         {
-            builder.AppendLine().Append($"• 另有 {forecast.Warnings.Count - visibleCount} 条说明未展开。");
+            builder.AppendLine().Append(L10n.Gameplay(
+                "gameplay.economy.warnings.more",
+                "• 另有 {0} 条说明未展开。",
+                forecast.Warnings.Count - visibleCount));
         }
 
         warningText.text = builder.ToString();
@@ -555,14 +584,14 @@ public sealed class GamePanel_EconomyForecast : MonoBehaviour
     {
         return kind switch
         {
-            EconomyForecastEventKind.Construction => "[施工]",
-            EconomyForecastEventKind.Production => "[生产]",
-            EconomyForecastEventKind.Processing => "[加工]",
-            EconomyForecastEventKind.Harvest => "[收获]",
-            EconomyForecastEventKind.Tax => "[税收]",
-            EconomyForecastEventKind.Market => "[市场]",
-            EconomyForecastEventKind.Population => "[人口]",
-            _ => "[风险]"
+            EconomyForecastEventKind.Construction => L10n.Gameplay("gameplay.economy.event.construction", "[施工]"),
+            EconomyForecastEventKind.Production => L10n.Gameplay("gameplay.economy.event.production", "[生产]"),
+            EconomyForecastEventKind.Processing => L10n.Gameplay("gameplay.economy.event.processing", "[加工]"),
+            EconomyForecastEventKind.Harvest => L10n.Gameplay("gameplay.economy.event.harvest", "[收获]"),
+            EconomyForecastEventKind.Tax => L10n.Gameplay("gameplay.economy.event.tax", "[税收]"),
+            EconomyForecastEventKind.Market => L10n.Gameplay("gameplay.economy.event.market", "[市场]"),
+            EconomyForecastEventKind.Population => L10n.Gameplay("gameplay.economy.event.population", "[人口]"),
+            _ => L10n.Gameplay("gameplay.economy.event.risk", "[风险]")
         };
     }
 
@@ -570,9 +599,9 @@ public sealed class GamePanel_EconomyForecast : MonoBehaviour
     {
         return certainty switch
         {
-            EconomyForecastCertainty.Range => "  [范围]",
-            EconomyForecastCertainty.Conditional => "  [条件]",
-            EconomyForecastCertainty.Manual => "  [需操作]",
+            EconomyForecastCertainty.Range => L10n.Gameplay("gameplay.economy.certainty.range", "  [范围]"),
+            EconomyForecastCertainty.Conditional => L10n.Gameplay("gameplay.economy.certainty.conditional", "  [条件]"),
+            EconomyForecastCertainty.Manual => L10n.Gameplay("gameplay.economy.certainty.manual", "  [需操作]"),
             _ => string.Empty
         };
     }

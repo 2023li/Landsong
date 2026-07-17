@@ -210,7 +210,7 @@ namespace Landsong.BuildingSystem
             {
                 if (!IsValid)
                 {
-                    return "无";
+                    return Landsong.Localization.L10n.Gameplay("gameplay.common.none", "无");
                 }
 
                 return MinAmount == MaxAmount
@@ -400,10 +400,12 @@ namespace Landsong.BuildingSystem
         {
             if (!HasCrop)
             {
-                return "未种植";
+                return Landsong.Localization.L10n.Gameplay("gameplay.building.label.not_planted", "未种植");
             }
 
-            return IsMature ? "作物可收获" : $"成熟剩余 {RemainingGrowTurns} 回合";
+            return IsMature
+                ? Landsong.Localization.L10n.Gameplay("gameplay.building.overview.crop_ready", "作物可收获")
+                : Landsong.Localization.L10n.Gameplay("gameplay.building.overview.crop_turns", "成熟剩余 {0} 回合", RemainingGrowTurns);
         }
 
         public override void AppendRuntimeStatuses(
@@ -948,7 +950,7 @@ namespace Landsong.BuildingSystem
         {
             if (CropOptions.Count == 0)
             {
-                return "未配置";
+                return Landsong.Localization.L10n.Gameplay("gameplay.common.not_configured", "未配置");
             }
 
             var builder = new StringBuilder();
@@ -956,7 +958,7 @@ namespace Landsong.BuildingSystem
             {
                 if (builder.Length > 0)
                 {
-                    builder.Append("，");
+                    builder.Append(Landsong.Localization.L10n.Gameplay("gameplay.common.comma", "，"));
                 }
 
                 builder.Append(CropOptions[i].DisplayName);
@@ -969,7 +971,7 @@ namespace Landsong.BuildingSystem
         {
             if (!HasAnyValidCost(costs))
             {
-                return "无";
+                return Landsong.Localization.L10n.Gameplay("gameplay.common.none", "无");
             }
 
             var builder = new StringBuilder();
@@ -982,20 +984,22 @@ namespace Landsong.BuildingSystem
 
                 if (builder.Length > 0)
                 {
-                    builder.Append("，");
+                    builder.Append(Landsong.Localization.L10n.Gameplay("gameplay.common.comma", "，"));
                 }
 
                 builder.Append(costs[i]);
             }
 
-            return builder.Length == 0 ? "无" : builder.ToString();
+            return builder.Length == 0
+                ? Landsong.Localization.L10n.Gameplay("gameplay.common.none", "无")
+                : builder.ToString();
         }
 
         private static string FormatHarvestRewards(IReadOnlyList<CropHarvestReward> rewards)
         {
             if (rewards == null || rewards.Count == 0)
             {
-                return "无";
+                return Landsong.Localization.L10n.Gameplay("gameplay.common.none", "无");
             }
 
             var builder = new StringBuilder();
@@ -1009,13 +1013,15 @@ namespace Landsong.BuildingSystem
 
                 if (builder.Length > 0)
                 {
-                    builder.Append("，");
+                    builder.Append(Landsong.Localization.L10n.Gameplay("gameplay.common.comma", "，"));
                 }
 
                 builder.Append(reward.FormatRange());
             }
 
-            return builder.Length == 0 ? "无" : builder.ToString();
+            return builder.Length == 0
+                ? Landsong.Localization.L10n.Gameplay("gameplay.common.none", "无")
+                : builder.ToString();
         }
 
         private void SetLastAbnormalStatus(string statusId, string statusText)

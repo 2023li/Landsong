@@ -89,7 +89,13 @@ namespace Landsong.BuildingSystem
         }
 
         public override string GetOverviewFragment(BuildingBase building) =>
-            AmountPerTurn <= 0 ? string.Empty : $"维护 {AmountPerTurn} {ItemId}/回合";
+            AmountPerTurn <= 0
+                ? string.Empty
+                : Landsong.Localization.L10n.Gameplay(
+                    "gameplay.building.overview.maintenance",
+                    "维护 {0} {1}/回合",
+                    AmountPerTurn,
+                    ItemId);
 
         public override void AppendRuntimeStatuses(
             BuildingBase building,

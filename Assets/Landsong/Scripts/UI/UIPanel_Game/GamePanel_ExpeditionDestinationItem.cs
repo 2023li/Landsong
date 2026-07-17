@@ -131,7 +131,11 @@ namespace Landsong.UISystem
             }
 
             var remaining = expedition.GetRemainingTurns(currentTurn);
-            SetText(txt_进度文本, $"第 {expedition.ReturnTurn} 回合归来，剩余 {remaining} 回合");
+            SetText(txt_进度文本, Landsong.Localization.L10n.Gameplay(
+                "gameplay.expedition.ui.return_progress",
+                "第 {0} 回合归来，剩余 {1} 回合",
+                expedition.ReturnTurn,
+                remaining));
         }
 
         private void HandleClicked()

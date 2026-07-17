@@ -367,7 +367,7 @@ namespace Landsong.UISystem
 
             if (!definition.HasBuildCountLimit)
             {
-                txt_详情数量限制.text = "无限制";
+            txt_详情数量限制.text = Landsong.Localization.L10n.Gameplay("gameplay.common.unlimited", "无限制");
                 txt_详情数量限制.color = ParseTextColor(
                     textColor_UnderLimit,
                     txt_详情数量限制.color);
@@ -416,20 +416,20 @@ namespace Landsong.UISystem
         {
             if (buildingAvailability.CanBuild)
             {
-                return "可建造";
+            return Landsong.Localization.L10n.Gameplay("gameplay.building.available", "可建造");
             }
 
             if (buildingAvailability.IsAvailable)
             {
-                return "可用，材料不足";
+            return Landsong.Localization.L10n.Gameplay("gameplay.building.available_materials_missing", "可用，材料不足");
             }
 
             return buildingAvailability.FirstUnavailableReason switch
             {
-                BuildingUnavailableReason.DevelopmentIncomplete => "建筑未开发完成",
-                BuildingUnavailableReason.BuildLimitReached => "数量已达上限",
-                BuildingUnavailableReason.MissingMaterials => "材料不足",
-                _ => "不可用"
+                BuildingUnavailableReason.DevelopmentIncomplete => Landsong.Localization.L10n.Gameplay("gameplay.building.development_incomplete", "建筑未开发完成"),
+                BuildingUnavailableReason.BuildLimitReached => Landsong.Localization.L10n.Gameplay("gameplay.building.limit_reached", "数量已达上限"),
+                BuildingUnavailableReason.MissingMaterials => Landsong.Localization.L10n.Gameplay("gameplay.building.materials_missing", "材料不足"),
+                _ => Landsong.Localization.L10n.Gameplay("gameplay.common.unavailable", "不可用")
             };
         }
 
@@ -443,12 +443,12 @@ namespace Landsong.UISystem
             var definition = buildingPrefab == null ? null : buildingPrefab.Definition;
             var createdCount = 0;
             createdCount += CreateCostSection(
-                "放置消耗",
+                Landsong.Localization.L10n.Gameplay("gameplay.building.placement_cost", "放置消耗"),
                 definition == null ? null : definition.PlacementCosts);
 
             var constructionCosts = buildingPrefab.FamilyDefinition?.Construction?.GetTotalCosts();
 
-            createdCount += CreateCostSection("施工消耗", constructionCosts);
+            createdCount += CreateCostSection(Landsong.Localization.L10n.Gameplay("gameplay.building.construction_cost", "施工消耗"), constructionCosts);
             return createdCount;
         }
 
@@ -476,7 +476,7 @@ namespace Landsong.UISystem
 
             if (materialCount == 0)
             {
-                createdCount += CreateMaterialTextInstance("无");
+                createdCount += CreateMaterialTextInstance(Landsong.Localization.L10n.Gameplay("gameplay.common.none", "无"));
                 materialCount = 1;
             }
 
@@ -556,7 +556,7 @@ namespace Landsong.UISystem
             var itemName = itemDefinition == null ? cost.ItemId : itemDefinition.DisplayName;
             if (string.IsNullOrWhiteSpace(itemName))
             {
-                itemName = "未命名材料";
+                itemName = Landsong.Localization.L10n.Gameplay("gameplay.building.unnamed_material", "未命名材料");
             }
 
             return $"{itemName}*{cost.Amount}";

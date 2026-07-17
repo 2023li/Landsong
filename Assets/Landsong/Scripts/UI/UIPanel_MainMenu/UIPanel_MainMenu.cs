@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Landsong.Localization;
 using System.Threading.Tasks;
 using Landsong.AppSystem;
 using Moyo.Unity;
@@ -167,7 +168,7 @@ using UnityEngine.UI;
 
             RefreshCurrentLanguageText();
 
-            if (string.IsNullOrEmpty(GameLocalizationManager.Instance.CurrentLanguageData.CurrentLanguageCode))
+            if (GameLocalizationManager.Instance.CurrentLanguageData.UseSystemLanguage)
             {
                 Show_pop语言选择();
             }
@@ -234,7 +235,7 @@ using UnityEngine.UI;
             if (GameLocalizationManager.Instance == null
                 || GameLocalizationManager.Instance.AllLanguagePackCount <= 0)
             {
-                txt_当前语言显示名称.text = "无可用语言";
+            txt_当前语言显示名称.text = L10n.Ui("ui.language.none_available", "无可用语言");
                 return;
             }
 
@@ -242,7 +243,7 @@ using UnityEngine.UI;
 
             if (languagePack == null)
             {
-                txt_当前语言显示名称.text = "无可用语言";
+            txt_当前语言显示名称.text = L10n.Ui("ui.language.none_available", "无可用语言");
                 return;
             }
 
@@ -252,7 +253,7 @@ using UnityEngine.UI;
                 return;
             }
 
-            txt_当前语言显示名称.text = languagePack.LanguageCode;
+            txt_当前语言显示名称.text = languagePack.LocaleCode;
         }
 
         // 确认当前语言。

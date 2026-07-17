@@ -43,8 +43,8 @@ public readonly struct BuildingDetailsSidebarRow
 
     public BuildingDetailsSidebarRow(string label, string value, float signedValue, bool hasSignedValue)
     {
-        Label = label;
-        Value = value;
+        Label = BuildingLocalization.Text(label);
+        Value = BuildingLocalization.Text(value);
         SignedValue = signedValue;
         HasSignedValue = hasSignedValue;
     }

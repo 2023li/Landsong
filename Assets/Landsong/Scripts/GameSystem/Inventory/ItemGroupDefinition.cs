@@ -1,4 +1,5 @@
 using System;
+using Landsong.Localization;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -14,8 +15,11 @@ namespace Landsong.InventorySystem
         [SerializeField, AssetsOnly] private ItemGroupDefinition parentGroup;
 
         public string GroupId => string.IsNullOrWhiteSpace(groupId) ? string.Empty : groupId.Trim();
-        public string DisplayName => string.IsNullOrWhiteSpace(displayName) ? name : displayName.Trim();
-        public string Description => description;
+        public string DisplayName => L10n.ContentName(
+            "item_group",
+            GroupId,
+            string.IsNullOrWhiteSpace(displayName) ? name : displayName.Trim());
+        public string Description => L10n.ContentDescription("item_group", GroupId, description);
         public Sprite Icon => icon;
         public ItemGroupDefinition ParentGroup => parentGroup;
         public bool IsValid => !string.IsNullOrWhiteSpace(GroupId);

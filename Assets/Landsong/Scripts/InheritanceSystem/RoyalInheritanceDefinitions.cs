@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Landsong.ConditionSystem;
 using Landsong.TalentSystem;
+using Landsong.Localization;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -145,10 +146,14 @@ namespace Landsong.InheritanceSystem
         private RoyalTraitDefinition[] requiredTraits = Array.Empty<RoyalTraitDefinition>();
 
         public string TraitId => NormalizeId(traitId);
-        public string TraitName => string.IsNullOrWhiteSpace(traitName)
-            ? (string.IsNullOrWhiteSpace(TraitId) ? name : TraitId)
-            : traitName.Trim();
-        public string Description => string.IsNullOrWhiteSpace(description) ? string.Empty : description.Trim();
+        public string TraitName => L10n.ContentName(
+            "royal_trait",
+            TraitId,
+            string.IsNullOrWhiteSpace(traitName) ? (string.IsNullOrWhiteSpace(TraitId) ? name : TraitId) : traitName.Trim());
+        public string Description => L10n.ContentDescription(
+            "royal_trait",
+            TraitId,
+            string.IsNullOrWhiteSpace(description) ? string.Empty : description.Trim());
         public RoyalTraitType TraitType => traitType;
         public TalentRarity Rarity => rarity;
         public Sprite Icon => icon;

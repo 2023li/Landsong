@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Landsong.Localization;
 
 namespace Landsong.GameEventSystem
 {
@@ -154,9 +155,13 @@ namespace Landsong.GameEventSystem
 
         public static string GetDisplayName(string eventTypeId)
         {
-            return TryGetDefinition(eventTypeId, out var definition)
-                ? definition.DisplayName
-                : NormalizeEventTypeId(eventTypeId);
+            var normalized = NormalizeEventTypeId(eventTypeId);
+            if (!TryGetDefinition(normalized, out var definition))
+            {
+                return normalized;
+            }
+
+            return L10n.Gameplay($"gameplay.event.{L10n.NormalizeKeyPart(normalized)}.name", definition.DisplayName);
         }
     }
 }

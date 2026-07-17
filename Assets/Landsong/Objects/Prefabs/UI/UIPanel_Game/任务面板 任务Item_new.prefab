@@ -56,7 +56,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 0.28112006, g: 0.6659108, b: 0.8679245, a: 1}
@@ -86,7 +86,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
   m_IgnoreLayout: 1
   m_MinWidth: -1
@@ -152,7 +152,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 0.9748427, g: 0.9695814, b: 0.57938755, a: 1}
@@ -182,7 +182,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
   m_IgnoreLayout: 1
   m_MinWidth: -1
@@ -241,7 +241,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.HorizontalLayoutGroup
   m_Padding:
     m_Left: 0
@@ -267,7 +267,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
   m_IgnoreLayout: 0
   m_MinWidth: -1
@@ -326,7 +326,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.VerticalLayoutGroup
   m_Padding:
     m_Left: 0
@@ -388,7 +388,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8a8695521f0d02e499659fee002a26c2, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.GridLayoutGroup
   m_Padding:
     m_Left: 0
@@ -413,6 +413,7 @@ GameObject:
   - component: {fileID: 6387510025320643167}
   - component: {fileID: 4408626407257558334}
   - component: {fileID: 8669943345976387486}
+  - component: {fileID: 3740363582013581344}
   m_Layer: 0
   m_Name: "txt_\u4EFB\u52A1\u540D\u79F0"
   m_TagString: Untagged
@@ -457,7 +458,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -539,6 +540,21 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &3740363582013581344
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5034540133741608689}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3a0eb435e77db048a33c306315169c7, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.Localization.LocalizedTextBinding
+  tableName: UI
+  key: ui.asset.item_new_uf16b867c.cf222e1a
+  sourceFallback: "\u5C6F\u7530\u50A8\u5907"
 --- !u!1 &5347400245730465323
 GameObject:
   m_ObjectHideFlags: 0
@@ -598,7 +614,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ecb7fc5f73cdf0040aa62d7848150d4f, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.UISystem.GamePanel_QuestItem
   selectButton: {fileID: 3200021627262265464}
   submitButton: {fileID: 2889797844223057919}
@@ -628,7 +644,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.VerticalLayoutGroup
   m_Padding:
     m_Left: 0
@@ -692,7 +708,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
   m_IgnoreLayout: 0
   m_MinWidth: -1
@@ -758,7 +774,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 0.8, b: 0.37254903, a: 1}
@@ -788,7 +804,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
   m_IgnoreLayout: 0
   m_MinWidth: -1
@@ -854,7 +870,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 0.8, b: 0.37254903, a: 1}
@@ -884,7 +900,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
   m_IgnoreLayout: 0
   m_MinWidth: -1
@@ -905,6 +921,7 @@ GameObject:
   - component: {fileID: 7323902463791526529}
   - component: {fileID: 247289426509722250}
   - component: {fileID: 3448158996898045910}
+  - component: {fileID: 1499597952769206278}
   m_Layer: 0
   m_Name: "txt_\u671F\u9650\u6587\u672C"
   m_TagString: Untagged
@@ -949,7 +966,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -1031,6 +1048,21 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &1499597952769206278
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7384452313032224269}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3a0eb435e77db048a33c306315169c7, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.Localization.LocalizedTextBinding
+  tableName: UI
+  key: ui.asset.item_new_uf16b867c.42db2012
+  sourceFallback: "9\u56DE\u5408"
 --- !u!1 &7531622041825592333
 GameObject:
   m_ObjectHideFlags: 0
@@ -1096,7 +1128,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 0.18280517, g: 0.35141987, b: 0.49685526, a: 1}
@@ -1126,7 +1158,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
   m_Navigation:
     m_Mode: 3
@@ -1170,7 +1202,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.VerticalLayoutGroup
   m_Padding:
     m_Left: 12
@@ -1196,7 +1228,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
   m_IgnoreLayout: 0
   m_MinWidth: -1
@@ -1217,6 +1249,7 @@ GameObject:
   - component: {fileID: 3704466301348492561}
   - component: {fileID: 778747364869988551}
   - component: {fileID: 4613916952617855145}
+  - component: {fileID: 6965032725255162689}
   m_Layer: 0
   m_Name: "txt_\u4EFB\u52A1\u63CF\u8FF0"
   m_TagString: Untagged
@@ -1261,7 +1294,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -1343,6 +1376,21 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &6965032725255162689
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7594942045722463223}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3a0eb435e77db048a33c306315169c7, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.Localization.LocalizedTextBinding
+  tableName: UI
+  key: ui.asset.item_new_uf16b867c.a3be6275
+  sourceFallback: "\u51C6\u5907\u4E00\u4E9B\u63CF\u8FF0XXX"
 --- !u!1001 &1601454636999548672
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1351,6 +1399,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2605578732866351553}
     m_Modifications:
+    - target: {fileID: 211660436357892832, guid: 6ef10a23dc526f84ba8aaeab58f101e7, type: 3}
+      propertyPath: key
+      value: ui.asset.item_new_uf16b867c.05688176
+      objectReference: {fileID: 0}
     - target: {fileID: 556369947696833391, guid: 6ef10a23dc526f84ba8aaeab58f101e7, type: 3}
       propertyPath: m_Name
       value: "HUD\u4EFB\u52A1\u8981\u6C42 (3)"
@@ -1455,6 +1507,14 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1717535933346344390, guid: 7e173bee8710aa24bbba5d26d30d1a6a, type: 3}
       propertyPath: m_text
+      value: "\u653E\u5F03"
+      objectReference: {fileID: 0}
+    - target: {fileID: 2095068804303413504, guid: 7e173bee8710aa24bbba5d26d30d1a6a, type: 3}
+      propertyPath: key
+      value: ui.asset.item_new_uf16b867c.016a87f1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2095068804303413504, guid: 7e173bee8710aa24bbba5d26d30d1a6a, type: 3}
+      propertyPath: sourceFallback
       value: "\u653E\u5F03"
       objectReference: {fileID: 0}
     - target: {fileID: 3872624715872048284, guid: 7e173bee8710aa24bbba5d26d30d1a6a, type: 3}
@@ -1599,7 +1659,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: 
 --- !u!114 &2024508559909982735 stripped
 MonoBehaviour:
@@ -1610,7 +1670,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!224 &5418499258630129897 stripped
 RectTransform:
@@ -1625,6 +1685,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2605578732866351553}
     m_Modifications:
+    - target: {fileID: 211660436357892832, guid: 6ef10a23dc526f84ba8aaeab58f101e7, type: 3}
+      propertyPath: key
+      value: ui.asset.item_new_uf16b867c.0354fe5f
+      objectReference: {fileID: 0}
     - target: {fileID: 556369947696833391, guid: 6ef10a23dc526f84ba8aaeab58f101e7, type: 3}
       propertyPath: m_Name
       value: "HUD\u4EFB\u52A1\u8981\u6C42 (4)"
@@ -1742,6 +1806,14 @@ PrefabInstance:
     - target: {fileID: 1860110153904510182, guid: 7e173bee8710aa24bbba5d26d30d1a6a, type: 3}
       propertyPath: m_Color.r
       value: 0.588751
+      objectReference: {fileID: 0}
+    - target: {fileID: 2095068804303413504, guid: 7e173bee8710aa24bbba5d26d30d1a6a, type: 3}
+      propertyPath: key
+      value: ui.asset.item_new_uf16b867c.b9136834
+      objectReference: {fileID: 0}
+    - target: {fileID: 2095068804303413504, guid: 7e173bee8710aa24bbba5d26d30d1a6a, type: 3}
+      propertyPath: sourceFallback
+      value: "\u63D0\u4EA4"
       objectReference: {fileID: 0}
     - target: {fileID: 3872624715872048284, guid: 7e173bee8710aa24bbba5d26d30d1a6a, type: 3}
       propertyPath: m_AnchorMax.y
@@ -1885,7 +1957,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!114 &4351933015205035890 stripped
 MonoBehaviour:
@@ -1896,7 +1968,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: 
 --- !u!224 &9164966275706455321 stripped
 RectTransform:
@@ -1911,6 +1983,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2605578732866351553}
     m_Modifications:
+    - target: {fileID: 211660436357892832, guid: 6ef10a23dc526f84ba8aaeab58f101e7, type: 3}
+      propertyPath: key
+      value: ui.asset.item_new_uf16b867c.46dfac72
+      objectReference: {fileID: 0}
     - target: {fileID: 556369947696833391, guid: 6ef10a23dc526f84ba8aaeab58f101e7, type: 3}
       propertyPath: m_Name
       value: "HUD\u4EFB\u52A1\u8981\u6C42"

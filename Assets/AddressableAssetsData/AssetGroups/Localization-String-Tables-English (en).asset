@@ -15,8 +15,20 @@ MonoBehaviour:
   m_GroupName: Localization-String-Tables-English (en)
   m_GUID: 3f63e1edb8034224aac383b762594c5a
   m_SerializeEntries:
-  - m_GUID: 1f609d802cea1f14092b91a3173b1b4a
-    m_Address: GameString_en
+  - m_GUID: 147747b870555504b9749e140aa8d349
+    m_Address: Gameplay_en
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-en
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 641deee493415cc4887c16b4ae29a8ad
+    m_Address: Content_en
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-en
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9d4e8e97980de0e478a7fb4473601541
+    m_Address: UI_en
     m_ReadOnly: 1
     m_SerializedLabels:
     - Locale-en

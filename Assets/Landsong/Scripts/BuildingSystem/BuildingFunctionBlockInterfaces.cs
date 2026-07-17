@@ -24,8 +24,8 @@ namespace Landsong.BuildingSystem
 
         public BuildingFunctionBlockSidebarRow(string label, string value, float signedValue, bool hasSignedValue)
         {
-            Label = string.IsNullOrWhiteSpace(label) ? string.Empty : label.Trim();
-            Value = string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            Label = BuildingLocalization.Text(label);
+            Value = BuildingLocalization.Text(value);
             SignedValue = signedValue;
             HasSignedValue = hasSignedValue;
         }
@@ -76,7 +76,7 @@ namespace Landsong.BuildingSystem
             IReadOnlyList<BuildingFunctionBlockSidebarRow> sidebarRows)
         {
             Group = group;
-            DisplayName = string.IsNullOrWhiteSpace(displayName) ? string.Empty : displayName.Trim();
+            DisplayName = BuildingLocalization.Text(displayName);
             Amount = amount;
             SidebarRows = sidebarRows ?? EmptySidebarRows;
         }

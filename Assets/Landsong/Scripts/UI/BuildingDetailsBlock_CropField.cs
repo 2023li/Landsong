@@ -94,7 +94,9 @@ public sealed class BuildingDetailsBlock_CropField : BuildingDetailsBlockBase
 
         SetText(txt_作物状态, BuildCropStatusText());
         SetText(txt_成熟回合, BuildGrowthText());
-        SetText(txt_自动收获, cropSource.AutoHarvestEnabled ? "自动收获：开启" : "自动收获：关闭");
+        SetText(txt_自动收获, cropSource.AutoHarvestEnabled
+            ? Landsong.Localization.L10n.Gameplay("gameplay.building.crop.auto_harvest_on", "自动收获：开启")
+            : Landsong.Localization.L10n.Gameplay("gameplay.building.crop.auto_harvest_off", "自动收获：关闭"));
         RefreshButtons();
 
         if (go_作物选择面板 != null && go_作物选择面板.activeSelf)
@@ -323,27 +325,34 @@ public sealed class BuildingDetailsBlock_CropField : BuildingDetailsBlockBase
     {
         if (cropSource == null || !cropSource.HasCrop)
         {
-            return "当前作物：未种植";
+            return Landsong.Localization.L10n.Gameplay("gameplay.building.crop.none_planted", "当前作物：未种植");
         }
 
         return cropSource.IsMature
-            ? $"当前作物：{cropSource.PlantedCropDisplayName}（可收获）"
-            : $"当前作物：{cropSource.PlantedCropDisplayName}";
+            ? Landsong.Localization.L10n.Gameplay("gameplay.building.crop.current_ready", "当前作物：{0}（可收获）", cropSource.PlantedCropDisplayName)
+            : Landsong.Localization.L10n.Gameplay("gameplay.building.crop.current", "当前作物：{0}", cropSource.PlantedCropDisplayName);
     }
 
     private string BuildGrowthText()
     {
         if (cropSource == null || !cropSource.HasCrop)
         {
-            return "成熟进度：无";
+            return Landsong.Localization.L10n.Gameplay("gameplay.building.crop.no_growth", "成熟进度：无");
         }
 
         if (cropSource.IsMature)
         {
-            return $"成熟进度：{cropSource.GrowthProgressTurns}/{cropSource.RequiredGrowTurns}";
+            return Landsong.Localization.L10n.Gameplay(
+                "gameplay.building.crop.growth_progress",
+                "成熟进度：{0}/{1}",
+                cropSource.GrowthProgressTurns,
+                cropSource.RequiredGrowTurns);
         }
 
-        return $"成熟剩余：{cropSource.RemainingGrowTurns}回合";
+        return Landsong.Localization.L10n.Gameplay(
+            "gameplay.building.crop.turns_remaining",
+            "成熟剩余：{0}回合",
+            cropSource.RemainingGrowTurns);
     }
 
     private void SetCropSelectionPanelVisible(bool visible)

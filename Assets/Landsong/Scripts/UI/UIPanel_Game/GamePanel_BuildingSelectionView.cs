@@ -35,6 +35,7 @@ namespace Landsong.UISystem
 
         private void OnEnable()
         {
+            Landsong.Localization.L10n.LanguageChanged += RefreshSelectionViews;
             ResolveReferences();
             SubscribeSelection();
             RefreshSelectionViews();
@@ -43,6 +44,7 @@ namespace Landsong.UISystem
 
         private void OnDisable()
         {
+            Landsong.Localization.L10n.LanguageChanged -= RefreshSelectionViews;
             StopDelayedResolve();
             StopDetailPopupLoad();
             UnsubscribeSelection();

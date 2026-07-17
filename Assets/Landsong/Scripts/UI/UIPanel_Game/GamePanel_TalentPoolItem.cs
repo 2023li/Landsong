@@ -96,11 +96,15 @@ namespace Landsong.UISystem
             SetText(metaLabel, $"{GamePanel_TalentText.FormatProfession(talent.Profession)} / {GamePanel_TalentText.FormatRarity(talent.Rarity)}");
             SetText(levelLabel, GamePanel_TalentText.FormatLevel(talent));
             SetText(salaryLabel, GamePanel_TalentText.FormatSalary(talent));
-            SetText(assignmentLabel, string.IsNullOrWhiteSpace(assignmentText) ? "未任命" : assignmentText);
+            SetText(assignmentLabel, string.IsNullOrWhiteSpace(assignmentText)
+                ? Landsong.Localization.L10n.Gameplay("gameplay.talent.ui.unassigned", "未任命")
+                : assignmentText);
             SetText(effectsLabel, GamePanel_TalentText.FormatEffects(talent));
             SetText(hiddenTraitLabel, GamePanel_TalentText.FormatHiddenTraits(talent));
-            SetText(upgradeButtonLabel, talent.IsMaxLevel ? "已满级" : "升级");
-            SetText(unassignButtonLabel, "卸任");
+            SetText(upgradeButtonLabel, talent.IsMaxLevel
+                ? Landsong.Localization.L10n.Gameplay("gameplay.talent.ui.max_level", "已满级")
+                : Landsong.Localization.L10n.Gameplay("gameplay.common.upgrade", "升级"));
+            SetText(unassignButtonLabel, Landsong.Localization.L10n.Gameplay("gameplay.talent.ui.unassign", "卸任"));
             SetImage(icon, definition.Icon);
             SetImage(professionIcon, definition.ProfessionIcon);
             SetColor(cardBackground, definition.CardMainColor);

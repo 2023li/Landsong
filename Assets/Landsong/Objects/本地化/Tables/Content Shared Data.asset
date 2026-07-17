@@ -1,0 +1,804 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b11a58205ec3474ca216360e9fa74a8, type: 3}
+  m_Name: Content Shared Data
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.SharedTableData
+  m_TableCollectionName: Content
+  m_TableCollectionNameGuidString: 982814519614c164cb80978f9924c051
+  m_Entries:
+  - m_Id: 9295318999040
+    m_Key: content.item.u7f9de2f2.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295654543360
+    m_Key: content.item.u837f1488.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295654543361
+    m_Key: content.item.uf4dae519.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295654543362
+    m_Key: content.item.ud3e90271.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295654543363
+    m_Key: content.item.ub169f99c.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295658737664
+    m_Key: content.item.uc93cb302.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295658737665
+    m_Key: content.item.u814f2ded.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295658737666
+    m_Key: content.item.u3460dd6d.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295658737667
+    m_Key: content.item.u6cfe1335.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295658737668
+    m_Key: content.item.u63f82bc7.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295662931968
+    m_Key: content.item.uf816b63b.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295662931969
+    m_Key: content.item.ua5b4be6e.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295675514880
+    m_Key: content.item.u837f1488.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295675514881
+    m_Key: content.item.ub169f99c.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295675514882
+    m_Key: content.item.u3460dd6d.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295688097792
+    m_Key: content.item_group.food_vegetable.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295688097793
+    m_Key: content.item_group.food_grain.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295688097794
+    m_Key: content.item_group.food.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295700680704
+    m_Key: content.item_group.food_vegetable.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295700680705
+    m_Key: content.item_group.food_grain.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295700680706
+    m_Key: content.item_group.food.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295713263616
+    m_Key: content.inventory_slot.u69eb986b.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295713263617
+    m_Key: content.inventory_slot.ueeed4c7a.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295713263618
+    m_Key: content.inventory_slot.ueda386bf.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295713263619
+    m_Key: content.inventory_slot.ucd94c2c6.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295717457920
+    m_Key: content.inventory_slot.u976ab723.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295734235136
+    m_Key: content.technology.tn_1_2_u25a87e3d.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295734235137
+    m_Key: content.technology.tn_1_4_u3c9ad529.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295738429440
+    m_Key: content.technology.tn_1_5_u2488e1c0.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295738429441
+    m_Key: content.technology.tn_1_6_u92f9256d.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295738429442
+    m_Key: content.technology.tn_1_8_u6170455c.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295738429443
+    m_Key: content.technology.tn_1_9_u68047e85.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295755206656
+    m_Key: content.technology.tn_1_11_u8fa928f4.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295755206657
+    m_Key: content.technology.tn_1_12_u225436c6.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295759400960
+    m_Key: content.technology.tn_1_14_u5fd098b1.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295767789568
+    m_Key: content.technology.tn_1_17_u9e0d1c7e.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295767789569
+    m_Key: content.technology.tn_2_2_ub94bd336.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295767789570
+    m_Key: content.technology.tn_2_3_uba7a359c.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295767789571
+    m_Key: content.technology.tn_2_4_ucc8dc2d7.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295767789572
+    m_Key: content.technology.tn_2_6_uf8f65c05.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295767789573
+    m_Key: content.technology.tn_2_7_uc3605f11.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295767789574
+    m_Key: content.technology.tn_2_8_ud021eac9.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295767789575
+    m_Key: content.technology.tn_2_10_u650294e2.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295767789576
+    m_Key: content.technology.tn_2_12_udfcb6821.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295767789577
+    m_Key: content.technology.tn_2_13_ub59d4dae.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295767789578
+    m_Key: content.technology.tn_2_15_u3f89eda2.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295767789579
+    m_Key: content.technology.tn_2_16_u157f6040.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295771983872
+    m_Key: content.technology.tn_2_17_u8ed139cc.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295771983873
+    m_Key: content.technology.tn_3_1_u37accc42.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295771983874
+    m_Key: content.technology.tn_3_2_uaa2476ed.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295771983875
+    m_Key: content.technology.tn_3_4_u9089c4ee.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295771983876
+    m_Key: content.technology.tn_3_5_u95dd23ba.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295771983877
+    m_Key: content.technology.tn_3_7_ufa05851f.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295771983878
+    m_Key: content.technology.tn_3_9_ud79a7cd8.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295771983879
+    m_Key: content.technology.tn_3_11_u4e6ce4ab.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295771983880
+    m_Key: content.technology.tn_3_13_u953252ac.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295771983881
+    m_Key: content.technology.tn_3_15_u6ec6fdc8.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295776178176
+    m_Key: content.technology.tn_3_16_ube9e8181.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295776178177
+    m_Key: content.technology.tn_3_17_ude10bd83.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295776178178
+    m_Key: content.technology.tn_3_18_uff4fc795.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295776178179
+    m_Key: content.technology.tn_4_2_ucb71c44a.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295776178180
+    m_Key: content.technology.tn_4_3_ub2220768.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295776178181
+    m_Key: content.technology.tn_4_5_ua8a7319f.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295776178182
+    m_Key: content.technology.tn_4_7_ue7604c8f.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295776178183
+    m_Key: content.technology.tn_4_8_u4d59421d.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295776178184
+    m_Key: content.technology.tn_4_10_u3dbc3d3d.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295776178185
+    m_Key: content.technology.tn_4_11_u6e2f8c4b.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295776178186
+    m_Key: content.technology.tn_4_14_u82bffed7.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295776178187
+    m_Key: content.technology.tn_4_15_u3defbba6.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295776178188
+    m_Key: content.technology.tn_4_16_uc14807c7.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295776178189
+    m_Key: content.technology.tn_4_17_u132a19f6.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295776178190
+    m_Key: content.technology.tn_5_2_u425dfe20.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295780372480
+    m_Key: content.technology.tn_5_3_ud7a9a898.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295780372481
+    m_Key: content.technology.tn_5_4_ua89e6823.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295780372482
+    m_Key: content.technology.tn_5_6_u63d93061.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295780372483
+    m_Key: content.technology.tn_5_7_u62c99ede.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295780372484
+    m_Key: content.technology.tn_5_9_u0d677475.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295780372485
+    m_Key: content.technology.tn_5_10_u7991c184.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295780372486
+    m_Key: content.technology.tn_5_12_u89c031dd.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295780372487
+    m_Key: content.technology.tn_5_13_u9c8ab34b.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295780372488
+    m_Key: content.technology.tn_5_15_u536983d2.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295780372489
+    m_Key: content.technology.tn_5_17_u7570eaad.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295784566784
+    m_Key: content.technology.tn_1_2_u25a87e3d.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761088
+    m_Key: content.technology.tn_1_4_u3c9ad529.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761089
+    m_Key: content.technology.tn_1_5_u2488e1c0.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761090
+    m_Key: content.technology.tn_1_6_u92f9256d.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761091
+    m_Key: content.technology.tn_1_8_u6170455c.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761092
+    m_Key: content.technology.tn_1_9_u68047e85.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761093
+    m_Key: content.technology.tn_1_11_u8fa928f4.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761094
+    m_Key: content.technology.tn_1_12_u225436c6.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761095
+    m_Key: content.technology.tn_1_14_u5fd098b1.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761096
+    m_Key: content.technology.tn_1_17_u9e0d1c7e.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761097
+    m_Key: content.technology.tn_2_2_ub94bd336.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761098
+    m_Key: content.technology.tn_2_3_uba7a359c.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761099
+    m_Key: content.technology.tn_2_4_ucc8dc2d7.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761100
+    m_Key: content.technology.tn_2_6_uf8f65c05.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761101
+    m_Key: content.technology.tn_2_7_uc3605f11.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761102
+    m_Key: content.technology.tn_2_8_ud021eac9.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761103
+    m_Key: content.technology.tn_2_10_u650294e2.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761104
+    m_Key: content.technology.tn_2_12_udfcb6821.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761105
+    m_Key: content.technology.tn_2_13_ub59d4dae.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761106
+    m_Key: content.technology.tn_2_15_u3f89eda2.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761107
+    m_Key: content.technology.tn_2_16_u157f6040.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761108
+    m_Key: content.technology.tn_2_17_u8ed139cc.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761109
+    m_Key: content.technology.tn_3_1_u37accc42.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761110
+    m_Key: content.technology.tn_3_2_uaa2476ed.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761111
+    m_Key: content.technology.tn_3_4_u9089c4ee.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761112
+    m_Key: content.technology.tn_3_5_u95dd23ba.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761113
+    m_Key: content.technology.tn_3_7_ufa05851f.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761114
+    m_Key: content.technology.tn_3_9_ud79a7cd8.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761115
+    m_Key: content.technology.tn_3_11_u4e6ce4ab.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761116
+    m_Key: content.technology.tn_3_13_u953252ac.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761117
+    m_Key: content.technology.tn_3_15_u6ec6fdc8.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761118
+    m_Key: content.technology.tn_3_16_ube9e8181.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761119
+    m_Key: content.technology.tn_3_17_ude10bd83.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761120
+    m_Key: content.technology.tn_3_18_uff4fc795.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295788761121
+    m_Key: content.technology.tn_4_2_ucb71c44a.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955392
+    m_Key: content.technology.tn_4_3_ub2220768.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955393
+    m_Key: content.technology.tn_4_5_ua8a7319f.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955394
+    m_Key: content.technology.tn_4_7_ue7604c8f.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955395
+    m_Key: content.technology.tn_4_8_u4d59421d.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955396
+    m_Key: content.technology.tn_4_10_u3dbc3d3d.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955397
+    m_Key: content.technology.tn_4_11_u6e2f8c4b.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955398
+    m_Key: content.technology.tn_4_14_u82bffed7.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955399
+    m_Key: content.technology.tn_4_15_u3defbba6.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955400
+    m_Key: content.technology.tn_4_16_uc14807c7.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955401
+    m_Key: content.technology.tn_4_17_u132a19f6.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955402
+    m_Key: content.technology.tn_5_2_u425dfe20.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955403
+    m_Key: content.technology.tn_5_3_ud7a9a898.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955404
+    m_Key: content.technology.tn_5_4_ua89e6823.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955405
+    m_Key: content.technology.tn_5_6_u63d93061.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955406
+    m_Key: content.technology.tn_5_7_u62c99ede.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955407
+    m_Key: content.technology.tn_5_9_u0d677475.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955408
+    m_Key: content.technology.tn_5_10_u7991c184.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955409
+    m_Key: content.technology.tn_5_12_u89c031dd.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955410
+    m_Key: content.technology.tn_5_13_u9c8ab34b.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955411
+    m_Key: content.technology.tn_5_15_u536983d2.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295792955412
+    m_Key: content.technology.tn_5_17_u7570eaad.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295805538304
+    m_Key: content.quest.main_build_farms_3.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295822315520
+    m_Key: content.quest.main_build_residential_houses_3.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295822315521
+    m_Key: content.quest.main_camera_survey.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295826509824
+    m_Key: content.quest.main_collect_building_materials.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295826509825
+    m_Key: content.quest.main_plant_farms_3.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295830704128
+    m_Key: content.quest.main_select_technology.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295830704129
+    m_Key: content.quest.main_build_farms_3.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295830704130
+    m_Key: content.quest.main_build_residential_houses_3.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295830704131
+    m_Key: content.quest.main_camera_survey.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295830704132
+    m_Key: content.quest.main_collect_building_materials.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295830704133
+    m_Key: content.quest.main_plant_farms_3.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295830704134
+    m_Key: content.quest.main_select_technology.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295847481344
+    m_Key: content.building.building_farm_field.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295847481345
+    m_Key: content.building.building_fishing_hut.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295860064256
+    m_Key: content.building.building_granary.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295864258560
+    m_Key: content.building.building_hospital.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295864258561
+    m_Key: content.building.building_lumber_cabin.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295864258562
+    m_Key: content.building.building_market.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295885230080
+    m_Key: content.building.building_player_home.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295889424384
+    m_Key: content.building.building_police_station.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295897812992
+    m_Key: content.building.building_quarry.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295897812993
+    m_Key: content.building.building_residential_house.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295902007296
+    m_Key: content.building.building_road.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295906201600
+    m_Key: content.building.building_sculpture.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295910395904
+    m_Key: content.building.building_small_dirt_pile.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295914590208
+    m_Key: content.building.building_small_stone_pile.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295956533248
+    m_Key: content.building.building_tree.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295964921856
+    m_Key: content.building.building_warehouse.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295969116160
+    m_Key: content.building_style.sculpture_goddess.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295969116161
+    m_Key: content.building_style.sculpture_deer.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295969116162
+    m_Key: content.building_style.tree_01.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295969116163
+    m_Key: content.building_style.tree_02.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295969116164
+    m_Key: content.building_style.tree_03.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295969116165
+    m_Key: content.building_style.tree_04.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295969116166
+    m_Key: content.building_style.tree_05.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295969116167
+    m_Key: content.building_style.tree_06.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295969116168
+    m_Key: content.building_style.tree_07.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295969116169
+    m_Key: content.building_style.tree_08.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295990087680
+    m_Key: content.building_effect.medical_hospital_lv1_4_workers.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295990087681
+    m_Key: content.building_effect.medical_hospital_lv1_2_workers.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295990087682
+    m_Key: content.building_effect.medical_hospital_lv2_8_workers.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295990087683
+    m_Key: content.building_effect.medical_hospital_lv2_4_workers.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295990087684
+    m_Key: content.building_effect.medical_hospital_lv3_8_workers.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295990087685
+    m_Key: content.building_effect.medical_hospital_lv3_16_workers.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295990087686
+    m_Key: content.building_effect.security_police_station_lv1_4_workers.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295990087687
+    m_Key: content.building_effect.security_police_station_lv1_2_workers.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295990087688
+    m_Key: content.building_effect.security_police_station_lv2_8_workers.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295990087689
+    m_Key: content.building_effect.security_police_station_lv2_4_workers.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295990087690
+    m_Key: content.building_effect.security_police_station_lv3_8_workers.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295990087691
+    m_Key: content.building_effect.security_police_station_lv3_16_workers.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295990087692
+    m_Key: content.building_effect.beauty_sculpture.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295990087693
+    m_Key: content.building_effect.beauty_tree.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295998476288
+    m_Key: content.map.map_test01.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9295998476289
+    m_Key: content.map.map_test01.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9296048807936
+    m_Key: content.technology_buff.buff_quarry_masonry.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9296053002240
+    m_Key: content.technology_buff.buff_inventory_wheel_preservation.name
+    m_Metadata:
+      m_Items: []
+  m_Metadata:
+    m_Items: []
+  m_KeyGenerator:
+    rid: 5711026527637340161
+  references:
+    version: 2
+    RefIds:
+    - rid: 5711026527637340161
+      type: {class: DistributedUIDGenerator, ns: UnityEngine.Localization.Tables, asm: Unity.Localization}
+      data:
+        m_CustomEpoch: 1784323498349

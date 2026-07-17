@@ -1,4 +1,5 @@
 using System;
+using Landsong.Localization;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -20,10 +21,16 @@ namespace Landsong.PolicySystem
 
         public Sprite Icon => icon;
         public string PolicyId => policyId;
-        public string DisplayName => string.IsNullOrWhiteSpace(displayName) ? name : displayName;
-        public string Description => description;
+        public string DisplayName => L10n.ContentName(
+            "policy",
+            PolicyId,
+            string.IsNullOrWhiteSpace(displayName) ? name : displayName);
+        public string Description => L10n.ContentDescription("policy", PolicyId, description);
         public string TreeId => treeId;
-        public string TreeDisplayName => string.IsNullOrWhiteSpace(treeDisplayName) ? treeId : treeDisplayName;
+        public string TreeDisplayName => L10n.ContentName(
+            "policy_tree",
+            TreeId,
+            string.IsNullOrWhiteSpace(treeDisplayName) ? treeId : treeDisplayName);
         public int Tier => Mathf.Max(1, tier);
         public int RequiredPublicOpinion => Mathf.Max(0, requiredPublicOpinion);
         public bool IsValid => !string.IsNullOrWhiteSpace(policyId) && !string.IsNullOrWhiteSpace(treeId);

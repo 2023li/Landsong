@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Landsong.BuildingSystem;
 using Landsong.ConditionSystem;
 using Landsong.InventorySystem;
+using Landsong.Localization;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -110,12 +111,16 @@ namespace Landsong.TalentSystem
         private float levelScaling;
 
         public string EffectId => NormalizeId(effectId);
-        public string DisplayName => string.IsNullOrWhiteSpace(displayName)
-            ? (string.IsNullOrWhiteSpace(EffectId) ? effectType.ToString() : EffectId)
-            : displayName.Trim();
-        public string CustomDescription => string.IsNullOrWhiteSpace(customDescription)
-            ? string.Empty
-            : customDescription.Trim();
+        public string DisplayName => L10n.ContentName(
+            "talent_effect",
+            EffectId,
+            string.IsNullOrWhiteSpace(displayName)
+                ? (string.IsNullOrWhiteSpace(EffectId) ? effectType.ToString() : EffectId)
+                : displayName.Trim());
+        public string CustomDescription => L10n.ContentDescription(
+            "talent_effect",
+            EffectId,
+            string.IsNullOrWhiteSpace(customDescription) ? string.Empty : customDescription.Trim());
         public TalentEffectType EffectType => effectType;
         public TalentEffectTriggerTiming TriggerTiming => triggerTiming;
         public TalentEffectValueType ValueType => valueType;
@@ -284,18 +289,21 @@ namespace Landsong.TalentSystem
         private TalentEffectDefinition[] effects = Array.Empty<TalentEffectDefinition>();
 
         public string TraitId => TalentEffectDefinition.NormalizeId(traitId);
-        public string DisplayName => string.IsNullOrWhiteSpace(displayName)
-            ? (string.IsNullOrWhiteSpace(TraitId) ? "隐藏特性" : TraitId)
-            : displayName.Trim();
-        public string UndiscoveredDescription => string.IsNullOrWhiteSpace(undiscoveredDescription)
-            ? "未知特性"
-            : undiscoveredDescription.Trim();
-        public string DiscoveredDescription => string.IsNullOrWhiteSpace(discoveredDescription)
-            ? DisplayName
-            : discoveredDescription.Trim();
-        public string ActiveDescription => string.IsNullOrWhiteSpace(activeDescription)
-            ? DiscoveredDescription
-            : activeDescription.Trim();
+        public string DisplayName => L10n.ContentName(
+            "talent_trait",
+            TraitId,
+            string.IsNullOrWhiteSpace(displayName)
+                ? (string.IsNullOrWhiteSpace(TraitId) ? "隐藏特性" : TraitId)
+                : displayName.Trim());
+        public string UndiscoveredDescription => L10n.Content(
+            L10n.BuildContentKey("talent_trait", TraitId, "undiscovered_description"),
+            string.IsNullOrWhiteSpace(undiscoveredDescription) ? "未知特性" : undiscoveredDescription.Trim());
+        public string DiscoveredDescription => L10n.Content(
+            L10n.BuildContentKey("talent_trait", TraitId, "discovered_description"),
+            string.IsNullOrWhiteSpace(discoveredDescription) ? DisplayName : discoveredDescription.Trim());
+        public string ActiveDescription => L10n.Content(
+            L10n.BuildContentKey("talent_trait", TraitId, "active_description"),
+            string.IsNullOrWhiteSpace(activeDescription) ? DiscoveredDescription : activeDescription.Trim());
         public int MinDiscoverLevel => Mathf.Max(0, minDiscoverLevel);
         public int MinActivateLevel => Mathf.Max(0, minActivateLevel);
         public int AssignedTurnsToDiscover => Mathf.Max(0, assignedTurnsToDiscover);
@@ -368,9 +376,12 @@ namespace Landsong.TalentSystem
         private int sortOrder;
 
         public string SlotId => TalentEffectDefinition.NormalizeId(slotId);
-        public string DisplayName => string.IsNullOrWhiteSpace(displayName)
-            ? (acceptedProfession == TalentProfession.None ? "通用人才槽" : $"{acceptedProfession}专属槽")
-            : displayName.Trim();
+        public string DisplayName => L10n.ContentName(
+            "talent_slot",
+            SlotId,
+            string.IsNullOrWhiteSpace(displayName)
+                ? (acceptedProfession == TalentProfession.None ? "通用人才槽" : $"{acceptedProfession}专属槽")
+                : displayName.Trim());
         public TalentProfession AcceptedProfession => acceptedProfession;
         public int SortOrder => Mathf.Max(0, sortOrder);
         public bool IsValid => !string.IsNullOrWhiteSpace(SlotId);
@@ -472,10 +483,14 @@ namespace Landsong.TalentSystem
         private TalentHiddenTraitDefinition[] hiddenTraits = Array.Empty<TalentHiddenTraitDefinition>();
 
         public string TalentId => TalentEffectDefinition.NormalizeId(talentId);
-        public string DisplayName => string.IsNullOrWhiteSpace(displayName)
-            ? (string.IsNullOrWhiteSpace(TalentId) ? name : TalentId)
-            : displayName.Trim();
-        public string Description => string.IsNullOrWhiteSpace(description) ? string.Empty : description.Trim();
+        public string DisplayName => L10n.ContentName(
+            "talent",
+            TalentId,
+            string.IsNullOrWhiteSpace(displayName) ? (string.IsNullOrWhiteSpace(TalentId) ? name : TalentId) : displayName.Trim());
+        public string Description => L10n.ContentDescription(
+            "talent",
+            TalentId,
+            string.IsNullOrWhiteSpace(description) ? string.Empty : description.Trim());
         public TalentProfession Profession => profession;
         public TalentRarity Rarity => rarity;
         public Sprite Icon => icon;

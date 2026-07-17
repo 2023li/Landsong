@@ -155,7 +155,12 @@ namespace Landsong
                 QuestCategory.Random,
                 8,
                 new[] { new ItemAmount(requiredItem, requiredAmount) },
-                new[] { new ItemAmount(rewardItem, rewardAmount) });
+                new[] { new ItemAmount(rewardItem, rewardAmount) },
+                "debug_delivery",
+                string.Empty,
+                string.Empty,
+                "调试随机委托：交付{RequiredList}",
+                "交付 {RequiredList}，获得 {RewardList}。");
         }
 
         public QuestSaveData CaptureSaveData()
@@ -691,12 +696,17 @@ namespace Landsong
             var rewards = BuildItemAmounts(saveData.Rewards);
             return GameQuestDefinition.CreateRuntimeSubmitResourcesQuest(
                 saveData.QuestId,
-                saveData.DisplayName,
-                saveData.Description,
+                string.Empty,
+                string.Empty,
                 saveData.Category,
                 saveData.TurnLimit,
                 requiredResources,
-                rewards);
+                rewards,
+                saveData.TemplateId,
+                saveData.RequesterId,
+                saveData.RequesterSourceName,
+                saveData.NameFallbackFormat,
+                saveData.DescriptionFallbackFormat);
         }
 
         private List<ItemAmount> BuildItemAmounts(IReadOnlyList<QuestItemAmountSaveData> source)
@@ -1165,7 +1175,9 @@ namespace Landsong
         {
             quest.TargetAmount = 1;
             quest.CurrentAmount = Mathf.Clamp(quest.CurrentAmount, 0, 1);
-            quest.TargetDisplayName = "移动视野";
+            quest.TargetDisplayName = Landsong.Localization.L10n.Gameplay(
+                "gameplay.quest.target.move_camera",
+                "移动视野");
             quest.Icon = null;
         }
 
@@ -1183,7 +1195,9 @@ namespace Landsong
             var selectedTechnology = Technology == null ? null : Technology.CurrentResearchDefinition;
             quest.TargetAmount = 1;
             quest.CurrentAmount = selectedTechnology == null ? 0 : 1;
-            quest.TargetDisplayName = selectedTechnology == null ? "任意科技" : selectedTechnology.DisplayName;
+            quest.TargetDisplayName = selectedTechnology == null
+                ? Landsong.Localization.L10n.Gameplay("gameplay.quest.target.any_technology", "任意科技")
+                : selectedTechnology.DisplayName;
             quest.Icon = selectedTechnology == null ? null : selectedTechnology.Icon;
         }
 
@@ -1219,7 +1233,9 @@ namespace Landsong
 
             quest.TargetAmount = Mathf.Max(0, totalRequired);
             quest.CurrentAmount = Mathf.Clamp(totalProgress, 0, quest.TargetAmount);
-            quest.TargetDisplayName = resources.Count == 1 ? firstDisplayName : "多种资源";
+            quest.TargetDisplayName = resources.Count == 1
+                ? firstDisplayName
+                : Landsong.Localization.L10n.Gameplay("gameplay.quest.target.multiple_resources", "多种资源");
             quest.Icon = firstIcon;
         }
 
@@ -1283,7 +1299,10 @@ namespace Landsong
                 if (reward.ItemDefinition == null)
                 {
                     Debug.LogWarning($"任务奖励物品定义无效：{reward.ItemId} x{reward.Amount}", context);
-                    failureMessage = $"任务“{quest.Definition.DisplayName}”的奖励配置无效，暂时无法领取。";
+                    failureMessage = Landsong.Localization.L10n.Gameplay(
+                        "gameplay.quest.reward.invalid",
+                        "任务“{0}”的奖励配置无效，暂时无法领取。",
+                        quest.Definition.DisplayName);
                     return false;
                 }
 
@@ -1299,19 +1318,27 @@ namespace Landsong
 
                 if (Inventory == null)
                 {
-                    failureMessage = "库存系统尚未初始化，暂时无法领取任务奖励。";
+                    failureMessage = Landsong.Localization.L10n.Gameplay(
+                        "gameplay.quest.reward.inventory_uninitialized",
+                        "库存系统尚未初始化，暂时无法领取任务奖励。");
                     return false;
                 }
 
                 if (!Inventory.CanAddItems(validRewards))
                 {
-                    failureMessage = $"库存空间不足，无法领取任务“{quest.Definition.DisplayName}”的奖励。请先腾出库存格。";
+                    failureMessage = Landsong.Localization.L10n.Gameplay(
+                        "gameplay.quest.reward.inventory_full",
+                        "库存空间不足，无法领取任务“{0}”的奖励。请先腾出库存格。",
+                        quest.Definition.DisplayName);
                     return false;
                 }
 
                 if (!Inventory.TryAddItems(validRewards))
                 {
-                    failureMessage = $"任务“{quest.Definition.DisplayName}”的奖励发放失败，请重试。";
+                    failureMessage = Landsong.Localization.L10n.Gameplay(
+                        "gameplay.quest.reward.delivery_failed",
+                        "任务“{0}”的奖励发放失败，请重试。",
+                        quest.Definition.DisplayName);
                     return false;
                 }
             }
@@ -1330,9 +1357,11 @@ namespace Landsong
             quest.Status = QuestStatus.Failed;
             if (emitMessage)
             {
-                AddQuestMessage(
+                AddQuestMessageLocalized(
                     GameEventCatalog.GE_任务失败,
-                    $"任务失败：{quest.Definition.DisplayName}");
+                    "gameplay.quest.failed",
+                    "任务失败：{0}",
+                    () => new object[] { quest.Definition.DisplayName });
             }
         }
 
@@ -1429,9 +1458,11 @@ namespace Landsong
                 return;
             }
 
-            AddQuestMessage(
+            AddQuestMessageLocalized(
                 GameEventCatalog.GE_任务出现,
-                $"新任务：{quest.Definition.DisplayName}",
+                "gameplay.quest.new",
+                "新任务：{0}",
+                () => new object[] { quest.Definition.DisplayName },
                 _ => HandleQuestEventClicked(quest.QuestId),
                 true);
         }
@@ -1460,6 +1491,29 @@ namespace Landsong
 
             Events?.AddMessage(
                 GameEventMessage.ForGame(eventTypeId, message, CurrentTurn, clicked, suppressDefaultPopup));
+        }
+
+        private void AddQuestMessageLocalized(
+            string eventTypeId,
+            string textKey,
+            string sourceMessage,
+            Func<object[]> argumentsProvider,
+            Action<GameEventMessage> clicked = null,
+            bool suppressDefaultPopup = false)
+        {
+            if (Events == null)
+            {
+                context.EnsureGameEventServiceForQuest();
+            }
+
+            Events?.AddMessage(GameEventMessage.ForGameLocalized(
+                eventTypeId,
+                textKey,
+                sourceMessage,
+                CurrentTurn,
+                argumentsProvider,
+                clicked,
+                suppressDefaultPopup));
         }
 
         internal void RefreshSubscriptions()

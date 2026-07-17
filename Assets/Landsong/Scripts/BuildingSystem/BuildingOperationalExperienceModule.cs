@@ -109,15 +109,19 @@ namespace Landsong.BuildingSystem
                 return true;
             }
 
-            failureMessage = $"运营经验不足：{Experience}/{ExperienceRequiredForNextLevel}。";
+            failureMessage = Landsong.Localization.L10n.Gameplay(
+                "gameplay.building.upgrade.operational_experience_missing",
+                "运营经验不足：{0}/{1}。",
+                Experience,
+                ExperienceRequiredForNextLevel);
             return false;
         }
 
         public override string GetOverviewFragment(BuildingBase building)
         {
             return ExperienceRequiredForNextLevel > 0
-                ? $"经验 {Experience}/{ExperienceRequiredForNextLevel}"
-                : $"经验 {Experience}（最高等级）";
+                ? Landsong.Localization.L10n.Gameplay("gameplay.building.overview.experience", "经验 {0}/{1}", Experience, ExperienceRequiredForNextLevel)
+                : Landsong.Localization.L10n.Gameplay("gameplay.building.overview.experience_max", "经验 {0}（最高等级）", Experience);
         }
 
         public override void AppendFunctionBlockEntries(

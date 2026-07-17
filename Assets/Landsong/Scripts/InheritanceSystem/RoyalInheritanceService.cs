@@ -1377,8 +1377,8 @@ namespace Landsong.InheritanceSystem
 
             var added = context.Services.Inventory.AddItem(effect.ItemDefinition, amount);
             var message = added > 0
-                ? $"{character.DisplayName}：{effect.ItemDefinition.DisplayName}+{added}"
-                : $"{character.DisplayName}：{effect.ItemDefinition.DisplayName}+0（仓库已满）";
+                ? Landsong.Localization.L10n.Gameplay("gameplay.effect.item_added", "{0}：{1}+{2}", character.DisplayName, effect.ItemDefinition.DisplayName, added)
+                : Landsong.Localization.L10n.Gameplay("gameplay.effect.item_storage_full", "{0}：{1}+0（仓库已满）", character.DisplayName, effect.ItemDefinition.DisplayName);
             return new RoyalEffectApplicationResult(character, effect, added > 0, added, message);
         }
 
@@ -1394,7 +1394,8 @@ namespace Landsong.InheritanceSystem
             }
 
             context.ApplyExternalResearchPoints(amount, turnNumber, character.DisplayName);
-            return new RoyalEffectApplicationResult(character, effect, true, amount, $"{character.DisplayName}：研究点+{amount}");
+            return new RoyalEffectApplicationResult(character, effect, true, amount,
+                Landsong.Localization.L10n.Gameplay("gameplay.effect.research_added", "{0}：研究点+{1}", character.DisplayName, amount));
         }
 
         private RoyalEffectApplicationResult ApplyUnlockBlueprintEffect(RoyalCharacterState character, TalentEffectDefinition effect)
@@ -1407,8 +1408,8 @@ namespace Landsong.InheritanceSystem
 
             var unlocked = context.Services.BuildingBlueprints.Unlock(building.FamilyId);
             var message = unlocked
-                ? $"{character.DisplayName}：解锁蓝图 {building.Definition.DisplayName}"
-                : $"{character.DisplayName}：蓝图已解锁 {building.Definition.DisplayName}";
+                ? Landsong.Localization.L10n.Gameplay("gameplay.effect.blueprint_unlocked", "{0}：解锁蓝图 {1}", character.DisplayName, building.Definition.DisplayName)
+                : Landsong.Localization.L10n.Gameplay("gameplay.effect.blueprint_already_unlocked", "{0}：蓝图已解锁 {1}", character.DisplayName, building.Definition.DisplayName);
             return new RoyalEffectApplicationResult(character, effect, unlocked, unlocked ? 1 : 0, message);
         }
 

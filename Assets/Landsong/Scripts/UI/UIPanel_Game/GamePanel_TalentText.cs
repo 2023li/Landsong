@@ -1,5 +1,6 @@
 using System.Text;
 using Landsong.TalentSystem;
+using Landsong.Localization;
 
 namespace Landsong.UISystem
 {
@@ -7,18 +8,28 @@ namespace Landsong.UISystem
     {
         public static string FormatProfession(TalentProfession profession)
         {
-            return profession == TalentProfession.None ? "通用" : profession.ToString();
+            var key = profession switch
+            {
+                TalentProfession.大总管 => "steward",
+                TalentProfession.大法师 => "archmage",
+                TalentProfession.大将军 => "general",
+                TalentProfession.大学者 => "scholar",
+                _ => "any"
+            };
+            return L10n.Gameplay(
+                $"gameplay.talent.profession.{key}",
+                profession == TalentProfession.None ? "通用" : profession.ToString());
         }
 
         public static string FormatRarity(TalentRarity rarity)
         {
             return rarity switch
             {
-                TalentRarity.Uncommon => "优秀",
-                TalentRarity.Rare => "稀有",
-                TalentRarity.Epic => "史诗",
-                TalentRarity.Legendary => "传说",
-                _ => "普通"
+                TalentRarity.Uncommon => L10n.Gameplay("gameplay.talent.rarity.uncommon", "优秀"),
+                TalentRarity.Rare => L10n.Gameplay("gameplay.talent.rarity.rare", "稀有"),
+                TalentRarity.Epic => L10n.Gameplay("gameplay.talent.rarity.epic", "史诗"),
+                TalentRarity.Legendary => L10n.Gameplay("gameplay.talent.rarity.legendary", "传说"),
+                _ => L10n.Gameplay("gameplay.talent.rarity.common", "普通")
             };
         }
 
@@ -30,18 +41,18 @@ namespace Landsong.UISystem
             }
 
             return talent.IsMaxLevel
-                ? $"Lv.{talent.Level} 最高级"
-                : $"Lv.{talent.Level} 经验 {talent.Experience}/{talent.ExperienceRequiredForNextLevel}";
+                ? L10n.Gameplay("gameplay.talent.level.max", "Lv.{0} 最高级", talent.Level)
+                : L10n.Gameplay("gameplay.talent.level.progress", "Lv.{0} 经验 {1}/{2}", talent.Level, talent.Experience, talent.ExperienceRequiredForNextLevel);
         }
 
         public static string FormatSalary(TalentState talent)
         {
-            return talent == null ? string.Empty : $"薪资 {talent.SalaryGoldPerTurn}/回合";
+            return talent == null ? string.Empty : L10n.Gameplay("gameplay.talent.salary", "薪资 {0}/回合", talent.SalaryGoldPerTurn);
         }
 
         public static string FormatSalary(TalentDefinition definition)
         {
-            return definition == null ? string.Empty : $"薪资 {definition.CalculateSalaryGoldPerTurn(definition.StartingLevel)}/回合";
+            return definition == null ? string.Empty : L10n.Gameplay("gameplay.talent.salary", "薪资 {0}/回合", definition.CalculateSalaryGoldPerTurn(definition.StartingLevel));
         }
 
         public static string FormatOfferDetails(TalentDefinition definition)
@@ -51,7 +62,7 @@ namespace Landsong.UISystem
                 return string.Empty;
             }
 
-            return $"{FormatProfession(definition.Profession)} / {FormatRarity(definition.Rarity)} / Lv.{definition.StartingLevel}";
+            return L10n.Gameplay("gameplay.talent.offer_details", "{0} / {1} / Lv.{2}", FormatProfession(definition.Profession), FormatRarity(definition.Rarity), definition.StartingLevel);
         }
 
         public static string FormatEffects(TalentState talent)
@@ -84,7 +95,7 @@ namespace Landsong.UISystem
                 }
             }
 
-            return builder.Length == 0 ? "无已解锁效果" : builder.ToString();
+            return builder.Length == 0 ? L10n.Gameplay("gameplay.talent.no_unlocked_effects", "无已解锁效果") : builder.ToString();
         }
 
         public static string FormatEffects(TalentDefinition definition)
@@ -101,7 +112,7 @@ namespace Landsong.UISystem
                 AppendLine(builder, effects[i]?.GetDescription(null));
             }
 
-            return builder.Length == 0 ? "无基础效果" : builder.ToString();
+            return builder.Length == 0 ? L10n.Gameplay("gameplay.talent.no_base_effects", "无基础效果") : builder.ToString();
         }
 
         public static string FormatHiddenTraits(TalentState talent)
@@ -114,7 +125,7 @@ namespace Landsong.UISystem
             var traits = talent.HiddenTraits;
             if (traits.Count == 0)
             {
-                return "无隐藏特性";
+                return L10n.Gameplay("gameplay.talent.no_hidden_traits", "无隐藏特性");
             }
 
             var builder = new StringBuilder();
@@ -129,14 +140,14 @@ namespace Landsong.UISystem
 
                 var label = trait.State switch
                 {
-                    TalentHiddenTraitState.Active => $"已激活：{definition.ActiveDescription}",
-                    TalentHiddenTraitState.Discovered => $"已发现：{definition.DiscoveredDescription}",
+                    TalentHiddenTraitState.Active => L10n.Gameplay("gameplay.talent.trait_active", "已激活：{0}", definition.ActiveDescription),
+                    TalentHiddenTraitState.Discovered => L10n.Gameplay("gameplay.talent.trait_discovered_label", "已发现：{0}", definition.DiscoveredDescription),
                     _ => definition.UndiscoveredDescription
                 };
                 AppendLine(builder, label);
             }
 
-            return builder.Length == 0 ? "无隐藏特性" : builder.ToString();
+            return builder.Length == 0 ? L10n.Gameplay("gameplay.talent.no_hidden_traits", "无隐藏特性") : builder.ToString();
         }
 
         public static string FormatSlotRestriction(TalentSlotRuntimeState slot)
@@ -147,8 +158,8 @@ namespace Landsong.UISystem
             }
 
             return slot.AcceptedProfession == TalentProfession.None
-                ? "任意职业"
-                : $"限定 {slot.AcceptedProfession}";
+                ? L10n.Gameplay("gameplay.talent.any_profession", "任意职业")
+                : L10n.Gameplay("gameplay.talent.restricted_profession", "限定 {0}", FormatProfession(slot.AcceptedProfession));
         }
 
         private static void AppendLine(StringBuilder builder, string line)

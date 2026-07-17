@@ -171,13 +171,15 @@ namespace Landsong.BuildingSystem
             {
                 return BuildingPlacementResult.Fail(
                     request.BuildingPrefab == null ? BuildingPlacementFailure.MissingPrefab : BuildingPlacementFailure.MissingDefinition,
-                    "建筑预制体缺失或缺少有效定义。");
+                    Landsong.Localization.L10n.Gameplay("gameplay.building.placement.prefab_invalid", "建筑预制体缺失或缺少有效定义。"));
             }
 
             if (request.GridMap == null)
             {
                 LogWarning(request.LogWarnings, $"Cannot place building '{definition.DisplayName}' without a grid map.", request.BuildingPrefab);
-                return BuildingPlacementResult.Fail(BuildingPlacementFailure.MissingGridMap, "缺少 GridMap。");
+                return BuildingPlacementResult.Fail(
+                    BuildingPlacementFailure.MissingGridMap,
+                    Landsong.Localization.L10n.Gameplay("gameplay.building.placement.grid_missing", "缺少 GridMap。"));
             }
 
             if (!request.GridMap.CanOccupy(
@@ -188,13 +190,18 @@ namespace Landsong.BuildingSystem
                     out var failureReason))
             {
                 LogWarning(request.LogWarnings, $"Cannot place building '{definition.DisplayName}' at {request.Origin}: {failureReason}.", request.BuildingPrefab);
-                return BuildingPlacementResult.Fail(BuildingPlacementFailure.InvalidOrigin, "目标格子不可放置。", failureReason);
+                return BuildingPlacementResult.Fail(
+                    BuildingPlacementFailure.InvalidOrigin,
+                    Landsong.Localization.L10n.Gameplay("gameplay.building.placement.invalid_cell", "目标格子不可放置。"),
+                    failureReason);
             }
 
             if (request.SpendPlacementCosts && !CanAffordPlacementCosts(definition, request.CostMultiplier))
             {
                 LogWarning(request.LogWarnings, $"Cannot place building '{definition.DisplayName}' because placement costs are missing.", request.BuildingPrefab);
-                return BuildingPlacementResult.Fail(BuildingPlacementFailure.CannotAffordCosts, "建造材料不足。");
+                return BuildingPlacementResult.Fail(
+                    BuildingPlacementFailure.CannotAffordCosts,
+                    Landsong.Localization.L10n.Gameplay("gameplay.building.placement.materials_missing", "建造材料不足。"));
             }
 
             var occupancyId = CreateGridOccupancyId(request.BuildingPrefab);
@@ -208,7 +215,10 @@ namespace Landsong.BuildingSystem
                     out failureReason))
             {
                 LogWarning(request.LogWarnings, $"Cannot occupy grid for building '{definition.DisplayName}' at {request.Origin}: {failureReason}.", request.BuildingPrefab);
-                return BuildingPlacementResult.Fail(BuildingPlacementFailure.InvalidOrigin, "占用格子失败。", failureReason);
+                return BuildingPlacementResult.Fail(
+                    BuildingPlacementFailure.InvalidOrigin,
+                    Landsong.Localization.L10n.Gameplay("gameplay.building.placement.occupy_failed", "占用格子失败。"),
+                    failureReason);
             }
 
             var placementPosition = request.GridMap.GetFootprintCenter(request.Origin, definition.Size);
@@ -217,7 +227,9 @@ namespace Landsong.BuildingSystem
             {
                 LogWarning(request.LogWarnings, $"Placed building prefab '{request.BuildingPrefab.name}' could not instantiate a BuildingBase.", request.BuildingPrefab);
                 request.GridMap.ClearOccupant(occupancyId);
-                return BuildingPlacementResult.Fail(BuildingPlacementFailure.InstantiationFailed, "建筑实例化失败。");
+                return BuildingPlacementResult.Fail(
+                    BuildingPlacementFailure.InstantiationFailed,
+                    Landsong.Localization.L10n.Gameplay("gameplay.building.placement.instantiate_failed", "建筑实例化失败。"));
             }
 
             building.PrepareForNewConstruction(request.StyleId);
@@ -229,7 +241,9 @@ namespace Landsong.BuildingSystem
                 LogWarning(request.LogWarnings, $"Cannot place building '{definition.DisplayName}' because placement costs could not be spent.", request.BuildingPrefab);
                 Remove(building);
                 building = null;
-                return BuildingPlacementResult.Fail(BuildingPlacementFailure.CostSpendFailed, "扣除建造材料失败。");
+                return BuildingPlacementResult.Fail(
+                    BuildingPlacementFailure.CostSpendFailed,
+                    Landsong.Localization.L10n.Gameplay("gameplay.building.placement.spend_failed", "扣除建造材料失败。"));
             }
 
             if (request.RegisterImmediately)
@@ -252,18 +266,21 @@ namespace Landsong.BuildingSystem
             placedBuildings = new List<BuildingBase>();
             if (!CanUseBuildingPrefab(buildingPrefab, out var definition, true))
             {
-                return new BuildingBatchPlacementResult(false, placedBuildings, BuildingPlacementFailure.MissingDefinition, "建筑预制体缺失或缺少有效定义。");
+                return new BuildingBatchPlacementResult(false, placedBuildings, BuildingPlacementFailure.MissingDefinition,
+                    Landsong.Localization.L10n.Gameplay("gameplay.building.placement.prefab_invalid", "建筑预制体缺失或缺少有效定义。"));
             }
 
             if (origins == null || origins.Count == 0)
             {
-                return new BuildingBatchPlacementResult(false, placedBuildings, BuildingPlacementFailure.InvalidOrigin, "没有可放置的建筑格子。");
+                return new BuildingBatchPlacementResult(false, placedBuildings, BuildingPlacementFailure.InvalidOrigin,
+                    Landsong.Localization.L10n.Gameplay("gameplay.building.placement.no_cells", "没有可放置的建筑格子。"));
             }
 
             if (spendPlacementCosts && !CanAffordPlacementCosts(definition, origins.Count))
             {
                 Debug.LogWarning($"Cannot place building batch '{definition.DisplayName}' because placement costs are missing.", buildingPrefab);
-                return new BuildingBatchPlacementResult(false, placedBuildings, BuildingPlacementFailure.CannotAffordCosts, "建造材料不足。");
+                return new BuildingBatchPlacementResult(false, placedBuildings, BuildingPlacementFailure.CannotAffordCosts,
+                    Landsong.Localization.L10n.Gameplay("gameplay.building.placement.materials_missing", "建造材料不足。"));
             }
 
             for (var i = 0; i < origins.Count; i++)
@@ -292,7 +309,8 @@ namespace Landsong.BuildingSystem
                 Debug.LogWarning($"Cannot place building batch '{definition.DisplayName}' because placement costs could not be spent.", buildingPrefab);
                 RollbackPlacedBuildings(placedBuildings);
                 placedBuildings.Clear();
-                return new BuildingBatchPlacementResult(false, placedBuildings, BuildingPlacementFailure.CostSpendFailed, "扣除建造材料失败。");
+                return new BuildingBatchPlacementResult(false, placedBuildings, BuildingPlacementFailure.CostSpendFailed,
+                    Landsong.Localization.L10n.Gameplay("gameplay.building.placement.spend_failed", "扣除建造材料失败。"));
             }
 
             return new BuildingBatchPlacementResult(true, placedBuildings, BuildingPlacementFailure.None, string.Empty);

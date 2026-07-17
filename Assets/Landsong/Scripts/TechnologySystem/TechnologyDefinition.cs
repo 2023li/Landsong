@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Landsong.Localization;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -48,8 +49,11 @@ namespace Landsong.TechnologySystem
 
         public Sprite Icon => icon;
         public string TechnologyId => technologyId;
-        public string DisplayName => string.IsNullOrWhiteSpace(displayName) ? name : displayName;
-        public string Description => description;
+        public string DisplayName => L10n.ContentName(
+            "technology",
+            TechnologyId,
+            string.IsNullOrWhiteSpace(displayName) ? name : displayName);
+        public string Description => L10n.ContentDescription("technology", TechnologyId, description);
         public int SciencePointCost => Mathf.Max(0, sciencePointCost);
         public bool AllowRepeatResearch => allowRepeatResearch;
         public IReadOnlyList<TechnologyDefinition> Prerequisites => prerequisites ?? Array.Empty<TechnologyDefinition>();

@@ -147,7 +147,9 @@ namespace Landsong.UISystem
 
             var validDefinition = definition != null;
             SetText(nameLabel, validDefinition ? definition.DisplayName : gameObject.name);
-            SetText(costLabel, validDefinition ? $"{definition.SciencePointCost} 科技点" : string.Empty);
+            SetText(costLabel, validDefinition
+                ? Landsong.Localization.L10n.Gameplay("gameplay.technology.ui.point_cost", "{0} 科技点", definition.SciencePointCost)
+                : string.Empty);
             SetText(statusLabel, FormatStatus(VisualState));
 
             if (iconImage != null)
@@ -248,14 +250,14 @@ namespace Landsong.UISystem
         {
             return state switch
             {
-                TechnologyNodeVisualState.Invalid => "未配置科技",
-                TechnologyNodeVisualState.Preview => "预览",
-                TechnologyNodeVisualState.Locked => "前置未完成",
-                TechnologyNodeVisualState.Available => "可研究",
+                TechnologyNodeVisualState.Invalid => Landsong.Localization.L10n.Gameplay("gameplay.technology.node.unconfigured", "未配置科技"),
+                TechnologyNodeVisualState.Preview => Landsong.Localization.L10n.Gameplay("gameplay.common.preview", "预览"),
+                TechnologyNodeVisualState.Locked => Landsong.Localization.L10n.Gameplay("gameplay.technology.node.prerequisite_incomplete", "前置未完成"),
+                TechnologyNodeVisualState.Available => Landsong.Localization.L10n.Gameplay("gameplay.technology.node.available", "可研究"),
                 TechnologyNodeVisualState.CurrentResearch => FormatResearchProgress(),
                 TechnologyNodeVisualState.Queued => FormatQueueStatus(),
-                TechnologyNodeVisualState.Completed => "已研究",
-                TechnologyNodeVisualState.Repeatable => "可重复研究",
+                TechnologyNodeVisualState.Completed => Landsong.Localization.L10n.Gameplay("gameplay.technology.ui.completed", "已研究"),
+                TechnologyNodeVisualState.Repeatable => Landsong.Localization.L10n.Gameplay("gameplay.technology.node.repeatable", "可重复研究"),
                 _ => string.Empty
             };
         }
@@ -263,14 +265,18 @@ namespace Landsong.UISystem
         private string FormatQueueStatus()
         {
             var index = technology == null ? -1 : technology.GetResearchQueueIndex(definition);
-            return index < 0 ? "队列中" : $"队列 {index + 1}";
+            return index < 0
+                ? Landsong.Localization.L10n.Gameplay("gameplay.technology.node.in_queue", "队列中")
+                : Landsong.Localization.L10n.Gameplay("gameplay.technology.node.queue_position", "队列 {0}", index + 1);
         }
 
         private string FormatResearchProgress()
         {
             var progress = technology == null || definition == null ? 0 : technology.GetResearchProgress(definition);
             var required = definition == null ? 0 : Mathf.Max(0, definition.SciencePointCost);
-            return required <= 0 ? "无需科技点" : $"{progress}/{required}";
+            return required <= 0
+                ? Landsong.Localization.L10n.Gameplay("gameplay.technology.ui.no_points_required", "无需科技点")
+                : $"{progress}/{required}";
         }
 
         private void RefreshUnlockIcons()
@@ -315,7 +321,7 @@ namespace Landsong.UISystem
                 var overflow = new TechnologyUnlockContent(
                     $"technology-ui.overflow:{definition.TechnologyId}",
                     null,
-                    $"另有 {remainingCount} 项解锁内容",
+                Landsong.Localization.L10n.Gameplay("gameplay.technology.node.more_unlocks", "另有 {0} 项解锁内容", remainingCount),
                     TechnologyUnlockContentKind.Other,
                     shortLabel: $"+{remainingCount}");
                 if (CreateUnlockIcon(overflow, spawnedUnlockIcons.Count, out var overflowIcon))
@@ -448,7 +454,9 @@ namespace Landsong.UISystem
 
             if (content.Kind == TechnologyUnlockContentKind.BuildingUpgrade)
             {
-                return string.IsNullOrWhiteSpace(content.ShortLabel) ? "升级" : content.ShortLabel;
+            return string.IsNullOrWhiteSpace(content.ShortLabel)
+                ? Landsong.Localization.L10n.Gameplay("gameplay.common.upgrade", "升级")
+                : content.ShortLabel;
             }
 
             if (content.Icon != null)
@@ -464,9 +472,9 @@ namespace Landsong.UISystem
             return content.Kind switch
             {
                 TechnologyUnlockContentKind.GlobalBuff => "BUFF",
-                TechnologyUnlockContentKind.Building => "建筑",
-                TechnologyUnlockContentKind.ItemReward => "奖励",
-                _ => "效果"
+                TechnologyUnlockContentKind.Building => Landsong.Localization.L10n.Gameplay("gameplay.common.building", "建筑"),
+                TechnologyUnlockContentKind.ItemReward => Landsong.Localization.L10n.Gameplay("gameplay.common.reward", "奖励"),
+                _ => Landsong.Localization.L10n.Gameplay("gameplay.common.effect", "效果")
             };
         }
 

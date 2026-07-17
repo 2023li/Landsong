@@ -280,7 +280,9 @@ public class Popup_BuildingDetails : MonoBehaviour
 
         if (rows == null || rows.Count == 0)
         {
-            AddDetailSidebarText(new BuildingDetailsSidebarRow("暂无详情", string.Empty));
+            AddDetailSidebarText(new BuildingDetailsSidebarRow(
+                Landsong.Localization.L10n.Gameplay("gameplay.building.details.none", "暂无详情"),
+                string.Empty));
             return;
         }
 
@@ -299,7 +301,9 @@ public class Popup_BuildingDetails : MonoBehaviour
 
         if (!hasAnyRow)
         {
-            AddDetailSidebarText(new BuildingDetailsSidebarRow("暂无详情", string.Empty));
+            AddDetailSidebarText(new BuildingDetailsSidebarRow(
+                Landsong.Localization.L10n.Gameplay("gameplay.building.details.none", "暂无详情"),
+                string.Empty));
         }
     }
 
@@ -443,7 +447,10 @@ public class Popup_BuildingDetails : MonoBehaviour
 
         if (!string.IsNullOrWhiteSpace(displayData.StatusInfoText))
         {
-            return $"状态：{displayData.StatusInfoText}";
+            return Landsong.Localization.L10n.Gameplay(
+                "gameplay.building.details.status",
+                "状态：{0}",
+                displayData.StatusInfoText);
         }
 
         return targetBuilding == null ? string.Empty : targetBuilding.FamilyId;

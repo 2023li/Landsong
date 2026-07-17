@@ -55,18 +55,21 @@ namespace Landsong.BuildingSystem
         {
             if (building == null || building.FamilyDefinition == null)
             {
-                return Fail(BuildingUpgradeFailure.MissingBuilding, 0, "建筑或家族定义缺失。");
+                return Fail(BuildingUpgradeFailure.MissingBuilding, 0,
+                    Landsong.Localization.L10n.Gameplay("gameplay.building.upgrade.building_missing", "建筑或家族定义缺失。"));
             }
 
             if (!building.IsOperational)
             {
-                return Fail(BuildingUpgradeFailure.UnderConstruction, 0, "施工阶段不能升级。");
+                return Fail(BuildingUpgradeFailure.UnderConstruction, 0,
+                    Landsong.Localization.L10n.Gameplay("gameplay.building.upgrade.under_construction", "施工阶段不能升级。"));
             }
 
             var targetLevel = building.CurrentLevel + 1;
             if (!building.FamilyDefinition.TryGetLevel(targetLevel, out var target))
             {
-                return Fail(BuildingUpgradeFailure.MaxLevel, targetLevel, "已经达到最高等级。");
+                return Fail(BuildingUpgradeFailure.MaxLevel, targetLevel,
+                    Landsong.Localization.L10n.Gameplay("gameplay.building.upgrade.max_level", "已经达到最高等级。"));
             }
 
             if (!target.IsConfigured)
@@ -74,7 +77,7 @@ namespace Landsong.BuildingSystem
                 return Fail(
                     BuildingUpgradeFailure.LevelNotConfigured,
                     targetLevel,
-                    "目标等级数值尚未配置。");
+                    Landsong.Localization.L10n.Gameplay("gameplay.building.upgrade.level_not_configured", "目标等级数值尚未配置。"));
             }
 
             if (!target.IsConditionMet(gameSystem))
@@ -82,7 +85,7 @@ namespace Landsong.BuildingSystem
                 return Fail(
                     BuildingUpgradeFailure.ConditionNotMet,
                     targetLevel,
-                    "升级科技或其他条件尚未满足。");
+                    Landsong.Localization.L10n.Gameplay("gameplay.building.upgrade.conditions_not_met", "升级科技或其他条件尚未满足。"));
             }
 
             var requirementSources = building.GetCapabilities<IBuildingUpgradeRequirementSource>();
@@ -94,7 +97,7 @@ namespace Landsong.BuildingSystem
                         BuildingUpgradeFailure.ConditionNotMet,
                         targetLevel,
                         string.IsNullOrWhiteSpace(failureMessage)
-                            ? "建筑升级条件尚未满足。"
+                            ? Landsong.Localization.L10n.Gameplay("gameplay.building.upgrade.requirements_not_met", "建筑升级条件尚未满足。")
                             : failureMessage);
                 }
             }
@@ -107,7 +110,7 @@ namespace Landsong.BuildingSystem
                 return Fail(
                     BuildingUpgradeFailure.CannotAfford,
                     targetLevel,
-                    "升级金币或资源不足。");
+                    Landsong.Localization.L10n.Gameplay("gameplay.building.upgrade.resources_missing", "升级金币或资源不足。"));
             }
 
             return new BuildingUpgradeResult(true, BuildingUpgradeFailure.None, targetLevel, string.Empty);

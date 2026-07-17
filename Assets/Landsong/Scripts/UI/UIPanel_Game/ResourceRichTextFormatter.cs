@@ -137,7 +137,9 @@ namespace Landsong.UISystem
                 spriteAsset,
                 showNameAfterIcon);
             var text = $"{resourceName} {currentAmount}/{requiredAmount}";
-            return includeInventory ? $"{text}  库存 {inventoryAmount}" : text;
+            return includeInventory
+                ? Landsong.Localization.L10n.Gameplay("gameplay.resource.with_inventory", "{0}  库存 {1}", text, inventoryAmount)
+                : text;
         }
 
         private static bool HasSprite(TMP_SpriteAsset spriteAsset, string spriteName)

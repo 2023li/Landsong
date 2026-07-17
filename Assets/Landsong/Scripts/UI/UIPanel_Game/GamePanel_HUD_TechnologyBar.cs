@@ -35,6 +35,7 @@ namespace Landsong.UISystem
 
         private void OnEnable()
         {
+            Landsong.Localization.L10n.LanguageChanged += Refresh;
             ResolveRuntimeServices();
             SubscribeRuntimeServices();
             Refresh();
@@ -53,6 +54,7 @@ namespace Landsong.UISystem
 
         private void OnDisable()
         {
+            Landsong.Localization.L10n.LanguageChanged -= Refresh;
             UnsubscribeRuntimeServices();
         }
 
@@ -131,7 +133,7 @@ namespace Landsong.UISystem
             {
                 SetCurrentTechnologyIcon(null);
                 SetSlider01(currentTechnologyProgress, 0f);
-                SetText(currentTechnologyNameLabel, "科技未初始化");
+                SetText(currentTechnologyNameLabel, Landsong.Localization.L10n.Gameplay("gameplay.technology.ui.not_initialized", "科技未初始化"));
                 SetText(technologyProgressLabel, "0/0");
                 return;
             }
@@ -142,7 +144,9 @@ namespace Landsong.UISystem
                 SetCurrentTechnologyIcon(null);
                 SetSlider01(currentTechnologyProgress, 0f);
                 SetText(currentTechnologyNameLabel, FormatNoCurrentResearchName());
-                SetText(technologyProgressLabel, technology.HasResearchQueue ? "等待中" : "0/0");
+                SetText(technologyProgressLabel, technology.HasResearchQueue
+                    ? Landsong.Localization.L10n.Gameplay("gameplay.common.waiting", "等待中")
+                    : "0/0");
                 return;
             }
 
@@ -155,14 +159,16 @@ namespace Landsong.UISystem
             SetText(currentTechnologyNameLabel, definition.DisplayName);
             SetText(
                 technologyProgressLabel,
-                required <= 0 ? "无需科技点" : $"{Mathf.Min(progress, required)}/{required}");
+                required <= 0
+                    ? Landsong.Localization.L10n.Gameplay("gameplay.technology.ui.no_points_required", "无需科技点")
+                    : $"{Mathf.Min(progress, required)}/{required}");
         }
 
         private string FormatNoCurrentResearchName()
         {
             if (technology == null || !technology.HasResearchQueue)
             {
-                return "未选择科技";
+                return Landsong.Localization.L10n.Gameplay("gameplay.technology.ui.none_selected", "未选择科技");
             }
 
             var queuedTechnologyIds = technology.ResearchQueueTechnologyIds;
@@ -171,10 +177,10 @@ namespace Landsong.UISystem
                 || !technology.Catalog.TryGetDefinition(queuedTechnologyIds[0], out var queuedDefinition)
                 || queuedDefinition == null)
             {
-                return "等待研发队列";
+                return Landsong.Localization.L10n.Gameplay("gameplay.technology.ui.waiting_queue", "等待研发队列");
             }
 
-            return $"等待：{queuedDefinition.DisplayName}";
+            return Landsong.Localization.L10n.Gameplay("gameplay.technology.ui.waiting_for", "等待：{0}", queuedDefinition.DisplayName);
         }
 
         private void ClearDisplay()

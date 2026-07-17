@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Landsong.BuildingSystem;
+using Landsong.Localization;
 using UnityEngine;
 
 namespace Landsong.InventorySystem
@@ -40,7 +41,7 @@ namespace Landsong.InventorySystem
             TurnOffset = Mathf.Max(1, turnOffset);
             BuildingInstanceId = buildingInstanceId ?? string.Empty;
             BuildingDisplayName = string.IsNullOrWhiteSpace(buildingDisplayName)
-                ? "建筑"
+                ? L10n.Gameplay("gameplay.common.building", "建筑")
                 : buildingDisplayName.Trim();
             Kind = kind;
             Certainty = certainty;
@@ -373,7 +374,7 @@ namespace Landsong.InventorySystem
             var actualInventory = gameSystem?.Services.Inventory?.Inventory;
             if (actualInventory == null)
             {
-                return EmptyTimeline(turns, "库存服务未初始化，无法生成经济预测。");
+                return EmptyTimeline(turns, L10n.Gameplay("gameplay.economy.service.inventory_missing", "库存服务未初始化，无法生成经济预测。"));
             }
 
             var simulation = actualInventory.CreateSimulation();
@@ -393,7 +394,9 @@ namespace Landsong.InventorySystem
 
             AddWarning(
                 warnings,
-                "预测假设未来工人数、连接关系和科技状态保持不变；随机产出以范围显示，并以最小产出进行库存可行性判断。");
+                L10n.Gameplay(
+                    "gameplay.economy.service.assumptions",
+                    "预测假设未来工人数、连接关系和科技状态保持不变；随机产出以范围显示，并以最小产出进行库存可行性判断。"));
 
             var buildings = gameSystem.Services.Buildings?.Buildings;
             for (var turnOffset = 1; turnOffset <= turns; turnOffset++)
@@ -536,7 +539,10 @@ namespace Landsong.InventorySystem
                 {
                     AddWarning(
                         warnings,
-                        $"{GetBuildingName(building)}：预测期内施工完成；竣工后的新运营能力从下一次预测开始计算。");
+                        L10n.Gameplay(
+                            "gameplay.economy.service.construction_completed_note",
+                            "{0}：预测期内施工完成；竣工后的新运营能力从下一次预测开始计算。",
+                            GetBuildingName(building)));
                     state.CompletionNoticeAdded = true;
                 }
 
@@ -663,7 +669,7 @@ namespace Landsong.InventorySystem
                     turnOffset,
                     building,
                     EconomyForecastEventKind.Construction,
-                    "施工配置缺失");
+                    L10n.Gameplay("gameplay.economy.service.construction_config_missing", "施工配置缺失"));
                 return;
             }
 
@@ -680,7 +686,7 @@ namespace Landsong.InventorySystem
                     turnOffset,
                     building,
                     EconomyForecastEventKind.Construction,
-                    "施工无法连接资源提供点");
+                    L10n.Gameplay("gameplay.economy.service.construction_provider_missing", "施工无法连接资源提供点"));
                 return;
             }
 
@@ -690,8 +696,16 @@ namespace Landsong.InventorySystem
             {
                 var shortage = RecordShortages(simulation, costs, turnLines);
                 var reason = shortage > 0
-                    ? $"施工第 {turnIndex + 1}/{construction.RequiredTurns} 回合资源不足"
-                    : $"施工第 {turnIndex + 1}/{construction.RequiredTurns} 回合产出无法入库";
+                    ? L10n.Gameplay(
+                        "gameplay.economy.service.construction_resources_missing",
+                        "施工第 {0}/{1} 回合资源不足",
+                        turnIndex + 1,
+                        construction.RequiredTurns)
+                    : L10n.Gameplay(
+                        "gameplay.economy.service.construction_storage_blocked",
+                        "施工第 {0}/{1} 回合产出无法入库",
+                        turnIndex + 1,
+                        construction.RequiredTurns);
                 if (shortage <= 0)
                 {
                     RecordOverflow(rewards, turnLines);
@@ -716,9 +730,15 @@ namespace Landsong.InventorySystem
                 simulation.Catalog);
             state.ConstructionProgress++;
             state.ConstructionCompleted = state.ConstructionProgress >= construction.RequiredTurns;
-            var description = $"施工 {turnIndex + 1}/{construction.RequiredTurns}"
+            var description = L10n.Gameplay(
+                                  "gameplay.economy.service.construction_progress",
+                                  "施工 {0}/{1}",
+                                  turnIndex + 1,
+                                  construction.RequiredTurns)
                               + FormatResourceChanges(costs, rewards)
-                              + (state.ConstructionCompleted ? "，预计竣工" : string.Empty);
+                              + (state.ConstructionCompleted
+                                  ? L10n.Gameplay("gameplay.economy.service.expected_completion", "，预计竣工")
+                                  : string.Empty);
             events.Add(CreateEvent(
                 turnOffset,
                 building,
@@ -827,7 +847,9 @@ namespace Landsong.InventorySystem
                     turnOffset,
                     building,
                     EconomyForecastEventKind.Warning,
-                    connected ? $"预计食物不足 {shortage}" : "预计无法连接资源提供点");
+                    connected
+                        ? L10n.Gameplay("gameplay.economy.service.food_shortage", "预计食物不足 {0}", shortage)
+                        : L10n.Gameplay("gameplay.economy.service.provider_unreachable", "预计无法连接资源提供点"));
             }
             else
             {
@@ -853,7 +875,7 @@ namespace Landsong.InventorySystem
                                 turnOffset,
                                 building,
                                 EconomyForecastEventKind.Tax,
-                                $"预计税收无法入库 {overflow}");
+                                L10n.Gameplay("gameplay.economy.service.tax_storage_blocked", "预计税收无法入库 {0}", overflow));
                             return false;
                         }
 
@@ -863,7 +885,7 @@ namespace Landsong.InventorySystem
                             building,
                             EconomyForecastEventKind.Tax,
                             EconomyForecastCertainty.Exact,
-                            $"预计税收 +{tax.Amount} {tax.ItemId}"));
+                            L10n.Gameplay("gameplay.economy.service.tax_income", "预计税收 +{0} {1}", tax.Amount, tax.ItemId)));
                     }
                 }
                 else
@@ -883,7 +905,7 @@ namespace Landsong.InventorySystem
                             building,
                             EconomyForecastEventKind.Population,
                             EconomyForecastCertainty.Conditional,
-                            $"预计人口增长至 {state.Population}"));
+                            L10n.Gameplay("gameplay.economy.service.population_growth", "预计人口增长至 {0}", state.Population)));
                     }
                 }
             }
@@ -922,7 +944,7 @@ namespace Landsong.InventorySystem
                     turnOffset,
                     building,
                     EconomyForecastEventKind.Production,
-                    "生产缺少岗位配置");
+                    L10n.Gameplay("gameplay.economy.service.production_workforce_missing", "生产缺少岗位配置"));
                 return false;
             }
 
@@ -938,7 +960,11 @@ namespace Landsong.InventorySystem
                     turnOffset,
                     building,
                     EconomyForecastEventKind.Production,
-                    $"工人不足（{workforce.CurrentWorkers}/{production.GetMinimumWorkersForProduction(workforce.MaxWorkers)}）");
+                    L10n.Gameplay(
+                        "gameplay.economy.service.workers_missing",
+                        "工人不足（{0}/{1}）",
+                        workforce.CurrentWorkers,
+                        production.GetMinimumWorkersForProduction(workforce.MaxWorkers)));
                 return false;
             }
 
@@ -954,7 +980,7 @@ namespace Landsong.InventorySystem
                         building,
                         EconomyForecastEventKind.Production,
                         EconomyForecastCertainty.Conditional,
-                        $"生产进度 {progress}/{production.ProductionIntervalTurns}"));
+                        L10n.Gameplay("gameplay.economy.service.production_progress", "生产进度 {0}/{1}", progress, production.ProductionIntervalTurns)));
                 }
 
                 return true;
@@ -973,7 +999,7 @@ namespace Landsong.InventorySystem
                     turnOffset,
                     building,
                     EconomyForecastEventKind.Production,
-                    $"{outputs[i].ItemId} 预计无法入库");
+                    L10n.Gameplay("gameplay.economy.service.item_storage_blocked", "{0} 预计无法入库", outputs[i].ItemId));
                 return false;
             }
 
@@ -984,7 +1010,7 @@ namespace Landsong.InventorySystem
                 building,
                 EconomyForecastEventKind.Production,
                 EconomyForecastCertainty.Exact,
-                "周期生产" + FormatResourceChanges(null, outputs)));
+                L10n.Gameplay("gameplay.economy.service.production_cycle", "周期生产") + FormatResourceChanges(null, outputs)));
             return true;
         }
 
@@ -1007,7 +1033,7 @@ namespace Landsong.InventorySystem
                     turnOffset,
                     building,
                     EconomyForecastEventKind.Processing,
-                    "加工配方无效");
+                    L10n.Gameplay("gameplay.economy.service.processing_recipe_invalid", "加工配方无效"));
                 return false;
             }
 
@@ -1020,7 +1046,7 @@ namespace Landsong.InventorySystem
                     turnOffset,
                     building,
                     EconomyForecastEventKind.Processing,
-                    $"加工工人不足（{workforce.CurrentWorkers}/{processing.MinimumWorkers}）");
+                    L10n.Gameplay("gameplay.economy.service.processing_workers_missing", "加工工人不足（{0}/{1}）", workforce.CurrentWorkers, processing.MinimumWorkers));
                 return false;
             }
 
@@ -1036,7 +1062,7 @@ namespace Landsong.InventorySystem
                         building,
                         EconomyForecastEventKind.Processing,
                         EconomyForecastCertainty.Conditional,
-                        $"加工进度 {progress}/{processing.ProductionIntervalTurns}"));
+                        L10n.Gameplay("gameplay.economy.service.processing_progress", "加工进度 {0}/{1}", progress, processing.ProductionIntervalTurns)));
                 }
 
                 return true;
@@ -1052,7 +1078,7 @@ namespace Landsong.InventorySystem
                     turnOffset,
                     building,
                     EconomyForecastEventKind.Processing,
-                    "加工无法连接资源提供点");
+                    L10n.Gameplay("gameplay.economy.service.processing_provider_missing", "加工无法连接资源提供点"));
                 return false;
             }
 
@@ -1075,7 +1101,9 @@ namespace Landsong.InventorySystem
                     turnOffset,
                     building,
                     EconomyForecastEventKind.Processing,
-                    shortage > 0 ? "加工原料不足" : "加工产出无法入库");
+                    shortage > 0
+                        ? L10n.Gameplay("gameplay.economy.service.processing_inputs_missing", "加工原料不足")
+                        : L10n.Gameplay("gameplay.economy.service.processing_storage_blocked", "加工产出无法入库"));
                 return false;
             }
 
@@ -1092,7 +1120,7 @@ namespace Landsong.InventorySystem
                 building,
                 EconomyForecastEventKind.Processing,
                 EconomyForecastCertainty.Exact,
-                "加工完成" + FormatResourceChanges(
+                L10n.Gameplay("gameplay.economy.service.processing_complete", "加工完成") + FormatResourceChanges(
                     processing.CurrentResourceConsumptions,
                     processing.CurrentResourceProductions)));
             return true;
@@ -1135,7 +1163,7 @@ namespace Landsong.InventorySystem
                     turnOffset,
                     building,
                     EconomyForecastEventKind.Harvest,
-                    "农田工人不足，作物暂停生长");
+                    L10n.Gameplay("gameplay.economy.service.crop_workers_missing", "农田工人不足，作物暂停生长"));
                 return false;
             }
 
@@ -1153,7 +1181,11 @@ namespace Landsong.InventorySystem
                         building,
                         EconomyForecastEventKind.Harvest,
                         EconomyForecastCertainty.Conditional,
-                        $"{crop.PlantedCropDisplayName} 成熟剩余 {cropState.RequiredTurns - cropState.Progress} 回合"));
+                        L10n.Gameplay(
+                            "gameplay.economy.service.crop_turns_remaining",
+                            "{0} 成熟剩余 {1} 回合",
+                            crop.PlantedCropDisplayName,
+                            cropState.RequiredTurns - cropState.Progress)));
                 }
 
                 return true;
@@ -1168,7 +1200,10 @@ namespace Landsong.InventorySystem
                         building,
                         EconomyForecastEventKind.Harvest,
                         EconomyForecastCertainty.Manual,
-                        $"{crop.PlantedCropDisplayName} 可手动收获（尚未计入库存）"));
+                        L10n.Gameplay(
+                            "gameplay.economy.service.crop_manual_harvest",
+                            "{0} 可手动收获（尚未计入库存）",
+                            crop.PlantedCropDisplayName)));
                     cropState.ManualEventEmitted = true;
                 }
 
@@ -1187,7 +1222,7 @@ namespace Landsong.InventorySystem
                     turnOffset,
                     building,
                     EconomyForecastEventKind.Harvest,
-                    "自动收获产出预计无法入库");
+                    L10n.Gameplay("gameplay.economy.service.auto_harvest_storage_blocked", "自动收获产出预计无法入库"));
                 return false;
             }
 
@@ -1199,7 +1234,7 @@ namespace Landsong.InventorySystem
                     turnOffset,
                     building,
                     EconomyForecastEventKind.Harvest,
-                    $"自动收获费用不足 {shortage}");
+                    L10n.Gameplay("gameplay.economy.service.auto_harvest_cost_missing", "自动收获费用不足 {0}", shortage));
                 return false;
             }
 
@@ -1222,7 +1257,7 @@ namespace Landsong.InventorySystem
                 building,
                 EconomyForecastEventKind.Harvest,
                 certainty,
-                $"自动收获 {crop.PlantedCropDisplayName}" + FormatResourceRanges(costs, rewards)));
+                L10n.Gameplay("gameplay.economy.service.auto_harvest", "自动收获 {0}", crop.PlantedCropDisplayName) + FormatResourceRanges(costs, rewards)));
             return true;
         }
 
@@ -1262,8 +1297,17 @@ namespace Landsong.InventorySystem
                 EconomyForecastEventKind.Production,
                 range.IsRange ? EconomyForecastCertainty.Range : EconomyForecastCertainty.Exact,
                 range.IsRange
-                    ? $"稀有产出概率 {rare.ChancePercent:0.##}%：{range.ItemId} 0~{range.MaximumAmount}"
-                    : $"稀有产出 +{range.MaximumAmount} {range.ItemId}"));
+                    ? L10n.Gameplay(
+                        "gameplay.economy.service.rare_production_range",
+                        "稀有产出概率 {0:0.##}%：{1} 0~{2}",
+                        rare.ChancePercent,
+                        range.ItemId,
+                        range.MaximumAmount)
+                    : L10n.Gameplay(
+                        "gameplay.economy.service.rare_production",
+                        "稀有产出 +{0} {1}",
+                        range.MaximumAmount,
+                        range.ItemId)));
             return true;
         }
 
@@ -1289,7 +1333,7 @@ namespace Landsong.InventorySystem
                     turnOffset,
                     building,
                     EconomyForecastEventKind.Warning,
-                    $"预计资源不足 {shortage}");
+                    L10n.Gameplay("gameplay.economy.service.resource_shortage", "预计资源不足 {0}", shortage));
                 return false;
             }
 
@@ -1306,7 +1350,7 @@ namespace Landsong.InventorySystem
                             turnOffset,
                             building,
                             EconomyForecastEventKind.Production,
-                            $"{outputs[i].ItemId} 预计无法入库");
+                            L10n.Gameplay("gameplay.economy.service.item_storage_blocked", "{0} 预计无法入库", outputs[i].ItemId));
                         return false;
                     }
                 }
@@ -1371,7 +1415,7 @@ namespace Landsong.InventorySystem
                         turnOffset,
                         building,
                         EconomyForecastEventKind.Market,
-                        $"市场收入无法入库 {overflow}");
+                        L10n.Gameplay("gameplay.economy.service.market_storage_blocked", "市场收入无法入库 {0}", overflow));
                     continue;
                 }
 
@@ -1380,7 +1424,11 @@ namespace Landsong.InventorySystem
                     building,
                     EconomyForecastEventKind.Market,
                     EconomyForecastCertainty.Conditional,
-                    $"经手价值 {providedValue}，预计金币 +{income}"));
+                    L10n.Gameplay(
+                        "gameplay.economy.service.market_income",
+                        "经手价值 {0}，预计金币 +{1}",
+                        providedValue,
+                        income)));
             }
         }
 
@@ -1933,7 +1981,12 @@ namespace Landsong.InventorySystem
                 EconomyForecastCertainty.Conditional,
                 reason,
                 true));
-            AddWarning(warnings, $"T+{turnOffset} {GetBuildingName(building)}：{reason}。");
+            AddWarning(warnings, L10n.Gameplay(
+                "gameplay.economy.service.blocked_warning",
+                "T+{0} {1}：{2}。",
+                turnOffset,
+                GetBuildingName(building),
+                reason));
         }
 
         private static void AddWarning(List<string> warnings, string warning)
@@ -1971,7 +2024,9 @@ namespace Landsong.InventorySystem
                 }
             }
 
-            return parts.Count == 0 ? string.Empty : "：" + string.Join("，", parts);
+            return parts.Count == 0
+                ? string.Empty
+                : L10n.Gameplay("gameplay.economy.service.resource_changes", "：{0}", string.Join(L10n.Gameplay("gameplay.common.comma", "，"), parts));
         }
 
         private static string FormatResourceChanges(
@@ -2001,7 +2056,9 @@ namespace Landsong.InventorySystem
                 }
             }
 
-            return parts.Count == 0 ? string.Empty : "：" + string.Join("，", parts);
+            return parts.Count == 0
+                ? string.Empty
+                : L10n.Gameplay("gameplay.economy.service.resource_changes", "：{0}", string.Join(L10n.Gameplay("gameplay.common.comma", "，"), parts));
         }
 
         private static string FormatResourceRanges(
@@ -2036,7 +2093,9 @@ namespace Landsong.InventorySystem
                 }
             }
 
-            return parts.Count == 0 ? string.Empty : "：" + string.Join("，", parts);
+            return parts.Count == 0
+                ? string.Empty
+                : L10n.Gameplay("gameplay.economy.service.resource_changes", "：{0}", string.Join(L10n.Gameplay("gameplay.common.comma", "，"), parts));
         }
 
         private static int CompareEvents(EconomyForecastEvent left, EconomyForecastEvent right)
@@ -2076,7 +2135,7 @@ namespace Landsong.InventorySystem
 
         private static string GetBuildingName(BuildingBase building) =>
             building == null || building.Definition == null
-                ? "建筑"
+                ? L10n.Gameplay("gameplay.common.building", "建筑")
                 : building.Definition.DisplayName;
     }
 }

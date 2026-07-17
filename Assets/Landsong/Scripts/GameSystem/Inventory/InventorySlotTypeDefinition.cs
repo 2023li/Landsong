@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Landsong.Localization;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -24,8 +25,10 @@ namespace Landsong.InventorySystem
             Array.Empty<InventorySlotLossModifier>();
 
         public InventorySlotType SlotType => slotType;
-        public string DisplayName =>
-            string.IsNullOrWhiteSpace(displayName) ? slotType.ToString() : displayName.Trim();
+        public string DisplayName => L10n.ContentName(
+            "inventory_slot",
+            slotType.ToString(),
+            string.IsNullOrWhiteSpace(displayName) ? slotType.ToString() : displayName.Trim());
         public float BaseLossRateMultiplier => Mathf.Max(0f, baseLossRateMultiplier);
         public IReadOnlyList<InventorySlotLossModifier> LossModifiers =>
             lossModifiers ?? Array.Empty<InventorySlotLossModifier>();

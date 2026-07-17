@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Landsong.BuildingSystem;
 using Landsong.InventorySystem;
+using Landsong.Localization;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -50,12 +51,33 @@ namespace Landsong
         [SerializeField, LabelText("完成奖励")] private ItemAmount[] rewards = Array.Empty<ItemAmount>();
         [SerializeField, LabelText("系统解锁奖励")] private GameFeature[] unlockedFeatures = Array.Empty<GameFeature>();
         [SerializeField, HideInInspector] private bool runtimeGenerated;
+        [SerializeField, HideInInspector] private string runtimeTemplateId;
+        [SerializeField, HideInInspector] private string runtimeRequesterId;
+        [SerializeField, HideInInspector] private string runtimeRequesterName;
+        [SerializeField, HideInInspector] private string runtimeNameFallbackFormat;
+        [SerializeField, HideInInspector] private string runtimeDescriptionFallbackFormat;
 
         public string QuestId => NormalizeQuestId(questId);
-        public string DisplayName => string.IsNullOrWhiteSpace(displayName)
-            ? (string.IsNullOrWhiteSpace(QuestId) ? "未命名任务" : QuestId)
-            : displayName.Trim();
-        public string Description => string.IsNullOrWhiteSpace(description) ? string.Empty : description.Trim();
+        public string DisplayName => runtimeGenerated && !string.IsNullOrWhiteSpace(RuntimeTemplateId)
+            ? L10n.Gameplay(
+                $"gameplay.quest.template.{L10n.NormalizeKeyPart(RuntimeTemplateId)}.name",
+                NormalizeRuntimeFormat(runtimeNameFallbackFormat, "{0}的交换请求"),
+                ResolveRuntimeTextArguments())
+            : L10n.ContentName(
+                "quest",
+                QuestId,
+                string.IsNullOrWhiteSpace(displayName)
+                    ? (string.IsNullOrWhiteSpace(QuestId) ? "未命名任务" : QuestId)
+                    : displayName.Trim());
+        public string Description => runtimeGenerated && !string.IsNullOrWhiteSpace(RuntimeTemplateId)
+            ? L10n.Gameplay(
+                $"gameplay.quest.template.{L10n.NormalizeKeyPart(RuntimeTemplateId)}.description",
+                NormalizeRuntimeFormat(runtimeDescriptionFallbackFormat, "{0}派来一些使者，希望使用{2}和你交换{1}。"),
+                ResolveRuntimeTextArguments())
+            : L10n.ContentDescription(
+                "quest",
+                QuestId,
+                string.IsNullOrWhiteSpace(description) ? string.Empty : description.Trim());
         public QuestCategory Category => NormalizeQuestCategory(category);
         public QuestObjectiveType ObjectiveType => objectiveType;
         public int TurnLimit => Mathf.Max(0, turnLimit);
@@ -76,6 +98,11 @@ namespace Landsong
         public IReadOnlyList<ItemAmount> Rewards => rewards ?? Array.Empty<ItemAmount>();
         public IReadOnlyList<GameFeature> UnlockedFeatures => unlockedFeatures ?? Array.Empty<GameFeature>();
         public bool IsRuntimeGenerated => runtimeGenerated;
+        public string RuntimeTemplateId => string.IsNullOrWhiteSpace(runtimeTemplateId) ? string.Empty : runtimeTemplateId.Trim();
+        public string RuntimeRequesterId => string.IsNullOrWhiteSpace(runtimeRequesterId) ? string.Empty : runtimeRequesterId.Trim();
+        public string RuntimeRequesterName => string.IsNullOrWhiteSpace(runtimeRequesterName) ? string.Empty : runtimeRequesterName.Trim();
+        public string RuntimeNameFallbackFormat => runtimeNameFallbackFormat ?? string.Empty;
+        public string RuntimeDescriptionFallbackFormat => runtimeDescriptionFallbackFormat ?? string.Empty;
         public bool HasRewards => HasAnyReward();
         public bool IsValid => !string.IsNullOrWhiteSpace(QuestId) && HasValidObjective();
 
@@ -110,6 +137,11 @@ namespace Landsong
             }
 
             unlockedFeatures = NormalizeFeatures(unlockedFeatures);
+            runtimeTemplateId = string.IsNullOrWhiteSpace(runtimeTemplateId) ? string.Empty : runtimeTemplateId.Trim();
+            runtimeRequesterId = string.IsNullOrWhiteSpace(runtimeRequesterId) ? string.Empty : runtimeRequesterId.Trim();
+            runtimeRequesterName = string.IsNullOrWhiteSpace(runtimeRequesterName) ? string.Empty : runtimeRequesterName.Trim();
+            runtimeNameFallbackFormat = runtimeNameFallbackFormat ?? string.Empty;
+            runtimeDescriptionFallbackFormat = runtimeDescriptionFallbackFormat ?? string.Empty;
         }
 
         public static GameQuestDefinition CreateRuntimeSubmitResourcesQuest(
@@ -119,7 +151,12 @@ namespace Landsong
             QuestCategory category,
             int turnLimit,
             IEnumerable<ItemAmount> requiredResources,
-            IEnumerable<ItemAmount> rewards)
+            IEnumerable<ItemAmount> rewards,
+            string runtimeTemplateId = null,
+            string runtimeRequesterId = null,
+            string runtimeRequesterName = null,
+            string runtimeNameFallbackFormat = null,
+            string runtimeDescriptionFallbackFormat = null)
         {
             var definition = new GameQuestDefinition
             {
@@ -131,10 +168,61 @@ namespace Landsong
                 turnLimit = Mathf.Max(0, turnLimit),
                 requiredResources = CopyValidItemAmounts(requiredResources),
                 rewards = CopyValidItemAmounts(rewards),
-                runtimeGenerated = true
+                runtimeGenerated = true,
+                runtimeTemplateId = runtimeTemplateId,
+                runtimeRequesterId = runtimeRequesterId,
+                runtimeRequesterName = runtimeRequesterName,
+                runtimeNameFallbackFormat = runtimeNameFallbackFormat,
+                runtimeDescriptionFallbackFormat = runtimeDescriptionFallbackFormat
             };
             definition.Normalize();
             return definition;
+        }
+
+        private object[] ResolveRuntimeTextArguments()
+        {
+            var requesterKey = $"gameplay.quest.requester.{L10n.NormalizeKeyPart(RuntimeRequesterId)}.name";
+            var requester = string.IsNullOrWhiteSpace(RuntimeRequesterId)
+                ? RuntimeRequesterName
+                : L10n.Gameplay(requesterKey, RuntimeRequesterName);
+            return new object[]
+            {
+                requester,
+                FormatItemAmountList(RequiredResources),
+                FormatItemAmountList(Rewards)
+            };
+        }
+
+        private static string FormatItemAmountList(IReadOnlyList<ItemAmount> items)
+        {
+            if (items == null || items.Count == 0)
+            {
+                return string.Empty;
+            }
+
+            var parts = new List<string>();
+            for (var i = 0; i < items.Count; i++)
+            {
+                var item = items[i].Normalized();
+                if (!item.IsValid)
+                {
+                    continue;
+                }
+
+                var name = item.ItemDefinition == null ? item.ItemId : item.ItemDefinition.DisplayName;
+                parts.Add(L10n.Gameplay("gameplay.common.item_amount", "{0} x{1}", name, item.Amount));
+            }
+
+            return string.Join(L10n.Gameplay("gameplay.common.list_separator", "、"), parts);
+        }
+
+        private static string NormalizeRuntimeFormat(string format, string fallback)
+        {
+            var result = string.IsNullOrWhiteSpace(format) ? fallback : format.Trim();
+            return result
+                .Replace("{Requester}", "{0}")
+                .Replace("{RequiredList}", "{1}")
+                .Replace("{RewardList}", "{2}");
         }
 
         public static string NormalizeQuestId(string value)
@@ -330,7 +418,9 @@ namespace Landsong
         public bool IsMainline => Category == QuestCategory.Mainline;
         public bool IsRandom => Category == QuestCategory.Random;
         public bool IsTimed => Definition != null && Definition.IsTimed;
-        public string CategoryDisplayName => IsRandom ? "随机" : "主线";
+        public string CategoryDisplayName => IsRandom
+            ? L10n.Gameplay("gameplay.quest.category.random", "随机")
+            : L10n.Gameplay("gameplay.quest.category.mainline", "主线");
         public bool IsResourceSubmission => Definition != null && Definition.ObjectiveType == QuestObjectiveType.SubmitResources;
         public bool IsResourceCollection => Definition != null && Definition.ObjectiveType == QuestObjectiveType.CollectResources;
         public bool IsResourceObjective => IsResourceSubmission || IsResourceCollection;
@@ -484,8 +574,11 @@ namespace Landsong
     {
         public string QuestId = string.Empty;
         public QuestCategory Category = QuestCategory.Random;
-        public string DisplayName = string.Empty;
-        public string Description = string.Empty;
+        public string TemplateId = string.Empty;
+        public string RequesterId = string.Empty;
+        public string RequesterSourceName = string.Empty;
+        public string NameFallbackFormat = string.Empty;
+        public string DescriptionFallbackFormat = string.Empty;
         public int TurnLimit = 1;
         public List<QuestItemAmountSaveData> RequiredResources = new List<QuestItemAmountSaveData>();
         public List<QuestItemAmountSaveData> Rewards = new List<QuestItemAmountSaveData>();
@@ -496,8 +589,11 @@ namespace Landsong
         {
             QuestId = GameQuestDefinition.NormalizeQuestId(QuestId);
             Category = GameQuestDefinition.NormalizeQuestCategory(Category);
-            DisplayName = string.IsNullOrWhiteSpace(DisplayName) ? string.Empty : DisplayName.Trim();
-            Description = string.IsNullOrWhiteSpace(Description) ? string.Empty : Description.Trim();
+            TemplateId = string.IsNullOrWhiteSpace(TemplateId) ? string.Empty : TemplateId.Trim();
+            RequesterId = string.IsNullOrWhiteSpace(RequesterId) ? string.Empty : RequesterId.Trim();
+            RequesterSourceName = string.IsNullOrWhiteSpace(RequesterSourceName) ? string.Empty : RequesterSourceName.Trim();
+            NameFallbackFormat = NameFallbackFormat ?? string.Empty;
+            DescriptionFallbackFormat = DescriptionFallbackFormat ?? string.Empty;
             TurnLimit = Mathf.Max(0, TurnLimit);
             RequiredResources = NormalizeItemAmounts(RequiredResources);
             Rewards = NormalizeItemAmounts(Rewards);
@@ -514,8 +610,11 @@ namespace Landsong
             {
                 QuestId = definition.QuestId,
                 Category = definition.Category,
-                DisplayName = definition.DisplayName,
-                Description = definition.Description,
+                TemplateId = definition.RuntimeTemplateId,
+                RequesterId = definition.RuntimeRequesterId,
+                RequesterSourceName = definition.RuntimeRequesterName,
+                NameFallbackFormat = definition.RuntimeNameFallbackFormat,
+                DescriptionFallbackFormat = definition.RuntimeDescriptionFallbackFormat,
                 TurnLimit = definition.TurnLimit,
                 RequiredResources = QuestItemAmountSaveData.FromItemAmounts(definition.RequiredResources),
                 Rewards = QuestItemAmountSaveData.FromItemAmounts(definition.Rewards)
@@ -753,14 +852,40 @@ namespace Landsong
                 QuestCategory.Random,
                 turnLimit,
                 requiredResources,
-                rewards);
+                rewards,
+                "random_exchange",
+                BuildRequesterId(requester),
+                requester,
+                displayNameFormat,
+                descriptionFormat);
+        }
+
+        private static string BuildRequesterId(string requester)
+        {
+            if (string.Equals(requester, "遥远的帝国", StringComparison.Ordinal))
+            {
+                return "distant_empire";
+            }
+
+            unchecked
+            {
+                var hash = 2166136261u;
+                var value = requester ?? string.Empty;
+                for (var i = 0; i < value.Length; i++)
+                {
+                    hash ^= value[i];
+                    hash *= 16777619u;
+                }
+
+                return $"requester_{hash:x8}";
+            }
         }
 
         private string PickRequesterName()
         {
             if (requesterNames == null || requesterNames.Length == 0)
             {
-                return "遥远的帝国";
+                return L10n.Gameplay("gameplay.quest.requester.distant_empire.name", "遥远的帝国");
             }
 
             var candidates = new List<string>();
@@ -773,7 +898,7 @@ namespace Landsong
             }
 
             return candidates.Count == 0
-                ? "遥远的帝国"
+                ? L10n.Gameplay("gameplay.quest.requester.distant_empire.name", "遥远的帝国")
                 : candidates[UnityEngine.Random.Range(0, candidates.Count)];
         }
 
@@ -845,7 +970,7 @@ namespace Landsong
                 parts.Add($"{item.Amount}{displayName}");
             }
 
-            return string.Join("、", parts);
+            return string.Join(L10n.Gameplay("gameplay.common.list_separator", "、"), parts);
         }
 
         private List<ItemAmount> RollRewardItemAmounts(int requiredValue)

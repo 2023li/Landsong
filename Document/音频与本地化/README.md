@@ -24,15 +24,19 @@ AudioPlayer.Instance.PlayUiClick();
 
 ## 2. 本地化架构
 
-`GameLocalizationManager` 统一管理：
+`GameLocalizationManager` 是本地化生命周期与语言选择门面，具体职责已经拆分到 `Landsong.Localization`：
 
 - 内置 Unity Localization Locale/StringTable；
 - 系统语言与用户选择；
-- 外部 CSV 语言包扫描、元数据解析和文本覆盖；
-- 运行时合并 StringTable；
+- 外部目录语言包 V1 的 manifest/CSV 读取、限制与诊断；
+- 任意合法 Locale 的运行时 StringTable、内置语言 fallback；
 - 语言切换事件和 AppData 持久化。
 
-外部语言包目录由 `IOManager.ExternalLanguagePacksFolderPath` 提供。不要在 UI 中直接读文件或自行切换 Locale。
+正式表分为 `UI`、`Content`、`Gameplay`。内置 `zh-Hans` 与 `en` 必须 Key 对齐且非空；外部语言包允许不完整并回退到 `en` 或 `zh-Hans`。详细格式见 [玩家自定义语言包制作说明](玩家自定义语言包制作说明.md)。
+
+重构的架构决策、A–E 阶段交付范围和最终验证结果见 [本地化重构设计](本地化重构设计.md)。编辑器菜单 `Landsong/Localization/Run Release Validation` 会检查中英表完整性、Smart String 参数、Prefab/Scene 固定文本绑定、运行时代码硬编码回流和示例语言包。
+
+外部语言包目录由 `IOManager.ExternalLanguagePacksFolderPath` 提供。不要在 UI 中直接读文件或自行切换 Locale。外部包只允许文本，不能携带代码或资源。
 
 ## 3. 设置数据流
 
@@ -52,6 +56,9 @@ Setting Panel
 - `Assets/Landsong/Scripts/AudioSystem/AudioButtonSfx.cs`
 - `Assets/Landsong/Scripts/AudioSystem/GameAudioDirector.cs`
 - `Assets/Landsong/Scripts/AppSystem/GameLocalizationManager.cs`
+- `Assets/Landsong/Scripts/AppSystem/Localization/L10n.cs`
+- `Assets/Landsong/Scripts/AppSystem/Localization/ExternalLanguagePackRepository.cs`
+- `Assets/Landsong/Scripts/AppSystem/Localization/RuntimeStringTableProvider.cs`
 - `Assets/Landsong/Scripts/AppSystem/DataManager.cs`
 - `Assets/Landsong/Scripts/AppSystem/IOManager.cs`
 - `Assets/Landsong/Scripts/UI/UIPanel_Setting`
@@ -69,7 +76,8 @@ Setting Panel
 - 重启后主音量、BGM、环境音、SFX 和静音状态一致。
 - 多次切换场景不会创建重复 AudioPlayer 或叠加 BGM。
 - OneShot 池达到上限时行为可控，没有无限创建 AudioSource。
-- 内置语言、系统语言和外部 CSV 语言包均可切换。
+- 内置语言、系统语言和外部目录语言包均可切换。
 - 外部 CSV 缺列、重复 Key 或无效元数据时有明确错误，不破坏内置表。
 - 切换语言后 Prefab 中 LocalizeStringEvent 与运行时动态文本都刷新。
+- `Run Release Validation` 与 `Run Automated Tests` 全部通过后才允许发布。
 

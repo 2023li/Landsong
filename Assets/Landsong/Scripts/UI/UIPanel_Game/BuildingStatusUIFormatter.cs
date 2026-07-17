@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Landsong.BuildingSystem;
+using Landsong.Localization;
 
 namespace Landsong.UISystem
 {
@@ -29,8 +30,9 @@ namespace Landsong.UISystem
         private static readonly IReadOnlyList<BuildingRuntimeStatus> EmptyStatuses =
             System.Array.Empty<BuildingRuntimeStatus>();
 
-        public static BuildingStatusDisplayData CreateDisplayData(BuildingBase building, string normalStatusText = "正常")
+        public static BuildingStatusDisplayData CreateDisplayData(BuildingBase building, string normalStatusText = null)
         {
+            normalStatusText ??= L10n.Gameplay("gameplay.building.status.normal", "正常");
             var buildingName = GetBuildingName(building);
             var statuses = GetRuntimeStatuses(building);
             var hasAbnormalStatus = BuildingRuntimeStatusCatalog.HasAbnormalStatus(statuses);
@@ -102,7 +104,7 @@ namespace Landsong.UISystem
 
                 if (builder.Length > 0)
                 {
-                    builder.Append("、");
+                    builder.Append(L10n.Gameplay("gameplay.common.list_separator", "、"));
                 }
 
                 builder.Append(FormatStatus(status));
@@ -115,10 +117,15 @@ namespace Landsong.UISystem
         {
             if (status.Target > 0)
             {
-                return $"{status.DisplayName} {status.Progress}/{status.Target}";
+                return L10n.Gameplay(
+                    "gameplay.building.status.progress",
+                    "{0} {1}/{2}",
+                    BuildingRuntimeStatusCatalog.GetLocalizedDisplayName(status),
+                    status.Progress,
+                    status.Target);
             }
 
-            return status.DisplayName;
+            return BuildingRuntimeStatusCatalog.GetLocalizedDisplayName(status);
         }
 
     }

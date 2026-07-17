@@ -106,6 +106,7 @@ namespace Landsong.UISystem
 
         private void OnEnable()
         {
+            Landsong.Localization.L10n.LanguageChanged += Refresh;
             ResolveGameSystem();
             ResolvePlacementController();
             SubscribePlacementController();
@@ -116,6 +117,7 @@ namespace Landsong.UISystem
 
         private void OnDisable()
         {
+            Landsong.Localization.L10n.LanguageChanged -= Refresh;
             panelMotionRoutine = null;
             UnsubscribeRuntimeChanges();
             UnsubscribePlacementController();

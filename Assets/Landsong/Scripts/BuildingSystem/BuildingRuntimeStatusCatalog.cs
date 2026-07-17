@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Landsong.Localization;
 
 namespace Landsong.BuildingSystem
 {
@@ -77,6 +78,18 @@ namespace Landsong.BuildingSystem
             }
 
             return false;
+        }
+
+        public static string GetLocalizedDisplayName(BuildingRuntimeStatus status)
+        {
+            if (!status.IsValid)
+            {
+                return string.Empty;
+            }
+
+            return L10n.Gameplay(
+                $"gameplay.building.status.{L10n.NormalizeKeyPart(status.StatusId)}",
+                status.DisplayName);
         }
 
     }

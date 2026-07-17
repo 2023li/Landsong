@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Landsong.BuildingSystem;
 using Landsong.ConditionSystem;
 using Landsong.InventorySystem;
+using Landsong.Localization;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -29,7 +30,10 @@ namespace Landsong.TechnologySystem
         private TechnologyGlobalBuffEffect[] effects = Array.Empty<TechnologyGlobalBuffEffect>();
 
         public string BuffId => string.IsNullOrWhiteSpace(buffId) ? string.Empty : buffId.Trim();
-        public string DisplayName => string.IsNullOrWhiteSpace(displayName) ? BuffId : displayName.Trim();
+        public string DisplayName => L10n.ContentName(
+            "technology_buff",
+            BuffId,
+            string.IsNullOrWhiteSpace(displayName) ? BuffId : displayName.Trim());
         public Sprite Icon => icon;
         public GameCondition ActivationCondition => activationCondition;
         public IReadOnlyList<TechnologyGlobalBuffEffect> Effects =>
@@ -186,9 +190,16 @@ namespace Landsong.TechnologySystem
 
         public override string Describe()
         {
-            var familyName = targetFamily?.Definition?.DisplayName ?? "目标建筑";
-            var itemName = itemDefinition?.DisplayName ?? "资源";
-            return $"所有{familyName}每次产出额外提供 {FlatBonus} {itemName}";
+            var familyName = targetFamily?.Definition?.DisplayName
+                             ?? Landsong.Localization.L10n.Gameplay("gameplay.quest.ui.target_building", "目标建筑");
+            var itemName = itemDefinition?.DisplayName
+                           ?? Landsong.Localization.L10n.Gameplay("gameplay.building.function.resources", "资源");
+            return Landsong.Localization.L10n.Gameplay(
+                "gameplay.technology.buff.production_bonus",
+                "所有{0}每次产出额外提供 {1} {2}",
+                familyName,
+                FlatBonus,
+                itemName);
         }
 
         public override void Normalize()

@@ -65,6 +65,7 @@ namespace Landsong.UISystem
 
         private void OnEnable()
         {
+            Landsong.Localization.L10n.LanguageChanged += Refresh;
             ResolveReferences();
             SubscribeRuntimeServices();
             Refresh();
@@ -72,6 +73,7 @@ namespace Landsong.UISystem
 
         private void OnDisable()
         {
+            Landsong.Localization.L10n.LanguageChanged -= Refresh;
             UnsubscribeRuntimeServices();
         }
 
@@ -208,7 +210,7 @@ namespace Landsong.UISystem
             var service = gameSystem == null ? null : gameSystem.Services.Talents;
             if (service == null)
             {
-                SetText(statusLabel, "人才系统未初始化");
+                SetText(statusLabel, Landsong.Localization.L10n.Gameplay("gameplay.talent.ui.not_initialized", "人才系统未初始化"));
                 SetText(salarySummaryLabel, string.Empty);
                 SetText(selectedTalentLabel, string.Empty);
                 SetRefreshButton(false, "刷新");
@@ -216,10 +218,15 @@ namespace Landsong.UISystem
             }
 
             var selectedTalent = FindSelectedTalent();
-            SetText(selectedTalentLabel, selectedTalent == null ? "未选择人才" : $"已选择：{selectedTalent.DisplayName}");
+            SetText(selectedTalentLabel, selectedTalent == null
+                ? Landsong.Localization.L10n.Gameplay("gameplay.talent.ui.none_selected", "未选择人才")
+                : Landsong.Localization.L10n.Gameplay("gameplay.talent.ui.selected", "已选择：{0}", selectedTalent.DisplayName));
             SetText(salarySummaryLabel, BuildSalarySummary(service));
             SetText(statusLabel, string.IsNullOrWhiteSpace(lastStatusMessage) ? BuildStatusSummary(service) : lastStatusMessage);
-            SetRefreshButton(service.CanPayRefreshCost(), $"刷新人才（{service.RefreshGoldCost}）");
+            SetRefreshButton(service.CanPayRefreshCost(), Landsong.Localization.L10n.Gameplay(
+                "gameplay.talent.ui.refresh",
+                "刷新人才（{0}）",
+                service.RefreshGoldCost));
         }
 
         private string BuildSalarySummary(TalentService service)
@@ -234,14 +241,24 @@ namespace Landsong.UISystem
             var available = service.SalaryGoldItemDefinition != null && gameSystem != null && gameSystem.Services.Inventory != null
                 ? gameSystem.Services.Inventory.GetQuantity(service.SalaryGoldItemDefinition.ItemId)
                 : 0;
-            return $"{goldName} {available} / 薪资 {salary}/回合";
+            return Landsong.Localization.L10n.Gameplay(
+                "gameplay.talent.ui.salary_summary",
+                "{0} {1} / 薪资 {2}/回合",
+                goldName,
+                available,
+                salary);
         }
 
         private string BuildStatusSummary(TalentService service)
         {
             return service == null
                 ? "人才系统未初始化"
-                : $"人才池 {service.OwnedTalents.Count} / 候选 {service.CurrentOffers.Count} / 槽位 {service.SlotStates.Count}";
+                : Landsong.Localization.L10n.Gameplay(
+                    "gameplay.talent.ui.pool_summary",
+                    "人才池 {0} / 候选 {1} / 槽位 {2}",
+                    service.OwnedTalents.Count,
+                    service.CurrentOffers.Count,
+                    service.SlotStates.Count);
         }
 
         private void RefreshOffers()
@@ -290,7 +307,9 @@ namespace Landsong.UISystem
                 }
 
                 var slot = service == null ? null : service.GetAssignedSlotForTalent(talent.TalentInstanceId);
-                var assignmentText = slot == null ? string.Empty : $"任命：{slot.DisplayName}";
+                var assignmentText = slot == null
+                    ? string.Empty
+                    : Landsong.Localization.L10n.Gameplay("gameplay.talent.ui.assigned_to", "任命：{0}", slot.DisplayName);
                 var item = GetPoolItemFromPool();
                 item.Bind(
                     talent,

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Landsong.BuildingSystem;
 using Landsong.GameEventSystem;
@@ -126,23 +127,28 @@ namespace Landsong
             }
 
             var effectMessage = ApplyTechnologyCompletionEffects(result.Technology);
-            var message = string.IsNullOrWhiteSpace(effectMessage)
-                ? $"科技研究完成：{result.Technology.DisplayName}"
-                : $"科技研究完成：{result.Technology.DisplayName}（{effectMessage}）";
-
+            var completedTechnology = result.Technology;
             Events?.AddMessage(
-                GameEventMessage.ForGame(
+                GameEventMessage.ForGameLocalized(
                     GameEventCatalog.GE_科技研究完成,
-                    message,
-                    turnNumber));
+                    string.IsNullOrWhiteSpace(effectMessage)
+                        ? "gameplay.technology.research_completed"
+                        : "gameplay.technology.research_completed_with_effects",
+                    string.IsNullOrWhiteSpace(effectMessage)
+                        ? "科技研究完成：{0}"
+                        : "科技研究完成：{0}（{1}）",
+                    turnNumber,
+                    () => new object[] { completedTechnology.DisplayName, effectMessage }));
 
             if (result.Technology.AllowRepeatResearch && Technology.IsCurrentResearch(result.Technology))
             {
                 Events?.AddMessage(
-                    GameEventMessage.ForGame(
+                    GameEventMessage.ForGameLocalized(
                         GameEventCatalog.GE_科技自动重复研发,
-                        $"科技已自动继续重复研发：{result.Technology.DisplayName}",
-                        turnNumber));
+                        "gameplay.technology.repeat_continued",
+                        "科技已自动继续重复研发：{0}",
+                        turnNumber,
+                        () => new object[] { completedTechnology.DisplayName }));
             }
 
             return result;
@@ -218,10 +224,12 @@ namespace Landsong
             }
 
             Events?.AddMessage(
-                GameEventMessage.ForGame(
+                GameEventMessage.ForGameLocalized(
                     GameEventCatalog.GE_未选择研发节点,
+                    "gameplay.technology.no_research_selected",
                     "未选择研发节点：本次下回合已取消；再次点击下一回合将继续。",
-                    CurrentTurn));
+                    CurrentTurn,
+                    Array.Empty<object>()));
         }
 
         private void ClearMissingResearchWarning()

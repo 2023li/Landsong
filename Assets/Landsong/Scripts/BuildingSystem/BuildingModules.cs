@@ -275,7 +275,7 @@ namespace Landsong.BuildingSystem
             {
                 if (workerProductionTiers == null || workerProductionTiers.Length == 0)
                 {
-                    return "无";
+                    return Landsong.Localization.L10n.Gameplay("gameplay.common.none", "无");
                 }
 
                 var sortedTiers = new List<WorkerProductionTier>();
@@ -291,7 +291,7 @@ namespace Landsong.BuildingSystem
                 sortedTiers.Sort(CompareWorkerProductionTiers);
                 if (sortedTiers.Count == 0)
                 {
-                    return "无";
+                    return Landsong.Localization.L10n.Gameplay("gameplay.common.none", "无");
                 }
 
                 var builder = new System.Text.StringBuilder();
@@ -300,16 +300,18 @@ namespace Landsong.BuildingSystem
                     var tier = sortedTiers[i];
                     if (builder.Length > 0)
                     {
-                        builder.Append("，");
+                        builder.Append(Landsong.Localization.L10n.Gameplay("gameplay.common.comma", "，"));
                     }
 
                     builder.Append(tier.MinimumWorkers);
-                    builder.Append("工人=");
+                    builder.Append(Landsong.Localization.L10n.Gameplay("gameplay.building.production.workers_equals", "工人="));
                     builder.Append(tier.Amount);
                     builder.Append(ItemId);
                 }
 
-                return builder.Length == 0 ? "无" : builder.ToString();
+                return builder.Length == 0
+                    ? Landsong.Localization.L10n.Gameplay("gameplay.common.none", "无")
+                    : builder.ToString();
             }
 
             private static int CompareWorkerProductionTiers(WorkerProductionTier a, WorkerProductionTier b)
@@ -624,7 +626,11 @@ namespace Landsong.BuildingSystem
 
         public override string GetOverviewFragment(BuildingBase building)
         {
-            return $"生产 {ProductionProgress}/{ProductionIntervalTurns}";
+            return Landsong.Localization.L10n.Gameplay(
+                "gameplay.building.overview.production",
+                "生产 {0}/{1}",
+                ProductionProgress,
+                ProductionIntervalTurns);
         }
 
         public override void AppendRuntimeStatuses(
@@ -736,7 +742,7 @@ namespace Landsong.BuildingSystem
         {
             if (outputs == null || outputs.Length == 0)
             {
-                return "无";
+                return Landsong.Localization.L10n.Gameplay("gameplay.common.none", "无");
             }
 
             for (var i = 0; i < outputs.Length; i++)
@@ -747,7 +753,7 @@ namespace Landsong.BuildingSystem
                 }
             }
 
-            return "无";
+            return Landsong.Localization.L10n.Gameplay("gameplay.common.none", "无");
         }
 
         private static bool TryResolveWorkforce(BuildingBase building, out int workers, out int maxWorkers)

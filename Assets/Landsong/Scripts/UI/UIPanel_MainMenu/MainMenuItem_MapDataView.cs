@@ -51,7 +51,9 @@ public class MainMenuItem_MapDataView : MonoBehaviour
 
         bool hasValidMap = mapData != null && mapData.IsValid;
 
-        mapName.text = hasValidMap ? mapData.DisplayName : "无效地图";
+            mapName.text = hasValidMap
+                ? mapData.DisplayName
+                : Landsong.Localization.L10n.Ui("ui.map.invalid", "无效地图");
         mapDescription.text = hasValidMap ? FormatOptionalText(mapData.Description) : "-";
         mapIcon.sprite = hasValidMap ? mapData.Icon : null;
         mapIcon.enabled = hasValidMap && mapData.Icon != null;

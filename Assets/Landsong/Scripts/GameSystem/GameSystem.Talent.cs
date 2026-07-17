@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Landsong.GameEventSystem;
 using Landsong.TalentSystem;
@@ -40,16 +41,22 @@ namespace Landsong
 
         private void HandleTalentOffersRefreshed(TalentService service, TalentRefreshResult result)
         {
-            AddTalentMessage(
+            AddTalentMessageLocalized(
                 GameEventCatalog.GE_人才刷新,
-                $"刷新人才：消耗 {result.CostGold} 金币，获得 {result.Offers.Count} 张候选卡。");
+                "gameplay.talent.refreshed",
+                "刷新人才：消耗 {0} 金币，获得 {1} 张候选卡。",
+                () => new object[] { result.CostGold, result.Offers.Count });
         }
 
         private void HandleTalentOfferRecruited(TalentService service, TalentRecruitResult result)
         {
             if (result.Talent != null)
             {
-                AddTalentMessage(GameEventCatalog.GE_人才招募, $"招募人才：{result.Talent.DisplayName}。");
+                AddTalentMessageLocalized(
+                    GameEventCatalog.GE_人才招募,
+                    "gameplay.talent.recruited",
+                    "招募人才：{0}。",
+                    () => new object[] { result.Talent.DisplayName });
             }
         }
 
@@ -57,9 +64,11 @@ namespace Landsong
         {
             if (result.Talent != null && result.Slot != null)
             {
-                AddTalentMessage(
+                AddTalentMessageLocalized(
                     GameEventCatalog.GE_人才任命,
-                    $"任命人才：{result.Talent.DisplayName} -> {result.Slot.DisplayName}。");
+                    "gameplay.talent.assigned",
+                    "任命人才：{0} -> {1}。",
+                    () => new object[] { result.Talent.DisplayName, result.Slot.DisplayName });
             }
         }
 
@@ -67,7 +76,11 @@ namespace Landsong
         {
             if (result.Talent != null)
             {
-                AddTalentMessage(GameEventCatalog.GE_人才卸任, $"卸任人才：{result.Talent.DisplayName}。");
+                AddTalentMessageLocalized(
+                    GameEventCatalog.GE_人才卸任,
+                    "gameplay.talent.unassigned",
+                    "卸任人才：{0}。",
+                    () => new object[] { result.Talent.DisplayName });
             }
         }
 
@@ -78,9 +91,11 @@ namespace Landsong
                 return;
             }
 
-            AddTalentMessage(
+            AddTalentMessageLocalized(
                 GameEventCatalog.GE_人才升级,
-                $"人才升级：{result.Talent.DisplayName} {result.PreviousLevel}->{result.Talent.Level}。");
+                "gameplay.talent.upgraded",
+                "人才升级：{0} {1}->{2}。",
+                () => new object[] { result.Talent.DisplayName, result.PreviousLevel, result.Talent.Level });
             AddTalentTraitTransitionMessages(result.TraitTransitions, CurrentTurn);
         }
 
@@ -112,10 +127,14 @@ namespace Landsong
                 var eventType = result.HasMissingSalary
                     ? GameEventCatalog.GE_人才薪资不足
                     : GameEventCatalog.GE_人才薪资支付;
-                var message = result.HasMissingSalary
-                    ? $"人才薪资不足：需要 {result.SalaryRequired} 金币，已支付 {result.SalaryPaid}，缺口 {result.SalaryMissing}。"
-                    : $"人才薪资支付：{result.SalaryPaid} 金币。";
-                AddTalentMessage(eventType, message, result.TurnNumber);
+                AddTalentMessageLocalized(
+                    eventType,
+                    result.HasMissingSalary ? "gameplay.talent.salary_missing" : "gameplay.talent.salary_paid",
+                    result.HasMissingSalary
+                        ? "人才薪资不足：需要 {0} 金币，已支付 {1}，缺口 {2}。"
+                        : "人才薪资支付：{1} 金币。",
+                    () => new object[] { result.SalaryRequired, result.SalaryPaid, result.SalaryMissing },
+                    result.TurnNumber);
             }
 
             AddTalentTraitTransitionMessages(result.TraitTransitions, result.TurnNumber);
@@ -129,9 +148,11 @@ namespace Landsong
                     continue;
                 }
 
-                AddTalentMessage(
+                AddTalentMessageLocalized(
                     GameEventCatalog.GE_人才效果触发,
-                    $"人才效果：{effect.Message}。",
+                    "gameplay.talent.effect_triggered",
+                    "人才效果：{0}。",
+                    () => new object[] { effect.Message },
                     result.TurnNumber);
             }
         }
@@ -155,16 +176,20 @@ namespace Landsong
 
                 if (transition.NewState == TalentHiddenTraitState.Discovered)
                 {
-                    AddTalentMessage(
+                    AddTalentMessageLocalized(
                         GameEventCatalog.GE_人才特性发现,
-                        $"人才特性发现：{transition.Talent.DisplayName} 的 {transition.Trait.Definition.DisplayName}。",
+                        "gameplay.talent.trait_discovered",
+                        "人才特性发现：{0} 的 {1}。",
+                        () => new object[] { transition.Talent.DisplayName, transition.Trait.Definition.DisplayName },
                         turnNumber);
                 }
                 else if (transition.NewState == TalentHiddenTraitState.Active)
                 {
-                    AddTalentMessage(
+                    AddTalentMessageLocalized(
                         GameEventCatalog.GE_人才特性激活,
-                        $"人才特性激活：{transition.Talent.DisplayName} 的 {transition.Trait.Definition.DisplayName}。",
+                        "gameplay.talent.trait_activated",
+                        "人才特性激活：{0} 的 {1}。",
+                        () => new object[] { transition.Talent.DisplayName, transition.Trait.Definition.DisplayName },
                         turnNumber);
                 }
             }
@@ -183,6 +208,26 @@ namespace Landsong
             }
 
             Events?.AddMessage(GameEventMessage.ForGame(eventTypeId, message, turnNumber));
+        }
+
+        private void AddTalentMessageLocalized(
+            string eventTypeId,
+            string textKey,
+            string sourceMessage,
+            Func<object[]> argumentsProvider,
+            int? turnNumber = null)
+        {
+            if (Events == null)
+            {
+                CreateGameEventService();
+            }
+
+            Events?.AddMessage(GameEventMessage.ForGameLocalized(
+                eventTypeId,
+                textKey,
+                sourceMessage,
+                turnNumber ?? CurrentTurn,
+                argumentsProvider));
         }
     }
 }

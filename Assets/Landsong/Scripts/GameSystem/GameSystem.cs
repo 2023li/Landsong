@@ -540,7 +540,9 @@ namespace Landsong
                 return true;
             }
 
-            failureMessage = "该建筑提供的库存格中仍有物品，请先清空这些槽位。";
+            failureMessage = Landsong.Localization.L10n.Gameplay(
+                "gameplay.building.demolish.inventory_not_empty",
+                "该建筑提供的库存格中仍有物品，请先清空这些槽位。");
             return false;
         }
 

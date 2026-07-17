@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Landsong.ConditionSystem;
 using Landsong.GridSystem;
+using Landsong.Localization;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -116,9 +117,12 @@ namespace Landsong.BuildingSystem
 
         public bool IsDevelopmentCompleted => isDevelopmentCompleted;
         public string FamilyId => familyId;
-        public string DisplayName => string.IsNullOrWhiteSpace(displayName)
-            ? (string.IsNullOrWhiteSpace(familyId) ? "未命名建筑" : familyId)
-            : displayName;
+        public string DisplayName => L10n.ContentName(
+            "building",
+            FamilyId,
+            string.IsNullOrWhiteSpace(displayName)
+                ? (string.IsNullOrWhiteSpace(familyId) ? "未命名建筑" : familyId)
+                : displayName);
         public Sprite Icon => icon;
         public bool ShowInOverview => showInOverview;
         public Vector2Int Size => size;

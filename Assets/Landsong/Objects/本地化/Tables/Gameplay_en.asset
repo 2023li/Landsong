@@ -1,0 +1,2936 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: Gameplay_en
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.StringTable
+  m_LocaleId:
+    m_Code: en
+  m_SharedData: {fileID: 11400000, guid: 7fb02ea4f942710429b0688dc3ad1b2e, type: 2}
+  m_Metadata:
+    m_Items:
+    - rid: 5711026528087441409
+  m_TableData:
+  - m_Id: 16124988088320
+    m_Localized: Population Decline
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125059391488
+    m_Localized: Worker Resignation
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974400
+    m_Localized: Insufficient Available Population
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974401
+    m_Localized: Automatic Subsidy Decreased
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974402
+    m_Localized: Automatic Subsidy Increased
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974403
+    m_Localized: Insufficient Subsidy Funds
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974404
+    m_Localized: Recruitment Incomplete
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974405
+    m_Localized: Research Completed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974406
+    m_Localized: No Research Selected
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974407
+    m_Localized: Repeat Research Continued
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974408
+    m_Localized: New Quest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974409
+    m_Localized: Quest Completed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974410
+    m_Localized: Quest Failed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974411
+    m_Localized: Quest Reward Claim Failed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974412
+    m_Localized: Quest Resources Submitted
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974413
+    m_Localized: Random Quest Appeared
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974414
+    m_Localized: Expedition Departed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974415
+    m_Localized: Expedition Succeeded
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974416
+    m_Localized: Expedition Failed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974417
+    m_Localized: Expedition Rewards Pending
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974418
+    m_Localized: Expedition Rewards Claimed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974419
+    m_Localized: Expedition Subsidy Shortfall
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974420
+    m_Localized: Talent Candidates Refreshed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974421
+    m_Localized: Talent Recruited
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974422
+    m_Localized: Talent Assigned
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974423
+    m_Localized: Talent Unassigned
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974424
+    m_Localized: Talent Upgraded
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974425
+    m_Localized: Talent Salaries Paid
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974426
+    m_Localized: Talent Salary Shortfall
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974427
+    m_Localized: Talent Effect Triggered
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974428
+    m_Localized: Talent Trait Discovered
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974429
+    m_Localized: Talent Trait Activated
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974430
+    m_Localized: Prince Born
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974431
+    m_Localized: Royal Trait Revealed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974432
+    m_Localized: Royal Trait Activated
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974433
+    m_Localized: Royal Acquired Trait Gained
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974434
+    m_Localized: Royal Lifespan Warning
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974435
+    m_Localized: King Died
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974436
+    m_Localized: Royal Succession
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974437
+    m_Localized: Succession Crisis
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974438
+    m_Localized: Royal Trait Effect Triggered
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125071974439
+    m_Localized: Turn {0}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168704
+    m_Localized: Unknown Character
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168705
+    m_Localized: the previous king
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168706
+    m_Localized: Unknown Destination
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168707
+    m_Localized: '{0} x{1}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168708
+    m_Localized: ', '
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168709
+    m_Localized: Random
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168710
+    m_Localized: Mainline
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168711
+    m_Localized: Move the Camera
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168712
+    m_Localized: Any Technology
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168713
+    m_Localized: Multiple Resources
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168714
+    m_Localized: Trade Request from {0}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168715
+    m_Localized: Envoys from {0} offer {2} in exchange for {1}.
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168716
+    m_Localized: 'Debug Random Quest: Deliver {1}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168717
+    m_Localized: Deliver {1} and receive {2}.
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168718
+    m_Localized: a Distant Empire
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168719
+    m_Localized: 'Research completed: {0}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168720
+    m_Localized: 'Research completed: {0} ({1})'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168721
+    m_Localized: 'Repeat research continued automatically: {0}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168722
+    m_Localized: No research is selected. This turn advance was canceled; click Next
+      Turn again to continue.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168723
+    m_Localized: 'Refreshed talent candidates: spent {0} Gold and received {1} candidate
+      cards.'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168724
+    m_Localized: 'Recruited talent: {0}.'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168725
+    m_Localized: 'Assigned talent: {0} -> {1}.'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168726
+    m_Localized: 'Unassigned talent: {0}.'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168727
+    m_Localized: 'Talent upgraded: {0} {1}->{2}.'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168728
+    m_Localized: 'Talent salary shortfall: {0} Gold required, {1} paid, {2} missing.'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168729
+    m_Localized: 'Talent salaries paid: {1} Gold.'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168730
+    m_Localized: 'Talent effect: {0}.'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168731
+    m_Localized: 'Talent trait discovered: {0}''s {1}.'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168732
+    m_Localized: 'Talent trait activated: {0}''s {1}.'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168733
+    m_Localized: 'A prince was born: {0}.'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168734
+    m_Localized: 'Royal trait effect: {0}.'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168735
+    m_Localized: 'Acquired trait: {0} gained {1}.'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168736
+    m_Localized: 'Royal trait revealed: {0}''s {1}.'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168737
+    m_Localized: 'Royal trait activated: {0}''s {1}.'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168738
+    m_Localized: 'Lifespan warning: {0} is expected to have {1} turns remaining.'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168739
+    m_Localized: 'Succession crisis: there is no eligible heir to the throne.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168740
+    m_Localized: 'Royal succession: {0} left the throne due to {1}; {2} has ascended.'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168741
+    m_Localized: abdication
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168742
+    m_Localized: death
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168743
+    m_Localized: Expedition Subsidy Shortfall
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168744
+    m_Localized: A global job-attraction penalty caused by insufficient compensation
+      after a failed expedition.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168745
+    m_Localized: Expedition departed for {0}; expected back on turn {1}, success
+      chance {2:0.#}%.
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168746
+    m_Localized: Claimed expedition rewards from {0}.
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168747
+    m_Localized: The expedition to {0} succeeded and the population returned. Yield
+      {1:0.#}%; rewards are pending because storage is full.
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168748
+    m_Localized: The expedition to {0} succeeded and the population returned. Yield
+      {1:0.#}%; rewards have been settled.
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168749
+    m_Localized: 'The expedition to {0} failed: {1} population lost; {2} Gold compensation
+      required, {3} paid, {4} missing; {5} global penalty stacks applied.'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168750
+    m_Localized: 'The expedition to {0} failed: {1} population lost and {3} Gold
+      compensation paid.'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168751
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168752
+    m_Localized: Upgrade
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168753
+    m_Localized: Building
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168754
+    m_Localized: Reward
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168755
+    m_Localized: Effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168756
+    m_Localized: Waiting
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168757
+    m_Localized: Unlimited
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168758
+    m_Localized: Conditions Not Met
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168759
+    m_Localized: Completed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168760
+    m_Localized: Unavailable
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168761
+    m_Localized: Optional
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168762
+    m_Localized: ', '
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168763
+    m_Localized: None
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168764
+    m_Localized: Not Configured
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168765
+    m_Localized: No Technology Selected
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168766
+    m_Localized: Technology Service Not Initialized
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168767
+    m_Localized: No Technology Nodes to Display
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168768
+    m_Localized: 'Research Cost: {0} Research Points'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168769
+    m_Localized: Unlocks and Completion Effects
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168770
+    m_Localized: 'Repeating Research: {0}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168771
+    m_Localized: 'Researching: {0}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168772
+    m_Localized: Added to Research Queue
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168773
+    m_Localized: Researched
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168774
+    m_Localized: Repeatable; click to switch current research
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168775
+    m_Localized: Repeatable; click to begin research
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168776
+    m_Localized: Available; click to switch current research
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168777
+    m_Localized: Available; click to begin research
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168778
+    m_Localized: Prerequisites incomplete; click to queue
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168779
+    m_Localized: Invalid Technology Configuration
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168780
+    m_Localized: Unavailable for Research
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168781
+    m_Localized: No Research Points Required
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168782
+    m_Localized: 'Prerequisites: None'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168783
+    m_Localized: 'Prerequisites: {0}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168784
+    m_Localized: '{0} Research Points'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168785
+    m_Localized: Technology Not Configured
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168786
+    m_Localized: Prerequisite Incomplete
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168787
+    m_Localized: Available
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168788
+    m_Localized: Repeatable
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168789
+    m_Localized: Queued
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168790
+    m_Localized: Queue {0}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168791
+    m_Localized: '{0} more unlocks'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168792
+    m_Localized: Waiting for Research Queue
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168793
+    m_Localized: 'Waiting: {0}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168794
+    m_Localized: Expedition System Not Initialized
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168795
+    m_Localized: No Expedition Destinations Available
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168796
+    m_Localized: No Destination Selected
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168797
+    m_Localized: Allocate Supplies
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168798
+    m_Localized: Select a Destination
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168799
+    m_Localized: 'Subsidy-shortfall penalty: {0} stacks through turn {1}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168800
+    m_Localized: 'Assigned Population: {0}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168801
+    m_Localized: Estimated success {0:0.#}%, bonus yield +{1:0.#}%
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168802
+    m_Localized: Estimated success {0:0.#}%
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168803
+    m_Localized: Base population {0}; requires {1}-{2}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168804
+    m_Localized: Base population {0}; minimum {1}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168805
+    m_Localized: Depart
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168806
+    m_Localized: Ready to Depart
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168807
+    m_Localized: Duration {0} turns, population {1}-{2}, base success {3:0.#}%, yield
+      {4:0.#}%, {5}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168808
+    m_Localized: All Expedition Teams Are Busy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168809
+    m_Localized: Insufficient Population
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168810
+    m_Localized: Population Exceeds Limit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168811
+    m_Localized: Insufficient Base Population
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168812
+    m_Localized: Cannot Depart
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168813
+    m_Localized: Returns on turn {0}; {1} turns remaining
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168814
+    m_Localized: Minimum {0}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168815
+    m_Localized: Inventory {0}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168816
+    m_Localized: +{0:0.#}% success/extra
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168817
+    m_Localized: +{0:0.#}% yield/extra
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168818
+    m_Localized: Up to {0} extra{1}{2}{3}{4}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168819
+    m_Localized: Carrying {0} ({1} extra)
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168820
+    m_Localized: Carrying {0}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168821
+    m_Localized: General
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168822
+    m_Localized: Steward
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168823
+    m_Localized: Archmage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168824
+    m_Localized: General
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168825
+    m_Localized: Scholar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168826
+    m_Localized: Common
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168827
+    m_Localized: Uncommon
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168828
+    m_Localized: Rare
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168829
+    m_Localized: Epic
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168830
+    m_Localized: Legendary
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168831
+    m_Localized: Lv.{0} Max
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168832
+    m_Localized: Lv.{0} XP {1}/{2}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168833
+    m_Localized: Salary {0}/turn
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168834
+    m_Localized: '{0} / {1} / Lv.{2}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168835
+    m_Localized: No Unlocked Effects
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168836
+    m_Localized: No Base Effects
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168837
+    m_Localized: No Hidden Traits
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168838
+    m_Localized: 'Active: {0}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168839
+    m_Localized: 'Discovered: {0}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168840
+    m_Localized: Any Profession
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168841
+    m_Localized: Restricted to {0}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168842
+    m_Localized: Unassigned
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168843
+    m_Localized: Max Level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168844
+    m_Localized: Unassign
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168845
+    m_Localized: Has Hidden Traits
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168846
+    m_Localized: Recruit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168847
+    m_Localized: Empty Slot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168848
+    m_Localized: Select Talent
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168849
+    m_Localized: Assign
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168850
+    m_Localized: Clear
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168851
+    m_Localized: Select a talent from the pool first
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168852
+    m_Localized: 'Can assign: {0}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168853
+    m_Localized: 'Cannot assign: {0} has the wrong profession'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168854
+    m_Localized: Talent System Not Initialized
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168855
+    m_Localized: No Talent Selected
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168856
+    m_Localized: 'Selected: {0}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168857
+    m_Localized: Refresh Talents ({0})
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168858
+    m_Localized: '{0} {1} / Salary {2}/turn'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168859
+    m_Localized: Talent Pool {0} / Candidates {1} / Slots {2}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168860
+    m_Localized: 'Assigned to: {0}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168861
+    m_Localized: The talent catalog is not configured.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168862
+    m_Localized: No eligible talents were found.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168863
+    m_Localized: Refreshed {0} talent cards.
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168864
+    m_Localized: The talent card does not exist.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168865
+    m_Localized: This unique talent has already been recruited.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168866
+    m_Localized: 'Recruited: {0}.'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168867
+    m_Localized: The talent does not exist.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168868
+    m_Localized: The talent slot does not exist.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168869
+    m_Localized: The talent's profession does not meet this slot's requirements.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168870
+    m_Localized: Assigned {0} to {1}.
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168871
+    m_Localized: No talent is assigned to this slot.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168872
+    m_Localized: 'Unassigned: {0}.'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168873
+    m_Localized: This talent is not assigned.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168874
+    m_Localized: Not enough experience, or maximum level reached.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168875
+    m_Localized: '{0} reached level {1}.'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168876
+    m_Localized: The inventory service is not initialized.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168877
+    m_Localized: The Gold item used by the talent system is not configured.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168878
+    m_Localized: 'Insufficient Gold: refreshing costs {0}.'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168879
+    m_Localized: Failed to spend the refresh cost.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168880
+    m_Localized: '{0}: {1}+{2}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168881
+    m_Localized: '{0}: {1}+0 (storage full)'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168882
+    m_Localized: '{0}: Research Points +{1}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168883
+    m_Localized: '{0}: Unlocked blueprint {1}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168884
+    m_Localized: '{0}: Blueprint already unlocked {1}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168885
+    m_Localized: All {0} produce an additional {1} {2} per cycle
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125076168886
+    m_Localized: King
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168887
+    m_Localized: Queen
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168888
+    m_Localized: Prince
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168889
+    m_Localized: Reigning
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168890
+    m_Localized: Consort
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168891
+    m_Localized: Heir
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168892
+    m_Localized: Retired
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168893
+    m_Localized: Dead
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125076168894
+    m_Localized: Eligible Heir
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363008
+    m_Localized: Underage; comes of age at {0}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363009
+    m_Localized: '{0} / {1} / {2} / age {3}/{4}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363010
+    m_Localized: No Traits
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363011
+    m_Localized: Unknown Trait
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363012
+    m_Localized: Active
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363013
+    m_Localized: Discovered
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363014
+    m_Localized: Acquired
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363015
+    m_Localized: Innate
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363016
+    m_Localized: '{0} ({1} / {2})'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363017
+    m_Localized: Father {0}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363018
+    m_Localized: Mother {0}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363019
+    m_Localized: Children {0}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363020
+    m_Localized: Age {0} / Lifespan {1} / Remaining {2}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363021
+    m_Localized: Reigned for {0} turns
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363022
+    m_Localized: 'Underage: {0}/{1}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363023
+    m_Localized: Succession System Not Initialized
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363024
+    m_Localized: The royal bloodline continues
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363025
+    m_Localized: Generation {0} / Adult Age {1}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363026
+    m_Localized: 'King: {0}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363027
+    m_Localized: 'Queen: {0}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363028
+    m_Localized: 'Prince Born: {0}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363029
+    m_Localized: A prince cannot be born right now
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363030
+    m_Localized: 'New King Crowned: {0}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363031
+    m_Localized: 'Abdication failed: no eligible heir'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363032
+    m_Localized: Normal
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363033
+    m_Localized: '{0} {1}/{2}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363034
+    m_Localized: Abandoned
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363035
+    m_Localized: Consumption Failed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363036
+    m_Localized: Inventory Missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363037
+    m_Localized: Invalid Food Configuration
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363038
+    m_Localized: Resource Provider Unreachable
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363039
+    m_Localized: Food Shortage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363040
+    m_Localized: Invalid Tax Configuration
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363041
+    m_Localized: Tax Storage Failed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363042
+    m_Localized: Market Income Storage Failed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363043
+    m_Localized: Invalid Wood Configuration
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363044
+    m_Localized: Invalid Gold Configuration
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363045
+    m_Localized: Wood Storage Failed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363046
+    m_Localized: Insufficient Workers
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363047
+    m_Localized: Worker Shortage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363048
+    m_Localized: Insufficient Recruitment Gold
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363049
+    m_Localized: Insufficient Subsidy Gold
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363050
+    m_Localized: Road Unreachable
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363051
+    m_Localized: Warehouse Maintenance Shortfall
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363052
+    m_Localized: Invalid Warehouse Maintenance Configuration
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363053
+    m_Localized: Maintenance Shortfall
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363054
+    m_Localized: Invalid Maintenance Configuration
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363055
+    m_Localized: Available to Build
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363056
+    m_Localized: Available, Materials Missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363057
+    m_Localized: Building Development Incomplete
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363058
+    m_Localized: Build Limit Reached
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363059
+    m_Localized: Materials Missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363060
+    m_Localized: Placement Cost
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363061
+    m_Localized: Construction Cost
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363062
+    m_Localized: Unnamed Material
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363063
+    m_Localized: 'Auto-Harvest: On'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363064
+    m_Localized: 'Auto-Harvest: Off'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363065
+    m_Localized: 'Current Crop: None'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363066
+    m_Localized: 'Current Crop: {0} (Ready to Harvest)'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363067
+    m_Localized: 'Current Crop: {0}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363068
+    m_Localized: 'Growth Progress: None'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363069
+    m_Localized: 'Growth Progress: {0}/{1}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363070
+    m_Localized: 'Matures in: {0} turns'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363071
+    m_Localized: '{0} ({1} turns)'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363072
+    m_Localized: Spend {0} Gold to recruit 1 worker
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363073
+    m_Localized: 'Workers: {0}/{1} (Stable: {2})'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363074
+    m_Localized: Upgrade Service Not Initialized.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363075
+    m_Localized: 'Upgrade Cost: None'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363076
+    m_Localized: 'Upgrade Cost: {0}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363077
+    m_Localized: '{0}: {1}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363078
+    m_Localized: Functions
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363079
+    m_Localized: Resources
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363080
+    m_Localized: No Details
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363081
+    m_Localized: 'Status: {0}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363082
+    m_Localized: Construction {0}/{1}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363083
+    m_Localized: Level {0}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363084
+    m_Localized: Population
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363085
+    m_Localized: Resource Provider
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363086
+    m_Localized: Harvestable Tree
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363087
+    m_Localized: Limited Harvest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363088
+    m_Localized: Not Planted
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363089
+    m_Localized: Ready to Harvest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363090
+    m_Localized: Turns Until Mature
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363091
+    m_Localized: Inventory Slots
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363092
+    m_Localized: Expedition Yield
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363093
+    m_Localized: Research Points/Turn
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363094
+    m_Localized: Operational Experience
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363095
+    m_Localized: Crop Options
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363096
+    m_Localized: Current Crop
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363097
+    m_Localized: Growth Progress
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363098
+    m_Localized: Auto-Harvest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363099
+    m_Localized: Auto-Harvest Cost
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363100
+    m_Localized: Harvest Output
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363101
+    m_Localized: Minimum Workers
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363102
+    m_Localized: Trigger Chance
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363103
+    m_Localized: Provider Priority
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363104
+    m_Localized: Value Handled Last Turn
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363105
+    m_Localized: Gold Settlement
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363106
+    m_Localized: Health
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363107
+    m_Localized: Wood Reward
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363108
+    m_Localized: Sapling Reward
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363109
+    m_Localized: Harvests Remaining
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363110
+    m_Localized: Reward per Harvest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363111
+    m_Localized: Remaining Output
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363112
+    m_Localized: Production Cycle
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363113
+    m_Localized: Manhattan Radius
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363114
+    m_Localized: Stacking Rule
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363115
+    m_Localized: Current Population
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363116
+    m_Localized: Growth Progress
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363117
+    m_Localized: Resource Path Cost
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363118
+    m_Localized: Diet Score
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363119
+    m_Localized: Diet Variety
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363120
+    m_Localized: Population Limit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363121
+    m_Localized: Tax Progress
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363122
+    m_Localized: Failure Decay
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363123
+    m_Localized: Quality of Life
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363124
+    m_Localized: Worker Requirement
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363125
+    m_Localized: Maintenance Cost
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363126
+    m_Localized: On
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363127
+    m_Localized: Off
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363128
+    m_Localized: /turn
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363129
+    m_Localized: "Total value \xD7 "
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363130
+    m_Localized: Population +{0}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363131
+    m_Localized: Last Turn +{0} Gold
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363132
+    m_Localized: Health {0}/{1}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363133
+    m_Localized: Harvests Remaining {0}/{1}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363134
+    m_Localized: Production {0}/{1}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363135
+    m_Localized: Maintenance {0} {1}/turn
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363136
+    m_Localized: Crop Ready to Harvest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363137
+    m_Localized: Matures in {0} turns
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363138
+    m_Localized: Experience {0}/{1}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363139
+    m_Localized: Experience {0} (Max Level)
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363140
+    m_Localized: Abandoned
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363141
+    m_Localized: Population {0}/{1}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363142
+    m_Localized: Workers {0}/{1}, protected for {2} turns
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363143
+    m_Localized: Workers {0}/{1}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363144
+    m_Localized: "Inventory Slots {0} \xB7 Experience {1}/{2}"
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363145
+    m_Localized: "Inventory Slots {0} \xB7 Max Level"
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363146
+    m_Localized: The building prefab is missing or has no valid definition.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363147
+    m_Localized: GridMap is missing.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363148
+    m_Localized: The target cell cannot be occupied.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363149
+    m_Localized: Insufficient construction materials.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363150
+    m_Localized: Failed to occupy the target cell.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363151
+    m_Localized: Failed to instantiate the building.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363152
+    m_Localized: Failed to spend construction materials.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363153
+    m_Localized: There are no cells available for placement.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363154
+    m_Localized: Footprint Valid
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363155
+    m_Localized: 'Footprint Invalid: {0}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363156
+    m_Localized: 'Resource Provider: {0} (Path Cost {1})'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363157
+    m_Localized: 'Resource Provider: none in range (placement is still allowed)'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363158
+    m_Localized: 'Buff: {0}, Range {1}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363159
+    m_Localized: The building or family definition is missing.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363160
+    m_Localized: A building cannot be upgraded during construction.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363161
+    m_Localized: Maximum level reached.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363162
+    m_Localized: The target level is not configured.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363163
+    m_Localized: Technology or other upgrade conditions are not met.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363164
+    m_Localized: Building upgrade requirements are not met.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363165
+    m_Localized: Insufficient Gold or resources for the upgrade.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363166
+    m_Localized: Workers=
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363167
+    m_Localized: 'Insufficient operational experience: {0}/{1}.'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363168
+    m_Localized: 'Insufficient warehouse experience: {0}/{1}.'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363169
+    m_Localized: This building's inventory slots still contain items. Empty them
+      before demolition.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363170
+    m_Localized: Gold/Turn {0}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363171
+    m_Localized: Minimum Job Attraction for Full Workforce
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363172
+    m_Localized: Current Job Attraction
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363173
+    m_Localized: Job Attraction Gap to Full Workforce
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363174
+    m_Localized: Job Attraction Factors
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363175
+    m_Localized: Current Modifiers
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363176
+    m_Localized: Eligible
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363177
+    m_Localized: "The reward configuration for \u201C{0}\u201D is invalid and cannot
+      be claimed yet."
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363178
+    m_Localized: The inventory system is not initialized; quest rewards cannot be
+      claimed yet.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363179
+    m_Localized: "Not enough inventory space to claim rewards for \u201C{0}\u201D.
+      Free some slots first."
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363180
+    m_Localized: "Failed to deliver rewards for \u201C{0}\u201D. Please try again."
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363181
+    m_Localized: 'Quest failed: {0}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363182
+    m_Localized: 'New quest: {0}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363183
+    m_Localized: Plant Crops
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363184
+    m_Localized: Select a Technology
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363185
+    m_Localized: Claim Rewards
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363186
+    m_Localized: Submit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363187
+    m_Localized: Insufficient Resources
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363188
+    m_Localized: Abandon Quest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363189
+    m_Localized: 'Completed by the deadline: turn {0}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363190
+    m_Localized: '{0} turns remaining'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363191
+    m_Localized: 'Deadline: turn {0}; {1} turns remaining'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363192
+    m_Localized: Target
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363193
+    m_Localized: Target Building
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363194
+    m_Localized: 'Build {0}: {1}/{2}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363195
+    m_Localized: Collect {0}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363196
+    m_Localized: Submit {0}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363197
+    m_Localized: '{0}: {1}/{2}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363198
+    m_Localized: Unlock {0}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363199
+    m_Localized: '{0}  Inventory {1}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363200
+    m_Localized: Economy Forecast Service Not Initialized.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363201
+    m_Localized: Next {0} turns{1}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363202
+    m_Localized: " \xB7 Conservative Forecast"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363203
+    m_Localized: " \xB7 Exact Forecast"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363204
+    m_Localized: "Inventory Slots {0}/{1}  \u2192  {2}/{1} (T+{3})"
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363205
+    m_Localized: No definite shortages or storage blockages were found in the forecast
+      range.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363206
+    m_Localized: 'Risk begins at T+{0}: {1} resources affected and {2} scheduled
+      events blocked.'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363207
+    m_Localized: No inventory changes in the forecast range.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363208
+    m_Localized: Current {0}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363209
+    m_Localized: '{0} more resources are collapsed.'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363210
+    m_Localized: use {0}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363211
+    m_Localized: gain {0}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363212
+    m_Localized: "gain {0}\u2013{1}"
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363213
+    m_Localized: lose {0}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363214
+    m_Localized: short {0}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363215
+    m_Localized: overflow {0}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363216
+    m_Localized: ' ({0})'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363217
+    m_Localized: No production, construction, harvest, or tax events in the forecast
+      range.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363218
+    m_Localized: '{0} more scheduled events are collapsed.'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363219
+    m_Localized: No resident diet or quality-of-life forecasts are available.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363220
+    m_Localized: "T+{0}  Population {1}\u2192{2}  Diet {3} \xB7 {4} types \xB7 score
+      {5:0.#}  Quality of Life {6:0.#}\u2192{7:0.#}"
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363221
+    m_Localized: satisfied
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363222
+    m_Localized: insufficient
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363223
+    m_Localized: "\u2022 {0} more notes are collapsed."
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363224
+    m_Localized: '[Construction]'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363225
+    m_Localized: '[Production]'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363226
+    m_Localized: '[Processing]'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363227
+    m_Localized: '[Harvest]'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363228
+    m_Localized: '[Tax]'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363229
+    m_Localized: '[Market]'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363230
+    m_Localized: '[Population]'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363231
+    m_Localized: '[Risk]'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363232
+    m_Localized: '  [Range]'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363233
+    m_Localized: '  [Conditional]'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363234
+    m_Localized: '  [Action Required]'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363235
+    m_Localized: The inventory service is not initialized; an economy forecast cannot
+      be generated.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363236
+    m_Localized: The forecast assumes workforce, connections, and technology remain
+      unchanged. Random output is shown as a range, using the minimum output for
+      storage feasibility.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363237
+    m_Localized: '{0}: construction completes within the forecast; new operations
+      are included starting with the next forecast.'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363238
+    m_Localized: Construction configuration missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363239
+    m_Localized: Construction cannot reach a resource provider
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363240
+    m_Localized: Insufficient resources for construction turn {0}/{1}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363241
+    m_Localized: Construction output cannot be stored on turn {0}/{1}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363242
+    m_Localized: Construction {0}/{1}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363243
+    m_Localized: ', expected to complete'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363244
+    m_Localized: 'Expected food shortage: {0}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363245
+    m_Localized: Expected to be unable to reach a resource provider
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363246
+    m_Localized: 'Expected tax storage overflow: {0}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363247
+    m_Localized: Expected tax +{0} {1}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363248
+    m_Localized: Population expected to grow to {0}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363249
+    m_Localized: Production workforce configuration missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363250
+    m_Localized: Insufficient workers ({0}/{1})
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363251
+    m_Localized: Production progress {0}/{1}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363252
+    m_Localized: '{0} is expected to exceed storage'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363253
+    m_Localized: Production cycle
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363254
+    m_Localized: Invalid processing recipe
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363255
+    m_Localized: Insufficient processing workers ({0}/{1})
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363256
+    m_Localized: Processing progress {0}/{1}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363257
+    m_Localized: Processing cannot reach a resource provider
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363258
+    m_Localized: Insufficient processing inputs
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363259
+    m_Localized: Processed output cannot be stored
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363260
+    m_Localized: Processing complete
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363261
+    m_Localized: Farm workers are insufficient; crop growth is paused
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363262
+    m_Localized: '{0} matures in {1} turns'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363263
+    m_Localized: '{0} can be harvested manually (not yet included in inventory)'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363264
+    m_Localized: Auto-harvest output is expected to exceed storage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363265
+    m_Localized: Auto-harvest costs are short by {0}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363266
+    m_Localized: Auto-harvest {0}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363267
+    m_Localized: "Rare output chance {0:0.##}%: {1} 0\u2013{2}"
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363268
+    m_Localized: Rare output +{0} {1}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363269
+    m_Localized: 'Expected resource shortage: {0}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363270
+    m_Localized: 'Market income cannot be stored: {0}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363271
+    m_Localized: Handled value {0}; expected Gold +{1}
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363272
+    m_Localized: 'T+{0} {1}: {2}.'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363273
+    m_Localized: ': {0}'
+    m_Metadata:
+      m_Items:
+      - rid: 5711026528087441409
+  - m_Id: 16125080363274
+    m_Localized: Building
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363275
+    m_Localized: Inventory
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363276
+    m_Localized: Technology
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363277
+    m_Localized: Expedition
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363278
+    m_Localized: Succession
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363279
+    m_Localized: Congress
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16125080363280
+    m_Localized: Unknown System
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds:
+    - rid: 5711026528087441409
+      type: {class: SmartFormatTag, ns: UnityEngine.Localization.Metadata, asm: Unity.Localization}
+      data:
+        m_Entries:
+        m_SharedEntries:
+        - id: 7200314482727
+        - id: 7200318676995
+        - id: 7200318677002
+        - id: 7200318677003
+        - id: 7200318677004
+        - id: 7200318677005
+        - id: 7200318677007
+        - id: 7200318677008
+        - id: 7200318677009
+        - id: 7200318677011
+        - id: 7200318677012
+        - id: 7200318677013
+        - id: 7200318677014
+        - id: 7200318677015
+        - id: 7200318677016
+        - id: 7200318677017
+        - id: 7200318677018
+        - id: 7200318677019
+        - id: 7200318677020
+        - id: 7200318677021
+        - id: 7200318677022
+        - id: 7200318677023
+        - id: 7200318677024
+        - id: 7200318677025
+        - id: 7200318677026
+        - id: 7200318677028
+        - id: 7200318677033
+        - id: 7200318677034
+        - id: 7200318677035
+        - id: 7200318677036
+        - id: 7200318677037
+        - id: 7200318677038
+        - id: 7200322871302
+        - id: 7200322871304
+        - id: 7200322871305
+        - id: 7200322871317
+        - id: 7200322871318
+        - id: 7200322871324
+        - id: 7200322871325
+        - id: 7200322871327
+        - id: 7200322871333
+        - id: 7200322871334
+        - id: 7200322871335
+        - id: 7200322871336
+        - id: 7200322871337
+        - id: 7200322871338
+        - id: 7200322871341
+        - id: 7200322871347
+        - id: 7200322871348
+        - id: 7200322871349
+        - id: 7200322871350
+        - id: 7200322871351
+        - id: 7200322871352
+        - id: 7200322871353
+        - id: 7200322871354
+        - id: 7200322871365
+        - id: 7200322871366
+        - id: 7200322871367
+        - id: 7200322871368
+        - id: 7200322871372
+        - id: 7200322871373
+        - id: 7200322871375
+        - id: 7200322871385
+        - id: 7200322871386
+        - id: 7200322871393
+        - id: 7200322871394
+        - id: 7200322871395
+        - id: 7200322871396
+        - id: 9297135132712
+        - id: 9297135132716
+        - id: 9297135132723
+        - id: 9297135132724
+        - id: 9297135132725
+        - id: 9297135132726
+        - id: 9297135132728
+        - id: 9297135132729
+        - id: 9297135132730
+        - id: 9297135132732
+        - id: 9297135132733
+        - id: 9297135132734
+        - id: 9297135132735
+        - id: 9297135132736
+        - id: 9297135132737
+        - id: 9297135132738
+        - id: 9297135132739
+        - id: 9297135132740
+        - id: 9297135132741
+        - id: 9297135132742
+        - id: 9297135132743
+        - id: 9297135132744
+        - id: 9297135132745
+        - id: 9297135132746
+        - id: 9297135132747
+        - id: 9297135132749
+        - id: 9297135132754
+        - id: 9297135132755
+        - id: 9297135132756
+        - id: 9297135132757
+        - id: 9297135132758
+        - id: 9297135132759
+        - id: 9297135132776
+        - id: 9297135132778
+        - id: 9297135132779
+        - id: 9297135132791
+        - id: 9297135132792
+        - id: 9297135132798
+        - id: 9297135132799
+        - id: 9297135132801
+        - id: 9297135132807
+        - id: 9297135132808
+        - id: 9297135132809
+        - id: 9297135132810
+        - id: 9297135132811
+        - id: 9297135132812
+        - id: 9297135132815
+        - id: 9297135132821
+        - id: 9297135132822
+        - id: 9297135132823
+        - id: 9297135132824
+        - id: 9297135132825
+        - id: 9297135132826
+        - id: 9297135132827
+        - id: 9297135132828
+        - id: 9297135132839
+        - id: 9297135132840
+        - id: 9297135132841
+        - id: 9297135132842
+        - id: 9297135132846
+        - id: 9297135132847
+        - id: 9297135132849
+        - id: 9297135132859
+        - id: 9297135132860
+        - id: 9297135132867
+        - id: 9297135132868
+        - id: 9297135132869
+        - id: 9297135132870
+        - id: 9297135132872
+        - id: 9297135132902
+        - id: 9297135132904
+        - id: 9297135132905
+        - id: 9297135132906
+        - id: 9297135132907
+        - id: 14910665777192
+        - id: 14910674165763
+        - id: 14910674165770
+        - id: 14910674165771
+        - id: 14910674165772
+        - id: 14910674165773
+        - id: 14910674165775
+        - id: 14910674165776
+        - id: 14910674165777
+        - id: 14910674165779
+        - id: 14910674165780
+        - id: 14910674165781
+        - id: 14910674165782
+        - id: 14910674165783
+        - id: 14910674165784
+        - id: 14910674165785
+        - id: 14910674165786
+        - id: 14910674165787
+        - id: 14910674165788
+        - id: 14910674165789
+        - id: 14910674165790
+        - id: 14910674165791
+        - id: 14910674165792
+        - id: 14910674165793
+        - id: 14910674165794
+        - id: 14910674165796
+        - id: 14910674165801
+        - id: 14910674165802
+        - id: 14910674165803
+        - id: 14910674165804
+        - id: 14910674165805
+        - id: 14910674165806
+        - id: 14910674165823
+        - id: 14910674165825
+        - id: 14910678360064
+        - id: 14910678360076
+        - id: 14910678360077
+        - id: 14910678360083
+        - id: 14910678360084
+        - id: 14910678360086
+        - id: 14910678360092
+        - id: 14910678360093
+        - id: 14910678360094
+        - id: 14910678360095
+        - id: 14910678360096
+        - id: 14910678360097
+        - id: 14910678360100
+        - id: 14910678360106
+        - id: 14910678360107
+        - id: 14910678360108
+        - id: 14910678360109
+        - id: 14910678360110
+        - id: 14910678360111
+        - id: 14910678360112
+        - id: 14910678360113
+        - id: 14910678360124
+        - id: 14910678360125
+        - id: 14910678360126
+        - id: 14910678360127
+        - id: 14910678360131
+        - id: 14910678360132
+        - id: 14910678360134
+        - id: 14910678360145
+        - id: 14910678360146
+        - id: 14910678360149
+        - id: 14910678360150
+        - id: 14910678360151
+        - id: 14910678360152
+        - id: 14910678360153
+        - id: 14910678360156
+        - id: 14910678360159
+        - id: 14910678360163
+        - id: 14910678360165
+        - id: 14910678360168
+        - id: 14910678360171
+        - id: 14910678360173
+        - id: 14910678360174
+        - id: 14910678360175
+        - id: 14910678360176
+        - id: 14910678360177
+        - id: 14910678360178
+        - id: 14910678360188
+        - id: 14910678360189
+        - id: 14910678360196
+        - id: 14910678360197
+        - id: 14910678360198
+        - id: 14910678360199
+        - id: 14910678360200
+        - id: 14910678360201
+        - id: 14910678360202
+        - id: 14910678360205
+        - id: 14910678360206
+        - id: 14910678360207
+        - id: 14910678360208
+        - id: 14910678360210
+        - id: 14910678360213
+        - id: 14910678360246
+        - id: 14910678360247
+        - id: 14910678360249
+        - id: 14910678360250
+        - id: 14910678360251
+        - id: 14910678360252
+        - id: 14910678360253
+        - id: 14910678360256
+        - id: 14910678360257
+        - id: 14910678360261
+        - id: 14910678360262
+        - id: 14910678360263
+        - id: 14910678360310
+        - id: 14910678360311
+        - id: 14910678360312
+        - id: 14910678360313
+        - id: 14910678360314
+        - id: 14910678360315
+        - id: 14910678360317
+        - id: 14910678360318
+        - id: 14910678360319
+        - id: 14910678360321
+        - id: 14910678360322
+        - id: 14910678360323
+        - id: 14910678360324
+        - id: 14910678360325
+        - id: 14910678360335
+        - id: 14910678360336
+        - id: 14910678360338
+        - id: 14910678360346
+        - id: 14910678360353
+        - id: 14910678360355
+        - id: 14910678360356
+        - id: 14910678360357
+        - id: 14910678360358
+        - id: 14910678360365
+        - id: 14910678360366
+        - id: 14910678360367
+        - id: 14910678360370
+        - id: 14910678360371
+        - id: 14910678360372
+        - id: 14910678360373
+        - id: 14910678360374
+        - id: 14910678360375
+        - id: 14910678360377
+        - id: 14910678360380
+        - id: 14910678360382
+        - id: 14910678360384
+        - id: 14910678360385
+        - id: 14910678360386
+        - id: 14910678360387
+        - id: 14910678360388
+        - id: 14910678360389
+        - id: 14910678360390
+        - id: 14910678360391
+        - id: 14910678360392
+        - id: 14910678360394
+        - id: 14910678360396
+        - id: 14910678360399
+        - id: 14910686748684
+        - id: 14910686748687
+        - id: 14910686748688
+        - id: 14910686748689
+        - id: 14910686748691
+        - id: 14910686748693
+        - id: 14910686748694
+        - id: 14910686748695
+        - id: 14910686748697
+        - id: 14910686748698
+        - id: 14910686748699
+        - id: 14910686748702
+        - id: 14910686748703
+        - id: 14910686748709
+        - id: 14910686748710
+        - id: 14910686748712
+        - id: 14910686748713
+        - id: 14910686748714
+        - id: 14910686748715
+        - id: 14910686748716
+        - id: 14910686748717
+        - id: 14910686748718
+        - id: 14910686748719
+        - id: 14910686748720
+        - id: 15456151789591
+        - id: 15456155983875
+        - id: 15456155983882
+        - id: 15456155983883
+        - id: 15456155983884
+        - id: 15456155983885
+        - id: 15456155983887
+        - id: 15456155983888
+        - id: 15456155983889
+        - id: 15456155983891
+        - id: 15456155983892
+        - id: 15456155983893
+        - id: 15456155983894
+        - id: 15456155983895
+        - id: 15456155983896
+        - id: 15456155983897
+        - id: 15456155983898
+        - id: 15456155983899
+        - id: 15456155983900
+        - id: 15456155983901
+        - id: 15456155983902
+        - id: 15456155983903
+        - id: 15456155983904
+        - id: 15456155983905
+        - id: 15456155983906
+        - id: 15456155983908
+        - id: 15456155983913
+        - id: 15456155983914
+        - id: 15456155983915
+        - id: 15456155983916
+        - id: 15456155983917
+        - id: 15456155983918
+        - id: 15456155983935
+        - id: 15456155983937
+        - id: 15456155983938
+        - id: 15456164372487
+        - id: 15456164372488
+        - id: 15456164372494
+        - id: 15456164372495
+        - id: 15456164372497
+        - id: 15456164372503
+        - id: 15456164372504
+        - id: 15456164372505
+        - id: 15456164372506
+        - id: 15456164372507
+        - id: 15456164372508
+        - id: 15456168566786
+        - id: 15456168566792
+        - id: 15456168566793
+        - id: 15456168566794
+        - id: 15456168566795
+        - id: 15456168566796
+        - id: 15456168566797
+        - id: 15456168566798
+        - id: 15456168566799
+        - id: 15456168566810
+        - id: 15456168566811
+        - id: 15456168566812
+        - id: 15456168566813
+        - id: 15456168566817
+        - id: 15456168566818
+        - id: 15456168566820
+        - id: 15456168566831
+        - id: 15456168566832
+        - id: 15456168566835
+        - id: 15456168566836
+        - id: 15456168566837
+        - id: 15456168566838
+        - id: 15456168566839
+        - id: 15456168566842
+        - id: 15456168566845
+        - id: 15456168566849
+        - id: 15456168566851
+        - id: 15456168566854
+        - id: 15456168566857
+        - id: 15456168566859
+        - id: 15456168566860
+        - id: 15456168566861
+        - id: 15456168566862
+        - id: 15456168566863
+        - id: 15456168566864
+        - id: 15456168566874
+        - id: 15456168566875
+        - id: 15456172761094
+        - id: 15456172761095
+        - id: 15456172761096
+        - id: 15456172761097
+        - id: 15456172761098
+        - id: 15456172761099
+        - id: 15456172761100
+        - id: 15456172761103
+        - id: 15456172761104
+        - id: 15456172761105
+        - id: 15456176955392
+        - id: 15456176955394
+        - id: 15456176955397
+        - id: 15456181149707
+        - id: 15456181149708
+        - id: 15456181149710
+        - id: 15456181149711
+        - id: 15456181149712
+        - id: 15456181149713
+        - id: 15456181149714
+        - id: 15456181149717
+        - id: 15456181149718
+        - id: 15456181149722
+        - id: 15456181149723
+        - id: 15456181149724
+        - id: 15456181149771
+        - id: 15456181149772
+        - id: 15456181149773
+        - id: 15456181149774
+        - id: 15456181149775
+        - id: 15456181149776
+        - id: 15456181149778
+        - id: 15456181149779
+        - id: 15456181149780
+        - id: 15456181149782
+        - id: 15456185344000
+        - id: 15456185344001
+        - id: 15456185344002
+        - id: 15456185344003
+        - id: 15456185344013
+        - id: 15456185344014
+        - id: 15456185344016
+        - id: 15456185344024
+        - id: 15456185344031
+        - id: 15456185344033
+        - id: 15456185344034
+        - id: 15456185344035
+        - id: 15456185344036
+        - id: 15456185344043
+        - id: 15456185344044
+        - id: 15456185344045
+        - id: 15456185344048
+        - id: 15456185344049
+        - id: 15456185344050
+        - id: 15456185344051
+        - id: 15456185344052
+        - id: 15456185344053
+        - id: 15456185344055
+        - id: 15456185344058
+        - id: 15456185344060
+        - id: 15456185344062
+        - id: 15456185344063
+        - id: 15456185344064
+        - id: 15456185344065
+        - id: 15456185344066
+        - id: 15456185344067
+        - id: 15456185344068
+        - id: 15456185344069
+        - id: 15456185344070
+        - id: 15456185344072
+        - id: 15456185344074
+        - id: 15456185344077
+        - id: 15456189538315
+        - id: 15456189538318
+        - id: 15456189538319
+        - id: 15456189538320
+        - id: 15456189538322
+        - id: 15456189538324
+        - id: 15456189538325
+        - id: 15456189538326
+        - id: 15456189538328
+        - id: 15456189538329
+        - id: 15456189538330
+        - id: 15456189538333
+        - id: 15456189538334
+        - id: 15456189538340
+        - id: 15456189538341
+        - id: 15456189538343
+        - id: 15456189538344
+        - id: 15456189538345
+        - id: 15456189538346
+        - id: 15456189538347
+        - id: 15456189538348
+        - id: 15456189538349
+        - id: 15456189538350
+        - id: 15456189538351
+        - id: 16125071974439
+        - id: 16125076168707
+        - id: 16125076168714
+        - id: 16125076168715
+        - id: 16125076168716
+        - id: 16125076168717
+        - id: 16125076168719
+        - id: 16125076168720
+        - id: 16125076168721
+        - id: 16125076168723
+        - id: 16125076168724
+        - id: 16125076168725
+        - id: 16125076168726
+        - id: 16125076168727
+        - id: 16125076168728
+        - id: 16125076168729
+        - id: 16125076168730
+        - id: 16125076168731
+        - id: 16125076168732
+        - id: 16125076168733
+        - id: 16125076168734
+        - id: 16125076168735
+        - id: 16125076168736
+        - id: 16125076168737
+        - id: 16125076168738
+        - id: 16125076168740
+        - id: 16125076168745
+        - id: 16125076168746
+        - id: 16125076168747
+        - id: 16125076168748
+        - id: 16125076168749
+        - id: 16125076168750
+        - id: 16125076168768
+        - id: 16125076168770
+        - id: 16125076168771
+        - id: 16125076168783
+        - id: 16125076168784
+        - id: 16125076168790
+        - id: 16125076168791
+        - id: 16125076168793
+        - id: 16125076168799
+        - id: 16125076168800
+        - id: 16125076168801
+        - id: 16125076168802
+        - id: 16125076168803
+        - id: 16125076168804
+        - id: 16125076168807
+        - id: 16125076168813
+        - id: 16125076168814
+        - id: 16125076168815
+        - id: 16125076168816
+        - id: 16125076168817
+        - id: 16125076168818
+        - id: 16125076168819
+        - id: 16125076168820
+        - id: 16125076168831
+        - id: 16125076168832
+        - id: 16125076168833
+        - id: 16125076168834
+        - id: 16125076168838
+        - id: 16125076168839
+        - id: 16125076168841
+        - id: 16125076168852
+        - id: 16125076168853
+        - id: 16125076168856
+        - id: 16125076168857
+        - id: 16125076168858
+        - id: 16125076168859
+        - id: 16125076168860
+        - id: 16125076168863
+        - id: 16125076168866
+        - id: 16125076168870
+        - id: 16125076168872
+        - id: 16125076168875
+        - id: 16125076168878
+        - id: 16125076168880
+        - id: 16125076168881
+        - id: 16125076168882
+        - id: 16125076168883
+        - id: 16125076168884
+        - id: 16125076168885
+        - id: 16125080363008
+        - id: 16125080363009
+        - id: 16125080363016
+        - id: 16125080363017
+        - id: 16125080363018
+        - id: 16125080363019
+        - id: 16125080363020
+        - id: 16125080363021
+        - id: 16125080363022
+        - id: 16125080363025
+        - id: 16125080363026
+        - id: 16125080363027
+        - id: 16125080363028
+        - id: 16125080363030
+        - id: 16125080363033
+        - id: 16125080363066
+        - id: 16125080363067
+        - id: 16125080363069
+        - id: 16125080363070
+        - id: 16125080363071
+        - id: 16125080363072
+        - id: 16125080363073
+        - id: 16125080363076
+        - id: 16125080363077
+        - id: 16125080363081
+        - id: 16125080363082
+        - id: 16125080363083
+        - id: 16125080363130
+        - id: 16125080363131
+        - id: 16125080363132
+        - id: 16125080363133
+        - id: 16125080363134
+        - id: 16125080363135
+        - id: 16125080363137
+        - id: 16125080363138
+        - id: 16125080363139
+        - id: 16125080363141
+        - id: 16125080363142
+        - id: 16125080363143
+        - id: 16125080363144
+        - id: 16125080363145
+        - id: 16125080363155
+        - id: 16125080363156
+        - id: 16125080363158
+        - id: 16125080363167
+        - id: 16125080363168
+        - id: 16125080363170
+        - id: 16125080363177
+        - id: 16125080363179
+        - id: 16125080363180
+        - id: 16125080363181
+        - id: 16125080363182
+        - id: 16125080363189
+        - id: 16125080363190
+        - id: 16125080363191
+        - id: 16125080363194
+        - id: 16125080363195
+        - id: 16125080363196
+        - id: 16125080363197
+        - id: 16125080363198
+        - id: 16125080363199
+        - id: 16125080363201
+        - id: 16125080363204
+        - id: 16125080363206
+        - id: 16125080363208
+        - id: 16125080363209
+        - id: 16125080363210
+        - id: 16125080363211
+        - id: 16125080363212
+        - id: 16125080363213
+        - id: 16125080363214
+        - id: 16125080363215
+        - id: 16125080363216
+        - id: 16125080363218
+        - id: 16125080363220
+        - id: 16125080363223
+        - id: 16125080363237
+        - id: 16125080363240
+        - id: 16125080363241
+        - id: 16125080363242
+        - id: 16125080363244
+        - id: 16125080363246
+        - id: 16125080363247
+        - id: 16125080363248
+        - id: 16125080363250
+        - id: 16125080363251
+        - id: 16125080363252
+        - id: 16125080363255
+        - id: 16125080363256
+        - id: 16125080363262
+        - id: 16125080363263
+        - id: 16125080363265
+        - id: 16125080363266
+        - id: 16125080363267
+        - id: 16125080363268
+        - id: 16125080363269
+        - id: 16125080363270
+        - id: 16125080363271
+        - id: 16125080363272
+        - id: 16125080363273

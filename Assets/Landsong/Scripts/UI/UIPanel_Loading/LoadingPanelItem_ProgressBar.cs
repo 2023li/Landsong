@@ -27,6 +27,16 @@ public class LoadingPanelItem_ProgressBar : MonoBehaviour
     private int lastDisplayedProgressPercent = -1;
     private bool isWaitingPlayerConfirm;
 
+    private void OnEnable()
+    {
+        Landsong.Localization.L10n.LanguageChanged += RefreshLocalizedText;
+    }
+
+    private void OnDisable()
+    {
+        Landsong.Localization.L10n.LanguageChanged -= RefreshLocalizedText;
+    }
+
     public void Show()
     {
         isWaitingPlayerConfirm = false;
@@ -57,7 +67,15 @@ public class LoadingPanelItem_ProgressBar : MonoBehaviour
 
         if (loadingProgressText != null)
         {
-            loadingProgressText.text = waitConfirmText;
+            loadingProgressText.text = Landsong.Localization.L10n.Ui("ui.loading.press_any_key", waitConfirmText);
+        }
+    }
+
+    private void RefreshLocalizedText()
+    {
+        if (isWaitingPlayerConfirm && loadingProgressText != null)
+        {
+            loadingProgressText.text = Landsong.Localization.L10n.Ui("ui.loading.press_any_key", waitConfirmText);
         }
     }
 

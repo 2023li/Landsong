@@ -45,7 +45,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: be41ba92c6f8454a9318e7ccaf875b62, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.FiniteHarvestPileView
   remainingThreeRoot: {fileID: 7593791323606785928}
   remainingTwoRoot: {fileID: 8532736616143282350}
@@ -157,8 +157,31 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 909686305354157880, guid: 4fddc7df4864afe48b4c0d437d6d1104, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 9010815399244964967}
   m_SourcePrefab: {fileID: 100100000, guid: 4fddc7df4864afe48b4c0d437d6d1104, type: 3}
+--- !u!1 &961050032091016319 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 909686305354157880, guid: 4fddc7df4864afe48b4c0d437d6d1104, type: 3}
+  m_PrefabInstance: {fileID: 128791528352359239}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &9010815399244964967
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 961050032091016319}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3a0eb435e77db048a33c306315169c7, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.Localization.LocalizedTextBinding
+  tableName: UI
+  key: ui.asset.u32f8406f.c709bddc
+  sourceFallback: "\u571F2"
 --- !u!224 &8132940598655668005 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8149137442998119522, guid: 4fddc7df4864afe48b4c0d437d6d1104, type: 3}
@@ -276,8 +299,31 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 909686305354157880, guid: 4fddc7df4864afe48b4c0d437d6d1104, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1640370071376949447}
   m_SourcePrefab: {fileID: 100100000, guid: 4fddc7df4864afe48b4c0d437d6d1104, type: 3}
+--- !u!1 &1323666513716007769 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 909686305354157880, guid: 4fddc7df4864afe48b4c0d437d6d1104, type: 3}
+  m_PrefabInstance: {fileID: 2216124447926213729}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1640370071376949447
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1323666513716007769}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3a0eb435e77db048a33c306315169c7, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.Localization.LocalizedTextBinding
+  tableName: UI
+  key: ui.asset.u32f8406f.96c0c25e
+  sourceFallback: "\u571F3"
 --- !u!1 &7593791323606785928 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8620964493875594217, guid: 4fddc7df4864afe48b4c0d437d6d1104, type: 3}
@@ -395,7 +441,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 909686305354157880, guid: 4fddc7df4864afe48b4c0d437d6d1104, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5244911586431100506}
   m_SourcePrefab: {fileID: 100100000, guid: 4fddc7df4864afe48b4c0d437d6d1104, type: 3}
 --- !u!224 &3477415071299202680 stripped
 RectTransform:
@@ -407,3 +456,23 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 8620964493875594217, guid: 4fddc7df4864afe48b4c0d437d6d1104, type: 3}
   m_PrefabInstance: {fileID: 4707897414912836122}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &5605315907517680930 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 909686305354157880, guid: 4fddc7df4864afe48b4c0d437d6d1104, type: 3}
+  m_PrefabInstance: {fileID: 4707897414912836122}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &5244911586431100506
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5605315907517680930}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3a0eb435e77db048a33c306315169c7, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.Localization.LocalizedTextBinding
+  tableName: UI
+  key: ui.asset.u32f8406f.a931f99d
+  sourceFallback: "\u571F1"

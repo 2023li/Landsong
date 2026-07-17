@@ -1663,10 +1663,17 @@ namespace Landsong.BuildingSystem
             if (IsUnderConstruction)
             {
                 var requiredTurns = familyDefinition?.Construction?.RequiredTurns ?? 1;
-                return $"施工 {ConstructionProgress}/{requiredTurns}";
+                return Landsong.Localization.L10n.Gameplay(
+                    "gameplay.building.overview.construction",
+                    "施工 {0}/{1}",
+                    ConstructionProgress,
+                    requiredTurns);
             }
 
-            var fragments = new List<string> { $"等级 {CurrentLevel}" };
+            var fragments = new List<string>
+            {
+                Landsong.Localization.L10n.Gameplay("gameplay.building.overview.level", "等级 {0}", CurrentLevel)
+            };
             if (buildingModules != null)
             {
                 for (var i = 0; i < buildingModules.Count; i++)
@@ -1680,12 +1687,12 @@ namespace Landsong.BuildingSystem
                     var fragment = module.GetOverviewFragment(this);
                     if (!string.IsNullOrWhiteSpace(fragment))
                     {
-                        fragments.Add(fragment.Trim());
+                        fragments.Add(BuildingLocalization.Text(fragment));
                     }
                 }
             }
 
-            return string.Join("，", fragments);
+            return string.Join(Landsong.Localization.L10n.Gameplay("gameplay.common.comma", "，"), fragments);
         }
 
         public IReadOnlyList<BuildingFunctionBlockEntry> GetFunctionBlockEntries()

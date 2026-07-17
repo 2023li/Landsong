@@ -72,7 +72,8 @@ namespace Landsong.BuildingSystem
         public void OnBuildingUnregistered(BuildingBase building) => ClearRegistration(building);
         public void OnBuildingDemolished(BuildingBase building) => ClearRegistration(building);
 
-        public override string GetOverviewFragment(BuildingBase building) => $"人口 +{CurrentPopulation}";
+        public override string GetOverviewFragment(BuildingBase building) =>
+            Landsong.Localization.L10n.Gameplay("gameplay.building.overview.population_bonus", "人口 +{0}", CurrentPopulation);
 
         public override void AppendFunctionBlockEntries(
             BuildingBase building,
@@ -364,7 +365,8 @@ namespace Landsong.BuildingSystem
             owner?.NotifyStateChanged();
         }
 
-        public override string GetOverviewFragment(BuildingBase building) => $"上回合 +{lastTurnGoldIncome} 金币";
+        public override string GetOverviewFragment(BuildingBase building) =>
+            Landsong.Localization.L10n.Gameplay("gameplay.building.overview.last_turn_gold", "上回合 +{0} 金币", lastTurnGoldIncome);
 
         public override void AppendRuntimeStatuses(
             BuildingBase building,
@@ -540,7 +542,8 @@ namespace Landsong.BuildingSystem
             }
         }
 
-        public override string GetOverviewFragment(BuildingBase building) => $"生命 {currentHealth}/{maxHealth}";
+        public override string GetOverviewFragment(BuildingBase building) =>
+            Landsong.Localization.L10n.Gameplay("gameplay.building.overview.health", "生命 {0}/{1}", currentHealth, maxHealth);
 
         public override void AppendFunctionBlockEntries(
             BuildingBase building,
@@ -683,7 +686,11 @@ namespace Landsong.BuildingSystem
         }
 
         public override string GetOverviewFragment(BuildingBase building) =>
-            $"剩余采集 {RemainingHarvests}/{MaxSuccessfulHarvests}";
+            Landsong.Localization.L10n.Gameplay(
+                "gameplay.building.overview.harvests_remaining",
+                "剩余采集 {0}/{1}",
+                RemainingHarvests,
+                MaxSuccessfulHarvests);
 
         public override void AppendFunctionBlockEntries(
             BuildingBase building,

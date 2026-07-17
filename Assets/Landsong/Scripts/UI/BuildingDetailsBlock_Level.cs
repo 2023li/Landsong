@@ -62,7 +62,11 @@ public sealed class BuildingDetailsBlock_Level : BuildingDetailsBlockBase
 
         var service = building.GameSystem?.Services.Buildings?.Upgrades;
         var evaluation = service == null
-            ? new BuildingUpgradeResult(false, BuildingUpgradeFailure.MissingBuilding, 0, "升级服务未初始化。")
+            ? new BuildingUpgradeResult(
+                false,
+                BuildingUpgradeFailure.MissingBuilding,
+                0,
+                Landsong.Localization.L10n.Gameplay("gameplay.building.upgrade.not_initialized", "升级服务未初始化。"))
             : service.Evaluate(building);
         var maxLevel = building.FamilyDefinition.Levels.Count;
         var targetLevel = building.CurrentLevel + 1;
@@ -138,12 +142,14 @@ public sealed class BuildingDetailsBlock_Level : BuildingDetailsBlockBase
             {
                 var cost = costs[i];
                 if (!cost.IsValid) continue;
-                if (content.Length > 0) content += "、";
+                if (content.Length > 0) content += Landsong.Localization.L10n.Gameplay("gameplay.common.list_separator", "、");
                 content += $"{cost.ItemId}x{cost.Amount}";
             }
         }
 
-        return content.Length == 0 ? "升级消耗：无" : $"升级消耗：{content}";
+        return content.Length == 0
+            ? Landsong.Localization.L10n.Gameplay("gameplay.building.upgrade.no_cost", "升级消耗：无")
+            : Landsong.Localization.L10n.Gameplay("gameplay.building.upgrade.cost", "升级消耗：{0}", content);
     }
 
     private void SetBlockVisible(bool visible)

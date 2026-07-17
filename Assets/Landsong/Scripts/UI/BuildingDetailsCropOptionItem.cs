@@ -39,7 +39,11 @@ public sealed class BuildingDetailsCropOptionItem : MonoBehaviour
 
         if (nameText != null)
         {
-            nameText.text = $"{option.DisplayName}（{option.GrowTurns}回合）";
+            nameText.text = Landsong.Localization.L10n.Gameplay(
+                "gameplay.building.crop.option",
+                "{0}（{1}回合）",
+                option.DisplayName,
+                option.GrowTurns);
         }
     }
 }

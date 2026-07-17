@@ -668,7 +668,8 @@ namespace Landsong.TalentSystem
         {
             if (catalog == null)
             {
-                result = new TalentRefreshResult(false, refreshGoldCost, currentOffers, "人才目录未配置。");
+                result = new TalentRefreshResult(false, refreshGoldCost, currentOffers,
+                    Landsong.Localization.L10n.Gameplay("gameplay.talent.result.catalog_missing", "人才目录未配置。"));
                 return false;
             }
 
@@ -699,7 +700,9 @@ namespace Landsong.TalentSystem
                 true,
                 refreshGoldCost,
                 currentOffers.ToArray(),
-                currentOffers.Count <= 0 ? "没有符合条件的人才。" : $"已刷新 {currentOffers.Count} 张人才卡。");
+                currentOffers.Count <= 0
+                    ? Landsong.Localization.L10n.Gameplay("gameplay.talent.result.no_candidates", "没有符合条件的人才。")
+                    : Landsong.Localization.L10n.Gameplay("gameplay.talent.result.refreshed", "已刷新 {0} 张人才卡。", currentOffers.Count));
             NotifyChanged();
             OffersRefreshed?.Invoke(this, result);
             return true;
@@ -710,13 +713,15 @@ namespace Landsong.TalentSystem
             var offer = FindOffer(offerId);
             if (offer == null || !offer.HasDefinition)
             {
-                result = new TalentRecruitResult(false, offer, null, "人才卡不存在。");
+                result = new TalentRecruitResult(false, offer, null,
+                    Landsong.Localization.L10n.Gameplay("gameplay.talent.result.offer_missing", "人才卡不存在。"));
                 return false;
             }
 
             if (offer.Definition.UniqueTalent && HasOwnedTalentDefinition(offer.Definition.TalentId))
             {
-                result = new TalentRecruitResult(false, offer, null, "该唯一人才已经被招募。");
+                result = new TalentRecruitResult(false, offer, null,
+                    Landsong.Localization.L10n.Gameplay("gameplay.talent.result.unique_recruited", "该唯一人才已经被招募。"));
                 return false;
             }
 
@@ -727,7 +732,8 @@ namespace Landsong.TalentSystem
             var transitions = new List<TalentHiddenTraitTransition>();
             UpdateHiddenTraitStates(talent, transitions);
 
-            result = new TalentRecruitResult(true, offer, talent, $"已招募：{talent.DisplayName}。");
+            result = new TalentRecruitResult(true, offer, talent,
+                Landsong.Localization.L10n.Gameplay("gameplay.talent.result.recruited", "已招募：{0}。", talent.DisplayName));
             NotifyChanged();
             OfferRecruited?.Invoke(this, result);
             return true;
@@ -738,26 +744,30 @@ namespace Landsong.TalentSystem
             var talent = FindOwnedTalent(talentInstanceId);
             if (talent == null || !talent.HasDefinition)
             {
-                result = new TalentAssignResult(false, talent, null, "人才不存在。");
+                result = new TalentAssignResult(false, talent, null,
+                    Landsong.Localization.L10n.Gameplay("gameplay.talent.result.talent_missing", "人才不存在。"));
                 return false;
             }
 
             var slot = FindSlot(slotId);
             if (slot == null)
             {
-                result = new TalentAssignResult(false, talent, slot, "人才槽不存在。");
+                result = new TalentAssignResult(false, talent, slot,
+                    Landsong.Localization.L10n.Gameplay("gameplay.talent.result.slot_missing", "人才槽不存在。"));
                 return false;
             }
 
             if (!slot.Accepts(talent))
             {
-                result = new TalentAssignResult(false, talent, slot, "职业不符合该人才槽要求。");
+                result = new TalentAssignResult(false, talent, slot,
+                    Landsong.Localization.L10n.Gameplay("gameplay.talent.result.profession_mismatch", "职业不符合该人才槽要求。"));
                 return false;
             }
 
             UnassignTalentInternal(talent);
             slot.Assign(talent);
-            result = new TalentAssignResult(true, talent, slot, $"已任命 {talent.DisplayName} 至 {slot.DisplayName}。");
+            result = new TalentAssignResult(true, talent, slot,
+                Landsong.Localization.L10n.Gameplay("gameplay.talent.result.assigned", "已任命 {0} 至 {1}。", talent.DisplayName, slot.DisplayName));
             NotifyChanged();
             TalentAssigned?.Invoke(this, result);
             return true;
@@ -768,19 +778,22 @@ namespace Landsong.TalentSystem
             var slot = FindSlot(slotId);
             if (slot == null)
             {
-                result = new TalentAssignResult(false, null, null, "人才槽不存在。");
+                result = new TalentAssignResult(false, null, null,
+                    Landsong.Localization.L10n.Gameplay("gameplay.talent.result.slot_missing", "人才槽不存在。"));
                 return false;
             }
 
             var talent = slot.AssignedTalent;
             if (talent == null)
             {
-                result = new TalentAssignResult(false, null, slot, "该槽位没有任命人才。");
+                result = new TalentAssignResult(false, null, slot,
+                    Landsong.Localization.L10n.Gameplay("gameplay.talent.result.slot_empty", "该槽位没有任命人才。"));
                 return false;
             }
 
             slot.Assign(null);
-            result = new TalentAssignResult(true, talent, slot, $"已卸任：{talent.DisplayName}。");
+            result = new TalentAssignResult(true, talent, slot,
+                Landsong.Localization.L10n.Gameplay("gameplay.talent.result.unassigned", "已卸任：{0}。", talent.DisplayName));
             NotifyChanged();
             TalentUnassigned?.Invoke(this, result);
             return true;
@@ -791,19 +804,22 @@ namespace Landsong.TalentSystem
             var talent = FindOwnedTalent(talentInstanceId);
             if (talent == null)
             {
-                result = new TalentAssignResult(false, null, null, "人才不存在。");
+                result = new TalentAssignResult(false, null, null,
+                    Landsong.Localization.L10n.Gameplay("gameplay.talent.result.talent_missing", "人才不存在。"));
                 return false;
             }
 
             var slot = GetAssignedSlotForTalent(talentInstanceId);
             if (slot == null)
             {
-                result = new TalentAssignResult(false, talent, null, "该人才尚未任命。");
+                result = new TalentAssignResult(false, talent, null,
+                    Landsong.Localization.L10n.Gameplay("gameplay.talent.result.not_assigned", "该人才尚未任命。"));
                 return false;
             }
 
             slot.Assign(null);
-            result = new TalentAssignResult(true, talent, slot, $"已卸任：{talent.DisplayName}。");
+            result = new TalentAssignResult(true, talent, slot,
+                Landsong.Localization.L10n.Gameplay("gameplay.talent.result.unassigned", "已卸任：{0}。", talent.DisplayName));
             NotifyChanged();
             TalentUnassigned?.Invoke(this, result);
             return true;
@@ -814,14 +830,16 @@ namespace Landsong.TalentSystem
             var talent = FindOwnedTalent(talentInstanceId);
             if (talent == null)
             {
-                result = new TalentUpgradeResult(false, null, 0, null, "人才不存在。");
+                result = new TalentUpgradeResult(false, null, 0, null,
+                    Landsong.Localization.L10n.Gameplay("gameplay.talent.result.talent_missing", "人才不存在。"));
                 return false;
             }
 
             var previousLevel = talent.Level;
             if (!talent.Upgrade())
             {
-                result = new TalentUpgradeResult(false, talent, previousLevel, null, "经验不足或已达到最高等级。");
+                result = new TalentUpgradeResult(false, talent, previousLevel, null,
+                    Landsong.Localization.L10n.Gameplay("gameplay.talent.result.upgrade_unavailable", "经验不足或已达到最高等级。"));
                 return false;
             }
 
@@ -832,7 +850,7 @@ namespace Landsong.TalentSystem
                 talent,
                 previousLevel,
                 transitions.ToArray(),
-                $"{talent.DisplayName} 已提升至 {talent.Level} 级。");
+                Landsong.Localization.L10n.Gameplay("gameplay.talent.result.upgraded", "{0} 已提升至 {1} 级。", talent.DisplayName, talent.Level));
             NotifyChanged();
             TalentUpgraded?.Invoke(this, result);
             return true;
@@ -1167,25 +1185,25 @@ namespace Landsong.TalentSystem
             var goldItemId = GetGoldItemId();
             if (context == null || context.Services.Inventory == null)
             {
-                message = "库存服务未初始化。";
+                message = Landsong.Localization.L10n.Gameplay("gameplay.talent.result.inventory_missing", "库存服务未初始化。");
                 return false;
             }
 
             if (string.IsNullOrWhiteSpace(goldItemId))
             {
-                message = "人才金币物品未配置。";
+                message = Landsong.Localization.L10n.Gameplay("gameplay.talent.result.gold_item_missing", "人才金币物品未配置。");
                 return false;
             }
 
             if (!context.Services.Inventory.HasItem(goldItemId, refreshGoldCost))
             {
-                message = $"金币不足：刷新需要 {refreshGoldCost}。";
+                message = Landsong.Localization.L10n.Gameplay("gameplay.talent.result.refresh_gold_missing", "金币不足：刷新需要 {0}。", refreshGoldCost);
                 return false;
             }
 
             if (!context.Services.Inventory.TryRemoveItem(goldItemId, refreshGoldCost))
             {
-                message = "扣除刷新费用失败。";
+                message = Landsong.Localization.L10n.Gameplay("gameplay.talent.result.refresh_spend_failed", "扣除刷新费用失败。");
                 return false;
             }
 
@@ -1283,8 +1301,8 @@ namespace Landsong.TalentSystem
 
             var added = context.Services.Inventory.AddItem(effect.ItemDefinition, amount);
             var message = added > 0
-                ? $"{talent.DisplayName}：{effect.ItemDefinition.DisplayName}+{added}"
-                : $"{talent.DisplayName}：{effect.ItemDefinition.DisplayName}+0（仓库已满）";
+                ? Landsong.Localization.L10n.Gameplay("gameplay.effect.item_added", "{0}：{1}+{2}", talent.DisplayName, effect.ItemDefinition.DisplayName, added)
+                : Landsong.Localization.L10n.Gameplay("gameplay.effect.item_storage_full", "{0}：{1}+0（仓库已满）", talent.DisplayName, effect.ItemDefinition.DisplayName);
             return new TalentEffectApplicationResult(talent, effect, added > 0, added, message);
         }
 
@@ -1300,7 +1318,8 @@ namespace Landsong.TalentSystem
             }
 
             context.ApplyExternalResearchPoints(amount, turnNumber, talent.DisplayName);
-            return new TalentEffectApplicationResult(talent, effect, true, amount, $"{talent.DisplayName}：研究点+{amount}");
+            return new TalentEffectApplicationResult(talent, effect, true, amount,
+                Landsong.Localization.L10n.Gameplay("gameplay.effect.research_added", "{0}：研究点+{1}", talent.DisplayName, amount));
         }
 
         private TalentEffectApplicationResult ApplyUnlockBlueprintEffect(TalentState talent, TalentEffectDefinition effect)
@@ -1313,8 +1332,8 @@ namespace Landsong.TalentSystem
 
             var unlocked = context.Services.BuildingBlueprints.Unlock(building.FamilyId);
             var message = unlocked
-                ? $"{talent.DisplayName}：解锁蓝图 {building.Definition.DisplayName}"
-                : $"{talent.DisplayName}：蓝图已解锁 {building.Definition.DisplayName}";
+                ? Landsong.Localization.L10n.Gameplay("gameplay.effect.blueprint_unlocked", "{0}：解锁蓝图 {1}", talent.DisplayName, building.Definition.DisplayName)
+                : Landsong.Localization.L10n.Gameplay("gameplay.effect.blueprint_already_unlocked", "{0}：蓝图已解锁 {1}", talent.DisplayName, building.Definition.DisplayName);
             return new TalentEffectApplicationResult(talent, effect, unlocked, unlocked ? 1 : 0, message);
         }
 

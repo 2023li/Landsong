@@ -1,4 +1,5 @@
 using System;
+using Landsong.Localization;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -46,8 +47,11 @@ namespace Landsong.InventorySystem
         [SerializeField] private ItemFoodProfile foodProfile;
 
         public string ItemId => itemId;
-        public string DisplayName => string.IsNullOrWhiteSpace(displayName) ? name : displayName;
-        public string Description => description;
+        public string DisplayName => L10n.ContentName(
+            "item",
+            ItemId,
+            string.IsNullOrWhiteSpace(displayName) ? name : displayName);
+        public string Description => L10n.ContentDescription("item", ItemId, description);
         public Sprite Icon => icon;
         public ItemCategory Category => category;
         public bool Stackable => stackable;

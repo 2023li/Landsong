@@ -118,6 +118,7 @@ namespace Landsong.UISystem
 
         private void OnEnable()
         {
+            Landsong.Localization.L10n.LanguageChanged += Refresh;
             lastAutoScrolledTechnologyId = string.Empty;
             ResolveRuntime();
             SubscribeTechnology();
@@ -127,6 +128,7 @@ namespace Landsong.UISystem
 
         private void OnDisable()
         {
+            Landsong.Localization.L10n.LanguageChanged -= Refresh;
             StopAutoScrollRoutine();
             UnsubscribeTechnology();
             UnsubscribeUnlockContents();
@@ -472,12 +474,14 @@ namespace Landsong.UISystem
         {
             if (selectedDefinition == null)
             {
-                SetText(detailNameLabel, "未选择科技");
+                SetText(detailNameLabel, Landsong.Localization.L10n.Gameplay("gameplay.technology.ui.none_selected", "未选择科技"));
                 SetText(detailDescriptionLabel, string.Empty);
                 SetText(detailUnlockEffectsLabel, string.Empty);
                 SetText(detailCostLabel, string.Empty);
                 SetText(detailPrerequisitesLabel, string.Empty);
-                SetText(detailStatusLabel, technology == null ? "科技服务未初始化" : "没有可显示的科技节点");
+                SetText(detailStatusLabel, technology == null
+                    ? Landsong.Localization.L10n.Gameplay("gameplay.technology.ui.not_initialized", "科技服务未初始化")
+                    : Landsong.Localization.L10n.Gameplay("gameplay.technology.ui.no_nodes", "没有可显示的科技节点"));
                 return;
             }
 
@@ -488,7 +492,10 @@ namespace Landsong.UISystem
                     ? string.Empty
                     : selectedDefinition.Description.Trim());
             SetText(detailUnlockEffectsLabel, FormatDetailUnlockEffects(selectedDefinition));
-            SetText(detailCostLabel, $"研究需求：{selectedDefinition.SciencePointCost} 科技点");
+            SetText(detailCostLabel, Landsong.Localization.L10n.Gameplay(
+                "gameplay.technology.ui.research_cost",
+                "研究需求：{0} 科技点",
+                selectedDefinition.SciencePointCost));
             SetText(detailPrerequisitesLabel, FormatPrerequisites(selectedDefinition));
             SetText(detailStatusLabel, FormatSelectedStatus());
         }
@@ -503,7 +510,9 @@ namespace Landsong.UISystem
             }
 
             var builder = new StringBuilder();
-            builder.AppendLine("解锁与完成效果");
+                builder.AppendLine(Landsong.Localization.L10n.Gameplay(
+                    "gameplay.technology.ui.unlocks_and_effects",
+                    "解锁与完成效果"));
             for (var i = 0; i < detailUnlockContents.Count; i++)
             {
                 var content = detailUnlockContents[i];
@@ -865,24 +874,24 @@ namespace Landsong.UISystem
         {
             if (technology == null)
             {
-                return "科技服务未初始化";
+                return Landsong.Localization.L10n.Gameplay("gameplay.technology.ui.not_initialized", "科技服务未初始化");
             }
 
             if (technology.IsCurrentResearch(selectedDefinition))
             {
                 return selectedDefinition.AllowRepeatResearch && technology.IsUnlocked(selectedDefinition.TechnologyId)
-                    ? $"重复研究中：{FormatResearchProgress(selectedDefinition)}"
-                    : $"研究中：{FormatResearchProgress(selectedDefinition)}";
+                    ? Landsong.Localization.L10n.Gameplay("gameplay.technology.ui.repeating", "重复研究中：{0}", FormatResearchProgress(selectedDefinition))
+                    : Landsong.Localization.L10n.Gameplay("gameplay.technology.ui.researching", "研究中：{0}", FormatResearchProgress(selectedDefinition));
             }
 
             if (technology.IsQueuedResearch(selectedDefinition))
             {
-                return "已加入研发队列";
+                return Landsong.Localization.L10n.Gameplay("gameplay.technology.ui.queued", "已加入研发队列");
             }
 
             if (technology.IsUnlocked(selectedDefinition.TechnologyId) && !selectedDefinition.AllowRepeatResearch)
             {
-                return "已研究";
+                return Landsong.Localization.L10n.Gameplay("gameplay.technology.ui.completed", "已研究");
             }
 
             if (technology.CanStartResearch(selectedDefinition, out var reason))
@@ -890,21 +899,21 @@ namespace Landsong.UISystem
                 if (selectedDefinition.AllowRepeatResearch && technology.IsUnlocked(selectedDefinition.TechnologyId))
                 {
                     return technology.HasCurrentResearch
-                        ? "可重复研究，点击节点切换当前研究"
-                        : "可重复研究，点击节点开始研究";
+                    ? Landsong.Localization.L10n.Gameplay("gameplay.technology.ui.repeatable_switch", "可重复研究，点击节点切换当前研究")
+                    : Landsong.Localization.L10n.Gameplay("gameplay.technology.ui.repeatable_start", "可重复研究，点击节点开始研究");
                 }
 
                 return technology.HasCurrentResearch
-                    ? "可研究，点击节点切换当前研究"
-                    : "可研究，点击节点开始研究";
+                ? Landsong.Localization.L10n.Gameplay("gameplay.technology.ui.available_switch", "可研究，点击节点切换当前研究")
+                : Landsong.Localization.L10n.Gameplay("gameplay.technology.ui.available_start", "可研究，点击节点开始研究");
             }
 
             return reason switch
             {
-                TechnologyResearchFailureReason.PrerequisitesLocked => "前置科技未完成，点击节点加入研发队列",
-                TechnologyResearchFailureReason.AlreadyUnlocked => "已研究",
-                TechnologyResearchFailureReason.InvalidTechnology => "科技配置无效",
-                _ => "不可研究"
+                TechnologyResearchFailureReason.PrerequisitesLocked => Landsong.Localization.L10n.Gameplay("gameplay.technology.ui.prerequisites_locked_queue", "前置科技未完成，点击节点加入研发队列"),
+                TechnologyResearchFailureReason.AlreadyUnlocked => Landsong.Localization.L10n.Gameplay("gameplay.technology.ui.completed", "已研究"),
+                TechnologyResearchFailureReason.InvalidTechnology => Landsong.Localization.L10n.Gameplay("gameplay.technology.ui.invalid", "科技配置无效"),
+                _ => Landsong.Localization.L10n.Gameplay("gameplay.technology.ui.unavailable", "不可研究")
             };
         }
 
@@ -917,7 +926,9 @@ namespace Landsong.UISystem
 
             var progress = technology == null ? 0 : technology.GetResearchProgress(definition);
             var required = Mathf.Max(0, definition.SciencePointCost);
-            return required <= 0 ? "无需科技点" : $"{progress}/{required}";
+            return required <= 0
+                ? Landsong.Localization.L10n.Gameplay("gameplay.technology.ui.no_points_required", "无需科技点")
+                : $"{progress}/{required}";
         }
 
         private static string FormatPrerequisites(TechnologyDefinition definition)
@@ -925,7 +936,7 @@ namespace Landsong.UISystem
             var prerequisites = definition.Prerequisites;
             if (prerequisites.Count == 0)
             {
-                return "前置：无";
+                return Landsong.Localization.L10n.Gameplay("gameplay.technology.ui.no_prerequisites", "前置：无");
             }
 
             var names = new List<string>(prerequisites.Count);
@@ -938,7 +949,12 @@ namespace Landsong.UISystem
                 }
             }
 
-            return names.Count == 0 ? "前置：无" : $"前置：{string.Join("、", names)}";
+            return names.Count == 0
+                ? Landsong.Localization.L10n.Gameplay("gameplay.technology.ui.no_prerequisites", "前置：无")
+                : Landsong.Localization.L10n.Gameplay(
+                    "gameplay.technology.ui.prerequisites",
+                    "前置：{0}",
+                    string.Join(Landsong.Localization.L10n.Gameplay("gameplay.common.list_separator", "、"), names));
         }
 
         private void HandleNodeClicked(TechnologyDefinition definition)

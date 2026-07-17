@@ -1,0 +1,2404 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: UI_en
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.StringTable
+  m_LocaleId:
+    m_Code: en
+  m_SharedData: {fileID: 11400000, guid: 0134bcefa9685fb4ebe82890d57433ad, type: 2}
+  m_Metadata:
+    m_Items: []
+  m_TableData:
+  - m_Id: 3396329472
+    m_Localized: Warehouse 2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6806298624
+    m_Localized: Warehouse 3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7141842944
+    m_Localized: Warehouse 1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7515136000
+    m_Localized: Warehouse (Construction)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7838097408
+    m_Localized: Logging
+    m_Metadata:
+      m_Items: []
+  - m_Id: 8156864512
+    m_Localized: Logging
+    m_Metadata:
+      m_Items: []
+  - m_Id: 8479825920
+    m_Localized: Logging 2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 8811175936
+    m_Localized: Farm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9121554432
+    m_Localized: Hospital
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9373212672
+    m_Localized: Logging
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9683591168
+    m_Localized: Fishing 1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10040107008
+    m_Localized: Fishing 2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10358874112
+    m_Localized: Police
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10669252608
+    m_Localized: Quarry
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10962853888
+    m_Localized: Quarry 1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11243872256
+    m_Localized: Quarry 2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11529084928
+    m_Localized: Quarry 3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640575488
+    m_Localized: Close
+    m_Metadata:
+      m_Items: []
+  - m_Id: 14800642048
+    m_Localized: Confirm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 32995532800
+    m_Localized: "Stone \xD710"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 33364631552
+    m_Localized: Gameplay Debug
+    m_Metadata:
+      m_Items: []
+  - m_Id: 33364631553
+    m_Localized: Add 9999 Gold
+    m_Metadata:
+      m_Items: []
+  - m_Id: 33368825856
+    m_Localized: Selected Resource
+    m_Metadata:
+      m_Items: []
+  - m_Id: 33368825857
+    m_Localized: No valid resources in the item catalog
+    m_Metadata:
+      m_Items: []
+  - m_Id: 33368825858
+    m_Localized: Amount
+    m_Metadata:
+      m_Items: []
+  - m_Id: 33368825859
+    m_Localized: Amount
+    m_Metadata:
+      m_Items: []
+  - m_Id: 33368825860
+    m_Localized: Add Selected Resource
+    m_Metadata:
+      m_Items: []
+  - m_Id: 33368825861
+    m_Localized: Get a Random Quest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 33368825862
+    m_Localized: Press F8 to close the Gameplay debug panel.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 33859559424
+    m_Localized: Close
+    m_Metadata:
+      m_Items: []
+  - m_Id: 34237046784
+    m_Localized: Promote corporate synergy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37219196928
+    m_Localized: Building Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37219196929
+    m_Localized: Building overview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37223391232
+    m_Localized: Build
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37223391233
+    m_Localized: Warehouse
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37223391234
+    m_Localized: Overview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37223391235
+    m_Localized: Quests
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37223391236
+    m_Localized: Expeditions
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37223391237
+    m_Localized: Council
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37223391238
+    m_Localized: Succession
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37223391239
+    m_Localized: Turn
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37223391240
+    m_Localized: Current research
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37223391241
+    m_Localized: NEW QUESTS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37223391242
+    m_Localized: 9 turns
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37223391243
+    m_Localized: Promote corporate synergy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37223391244
+    m_Localized: 'New '
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37223391245
+    m_Localized: Residence
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37223391246
+    m_Localized: Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37223391247
+    m_Localized: "Gold \xD730"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37223391248
+    m_Localized: Close
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37223391249
+    m_Localized: Demolish
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37227585536
+    m_Localized: Close
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37227585537
+    m_Localized: Cancel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37227585538
+    m_Localized: Confirm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37227585539
+    m_Localized: Building Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37227585540
+    m_Localized: Status
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37227585541
+    m_Localized: Value
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37227585542
+    m_Localized: Close
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37227585543
+    m_Localized: Overview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37227585544
+    m_Localized: Close
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37227585545
+    m_Localized: Close
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37227585546
+    m_Localized: Text
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37227585547
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37227585548
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37227585549
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37231779840
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37231779841
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37231779842
+    m_Localized: Buildings
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37231779843
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37231779844
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37231779845
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37231779846
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37231779847
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37231779848
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37231779849
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37231779850
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37231779851
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37231779852
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37231779853
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37235974144
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37235974145
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37235974146
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37235974147
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37235974148
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37235974149
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37235974150
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37235974151
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37235974152
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37235974153
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37235974154
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37235974155
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37235974156
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37235974157
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37235974158
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37235974159
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37235974160
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37235974161
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37235974162
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37240168448
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37240168449
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37240168450
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37240168451
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37240168452
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37240168453
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37240168454
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37240168455
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37240168456
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37240168457
+    m_Localized: Enlightenment
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37240168458
+    m_Localized: 5 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37240168459
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37240168460
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37240168461
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37240168462
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37240168463
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37240168464
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37244362752
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37244362753
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37244362754
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37244362755
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37244362756
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37244362757
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37244362758
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37244362759
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37244362760
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37244362761
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37244362762
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37248557056
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37248557057
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37248557058
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37248557059
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37248557060
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37248557061
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37248557062
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37248557063
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37248557064
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37248557065
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37248557066
+    m_Localized: Buildings
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37248557067
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37248557068
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37252751360
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37252751361
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37252751362
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37252751363
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37252751364
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37252751365
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37252751366
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37252751367
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37252751368
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37256945664
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37256945665
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37256945666
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37256945667
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37256945668
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37256945669
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37256945670
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37256945671
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37256945672
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37256945673
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37256945674
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37256945675
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37256945676
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37256945677
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37256945678
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37256945679
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37256945680
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37261139968
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37261139969
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37261139970
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37261139971
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37261139972
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37261139973
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37261139974
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37261139975
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37261139976
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37261139977
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37261139978
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37261139979
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37261139980
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37261139981
+    m_Localized: Text
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37261139982
+    m_Localized: 'Research Cost: 8 Research Points'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37261139983
+    m_Localized: Technology service is not initialized
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37265334272
+    m_Localized: 'Prerequisite: Enlightenment'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37265334273
+    m_Localized: Record language with stable symbols so experience, contracts, and
+      theories can endure beyond any one person.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37265334274
+    m_Localized: Unlocks and Completion Effects
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37265334275
+    m_Localized: Technology
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37265334276
+    m_Localized: Black Sea
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37265334277
+    m_Localized: Close
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37265334278
+    m_Localized: Rules
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37265334279
+    m_Localized: Success Chance
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37265334280
+    m_Localized: Status
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37265334281
+    m_Localized: Penalty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37265334282
+    m_Localized: Population
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37265334283
+    m_Localized: Launch
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37265334284
+    m_Localized: Allocate Supplies
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37265334285
+    m_Localized: Expeditions
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37265334286
+    m_Localized: Confirm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37265334287
+    m_Localized: Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37265334288
+    m_Localized: Required
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37265334289
+    m_Localized: Inventory
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37265334290
+    m_Localized: Bonus
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37265334291
+    m_Localized: Bonus
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37265334292
+    m_Localized: Population
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37265334293
+    m_Localized: Talent System
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37265334294
+    m_Localized: Close
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37265334295
+    m_Localized: Refresh Talents
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37265334296
+    m_Localized: Talent system is not initialized
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37265334297
+    m_Localized: Salary 0/turn
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37265334298
+    m_Localized: No talent selected
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37265334299
+    m_Localized: Candidates
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37265334300
+    m_Localized: Talent Pool
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37265334301
+    m_Localized: Positions
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37265334302
+    m_Localized: Candidates
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37265334303
+    m_Localized: Recruit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37265334304
+    m_Localized: Talents
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37265334305
+    m_Localized: Level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37265334306
+    m_Localized: Unassigned
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37265334307
+    m_Localized: Upgrade
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917184
+    m_Localized: Unassign
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917185
+    m_Localized: Position
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917186
+    m_Localized: Empty Slot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917187
+    m_Localized: Select a talent from the talent pool first
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917188
+    m_Localized: Assign
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917189
+    m_Localized: Clear
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917190
+    m_Localized: Royal Succession
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917191
+    m_Localized: Close
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917192
+    m_Localized: Have a Prince
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917193
+    m_Localized: Abdicate
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917194
+    m_Localized: The royal line endures
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917195
+    m_Localized: Generation 1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917196
+    m_Localized: 'King:'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917197
+    m_Localized: 'Queen:'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917198
+    m_Localized: Heir
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917199
+    m_Localized: Royal Lineage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917200
+    m_Localized: Royal Family
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917201
+    m_Localized: Role / Status
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917202
+    m_Localized: Age / Lifespan
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917203
+    m_Localized: Succession Status
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917204
+    m_Localized: Relationship
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917205
+    m_Localized: Traits
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917206
+    m_Localized: There is currently no heir
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917207
+    m_Localized: Royal Family
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917208
+    m_Localized: Role / Status
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917209
+    m_Localized: Age / Lifespan
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917210
+    m_Localized: Succession Status
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917211
+    m_Localized: Relationship
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917212
+    m_Localized: Traits
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917213
+    m_Localized: No royal records
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917214
+    m_Localized: Agricultural Reserves
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917215
+    m_Localized: 9 turns
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917216
+    m_Localized: Quest description placeholder
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917217
+    m_Localized: Promote corporate synergy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917218
+    m_Localized: Promote corporate synergy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917219
+    m_Localized: Promote corporate synergy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917220
+    m_Localized: Close
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917221
+    m_Localized: Quests
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917222
+    m_Localized: Overwrite game
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917223
+    m_Localized: 'Are you sure you want to overwrite this save game?  '
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37277917224
+    m_Localized: Confirm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40830492672
+    m_Localized: Agricultural Reserves
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40834686976
+    m_Localized: 9 turns
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40834686977
+    m_Localized: Quest description placeholder
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40834686978
+    m_Localized: Promote corporate synergy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40834686979
+    m_Localized: Promote corporate synergy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40834686980
+    m_Localized: Promote corporate synergy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 42638237696
+    m_Localized: 'New '
+    m_Metadata:
+      m_Items: []
+  - m_Id: 44395651072
+    m_Localized: "Gold \xD730"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 46723489792
+    m_Localized: Residence
+    m_Metadata:
+      m_Items: []
+  - m_Id: 46723489793
+    m_Localized: Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 46723489794
+    m_Localized: "Gold \xD730"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48493486080
+    m_Localized: Cancel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 50380922880
+    m_Localized: Confirm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 52163502080
+    m_Localized: Building Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 52163502081
+    m_Localized: Status
+    m_Metadata:
+      m_Items: []
+  - m_Id: 52163502082
+    m_Localized: Value
+    m_Metadata:
+      m_Items: []
+  - m_Id: 54164185088
+    m_Localized: Enlightenment
+    m_Metadata:
+      m_Items: []
+  - m_Id: 54164185089
+    m_Localized: 5 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 54164185090
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 54164185091
+    m_Localized: BUFF
+    m_Metadata:
+      m_Items: []
+  - m_Id: 54164185092
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56064204800
+    m_Localized: BUFF
+    m_Metadata:
+      m_Items: []
+  - m_Id: 58090053632
+    m_Localized: Black Sea
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60069765120
+    m_Localized: Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60069765121
+    m_Localized: Required
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60069765122
+    m_Localized: Inventory
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60069765123
+    m_Localized: Bonus
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60069765124
+    m_Localized: Bonus
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62502461440
+    m_Localized: Test Kingdom
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62502461441
+    m_Localized: Valley of Kings
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62502461442
+    m_Localized: City-State Era
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62502461443
+    m_Localized: Turn 109
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62502461444
+    m_Localized: Manual Save
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63370682368
+    m_Localized: Test Kingdom
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63370682369
+    m_Localized: Valley of Kings
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63370682370
+    m_Localized: City-State Era
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63370682371
+    m_Localized: Turn 109
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63370682372
+    m_Localized: Manual Save
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63370682373
+    m_Localized: PERMADEATH MODE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63370682374
+    m_Localized: Save_Game_Location
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63370682375
+    m_Localized: MANUAL SAVE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63370682376
+    m_Localized: New Game +++
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63370682377
+    m_Localized: Load Game
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63873998848
+    m_Localized: Create New Save
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63873998849
+    m_Localized: 'Enter a name for your Save '
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63873998850
+    m_Localized: Type a message here...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63878193152
+    m_Localized: Close
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63878193153
+    m_Localized: Confirm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64503144448
+    m_Localized: PERMADEATH MODE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64503144449
+    m_Localized: Save_Game_Location
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64503144450
+    m_Localized: MANUAL SAVE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64503144451
+    m_Localized: New Game +++
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64947740672
+    m_Localized: Continue
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64947740673
+    m_Localized: New Game
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64947740674
+    m_Localized: Load Game
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64947740675
+    m_Localized: Settings
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64947740676
+    m_Localized: Credits
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64947740677
+    m_Localized: Quit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64947740678
+    m_Localized: Quit Game
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64947740679
+    m_Localized: Are you sure you want to quit?
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64947740680
+    m_Localized: Quit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64947740681
+    m_Localized: No
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64951934976
+    m_Localized: Valley of Kings
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64951934977
+    m_Localized: Begin your story on this land
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64951934978
+    m_Localized: Confirm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64951934979
+    m_Localized: Quit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64951934980
+    m_Localized: No
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64951934981
+    m_Localized: Begin the Chronicle
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64951934982
+    m_Localized: Name your civilization
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64951934983
+    m_Localized: Type a message here...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64951934984
+    m_Localized: Close
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64951934985
+    m_Localized: Confirm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64951934986
+    m_Localized: An error has occurred and the game will restart.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64951934987
+    m_Localized: Confirm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 65677549568
+    m_Localized: Valley of Kings
+    m_Metadata:
+      m_Items: []
+  - m_Id: 65677549569
+    m_Localized: Begin your story on this land
+    m_Metadata:
+      m_Items: []
+  - m_Id: 65677549570
+    m_Localized: Confirm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 74426867712
+    m_Localized: Confirm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 85902483456
+    m_Localized: Provides population and tax revenue to your settlement
+    m_Metadata:
+      m_Items: []
+  - m_Id: 85902483457
+    m_Localized: 'Growth: 0/3'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 85902483458
+    m_Localized: Mature
+    m_Metadata:
+      m_Items: []
+  - m_Id: 85902483459
+    m_Localized: Auto Harvest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 85902483460
+    m_Localized: Select Seed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 85902483461
+    m_Localized: Remove
+    m_Metadata:
+      m_Items: []
+  - m_Id: 85902483462
+    m_Localized: Harvest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 85902483463
+    m_Localized: Position
+    m_Metadata:
+      m_Items: []
+  - m_Id: 85902483464
+    m_Localized: 'Workers: 0/3 (Stable: 2)'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 85902483465
+    m_Localized: 'Subsidy:'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 85902483466
+    m_Localized: Automatically calculate subsidies to maintain full staffing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 85902483467
+    m_Localized: Spend x Gold to recruit x workers
+    m_Metadata:
+      m_Items: []
+  - m_Id: 85902483468
+    m_Localized: Level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 85902483469
+    m_Localized: Auto Upgrade
+    m_Metadata:
+      m_Items: []
+  - m_Id: 85902483470
+    m_Localized: "Costs Gold \xD730"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 85902483471
+    m_Localized: 'Per turn: 2 Wood'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 85902483472
+    m_Localized: 'Per turn: 2 Wood'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 85902483473
+    m_Localized: Residence
+    m_Metadata:
+      m_Items: []
+  - m_Id: 85902483474
+    m_Localized: Close
+    m_Metadata:
+      m_Items: []
+  - m_Id: 86477103104
+    m_Localized: '  Produces one apple per turn'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 86821036032
+    m_Localized: Position
+    m_Metadata:
+      m_Items: []
+  - m_Id: 87538262016
+    m_Localized: Close
+    m_Metadata:
+      m_Items: []
+  - m_Id: 87869612032
+    m_Localized: Confirm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 88200962048
+    m_Localized: Details
+    m_Metadata:
+      m_Items: []
+  - m_Id: 88200962049
+    m_Localized: Reachable
+    m_Metadata:
+      m_Items: []
+  - m_Id: 88574255104
+    m_Localized: Log
+    m_Metadata:
+      m_Items: []
+  - m_Id: 752993951744
+    m_Localized: Dirt 3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 753069449216
+    m_Localized: Dirt 2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 753069449217
+    m_Localized: Dirt 1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 753459519488
+    m_Localized: Stone 3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 753459519489
+    m_Localized: Stone 2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 753459519490
+    m_Localized: Stone 1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569024
+    m_Localized: Imperial Era
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569025
+    m_Localized: 'Population: 9/30'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569026
+    m_Localized: 'Turn: 9999'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569027
+    m_Localized: Processing Turn
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569028
+    m_Localized: This is an event
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569029
+    m_Localized: Load Last Save
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569030
+    m_Localized: Open Save Panel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569031
+    m_Localized: Exit to Title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569032
+    m_Localized: Building Overview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569033
+    m_Localized: Production Overview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569034
+    m_Localized: Settings
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569035
+    m_Localized: Quick Save
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569036
+    m_Localized: Save
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569037
+    m_Localized: Load
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569038
+    m_Localized: Return to Title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569039
+    m_Localized: 8 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569040
+    m_Localized: Philosophy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569041
+    m_Localized: 18 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569042
+    m_Localized: Law
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569043
+    m_Localized: 26 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569044
+    m_Localized: Mathematics
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569045
+    m_Localized: 36 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569046
+    m_Localized: Physics
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569047
+    m_Localized: 62 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569048
+    m_Localized: Mechanics
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569049
+    m_Localized: 78 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569050
+    m_Localized: Optics
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569051
+    m_Localized: 116 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569052
+    m_Localized: Astronomy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569053
+    m_Localized: 140 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569054
+    m_Localized: Materials Science
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569055
+    m_Localized: 200 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569056
+    m_Localized: Scientific Theory
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569057
+    m_Localized: 335 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569058
+    m_Localized: Agriculture
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569059
+    m_Localized: 8 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569060
+    m_Localized: Fishing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569061
+    m_Localized: 12 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569062
+    m_Localized: Calendar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569063
+    m_Localized: 18 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569064
+    m_Localized: Medicine
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569065
+    m_Localized: 36 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569066
+    m_Localized: Currency
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569067
+    m_Localized: 48 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569068
+    m_Localized: Education System
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756957569069
+    m_Localized: 62 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756965957632
+    m_Localized: Economic Theory
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756965957633
+    m_Localized: 96 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756965957634
+    m_Localized: Chemistry
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756965957635
+    m_Localized: 140 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756965957636
+    m_Localized: Biology
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756965957637
+    m_Localized: 168 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756965957638
+    m_Localized: Banking
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756965957639
+    m_Localized: 240 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756965957640
+    m_Localized: Industrialization
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756965957641
+    m_Localized: 285 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756965957642
+    m_Localized: Ecological Engineering
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756965957643
+    m_Localized: 335 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756965957644
+    m_Localized: Astrology
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756965957645
+    m_Localized: 8 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756965957646
+    m_Localized: Spellcraft
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756965957647
+    m_Localized: 18 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756965957648
+    m_Localized: Theology
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756965957649
+    m_Localized: 26 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151936
+    m_Localized: Elemental Studies
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151937
+    m_Localized: 48 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151938
+    m_Localized: Spiritualism
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151939
+    m_Localized: 78 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151940
+    m_Localized: Alchemy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151941
+    m_Localized: 116 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151942
+    m_Localized: Enchanting
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151943
+    m_Localized: 168 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151944
+    m_Localized: Archaeology
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151945
+    m_Localized: 240 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151946
+    m_Localized: Runology
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151947
+    m_Localized: 285 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151948
+    m_Localized: Arcane Engineering Theory
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151949
+    m_Localized: 335 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151950
+    m_Localized: The Future
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151951
+    m_Localized: 500 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151952
+    m_Localized: Carpentry
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151953
+    m_Localized: 8 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151954
+    m_Localized: Masonry
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151955
+    m_Localized: 12 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151956
+    m_Localized: The Wheel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151957
+    m_Localized: 26 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151958
+    m_Localized: Components
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151959
+    m_Localized: 48 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151960
+    m_Localized: Architecture
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151961
+    m_Localized: 62 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151962
+    m_Localized: Engineering
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151963
+    m_Localized: 96 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151964
+    m_Localized: Navigation
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151965
+    m_Localized: 116 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151966
+    m_Localized: Steam Power
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151967
+    m_Localized: 200 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151968
+    m_Localized: Information Technology
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151969
+    m_Localized: 240 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151970
+    m_Localized: Aviation
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151971
+    m_Localized: 285 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151972
+    m_Localized: Mechanization
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151973
+    m_Localized: 335 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151974
+    m_Localized: Hunting
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151975
+    m_Localized: 8 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151976
+    m_Localized: Mining
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151977
+    m_Localized: 12 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151978
+    m_Localized: Domestication
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151979
+    m_Localized: 18 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151980
+    m_Localized: Bronze
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151981
+    m_Localized: 36 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151982
+    m_Localized: Formation Warfare
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151983
+    m_Localized: 48 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151984
+    m_Localized: Ironworking
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151985
+    m_Localized: 78 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151986
+    m_Localized: Gunpowder
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151987
+    m_Localized: 96 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151988
+    m_Localized: Tactics
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151989
+    m_Localized: 140 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756970151990
+    m_Localized: Coordinated Operations
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756974346240
+    m_Localized: 168 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756974346241
+    m_Localized: Systems Warfare
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756974346242
+    m_Localized: 240 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756974346243
+    m_Localized: Military Industry Theory
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756974346244
+    m_Localized: 335 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756974346245
+    m_Localized: Abandon
+    m_Metadata:
+      m_Items: []
+  - m_Id: 756974346246
+    m_Localized: Submit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 761055404032
+    m_Localized: This is an event
+    m_Metadata:
+      m_Items: []
+  - m_Id: 763211276288
+    m_Localized: Abandon
+    m_Metadata:
+      m_Items: []
+  - m_Id: 763211276289
+    m_Localized: Submit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 775064379392
+    m_Localized: Map Settings
+    m_Metadata:
+      m_Items: []
+  - m_Id: 775068573696
+    m_Localized: Show Map Grid
+    m_Metadata:
+      m_Items: []
+  - m_Id: 786472886272
+    m_Localized: Plant
+    m_Metadata:
+      m_Items: []
+  - m_Id: 786472886273
+    m_Localized: Functions
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9223067918336
+    m_Localized: Warehouse 2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9223491543040
+    m_Localized: Warehouse 3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9223718035456
+    m_Localized: Warehouse 1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9223969693696
+    m_Localized: Warehouse (Construction)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9224191991808
+    m_Localized: Logging
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9224460427264
+    m_Localized: Logging
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9224699502592
+    m_Localized: Logging 2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9224955355136
+    m_Localized: Farm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9225177653248
+    m_Localized: Hospital
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9225475448832
+    m_Localized: Logging
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9225760661504
+    m_Localized: Fishing 1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9226033291264
+    m_Localized: Fishing 2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9226322698240
+    m_Localized: Police
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9226582745088
+    m_Localized: Dirt 3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9226582745089
+    m_Localized: Dirt 2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9226582745090
+    m_Localized: Dirt 1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9226872152064
+    m_Localized: Stone 3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9226876346368
+    m_Localized: Stone 2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9226876346369
+    m_Localized: Stone 1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9227157364736
+    m_Localized: Quarry
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9227425800192
+    m_Localized: Quarry 1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9227715207168
+    m_Localized: Quarry 2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9227975254016
+    m_Localized: Quarry 3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9229002858496
+    m_Localized: Close
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9231762710528
+    m_Localized: Confirm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9242604986368
+    m_Localized: "Stone \xD710"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9243276075008
+    m_Localized: Close
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9243649368064
+    m_Localized: Promote corporate synergy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9247415853056
+    m_Localized: This is an event
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9249307484160
+    m_Localized: Agricultural Reserves
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9249307484161
+    m_Localized: 9 turns
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9249307484162
+    m_Localized: Quest description placeholder
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9249307484163
+    m_Localized: Promote corporate synergy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9249307484164
+    m_Localized: Promote corporate synergy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9249307484165
+    m_Localized: Promote corporate synergy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9249307484166
+    m_Localized: Abandon
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9249307484167
+    m_Localized: Submit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9251329138688
+    m_Localized: 'New '
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9253132689408
+    m_Localized: "Gold \xD730"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9254906880000
+    m_Localized: Residence
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9254906880001
+    m_Localized: Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9254906880002
+    m_Localized: "Gold \xD730"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9256785928192
+    m_Localized: Cancel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9259029880832
+    m_Localized: Confirm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9260808265728
+    m_Localized: Building Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9260808265729
+    m_Localized: Status
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9260808265730
+    m_Localized: Value
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9262725062656
+    m_Localized: Enlightenment
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9262725062657
+    m_Localized: 5 Research Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9262725062658
+    m_Localized: Preview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9262725062659
+    m_Localized: BUFF
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9262725062660
+    m_Localized: Unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9264478281728
+    m_Localized: BUFF
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9266386690048
+    m_Localized: Black Sea
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9268316069888
+    m_Localized: Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9268316069889
+    m_Localized: Required
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9268316069890
+    m_Localized: Inventory
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9268316069891
+    m_Localized: Bonus
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9268316069892
+    m_Localized: Bonus
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9271419854848
+    m_Localized: Valley of Kings
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9271419854849
+    m_Localized: Begin your story on this land
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9271419854850
+    m_Localized: Confirm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9281385521152
+    m_Localized: Provides population and tax revenue to your settlement
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9281385521153
+    m_Localized: Plant
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9281385521154
+    m_Localized: 'Growth: 0/3'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9281385521155
+    m_Localized: Mature
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9281385521156
+    m_Localized: Auto Harvest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9281385521157
+    m_Localized: Select Seed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9281385521158
+    m_Localized: Remove
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9281385521159
+    m_Localized: Harvest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9281385521160
+    m_Localized: Position
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9281385521161
+    m_Localized: 'Workers: 0/3 (Stable: 2)'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9281385521162
+    m_Localized: 'Subsidy:'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9281385521163
+    m_Localized: Automatically calculate subsidies to maintain full staffing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9281389715456
+    m_Localized: Spend x Gold to recruit x workers
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9281389715457
+    m_Localized: Level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9281389715458
+    m_Localized: Auto Upgrade
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9281389715459
+    m_Localized: "Costs Gold \xD730"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9281389715460
+    m_Localized: Functions
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9281389715461
+    m_Localized: 'Per turn: 2 Wood'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9281389715462
+    m_Localized: 'Per turn: 2 Wood'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9281389715463
+    m_Localized: Residence
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9281389715464
+    m_Localized: Close
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9282102747136
+    m_Localized: '  Produces one apple per turn'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9282425708544
+    m_Localized: Position
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9282996133888
+    m_Localized: Close
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9283306512384
+    m_Localized: Confirm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9283629473792
+    m_Localized: Details
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9283629473793
+    m_Localized: Reachable
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9283948240896
+    m_Localized: Log
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9291414102016
+    m_Localized: No Languages Available
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9291414102017
+    m_Localized: Invalid Map
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9291414102018
+    m_Localized: Invalid Save
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9291414102019
+    m_Localized: Press Any Key to Continue
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds: []

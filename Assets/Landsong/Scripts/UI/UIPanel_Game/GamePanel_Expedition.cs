@@ -80,6 +80,7 @@ namespace Landsong.UISystem
 
         private void OnEnable()
         {
+            Landsong.Localization.L10n.LanguageChanged += Refresh;
             ResolveReferences();
             SubscribeRuntime();
             Refresh();
@@ -87,6 +88,7 @@ namespace Landsong.UISystem
 
         private void OnDisable()
         {
+            Landsong.Localization.L10n.LanguageChanged -= Refresh;
             UnsubscribeRuntime();
         }
 
@@ -240,7 +242,7 @@ namespace Landsong.UISystem
             ReleaseDestinationItems();
             if (gameSystem == null || destinationRoot == null || destinationItemPrefab == null)
             {
-                SetEmptyDestination(true, "远征系统未初始化");
+                SetEmptyDestination(true, Landsong.Localization.L10n.Gameplay("gameplay.expedition.ui.not_initialized", "远征系统未初始化"));
                 return;
             }
 
@@ -268,7 +270,7 @@ namespace Landsong.UISystem
                 visibleCount++;
             }
 
-            SetEmptyDestination(visibleCount <= 0, "当前没有可显示的远征目的地");
+            SetEmptyDestination(visibleCount <= 0, Landsong.Localization.L10n.Gameplay("gameplay.expedition.ui.no_destinations", "当前没有可显示的远征目的地"));
         }
 
         private void RefreshSelectedDestination()
@@ -280,7 +282,7 @@ namespace Landsong.UISystem
 
             if (destination == null)
             {
-                SetText(selectedTitleLabel, "未选择目的地");
+                SetText(selectedTitleLabel, Landsong.Localization.L10n.Gameplay("gameplay.expedition.ui.none_selected", "未选择目的地"));
                 SetText(selectedDescriptionLabel, string.Empty);
                 SetText(selectedRuleLabel, string.Empty);
                 SetText(successChancePreviewLabel, string.Empty);
@@ -290,15 +292,15 @@ namespace Landsong.UISystem
                 ReleaseSupplyInputs();
                 SetActive(emptySupplyRoot, true);
                 SetAllocationPanelVisible(false);
-                RefreshAllocationButton(false, "配资");
-                RefreshLaunchButton(false, "选择目的地");
+                RefreshAllocationButton(false, Landsong.Localization.L10n.Gameplay("gameplay.expedition.ui.allocate", "配资"));
+                RefreshLaunchButton(false, Landsong.Localization.L10n.Gameplay("gameplay.expedition.ui.select_destination", "选择目的地"));
                 return;
             }
 
             SetText(selectedTitleLabel, destination.DisplayName);
             SetText(selectedDescriptionLabel, destination.Description);
             SetText(selectedRuleLabel, FormatDestinationRule(destination, availability));
-            RefreshAllocationButton(true, "配资");
+            RefreshAllocationButton(true, Landsong.Localization.L10n.Gameplay("gameplay.expedition.ui.allocate", "配资"));
             RefreshPopulationSlider(destination);
             RebuildSupplyInputs(destination);
             RefreshLaunchPreview(destination, availability);
@@ -314,7 +316,11 @@ namespace Landsong.UISystem
 
             SetText(
                 penaltyLabel,
-                $"补贴不足惩罚 {gameSystem.Services.Expeditions.SubsidyPenaltyStacks} 层，持续至第 {gameSystem.Services.Expeditions.SubsidyPenaltyActiveUntilTurn} 回合");
+                Landsong.Localization.L10n.Gameplay(
+                    "gameplay.expedition.ui.penalty",
+                    "补贴不足惩罚 {0} 层，持续至第 {1} 回合",
+                    gameSystem.Services.Expeditions.SubsidyPenaltyStacks,
+                    gameSystem.Services.Expeditions.SubsidyPenaltyActiveUntilTurn));
         }
 
         private void RefreshTeamCount()
@@ -388,7 +394,9 @@ namespace Landsong.UISystem
         private void RefreshPopulationAmountText()
         {
             var population = ParsePopulation();
-            SetText(populationAmountLabel, population <= 0 ? string.Empty : $"派遣人口 {population}");
+            SetText(populationAmountLabel, population <= 0
+                ? string.Empty
+                : Landsong.Localization.L10n.Gameplay("gameplay.expedition.ui.assigned_population", "派遣人口 {0}", population));
         }
 
         private void RefreshLaunchPreview(
@@ -399,7 +407,7 @@ namespace Landsong.UISystem
             {
                 SetText(successChancePreviewLabel, string.Empty);
                 SetText(populationHintLabel, string.Empty);
-                RefreshLaunchButton(false, "选择目的地");
+                RefreshLaunchButton(false, Landsong.Localization.L10n.Gameplay("gameplay.expedition.ui.select_destination", "选择目的地"));
                 return;
             }
 
@@ -410,15 +418,21 @@ namespace Landsong.UISystem
             var availableBasePopulation = dynasty == null ? 0 : dynasty.BasePopulation;
             var hasAvailableTeamSlot = gameSystem != null
                                        && gameSystem.Services.Expeditions.ActiveExpeditionCount < gameSystem.Services.Expeditions.MaxActiveExpeditions;
-            var rewardBonusText = supplyRewardYieldBonus > 0f
-                ? $"，额外收益 +{supplyRewardYieldBonus * 100f:0.#}%"
-                : string.Empty;
-            SetText(successChancePreviewLabel, $"预计成功率 {successChance * 100f:0.#}%{rewardBonusText}");
+            SetText(successChancePreviewLabel, supplyRewardYieldBonus > 0f
+                ? Landsong.Localization.L10n.Gameplay(
+                    "gameplay.expedition.ui.success_with_bonus",
+                    "预计成功率 {0:0.#}%，额外收益 +{1:0.#}%",
+                    successChance * 100f,
+                    supplyRewardYieldBonus * 100f)
+                : Landsong.Localization.L10n.Gameplay(
+                    "gameplay.expedition.ui.success",
+                    "预计成功率 {0:0.#}%",
+                    successChance * 100f));
             SetText(
                 populationHintLabel,
                 destination.HasMaxPopulation
-                    ? $"基础人口 {availableBasePopulation}，需要 {destination.MinPopulation}-{destination.MaxPopulation}"
-                    : $"基础人口 {availableBasePopulation}，至少 {destination.MinPopulation}");
+                    ? Landsong.Localization.L10n.Gameplay("gameplay.expedition.ui.population_range", "基础人口 {0}，需要 {1}-{2}", availableBasePopulation, destination.MinPopulation, destination.MaxPopulation)
+                    : Landsong.Localization.L10n.Gameplay("gameplay.expedition.ui.population_min", "基础人口 {0}，至少 {1}", availableBasePopulation, destination.MinPopulation));
 
             var canLaunch = availability.IsAvailable
                             && hasAvailableTeamSlot
@@ -426,7 +440,7 @@ namespace Landsong.UISystem
                             && (!destination.HasMaxPopulation || population <= destination.MaxPopulation)
                             && availableBasePopulation >= population;
             var label = canLaunch
-                ? "出发"
+                ? Landsong.Localization.L10n.Gameplay("gameplay.expedition.ui.depart", "出发")
                 : FormatLaunchBlockedReason(destination, availability, population, availableBasePopulation, hasAvailableTeamSlot);
             RefreshLaunchButton(canLaunch, label);
             SetText(statusLabel, canLaunch ? string.Empty : label);
@@ -857,10 +871,20 @@ namespace Landsong.UISystem
 
             var maxPopulation = destination.HasMaxPopulation
                 ? destination.MaxPopulation.ToString()
-                : "不限";
-            var status = availability.IsAvailable ? "可出发" : FormatAvailabilityReason(availability);
+                : Landsong.Localization.L10n.Gameplay("gameplay.common.unlimited", "不限");
+            var status = availability.IsAvailable
+                ? Landsong.Localization.L10n.Gameplay("gameplay.expedition.ui.available", "可出发")
+                : FormatAvailabilityReason(availability);
             var rewardYieldMultiplier = gameSystem == null ? 1f : gameSystem.Services.Expeditions.RewardYieldMultiplier;
-            return $"持续 {destination.DurationTurns} 回合，人口 {destination.MinPopulation}-{maxPopulation}，基础成功率 {destination.BaseSuccessChance * 100f:0.#}%，收益率 {rewardYieldMultiplier * 100f:0.#}%，{status}";
+            return Landsong.Localization.L10n.Gameplay(
+                "gameplay.expedition.ui.destination_summary",
+                "持续 {0} 回合，人口 {1}-{2}，基础成功率 {3:0.#}%，收益率 {4:0.#}%，{5}",
+                destination.DurationTurns,
+                destination.MinPopulation,
+                maxPopulation,
+                destination.BaseSuccessChance * 100f,
+                rewardYieldMultiplier * 100f,
+                status);
         }
 
         private static string FormatLaunchBlockedReason(
@@ -877,34 +901,34 @@ namespace Landsong.UISystem
 
             if (!hasAvailableTeamSlot)
             {
-                return "远征队伍已满";
+                return Landsong.Localization.L10n.Gameplay("gameplay.expedition.ui.team_full", "远征队伍已满");
             }
 
             if (population < destination.MinPopulation)
             {
-                return "人口不足";
+                return Landsong.Localization.L10n.Gameplay("gameplay.expedition.ui.population_insufficient", "人口不足");
             }
 
             if (destination.HasMaxPopulation && population > destination.MaxPopulation)
             {
-                return "人口超限";
+                return Landsong.Localization.L10n.Gameplay("gameplay.expedition.ui.population_exceeded", "人口超限");
             }
 
             if (availableBasePopulation < population)
             {
-                return "基础人口不足";
+                return Landsong.Localization.L10n.Gameplay("gameplay.expedition.ui.base_population_insufficient", "基础人口不足");
             }
 
-            return "不可出发";
+            return Landsong.Localization.L10n.Gameplay("gameplay.expedition.ui.cannot_depart", "不可出发");
         }
 
         private static string FormatAvailabilityReason(ExpeditionDestinationAvailability availability)
         {
             return availability.Reason switch
             {
-                ExpeditionDestinationUnavailableReason.ConditionLocked => "条件未满足",
-                ExpeditionDestinationUnavailableReason.AlreadyCompleted => "已完成",
-                _ => "不可用"
+                ExpeditionDestinationUnavailableReason.ConditionLocked => Landsong.Localization.L10n.Gameplay("gameplay.common.conditions_not_met", "条件未满足"),
+                ExpeditionDestinationUnavailableReason.AlreadyCompleted => Landsong.Localization.L10n.Gameplay("gameplay.common.completed", "已完成"),
+                _ => Landsong.Localization.L10n.Gameplay("gameplay.common.unavailable", "不可用")
             };
         }
 

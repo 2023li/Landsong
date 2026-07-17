@@ -1,75 +1,48 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using Landsong.Localization;
 using Moyo.Unity;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Localization;
-using UnityEngine.Localization.Components;
+using UnityEngine.Localization.Metadata;
 using UnityEngine.Localization.Settings;
 using UnityEngine.Localization.Tables;
 using UnityEngine.ResourceManagement.AsyncOperations;
-using System.IO;
 
-public class GameLocalizationManager : MonoSingleton<GameLocalizationManager>
+public sealed class GameLocalizationManager : MonoSingleton<GameLocalizationManager>
 {
-    [Header("内置语言包")]
-    [SerializeField]
-    private List<LanguagePackInfo> builtInLanguagePacks = new List<LanguagePackInfo>
-    {
-        new LanguagePackInfo
-        {
-            PackId = "builtin_zh_hans",
-            LanguageCode = "zh-Hans",
-            DisplayName = "简体中文",
-            FileName = string.Empty,
-            FullPath = string.Empty,
-            Source = LanguageSource.BuiltIn
-        },
-        new LanguagePackInfo
-        {
-            PackId = "builtin_en",
-            LanguageCode = "en",
-            DisplayName = "English",
-            FileName = string.Empty,
-            FullPath = string.Empty,
-            Source = LanguageSource.BuiltIn
-        }
-    };
+    public const string DefaultBuiltInLocaleCode = "en";
 
-    [Header("外部 CSV 默认表名")]
-    [SerializeField]
-    private string defaultExternalCsvTableName = "GameString";
-   
-    //外部语言包原文CSV文件中，前面用于存放语言包信息的行数限制（从上往下读），超过该行数仍未读到完整的语言包信息，则放弃读取该语言包。
-    private const int ExternalLanguagePackMetaReadLineLimit = 10;
-    private const string ExternalLanguagePackMetaKey_PackId = "PackId";
-    private const string ExternalLanguagePackMetaKey_BaseLanguageCode = "LanguageCode";
-    private const string ExternalLanguagePackMetaKey_DisplayName = "DisplayName";
+    private readonly ExternalLanguagePackRepository externalRepository =
+        new ExternalLanguagePackRepository();
 
+    private readonly RuntimeStringTableProvider runtimeTableProvider =
+        new RuntimeStringTableProvider();
 
-    private readonly List<LanguagePackInfo> externalLanguagePacks = new List<LanguagePackInfo>();
+    private readonly List<LanguagePackInfo> allLanguageOptions = new List<LanguagePackInfo>();
+    private readonly List<LanguagePackInfo> externalLanguageOptions = new List<LanguagePackInfo>();
+    private readonly List<LanguagePackInfo> invalidExternalLanguagePacks = new List<LanguagePackInfo>();
+    private readonly Dictionary<string, LanguagePackReadResult> externalPacksById =
+        new Dictionary<string, LanguagePackReadResult>(StringComparer.OrdinalIgnoreCase);
 
-    private readonly List<LanguagePackInfo> allLanguagePacks = new List<LanguagePackInfo>();
-
-    private int currentLanguagePackIndex = 0;
-
-    private readonly RuntimeMergedStringTableProvider runtimeMergedStringTableProvider =
-        new RuntimeMergedStringTableProvider();
-
-    private ITableProvider defaultStringTableProvider;
-    private bool hasCachedDefaultStringTableProvider;
+    private ITableProvider defaultTableProvider;
+    private ITablePostprocessor defaultTablePostprocessor;
+    private Locale runtimeLocale;
+    private bool initialized;
+    private bool applying;
+    private int currentLanguageOptionIndex;
 
     public event Action<LocalizationSaveData> OnLanguageChanged;
 
-    public IReadOnlyList<LanguagePackInfo> ExternalLanguagePacks => externalLanguagePacks;
-
-    public IReadOnlyList<LanguagePackInfo> AllLanguagePacks => allLanguagePacks;
-
-    public int CurrentLanguagePackIndex => currentLanguagePackIndex;
-
-    public int AllLanguagePackCount => allLanguagePacks.Count;
-
+    public IReadOnlyList<LanguagePackInfo> AllLanguagePacks => allLanguageOptions;
+    public IReadOnlyList<LanguagePackInfo> ExternalLanguagePacks => externalLanguageOptions;
+    public IReadOnlyList<LanguagePackInfo> InvalidExternalLanguagePacks => invalidExternalLanguagePacks;
+    public int CurrentLanguagePackIndex => currentLanguageOptionIndex;
+    public int AllLanguagePackCount => allLanguageOptions.Count;
+    public bool IsInitialized => initialized;
+    public bool IsApplying => applying;
     public string ExternalLanguagePacksFolderPath => IOManager.Instance.ExternalLanguagePacksFolderPath;
 
     public LocalizationSaveData CurrentLanguageData
@@ -77,121 +50,98 @@ public class GameLocalizationManager : MonoSingleton<GameLocalizationManager>
         get
         {
             DataManager.Instance.EnsureAppDataLoaded();
-
-            if (DataManager.Instance.AppData.Language == null)
-            {
-                DataManager.Instance.AppData.Language = LocalizationSaveData.CreateDefault();
-                DataManager.Instance.SaveAppData();
-            }
-
+            DataManager.Instance.AppData.Language ??= LocalizationSaveData.CreateDefault();
+            DataManager.Instance.AppData.Language.Validate();
             return DataManager.Instance.AppData.Language;
+        }
+    }
+
+    public LanguagePackInfo CurrentLanguageOption
+    {
+        get
+        {
+            EnsureLanguageOptionsReady();
+            var optionId = ResolveSavedOptionId();
+            return FindOption(optionId)?.Clone();
         }
     }
 
     public void Initialize()
     {
-        EnsureExternalLanguagePackFolder();
+        IOManager.Instance.EnsureExternalLanguagePackFolder();
         RefreshAllLanguagePacksCache();
-        ValidateCurrentLanguage();
-        SyncCurrentLanguagePackIndexFromSaveData();
-        StartCoroutine(ApplyToUnityLocalization());
+        StartCoroutine(InitializeAndApply());
+    }
+
+    private IEnumerator InitializeAndApply()
+    {
+        yield return LocalizationSettings.InitializationOperation;
+        CacheUnityLocalizationExtensions();
+        ValidateSavedSelection();
+        yield return ApplyToUnityLocalization();
+        initialized = true;
     }
 
     private void OnDestroy()
     {
-        if (LocalizationSettings.StringDatabase != null
-            && LocalizationSettings.StringDatabase.TableProvider == runtimeMergedStringTableProvider)
-        {
-            LocalizationSettings.StringDatabase.TableProvider = defaultStringTableProvider;
-        }
-
-        runtimeMergedStringTableProvider.Clear();
-    }
-
-    private void EnsureExternalLanguagePackFolder()
-    {
-        IOManager.Instance.EnsureExternalLanguagePackFolder();
-    }
-
-    private void ValidateCurrentLanguage()
-    {
-        LocalizationSaveData languageData = CurrentLanguageData;
-        languageData.Validate();
-
-        if (languageData.UseSystemLanguage)
-        {
-            DataManager.Instance.SaveAppData();
-            return;
-        }
-
-        if (string.IsNullOrEmpty(languageData.CurrentLanguageCode))
-        {
-            languageData.UseSystemLanguage = true;
-            languageData.Source = LanguageSource.BuiltIn;
-            languageData.ExternalPackId = string.Empty;
-            languageData.ExternalPackFileName = string.Empty;
-
-            DataManager.Instance.SaveAppData();
-            return;
-        }
-
-        if (languageData.Source == LanguageSource.ExternalCsv)
-        {
-            string fullPath = GetCurrentExternalLanguagePackFullPath();
-
-            if (!IOManager.Instance.FileExists(fullPath))
-            {
-                Debug.LogWarning($"当前外部语言包不存在，恢复为内置语言：{fullPath}");
-
-                languageData.Source = LanguageSource.BuiltIn;
-                languageData.ExternalPackId = string.Empty;
-                languageData.ExternalPackFileName = string.Empty;
-
-                DataManager.Instance.SaveAppData();
-            }
-        }
-    }
-
-    public bool SetUseSystemLanguage()
-    {
-        LocalizationSaveData languageData = CurrentLanguageData;
-
-        languageData.UseSystemLanguage = true;
-        languageData.Source = LanguageSource.BuiltIn;
-        languageData.CurrentLanguageCode = string.Empty;
-        languageData.ExternalPackId = string.Empty;
-        languageData.ExternalPackFileName = string.Empty;
-
-        DataManager.Instance.SaveAppData();
-        SyncCurrentLanguagePackIndexFromSaveData();
-
-        return true;
-    }
-
-    public IEnumerator SetUseSystemLanguageAndApply()
-    {
-        if (!SetUseSystemLanguage())
-        {
-            yield break;
-        }
-
-        yield return ApplyToUnityLocalization();
+        RestoreDefaultTableExtensions();
+        RemoveRuntimeLocale();
+        runtimeTableProvider.Clear();
     }
 
     public void RefreshAllLanguagePacksCache()
     {
-        RefreshExternalLanguagePacks();
+        allLanguageOptions.Clear();
+        externalLanguageOptions.Clear();
+        invalidExternalLanguagePacks.Clear();
+        externalPacksById.Clear();
+
+        allLanguageOptions.Add(LanguagePackInfo.BuiltIn("zh-Hans", "简体中文"));
+        allLanguageOptions.Add(LanguagePackInfo.BuiltIn("en", "English"));
+
+        var scanResults = externalRepository.Scan(ExternalLanguagePacksFolderPath);
+        for (var i = 0; i < scanResults.Count; i++)
+        {
+            var result = scanResults[i];
+            var info = result.Info;
+            if (info == null)
+            {
+                continue;
+            }
+
+            if (!result.Success)
+            {
+                invalidExternalLanguagePacks.Add(info.Clone());
+                LogPackDiagnostics(info);
+                continue;
+            }
+
+            externalPacksById.Add(info.PackId, result);
+            externalLanguageOptions.Add(info.Clone());
+            allLanguageOptions.Add(info.Clone());
+            LogPackDiagnostics(info);
+        }
+
+        externalLanguageOptions.Sort(CompareLanguageOptions);
+        allLanguageOptions.Sort((left, right) =>
+        {
+            if (left.Source != right.Source)
+            {
+                return left.Source.CompareTo(right.Source);
+            }
+
+            return CompareLanguageOptions(left, right);
+        });
+        SyncCurrentLanguagePackIndexFromSaveData();
     }
 
     public List<LanguagePackInfo> GetAllLanguagePacks()
     {
-        EnsureAllLanguagePacksCacheReady();
-
-        List<LanguagePackInfo> result = new List<LanguagePackInfo>();
-
-        foreach (LanguagePackInfo languagePack in allLanguagePacks)
+        EnsureLanguageOptionsReady();
+        var result = new List<LanguagePackInfo>(allLanguageOptions.Count);
+        for (var i = 0; i < allLanguageOptions.Count; i++)
         {
-            result.Add(CloneLanguagePackInfo(languagePack));
+            result.Add(allLanguageOptions[i].Clone());
         }
 
         return result;
@@ -199,345 +149,96 @@ public class GameLocalizationManager : MonoSingleton<GameLocalizationManager>
 
     public LanguagePackInfo GetCurrentPreviewLanguagePack()
     {
-        EnsureAllLanguagePacksCacheReady();
-
-        if (allLanguagePacks.Count <= 0)
+        EnsureLanguageOptionsReady();
+        if (allLanguageOptions.Count <= 0)
         {
             return null;
         }
 
-        currentLanguagePackIndex = Mathf.Clamp(currentLanguagePackIndex, 0, allLanguagePacks.Count - 1);
-
-        return CloneLanguagePackInfo(allLanguagePacks[currentLanguagePackIndex]);
+        currentLanguageOptionIndex = Mathf.Clamp(
+            currentLanguageOptionIndex,
+            0,
+            allLanguageOptions.Count - 1);
+        return allLanguageOptions[currentLanguageOptionIndex].Clone();
     }
 
     public bool SetCurrentLanguagePackIndex(int index)
     {
-        EnsureAllLanguagePacksCacheReady();
-
-        if (allLanguagePacks.Count <= 0)
+        EnsureLanguageOptionsReady();
+        if (index < 0 || index >= allLanguageOptions.Count)
         {
-            currentLanguagePackIndex = 0;
             return false;
         }
 
-        if (index < 0 || index >= allLanguagePacks.Count)
-        {
-            Debug.LogWarning($"设置语言下标失败：Index={index}, Count={allLanguagePacks.Count}");
-            return false;
-        }
-
-        currentLanguagePackIndex = index;
+        currentLanguageOptionIndex = index;
         return true;
     }
 
     public bool SelectPreviousLanguagePack()
     {
-        EnsureAllLanguagePacksCacheReady();
-
-        if (allLanguagePacks.Count <= 0)
+        EnsureLanguageOptionsReady();
+        if (allLanguageOptions.Count <= 0)
         {
-            currentLanguagePackIndex = 0;
             return false;
         }
 
-        currentLanguagePackIndex--;
-
-        if (currentLanguagePackIndex < 0)
-        {
-            currentLanguagePackIndex = allLanguagePacks.Count - 1;
-        }
-
+        currentLanguageOptionIndex =
+            (currentLanguageOptionIndex - 1 + allLanguageOptions.Count) % allLanguageOptions.Count;
         return true;
     }
 
     public bool SelectNextLanguagePack()
     {
-        EnsureAllLanguagePacksCacheReady();
-
-        if (allLanguagePacks.Count <= 0)
+        EnsureLanguageOptionsReady();
+        if (allLanguageOptions.Count <= 0)
         {
-            currentLanguagePackIndex = 0;
             return false;
         }
 
-        currentLanguagePackIndex++;
-
-        if (currentLanguagePackIndex >= allLanguagePacks.Count)
-        {
-            currentLanguagePackIndex = 0;
-        }
-
+        currentLanguageOptionIndex = (currentLanguageOptionIndex + 1) % allLanguageOptions.Count;
         return true;
     }
 
-    public IEnumerator ApplyCurrentPreviewLanguagePack()
+    public bool SetUseSystemLanguage()
     {
-        LanguagePackInfo languagePack = GetCurrentPreviewLanguagePack();
-
-        if (languagePack == null)
-        {
-            Debug.LogWarning("应用当前预览语言失败：没有可用语言包。");
-            yield break;
-        }
-
-        yield return SetLanguageAndApply(languagePack);
-    }
-
-    public void SyncCurrentLanguagePackIndexFromSaveData()
-    {
-        if (allLanguagePacks.Count <= 0)
-        {
-            currentLanguagePackIndex = 0;
-            return;
-        }
-
-        LocalizationSaveData languageData = CurrentLanguageData;
-
-        int index = FindLanguagePackIndex(languageData);
-
-        if (index >= 0)
-        {
-            currentLanguagePackIndex = index;
-            return;
-        }
-
-        currentLanguagePackIndex = Mathf.Clamp(currentLanguagePackIndex, 0, allLanguagePacks.Count - 1);
-    }
-
-    private void EnsureAllLanguagePacksCacheReady()
-    {
-        if (allLanguagePacks.Count > 0)
-        {
-            return;
-        }
-
-        RefreshAllLanguagePacksCache();
-    }
-
-    private void RebuildAllLanguagePackCache()
-    {
-        allLanguagePacks.Clear();
-
-        if (builtInLanguagePacks != null)
-        {
-            foreach (LanguagePackInfo builtInPack in builtInLanguagePacks)
-            {
-                if (builtInPack == null)
-                {
-                    continue;
-                }
-
-                if (string.IsNullOrWhiteSpace(builtInPack.LanguageCode))
-                {
-                    continue;
-                }
-
-                LanguagePackInfo packInfo = CloneLanguagePackInfo(builtInPack);
-
-                packInfo.Source = LanguageSource.BuiltIn;
-                packInfo.FileName = string.Empty;
-                packInfo.FullPath = string.Empty;
-                packInfo.LanguageCode = packInfo.LanguageCode.Trim();
-
-                if (string.IsNullOrWhiteSpace(packInfo.PackId))
-                {
-                    packInfo.PackId = $"builtin_{packInfo.LanguageCode}";
-                }
-
-                if (string.IsNullOrWhiteSpace(packInfo.DisplayName))
-                {
-                    packInfo.DisplayName = packInfo.LanguageCode;
-                }
-
-                allLanguagePacks.Add(packInfo);
-            }
-        }
-
-        foreach (LanguagePackInfo externalPack in externalLanguagePacks)
-        {
-            if (externalPack == null)
-            {
-                continue;
-            }
-
-            if (string.IsNullOrWhiteSpace(externalPack.LanguageCode))
-            {
-                continue;
-            }
-
-            allLanguagePacks.Add(CloneLanguagePackInfo(externalPack));
-        }
-
-        if (allLanguagePacks.Count <= 0)
-        {
-            currentLanguagePackIndex = 0;
-            return;
-        }
-
-        currentLanguagePackIndex = Mathf.Clamp(currentLanguagePackIndex, 0, allLanguagePacks.Count - 1);
-    }
-
-    private int FindLanguagePackIndex(LocalizationSaveData languageData)
-    {
-        if (languageData == null)
-        {
-            return 0;
-        }
-
-        if (string.IsNullOrWhiteSpace(languageData.CurrentLanguageCode))
-        {
-            return 0;
-        }
-
-        for (int i = 0; i < allLanguagePacks.Count; i++)
-        {
-            LanguagePackInfo languagePack = allLanguagePacks[i];
-
-            if (IsSameLanguagePack(languagePack, languageData))
-            {
-                return i;
-            }
-        }
-
-        return -1;
-    }
-
-    private bool IsSameLanguagePack(LanguagePackInfo languagePack, LocalizationSaveData languageData)
-    {
-        if (languagePack == null || languageData == null)
-        {
-            return false;
-        }
-
-        bool sameCode = string.Equals(
-            languagePack.LanguageCode,
-            languageData.CurrentLanguageCode,
-            StringComparison.OrdinalIgnoreCase
-        );
-
-        if (!sameCode)
-        {
-            return false;
-        }
-
-        bool sameSource = languagePack.Source == languageData.Source;
-
-        if (!sameSource)
-        {
-            return false;
-        }
-
-        if (languagePack.Source != LanguageSource.ExternalCsv)
-        {
-            return true;
-        }
-
-        bool hasSavedPackId = !string.IsNullOrWhiteSpace(languageData.ExternalPackId);
-        bool hasSavedFileName = !string.IsNullOrWhiteSpace(languageData.ExternalPackFileName);
-
-        if (!hasSavedPackId && !hasSavedFileName)
-        {
-            return false;
-        }
-
-        if (hasSavedPackId)
-        {
-            bool samePackId = string.Equals(
-                languagePack.PackId,
-                languageData.ExternalPackId,
-                StringComparison.OrdinalIgnoreCase
-            );
-
-            if (!samePackId)
-            {
-                return false;
-            }
-        }
-
-        if (hasSavedFileName)
-        {
-            bool sameFileName = string.Equals(
-                languagePack.FileName,
-                languageData.ExternalPackFileName,
-                StringComparison.OrdinalIgnoreCase
-            );
-
-            if (!sameFileName)
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private LanguagePackInfo CloneLanguagePackInfo(LanguagePackInfo source)
-    {
-        if (source == null)
-        {
-            return null;
-        }
-
-        return new LanguagePackInfo
-        {
-            PackId = source.PackId ?? string.Empty,
-            LanguageCode = source.LanguageCode ?? string.Empty,
-            DisplayName = source.DisplayName ?? string.Empty,
-            FileName = source.FileName ?? string.Empty,
-            FullPath = source.FullPath ?? string.Empty,
-            Source = source.Source
-        };
-    }
-
-    public bool SetLanguage(LanguagePackInfo packInfo)
-    {
-        if (packInfo == null)
-        {
-            Debug.LogWarning("设置语言失败：packInfo 为空。");
-            return false;
-        }
-
-        if (string.IsNullOrWhiteSpace(packInfo.LanguageCode))
-        {
-            Debug.LogWarning("设置语言失败：LanguageCode 为空。");
-            return false;
-        }
-
-        LocalizationSaveData languageData = CurrentLanguageData;
-
-        switch (packInfo.Source)
-        {
-            case LanguageSource.BuiltIn:
-                WriteBuiltInLanguageData(languageData, packInfo);
-                break;
-
-            case LanguageSource.ExternalCsv:
-                if (!TryWriteExternalCsvLanguageData(languageData, packInfo))
-                {
-                    return false;
-                }
-
-                break;
-
-            case LanguageSource.ExternalJson:
-                Debug.LogWarning("设置语言失败：暂未支持 ExternalJson。");
-                return false;
-
-            default:
-                Debug.LogWarning($"设置语言失败：未知语言来源：{packInfo.Source}");
-                return false;
-        }
-
+        var data = CurrentLanguageData;
+        data.UseSystemLanguage = true;
+        data.SelectedLanguageOptionId = string.Empty;
         DataManager.Instance.SaveAppData();
         SyncCurrentLanguagePackIndexFromSaveData();
-
         return true;
     }
 
-    public IEnumerator SetLanguageAndApply(LanguagePackInfo packInfo)
+    public IEnumerator SetUseSystemLanguageAndApply()
     {
-        if (!SetLanguage(packInfo))
+        SetUseSystemLanguage();
+        yield return ApplyToUnityLocalization();
+    }
+
+    public bool SetLanguage(LanguagePackInfo option)
+    {
+        if (option == null || string.IsNullOrWhiteSpace(option.OptionId))
+        {
+            return false;
+        }
+
+        var installedOption = FindOption(option.OptionId);
+        if (installedOption == null || !installedOption.IsValid)
+        {
+            return false;
+        }
+
+        var data = CurrentLanguageData;
+        data.UseSystemLanguage = false;
+        data.SelectedLanguageOptionId = installedOption.OptionId;
+        DataManager.Instance.SaveAppData();
+        SyncCurrentLanguagePackIndexFromSaveData();
+        return true;
+    }
+
+    public IEnumerator SetLanguageAndApply(LanguagePackInfo option)
+    {
+        if (!SetLanguage(option))
         {
             yield break;
         }
@@ -545,839 +246,441 @@ public class GameLocalizationManager : MonoSingleton<GameLocalizationManager>
         yield return ApplyToUnityLocalization();
     }
 
-    private void WriteBuiltInLanguageData(LocalizationSaveData languageData, LanguagePackInfo packInfo)
+    public IEnumerator ApplyCurrentPreviewLanguagePack()
     {
-        languageData.UseSystemLanguage = false;
-        languageData.Source = LanguageSource.BuiltIn;
-        languageData.CurrentLanguageCode = packInfo.LanguageCode.Trim();
-        languageData.ExternalPackId = string.Empty;
-        languageData.ExternalPackFileName = string.Empty;
+        var option = GetCurrentPreviewLanguagePack();
+        if (option == null)
+        {
+            yield break;
+        }
+
+        yield return SetLanguageAndApply(option);
     }
 
-    private bool TryWriteExternalCsvLanguageData(LocalizationSaveData languageData, LanguagePackInfo packInfo)
+    public void SyncCurrentLanguagePackIndexFromSaveData()
     {
-        if (string.IsNullOrWhiteSpace(packInfo.FileName))
+        if (allLanguageOptions.Count <= 0)
         {
-            Debug.LogWarning("设置外部语言包失败：FileName 为空。");
-            return false;
-        }
-
-        string fileName = IOManager.Instance.GetSafeFileName(packInfo.FileName);
-        string fullPath = IOManager.Instance.GetExternalLanguagePackFullPath(fileName);
-
-        if (!IOManager.Instance.FileExists(fullPath))
-        {
-            Debug.LogWarning($"设置外部语言包失败：文件不存在：{fullPath}");
-            return false;
-        }
-
-        languageData.UseSystemLanguage = false;
-        languageData.Source = LanguageSource.ExternalCsv;
-        languageData.CurrentLanguageCode = packInfo.LanguageCode.Trim();
-        languageData.ExternalPackId = packInfo.PackId ?? string.Empty;
-        languageData.ExternalPackFileName = fileName;
-
-        return true;
-    }
-
-    public string GetCurrentExternalLanguagePackFullPath()
-    {
-        LocalizationSaveData languageData = CurrentLanguageData;
-
-        if (languageData == null)
-        {
-            return string.Empty;
-        }
-
-        if (string.IsNullOrEmpty(languageData.ExternalPackFileName))
-        {
-            return string.Empty;
-        }
-
-        return IOManager.Instance.GetExternalLanguagePackFullPath(languageData.ExternalPackFileName);
-    }
-
-    public void RefreshExternalLanguagePacks()
-    {
-        EnsureExternalLanguagePackFolder();
-
-        externalLanguagePacks.Clear();
-
-        string[] csvFiles = IOManager.Instance.GetExternalLanguagePackCsvFiles();
-
-        foreach (string csvFile in csvFiles)
-        {
-            if (TryReadExternalLanguagePackInfo(csvFile, out LanguagePackInfo packInfo))
-            {
-                externalLanguagePacks.Add(packInfo);
-            }
-        }
-
-        externalLanguagePacks.Sort((a, b) =>
-            string.Compare(a.DisplayName, b.DisplayName, StringComparison.OrdinalIgnoreCase));
-
-        RebuildAllLanguagePackCache();
-        SyncCurrentLanguagePackIndexFromSaveData();
-    }
-
-    private bool TryReadExternalLanguagePackInfo(string filePath, out LanguagePackInfo packInfo)
-    {
-        packInfo = null;
-
-        if (string.IsNullOrEmpty(filePath) || !IOManager.Instance.FileExists(filePath))
-        {
-            return false;
-        }
-
-        string packId = string.Empty;
-        string languageCode = string.Empty;
-        string displayName = string.Empty;
-
-        try
-        {
-            using (StreamReader reader = new StreamReader(filePath, System.Text.Encoding.UTF8, true))
-            {
-                for (int i = 0; i < ExternalLanguagePackMetaReadLineLimit; i++)
-                {
-                    string line = reader.ReadLine();
-
-                    if (line == null)
-                    {
-                        break;
-                    }
-
-                    if (string.IsNullOrWhiteSpace(line))
-                    {
-                        continue;
-                    }
-
-                    line = line.Trim();
-
-                    if (line.StartsWith("#"))
-                    {
-                        line = line.Substring(1).Trim();
-                    }
-
-                    TryReadMetaLine(line, ExternalLanguagePackMetaKey_PackId, ref packId);
-                    TryReadMetaLine(line, ExternalLanguagePackMetaKey_BaseLanguageCode, ref languageCode);
-                    TryReadMetaLine(line, ExternalLanguagePackMetaKey_DisplayName, ref displayName);
-
-                    if (!string.IsNullOrEmpty(languageCode)
-                        && !string.IsNullOrEmpty(packId)
-                        && !string.IsNullOrEmpty(displayName))
-                    {
-                        break;
-                    }
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            Debug.LogWarning($"读取外部语言包信息失败：{filePath}\n{e.Message}");
-            return false;
-        }
-
-        if (string.IsNullOrWhiteSpace(languageCode))
-        {
-            Debug.LogWarning($"外部语言包缺少 LanguageCode：{filePath}");
-            return false;
-        }
-
-        if (string.IsNullOrWhiteSpace(packId))
-        {
-            packId = IOManager.Instance.GetFileNameWithoutExtension(filePath);
-        }
-
-        if (string.IsNullOrWhiteSpace(displayName))
-        {
-            displayName = languageCode;
-        }
-
-        packInfo = new LanguagePackInfo
-        {
-            PackId = packId.Trim(),
-            LanguageCode = languageCode.Trim(),
-            DisplayName = displayName.Trim(),
-            FileName = IOManager.Instance.GetSafeFileName(filePath),
-            FullPath = filePath,
-            Source = LanguageSource.ExternalCsv
-        };
-
-        return true;
-    }
-
-    private void TryReadMetaLine(string line, string targetKey, ref string result)
-    {
-        if (!string.IsNullOrEmpty(result))
-        {
+            currentLanguageOptionIndex = 0;
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(line))
+        var optionId = ResolveSavedOptionId();
+        for (var i = 0; i < allLanguageOptions.Count; i++)
         {
-            return;
-        }
-
-        int colonIndex = line.IndexOf(':');
-
-        if (colonIndex >= 0)
-        {
-            string key = line.Substring(0, colonIndex).Trim();
-            string value = line.Substring(colonIndex + 1).Trim();
-
-            if (string.Equals(key, targetKey, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(allLanguageOptions[i].OptionId, optionId, StringComparison.OrdinalIgnoreCase))
             {
-                result = value;
-            }
-
-            return;
-        }
-
-        string[] parts = SplitCsvLine(line);
-
-        if (parts.Length >= 2)
-        {
-            string key = parts[0].Trim();
-            string value = parts[1].Trim();
-
-            if (string.Equals(key, targetKey, StringComparison.OrdinalIgnoreCase))
-            {
-                result = value;
+                currentLanguageOptionIndex = i;
+                return;
             }
         }
+
+        currentLanguageOptionIndex = FindBuiltInIndex(DefaultBuiltInLocaleCode);
     }
 
     public IEnumerator ApplyToUnityLocalization()
     {
-        yield return LocalizationSettings.InitializationOperation;
-
-        CacheDefaultStringTableProvider();
-
-        LocalizationSaveData languageData = CurrentLanguageData;
-        languageData.Validate();
-
-        Locale targetLocale = GetTargetUnityLocale(languageData);
-
-        if (targetLocale == null)
+        if (applying)
         {
-            Debug.LogWarning("应用本地化失败：没有找到可用的 Unity Locale。");
+            Debug.LogWarning("本地化切换正在进行，忽略重复请求。");
             yield break;
         }
 
-        Locale oldLocale = LocalizationSettings.SelectedLocale;
+        applying = true;
+        yield return LocalizationSettings.InitializationOperation;
+        CacheUnityLocalizationExtensions();
+        ValidateSavedSelection();
 
-        LocalizationSettings.StringDatabase.TableProvider = defaultStringTableProvider;
-
-        LocalizationSettings.StringDatabase.TablePostprocessor = null;
-
-        runtimeMergedStringTableProvider.Clear();
-
-        bool useRuntimeMergedTable = false;
-
-        if (!languageData.UseSystemLanguage && languageData.Source == LanguageSource.ExternalCsv)
-        {
-            string externalCsvPath = GetCurrentExternalLanguagePackFullPath();
-
-            if (IOManager.Instance.FileExists(externalCsvPath))
-            {
-                List<ExternalLanguageTextPatch> patches = LoadExternalCsvTextPatches(externalCsvPath);
-
-                yield return BuildRuntimeMergedStringTables(targetLocale, patches);
-
-                useRuntimeMergedTable = runtimeMergedStringTableProvider.HasAnyTable;
-            }
-            else
-            {
-                Debug.LogWarning($"外部语言包文件不存在，将只使用 Unity 内置语言表：{externalCsvPath}");
-            }
-        }
-
+        var oldLocale = LocalizationSettings.SelectedLocale;
+        RestoreDefaultTableExtensions();
         if (oldLocale != null)
         {
             LocalizationSettings.StringDatabase.ReleaseAllTables(oldLocale);
         }
 
-        LocalizationSettings.StringDatabase.ReleaseAllTables(targetLocale);
+        RemoveRuntimeLocale();
+        runtimeTableProvider.Clear();
 
-        if (useRuntimeMergedTable)
+        var selectedOption = ResolveSelectedOption();
+        Locale targetLocale;
+        if (selectedOption.Source == LanguageOptionSource.ExternalDirectory)
         {
-            LocalizationSettings.StringDatabase.TableProvider = runtimeMergedStringTableProvider;
-        }
-        else
-        {
-            LocalizationSettings.StringDatabase.TableProvider = defaultStringTableProvider;
-        }
-
-        LocalizationSettings.SelectedLocale = targetLocale;
-
-        yield return null;
-
-        yield return ForceReloadAllLocalizeStringEvents(targetLocale);
-
-        OnLanguageChanged?.Invoke(languageData);
-    }
-
-    private void CacheDefaultStringTableProvider()
-    {
-        if (hasCachedDefaultStringTableProvider)
-        {
-            return;
-        }
-
-        if (LocalizationSettings.StringDatabase.TableProvider != runtimeMergedStringTableProvider)
-        {
-            defaultStringTableProvider = LocalizationSettings.StringDatabase.TableProvider;
-        }
-
-        hasCachedDefaultStringTableProvider = true;
-    }
-
-   
-
-    private IEnumerator BuildRuntimeMergedStringTables(
-        Locale targetLocale,
-        List<ExternalLanguageTextPatch> patches)
-    {
-        if (targetLocale == null)
-        {
-            yield break;
-        }
-
-        if (patches == null || patches.Count <= 0)
-        {
-            yield break;
-        }
-
-        Dictionary<string, List<ExternalLanguageTextPatch>> patchesByTable =
-            GroupExternalPatchesByTable(patches);
-
-        foreach (KeyValuePair<string, List<ExternalLanguageTextPatch>> pair in patchesByTable)
-        {
-            string tableName = pair.Key;
-            List<ExternalLanguageTextPatch> tablePatches = pair.Value;
-
-            if (string.IsNullOrWhiteSpace(tableName))
+            yield return BuildExternalLanguageTables(selectedOption);
+            targetLocale = runtimeLocale;
+            if (targetLocale == null || !runtimeTableProvider.HasTables)
             {
-                continue;
-            }
-
-            AsyncOperationHandle<StringTable> operation =
-                LocalizationSettings.StringDatabase.GetTableAsync(tableName, targetLocale);
-
-            yield return operation;
-
-            StringTable sourceTable = null;
-
-            if (operation.Status == AsyncOperationStatus.Succeeded)
-            {
-                sourceTable = operation.Result;
+                Debug.LogError($"外部语言包应用失败，已回退到 {DefaultBuiltInLocaleCode}：{selectedOption.PackId}");
+                SelectBuiltInFallbackAndSave();
+                selectedOption = ResolveSelectedOption();
+                targetLocale = GetBuiltInLocale(selectedOption.LocaleCode) ?? GetDefaultBuiltInLocale();
             }
             else
             {
-                Debug.LogWarning($"加载内置 StringTable 失败，将创建空运行时表。Table={tableName}, Locale={targetLocale.Identifier.Code}");
+                LocalizationSettings.StringDatabase.TableProvider = runtimeTableProvider;
+                LocalizationSettings.StringDatabase.TablePostprocessor = defaultTablePostprocessor;
             }
+        }
+        else
+        {
+            targetLocale = GetBuiltInLocale(selectedOption.LocaleCode) ?? GetDefaultBuiltInLocale();
+        }
 
-            StringTable runtimeTable = CreateRuntimeMergedStringTable(
-                tableName,
-                targetLocale,
-                sourceTable,
-                tablePatches
-            );
+        if (targetLocale == null)
+        {
+            applying = false;
+            Debug.LogError("应用本地化失败：项目中没有可用的内置 Locale。");
+            yield break;
+        }
 
-            runtimeMergedStringTableProvider.SetTable(tableName, targetLocale, runtimeTable);
+        LocalizationSettings.StringDatabase.ReleaseAllTables(targetLocale);
+        LocalizationSettings.SelectedLocale = targetLocale;
+        yield return null;
 
-            if (operation.IsValid())
+        applying = false;
+        L10n.NotifyLanguageChanged();
+        OnLanguageChanged?.Invoke(CurrentLanguageData);
+    }
+
+    private IEnumerator BuildExternalLanguageTables(LanguagePackInfo option)
+    {
+        if (!externalPacksById.TryGetValue(option.PackId, out var packResult) || !packResult.Success)
+        {
+            yield break;
+        }
+
+        var fallbackLocale = GetBuiltInLocale(option.FallbackLocaleCode);
+        if (fallbackLocale == null)
+        {
+            yield break;
+        }
+
+        runtimeLocale = GetBuiltInLocale(option.LocaleCode);
+        if (runtimeLocale == null)
+        {
+            runtimeLocale = Locale.CreateLocale(option.LocaleCode);
+            runtimeLocale.name = $"Runtime Locale ({option.LocaleCode})";
+            runtimeLocale.hideFlags = HideFlags.DontSave;
+            runtimeLocale.Metadata.AddMetadata(new FallbackLocale(fallbackLocale));
+            LocalizationSettings.AvailableLocales.AddLocale(runtimeLocale);
+        }
+
+        var entriesByTable = GroupEntriesByTable(packResult.Entries);
+        option.MissingKeyCount = 0;
+        option.UnknownKeyCount = 0;
+        for (var i = 0; i < LocalizationTables.All.Length; i++)
+        {
+            var tableName = LocalizationTables.All[i];
+            var operation = LocalizationSettings.StringDatabase.GetTableAsync(tableName, fallbackLocale);
+            yield return operation;
+            if (operation.Status != AsyncOperationStatus.Succeeded || operation.Result == null)
             {
-                Addressables.Release(operation);
+                Debug.LogError($"外部语言包回退表加载失败：Table={tableName}, Locale={fallbackLocale.Identifier.Code}");
+                continue;
             }
+
+            var runtimeTable = RuntimeStringTableProvider.CloneForLocale(
+                tableName,
+                runtimeLocale,
+                operation.Result);
+            if (runtimeTable == null)
+            {
+                continue;
+            }
+
+            if (entriesByTable.TryGetValue(tableName, out var entries))
+            {
+                ApplyExternalEntries(option, runtimeTable, entries);
+                option.MissingKeyCount += Mathf.Max(0, runtimeTable.Count - entries.Count);
+            }
+            else
+            {
+                option.MissingKeyCount += runtimeTable.Count;
+            }
+
+            runtimeTableProvider.SetTable(tableName, runtimeLocale, runtimeTable);
+        }
+
+        if (option.HasErrors)
+        {
+            runtimeTableProvider.Clear();
+            RemoveRuntimeLocale();
         }
     }
 
-    private Dictionary<string, List<ExternalLanguageTextPatch>> GroupExternalPatchesByTable(List<ExternalLanguageTextPatch> patches)
+    private static Dictionary<string, List<ExternalLanguageTextEntry>> GroupEntriesByTable(
+        List<ExternalLanguageTextEntry> entries)
     {
-        Dictionary<string, List<ExternalLanguageTextPatch>> result =
-            new Dictionary<string, List<ExternalLanguageTextPatch>>(StringComparer.OrdinalIgnoreCase);
-
-        foreach (ExternalLanguageTextPatch patch in patches)
+        var result = new Dictionary<string, List<ExternalLanguageTextEntry>>(StringComparer.Ordinal);
+        if (entries == null)
         {
-            if (patch == null)
+            return result;
+        }
+
+        for (var i = 0; i < entries.Count; i++)
+        {
+            var entry = entries[i];
+            if (entry == null || !LocalizationTables.IsKnown(entry.TableName))
             {
                 continue;
             }
 
-            if (string.IsNullOrWhiteSpace(patch.Key))
+            if (!result.TryGetValue(entry.TableName, out var tableEntries))
             {
-                continue;
+                tableEntries = new List<ExternalLanguageTextEntry>();
+                result.Add(entry.TableName, tableEntries);
             }
 
-            string tableName = patch.TableName;
-
-            if (string.IsNullOrWhiteSpace(tableName))
-            {
-                tableName = defaultExternalCsvTableName;
-            }
-
-            tableName = tableName.Trim();
-
-            if (!result.TryGetValue(tableName, out List<ExternalLanguageTextPatch> list))
-            {
-                list = new List<ExternalLanguageTextPatch>();
-                result.Add(tableName, list);
-            }
-
-            list.Add(patch);
+            tableEntries.Add(entry);
         }
 
         return result;
     }
 
-    private StringTable CreateRuntimeMergedStringTable(
-        string tableName,
-        Locale targetLocale,
-        StringTable sourceTable,
-        List<ExternalLanguageTextPatch> patches)
+    private static void ApplyExternalEntries(
+        LanguagePackInfo option,
+        StringTable runtimeTable,
+        List<ExternalLanguageTextEntry> entries)
     {
-        StringTable runtimeTable;
-
-        if (sourceTable != null)
+        for (var i = 0; i < entries.Count; i++)
         {
-            runtimeTable = UnityEngine.Object.Instantiate(sourceTable);
-            runtimeTable.SharedData = UnityEngine.Object.Instantiate(sourceTable.SharedData);
-        }
-        else
-        {
-            runtimeTable = ScriptableObject.CreateInstance<StringTable>();
-
-            SharedTableData sharedData = ScriptableObject.CreateInstance<SharedTableData>();
-            sharedData.TableCollectionName = tableName;
-
-            runtimeTable.SharedData = sharedData;
-        }
-
-        runtimeTable.name = $"{tableName}_{targetLocale.Identifier.Code}_Runtime";
-        runtimeTable.LocaleIdentifier = targetLocale.Identifier;
-        runtimeTable.hideFlags = HideFlags.DontSave;
-
-        if (runtimeTable.SharedData != null)
-        {
-            runtimeTable.SharedData.TableCollectionName = tableName;
-            runtimeTable.SharedData.hideFlags = HideFlags.DontSave;
-        }
-
-        if (patches != null)
-        {
-            foreach (ExternalLanguageTextPatch patch in patches)
+            var patch = entries[i];
+            var tableEntry = runtimeTable.GetEntry(patch.Key);
+            if (tableEntry == null)
             {
-                if (patch == null)
-                {
-                    continue;
-                }
-
-                if (string.IsNullOrWhiteSpace(patch.Key))
-                {
-                    continue;
-                }
-
-                string key = patch.Key.Trim();
-                string text = patch.Text ?? string.Empty;
-
-                StringTableEntry oldEntry = sourceTable != null ? sourceTable.GetEntry(key) : null;
-                StringTableEntry newEntry = runtimeTable.AddEntry(key, text);
-
-                if (oldEntry != null && newEntry != null)
-                {
-                    newEntry.IsSmart = oldEntry.IsSmart;
-                }
+                option.UnknownKeyCount++;
+                option.Diagnostics.Add(LocalizationDiagnostic.Warning(
+                    "pack.key_unknown",
+                    $"未知 Key：{patch.TableName}/{patch.Key}",
+                    patch.SourceLine));
+                Debug.LogWarning(
+                    $"语言包包含未知 Key，已忽略：Pack={option.PackId}, Table={patch.TableName}, Key={patch.Key}, Line={patch.SourceLine}");
+                continue;
             }
-        }
 
-        return runtimeTable;
+            if (tableEntry.IsSmart && !HaveMatchingSmartArguments(tableEntry.Value, patch.Text))
+            {
+                option.Diagnostics.Add(LocalizationDiagnostic.Error(
+                    "pack.smart_arguments_mismatch",
+                    $"Smart String 参数与内置条目不一致：{patch.TableName}/{patch.Key}",
+                    patch.SourceLine));
+                continue;
+            }
+
+            tableEntry.Value = patch.Text ?? string.Empty;
+        }
     }
 
-    private Locale GetTargetUnityLocale(LocalizationSaveData languageData)
+    private static bool HaveMatchingSmartArguments(string baseline, string candidate)
     {
-        if (languageData == null)
-        {
-            return GetFallbackUnityLocale();
-        }
-
-        if (languageData.UseSystemLanguage)
-        {
-            Locale systemLocale = LocalizationSettings.AvailableLocales.GetLocale(Application.systemLanguage);
-
-            if (systemLocale != null)
-            {
-                return systemLocale;
-            }
-
-            return GetFallbackUnityLocale();
-        }
-
-        if (!string.IsNullOrWhiteSpace(languageData.CurrentLanguageCode))
-        {
-            Locale locale = LocalizationSettings.AvailableLocales.GetLocale(languageData.CurrentLanguageCode);
-
-            if (locale != null)
-            {
-                return locale;
-            }
-
-            Debug.LogWarning($"Unity Localization 中没有找到 Locale：{languageData.CurrentLanguageCode}");
-        }
-
-        return GetFallbackUnityLocale();
+        return ExtractSmartArguments(baseline).SetEquals(ExtractSmartArguments(candidate));
     }
 
-    private Locale GetFallbackUnityLocale()
+    private static HashSet<string> ExtractSmartArguments(string value)
     {
-        if (LocalizationSettings.SelectedLocale != null)
+        var result = new HashSet<string>(StringComparer.Ordinal);
+        var matches = Regex.Matches(value ?? string.Empty, @"(?<!\{)\{([A-Za-z0-9_]+)(?:[^}]*)\}(?!\})");
+        for (var i = 0; i < matches.Count; i++)
         {
-            return LocalizationSettings.SelectedLocale;
+            result.Add(matches[i].Groups[1].Value);
         }
 
-        var locales = LocalizationSettings.AvailableLocales.Locales;
+        return result;
+    }
 
-        if (locales != null && locales.Count > 0)
+    private void ValidateSavedSelection()
+    {
+        var data = CurrentLanguageData;
+        if (data.UseSystemLanguage)
         {
-            return locales[0];
+            return;
+        }
+
+        if (FindOption(data.SelectedLanguageOptionId) != null)
+        {
+            return;
+        }
+
+        SelectBuiltInFallbackAndSave();
+    }
+
+    private void SelectBuiltInFallbackAndSave()
+    {
+        var data = CurrentLanguageData;
+        data.UseSystemLanguage = false;
+        data.SelectedLanguageOptionId = $"builtin.{DefaultBuiltInLocaleCode}";
+        DataManager.Instance.SaveAppData();
+        SyncCurrentLanguagePackIndexFromSaveData();
+    }
+
+    private LanguagePackInfo ResolveSelectedOption()
+    {
+        var data = CurrentLanguageData;
+        if (!data.UseSystemLanguage)
+        {
+            return FindOption(data.SelectedLanguageOptionId)
+                   ?? FindOption($"builtin.{DefaultBuiltInLocaleCode}");
+        }
+
+        var systemLocale = LocalizationSettings.AvailableLocales.GetLocale(Application.systemLanguage);
+        if (systemLocale != null)
+        {
+            var systemOption = FindOption($"builtin.{systemLocale.Identifier.Code}");
+            if (systemOption != null && systemOption.Source == LanguageOptionSource.BuiltIn)
+            {
+                return systemOption;
+            }
+        }
+
+        return FindOption($"builtin.{DefaultBuiltInLocaleCode}") ?? allLanguageOptions[0];
+    }
+
+    private string ResolveSavedOptionId()
+    {
+        var data = CurrentLanguageData;
+        return data.UseSystemLanguage
+            ? ResolveSelectedOption()?.OptionId ?? $"builtin.{DefaultBuiltInLocaleCode}"
+            : data.SelectedLanguageOptionId;
+    }
+
+    private LanguagePackInfo FindOption(string optionId)
+    {
+        if (string.IsNullOrWhiteSpace(optionId))
+        {
+            return null;
+        }
+
+        for (var i = 0; i < allLanguageOptions.Count; i++)
+        {
+            if (string.Equals(allLanguageOptions[i].OptionId, optionId, StringComparison.OrdinalIgnoreCase))
+            {
+                return allLanguageOptions[i];
+            }
         }
 
         return null;
     }
 
-    private IEnumerator ForceReloadAllLocalizeStringEvents(Locale targetLocale)
+    private Locale GetBuiltInLocale(string localeCode)
     {
-        LocalizeStringEvent[] events = UnityEngine.Object.FindObjectsByType<LocalizeStringEvent>(
-            FindObjectsInactive.Include,
-            FindObjectsSortMode.None
-        );
-
-        foreach (LocalizeStringEvent localizeStringEvent in events)
-        {
-            if (localizeStringEvent == null)
-            {
-                continue;
-            }
-
-            LocalizedString localizedString = localizeStringEvent.StringReference;
-
-            if (localizedString == null || localizedString.IsEmpty)
-            {
-                continue;
-            }
-
-            Locale oldLocaleOverride = localizedString.LocaleOverride;
-
-            // 重点：
-            // 通过临时改变 LocaleOverride，强制 LocalizedString 内部 ClearLoadingOperation，
-            // 然后重新走 StringDatabase.GetTableEntryAsync。
-            if (oldLocaleOverride == null)
-            {
-                localizedString.LocaleOverride = targetLocale;
-                localizedString.LocaleOverride = null;
-            }
-            else
-            {
-                localizedString.LocaleOverride = null;
-                localizedString.LocaleOverride = oldLocaleOverride;
-            }
-
-            localizeStringEvent.RefreshString();
-        }
-
-        yield return null;
+        return string.IsNullOrWhiteSpace(localeCode)
+            ? null
+            : LocalizationSettings.AvailableLocales.GetLocale(localeCode);
     }
 
-    private List<ExternalLanguageTextPatch> LoadExternalCsvTextPatches(string filePath)
+    private Locale GetDefaultBuiltInLocale()
     {
-        List<ExternalLanguageTextPatch> result = new List<ExternalLanguageTextPatch>();
-
-        if (string.IsNullOrEmpty(filePath) || !IOManager.Instance.FileExists(filePath))
-        {
-            return result;
-        }
-
-        try
-        {
-            string[] lines = IOManager.Instance.ReadAllLines(filePath);
-
-            int tableIndex = -1;
-            int keyIndex = -1;
-            int textIndex = -1;
-            bool hasHeader = false;
-
-            for (int i = 0; i < lines.Length; i++)
-            {
-                string line = lines[i];
-
-                if (string.IsNullOrWhiteSpace(line))
-                {
-                    continue;
-                }
-
-                line = line.Trim();
-
-                if (line.StartsWith("#"))
-                {
-                    continue;
-                }
-
-                string[] parts = SplitCsvLine(line);
-
-                if (parts.Length < 2)
-                {
-                    continue;
-                }
-
-                if (!hasHeader)
-                {
-                    bool foundHeader = TryFindCsvHeader(parts, out tableIndex, out keyIndex, out textIndex);
-
-                    if (foundHeader)
-                    {
-                        hasHeader = true;
-                        continue;
-                    }
-
-                    hasHeader = true;
-                    tableIndex = -1;
-                    keyIndex = 0;
-                    textIndex = 1;
-                }
-
-                if (keyIndex < 0 || textIndex < 0)
-                {
-                    continue;
-                }
-
-                if (parts.Length <= keyIndex || parts.Length <= textIndex)
-                {
-                    continue;
-                }
-
-                string tableName = string.Empty;
-
-                if (tableIndex >= 0 && parts.Length > tableIndex)
-                {
-                    tableName = parts[tableIndex].Trim();
-                }
-
-                string key = parts[keyIndex].Trim();
-                string text = parts[textIndex].Trim();
-
-                if (string.IsNullOrEmpty(key))
-                {
-                    continue;
-                }
-
-                result.Add(new ExternalLanguageTextPatch
-                {
-                    TableName = tableName,
-                    Key = key,
-                    Text = text
-                });
-            }
-        }
-        catch (Exception e)
-        {
-            Debug.LogWarning($"读取外部语言包 CSV 失败：{filePath}\n{e.Message}");
-        }
-
-        return result;
+        return GetBuiltInLocale(DefaultBuiltInLocaleCode)
+               ?? GetBuiltInLocale("zh-Hans")
+               ?? (LocalizationSettings.AvailableLocales.Locales.Count > 0
+                   ? LocalizationSettings.AvailableLocales.Locales[0]
+                   : null);
     }
 
-    private bool TryFindCsvHeader(
-        string[] parts,
-        out int tableIndex,
-        out int keyIndex,
-        out int textIndex)
+    private void CacheUnityLocalizationExtensions()
     {
-        tableIndex = -1;
-        keyIndex = -1;
-        textIndex = -1;
-
-        if (parts == null || parts.Length <= 0)
+        if (defaultTableProvider == null && LocalizationSettings.StringDatabase.TableProvider != runtimeTableProvider)
         {
-            return false;
+            defaultTableProvider = LocalizationSettings.StringDatabase.TableProvider;
         }
 
-        for (int i = 0; i < parts.Length; i++)
+        if (LocalizationSettings.StringDatabase.TablePostprocessor != defaultTablePostprocessor)
         {
-            string columnName = parts[i].Trim();
-
-            if (string.Equals(columnName, "Table", StringComparison.OrdinalIgnoreCase))
-            {
-                tableIndex = i;
-            }
-            else if (string.Equals(columnName, "Key", StringComparison.OrdinalIgnoreCase))
-            {
-                keyIndex = i;
-            }
-            else if (string.Equals(columnName, "Text", StringComparison.OrdinalIgnoreCase))
-            {
-                textIndex = i;
-            }
+            defaultTablePostprocessor = LocalizationSettings.StringDatabase.TablePostprocessor;
         }
-
-        return keyIndex >= 0 && textIndex >= 0;
     }
 
-    private string[] SplitCsvLine(string line)
+    private void RestoreDefaultTableExtensions()
     {
-        List<string> result = new List<string>();
-        if (line == null) return result.ToArray();
-
-        bool insideQuote = false;
-        System.Text.StringBuilder current = new System.Text.StringBuilder();
-
-        for (int i = 0; i < line.Length; i++)
+        if (LocalizationSettings.StringDatabase == null)
         {
-            char c = line[i];
-
-            if (c == '"')
-            {
-                if (insideQuote && i + 1 < line.Length && line[i + 1] == '"')
-                {
-                    current.Append('"');
-                    i++;
-                }
-                else
-                {
-                    insideQuote = !insideQuote;
-                }
-                continue;
-            }
-
-            if (c == ',' && !insideQuote)
-            {
-                result.Add(current.ToString());
-                current.Clear(); // 清空复用，避免重新 new StringBuilder
-                continue;
-            }
-
-            current.Append(c);
+            return;
         }
-        result.Add(current.ToString());
-        return result.ToArray();
+
+        LocalizationSettings.StringDatabase.TableProvider = defaultTableProvider;
+        LocalizationSettings.StringDatabase.TablePostprocessor = defaultTablePostprocessor;
     }
-}
 
-public class RuntimeMergedStringTableProvider : ITableProvider
-{
-    private readonly Dictionary<string, StringTable> runtimeTables =
-        new Dictionary<string, StringTable>(StringComparer.OrdinalIgnoreCase);
-
-    public bool HasAnyTable => runtimeTables.Count > 0;
-
-    public void Clear()
+    private void RemoveRuntimeLocale()
     {
-        foreach (StringTable table in runtimeTables.Values)
+        if (runtimeLocale == null)
         {
-            if (table == null)
-            {
-                continue;
-            }
+            return;
+        }
 
-            SharedTableData sharedData = table.SharedData;
-
+        var isBuiltIn = string.Equals(runtimeLocale.Identifier.Code, "en", StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(runtimeLocale.Identifier.Code, "zh-Hans", StringComparison.OrdinalIgnoreCase);
+        if (!isBuiltIn)
+        {
+            LocalizationSettings.AvailableLocales.RemoveLocale(runtimeLocale);
             if (Application.isPlaying)
             {
-                if (sharedData != null)
-                {
-                    UnityEngine.Object.Destroy(sharedData);
-                }
-
-                UnityEngine.Object.Destroy(table);
+                Destroy(runtimeLocale);
             }
             else
             {
-                if (sharedData != null)
-                {
-                    UnityEngine.Object.DestroyImmediate(sharedData);
-                }
-
-                UnityEngine.Object.DestroyImmediate(table);
+                DestroyImmediate(runtimeLocale);
             }
         }
 
-        runtimeTables.Clear();
+        runtimeLocale = null;
     }
 
-    public void SetTable(string tableCollectionName, Locale locale, StringTable table)
+    private void EnsureLanguageOptionsReady()
     {
-        if (string.IsNullOrWhiteSpace(tableCollectionName))
+        if (allLanguageOptions.Count <= 0)
+        {
+            RefreshAllLanguagePacksCache();
+        }
+    }
+
+    private int FindBuiltInIndex(string localeCode)
+    {
+        for (var i = 0; i < allLanguageOptions.Count; i++)
+        {
+            if (allLanguageOptions[i].Source == LanguageOptionSource.BuiltIn
+                && string.Equals(allLanguageOptions[i].LocaleCode, localeCode, StringComparison.OrdinalIgnoreCase))
+            {
+                return i;
+            }
+        }
+
+        return 0;
+    }
+
+    private static int CompareLanguageOptions(LanguagePackInfo left, LanguagePackInfo right)
+    {
+        return string.Compare(left?.DisplayName, right?.DisplayName, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static void LogPackDiagnostics(LanguagePackInfo info)
+    {
+        if (info?.Diagnostics == null)
         {
             return;
         }
 
-        if (locale == null || table == null)
+        for (var i = 0; i < info.Diagnostics.Count; i++)
         {
-            return;
-        }
+            var diagnostic = info.Diagnostics[i];
+            if (diagnostic == null)
+            {
+                continue;
+            }
 
-        string key = MakeKey(tableCollectionName, locale.Identifier.Code);
-        runtimeTables[key] = table;
+            var lineText = diagnostic.Line > 0 ? $", Line={diagnostic.Line}" : string.Empty;
+            var message = $"LanguagePack[{info.RootPath}] {diagnostic.Code}{lineText}: {diagnostic.Message}";
+            if (diagnostic.Severity == LocalizationDiagnosticSeverity.Error)
+            {
+                Debug.LogError(message);
+            }
+            else if (diagnostic.Severity == LocalizationDiagnosticSeverity.Warning)
+            {
+                Debug.LogWarning(message);
+            }
+            else
+            {
+                Debug.Log(message);
+            }
+        }
     }
-
-    public AsyncOperationHandle<TTable> ProvideTableAsync<TTable>(
-        string tableCollectionName,
-        Locale locale) where TTable : LocalizationTable
-    {
-        if (typeof(TTable) != typeof(StringTable))
-        {
-            return default;
-        }
-
-        if (locale == null)
-        {
-            return default;
-        }
-
-        string key = MakeKey(tableCollectionName, locale.Identifier.Code);
-
-        if (!runtimeTables.TryGetValue(key, out StringTable table))
-        {
-            return default;
-        }
-
-        return Addressables.ResourceManager.CreateCompletedOperation(table as TTable, null);
-    }
-
-    private string MakeKey(string tableCollectionName, string localeCode)
-    {
-        return $"{tableCollectionName}||{localeCode}";
-    }
-}
-
-[Serializable]
-public class ExternalLanguageTextPatch
-{
-    public string TableName = string.Empty;
-
-    public string Key = string.Empty;
-
-    public string Text = string.Empty;
-}
-
-[Serializable]
-public class LanguagePackInfo
-{
-    public string PackId = string.Empty;
-
-    public string LanguageCode = string.Empty;
-
-    public string DisplayName = string.Empty;
-
-    public string FileName = string.Empty;
-
-    public string FullPath = string.Empty;
-
-    public LanguageSource Source = LanguageSource.ExternalCsv;
-}
-
-public enum LanguageSource
-{
-    BuiltIn,
-    ExternalCsv,
-    ExternalJson
 }

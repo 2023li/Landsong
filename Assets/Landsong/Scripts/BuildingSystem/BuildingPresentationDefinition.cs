@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Landsong.Localization;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -57,7 +58,10 @@ namespace Landsong.BuildingSystem
         }
 
         public string StyleId => string.IsNullOrWhiteSpace(styleId) ? string.Empty : styleId.Trim();
-        public string DisplayName => string.IsNullOrWhiteSpace(displayName) ? StyleId : displayName.Trim();
+        public string DisplayName => L10n.ContentName(
+            "building_style",
+            StyleId,
+            string.IsNullOrWhiteSpace(displayName) ? StyleId : displayName.Trim());
         public Sprite Icon => icon;
         public bool IsValid => !string.IsNullOrWhiteSpace(StyleId);
     }

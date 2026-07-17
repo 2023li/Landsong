@@ -359,7 +359,9 @@ namespace Landsong.BuildingSystem
 
         public override string GetOverviewFragment(BuildingBase building)
         {
-            return isAbandoned ? "已荒废" : $"人口 {currentPopulation}/{maxPopulation}";
+            return isAbandoned
+                ? Landsong.Localization.L10n.Gameplay("gameplay.building.overview.abandoned", "已荒废")
+                : Landsong.Localization.L10n.Gameplay("gameplay.building.overview.population", "人口 {0}/{1}", currentPopulation, maxPopulation);
         }
 
         public override void AppendRuntimeStatuses(

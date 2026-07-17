@@ -80,12 +80,14 @@ namespace Landsong.UISystem
             SetText(metaLabel, GamePanel_TalentText.FormatOfferDetails(definition));
             SetText(salaryLabel, GamePanel_TalentText.FormatSalary(definition));
             SetText(effectsLabel, GamePanel_TalentText.FormatEffects(definition));
-            SetText(hiddenTraitLabel, definition.HiddenTraits.Count > 0 ? "含隐藏特性" : "无隐藏特性");
+            SetText(hiddenTraitLabel, definition.HiddenTraits.Count > 0
+                ? Landsong.Localization.L10n.Gameplay("gameplay.talent.ui.has_hidden_traits", "含隐藏特性")
+                : Landsong.Localization.L10n.Gameplay("gameplay.talent.no_hidden_traits", "无隐藏特性"));
             SetImage(icon, definition.Icon);
             SetImage(professionIcon, definition.ProfessionIcon);
             SetColor(cardBackground, definition.CardMainColor);
             SetColor(rarityMarker, definition.RarityColor);
-            SetText(recruitButtonLabel, "招募");
+            SetText(recruitButtonLabel, Landsong.Localization.L10n.Gameplay("gameplay.talent.ui.recruit", "招募"));
             if (recruitButton != null)
             {
                 recruitButton.interactable = true;

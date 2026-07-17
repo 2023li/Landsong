@@ -202,10 +202,10 @@ namespace Landsong.UISystem
                 submitButton.interactable = canClaimRewards || canSubmitResources;
 
                 var actionLabel = canClaimRewards
-                    ? "领取奖励"
+                    ? Landsong.Localization.L10n.Gameplay("gameplay.quest.ui.claim_rewards", "领取奖励")
                     : canSubmitResources
-                        ? "提交"
-                        : "资源不足";
+                        ? Landsong.Localization.L10n.Gameplay("gameplay.quest.ui.submit", "提交")
+                        : Landsong.Localization.L10n.Gameplay("gameplay.quest.ui.resources_missing", "资源不足");
                 SetText(submitButtonLabel, actionLabel);
             }
 
@@ -214,7 +214,7 @@ namespace Landsong.UISystem
                 var showAbandon = isSelected && canAbandon;
                 abandonButton.gameObject.SetActive(showAbandon);
                 abandonButton.interactable = canAbandon;
-                SetText(abandonButtonLabel, "放弃任务");
+                SetText(abandonButtonLabel, Landsong.Localization.L10n.Gameplay("gameplay.quest.ui.abandon", "放弃任务"));
             }
 
             SetActive(actionRoot, isSelected && (showPrimaryAction || canAbandon));
@@ -272,17 +272,24 @@ namespace Landsong.UISystem
 
             if (quest.IsCompleted)
             {
-                return $"完成于期限内：截止第 {quest.DeadlineTurn} 回合";
+                return Landsong.Localization.L10n.Gameplay(
+                    "gameplay.quest.ui.completed_by_deadline",
+                    "完成于期限内：截止第 {0} 回合",
+                    quest.DeadlineTurn);
             }
 
             if (quest.IsFailed)
             {
-                return "剩余 0 回合";
+                return Landsong.Localization.L10n.Gameplay("gameplay.quest.ui.remaining_turns", "剩余 {0} 回合", 0);
             }
 
             var gameSystem = GameSystem.Instance;
             var currentTurn = gameSystem == null ? quest.StartedTurn : gameSystem.Services.Turn.CurrentTurn;
-            return $"截止第 {quest.DeadlineTurn} 回合，剩余 {quest.GetRemainingTurns(currentTurn)} 回合";
+            return Landsong.Localization.L10n.Gameplay(
+                "gameplay.quest.ui.deadline",
+                "截止第 {0} 回合，剩余 {1} 回合",
+                quest.DeadlineTurn,
+                quest.GetRemainingTurns(currentTurn));
         }
 
         private void RenderRequirements(GameQuestState sourceQuest)
@@ -301,16 +308,16 @@ namespace Landsong.UISystem
                     AddResourceRequirements(sourceQuest);
                     break;
                 case QuestObjectiveType.MoveCamera:
-                    AddNumericRequirement(sourceQuest, "移动视野");
+                    AddNumericRequirement(sourceQuest, Landsong.Localization.L10n.Gameplay("gameplay.quest.target.move_camera", "移动视野"));
                     break;
                 case QuestObjectiveType.CollectResources:
                     AddResourceRequirements(sourceQuest);
                     break;
                 case QuestObjectiveType.PlantCrops:
-                    AddNumericRequirement(sourceQuest, "播种农田");
+                    AddNumericRequirement(sourceQuest, Landsong.Localization.L10n.Gameplay("gameplay.quest.target.plant_crops", "播种农田"));
                     break;
                 case QuestObjectiveType.SelectTechnology:
-                    AddNumericRequirement(sourceQuest, "选择研究科技");
+                    AddNumericRequirement(sourceQuest, Landsong.Localization.L10n.Gameplay("gameplay.quest.target.select_technology", "选择研究科技"));
                     break;
             }
         }
@@ -318,12 +325,12 @@ namespace Landsong.UISystem
         private void AddBuildRequirement(GameQuestState sourceQuest)
         {
             var targetName = string.IsNullOrWhiteSpace(sourceQuest.TargetDisplayName)
-                ? "目标"
+                ? Landsong.Localization.L10n.Gameplay("gameplay.quest.ui.target", "目标")
                 : sourceQuest.TargetDisplayName;
             var targetAmount = Mathf.Max(1, sourceQuest.TargetAmount);
             var currentAmount = Mathf.Clamp(sourceQuest.CurrentAmount, 0, targetAmount);
             AddRequirement(
-                $"建造 {targetName}：{currentAmount}/{targetAmount}",
+                Landsong.Localization.L10n.Gameplay("gameplay.quest.ui.build_progress", "建造 {0}：{1}/{2}", targetName, currentAmount, targetAmount),
                 sourceQuest.IsCompleted || currentAmount >= targetAmount);
         }
 
@@ -338,8 +345,7 @@ namespace Landsong.UISystem
                     continue;
                 }
 
-                var action = sourceQuest.IsResourceCollection ? "收集 " : "提交 ";
-                var text = action + ResourceRichTextFormatter.FormatProgress(
+                var progressText = ResourceRichTextFormatter.FormatProgress(
                     progress.ItemDefinition,
                     progress.ItemId,
                     progress.DisplayName,
@@ -347,6 +353,9 @@ namespace Landsong.UISystem
                     Mathf.Max(0, progress.RequiredAmount),
                     progress.InventoryAmount,
                     false);
+                var text = sourceQuest.IsResourceCollection
+                    ? Landsong.Localization.L10n.Gameplay("gameplay.quest.ui.collect_progress", "收集 {0}", progressText)
+                    : Landsong.Localization.L10n.Gameplay("gameplay.quest.ui.submit_progress", "提交 {0}", progressText);
                 AddRequirement(text, sourceQuest.IsCompleted || progress.IsComplete);
             }
         }
@@ -356,7 +365,7 @@ namespace Landsong.UISystem
             var targetAmount = Mathf.Max(1, sourceQuest.TargetAmount);
             var currentAmount = Mathf.Clamp(sourceQuest.CurrentAmount, 0, targetAmount);
             AddRequirement(
-                $"{action}：{currentAmount}/{targetAmount}",
+                Landsong.Localization.L10n.Gameplay("gameplay.quest.ui.numeric_progress", "{0}：{1}/{2}", action, currentAmount, targetAmount),
                 sourceQuest.IsCompleted || currentAmount >= targetAmount);
         }
 
@@ -403,7 +412,10 @@ namespace Landsong.UISystem
                 var feature = unlockedFeatures[i];
                 if (GameFeatureUnlockService.IsValid(feature))
                 {
-                    AddReward($"解锁 {GameFeatureUnlockService.GetDisplayName(feature)}");
+                    AddReward(Landsong.Localization.L10n.Gameplay(
+                        "gameplay.quest.ui.unlock_reward",
+                        "解锁 {0}",
+                        GameFeatureUnlockService.GetDisplayName(feature)));
                 }
             }
         }

@@ -49,6 +49,7 @@ namespace Landsong.UISystem
 
         private void OnEnable()
         {
+            Landsong.Localization.L10n.LanguageChanged += Refresh;
             ResolveReferences();
             SubscribeGameEvents();
             Refresh();
@@ -57,6 +58,7 @@ namespace Landsong.UISystem
 
         private void OnDisable()
         {
+            Landsong.Localization.L10n.LanguageChanged -= Refresh;
             StopDelayedResolve();
             UnsubscribeGameEvents();
         }

@@ -61,6 +61,7 @@ namespace Landsong.UISystem
 
         private void OnEnable()
         {
+            Landsong.Localization.L10n.LanguageChanged += Refresh;
             ResolveReferences();
             SubscribeInheritance();
             Refresh();
@@ -68,6 +69,7 @@ namespace Landsong.UISystem
 
         private void OnDisable()
         {
+            Landsong.Localization.L10n.LanguageChanged -= Refresh;
             UnsubscribeInheritance();
         }
 
@@ -176,7 +178,7 @@ namespace Landsong.UISystem
             var service = gameSystem == null ? null : gameSystem.Services.Inheritance;
             if (service == null)
             {
-                SetText(statusLabel, "继承系统未初始化");
+                SetText(statusLabel, Landsong.Localization.L10n.Gameplay("gameplay.inheritance.ui.not_initialized", "继承系统未初始化"));
                 SetText(generationLabel, string.Empty);
                 SetText(currentKingLabel, string.Empty);
                 SetText(currentQueenLabel, string.Empty);
@@ -187,10 +189,22 @@ namespace Landsong.UISystem
 
             var king = service.CurrentKing;
             var queen = service.CurrentQueen;
-            SetText(statusLabel, string.IsNullOrWhiteSpace(lastStatusMessage) ? "王族血脉延续中" : lastStatusMessage);
-            SetText(generationLabel, $"第 {service.Generation} 代 / 成年年龄 {service.LegalHeirAge}");
-            SetText(currentKingLabel, $"国王：{GamePanel_InheritanceText.FormatCharacterLine(king, service.LegalHeirAge)}");
-            SetText(currentQueenLabel, $"王后：{GamePanel_InheritanceText.FormatCharacterLine(queen, service.LegalHeirAge)}");
+            SetText(statusLabel, string.IsNullOrWhiteSpace(lastStatusMessage)
+                ? Landsong.Localization.L10n.Gameplay("gameplay.inheritance.ui.dynasty_continues", "王族血脉延续中")
+                : lastStatusMessage);
+            SetText(generationLabel, Landsong.Localization.L10n.Gameplay(
+                "gameplay.inheritance.ui.generation",
+                "第 {0} 代 / 成年年龄 {1}",
+                service.Generation,
+                service.LegalHeirAge));
+            SetText(currentKingLabel, Landsong.Localization.L10n.Gameplay(
+                "gameplay.inheritance.ui.current_king",
+                "国王：{0}",
+                GamePanel_InheritanceText.FormatCharacterLine(king, service.LegalHeirAge)));
+            SetText(currentQueenLabel, Landsong.Localization.L10n.Gameplay(
+                "gameplay.inheritance.ui.current_queen",
+                "王后：{0}",
+                GamePanel_InheritanceText.FormatCharacterLine(queen, service.LegalHeirAge)));
             SetButton(birthPrinceButton, birthPrinceButtonLabel, king != null && queen != null, "生育王子");
             SetButton(abdicateButton, abdicateButtonLabel, king != null, "退位");
         }
@@ -336,7 +350,9 @@ namespace Landsong.UISystem
             }
 
             var born = gameSystem.Services.Inheritance.TryBirthPrince(string.Empty, out var prince);
-            lastStatusMessage = born && prince != null ? $"王子出生：{prince.DisplayName}" : "当前无法生育王子";
+            lastStatusMessage = born && prince != null
+                ? Landsong.Localization.L10n.Gameplay("gameplay.inheritance.ui.prince_born", "王子出生：{0}", prince.DisplayName)
+                : Landsong.Localization.L10n.Gameplay("gameplay.inheritance.ui.prince_unavailable", "当前无法生育王子");
             Refresh();
         }
 
@@ -349,8 +365,8 @@ namespace Landsong.UISystem
 
             var abdicated = gameSystem.Services.Inheritance.TryAbdicateCurrentKing(out var succession);
             lastStatusMessage = abdicated && succession.NewKing != null
-                ? $"新王登基：{succession.NewKing.DisplayName}"
-                : "退位失败：没有可用继承人";
+                ? Landsong.Localization.L10n.Gameplay("gameplay.inheritance.ui.new_king", "新王登基：{0}", succession.NewKing.DisplayName)
+                : Landsong.Localization.L10n.Gameplay("gameplay.inheritance.ui.abdication_failed", "退位失败：没有可用继承人");
             Refresh();
         }
 

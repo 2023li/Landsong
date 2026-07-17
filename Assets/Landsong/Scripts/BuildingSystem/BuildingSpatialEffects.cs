@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Landsong.GridSystem;
+using Landsong.Localization;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -82,7 +83,10 @@ namespace Landsong.BuildingSystem
         private bool includeSourceFootprint;
 
         public string EffectId => string.IsNullOrWhiteSpace(effectId) ? string.Empty : effectId.Trim();
-        public string DisplayName => string.IsNullOrWhiteSpace(displayName) ? EffectId : displayName.Trim();
+        public string DisplayName => L10n.ContentName(
+            "building_effect",
+            EffectId,
+            string.IsNullOrWhiteSpace(displayName) ? EffectId : displayName.Trim());
         public BuildingSpatialEffectKind Kind => kind;
         public BuildingSpatialTargetFilter TargetFilter => targetFilter;
         public int OperationalLevel => Mathf.Max(0, operationalLevel);

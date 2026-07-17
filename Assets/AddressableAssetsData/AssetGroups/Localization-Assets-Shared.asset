@@ -15,9 +15,20 @@ MonoBehaviour:
   m_GroupName: Localization-Assets-Shared
   m_GUID: 937ad25ecb40fd84b8c14453453fce80
   m_SerializeEntries:
-  - m_GUID: 834d2d8b9e7c5734f8e17dfe5608d85e
-    m_Address: "Assets/Landsong/Objects/\u672C\u5730\u5316/Tables/GameTable/GameString
-      Shared Data.asset"
+  - m_GUID: 0134bcefa9685fb4ebe82890d57433ad
+    m_Address: "Assets/Landsong/Objects/\u672C\u5730\u5316/Tables/UI Shared Data.asset"
+    m_ReadOnly: 1
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7fb02ea4f942710429b0688dc3ad1b2e
+    m_Address: "Assets/Landsong/Objects/\u672C\u5730\u5316/Tables/Gameplay Shared
+      Data.asset"
+    m_ReadOnly: 1
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 982814519614c164cb80978f9924c051
+    m_Address: "Assets/Landsong/Objects/\u672C\u5730\u5316/Tables/Content Shared
+      Data.asset"
     m_ReadOnly: 1
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

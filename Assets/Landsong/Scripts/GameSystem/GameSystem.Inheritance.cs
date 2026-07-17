@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Landsong.GameEventSystem;
 using Landsong.InheritanceSystem;
@@ -43,7 +44,11 @@ namespace Landsong
                 return;
             }
 
-            AddInheritanceMessage(GameEventCatalog.GE_王子出生, $"王子出生：{prince.DisplayName}。");
+            AddInheritanceMessageLocalized(
+                GameEventCatalog.GE_王子出生,
+                "gameplay.inheritance.prince_born",
+                "王子出生：{0}。",
+                () => new object[] { prince.DisplayName });
             if (effects == null)
             {
                 return;
@@ -54,9 +59,11 @@ namespace Landsong
                 var effect = effects[i];
                 if (effect.HasMessage)
                 {
-                    AddInheritanceMessage(
+                    AddInheritanceMessageLocalized(
                         GameEventCatalog.GE_国王特性效果触发,
-                        $"国王特性效果：{effect.Message}。");
+                        "gameplay.inheritance.trait_effect_triggered",
+                        "国王特性效果：{0}。",
+                        () => new object[] { effect.Message });
                 }
             }
         }
@@ -78,9 +85,17 @@ namespace Landsong
                 return;
             }
 
-            AddInheritanceMessage(
+            AddInheritanceMessageLocalized(
                 GameEventCatalog.GE_王族后天特性获得,
-                $"后天特性获得：{(character == null ? "未知角色" : character.DisplayName)} 获得 {trait.TraitName}。");
+                "gameplay.inheritance.acquired_trait_added",
+                "后天特性获得：{0} 获得 {1}。",
+                () => new object[]
+                {
+                    character == null
+                        ? Landsong.Localization.L10n.Gameplay("gameplay.common.unknown_character", "未知角色")
+                        : character.DisplayName,
+                    trait.TraitName
+                });
         }
 
         private void SettleInheritanceForTurn(int turnNumber)
@@ -112,9 +127,11 @@ namespace Landsong
                 var child = bornChildren[i];
                 if (child != null)
                 {
-                    AddInheritanceMessage(
+                    AddInheritanceMessageLocalized(
                         GameEventCatalog.GE_王子出生,
-                        $"王子出生：{child.DisplayName}。",
+                        "gameplay.inheritance.prince_born",
+                        "王子出生：{0}。",
+                        () => new object[] { child.DisplayName },
                         result.TurnNumber);
                 }
             }
@@ -134,9 +151,11 @@ namespace Landsong
                     continue;
                 }
 
-                AddInheritanceMessage(
+                AddInheritanceMessageLocalized(
                     GameEventCatalog.GE_国王特性效果触发,
-                    $"国王特性效果：{effect.Message}。",
+                    "gameplay.inheritance.trait_effect_triggered",
+                    "国王特性效果：{0}。",
+                    () => new object[] { effect.Message },
                     result.TurnNumber);
             }
 
@@ -161,16 +180,20 @@ namespace Landsong
 
             if (transition.NewState == RoyalTraitState.Discovered)
             {
-                AddInheritanceMessage(
+                AddInheritanceMessageLocalized(
                     GameEventCatalog.GE_王族特性显现,
-                    $"王族特性显现：{transition.Character.DisplayName} 的 {transition.Trait.Definition.TraitName}。",
+                    "gameplay.inheritance.trait_discovered",
+                    "王族特性显现：{0} 的 {1}。",
+                    () => new object[] { transition.Character.DisplayName, transition.Trait.Definition.TraitName },
                     turnNumber);
             }
             else if (transition.NewState == RoyalTraitState.Active)
             {
-                AddInheritanceMessage(
+                AddInheritanceMessageLocalized(
                     GameEventCatalog.GE_王族特性激活,
-                    $"王族特性激活：{transition.Character.DisplayName} 的 {transition.Trait.Definition.TraitName}。",
+                    "gameplay.inheritance.trait_activated",
+                    "王族特性激活：{0} 的 {1}。",
+                    () => new object[] { transition.Character.DisplayName, transition.Trait.Definition.TraitName },
                     turnNumber);
             }
         }
@@ -182,9 +205,11 @@ namespace Landsong
                 return;
             }
 
-            AddInheritanceMessage(
+            AddInheritanceMessageLocalized(
                 GameEventCatalog.GE_国王寿命预警,
-                $"寿命预警：{king.DisplayName} 预计还剩 {king.RemainingLifespan} 回合。",
+                "gameplay.inheritance.lifetime_warning",
+                "寿命预警：{0} 预计还剩 {1} 回合。",
+                () => new object[] { king.DisplayName, king.RemainingLifespan },
                 turnNumber);
         }
 
@@ -197,17 +222,28 @@ namespace Landsong
 
             if (succession.Crisis || succession.NewKing == null)
             {
-                AddInheritanceMessage(
+                AddInheritanceMessageLocalized(
                     GameEventCatalog.GE_王朝继承危机,
+                    "gameplay.inheritance.succession_crisis",
                     "王朝继承危机：没有可继承王位的继承人。",
+                    () => Array.Empty<object>(),
                     turnNumber);
                 return;
             }
 
-            var reason = succession.Reason == RoyalSuccessionReason.Abdication ? "退位" : "死亡";
-            AddInheritanceMessage(
+            AddInheritanceMessageLocalized(
                 GameEventCatalog.GE_王位继承,
-                $"王位继承：{succession.PreviousKing?.DisplayName ?? "前任国王"} 因{reason}离位，{succession.NewKing.DisplayName} 登基。",
+                "gameplay.inheritance.succession",
+                "王位继承：{0} 因{1}离位，{2} 登基。",
+                () => new object[]
+                {
+                    succession.PreviousKing?.DisplayName
+                    ?? Landsong.Localization.L10n.Gameplay("gameplay.common.previous_king", "前任国王"),
+                    succession.Reason == RoyalSuccessionReason.Abdication
+                        ? Landsong.Localization.L10n.Gameplay("gameplay.inheritance.reason.abdication", "退位")
+                        : Landsong.Localization.L10n.Gameplay("gameplay.inheritance.reason.death", "死亡"),
+                    succession.NewKing.DisplayName
+                },
                 turnNumber);
         }
 
@@ -224,6 +260,26 @@ namespace Landsong
             }
 
             Events?.AddMessage(GameEventMessage.ForGame(eventTypeId, message, turnNumber));
+        }
+
+        private void AddInheritanceMessageLocalized(
+            string eventTypeId,
+            string textKey,
+            string sourceMessage,
+            Func<object[]> argumentsProvider,
+            int? turnNumber = null)
+        {
+            if (Events == null)
+            {
+                CreateGameEventService();
+            }
+
+            Events?.AddMessage(GameEventMessage.ForGameLocalized(
+                eventTypeId,
+                textKey,
+                sourceMessage,
+                turnNumber ?? CurrentTurn,
+                argumentsProvider));
         }
     }
 }

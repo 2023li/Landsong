@@ -1,5 +1,6 @@
 using System.Text;
 using Landsong.InheritanceSystem;
+using Landsong.Localization;
 
 namespace Landsong.UISystem
 {
@@ -9,9 +10,9 @@ namespace Landsong.UISystem
         {
             return role switch
             {
-                RoyalCharacterRole.King => "国王",
-                RoyalCharacterRole.Queen => "王后",
-                RoyalCharacterRole.Prince => "王子",
+                RoyalCharacterRole.King => L10n.Gameplay("gameplay.inheritance.role.king", "国王"),
+                RoyalCharacterRole.Queen => L10n.Gameplay("gameplay.inheritance.role.queen", "王后"),
+                RoyalCharacterRole.Prince => L10n.Gameplay("gameplay.inheritance.role.prince", "王子"),
                 _ => role.ToString()
             };
         }
@@ -20,11 +21,11 @@ namespace Landsong.UISystem
         {
             return status switch
             {
-                RoyalCharacterStatus.Reigning => "在位",
-                RoyalCharacterStatus.Consort => "王后",
-                RoyalCharacterStatus.Heir => "继承人",
-                RoyalCharacterStatus.Retired => "退位",
-                RoyalCharacterStatus.Dead => "死亡",
+                RoyalCharacterStatus.Reigning => L10n.Gameplay("gameplay.inheritance.status.reigning", "在位"),
+                RoyalCharacterStatus.Consort => L10n.Gameplay("gameplay.inheritance.status.consort", "王后"),
+                RoyalCharacterStatus.Heir => L10n.Gameplay("gameplay.inheritance.status.heir", "继承人"),
+                RoyalCharacterStatus.Retired => L10n.Gameplay("gameplay.inheritance.status.retired", "退位"),
+                RoyalCharacterStatus.Dead => L10n.Gameplay("gameplay.inheritance.status.dead", "死亡"),
                 _ => status.ToString()
             };
         }
@@ -33,20 +34,22 @@ namespace Landsong.UISystem
         {
             if (character == null)
             {
-                return "无";
+                return L10n.Gameplay("gameplay.common.none", "无");
             }
 
             var heirText = character.IsPotentialHeir
-                ? (character.IsLegalHeir(legalHeirAge) ? "合法继承人" : $"未成年，{legalHeirAge} 岁成年")
+                ? (character.IsLegalHeir(legalHeirAge)
+                    ? L10n.Gameplay("gameplay.inheritance.legal_heir", "合法继承人")
+                    : L10n.Gameplay("gameplay.inheritance.underage_heir", "未成年，{0} 岁成年", legalHeirAge))
                 : FormatStatus(character.Status);
-            return $"{character.DisplayName} / {FormatRole(character.Role)} / {heirText} / {character.Age}/{character.EffectiveMaxLifespan} 岁";
+            return L10n.Gameplay("gameplay.inheritance.character_line", "{0} / {1} / {2} / {3}/{4} 岁", character.DisplayName, FormatRole(character.Role), heirText, character.Age, character.EffectiveMaxLifespan);
         }
 
         public static string FormatTraits(RoyalCharacterState character)
         {
             if (character == null || character.Traits.Count == 0)
             {
-                return "无特性";
+                return L10n.Gameplay("gameplay.inheritance.no_traits", "无特性");
             }
 
             var builder = new StringBuilder();
@@ -66,16 +69,20 @@ namespace Landsong.UISystem
 
                 if (trait.Definition == null || trait.IsHidden)
                 {
-                    builder.Append("未知特性");
+                    builder.Append(L10n.Gameplay("gameplay.inheritance.unknown_trait", "未知特性"));
                     continue;
                 }
 
-                var state = trait.IsActive ? "生效" : "已发现";
-                var acquired = trait.IsAcquired ? "后天" : "先天";
-                builder.Append($"{trait.Definition.TraitName}（{state} / {acquired}）");
+                var state = trait.IsActive
+                    ? L10n.Gameplay("gameplay.inheritance.trait_state.active", "生效")
+                    : L10n.Gameplay("gameplay.inheritance.trait_state.discovered", "已发现");
+                var acquired = trait.IsAcquired
+                    ? L10n.Gameplay("gameplay.inheritance.trait_origin.acquired", "后天")
+                    : L10n.Gameplay("gameplay.inheritance.trait_origin.innate", "先天");
+                builder.Append(L10n.Gameplay("gameplay.inheritance.trait_line", "{0}（{1} / {2}）", trait.Definition.TraitName, state, acquired));
             }
 
-            return builder.Length == 0 ? "无特性" : builder.ToString();
+            return builder.Length == 0 ? L10n.Gameplay("gameplay.inheritance.no_traits", "无特性") : builder.ToString();
         }
 
         public static string FormatRelations(RoyalCharacterState character)
@@ -88,7 +95,7 @@ namespace Landsong.UISystem
             var builder = new StringBuilder();
             if (!string.IsNullOrWhiteSpace(character.FatherId))
             {
-                builder.Append($"父 {ShortId(character.FatherId)}");
+                builder.Append(L10n.Gameplay("gameplay.inheritance.relation.father", "父 {0}", ShortId(character.FatherId)));
             }
 
             if (!string.IsNullOrWhiteSpace(character.MotherId))
@@ -98,7 +105,7 @@ namespace Landsong.UISystem
                     builder.Append(" / ");
                 }
 
-                builder.Append($"母 {ShortId(character.MotherId)}");
+                builder.Append(L10n.Gameplay("gameplay.inheritance.relation.mother", "母 {0}", ShortId(character.MotherId)));
             }
 
             if (character.ChildrenIds.Count > 0)
@@ -108,7 +115,7 @@ namespace Landsong.UISystem
                     builder.Append(" / ");
                 }
 
-                builder.Append($"子嗣 {character.ChildrenIds.Count}");
+                builder.Append(L10n.Gameplay("gameplay.inheritance.relation.children", "子嗣 {0}", character.ChildrenIds.Count));
             }
 
             return builder.ToString();

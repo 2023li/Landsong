@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5be51871efa6c3e4eae1703925c8f5ac, type: 3}
-  m_Name: GameString
+  m_Name: Gameplay
   m_EditorClassIdentifier: Unity.Localization.Editor::UnityEditor.Localization.StringTableCollection
-  m_SharedTableData: {fileID: 11400000, guid: 834d2d8b9e7c5734f8e17dfe5608d85e, type: 2}
+  m_SharedTableData: {fileID: 11400000, guid: 7fb02ea4f942710429b0688dc3ad1b2e, type: 2}
   m_Tables:
-  - {fileID: 11400000, guid: 8587cd3b16fc6234692ab09aa7dd57a4, type: 2}
-  - {fileID: 11400000, guid: 1f609d802cea1f14092b91a3173b1b4a, type: 2}
+  - {fileID: 11400000, guid: c40ba1ec30d84074bb0243760f8828c6, type: 2}
+  - {fileID: 11400000, guid: 147747b870555504b9749e140aa8d349, type: 2}
   m_Extensions: []
   m_Group: String Table
   references:

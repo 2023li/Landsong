@@ -631,47 +631,26 @@ public class LocalizationSaveData
 {
     public bool UseSystemLanguage = true;
 
-    public string CurrentLanguageCode = string.Empty;
-
-    public LanguageSource Source = LanguageSource.BuiltIn;
-
-    public string ExternalPackId = string.Empty;
-
-    public string ExternalPackFileName = string.Empty;
+    public string SelectedLanguageOptionId = string.Empty;
 
     public static LocalizationSaveData CreateDefault()
     {
         return new LocalizationSaveData
         {
             UseSystemLanguage = true,
-            CurrentLanguageCode = string.Empty,
-            Source = LanguageSource.BuiltIn,
-            ExternalPackId = string.Empty,
-            ExternalPackFileName = string.Empty
+            SelectedLanguageOptionId = string.Empty
         };
     }
 
     public void Validate()
     {
-        if (CurrentLanguageCode == null)
-        {
-            CurrentLanguageCode = string.Empty;
-        }
+        SelectedLanguageOptionId = string.IsNullOrWhiteSpace(SelectedLanguageOptionId)
+            ? string.Empty
+            : SelectedLanguageOptionId.Trim();
 
-        if (ExternalPackId == null)
+        if (!UseSystemLanguage && string.IsNullOrEmpty(SelectedLanguageOptionId))
         {
-            ExternalPackId = string.Empty;
-        }
-
-        if (ExternalPackFileName == null)
-        {
-            ExternalPackFileName = string.Empty;
-        }
-
-        if (Source == LanguageSource.BuiltIn)
-        {
-            ExternalPackId = string.Empty;
-            ExternalPackFileName = string.Empty;
+            UseSystemLanguage = true;
         }
     }
 }

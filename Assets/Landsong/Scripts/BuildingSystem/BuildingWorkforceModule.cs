@@ -272,8 +272,13 @@ namespace Landsong.BuildingSystem
         {
             Bind(building);
             return IsWorkerTurnoverProtected
-                ? $"工人 {CurrentWorkers}/{MaxWorkers}，保护 {WorkerProtectionTurnsRemaining} 回合"
-                : $"工人 {CurrentWorkers}/{MaxWorkers}";
+                ? Landsong.Localization.L10n.Gameplay(
+                    "gameplay.building.overview.workers_protected",
+                    "工人 {0}/{1}，保护 {2} 回合",
+                    CurrentWorkers,
+                    MaxWorkers,
+                    WorkerProtectionTurnsRemaining)
+                : Landsong.Localization.L10n.Gameplay("gameplay.building.overview.workers", "工人 {0}/{1}", CurrentWorkers, MaxWorkers);
         }
 
         public override void AppendRuntimeStatuses(

@@ -240,7 +240,11 @@ namespace Landsong.BuildingSystem
                 return true;
             }
 
-            failureMessage = $"仓库经验不足：{experience}/{experienceRequiredForNextLevel}。";
+            failureMessage = Landsong.Localization.L10n.Gameplay(
+                "gameplay.building.upgrade.warehouse_experience_missing",
+                "仓库经验不足：{0}/{1}。",
+                experience,
+                experienceRequiredForNextLevel);
             return false;
         }
 
@@ -248,8 +252,13 @@ namespace Landsong.BuildingSystem
         {
             Bind(building);
             return ExperienceRequiredForNextLevel > 0
-                ? $"库存格 {CurrentProvidedSlotCount} · 经验 {Experience}/{ExperienceRequiredForNextLevel}"
-                : $"库存格 {CurrentProvidedSlotCount} · 最高等级";
+                ? Landsong.Localization.L10n.Gameplay(
+                    "gameplay.building.overview.warehouse",
+                    "库存格 {0} · 经验 {1}/{2}",
+                    CurrentProvidedSlotCount,
+                    Experience,
+                    ExperienceRequiredForNextLevel)
+                : Landsong.Localization.L10n.Gameplay("gameplay.building.overview.warehouse_max", "库存格 {0} · 最高等级", CurrentProvidedSlotCount);
         }
 
         public override void AppendFunctionBlockEntries(BuildingBase building, ref List<BuildingFunctionBlockEntry> entries)

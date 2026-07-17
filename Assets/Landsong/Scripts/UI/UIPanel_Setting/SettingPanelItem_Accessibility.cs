@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Landsong.Localization;
 using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
@@ -67,7 +68,7 @@ public class SettingPanelItem_Accessibility : MonoBehaviour
 
         RefreshCurrentLanguageText();
 
-        if (string.IsNullOrEmpty(GameLocalizationManager.Instance.CurrentLanguageData.CurrentLanguageCode))
+        if (GameLocalizationManager.Instance.CurrentLanguageData.UseSystemLanguage)
         {
             Show_pop语言选择();
         }
@@ -123,7 +124,7 @@ public class SettingPanelItem_Accessibility : MonoBehaviour
         if (GameLocalizationManager.Instance == null
             || GameLocalizationManager.Instance.AllLanguagePackCount <= 0)
         {
-            txt_当前语言显示名称.text = "无可用语言";
+            txt_当前语言显示名称.text = L10n.Ui("ui.language.none_available", "无可用语言");
             return;
         }
 
@@ -131,7 +132,7 @@ public class SettingPanelItem_Accessibility : MonoBehaviour
 
         if (languagePack == null)
         {
-            txt_当前语言显示名称.text = "无可用语言";
+            txt_当前语言显示名称.text = L10n.Ui("ui.language.none_available", "无可用语言");
             return;
         }
 
@@ -141,7 +142,7 @@ public class SettingPanelItem_Accessibility : MonoBehaviour
             return;
         }
 
-        txt_当前语言显示名称.text = languagePack.LanguageCode;
+        txt_当前语言显示名称.text = languagePack.LocaleCode;
     }
 
     // 确认当前语言。

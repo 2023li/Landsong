@@ -194,7 +194,7 @@ public sealed class BuildingDetailsBlock_Function : BuildingDetailsBlockBase,
 
             if (content.Length > 0)
             {
-                content += "、";
+                content += Landsong.Localization.L10n.Gameplay("gameplay.common.list_separator", "、");
             }
 
             content += FormatSummaryEntry(entry);
@@ -205,12 +205,14 @@ public sealed class BuildingDetailsBlock_Function : BuildingDetailsBlockBase,
             return string.Empty;
         }
 
-        return $"{GetGroupLabel(group)}：{content}";
+        return Landsong.Localization.L10n.Gameplay("gameplay.building.function.group_summary", "{0}：{1}", GetGroupLabel(group), content);
     }
 
     private static string GetGroupLabel(BuildingFunctionBlockGroup group)
     {
-        return group == BuildingFunctionBlockGroup.功能性 ? "功能性" : "资源";
+        return group == BuildingFunctionBlockGroup.功能性
+            ? Landsong.Localization.L10n.Gameplay("gameplay.building.function.functional", "功能性")
+            : Landsong.Localization.L10n.Gameplay("gameplay.building.function.resources", "资源");
     }
 
     private static string FormatSummaryEntry(AggregatedEntry entry)

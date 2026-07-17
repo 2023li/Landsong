@@ -1082,7 +1082,9 @@ namespace Landsong.BuildingSystem
             }
 
             var builder = new StringBuilder();
-            builder.Append(evaluation.IsSpatiallyLegal ? "占地合法" : $"占地非法：{evaluation.GridFailure}");
+            builder.Append(evaluation.IsSpatiallyLegal
+                ? Landsong.Localization.L10n.Gameplay("gameplay.building.placement.spatial_legal", "占地合法")
+                : Landsong.Localization.L10n.Gameplay("gameplay.building.placement.spatial_invalid", "占地非法：{0}", evaluation.GridFailure));
             if (evaluation.RequiresResourceConnection)
             {
                 builder.AppendLine();
@@ -1092,11 +1094,17 @@ namespace Landsong.BuildingSystem
                     var providerName = selection.Provider.HasDefinition
                         ? selection.Provider.Definition.DisplayName
                         : selection.Provider.name;
-                    builder.Append($"资源点：{providerName}（行动力 {selection.ActionCost}）");
+                    builder.Append(Landsong.Localization.L10n.Gameplay(
+                        "gameplay.building.placement.provider",
+                        "资源点：{0}（行动力 {1}）",
+                        providerName,
+                        selection.ActionCost));
                 }
                 else
                 {
-                    builder.Append("资源点：当前范围内无连接（不阻止放置）");
+                    builder.Append(Landsong.Localization.L10n.Gameplay(
+                        "gameplay.building.placement.provider_unreachable_optional",
+                        "资源点：当前范围内无连接（不阻止放置）"));
                 }
             }
 
@@ -1109,7 +1117,11 @@ namespace Landsong.BuildingSystem
                 }
 
                 builder.AppendLine();
-                builder.Append($"Buff：{preview.Description}，范围 {preview.Definition.Range}");
+                builder.Append(Landsong.Localization.L10n.Gameplay(
+                    "gameplay.building.placement.buff_range",
+                    "Buff：{0}，范围 {1}",
+                    preview.Description,
+                    preview.Definition.Range));
             }
 
             return builder.ToString();
