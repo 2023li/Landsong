@@ -18,10 +18,12 @@ namespace Landsong.BuildingSystem
         IBuildingModuleInitialized,
         IBuildingModuleRegistered,
         IBuildingModulePlaced,
+        IBuildingModuleConstructionCompleted,
         IBuildingModuleLevelApplied,
         IBuildingModuleUnregistered,
         IBuildingAutomaticTurnModule
     {
+        private const int NewConstructionWorkerProtectionTurns = 2;
         private const string StatusMissingInventory = BuildingRuntimeStatusCatalog.BS_库存缺失;
         private const string StatusInvalidGoldItem = BuildingRuntimeStatusCatalog.BS_金币配置异常;
         private const string StatusRecruitGoldMissing = BuildingRuntimeStatusCatalog.BS_招工金币不足;
@@ -34,11 +36,12 @@ namespace Landsong.BuildingSystem
             public bool AutoFullWorkerSubsidyEnabled;
             public int TargetStableWorkers;
             public bool InitialWorkersGranted;
+            public int WorkerProtectionTurnsRemaining;
         }
 
         [TitleGroup("岗位")]
         [SerializeField, LabelText("最大岗位"), Min(1)] private int maxWorkers = 3;
-        [SerializeField, LabelText("建造完成初始工人"), Min(0)] private int initialWorkersOnPlaced;
+        [SerializeField, LabelText("直接运营放置初始工人"), Min(0)] private int initialWorkersOnPlaced;
         [SerializeField, LabelText("基础吸引力"), Min(0f)] private float baseJobAttraction = 55f;
         [SerializeField, LabelText("单人招工费用"), Min(0)] private int singleRecruitCost = 10;
 
@@ -56,6 +59,7 @@ namespace Landsong.BuildingSystem
         [SerializeField, ReadOnly, LabelText("目标每回合补贴金币")] private int targetSubsidyGoldPerTurn;
         [SerializeField, ReadOnly, LabelText("本回合已付补贴金币")] private int paidSubsidyGoldThisTurn;
         [SerializeField, ReadOnly, LabelText("已发放初始工人")] private bool initialWorkersGranted;
+        [SerializeField, ReadOnly, LabelText("竣工保护剩余回合")] private int workerProtectionTurnsRemaining;
 
         [NonSerialized] private BuildingBase owner;
         [SerializeField, HideInInspector] private bool defaultsConfigured;
@@ -72,6 +76,8 @@ namespace Landsong.BuildingSystem
         public int TargetSubsidyGoldPerTurn => targetSubsidyGoldPerTurn;
         public int PaidSubsidyGoldThisTurn => paidSubsidyGoldThisTurn;
         public bool InitialWorkersGranted => initialWorkersGranted;
+        public int WorkerProtectionTurnsRemaining => workerProtectionTurnsRemaining;
+        public bool IsWorkerTurnoverProtected => workerProtectionTurnsRemaining > 0;
         public int MissingWorkersToFull => Mathf.Max(0, maxWorkers - currentWorkers);
         public int RecruitToFullWorkerCount => CalculateRecruitCount();
         public int RecruitToFullCost => CalculateRecruitCost();
@@ -100,6 +106,7 @@ namespace Landsong.BuildingSystem
         public void OnBuildingInitialized(BuildingBase building) => Bind(building);
         public void OnBuildingRegistered(BuildingBase building) => Bind(building);
         public void OnBuildingPlaced(BuildingBase building) => OnPlaced(building);
+        public void OnBuildingConstructionCompleted(BuildingBase building) => OnConstructionCompleted(building);
 
         public void OnBuildingLevelApplied(
             BuildingBase building,
@@ -175,6 +182,15 @@ namespace Landsong.BuildingSystem
             RefreshEmployedPopulation();
         }
 
+        private void OnConstructionCompleted(BuildingBase building)
+        {
+            Bind(building);
+            workerProtectionTurnsRemaining = NewConstructionWorkerProtectionTurns;
+            FillVacantJobsFromAvailablePopulation();
+            Recalculate(false);
+            RefreshEmployedPopulation();
+        }
+
         public bool ProcessTurn(BuildingBase building)
         {
             Bind(building);
@@ -189,6 +205,7 @@ namespace Landsong.BuildingSystem
             TryPaySubsidy(inventory);
             Recalculate();
             ProcessWorkerTurn();
+            AdvanceWorkerProtection();
             Recalculate();
             RefreshEmployedPopulation();
             return true;
@@ -198,6 +215,7 @@ namespace Landsong.BuildingSystem
         {
             Bind(building);
             currentWorkers = 0;
+            workerProtectionTurnsRemaining = 0;
             RefreshEmployedPopulation();
         }
 
@@ -253,7 +271,9 @@ namespace Landsong.BuildingSystem
         public override string GetOverviewFragment(BuildingBase building)
         {
             Bind(building);
-            return $"工人 {CurrentWorkers}/{MaxWorkers}";
+            return IsWorkerTurnoverProtected
+                ? $"工人 {CurrentWorkers}/{MaxWorkers}，保护 {WorkerProtectionTurnsRemaining} 回合"
+                : $"工人 {CurrentWorkers}/{MaxWorkers}";
         }
 
         public override void AppendRuntimeStatuses(
@@ -281,6 +301,10 @@ namespace Landsong.BuildingSystem
             singleRecruitCost = Mathf.Max(0, singleRecruitCost);
             targetStableWorkers = Mathf.Clamp(targetStableWorkers, 0, maxWorkers);
             currentWorkers = Mathf.Clamp(currentWorkers, 0, maxWorkers);
+            workerProtectionTurnsRemaining = Mathf.Clamp(
+                workerProtectionTurnsRemaining,
+                0,
+                NewConstructionWorkerProtectionTurns);
         }
 
         public bool TryCaptureState(out string json)
@@ -290,7 +314,8 @@ namespace Landsong.BuildingSystem
                 CurrentWorkers = currentWorkers,
                 AutoFullWorkerSubsidyEnabled = autoFullWorkerSubsidyEnabled,
                 TargetStableWorkers = targetStableWorkers,
-                InitialWorkersGranted = initialWorkersGranted
+                InitialWorkersGranted = initialWorkersGranted,
+                WorkerProtectionTurnsRemaining = workerProtectionTurnsRemaining
             });
             return !string.IsNullOrWhiteSpace(json);
         }
@@ -307,6 +332,10 @@ namespace Landsong.BuildingSystem
             autoFullWorkerSubsidyEnabled = state.AutoFullWorkerSubsidyEnabled;
             targetStableWorkers = Mathf.Clamp(state.TargetStableWorkers, 0, maxWorkers);
             initialWorkersGranted = state.InitialWorkersGranted;
+            workerProtectionTurnsRemaining = Mathf.Clamp(
+                state.WorkerProtectionTurnsRemaining,
+                0,
+                NewConstructionWorkerProtectionTurns);
             Recalculate(false);
             owner?.GameSystem?.RefreshInventorySlotCapacity();
         }
@@ -356,9 +385,27 @@ namespace Landsong.BuildingSystem
             {
                 currentWorkers = Mathf.Min(maxWorkers, currentWorkers + 1);
             }
-            else if (currentWorkers > stableWorkers && RollChance(lastJobCalculation.ResignChancePercent))
+            else if (!IsWorkerTurnoverProtected
+                     && currentWorkers > stableWorkers
+                     && RollChance(lastJobCalculation.ResignChancePercent))
             {
                 currentWorkers = Mathf.Max(0, currentWorkers - 1);
+            }
+        }
+
+        private void FillVacantJobsFromAvailablePopulation()
+        {
+            var recruitedWorkers = Mathf.Min(
+                Mathf.Max(0, maxWorkers - currentWorkers),
+                GetAvailablePopulation());
+            currentWorkers += recruitedWorkers;
+        }
+
+        private void AdvanceWorkerProtection()
+        {
+            if (workerProtectionTurnsRemaining > 0)
+            {
+                workerProtectionTurnsRemaining--;
             }
         }
 

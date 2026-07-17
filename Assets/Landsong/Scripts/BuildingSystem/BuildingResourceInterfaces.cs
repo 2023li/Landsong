@@ -159,4 +159,14 @@ namespace Landsong.BuildingSystem
         public bool IsValid => !string.IsNullOrWhiteSpace(ItemId) && MaximumAmount > 0;
         public bool IsRange => MinimumAmount != MaximumAmount;
     }
+
+    /// <summary>
+    /// 对外公开有限次数采集的只读状态。表现层和 UI 通过能力接口读取，
+    /// 不依赖具体模块类型，也不得通过此接口修改玩法状态。
+    /// </summary>
+    public interface IBuildingFiniteHarvestState
+    {
+        int RemainingHarvests { get; }
+        int MaxSuccessfulHarvests { get; }
+    }
 }

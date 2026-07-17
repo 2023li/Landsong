@@ -70,9 +70,10 @@ UI 是领域服务的消费者：从 `GameSystem.Instance.Services` 读取状态
 
 - 库存：`GamePanel_Inventory` 绑定 `InventoryService`；槽位项只负责显示、拖放和请求移动/丢弃。
 - 科技：`GamePanel_Technology` 只绑定已生成节点、读取 `TechnologyService` 和解锁内容注册表。
+- HUD 科技条：`GamePanel_HUD_TechnologyBar` 挂载在科技条根对象，独立绑定科技按钮、订阅科技状态，并以 `GameFeatureUnlockService` 控制可见性。锁定时使用根对象 `CanvasGroup` 关闭视觉、交互和 Raycast，但不停用自身 GameObject，以便在运行中收到系统解锁事件并立即显示。
 - 任务：`GamePanel_Quest` 读取 `QuestService`，提交与领奖必须调用服务事务。
-- 概览：`GamePanel_Overview` 是建筑/经济页签总控；经济预测读取 `EconomyForecastService`，不修改真实库存。
-- 建筑详情：模块通过功能块接口提供结构化内容，详情面板不判断具体建筑家族。
+- 概览：`GamePanel_Overview` 是建筑/经济页签总控；建筑列表仅显示 `BuildingDefinition.ShowInOverview=true` 的家族实例，不能按名称或 FamilyId 硬编码排除；经济预测读取 `EconomyForecastService`，不修改真实库存，也不受建筑列表显隐配置影响。
+- 建筑详情：模块通过功能块接口提供结构化内容，详情面板不判断具体建筑家族。`Popup_BuildingDetails` 的侧栏文本使用对象池：`Awake` 先将“侧栏容器”的全部现有子对象停用并纳入池，切换功能块时回收复用，只有池容量不足时才实例化；侧栏由 LayoutGroup 与 ContentSizeFitter 按当前激活文本的首选宽度自适应。
 
 ## 8. 命名空间现状
 
@@ -84,6 +85,8 @@ UI 是领域服务的消费者：从 `GameSystem.Instance.Services` 读取状态
 - 多个相机输入阻断 owner 可独立添加/移除。
 - 面板开关不会留下隐藏面板订阅或重复监听。
 - 所有必填引用在 Prefab 中存在，运行时没有临时创建补丁。
+- 建筑详情侧栏首次打开不显示 Prefab 占位文本；反复打开、关闭和切换功能块时复用侧栏项，Hierarchy 数量只扩容不反复增删，宽度随当前最长内容更新。
+- 科技未解锁时 HUD 科技条完全隐藏且不可点击；运行中解锁后无需重开面板即可显示。
 - 双击、长按和普通点击不会重复触发互斥操作。
 - 不同分辨率下 ScrollRect、LayoutGroup、ContentSizeFitter 没有循环驱动。
 - 关闭/返回操作由统一 Back 事件处理并按当前面板层级退出。

@@ -115,7 +115,7 @@ namespace Landsong.UISystem
                 return;
             }
 
-            Debug.Log("DD");
+          
 
             deleted?.Invoke(message);
         }

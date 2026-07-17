@@ -1,9 +1,17 @@
 using Landsong.ExpeditionSystem;
 using Landsong.InventorySystem;
 using TMPro;
+using UnityEngine;
 
 namespace Landsong.UISystem
 {
+    public static class UIThemeConstants
+    {
+        public const string CompletedQuestColorHex = "#94FF60";
+
+        public static readonly Color CompletedQuestColor = new Color32(0x94, 0xFF, 0x60, 0xFF);
+    }
+
     public static class ResourceRichTextFormatter
     {
         public static void ApplySpriteAsset(TMP_Text target)

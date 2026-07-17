@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 79ee311cc89142d7a526e65d22d4df7c, type: 3}
+  m_Name: Q_Main_Select_Technology
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.QuestDefinition
+  definition:
+    questId: main_select_technology
+    displayName: 点亮智慧
+    description: 生存有了保障，聚落该把目光投向未来。打开科技系统，选择一项科技作为当前研究。
+    category: 1
+    objectiveType: 6
+    turnLimit: 0
+    prerequisiteQuestIds:
+    - main_build_residential_houses_3
+    targetBuilding: {fileID: 0}
+    targetBuildingCount: 1
+    requiredResources: []
+    rewards: []
+    unlockedFeatures: []
+    runtimeGenerated: 0

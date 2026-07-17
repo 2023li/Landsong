@@ -494,6 +494,9 @@ namespace Landsong.InheritanceSystem
 
         public RoyalTraitCatalog TraitCatalog => traitCatalog;
         public RoyalInheritanceConfig Config => config;
+        public bool IsAvailable => context == null
+                                   || context.Services.Features != null
+                                   && context.Services.Features.IsUnlocked(GameFeature.Inheritance);
         public IReadOnlyList<RoyalCharacterState> Characters => characters.Count == 0 ? EmptyCharacters : characters;
         public RoyalCharacterState CurrentKing => FindCharacter(currentKingId);
         public RoyalCharacterState CurrentQueen => FindCharacter(currentQueenId);
@@ -504,6 +507,12 @@ namespace Landsong.InheritanceSystem
 
         public bool TryBirthPrince(string displayName, out RoyalCharacterState prince)
         {
+            if (!IsAvailable)
+            {
+                prince = null;
+                return false;
+            }
+
             var currentTurn = context == null || context.Services.Turn == null
                 ? 1
                 : context.Services.Turn.CurrentTurn;
@@ -512,6 +521,12 @@ namespace Landsong.InheritanceSystem
 
         public bool TryAbdicateCurrentKing(out RoyalSuccessionResult succession)
         {
+            if (!IsAvailable)
+            {
+                succession = new RoyalSuccessionResult(RoyalSuccessionReason.None, null, null, false);
+                return false;
+            }
+
             var currentTurn = context == null || context.Services.Turn == null
                 ? 1
                 : context.Services.Turn.CurrentTurn;
@@ -520,6 +535,11 @@ namespace Landsong.InheritanceSystem
 
         public bool TryAddAcquiredTrait(string characterId, RoyalTraitDefinition trait)
         {
+            if (!IsAvailable)
+            {
+                return false;
+            }
+
             var currentTurn = context == null || context.Services.Turn == null
                 ? 1
                 : context.Services.Turn.CurrentTurn;
@@ -545,6 +565,17 @@ namespace Landsong.InheritanceSystem
         public RoyalInheritanceTurnResult SettleTurn(int turnNumber)
         {
             turnNumber = Mathf.Max(1, turnNumber);
+            if (!IsAvailable)
+            {
+                return new RoyalInheritanceTurnResult(
+                    turnNumber,
+                    null,
+                    null,
+                    null,
+                    new RoyalSuccessionResult(RoyalSuccessionReason.None, null, null, false),
+                    false);
+            }
+
             lastSettlementTurn = turnNumber;
 
             var bornChildren = new List<RoyalCharacterState>();

@@ -43,6 +43,7 @@ namespace Landsong.UISystem
         private readonly List<TMP_Text> activeRewardTexts = new List<TMP_Text>();
         private readonly List<TMP_Text> rewardTextPool = new List<TMP_Text>();
         private bool isSelected;
+        private int requirementRenderIndex;
 
         private void OnRectTransformDimensionsChange()
         {
@@ -163,7 +164,6 @@ namespace Landsong.UISystem
 
         public void Refresh()
         {
-            ReleaseActiveRequirementItems();
             ReleaseActiveRewardTexts();
             if (quest == null || quest.Definition == null)
             {
@@ -174,7 +174,9 @@ namespace Landsong.UISystem
             SetText(titleLabel, FormatTitle(quest));
             SetText(descriptionLabel, quest.Definition.Description);
             SetText(deadlineLabel, FormatDeadline(quest));
+            requirementRenderIndex = 0;
             RenderRequirements(quest);
+            ReleaseSurplusRequirementItems(requirementRenderIndex);
             RenderRewards(quest);
             SetDetailsVisible(isSelected);
             SetActive(selectedRoot, isSelected);
@@ -263,6 +265,11 @@ namespace Landsong.UISystem
                 return string.Empty;
             }
 
+            if (!quest.IsTimed)
+            {
+                return "∞";
+            }
+
             if (quest.IsCompleted)
             {
                 return $"完成于期限内：截止第 {quest.DeadlineTurn} 回合";
@@ -293,6 +300,18 @@ namespace Landsong.UISystem
                 case QuestObjectiveType.SubmitResources:
                     AddResourceRequirements(sourceQuest);
                     break;
+                case QuestObjectiveType.MoveCamera:
+                    AddNumericRequirement(sourceQuest, "移动视野");
+                    break;
+                case QuestObjectiveType.CollectResources:
+                    AddResourceRequirements(sourceQuest);
+                    break;
+                case QuestObjectiveType.PlantCrops:
+                    AddNumericRequirement(sourceQuest, "播种农田");
+                    break;
+                case QuestObjectiveType.SelectTechnology:
+                    AddNumericRequirement(sourceQuest, "选择研究科技");
+                    break;
             }
         }
 
@@ -319,11 +338,12 @@ namespace Landsong.UISystem
                     continue;
                 }
 
-                var text = "提交 " + ResourceRichTextFormatter.FormatProgress(
+                var action = sourceQuest.IsResourceCollection ? "收集 " : "提交 ";
+                var text = action + ResourceRichTextFormatter.FormatProgress(
                     progress.ItemDefinition,
                     progress.ItemId,
                     progress.DisplayName,
-                    Mathf.Clamp(progress.SubmittedAmount, 0, progress.RequiredAmount),
+                    Mathf.Clamp(progress.ProgressAmount, 0, progress.RequiredAmount),
                     Mathf.Max(0, progress.RequiredAmount),
                     progress.InventoryAmount,
                     false);
@@ -331,9 +351,18 @@ namespace Landsong.UISystem
             }
         }
 
+        private void AddNumericRequirement(GameQuestState sourceQuest, string action)
+        {
+            var targetAmount = Mathf.Max(1, sourceQuest.TargetAmount);
+            var currentAmount = Mathf.Clamp(sourceQuest.CurrentAmount, 0, targetAmount);
+            AddRequirement(
+                $"{action}：{currentAmount}/{targetAmount}",
+                sourceQuest.IsCompleted || currentAmount >= targetAmount);
+        }
+
         private void AddRequirement(string requirementText, bool isCompleted)
         {
-            var item = GetRequirementItemFromPool();
+            var item = GetRequirementItemForRender(requirementRenderIndex);
             if (item == null)
             {
                 return;
@@ -341,7 +370,7 @@ namespace Landsong.UISystem
 
             item.Bind(requirementText, isCompleted);
             item.SetTextAlignment(TextAlignmentOptions.Center);
-            activeRequirementItems.Add(item);
+            requirementRenderIndex++;
         }
 
         private void RenderRewards(GameQuestState sourceQuest)
@@ -366,6 +395,16 @@ namespace Landsong.UISystem
                     reward.ItemDefinition == null ? reward.ItemId : reward.ItemDefinition.DisplayName,
                     reward.Amount);
                 AddReward(text);
+            }
+
+            var unlockedFeatures = sourceQuest.Definition.UnlockedFeatures;
+            for (var i = 0; i < unlockedFeatures.Count; i++)
+            {
+                var feature = unlockedFeatures[i];
+                if (GameFeatureUnlockService.IsValid(feature))
+                {
+                    AddReward($"解锁 {GameFeatureUnlockService.GetDisplayName(feature)}");
+                }
             }
         }
 
@@ -412,7 +451,7 @@ namespace Landsong.UISystem
 
         private void ReleaseActiveRewardTexts()
         {
-            for (var i = 0; i < activeRewardTexts.Count; i++)
+            for (var i = activeRewardTexts.Count - 1; i >= 0; i--)
             {
                 var text = activeRewardTexts[i];
                 if (text == null)
@@ -462,12 +501,17 @@ namespace Landsong.UISystem
             LayoutRebuilder.MarkLayoutForRebuild(rewardRoot);
         }
 
-        private GamePanelItem_Quest_Requirement GetRequirementItemFromPool()
+        private GamePanelItem_Quest_Requirement GetRequirementItemForRender(int index)
         {
             EnsureRequirementItemPool();
             if (requirementRoot == null)
             {
                 return null;
+            }
+
+            if (index >= 0 && index < activeRequirementItems.Count)
+            {
+                return activeRequirementItems[index];
             }
 
             GamePanelItem_Quest_Requirement item;
@@ -487,8 +531,23 @@ namespace Landsong.UISystem
             }
 
             item.transform.SetParent(requirementRoot, false);
-            item.gameObject.SetActive(true);
+            if (!item.gameObject.activeSelf)
+            {
+                item.gameObject.SetActive(true);
+            }
+
+            activeRequirementItems.Add(item);
             return item;
+        }
+
+        private void ReleaseSurplusRequirementItems(int usedCount)
+        {
+            for (var i = activeRequirementItems.Count - 1; i >= Mathf.Max(0, usedCount); i--)
+            {
+                var item = activeRequirementItems[i];
+                activeRequirementItems.RemoveAt(i);
+                ReleaseRequirementItem(item);
+            }
         }
 
         private void EnsureRequirementItemPool()
@@ -520,28 +579,37 @@ namespace Landsong.UISystem
 
         private void ReleaseActiveRequirementItems()
         {
-            for (var i = 0; i < activeRequirementItems.Count; i++)
+            for (var i = activeRequirementItems.Count - 1; i >= 0; i--)
             {
                 var item = activeRequirementItems[i];
-                if (item == null)
-                {
-                    continue;
-                }
-
-                item.Clear();
-                item.gameObject.SetActive(false);
-                if (requirementRoot != null)
-                {
-                    item.transform.SetParent(requirementRoot, false);
-                }
-
-                if (!requirementItemPool.Contains(item))
-                {
-                    requirementItemPool.Add(item);
-                }
+                ReleaseRequirementItem(item);
             }
 
             activeRequirementItems.Clear();
+        }
+
+        private void ReleaseRequirementItem(GamePanelItem_Quest_Requirement item)
+        {
+            if (item == null)
+            {
+                return;
+            }
+
+            item.Clear();
+            if (item.gameObject.activeSelf)
+            {
+                item.gameObject.SetActive(false);
+            }
+
+            if (requirementRoot != null)
+            {
+                item.transform.SetParent(requirementRoot, false);
+            }
+
+            if (!requirementItemPool.Contains(item))
+            {
+                requirementItemPool.Add(item);
+            }
         }
 
         private void SetIcon(Sprite sprite)

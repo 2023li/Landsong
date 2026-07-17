@@ -170,6 +170,12 @@ namespace Landsong
 
         internal void EnsureRuntimeServices()
         {
+            if (Features == null)
+            {
+                Features = new GameFeatureUnlockService(startingUnlockedFeatures);
+                Features.StateChanged += HandleFeatureAvailabilityChanged;
+            }
+
             if (Technology == null)
             {
                 CreateTechnologyService();
@@ -246,11 +252,22 @@ namespace Landsong
 
         private void OnDestroy()
         {
+            if (Features != null)
+            {
+                Features.StateChanged -= HandleFeatureAvailabilityChanged;
+            }
+
             UnsubscribeQuestRuntimeServices();
             UnsubscribeExpeditionService();
             UnsubscribeTalentService();
             UnsubscribeInheritanceService();
             buildingSelection = null;
+        }
+
+        private void HandleFeatureAvailabilityChanged(GameFeatureUnlockService changedFeatures)
+        {
+            Policies?.NotifyFeatureAvailabilityChanged();
+            SyncExpeditionPopulationEmployment();
         }
 
         private void OnValidate()
@@ -381,7 +398,11 @@ namespace Landsong
 
         private void CreatePolicyService()
         {
-            Policies = new PolicyService(policyCatalog, startingPublicOpinion, startingSelectedPolicies);
+            Policies = new PolicyService(
+                policyCatalog,
+                () => Features != null && Features.IsUnlocked(GameFeature.Congress),
+                startingPublicOpinion,
+                startingSelectedPolicies);
         }
 
         internal void RegisterBuilding(BuildingBase building)

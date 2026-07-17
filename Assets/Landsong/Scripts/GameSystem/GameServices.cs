@@ -33,6 +33,7 @@ namespace Landsong
         public TechnologyService Technology => owner.Technology;
         public PolicyService Policies => owner.Policies;
         public QuestService Quest => owner.Quest;
+        public GameFeatureUnlockService Features => owner.Features;
         public ExpeditionService Expeditions => owner.Expeditions;
         public TalentService Talents => owner.Talents;
         public RoyalInheritanceService Inheritance => owner.Inheritance;
@@ -53,6 +54,7 @@ namespace Landsong
         public GameServices Services => gameServices ??= new GameServices(this);
 
         internal QuestService Quest { get; private set; }
+        internal GameFeatureUnlockService Features { get; private set; }
         internal BuildingBlueprintService BuildingBlueprints { get; private set; }
     }
 }

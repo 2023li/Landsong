@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a3b70d7f4d394dd9a76b0bc2e5c6a101, type: 3}
-  m_Name: "TN_1_11_光学"
+  m_Name: "TN_1_11_\u5149\u5B66"
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.TechnologySystem.TechnologyDefinition
-  icon: {fileID: 0}
-  technologyId: "TN_1_11_光学"
-  displayName: "光学"
-  description: "研究光线传播、反射与折射，制造用于观测和精密瞄准的光学器具。"
+  icon: {fileID: 2076687407946027173, guid: b6b31ca56a7b9c44489ac45feec800fc, type: 3}
+  technologyId: "TN_1_11_\u5149\u5B66"
+  displayName: "\u5149\u5B66"
+  description: "\u7814\u7A76\u5149\u7EBF\u4F20\u64AD\u3001\u53CD\u5C04\u4E0E\u6298\u5C04\uFF0C\u5236\u9020\u7528\u4E8E\u89C2\u6D4B\u548C\u7CBE\u5BC6\u7784\u51C6\u7684\u5149\u5B66\u5668\u5177\u3002"
   sciencePointCost: 116
   allowRepeatResearch: 0
   prerequisites:

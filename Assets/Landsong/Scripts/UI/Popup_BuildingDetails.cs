@@ -21,15 +21,18 @@ public class Popup_BuildingDetails : MonoBehaviour
     [SerializeField, Required, LabelText("详情块列表")] private BuildingDetailsBlockBase[] detailBlocks = Array.Empty<BuildingDetailsBlockBase>();
 
     private readonly List<BuildingDetailsBlockBase> initializedDetailBlocks = new List<BuildingDetailsBlockBase>();
-    private readonly List<GameObject> activeSidebarItems = new List<GameObject>();
+    private readonly List<TMP_Text> activeSidebarItems = new List<TMP_Text>();
+    private readonly Stack<TMP_Text> sidebarItemPool = new Stack<TMP_Text>();
     private BuildingBase building;
     private BuildingDetailsBlockBase sidebarOwner;
+    private Color defaultSidebarItemColor = Color.white;
 
     public bool IsVisible => gameObject.activeSelf;
 
     private void Awake()
     {
         ValidatePopupReferences();
+        InitializeDetailSidebarPool();
         InitializeDetailBlocks();
 
         if (btn_关闭弹窗 != null)
@@ -247,6 +250,7 @@ public class Popup_BuildingDetails : MonoBehaviour
         sidebarOwner = source;
         RebuildDetailSidebar(rows);
         SetDetailSidebarVisible(true);
+        RebuildDetailSidebarLayout();
     }
 
     public void HideDetailSidebar(BuildingDetailsBlockBase source)
@@ -306,24 +310,104 @@ public class Popup_BuildingDetails : MonoBehaviour
             return;
         }
 
-        var item = Instantiate(prefab_详情侧边栏文本, root_详情侧边栏内容);
-        item.gameObject.SetActive(true);
-        activeSidebarItems.Add(item.gameObject);
+        var item = GetDetailSidebarItem();
+        if (item == null)
+        {
+            return;
+        }
+
+        item.color = defaultSidebarItemColor;
         item.text = FormatSidebarRow(row);
         if (row.HasSignedValue)
         {
             item.color = ResolveSignedColor(row.SignedValue, item.color);
         }
+
+        item.gameObject.SetActive(true);
+        activeSidebarItems.Add(item);
     }
 
     private void ClearDetailSidebarRoot()
     {
         for (var i = 0; i < activeSidebarItems.Count; i++)
         {
-            DestroyIfNeeded(activeSidebarItems[i]);
+            var item = activeSidebarItems[i];
+            if (item == null)
+            {
+                continue;
+            }
+
+            item.text = string.Empty;
+            item.color = defaultSidebarItemColor;
+            item.gameObject.SetActive(false);
+            sidebarItemPool.Push(item);
         }
 
         activeSidebarItems.Clear();
+    }
+
+    private void InitializeDetailSidebarPool()
+    {
+        activeSidebarItems.Clear();
+        sidebarItemPool.Clear();
+        if (prefab_详情侧边栏文本 != null)
+        {
+            defaultSidebarItemColor = prefab_详情侧边栏文本.color;
+        }
+
+        if (root_详情侧边栏内容 == null)
+        {
+            return;
+        }
+
+        for (var i = 0; i < root_详情侧边栏内容.childCount; i++)
+        {
+            var child = root_详情侧边栏内容.GetChild(i);
+            if (child == null)
+            {
+                continue;
+            }
+
+            child.gameObject.SetActive(false);
+            if (!child.TryGetComponent<TMP_Text>(out var item))
+            {
+                Debug.LogError($"侧栏容器子对象 '{child.name}' 缺少 {nameof(TMP_Text)}，无法加入对象池。", child);
+                continue;
+            }
+
+            item.text = string.Empty;
+            item.color = defaultSidebarItemColor;
+            sidebarItemPool.Push(item);
+        }
+    }
+
+    private TMP_Text GetDetailSidebarItem()
+    {
+        while (sidebarItemPool.Count > 0)
+        {
+            var pooledItem = sidebarItemPool.Pop();
+            if (pooledItem != null)
+            {
+                return pooledItem;
+            }
+        }
+
+        return prefab_详情侧边栏文本 == null || root_详情侧边栏内容 == null
+            ? null
+            : Instantiate(prefab_详情侧边栏文本, root_详情侧边栏内容);
+    }
+
+    private void RebuildDetailSidebarLayout()
+    {
+        if (root_详情侧边栏内容 != null)
+        {
+            LayoutRebuilder.ForceRebuildLayoutImmediate(root_详情侧边栏内容);
+        }
+
+        if (go_详情侧边栏 != null && go_详情侧边栏.transform is RectTransform sidebarRect)
+        {
+            LayoutRebuilder.ForceRebuildLayoutImmediate(sidebarRect);
+        }
     }
 
     private void SetDetailSidebarVisible(bool visible)
@@ -408,23 +492,6 @@ public class Popup_BuildingDetails : MonoBehaviour
         if (target != null && target.activeSelf != active)
         {
             target.SetActive(active);
-        }
-    }
-
-    private static void DestroyIfNeeded(GameObject target)
-    {
-        if (target == null)
-        {
-            return;
-        }
-
-        if (Application.isPlaying)
-        {
-            Destroy(target);
-        }
-        else
-        {
-            DestroyImmediate(target);
         }
     }
 

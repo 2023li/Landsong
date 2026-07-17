@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a3b70d7f4d394dd9a76b0bc2e5c6a101, type: 3}
-  m_Name: "TN_1_5_法律"
+  m_Name: "TN_1_5_\u6CD5\u5F8B"
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.TechnologySystem.TechnologyDefinition
-  icon: {fileID: 0}
-  technologyId: "TN_1_5_法律"
-  displayName: "法律"
-  description: "把伦理讨论和统一时间制度转化为公开规则，明确权利、义务与裁断程序。"
+  icon: {fileID: 2597996580673615598, guid: c57366780f4e4844583074ece5c7ee58, type: 3}
+  technologyId: "TN_1_5_\u6CD5\u5F8B"
+  displayName: "\u6CD5\u5F8B"
+  description: "\u628A\u4F26\u7406\u8BA8\u8BBA\u548C\u7EDF\u4E00\u65F6\u95F4\u5236\u5EA6\u8F6C\u5316\u4E3A\u516C\u5F00\u89C4\u5219\uFF0C\u660E\u786E\u6743\u5229\u3001\u4E49\u52A1\u4E0E\u88C1\u65AD\u7A0B\u5E8F\u3002"
   sciencePointCost: 26
   allowRepeatResearch: 0
   prerequisites:

@@ -118,7 +118,11 @@ namespace Landsong.UISystem
 
         private static bool CanDisplayBuilding(BuildingBase building)
         {
-            return building != null && building.isActiveAndEnabled && !building.IsDemolishing;
+            return building != null
+                   && building.isActiveAndEnabled
+                   && !building.IsDemolishing
+                   && building.Definition != null
+                   && building.Definition.ShowInOverview;
         }
 
         private GamePanel_BuildingStatusOverviewItem GetItemFromPool()

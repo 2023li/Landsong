@@ -33,6 +33,11 @@ namespace Landsong.BuildingSystem
         [HideLabel]
         [SerializeField, InspectorName("建筑图标")] private Sprite icon;
 
+        [TitleGroup("概览面板")]
+        [LabelText("在概览面板显示")]
+        [PropertyTooltip("关闭后，该建筑家族的实例不进入建筑概览列表；不影响经济预测、玩法结算、任务统计或存档。")]
+        [SerializeField, InspectorName("在概览面板显示")] private bool showInOverview = true;
+
         [TitleGroup("表现与占地")]
         [LabelText("占地尺寸")]
         [MinValue(1)]
@@ -115,6 +120,7 @@ namespace Landsong.BuildingSystem
             ? (string.IsNullOrWhiteSpace(familyId) ? "未命名建筑" : familyId)
             : displayName;
         public Sprite Icon => icon;
+        public bool ShowInOverview => showInOverview;
         public Vector2Int Size => size;
         public IReadOnlyList<BuildingCost> PlacementCosts => placementCosts ?? Array.Empty<BuildingCost>();
         public int MovementResistance => movementResistance;

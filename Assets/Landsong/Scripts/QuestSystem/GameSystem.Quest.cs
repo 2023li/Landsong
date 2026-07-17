@@ -17,6 +17,9 @@ namespace Landsong
         [SerializeField, FoldoutGroup(InspectorQuest), LabelText("起始任务 ID")]
         private string[] startingQuestIds = Array.Empty<string>();
 
+        [SerializeField, FoldoutGroup(InspectorQuest), LabelText("开局已解锁系统")]
+        private GameFeature[] startingUnlockedFeatures = Array.Empty<GameFeature>();
+
         [SerializeField, FoldoutGroup(InspectorQuest), LabelText("开局随机任务数量"), Min(0)]
         private int startingRandomQuestCount = 1;
 
@@ -100,6 +103,20 @@ namespace Landsong
             {
                 startingQuestIds[i] = GameQuestDefinition.NormalizeQuestId(startingQuestIds[i]);
             }
+
+            startingUnlockedFeatures ??= Array.Empty<GameFeature>();
+            var normalizedFeatures = new System.Collections.Generic.List<GameFeature>();
+            var seenFeatures = new System.Collections.Generic.HashSet<GameFeature>();
+            for (var i = 0; i < startingUnlockedFeatures.Length; i++)
+            {
+                var feature = startingUnlockedFeatures[i];
+                if (GameFeatureUnlockService.IsValid(feature) && seenFeatures.Add(feature))
+                {
+                    normalizedFeatures.Add(feature);
+                }
+            }
+
+            startingUnlockedFeatures = normalizedFeatures.ToArray();
         }
     }
 }

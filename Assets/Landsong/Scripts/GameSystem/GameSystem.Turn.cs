@@ -148,8 +148,15 @@ namespace Landsong
             ClearMissingResearchWarning();
             ApplyTechnologyResearchPoints(summary.ToTurn);
             SettleTalentsForTurn(summary.ToTurn);
-            SettleInheritanceForTurn(summary.ToTurn);
-            SettleExpeditionsForTurn(summary.ToTurn);
+            if (Features != null && Features.IsUnlocked(GameFeature.Inheritance))
+            {
+                SettleInheritanceForTurn(summary.ToTurn);
+            }
+
+            if (Features != null && Features.IsUnlocked(GameFeature.Expedition))
+            {
+                SettleExpeditionsForTurn(summary.ToTurn);
+            }
 
             if (!endGameWhenNoPalaceAtTurnEnd || IsGameOver)
             {

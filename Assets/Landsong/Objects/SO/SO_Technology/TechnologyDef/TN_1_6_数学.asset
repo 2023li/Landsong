@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a3b70d7f4d394dd9a76b0bc2e5c6a101, type: 3}
-  m_Name: "TN_1_6_数学"
+  m_Name: "TN_1_6_\u6570\u5B66"
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.TechnologySystem.TechnologyDefinition
-  icon: {fileID: 0}
-  technologyId: "TN_1_6_数学"
-  displayName: "数学"
-  description: "从规则度量与轮轴比例中提炼数量关系，建立可复用的计算方法。"
+  icon: {fileID: 21300000, guid: 7bdb54924a56327458cb5f15f813541b, type: 3}
+  technologyId: "TN_1_6_\u6570\u5B66"
+  displayName: "\u6570\u5B66"
+  description: "\u4ECE\u89C4\u5219\u5EA6\u91CF\u4E0E\u8F6E\u8F74\u6BD4\u4F8B\u4E2D\u63D0\u70BC\u6570\u91CF\u5173\u7CFB\uFF0C\u5EFA\u7ACB\u53EF\u590D\u7528\u7684\u8BA1\u7B97\u65B9\u6CD5\u3002"
   sciencePointCost: 36
   allowRepeatResearch: 0
   prerequisites:

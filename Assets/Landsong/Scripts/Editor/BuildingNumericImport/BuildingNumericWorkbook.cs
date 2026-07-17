@@ -225,6 +225,15 @@ namespace Landsong.EditorTools.Buildings.NumericImport
         public int SaplingReward;
     }
 
+    internal sealed class FiniteHarvestNumericRow : BuildingNumericSourceRow
+    {
+        public FiniteHarvestNumericRow(string sheet, int row) : base(sheet, row) { }
+        public string FamilyId;
+        public string RewardItemId;
+        public int RewardPerDoubleClick;
+        public int MaxSuccessfulHarvests;
+    }
+
     internal sealed class MaintenanceNumericRow : BuildingNumericSourceRow
     {
         public MaintenanceNumericRow(string sheet, int row) : base(sheet, row) { }
@@ -359,6 +368,8 @@ namespace Landsong.EditorTools.Buildings.NumericImport
         public readonly List<WarehouseNumericRow> Warehouses = new List<WarehouseNumericRow>();
         public readonly List<MarketNumericRow> Markets = new List<MarketNumericRow>();
         public readonly List<TreeNumericRow> Trees = new List<TreeNumericRow>();
+        public readonly List<FiniteHarvestNumericRow> FiniteHarvests =
+            new List<FiniteHarvestNumericRow>();
         public readonly List<SpatialEffectNumericRow> SpatialEffects = new List<SpatialEffectNumericRow>();
         public readonly List<CropNumericRow> Crops = new List<CropNumericRow>();
         public readonly List<CropCostNumericRow> CropPlantCosts = new List<CropCostNumericRow>();
@@ -368,7 +379,7 @@ namespace Landsong.EditorTools.Buildings.NumericImport
 
     internal static class BuildingNumericWorkbookReader
     {
-        public const int SupportedSchemaVersion = 9;
+        public const int SupportedSchemaVersion = 10;
         private const int HeaderRow = 4;
         private const int FirstDataRow = 5;
 
@@ -430,6 +441,7 @@ namespace Landsong.EditorTools.Buildings.NumericImport
             ReadWarehouses(workbook, data, report);
             ReadMarkets(workbook, data, report);
             ReadTrees(workbook, data, report);
+            ReadFiniteHarvests(workbook, data, report);
             ReadSpatialEffects(workbook, data, report);
             ReadTechnologyGlobalBuffs(workbook, data, report);
             ReadTechnologyInventoryLossBuffs(workbook, data, report);
@@ -663,6 +675,31 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                     MaxHealth = Integer(row, "最高生命", report), DamagePerDoubleClick = Integer(row, "双击伤害", report),
                     WoodItemId = Required(row, "WoodItemId", report), WoodReward = Integer(row, "原木奖励", report),
                     SaplingItemId = Required(row, "SaplingItemId", report), SaplingReward = Integer(row, "树苗奖励", report)
+                });
+            }
+        }
+
+        private static void ReadFiniteHarvests(
+            XlsxRawWorkbook workbook,
+            BuildingNumericWorkbookData data,
+            BuildingNumericImportReport report)
+        {
+            const string sheet = "模块_有限采集";
+            foreach (var row in ReadRows(
+                         workbook,
+                         sheet,
+                         report,
+                         "FamilyId",
+                         "ItemId",
+                         "每次双击产出",
+                         "最大成功采集次数"))
+            {
+                data.FiniteHarvests.Add(new FiniteHarvestNumericRow(sheet, row.Row)
+                {
+                    FamilyId = Required(row, "FamilyId", report),
+                    RewardItemId = Required(row, "ItemId", report),
+                    RewardPerDoubleClick = Integer(row, "每次双击产出", report),
+                    MaxSuccessfulHarvests = Integer(row, "最大成功采集次数", report)
                 });
             }
         }

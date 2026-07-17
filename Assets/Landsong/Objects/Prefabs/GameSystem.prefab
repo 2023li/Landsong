@@ -51,15 +51,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.GameSystem
   itemCatalog: {fileID: 11400000, guid: e2c81a8a674606a49a32677d2a1b16d5, type: 2}
   inventorySlotTypeCatalog: {fileID: 11400000, guid: 96251d877b8023642902d042afcafa11, type: 2}
-  startingItems:
-  - itemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
-    amount: 300
-  - itemDefinition: {fileID: 11400000, guid: 83207646c27978649aad0c621fe5e93d, type: 2}
-    amount: 50
-  - itemDefinition: {fileID: 11400000, guid: 6293531210d744e8b03f1b99017467c3, type: 2}
-    amount: 50
-  - itemDefinition: {fileID: 11400000, guid: 52d28e7de1d658444b6a2fb735c56e85, type: 2}
-    amount: 50
+  startingItems: []
   startingDynastyName: "\u65E0\u540D\u738B\u671D"
   startingPopulation: 0
   endGameWhenNoPalaceAtTurnEnd: 1
@@ -110,8 +102,13 @@ MonoBehaviour:
   logTurnResult: 1
   questCatalog: {fileID: 11400000, guid: c0b27c22afc24a00b819e316442cdb10, type: 2}
   startingQuestIds:
+  - main_camera_survey
+  - main_collect_building_materials
   - main_build_farms_3
+  - main_plant_farms_3
   - main_build_residential_houses_3
+  - main_select_technology
+  startingUnlockedFeatures: []
   startingRandomQuestCount: 1
   maxActiveRandomQuests: 2
   randomQuestRefreshIntervalTurns: 3
@@ -135,7 +132,6 @@ MonoBehaviour:
   controlsWorldOffset: {x: 0, y: -0.5, z: 0}
   placementControls: {fileID: 0}
   cancelPlacementOnDisable: 1
-  demolitionClickMaxMovementPixels: 8
 --- !u!114 &5898616053397243020
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -167,7 +163,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.UISystem.BuildingResourceFloatTextManager
   floatTextPrefab: {fileID: 328805843825456254, guid: 728110ece4d34c543acee5c41c1844a1, type: 3}
-  markerWorldOffset: {x: 0, y: 1.5, z: 0}
+  markerWorldOffset: {x: 0, y: 0.25, z: 0}
   markerScreenOffset: {x: 0, y: 0}
   hideWhenOffscreen: 1
   maxActiveFloatTexts: 3
@@ -195,7 +191,6 @@ MonoBehaviour:
   hideOperationBarWhenOffscreen: 1
   cameraController: {fileID: 0}
   updateSelectionOnWorldClick: 1
-  selectionClickMaxMovementPixels: 8
 --- !u!114 &2403931408829785291
 MonoBehaviour:
   m_ObjectHideFlags: 0

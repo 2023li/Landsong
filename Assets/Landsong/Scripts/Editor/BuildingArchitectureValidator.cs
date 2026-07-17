@@ -534,6 +534,17 @@ namespace Landsong.Editor
                     ValidateItemDefinition(tree.WoodItemDefinition, $"{prefix} 原木物品", report);
                     ValidateItemDefinition(tree.SaplingItemDefinition, $"{prefix} 树苗物品", report);
                     break;
+                case BM_有限次数采集 finiteHarvest:
+                    ValidateItemDefinition(
+                        finiteHarvest.RewardItemDefinition,
+                        $"{prefix} 采集产出物品",
+                        report);
+                    if (finiteHarvest.RewardAmountPerDoubleClick < 1
+                        || finiteHarvest.MaxSuccessfulHarvests < 1)
+                    {
+                        report.Error($"{prefix} 的每次产出和最大成功采集次数必须大于 0。");
+                    }
+                    break;
                 case BM_仓库运营 warehouse:
                     ValidateItemDefinition(warehouse.MaintenanceItemDefinition, $"{prefix} 维护费物品", report);
                     break;
@@ -917,6 +928,17 @@ namespace Landsong.Editor
                 || prefab.GetComponentInChildren<Collider2D>(true) != null)
             {
                 report.Error($"{label} 的 View Prefab 含 Collider；碰撞与占地属于 Runtime Prefab：{AssetDatabase.GetAssetPath(prefab)}");
+            }
+
+            var behaviours = prefab.GetComponentsInChildren<MonoBehaviour>(true);
+            for (var i = 0; i < behaviours.Length; i++)
+            {
+                if (behaviours[i] is IBuildingViewStateConfiguration configuration
+                    && !configuration.TryValidateConfiguration(out var error))
+                {
+                    report.Error(
+                        $"{label} 的状态表现配置无效：{error}（{AssetDatabase.GetAssetPath(prefab)}）");
+                }
             }
         }
 

@@ -817,6 +817,16 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                     row.SaplingReward);
             }
 
+            var finiteHarvest = modules.OfType<BM_有限次数采集>().FirstOrDefault();
+            if (finiteHarvest != null)
+            {
+                var row = session.Data.FiniteHarvests.Single(value => value.FamilyId == familyId);
+                finiteHarvest.ApplyConfiguration(
+                    session.Items[row.RewardItemId],
+                    row.RewardPerDoubleClick,
+                    row.MaxSuccessfulHarvests);
+            }
+
             var crop = modules.OfType<BuildingCropGrowthModule>().FirstOrDefault();
             if (crop != null)
             {
@@ -1190,6 +1200,11 @@ namespace Landsong.EditorTools.Buildings.NumericImport
             ValidateUnique(data.Markets, row => row.FamilyId, "市场模块 FamilyId 重复", report);
             ValidateUnique(data.Trees, row => row.FamilyId, "树木模块 FamilyId 重复", report);
             ValidateUnique(
+                data.FiniteHarvests,
+                row => row.FamilyId,
+                "有限采集模块 FamilyId 重复",
+                report);
+            ValidateUnique(
                 data.SpatialEffects,
                 row => $"{row.FamilyId}\u001f{row.EffectId}",
                 "范围效果 FamilyId + EffectId 重复",
@@ -1207,6 +1222,20 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                 RequireItem(row.SaplingItemId, row, items, report);
                 if (row.MinHealth < 1 || row.MaxHealth < row.MinHealth || row.DamagePerDoubleClick < 1 || row.WoodReward < 0 || row.SaplingReward < 0)
                     report.Error("树木生命、伤害或奖励参数非法。", row.Sheet, row.Row);
+            }
+            foreach (var row in data.FiniteHarvests)
+            {
+                ValidateModulePresence(
+                    row.FamilyId,
+                    row,
+                    families,
+                    typeof(BM_有限次数采集),
+                    report);
+                RequireItem(row.RewardItemId, row, items, report);
+                if (row.RewardPerDoubleClick < 1 || row.MaxSuccessfulHarvests < 1)
+                {
+                    report.Error("每次双击产出和最大成功采集次数必须大于 0。", row.Sheet, row.Row);
+                }
             }
             foreach (var row in data.Maintenance)
             {
@@ -1341,6 +1370,11 @@ namespace Landsong.EditorTools.Buildings.NumericImport
                     report.Error($"{family.FamilyId} 的市场模块必须有且只有一行配置。");
                 if (HasModule(family, typeof(BM_树木采集)) && data.Trees.Count(row => row.FamilyId == family.FamilyId) != 1)
                     report.Error($"{family.FamilyId} 的树木模块必须有且只有一行配置。");
+                if (HasModule(family, typeof(BM_有限次数采集))
+                    && data.FiniteHarvests.Count(row => row.FamilyId == family.FamilyId) != 1)
+                {
+                    report.Error($"{family.FamilyId} 的有限采集模块必须有且只有一行配置。");
+                }
                 var spatialEffectSource = family.ModuleSet?.BuildingModules
                     .OfType<BM_空间效果源>()
                     .FirstOrDefault(module => module.IsEnabled);
@@ -1939,6 +1973,7 @@ namespace Landsong.EditorTools.Buildings.NumericImport
         {
             return HasModule(family, typeof(BM_市场资源结算))
                    || HasModule(family, typeof(BM_树木采集))
+                   || HasModule(family, typeof(BM_有限次数采集))
                    || HasModule(family, typeof(BuildingCropGrowthModule));
         }
 

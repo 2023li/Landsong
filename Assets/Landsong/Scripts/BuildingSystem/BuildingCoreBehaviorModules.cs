@@ -587,4 +587,147 @@ namespace Landsong.BuildingSystem
             currentHealth = Mathf.Max(0, state?.CurrentHealth ?? 0);
         }
     }
+
+    [Serializable]
+    [BuildingModuleId("harvestable.finite")]
+    public sealed class BM_有限次数采集 : BuildingModuleBase,
+        IBuildingModuleInitialized,
+        IBuildingModuleDoubleClicked,
+        IBuildingModuleStateSerializer,
+        IBuildingFiniteHarvestState
+    {
+        [Serializable]
+        private sealed class FiniteHarvestState
+        {
+            public int SuccessfulHarvests;
+        }
+
+        [SerializeField, AssetsOnly, LabelText("采集产出物品")]
+        private ItemDefinition rewardItemDefinition;
+
+        [SerializeField, LabelText("每次双击产出"), Min(1)]
+        private int rewardAmountPerDoubleClick = 10;
+
+        [SerializeField, LabelText("最大成功采集次数"), Min(1)]
+        private int maxSuccessfulHarvests = 3;
+
+        [SerializeField, ReadOnly, LabelText("已成功采集次数")]
+        private int successfulHarvests;
+
+        [NonSerialized] private BuildingBase owner;
+
+        public override string ModuleDescription =>
+            "每次双击在库存可完整容纳产出时结算一次采集；达到次数上限后拆除建筑。";
+
+        public ItemDefinition RewardItemDefinition => rewardItemDefinition;
+        public int RewardAmountPerDoubleClick => Mathf.Max(1, rewardAmountPerDoubleClick);
+        public int MaxSuccessfulHarvests => Mathf.Max(1, maxSuccessfulHarvests);
+        public int SuccessfulHarvests => Mathf.Clamp(successfulHarvests, 0, MaxSuccessfulHarvests);
+        public int RemainingHarvests => Mathf.Max(0, MaxSuccessfulHarvests - SuccessfulHarvests);
+        public int RemainingRewardAmount => RemainingHarvests * RewardAmountPerDoubleClick;
+        private string RewardItemId => rewardItemDefinition == null
+            ? string.Empty
+            : rewardItemDefinition.ItemId;
+
+        public override void Normalize()
+        {
+            rewardAmountPerDoubleClick = Mathf.Max(1, rewardAmountPerDoubleClick);
+            maxSuccessfulHarvests = Mathf.Max(1, maxSuccessfulHarvests);
+            successfulHarvests = Mathf.Clamp(successfulHarvests, 0, maxSuccessfulHarvests);
+        }
+
+        public void ApplyConfiguration(
+            ItemDefinition rewardDefinition,
+            int amountPerDoubleClick,
+            int maximumSuccessfulHarvests)
+        {
+            rewardItemDefinition = rewardDefinition;
+            rewardAmountPerDoubleClick = amountPerDoubleClick;
+            maxSuccessfulHarvests = maximumSuccessfulHarvests;
+            Normalize();
+        }
+
+        public void OnBuildingInitialized(BuildingBase building)
+        {
+            owner = building;
+            Normalize();
+        }
+
+        public void OnBuildingDoubleClicked(BuildingBase building)
+        {
+            owner = building;
+            if (building == null
+                || !building.IsOperational
+                || RemainingHarvests <= 0
+                || string.IsNullOrWhiteSpace(RewardItemId))
+            {
+                return;
+            }
+
+            var inventory = building.GameSystem?.Services?.Inventory;
+            if (inventory == null
+                || !inventory.TryAddItem(RewardItemId, RewardAmountPerDoubleClick))
+            {
+                return;
+            }
+
+            successfulHarvests++;
+            building.GameSystem?.Services?.Turn?.PublishBuildingResourceProvided(
+                building,
+                new BuildingResourceChange(RewardItemId, RewardAmountPerDoubleClick));
+            owner.NotifyStateChanged();
+            if (RemainingHarvests == 0)
+            {
+                owner.Demolish();
+            }
+        }
+
+        public override string GetOverviewFragment(BuildingBase building) =>
+            $"剩余采集 {RemainingHarvests}/{MaxSuccessfulHarvests}";
+
+        public override void AppendFunctionBlockEntries(
+            BuildingBase building,
+            ref List<BuildingFunctionBlockEntry> entries)
+        {
+            var itemName = rewardItemDefinition == null
+                ? "未配置物品"
+                : rewardItemDefinition.DisplayName;
+            AddFunctionBlockEntry(
+                ref entries,
+                new BuildingFunctionBlockEntry(
+                    BuildingFunctionBlockGroup.功能性,
+                    "有限次数采集",
+                    RemainingHarvests,
+                    new[]
+                    {
+                        new BuildingFunctionBlockSidebarRow(
+                            "剩余采集次数",
+                            $"{RemainingHarvests}/{MaxSuccessfulHarvests}"),
+                        new BuildingFunctionBlockSidebarRow(
+                            "每次获得",
+                            $"{itemName} × {RewardAmountPerDoubleClick}"),
+                        new BuildingFunctionBlockSidebarRow(
+                            "剩余总产出",
+                            RemainingRewardAmount.ToString())
+                    }));
+        }
+
+        public bool TryCaptureState(out string json)
+        {
+            json = JsonUtility.ToJson(
+                new FiniteHarvestState { SuccessfulHarvests = SuccessfulHarvests });
+            return true;
+        }
+
+        public void RestoreState(string json)
+        {
+            var state = string.IsNullOrWhiteSpace(json)
+                ? null
+                : JsonUtility.FromJson<FiniteHarvestState>(json);
+            successfulHarvests = Mathf.Clamp(
+                state?.SuccessfulHarvests ?? 0,
+                0,
+                MaxSuccessfulHarvests);
+        }
+    }
 }

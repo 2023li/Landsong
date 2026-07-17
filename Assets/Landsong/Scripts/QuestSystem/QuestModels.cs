@@ -10,7 +10,11 @@ namespace Landsong
     public enum QuestObjectiveType
     {
         BuildBuildings = 1,
-        SubmitResources = 2
+        SubmitResources = 2,
+        MoveCamera = 3,
+        CollectResources = 4,
+        PlantCrops = 5,
+        SelectTechnology = 6
     }
 
     public enum QuestCategory
@@ -36,7 +40,7 @@ namespace Landsong
         [SerializeField, LabelText("任务描述"), TextArea] private string description;
         [SerializeField, LabelText("任务机制")] private QuestCategory category = QuestCategory.Mainline;
         [SerializeField, LabelText("任务类型")] private QuestObjectiveType objectiveType = QuestObjectiveType.BuildBuildings;
-        [SerializeField, LabelText("期限回合数"), Min(1)] private int turnLimit = 10;
+        [SerializeField, LabelText("期限回合数（0 = 不限时）"), Min(0)] private int turnLimit;
         [SerializeField, LabelText("前置任务ID")] private string[] prerequisiteQuestIds = Array.Empty<string>();
 
         [SerializeField, LabelText("目标建筑")] private BuildingBase targetBuilding;
@@ -44,6 +48,7 @@ namespace Landsong
 
         [SerializeField, LabelText("提交资源")] private ItemAmount[] requiredResources = Array.Empty<ItemAmount>();
         [SerializeField, LabelText("完成奖励")] private ItemAmount[] rewards = Array.Empty<ItemAmount>();
+        [SerializeField, LabelText("系统解锁奖励")] private GameFeature[] unlockedFeatures = Array.Empty<GameFeature>();
         [SerializeField, HideInInspector] private bool runtimeGenerated;
 
         public string QuestId => NormalizeQuestId(questId);
@@ -53,7 +58,8 @@ namespace Landsong
         public string Description => string.IsNullOrWhiteSpace(description) ? string.Empty : description.Trim();
         public QuestCategory Category => NormalizeQuestCategory(category);
         public QuestObjectiveType ObjectiveType => objectiveType;
-        public int TurnLimit => Mathf.Max(1, turnLimit);
+        public int TurnLimit => Mathf.Max(0, turnLimit);
+        public bool IsTimed => TurnLimit > 0;
         public IReadOnlyList<string> PrerequisiteQuestIds => prerequisiteQuestIds ?? Array.Empty<string>();
         public BuildingBase TargetBuilding => targetBuilding;
         public string TargetBuildingId => targetBuilding == null || !targetBuilding.HasDefinition
@@ -68,6 +74,7 @@ namespace Landsong
         public int TargetBuildingCount => Mathf.Max(1, targetBuildingCount);
         public IReadOnlyList<ItemAmount> RequiredResources => requiredResources ?? Array.Empty<ItemAmount>();
         public IReadOnlyList<ItemAmount> Rewards => rewards ?? Array.Empty<ItemAmount>();
+        public IReadOnlyList<GameFeature> UnlockedFeatures => unlockedFeatures ?? Array.Empty<GameFeature>();
         public bool IsRuntimeGenerated => runtimeGenerated;
         public bool HasRewards => HasAnyReward();
         public bool IsValid => !string.IsNullOrWhiteSpace(QuestId) && HasValidObjective();
@@ -78,7 +85,7 @@ namespace Landsong
             displayName = string.IsNullOrWhiteSpace(displayName) ? string.Empty : displayName.Trim();
             description = string.IsNullOrWhiteSpace(description) ? string.Empty : description.Trim();
             category = NormalizeQuestCategory(category);
-            turnLimit = Mathf.Max(1, turnLimit);
+            turnLimit = Mathf.Max(0, turnLimit);
             prerequisiteQuestIds = NormalizeQuestIds(prerequisiteQuestIds);
             targetBuildingCount = Mathf.Max(1, targetBuildingCount);
 
@@ -101,6 +108,8 @@ namespace Landsong
             {
                 rewards[i] = rewards[i].Normalized();
             }
+
+            unlockedFeatures = NormalizeFeatures(unlockedFeatures);
         }
 
         public static GameQuestDefinition CreateRuntimeSubmitResourcesQuest(
@@ -119,7 +128,7 @@ namespace Landsong
                 description = string.IsNullOrWhiteSpace(description) ? string.Empty : description.Trim(),
                 category = NormalizeQuestCategory(category),
                 objectiveType = QuestObjectiveType.SubmitResources,
-                turnLimit = Mathf.Max(1, turnLimit),
+                turnLimit = Mathf.Max(0, turnLimit),
                 requiredResources = CopyValidItemAmounts(requiredResources),
                 rewards = CopyValidItemAmounts(rewards),
                 runtimeGenerated = true
@@ -167,6 +176,10 @@ namespace Landsong
             {
                 QuestObjectiveType.BuildBuildings => !string.IsNullOrWhiteSpace(TargetBuildingId) && TargetBuildingCount > 0,
                 QuestObjectiveType.SubmitResources => HasAnyRequiredResource(),
+                QuestObjectiveType.MoveCamera => true,
+                QuestObjectiveType.CollectResources => HasAnyRequiredResource(),
+                QuestObjectiveType.PlantCrops => !string.IsNullOrWhiteSpace(TargetBuildingId) && TargetBuildingCount > 0,
+                QuestObjectiveType.SelectTechnology => true,
                 _ => false
             };
         }
@@ -191,6 +204,17 @@ namespace Landsong
 
         private bool HasAnyReward()
         {
+            if (unlockedFeatures != null)
+            {
+                for (var i = 0; i < unlockedFeatures.Length; i++)
+                {
+                    if (GameFeatureUnlockService.IsValid(unlockedFeatures[i]))
+                    {
+                        return true;
+                    }
+                }
+            }
+
             if (rewards == null)
             {
                 return false;
@@ -205,6 +229,26 @@ namespace Landsong
             }
 
             return false;
+        }
+
+        private static GameFeature[] NormalizeFeatures(IEnumerable<GameFeature> source)
+        {
+            if (source == null)
+            {
+                return Array.Empty<GameFeature>();
+            }
+
+            var result = new List<GameFeature>();
+            var seen = new HashSet<GameFeature>();
+            foreach (var feature in source)
+            {
+                if (GameFeatureUnlockService.IsValid(feature) && seen.Add(feature))
+                {
+                    result.Add(feature);
+                }
+            }
+
+            return result.Count == 0 ? Array.Empty<GameFeature>() : result.ToArray();
         }
 
         private static ItemAmount[] CopyValidItemAmounts(IEnumerable<ItemAmount> source)
@@ -236,9 +280,11 @@ namespace Landsong
         public int RequiredAmount { get; internal set; }
         public int SubmittedAmount { get; internal set; }
         public int InventoryAmount { get; internal set; }
+        public bool TracksInventoryAmount { get; internal set; }
         public string DisplayName => ItemDefinition == null ? ItemId : ItemDefinition.DisplayName;
-        public int RemainingAmount => Mathf.Max(0, RequiredAmount - SubmittedAmount);
-        public bool IsComplete => RequiredAmount <= 0 || SubmittedAmount >= RequiredAmount;
+        public int ProgressAmount => TracksInventoryAmount ? InventoryAmount : SubmittedAmount;
+        public int RemainingAmount => Mathf.Max(0, RequiredAmount - ProgressAmount);
+        public bool IsComplete => RequiredAmount <= 0 || ProgressAmount >= RequiredAmount;
     }
 
     [Serializable]
@@ -258,7 +304,9 @@ namespace Landsong
             QuestId = definition == null ? string.Empty : definition.QuestId;
             Category = GameQuestDefinition.NormalizeQuestCategory(category);
             StartedTurn = Mathf.Max(1, startedTurn);
-            DeadlineTurn = StartedTurn + Mathf.Max(1, definition == null ? 1 : definition.TurnLimit) - 1;
+            DeadlineTurn = definition != null && definition.IsTimed
+                ? StartedTurn + definition.TurnLimit - 1
+                : 0;
             Status = QuestStatus.Active;
         }
 
@@ -281,15 +329,18 @@ namespace Landsong
         public bool CanClaimRewards => IsCompleted;
         public bool IsMainline => Category == QuestCategory.Mainline;
         public bool IsRandom => Category == QuestCategory.Random;
+        public bool IsTimed => Definition != null && Definition.IsTimed;
         public string CategoryDisplayName => IsRandom ? "随机" : "主线";
         public bool IsResourceSubmission => Definition != null && Definition.ObjectiveType == QuestObjectiveType.SubmitResources;
+        public bool IsResourceCollection => Definition != null && Definition.ObjectiveType == QuestObjectiveType.CollectResources;
+        public bool IsResourceObjective => IsResourceSubmission || IsResourceCollection;
         public int TotalRequiredAmount => TargetAmount;
         public int TotalSubmittedAmount => CurrentAmount;
         public float Progress01 => TargetAmount <= 0 ? 1f : Mathf.Clamp01(CurrentAmount / (float)TargetAmount);
 
         public int GetRemainingTurns(int currentTurn)
         {
-            if (StartedTurn <= 0 || DeadlineTurn <= 0)
+            if (!IsTimed || StartedTurn <= 0 || DeadlineTurn <= 0)
             {
                 return 0;
             }
@@ -368,7 +419,7 @@ namespace Landsong
         public QuestCategory Category = QuestCategory.Mainline;
         public QuestStatus Status = QuestStatus.Active;
         public int StartedTurn = 1;
-        public int DeadlineTurn = 1;
+        public int DeadlineTurn;
         public List<QuestResourceSubmissionSaveData> SubmittedResources =
             new List<QuestResourceSubmissionSaveData>();
         public QuestGeneratedDefinitionSaveData GeneratedDefinition;
@@ -379,7 +430,7 @@ namespace Landsong
             Category = GameQuestDefinition.NormalizeQuestCategory(Category);
             Status = NormalizeQuestStatus(Status);
             StartedTurn = Mathf.Max(1, StartedTurn);
-            DeadlineTurn = Mathf.Max(StartedTurn, DeadlineTurn);
+            DeadlineTurn = DeadlineTurn <= 0 ? 0 : Mathf.Max(StartedTurn, DeadlineTurn);
             SubmittedResources ??= new List<QuestResourceSubmissionSaveData>();
             GeneratedDefinition?.Validate();
 
@@ -447,7 +498,7 @@ namespace Landsong
             Category = GameQuestDefinition.NormalizeQuestCategory(Category);
             DisplayName = string.IsNullOrWhiteSpace(DisplayName) ? string.Empty : DisplayName.Trim();
             Description = string.IsNullOrWhiteSpace(Description) ? string.Empty : Description.Trim();
-            TurnLimit = Mathf.Max(1, TurnLimit);
+            TurnLimit = Mathf.Max(0, TurnLimit);
             RequiredResources = NormalizeItemAmounts(RequiredResources);
             Rewards = NormalizeItemAmounts(Rewards);
         }

@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad4cbf49b35f06744b7e4297512a9e5f, type: 3}
+  m_Name: SmallStonePile
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingFamilyDefinition
+  definition:
+    familyId: building.small_stone_pile
+    displayName: "\u5C0F\u77F3\u5806"
+    category: 4
+    icon: {fileID: 21300000, guid: cfdcfaaf30eb3b647afb4ea2414cef08, type: 3}
+    showInOverview: 0
+    size: {x: 1, y: 1}
+    ignoreTerrainRequirement: 0
+    requiredTerrainKeys:
+    - "\u9646\u5730"
+    requiredAnyFootprintTerrainKeys: []
+    movementResistance: 0
+    placementCosts: []
+    visibleCondition:
+      rid: 5711026600000000002
+    automaticBlueprintUnlockCondition:
+      rid: -2
+    blueprintInitiallyLocked: 0
+    hideWhenBlueprintLocked: 0
+    buildMenuSortOrder: 0
+    maxBuildCount: 0
+    buildLimitGroupId: building.small_stone_pile
+    isDevelopmentCompleted: 1
+  runtimePrefab: {fileID: 2647462821249972172, guid: 9825ed4ab60f4d9da77a038a8a9ec8e9, type: 3}
+  construction:
+    turns:
+    - costs: []
+      rewards: []
+  levels:
+  - level: 1
+    configured: 1
+    upgradeCondition:
+      rid: -2
+    upgradeCosts: []
+    configurations: []
+  moduleSet: {fileID: 11400000, guid: bea6557e06cd41cc8b431d4a34f27d4b, type: 2}
+  presentation: {fileID: 11400000, guid: 4004f67ec317448297a6265698f39883, type: 2}
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 5711026600000000002
+      type: {class: GameCondition_False, ns: Landsong.ConditionSystem, asm: Assembly-CSharp}
+      data: 

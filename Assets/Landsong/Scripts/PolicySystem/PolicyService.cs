@@ -7,7 +7,8 @@ namespace Landsong.PolicySystem
     {
         None = 0,
         PolicyNotFound = 1,
-        InsufficientPublicOpinion = 2
+        InsufficientPublicOpinion = 2,
+        FeatureLocked = 3
     }
 
     public readonly struct PolicySelectionResult
@@ -74,17 +75,21 @@ namespace Landsong.PolicySystem
 
     public sealed class PolicyService
     {
+        private static readonly IReadOnlyCollection<string> EmptyPolicyIds = Array.Empty<string>();
         private readonly PolicyCatalog catalog;
+        private readonly Func<bool> featureAvailability;
         private readonly Dictionary<PolicySlotKey, string> selectedPolicyIdsBySlot =
             new Dictionary<PolicySlotKey, string>();
         private readonly HashSet<string> activePolicyIds = new HashSet<string>(StringComparer.Ordinal);
 
         public PolicyService(
             PolicyCatalog catalog,
+            Func<bool> featureAvailability,
             int startingPublicOpinion = 0,
             IEnumerable<PolicyDefinition> startingSelectedPolicies = null)
         {
             this.catalog = catalog;
+            this.featureAvailability = featureAvailability;
             PublicOpinion = Math.Max(0, startingPublicOpinion);
             RestoreSelections(startingSelectedPolicies);
             RebuildActivePolicyIds();
@@ -92,8 +97,11 @@ namespace Landsong.PolicySystem
 
         public int PublicOpinion { get; private set; }
         public PolicyCatalog Catalog => catalog;
-        public IReadOnlyCollection<string> SelectedPolicyIds => selectedPolicyIdsBySlot.Values;
-        public IReadOnlyCollection<string> ActivePolicyIds => activePolicyIds;
+        public bool IsAvailable => featureAvailability == null || featureAvailability();
+        public IReadOnlyCollection<string> SelectedPolicyIds => IsAvailable
+            ? selectedPolicyIdsBySlot.Values
+            : EmptyPolicyIds;
+        public IReadOnlyCollection<string> ActivePolicyIds => IsAvailable ? activePolicyIds : EmptyPolicyIds;
 
         public event Action<PolicyService> PublicOpinionChanged;
         public event Action<PolicyService, PolicyDefinition, PolicyDefinition> SelectionChanged;
@@ -125,12 +133,18 @@ namespace Landsong.PolicySystem
 
         public bool CanSelectPolicy(string policyId)
         {
-            return TryGetDefinition(policyId, out var definition)
+            return IsAvailable
+                   && TryGetDefinition(policyId, out var definition)
                    && PublicOpinion >= definition.RequiredPublicOpinion;
         }
 
         public PolicySelectionResult TrySelectPolicy(string policyId)
         {
+            if (!IsAvailable)
+            {
+                return PolicySelectionResult.Failure(PolicySelectionError.FeatureLocked);
+            }
+
             if (!TryGetDefinition(policyId, out var definition))
             {
                 return PolicySelectionResult.Failure(PolicySelectionError.PolicyNotFound);
@@ -160,7 +174,7 @@ namespace Landsong.PolicySystem
 
         public bool TryClearSelection(string treeId, int tier)
         {
-            if (string.IsNullOrWhiteSpace(treeId) || tier < 1)
+            if (!IsAvailable || string.IsNullOrWhiteSpace(treeId) || tier < 1)
             {
                 return false;
             }
@@ -182,7 +196,7 @@ namespace Landsong.PolicySystem
 
         public PolicyDefinition GetSelectedPolicy(string treeId, int tier)
         {
-            if (string.IsNullOrWhiteSpace(treeId) || tier < 1)
+            if (!IsAvailable || string.IsNullOrWhiteSpace(treeId) || tier < 1)
             {
                 return null;
             }
@@ -192,7 +206,7 @@ namespace Landsong.PolicySystem
 
         public bool IsPolicySelected(string policyId)
         {
-            if (!TryGetDefinition(policyId, out var definition))
+            if (!IsAvailable || !TryGetDefinition(policyId, out var definition))
             {
                 return false;
             }
@@ -204,7 +218,17 @@ namespace Landsong.PolicySystem
         public bool IsPolicyActive(string policyId)
         {
             var normalizedId = PolicySaveData.NormalizeId(policyId);
-            return !string.IsNullOrEmpty(normalizedId) && activePolicyIds.Contains(normalizedId);
+            return IsAvailable
+                   && !string.IsNullOrEmpty(normalizedId)
+                   && activePolicyIds.Contains(normalizedId);
+        }
+
+        internal void NotifyFeatureAvailabilityChanged()
+        {
+            var previouslyActive = new HashSet<string>(activePolicyIds, StringComparer.Ordinal);
+            RebuildActivePolicyIds();
+            PublishActivationChanges(previouslyActive);
+            StateChanged?.Invoke(this);
         }
 
         public PolicySaveData CaptureSaveData()
@@ -299,6 +323,11 @@ namespace Landsong.PolicySystem
         private void RebuildActivePolicyIds()
         {
             activePolicyIds.Clear();
+            if (!IsAvailable)
+            {
+                return;
+            }
+
             foreach (var policyId in selectedPolicyIdsBySlot.Values)
             {
                 if (TryGetDefinition(policyId, out var definition)

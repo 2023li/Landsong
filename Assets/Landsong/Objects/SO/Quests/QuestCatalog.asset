@@ -13,7 +13,11 @@ MonoBehaviour:
   m_Name: QuestCatalog
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.QuestCatalog
   definitions:
+  - {fileID: 11400000, guid: a19d713c42b64c43a20dd5a217e5b851, type: 2}
+  - {fileID: 11400000, guid: b27f8ad13c5b4d8f9ca9e78e98742b62, type: 2}
   - {fileID: 11400000, guid: eedeac8ab5284f0f95dfeede5ec46f23, type: 2}
+  - {fileID: 11400000, guid: c35e2b8c98ef48e0be8bcf807ce3f943, type: 2}
   - {fileID: 11400000, guid: 65f9e333c83144f9bf9bca0cd1be3cb5, type: 2}
+  - {fileID: 11400000, guid: d46c670dc1154b8aa57b4564ea284fa4, type: 2}
   runtimeExchangeQuestRules: []
   folderPath: Assets/Landsong/Objects/SO/Quests

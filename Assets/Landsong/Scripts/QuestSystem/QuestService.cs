@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using Landsong.BuildingSystem;
+using Landsong.CameraSystem;
 using Landsong.GameEventSystem;
 using Landsong.InventorySystem;
+using Landsong.TechnologySystem;
 using Landsong.TurnSystem;
 using UnityEngine;
 
@@ -18,6 +20,7 @@ namespace Landsong
 
         private readonly GameSystem context;
         private readonly List<GameQuestState> quests = new List<GameQuestState>();
+        private readonly HashSet<BuildingBase> subscribedQuestBuildingStates = new HashSet<BuildingBase>();
 
         private GameQuestDefinition[] startingQuests = Array.Empty<GameQuestDefinition>();
         private GameQuestDefinition[] randomQuestPool = Array.Empty<GameQuestDefinition>();
@@ -29,6 +32,8 @@ namespace Landsong
         private InventoryService subscribedQuestInventory;
         private BuildingService subscribedQuestBuildings;
         private TurnService subscribedQuestTurn;
+        private TechnologyService subscribedQuestTechnology;
+        private bool subscribedQuestCameraInput;
         private bool questsInitialized;
         private bool suppressQuestInventoryRefresh;
         private bool suppressQuestRuntimeMessages;
@@ -47,6 +52,8 @@ namespace Landsong
         private InventoryService Inventory => context.Services.Inventory;
         private BuildingService Buildings => context.Services.Buildings;
         private TurnService Turn => context.Services.Turn;
+        private TechnologyService Technology => context.Services.Technology;
+        private GameFeatureUnlockService Features => context.Services.Features;
         private GameEventService Events => context.Services.Events;
         private ItemCatalog itemCatalog => context.QuestItemCatalog;
         private int CurrentTurn => Turn == null ? 1 : Turn.CurrentTurn;
@@ -174,7 +181,9 @@ namespace Landsong
                     Category = quest.Category,
                     Status = quest.Status,
                     StartedTurn = quest.StartedTurn,
-                    DeadlineTurn = Mathf.Max(quest.StartedTurn, quest.DeadlineTurn),
+                    DeadlineTurn = quest.IsTimed
+                        ? Mathf.Max(quest.StartedTurn, quest.DeadlineTurn)
+                        : 0,
                     SubmittedResources = new List<QuestResourceSubmissionSaveData>(),
                     GeneratedDefinition = quest.Definition.IsRuntimeGenerated
                         ? QuestGeneratedDefinitionSaveData.FromDefinition(quest.Definition)
@@ -323,8 +332,16 @@ namespace Landsong
                 return false;
             }
 
-            if (!TryApplyQuestRewards(quest))
+            if (!TryApplyQuestRewards(quest, out var failureMessage))
             {
+                if (!string.IsNullOrWhiteSpace(failureMessage))
+                {
+                    AddQuestMessage(
+                        GameEventCatalog.GE_任务奖励领取失败,
+                        failureMessage,
+                        _ => HandleQuestEventClicked(quest.QuestId));
+                }
+
                 return false;
             }
 
@@ -347,6 +364,7 @@ namespace Landsong
         {
             UnsubscribeRuntimeServices();
             questsInitialized = true;
+            Features?.ResetToInitialFeatures();
             quests.Clear();
             NormalizeStartingQuests();
             NormalizeRandomQuestPool();
@@ -362,6 +380,7 @@ namespace Landsong
             UnlockAvailableMainlineQuests(usedQuestIds, emitMessages);
             AddSavedRandomQuests(savedQuests, usedQuestIds, emitMessages);
             AddSavedGeneratedQuests(savedQuests, usedQuestIds, emitMessages);
+            SynchronizeClaimedFeatureRewards();
 
             if (saveData == null)
             {
@@ -963,7 +982,9 @@ namespace Landsong
 
             quest.Status = saveData.Status;
             quest.StartedTurn = Mathf.Max(1, saveData.StartedTurn);
-            quest.DeadlineTurn = Mathf.Max(quest.StartedTurn, saveData.DeadlineTurn);
+            quest.DeadlineTurn = quest.IsTimed
+                ? Mathf.Max(quest.StartedTurn, saveData.DeadlineTurn)
+                : 0;
         }
 
         private void RebuildQuestResourceProgresses(GameQuestState quest, QuestStateSaveData saveData)
@@ -974,7 +995,7 @@ namespace Landsong
             }
 
             quest.ClearResourceProgresses();
-            if (!quest.IsResourceSubmission || quest.Definition == null)
+            if (!quest.IsResourceObjective || quest.Definition == null)
             {
                 return;
             }
@@ -1014,7 +1035,8 @@ namespace Landsong
                         ItemDefinition = FindItemDefinition(itemId),
                         RequiredAmount = requiredAmount,
                         SubmittedAmount = Mathf.Clamp(submittedAmount, 0, requiredAmount),
-                        InventoryAmount = Inventory == null ? 0 : Inventory.GetQuantity(itemId)
+                        InventoryAmount = Inventory == null ? 0 : Inventory.GetQuantity(itemId),
+                        TracksInventoryAmount = quest.IsResourceCollection
                     });
             }
         }
@@ -1099,6 +1121,18 @@ namespace Landsong
                 case QuestObjectiveType.SubmitResources:
                     RefreshResourceQuestProgress(quest);
                     break;
+                case QuestObjectiveType.MoveCamera:
+                    RefreshMoveCameraQuestProgress(quest);
+                    break;
+                case QuestObjectiveType.CollectResources:
+                    RefreshResourceQuestProgress(quest);
+                    break;
+                case QuestObjectiveType.PlantCrops:
+                    RefreshPlantCropQuestProgress(quest);
+                    break;
+                case QuestObjectiveType.SelectTechnology:
+                    RefreshTechnologySelectionQuestProgress(quest);
+                    break;
             }
 
             if (!quest.IsActive)
@@ -1112,7 +1146,7 @@ namespace Landsong
                 return;
             }
 
-            if (CurrentTurn > quest.DeadlineTurn)
+            if (quest.IsTimed && CurrentTurn > quest.DeadlineTurn)
             {
                 FailQuest(quest, emitMessages);
             }
@@ -1127,10 +1161,36 @@ namespace Landsong
             quest.Icon = definition.TargetBuildingIcon;
         }
 
+        private static void RefreshMoveCameraQuestProgress(GameQuestState quest)
+        {
+            quest.TargetAmount = 1;
+            quest.CurrentAmount = Mathf.Clamp(quest.CurrentAmount, 0, 1);
+            quest.TargetDisplayName = "移动视野";
+            quest.Icon = null;
+        }
+
+        private void RefreshPlantCropQuestProgress(GameQuestState quest)
+        {
+            var definition = quest.Definition;
+            quest.TargetAmount = Mathf.Max(1, definition.TargetBuildingCount);
+            quest.CurrentAmount = Mathf.Clamp(CountPlantedCrops(definition.TargetBuildingId), 0, quest.TargetAmount);
+            quest.TargetDisplayName = definition.TargetBuildingDisplayName;
+            quest.Icon = definition.TargetBuildingIcon;
+        }
+
+        private void RefreshTechnologySelectionQuestProgress(GameQuestState quest)
+        {
+            var selectedTechnology = Technology == null ? null : Technology.CurrentResearchDefinition;
+            quest.TargetAmount = 1;
+            quest.CurrentAmount = selectedTechnology == null ? 0 : 1;
+            quest.TargetDisplayName = selectedTechnology == null ? "任意科技" : selectedTechnology.DisplayName;
+            quest.Icon = selectedTechnology == null ? null : selectedTechnology.Icon;
+        }
+
         private void RefreshResourceQuestProgress(GameQuestState quest)
         {
             var totalRequired = 0;
-            var totalSubmitted = 0;
+            var totalProgress = 0;
             var firstIcon = (Sprite)null;
             var firstDisplayName = string.Empty;
 
@@ -1145,7 +1205,7 @@ namespace Landsong
 
                 progress.InventoryAmount = Inventory == null ? 0 : Inventory.GetQuantity(progress.ItemId);
                 totalRequired += Mathf.Max(0, progress.RequiredAmount);
-                totalSubmitted += Mathf.Clamp(progress.SubmittedAmount, 0, progress.RequiredAmount);
+                totalProgress += Mathf.Clamp(progress.ProgressAmount, 0, progress.RequiredAmount);
                 if (firstIcon == null && progress.ItemDefinition != null)
                 {
                     firstIcon = progress.ItemDefinition.Icon;
@@ -1158,7 +1218,7 @@ namespace Landsong
             }
 
             quest.TargetAmount = Mathf.Max(0, totalRequired);
-            quest.CurrentAmount = Mathf.Clamp(totalSubmitted, 0, quest.TargetAmount);
+            quest.CurrentAmount = Mathf.Clamp(totalProgress, 0, quest.TargetAmount);
             quest.TargetDisplayName = resources.Count == 1 ? firstDisplayName : "多种资源";
             quest.Icon = firstIcon;
         }
@@ -1170,7 +1230,7 @@ namespace Landsong
                 return false;
             }
 
-            if (quest.Definition.ObjectiveType == QuestObjectiveType.SubmitResources)
+            if (quest.IsResourceObjective)
             {
                 var resources = quest.ResourceProgresses;
                 if (resources.Count == 0)
@@ -1202,21 +1262,12 @@ namespace Landsong
             quest.Status = QuestStatus.Completed;
         }
 
-        private bool TryApplyQuestRewards(GameQuestState quest)
+        private bool TryApplyQuestRewards(GameQuestState quest, out string failureMessage)
         {
+            failureMessage = string.Empty;
             if (quest == null || quest.Definition == null || !quest.Definition.HasRewards)
             {
                 return true;
-            }
-
-            if (Inventory == null)
-            {
-                context.EnsureInventoryServiceForQuest();
-            }
-
-            if (Inventory == null)
-            {
-                return false;
             }
 
             var validRewards = new List<ItemAmount>();
@@ -1232,13 +1283,41 @@ namespace Landsong
                 if (reward.ItemDefinition == null)
                 {
                     Debug.LogWarning($"任务奖励物品定义无效：{reward.ItemId} x{reward.Amount}", context);
+                    failureMessage = $"任务“{quest.Definition.DisplayName}”的奖励配置无效，暂时无法领取。";
                     return false;
                 }
 
                 validRewards.Add(reward);
             }
 
-            return validRewards.Count == 0 || Inventory.TryAddItems(validRewards);
+            if (validRewards.Count > 0)
+            {
+                if (Inventory == null)
+                {
+                    context.EnsureInventoryServiceForQuest();
+                }
+
+                if (Inventory == null)
+                {
+                    failureMessage = "库存系统尚未初始化，暂时无法领取任务奖励。";
+                    return false;
+                }
+
+                if (!Inventory.CanAddItems(validRewards))
+                {
+                    failureMessage = $"库存空间不足，无法领取任务“{quest.Definition.DisplayName}”的奖励。请先腾出库存格。";
+                    return false;
+                }
+
+                if (!Inventory.TryAddItems(validRewards))
+                {
+                    failureMessage = $"任务“{quest.Definition.DisplayName}”的奖励发放失败，请重试。";
+                    return false;
+                }
+            }
+
+            Features?.Unlock(quest.Definition.UnlockedFeatures);
+            return true;
         }
 
         private void FailQuest(GameQuestState quest, bool emitMessage)
@@ -1284,6 +1363,52 @@ namespace Landsong
             }
 
             return count;
+        }
+
+        private int CountPlantedCrops(string buildingId)
+        {
+            if (Buildings == null || string.IsNullOrWhiteSpace(buildingId))
+            {
+                return 0;
+            }
+
+            var count = 0;
+            var buildings = Buildings.Buildings;
+            for (var i = 0; i < buildings.Count; i++)
+            {
+                var building = buildings[i];
+                if (building == null
+                    || !building.isActiveAndEnabled
+                    || building.IsDemolishing
+                    || !building.HasDefinition
+                    || !string.Equals(building.FamilyId, buildingId, StringComparison.Ordinal)
+                    || !building.TryGetCapability<IBuildingCropFieldSource>(out var cropField)
+                    || !cropField.HasCrop)
+                {
+                    continue;
+                }
+
+                count++;
+            }
+
+            return count;
+        }
+
+        private void SynchronizeClaimedFeatureRewards()
+        {
+            if (Features == null)
+            {
+                return;
+            }
+
+            for (var i = 0; i < quests.Count; i++)
+            {
+                var quest = quests[i];
+                if (quest != null && quest.IsRewardClaimed && quest.Definition != null)
+                {
+                    Features.Unlock(quest.Definition.UnlockedFeatures);
+                }
+            }
         }
 
         private ItemDefinition FindItemDefinition(string itemId)
@@ -1380,6 +1505,8 @@ namespace Landsong
                 {
                     subscribedQuestBuildings.BuildingsChanged += HandleQuestBuildingsChanged;
                 }
+
+                SynchronizeBuildingStateSubscriptions();
             }
 
             if (subscribedQuestTurn != Turn)
@@ -1394,6 +1521,27 @@ namespace Landsong
                 {
                     subscribedQuestTurn.TurnAdvanced += HandleQuestTurnAdvanced;
                 }
+            }
+
+
+            if (subscribedQuestTechnology != Technology)
+            {
+                if (subscribedQuestTechnology != null)
+                {
+                    subscribedQuestTechnology.StateChanged -= HandleQuestTechnologyChanged;
+                }
+
+                subscribedQuestTechnology = Technology;
+                if (subscribedQuestTechnology != null)
+                {
+                    subscribedQuestTechnology.StateChanged += HandleQuestTechnologyChanged;
+                }
+            }
+
+            if (!subscribedQuestCameraInput)
+            {
+                CameraController.AnyManualCameraPanPerformed += HandleManualCameraPanPerformed;
+                subscribedQuestCameraInput = true;
             }
         }
 
@@ -1411,10 +1559,25 @@ namespace Landsong
                 subscribedQuestBuildings = null;
             }
 
+            ClearBuildingStateSubscriptions();
+
             if (subscribedQuestTurn != null)
             {
                 subscribedQuestTurn.TurnAdvanced -= HandleQuestTurnAdvanced;
                 subscribedQuestTurn = null;
+            }
+
+
+            if (subscribedQuestTechnology != null)
+            {
+                subscribedQuestTechnology.StateChanged -= HandleQuestTechnologyChanged;
+                subscribedQuestTechnology = null;
+            }
+
+            if (subscribedQuestCameraInput)
+            {
+                CameraController.AnyManualCameraPanPerformed -= HandleManualCameraPanPerformed;
+                subscribedQuestCameraInput = false;
             }
         }
 
@@ -1430,7 +1593,75 @@ namespace Landsong
 
         private void HandleQuestBuildingsChanged(BuildingService changedBuildings)
         {
+            SynchronizeBuildingStateSubscriptions();
             RefreshAllQuestProgress(true);
+        }
+
+        private void HandleQuestBuildingStateChanged(BuildingBase changedBuilding)
+        {
+            RefreshAllQuestProgress(true);
+        }
+
+        private void HandleQuestTechnologyChanged(TechnologyService changedTechnology)
+        {
+            RefreshAllQuestProgress(false);
+        }
+
+        private void HandleManualCameraPanPerformed(CameraController changedCamera)
+        {
+            var changed = false;
+            for (var i = 0; i < quests.Count; i++)
+            {
+                var quest = quests[i];
+                if (quest == null
+                    || !quest.IsActive
+                    || quest.Definition == null
+                    || quest.Definition.ObjectiveType != QuestObjectiveType.MoveCamera)
+                {
+                    continue;
+                }
+
+                quest.CurrentAmount = 1;
+                RefreshQuestProgress(quest, false);
+                changed = true;
+            }
+
+            if (changed)
+            {
+                NotifyChanged();
+            }
+        }
+
+        private void SynchronizeBuildingStateSubscriptions()
+        {
+            ClearBuildingStateSubscriptions();
+            if (subscribedQuestBuildings == null)
+            {
+                return;
+            }
+
+            var buildings = subscribedQuestBuildings.Buildings;
+            for (var i = 0; i < buildings.Count; i++)
+            {
+                var building = buildings[i];
+                if (building != null && subscribedQuestBuildingStates.Add(building))
+                {
+                    building.StateChanged += HandleQuestBuildingStateChanged;
+                }
+            }
+        }
+
+        private void ClearBuildingStateSubscriptions()
+        {
+            foreach (var building in subscribedQuestBuildingStates)
+            {
+                if (building != null)
+                {
+                    building.StateChanged -= HandleQuestBuildingStateChanged;
+                }
+            }
+
+            subscribedQuestBuildingStates.Clear();
         }
 
         private void HandleQuestTurnAdvanced(TurnService changedTurn, TurnAdvanceSummary summary)

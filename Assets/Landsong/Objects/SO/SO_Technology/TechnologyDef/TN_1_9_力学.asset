@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a3b70d7f4d394dd9a76b0bc2e5c6a101, type: 3}
-  m_Name: "TN_1_9_力学"
+  m_Name: "TN_1_9_\u529B\u5B66"
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.TechnologySystem.TechnologyDefinition
-  icon: {fileID: 0}
-  technologyId: "TN_1_9_力学"
-  displayName: "力学"
-  description: "将物理规律应用于梁、杠杆和传动结构，精确分析器械与建筑的受力。"
+  icon: {fileID: 7404625097771940648, guid: d0eb37cb73f607c47bd5e681fafb3ae9, type: 3}
+  technologyId: "TN_1_9_\u529B\u5B66"
+  displayName: "\u529B\u5B66"
+  description: "\u5C06\u7269\u7406\u89C4\u5F8B\u5E94\u7528\u4E8E\u6881\u3001\u6760\u6746\u548C\u4F20\u52A8\u7ED3\u6784\uFF0C\u7CBE\u786E\u5206\u6790\u5668\u68B0\u4E0E\u5EFA\u7B51\u7684\u53D7\u529B\u3002"
   sciencePointCost: 78
   allowRepeatResearch: 0
   prerequisites:

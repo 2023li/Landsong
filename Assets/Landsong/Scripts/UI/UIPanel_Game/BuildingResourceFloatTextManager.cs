@@ -194,16 +194,18 @@ namespace Landsong.UISystem
                 return;
             }
 
-            if (!CanShowFloatTextForBuilding(building) || !TryGetMarkerAnchoredPosition(building, out _))
+            if (!CanShowFloatTextForBuilding(building)
+                || !TryGetMarkerAnchoredPosition(building, out var anchoredPosition))
             {
                 return;
             }
 
             pendingRequests.Enqueue(new ResourceFloatTextRequest(
-                building,
+                building.GetInstanceID(),
                 itemId,
                 signedAmount,
-                ResolveItemIcon(itemId)));
+                ResolveItemIcon(itemId),
+                anchoredPosition));
         }
 
         private void SpawnQueuedFloatTexts()
@@ -224,13 +226,12 @@ namespace Landsong.UISystem
                 }
 
                 var request = pendingRequests.Dequeue();
-                if (!request.IsValid
-                    || !CanShowFloatTextForBuilding(request.Building)
-                    || !TryGetMarkerAnchoredPosition(request.Building, out var anchoredPosition))
+                if (!request.IsValid)
                 {
                     continue;
                 }
 
+                var anchoredPosition = request.InitialAnchoredPosition;
                 var view = GetFloatTextFromPool();
                 var viewRect = view.RectTransform;
                 if (viewRect == null)
@@ -239,13 +240,15 @@ namespace Landsong.UISystem
                     continue;
                 }
 
-                var stackOffset = CountActiveFloatTextsForBuilding(request.Building) * sameBuildingStackOffset;
+                var stackOffset = CountActiveFloatTextsForBuilding(request.BuildingInstanceId)
+                                  * sameBuildingStackOffset;
                 view.Bind(request.Icon, FormatQuantity(request.Amount));
                 viewRect.anchoredPosition = anchoredPosition + Vector2.up * stackOffset;
 
                 activeFloatTexts.Add(new ActiveFloatText(
                     view,
-                    request.Building,
+                    request.BuildingInstanceId,
+                    anchoredPosition,
                     view.Duration,
                     stackOffset));
 
@@ -259,15 +262,13 @@ namespace Landsong.UISystem
             for (var i = activeFloatTexts.Count - 1; i >= 0; i--)
             {
                 var active = activeFloatTexts[i];
-                if (active == null
-                    || active.View == null
-                    || !CanShowFloatTextForBuilding(active.Building)
-                    || !TryGetMarkerAnchoredPosition(active.Building, out var anchoredPosition))
+                if (active == null || active.View == null)
                 {
                     ReleaseActiveFloatTextAt(i);
                     continue;
                 }
 
+                var anchoredPosition = active.InitialAnchoredPosition;
                 active.Elapsed += Time.unscaledDeltaTime;
 
                 var duration = Mathf.Max(0.05f, active.Duration);
@@ -471,12 +472,13 @@ namespace Landsong.UISystem
             return building != null && building.isActiveAndEnabled && !building.IsDemolishing;
         }
 
-        private int CountActiveFloatTextsForBuilding(BuildingBase building)
+        private int CountActiveFloatTextsForBuilding(int buildingInstanceId)
         {
             var count = 0;
             for (var i = 0; i < activeFloatTexts.Count; i++)
             {
-                if (activeFloatTexts[i] != null && activeFloatTexts[i].Building == building)
+                if (activeFloatTexts[i] != null
+                    && activeFloatTexts[i].BuildingInstanceId == buildingInstanceId)
                 {
                     count++;
                 }
@@ -492,33 +494,49 @@ namespace Landsong.UISystem
 
         private readonly struct ResourceFloatTextRequest
         {
-            public ResourceFloatTextRequest(BuildingBase building, string itemId, int amount, Sprite icon)
+            public ResourceFloatTextRequest(
+                int buildingInstanceId,
+                string itemId,
+                int amount,
+                Sprite icon,
+                Vector2 initialAnchoredPosition)
             {
-                Building = building;
+                BuildingInstanceId = buildingInstanceId;
                 ItemId = string.IsNullOrWhiteSpace(itemId) ? string.Empty : itemId.Trim();
                 Amount = amount;
                 Icon = icon;
+                InitialAnchoredPosition = initialAnchoredPosition;
             }
 
-            public BuildingBase Building { get; }
+            public int BuildingInstanceId { get; }
             public string ItemId { get; }
             public int Amount { get; }
             public Sprite Icon { get; }
-            public bool IsValid => Building != null && !string.IsNullOrWhiteSpace(ItemId) && Amount != 0;
+            public Vector2 InitialAnchoredPosition { get; }
+            public bool IsValid => BuildingInstanceId != 0
+                                   && !string.IsNullOrWhiteSpace(ItemId)
+                                   && Amount != 0;
         }
 
         private sealed class ActiveFloatText
         {
-            public ActiveFloatText(BuildingResourceFloatText view, BuildingBase building, float duration, float stackOffset)
+            public ActiveFloatText(
+                BuildingResourceFloatText view,
+                int buildingInstanceId,
+                Vector2 initialAnchoredPosition,
+                float duration,
+                float stackOffset)
             {
                 View = view;
-                Building = building;
+                BuildingInstanceId = buildingInstanceId;
+                InitialAnchoredPosition = initialAnchoredPosition;
                 Duration = Mathf.Max(0.05f, duration);
                 StackOffset = Mathf.Max(0f, stackOffset);
             }
 
             public BuildingResourceFloatText View { get; }
-            public BuildingBase Building { get; }
+            public int BuildingInstanceId { get; }
+            public Vector2 InitialAnchoredPosition { get; }
             public float Duration { get; }
             public float StackOffset { get; }
             public float Elapsed { get; set; }

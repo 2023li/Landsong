@@ -10,6 +10,9 @@ namespace Landsong.UISystem
         [SerializeField] private TMP_Text txt_任务要求;
         [SerializeField, LabelText("已完成标记")] private GameObject 已完成标记;
 
+        private Color normalTextColor;
+        private bool hasNormalTextColor;
+
         private void Reset()
         {
             txt_任务要求 = GetComponentInChildren<TMP_Text>(true);
@@ -17,19 +20,27 @@ namespace Landsong.UISystem
 
         private void Awake()
         {
-            ResourceRichTextFormatter.ApplySpriteAsset(txt_任务要求);
+            EnsureInitialized();
         }
 
         public void Bind(string requirementText, bool isCompleted)
         {
-            ResourceRichTextFormatter.ApplySpriteAsset(txt_任务要求);
+            EnsureInitialized();
             SetText(txt_任务要求, requirementText);
+            SetTextColor(isCompleted
+                ? UIThemeConstants.CompletedQuestColor
+                : normalTextColor);
             SetActive(已完成标记, isCompleted);
         }
 
         public void Clear()
         {
             SetText(txt_任务要求, string.Empty);
+            if (hasNormalTextColor)
+            {
+                SetTextColor(normalTextColor);
+            }
+
             SetActive(已完成标记, false);
         }
 
@@ -43,17 +54,43 @@ namespace Landsong.UISystem
 
         private static void SetText(TMP_Text target, string value)
         {
-            if (target != null)
+            var normalizedValue = value ?? string.Empty;
+            if (target != null && target.text != normalizedValue)
             {
-                target.text = value ?? string.Empty;
+                target.text = normalizedValue;
             }
         }
 
         private static void SetActive(GameObject target, bool active)
         {
-            if (target != null)
+            if (target != null && target.activeSelf != active)
             {
                 target.SetActive(active);
+            }
+        }
+
+        private void EnsureInitialized()
+        {
+            if (txt_任务要求 == null)
+            {
+                return;
+            }
+
+            ResourceRichTextFormatter.ApplySpriteAsset(txt_任务要求);
+            if (hasNormalTextColor)
+            {
+                return;
+            }
+
+            normalTextColor = txt_任务要求.color;
+            hasNormalTextColor = true;
+        }
+
+        private void SetTextColor(Color color)
+        {
+            if (txt_任务要求 != null && txt_任务要求.color != color)
+            {
+                txt_任务要求.color = color;
             }
         }
     }

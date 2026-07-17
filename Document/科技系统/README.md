@@ -130,11 +130,20 @@ Unity 会对“父节点使用 `LayoutGroup`、直接子节点又使用 `Content
 
 多个同类全局倍率效果按乘法叠加。科技 UI 通过 Buff Definition 的图标和 `Describe()` 文案显示解锁内容；库存系统不读取科技树，也不把效果复制到物品、槽位类型或建筑等级。
 
+## HUD 科技条与系统解锁
+
+HUD 科技条由挂载在 `Panel_Game.prefab/———Hud———/科技条` 根对象上的 `GamePanel_HUD_TechnologyBar` 独立管理。该组件负责科技按钮转发、`TechnologyService` 状态订阅、当前研究名称/图标/进度显示，以及根据 `GameFeatureUnlockService` 控制整条科技栏的可见性；`GamePanel_HUD` 不再持有科技栏引用或科技状态订阅。
+
+科技系统未解锁时，科技条通过根对象的 `CanvasGroup` 设为透明、不可交互且不接收 Raycast，同时清空名称和进度文本，因此 HUD 不显示“未选择科技”。根对象自身保持激活，以便继续监听 `GameFeatureUnlockService.StateChanged`；任务奖励在运行中解锁科技后，科技条应立即出现，无需重开面板。
+
+“未选择研发节点”属于科技系统解锁后的回合规则。科技未解锁时，`GameSystem.ShouldCancelNextTurnForMissingResearch()` 必须直接放行，不取消本次下回合，也不向事件栏发送缺少研发项目的警告；解锁后仍沿用原有的首次警告并取消、再次点击继续规则。
+
 ## 主要代码职责
 
 - `TechnologyDefinition.cs`：科技数据，以及公共节点 ID 解析规则。
 - `TechnologyCatalog.cs`：科技定义目录与 ID 索引。
 - `TechnologyService.cs`：当前研究、队列、解锁、重复研究和研究进度规则。
+- `GamePanel_HUD_TechnologyBar.cs`：HUD 科技条的功能解锁显隐、当前研究显示和科技面板入口。
 - `GamePanel_Technology.cs`：Odin 编辑器生成入口、运行时节点绑定、详情显示和点击转发。
 - `GamePanel_TechnologyNodeItem.cs`：单个科技节点的视觉状态。
 - `TechnologyTreeConnectionGraphic.cs`：依赖连线网格绘制。
@@ -150,3 +159,4 @@ Unity 会对“父节点使用 `LayoutGroup`、直接子节点又使用 `Content
 6. 研究完成世界效果继续扩展 `TechnologyEffect`，由 `GameSystem` 执行，不让 UI 修改库存、建筑或其他玩法状态。
 7. 修改 UI 模板后验证按钮 TargetGraphic、文字引用、遮罩和 Raycast 链。
 8. CLI 编译只能证明 C# 引用成立；自动布局、遮罩、连线层级和滚动范围仍需在 Unity Game 视图运行确认。
+9. 科技未解锁时验证科技条完全隐藏、事件栏不显示研发缺失警告且回合正常推进；领取任务 5 奖励后验证科技条立即出现、按钮可用，未选择研究时才显示“未选择科技”。

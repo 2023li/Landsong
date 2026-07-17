@@ -79,7 +79,9 @@ namespace Landsong.CameraSystem
         private float appliedGridMapBoundsAspect = -1f;
 
         public static event Action<CameraController> AnyCameraViewChanged;
+        public static event Action<CameraController> AnyManualCameraPanPerformed;
         public event Action<CameraController> CameraViewChanged;
+        public event Action<CameraController> ManualCameraPanPerformed;
         public Camera SourceCamera => sourceCamera;
         public bool HasFocusTarget => hasFocusTarget;
         public string DefaultFocusBuildingId => NormalizeBuildingId(defaultFocusBuildingId);
@@ -360,7 +362,10 @@ namespace Landsong.CameraSystem
             var midpointPosition = (firstPosition + secondPosition) * 0.5f;
             if (TryGetWorldPointOnMovementPlane(midpointPosition, out var currentMidpointWorld))
             {
-                MoveCamera(pinchAnchorWorldPosition - currentMidpointWorld);
+                if (MoveCamera(pinchAnchorWorldPosition - currentMidpointWorld))
+                {
+                    PublishManualCameraPanPerformed();
+                }
                 CancelFocusForManualInput();
             }
 
@@ -432,7 +437,10 @@ namespace Landsong.CameraSystem
             var worldDelta = (moveInput.x * cameraTransform.right
                               + moveInput.y * cameraTransform.up)
                              * (keyboardPanSpeed * Time.unscaledDeltaTime);
-            MoveCamera(worldDelta);
+            if (MoveCamera(worldDelta))
+            {
+                PublishManualCameraPanPerformed();
+            }
             CancelFocusForManualInput();
         }
 
@@ -501,13 +509,19 @@ namespace Landsong.CameraSystem
                 return;
             }
 
+            var moved = false;
             if (TryGetWorldPointOnMovementPlane(pointerState.ScreenPosition, out var currentWorldPosition))
             {
-                MoveCamera(panAnchorWorldPosition - currentWorldPosition);
+                moved = MoveCamera(panAnchorWorldPosition - currentWorldPosition);
             }
             else
             {
-                MoveCamera(GetPanDeltaFromScreenDelta(pointerState.ScreenPosition - previousPanScreenPosition));
+                moved = MoveCamera(GetPanDeltaFromScreenDelta(pointerState.ScreenPosition - previousPanScreenPosition));
+            }
+
+            if (moved)
+            {
+                PublishManualCameraPanPerformed();
             }
 
             previousPanScreenPosition = pointerState.ScreenPosition;
@@ -599,12 +613,12 @@ namespace Landsong.CameraSystem
             }
         }
 
-        private void MoveCamera(Vector3 worldDelta)
+        private bool MoveCamera(Vector3 worldDelta)
         {
             var constrainedDelta = ConstrainDeltaToMovementPlane(worldDelta);
             if (constrainedDelta.sqrMagnitude <= Mathf.Epsilon)
             {
-                return;
+                return false;
             }
 
             var currentPosition = CameraTransform.position;
@@ -612,10 +626,17 @@ namespace Landsong.CameraSystem
             var clampedPosition = ClampCameraPosition(requestedPosition);
             if ((clampedPosition - currentPosition).sqrMagnitude <= Mathf.Epsilon)
             {
-                return;
+                return false;
             }
 
             CameraTransform.position = clampedPosition;
+            return true;
+        }
+
+        private void PublishManualCameraPanPerformed()
+        {
+            ManualCameraPanPerformed?.Invoke(this);
+            AnyManualCameraPanPerformed?.Invoke(this);
         }
 
         private Vector3 GetCameraPositionForFocus(Vector3 worldPosition)

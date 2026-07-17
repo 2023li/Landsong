@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a3b70d7f4d394dd9a76b0bc2e5c6a101, type: 3}
-  m_Name: "TN_1_12_天文学"
+  m_Name: "TN_1_12_\u5929\u6587\u5B66"
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.TechnologySystem.TechnologyDefinition
-  icon: {fileID: 0}
-  technologyId: "TN_1_12_天文学"
-  displayName: "天文学"
-  description: "借助光学仪器与航行观测建立天体模型，提高时间和位置计算精度。"
+  icon: {fileID: 21300000, guid: 6ef5f80056ae2f541a489910e8ef8c3d, type: 3}
+  technologyId: "TN_1_12_\u5929\u6587\u5B66"
+  displayName: "\u5929\u6587\u5B66"
+  description: "\u501F\u52A9\u5149\u5B66\u4EEA\u5668\u4E0E\u822A\u884C\u89C2\u6D4B\u5EFA\u7ACB\u5929\u4F53\u6A21\u578B\uFF0C\u63D0\u9AD8\u65F6\u95F4\u548C\u4F4D\u7F6E\u8BA1\u7B97\u7CBE\u5EA6\u3002"
   sciencePointCost: 140
   allowRepeatResearch: 0
   prerequisites:

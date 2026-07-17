@@ -15,6 +15,7 @@ namespace Landsong.ExpeditionSystem
     public enum ExpeditionDestinationUnavailableReason
     {
         None = 0,
+        FeatureLocked = 5,
         Hidden = 10,
         ConditionLocked = 30,
         AlreadyCompleted = 40
@@ -23,6 +24,7 @@ namespace Landsong.ExpeditionSystem
     public enum ExpeditionStartFailureReason
     {
         None = 0,
+        FeatureLocked = 5,
         InvalidDestination = 10,
         DestinationUnavailable = 20,
         PopulationTooLow = 30,
@@ -39,6 +41,7 @@ namespace Landsong.ExpeditionSystem
     public enum ExpeditionClaimFailureReason
     {
         None = 0,
+        FeatureLocked = 5,
         InvalidExpedition = 10,
         NotSucceeded = 20,
         AlreadyClaimed = 30,

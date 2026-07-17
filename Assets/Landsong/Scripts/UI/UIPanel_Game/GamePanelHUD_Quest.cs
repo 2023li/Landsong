@@ -27,6 +27,9 @@ namespace Landsong.UISystem
         private GameSystem gameSystem;
         private GameSystem subscribedGameSystem;
         private GameQuestState currentQuest;
+        private int requirementRenderIndex;
+        private Color normalTitleColor;
+        private bool hasNormalTitleColor;
 
         private void Reset()
         {
@@ -39,6 +42,7 @@ namespace Landsong.UISystem
         private void Awake()
         {
             ResolveStaticReferences();
+            EnsureTitleColorInitialized();
             BindButton();
 
             for (int i = 0; i < root_任务要求父对象.childCount; i++)
@@ -74,11 +78,12 @@ namespace Landsong.UISystem
         public void Bind(GameQuestState quest)
         {
             currentQuest = quest;
-            ReleaseActiveRequirementItems();
 
             if (quest == null || quest.Definition == null)
             {
+                ReleaseActiveRequirementItems();
                 SetText(txt_任务名称, string.Empty);
+                SetTitleCompleted(false);
                 SetText(txt_剩余回合数, string.Empty);
                 SetActive(root_任务整体已完成, false);
                 SetClaimButtonVisible(false);
@@ -87,11 +92,14 @@ namespace Landsong.UISystem
             }
 
             SetText(txt_任务名称, quest.Definition.DisplayName);
+            SetTitleCompleted(quest.IsCompleted);
             SetText(txt_剩余回合数, FormatRemainingTurns(quest));
             SetActive(root_任务整体已完成, quest.CanClaimRewards);
             SetClaimButtonVisible(quest.CanClaimRewards);
             SetButtonInteractable(true);
+            requirementRenderIndex = 0;
             RenderRequirements(quest);
+            ReleaseSurplusRequirementItems(requirementRenderIndex);
         }
 
         private void ResolveStaticReferences()
@@ -267,6 +275,18 @@ namespace Landsong.UISystem
                 case QuestObjectiveType.SubmitResources:
                     AddResourceRequirements(quest);
                     break;
+                case QuestObjectiveType.CollectResources:
+                    AddResourceRequirements(quest);
+                    break;
+                case QuestObjectiveType.MoveCamera:
+                    AddNumericRequirement(quest, "移动视野");
+                    break;
+                case QuestObjectiveType.PlantCrops:
+                    AddNumericRequirement(quest, "播种农田");
+                    break;
+                case QuestObjectiveType.SelectTechnology:
+                    AddNumericRequirement(quest, "选择研究科技");
+                    break;
                 default:
                     AddRequirement($"{quest.CurrentAmount}/{quest.TargetAmount}", quest.IsCompleted);
                     break;
@@ -295,11 +315,12 @@ namespace Landsong.UISystem
                     continue;
                 }
 
-                var text = "提交 " + ResourceRichTextFormatter.FormatProgress(
+                var action = quest.IsResourceCollection ? "收集 " : "提交 ";
+                var text = action + ResourceRichTextFormatter.FormatProgress(
                     progress.ItemDefinition,
                     progress.ItemId,
                     progress.DisplayName,
-                    Mathf.Clamp(progress.SubmittedAmount, 0, progress.RequiredAmount),
+                    Mathf.Clamp(progress.ProgressAmount, 0, progress.RequiredAmount),
                     Mathf.Max(0, progress.RequiredAmount),
                     progress.InventoryAmount,
                     false);
@@ -308,24 +329,38 @@ namespace Landsong.UISystem
             }
         }
 
+        private void AddNumericRequirement(GameQuestState quest, string action)
+        {
+            var targetAmount = Mathf.Max(1, quest.TargetAmount);
+            var currentAmount = Mathf.Clamp(quest.CurrentAmount, 0, targetAmount);
+            AddRequirement(
+                $"{action}：{currentAmount}/{targetAmount}",
+                quest.IsCompleted || currentAmount >= targetAmount);
+        }
+
         private void AddRequirement(string requirementText, bool isCompleted)
         {
-            var item = GetRequirementItemFromPool();
+            var item = GetRequirementItemForRender(requirementRenderIndex);
             if (item == null)
             {
                 return;
             }
 
             item.Bind(requirementText, isCompleted);
-            activeRequirementItems.Add(item);
+            requirementRenderIndex++;
         }
 
-        private GamePanelItem_Quest_Requirement GetRequirementItemFromPool()
+        private GamePanelItem_Quest_Requirement GetRequirementItemForRender(int index)
         {
             ResolveStaticReferences();
             if (prefab_任务要求Item == null || root_任务要求父对象 == null)
             {
                 return null;
+            }
+
+            if (index >= 0 && index < activeRequirementItems.Count)
+            {
+                return activeRequirementItems[index];
             }
 
             GamePanelItem_Quest_Requirement item;
@@ -341,27 +376,54 @@ namespace Landsong.UISystem
             }
 
             item.transform.SetParent(root_任务要求父对象, false);
-            item.gameObject.SetActive(true);
+            if (!item.gameObject.activeSelf)
+            {
+                item.gameObject.SetActive(true);
+            }
+
+            activeRequirementItems.Add(item);
             return item;
+        }
+
+        private void ReleaseSurplusRequirementItems(int usedCount)
+        {
+            for (var i = activeRequirementItems.Count - 1; i >= Mathf.Max(0, usedCount); i--)
+            {
+                var item = activeRequirementItems[i];
+                activeRequirementItems.RemoveAt(i);
+                ReleaseRequirementItem(item);
+            }
         }
 
         private void ReleaseActiveRequirementItems()
         {
-            for (var i = 0; i < activeRequirementItems.Count; i++)
+            for (var i = activeRequirementItems.Count - 1; i >= 0; i--)
             {
                 var item = activeRequirementItems[i];
-                if (item == null)
-                {
-                    continue;
-                }
-
-                item.Clear();
-                item.gameObject.SetActive(false);
-                item.transform.SetParent(root_任务要求父对象 == null ? transform : root_任务要求父对象, false);
-                requirementItemPool.Add(item);
+                ReleaseRequirementItem(item);
             }
 
             activeRequirementItems.Clear();
+        }
+
+        private void ReleaseRequirementItem(GamePanelItem_Quest_Requirement item)
+        {
+            if (item == null)
+            {
+                return;
+            }
+
+            item.Clear();
+            if (item.gameObject.activeSelf)
+            {
+                item.gameObject.SetActive(false);
+            }
+
+            item.transform.SetParent(root_任务要求父对象 == null ? transform : root_任务要求父对象, false);
+            if (!requirementItemPool.Contains(item))
+            {
+                requirementItemPool.Add(item);
+            }
         }
 
         private void HandleOpenQuestPanelClicked()
@@ -417,8 +479,8 @@ namespace Landsong.UISystem
                 return categoryCompare;
             }
 
-            var leftDeadline = left == null ? int.MaxValue : left.DeadlineTurn;
-            var rightDeadline = right == null ? int.MaxValue : right.DeadlineTurn;
+            var leftDeadline = left == null || !left.IsTimed ? int.MaxValue : left.DeadlineTurn;
+            var rightDeadline = right == null || !right.IsTimed ? int.MaxValue : right.DeadlineTurn;
             if (leftDeadline != rightDeadline)
             {
                 return leftDeadline.CompareTo(rightDeadline);
@@ -448,8 +510,8 @@ namespace Landsong.UISystem
                 return statusCompare;
             }
 
-            var leftDeadline = left == null ? int.MinValue : left.DeadlineTurn;
-            var rightDeadline = right == null ? int.MinValue : right.DeadlineTurn;
+            var leftDeadline = left == null || !left.IsTimed ? int.MaxValue : left.DeadlineTurn;
+            var rightDeadline = right == null || !right.IsTimed ? int.MaxValue : right.DeadlineTurn;
             if (leftDeadline != rightDeadline)
             {
                 return rightDeadline.CompareTo(leftDeadline);
@@ -498,6 +560,11 @@ namespace Landsong.UISystem
                 return string.Empty;
             }
 
+            if (!quest.IsTimed)
+            {
+                return "∞";
+            }
+
             if (quest.IsCompleted)
             {
                 return "已完成";
@@ -506,6 +573,32 @@ namespace Landsong.UISystem
             var gameSystem = GameSystem.Instance;
             var currentTurn = gameSystem == null ? quest.StartedTurn : gameSystem.Services.Turn.CurrentTurn;
             return $"剩余 {quest.GetRemainingTurns(currentTurn)} 回合";
+        }
+
+        private void EnsureTitleColorInitialized()
+        {
+            if (txt_任务名称 == null || hasNormalTitleColor)
+            {
+                return;
+            }
+
+            normalTitleColor = txt_任务名称.color;
+            hasNormalTitleColor = true;
+        }
+
+        private void SetTitleCompleted(bool isCompleted)
+        {
+            EnsureTitleColorInitialized();
+            if (txt_任务名称 == null || !hasNormalTitleColor)
+            {
+                return;
+            }
+
+            var targetColor = isCompleted ? UIThemeConstants.CompletedQuestColor : normalTitleColor;
+            if (txt_任务名称.color != targetColor)
+            {
+                txt_任务名称.color = targetColor;
+            }
         }
 
         private static void SetText(TMP_Text target, string value)

@@ -14,15 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingPresentationDefinition
   constructionViewMode: 0
   constructionView:
-    directPrefab: {fileID: 0}
+    directPrefab: {fileID: 6182212888150925616, guid: defe3f3bba7d2404f921f29b9868ae54, type: 3}
     addressablePrefab:
       m_AssetGUID: 
       m_SubObjectName: 
       m_SubObjectType: 
       m_SubObjectGUID: 
       m_EditorAssetChanged: 0
+  constructionViewMappings: []
   placementPreviewView:
-    directPrefab: {fileID: 0}
+    directPrefab: {fileID: 6182212888150925616, guid: defe3f3bba7d2404f921f29b9868ae54, type: 3}
     addressablePrefab:
       m_AssetGUID: 
       m_SubObjectName: 
@@ -30,7 +31,7 @@ MonoBehaviour:
       m_SubObjectGUID: 
       m_EditorAssetChanged: 0
   defaultOperationalView:
-    directPrefab: {fileID: 0}
+    directPrefab: {fileID: 6182212888150925616, guid: defe3f3bba7d2404f921f29b9868ae54, type: 3}
     addressablePrefab:
       m_AssetGUID: 
       m_SubObjectName: 

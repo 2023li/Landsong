@@ -100,6 +100,11 @@ public class UIPanel_Game : UIPanelBase
     public void Show_Inventory()
     {
         GetReference();
+        if (!IsFeatureUnlocked(GameFeature.Inventory))
+        {
+            return;
+        }
+
         HideAllPanels();
 
         if (inventoryPanel != null)
@@ -145,6 +150,11 @@ public class UIPanel_Game : UIPanelBase
     public void Show_Technology()
     {
         GetReference();
+        if (!IsFeatureUnlocked(GameFeature.Technology))
+        {
+            return;
+        }
+
         HideAllPanels();
 
         if (technologyPanel != null)
@@ -210,6 +220,11 @@ public class UIPanel_Game : UIPanelBase
     public void Show_Expedition()
     {
         GetReference();
+        if (!IsFeatureUnlocked(GameFeature.Expedition))
+        {
+            return;
+        }
+
         HideAllPanels();
 
         if (expeditionPanel != null)
@@ -260,6 +275,11 @@ public class UIPanel_Game : UIPanelBase
     public void Show_Inheritance()
     {
         GetReference();
+        if (!IsFeatureUnlocked(GameFeature.Inheritance))
+        {
+            return;
+        }
+
         HideAllPanels();
 
         if (inheritancePanel != null)
@@ -286,6 +306,11 @@ public class UIPanel_Game : UIPanelBase
     public void Show_Building()
     {
         GetReference();
+        if (!IsFeatureUnlocked(GameFeature.Building))
+        {
+            return;
+        }
+
         HideAllPanels();
 
         if (buildingPanel != null)
@@ -473,6 +498,13 @@ public class UIPanel_Game : UIPanelBase
     private void HandleOpenInventoryPanelRequested()
     {
         Show_Inventory();
+    }
+
+    private static bool IsFeatureUnlocked(GameFeature feature)
+    {
+        var gameSystem = GameSystem.Instance;
+        var features = gameSystem == null ? null : gameSystem.Services.Features;
+        return features == null || features.IsUnlocked(feature);
     }
 
     private void HandleBackRequested()

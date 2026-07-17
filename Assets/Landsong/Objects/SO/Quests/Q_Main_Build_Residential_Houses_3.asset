@@ -14,17 +14,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.QuestDefinition
   definition:
     questId: main_build_residential_houses_3
-    displayName: "\u5B89\u7F6E\u65B0\u6C11"
-    description: "\u519C\u7530\u521D\u5177\u89C4\u6A21\u540E\uFF0C\u5EFA\u9020 3 \u5EA7\u5C45\u6C11\u623FLV0\uFF0C\u8BA9\u65B0\u6765\u7684\u5C45\u6C11\u6709\u53EF\u4EE5\u843D\u811A\u7684\u5C45\u6240\u3002"
+    displayName: 安居成邑
+    description: 田地已经开始生长，百姓也需要稳定的居所。建造 3 座居民房，让聚落真正扎根。
     category: 1
     objectiveType: 1
-    turnLimit: 12
+    turnLimit: 0
     prerequisiteQuestIds:
-    - main_build_farms_3
+    - main_plant_farms_3
     targetBuilding: {fileID: 3750083483410662862, guid: cce99397b7253b64a9bf1716a5067150, type: 3}
     targetBuildingCount: 3
     requiredResources: []
-    rewards:
-    - itemDefinition: {fileID: 11400000, guid: 0a7dc990ed9437f4d824e3d10c07f220, type: 2}
-      amount: 1000
+    rewards: []
+    unlockedFeatures:
+    - 3
     runtimeGenerated: 0

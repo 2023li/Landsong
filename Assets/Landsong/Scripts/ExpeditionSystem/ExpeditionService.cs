@@ -468,14 +468,18 @@ namespace Landsong.ExpeditionSystem
         public IReadOnlyList<ExpeditionState> Expeditions => expeditions.Count == 0 ? EmptyExpeditions : expeditions;
         public ExpeditionDestinationCatalog Catalog => catalog;
         public ItemDefinition SubsidyGoldItemDefinition => subsidyGoldItemDefinition;
-        public int ActiveAssignedPopulation => CalculateActiveAssignedPopulation();
-        public int ActiveExpeditionCount => CalculateActiveExpeditionCount();
+        public bool IsAvailable => context == null
+                                   || context.Services.Features != null
+                                   && context.Services.Features.IsUnlocked(GameFeature.Expedition);
+        public int ActiveAssignedPopulation => IsAvailable ? CalculateActiveAssignedPopulation() : 0;
+        public int ActiveExpeditionCount => IsAvailable ? CalculateActiveExpeditionCount() : 0;
         public int MaxActiveExpeditions => Mathf.Max(1, maxActiveExpeditions);
-        public bool HasAvailableExpeditionSlot => ActiveExpeditionCount < MaxActiveExpeditions;
-        public int SubsidyPenaltyStacks => subsidyPenaltyStacks;
+        public bool HasAvailableExpeditionSlot => IsAvailable && ActiveExpeditionCount < MaxActiveExpeditions;
+        public int SubsidyPenaltyStacks => IsAvailable ? subsidyPenaltyStacks : 0;
         public int SubsidyPenaltyActiveUntilTurn => subsidyPenaltyActiveUntilTurn;
-        public bool IsSubsidyPenaltyActive => IsSubsidyPenaltyActiveAt(context == null ? 1 : context.Services.Turn.CurrentTurn);
-        public float RewardYieldBonus => context == null ? 0f : context.CalculateExpeditionRewardYieldBonus();
+        public bool IsSubsidyPenaltyActive => IsAvailable
+                                              && IsSubsidyPenaltyActiveAt(context == null ? 1 : context.Services.Turn.CurrentTurn);
+        public float RewardYieldBonus => !IsAvailable || context == null ? 0f : context.CalculateExpeditionRewardYieldBonus();
         public float RewardYieldMultiplier => 1f + RewardYieldBonus;
 
         public void SetCatalog(ExpeditionDestinationCatalog newCatalog)
@@ -499,7 +503,7 @@ namespace Landsong.ExpeditionSystem
         public IReadOnlyList<ExpeditionDestinationAvailability> GetDestinationAvailabilities(bool includeUnavailable)
         {
             destinationAvailabilities.Clear();
-            if (catalog == null)
+            if (!IsAvailable || catalog == null)
             {
                 return EmptyDestinationAvailabilities;
             }
@@ -530,6 +534,15 @@ namespace Landsong.ExpeditionSystem
 
         public ExpeditionDestinationAvailability EvaluateDestination(ExpeditionDestinationDefinition destination, int currentTurn)
         {
+            if (!IsAvailable)
+            {
+                return new ExpeditionDestinationAvailability(
+                    destination,
+                    false,
+                    false,
+                    ExpeditionDestinationUnavailableReason.FeatureLocked);
+            }
+
             if (destination == null || !destination.IsValid)
             {
                 return new ExpeditionDestinationAvailability(destination, false, false, ExpeditionDestinationUnavailableReason.Hidden);
@@ -563,6 +576,17 @@ namespace Landsong.ExpeditionSystem
         {
             result = default;
             population = Mathf.Max(0, population);
+
+            if (!IsAvailable)
+            {
+                result = new ExpeditionStartResult(
+                    false,
+                    ExpeditionStartFailureReason.FeatureLocked,
+                    null,
+                    0f,
+                    "远征系统尚未解锁。");
+                return false;
+            }
 
             if (destination == null || !destination.IsValid)
             {
@@ -658,6 +682,11 @@ namespace Landsong.ExpeditionSystem
 
         public List<ExpeditionSettlementResult> SettleDueExpeditions(int currentTurn)
         {
+            if (!IsAvailable)
+            {
+                return new List<ExpeditionSettlementResult>();
+            }
+
             currentTurn = Mathf.Max(1, currentTurn);
             ClearExpiredPenalty(currentTurn);
 
@@ -685,6 +714,16 @@ namespace Landsong.ExpeditionSystem
         public bool TryClaimRewards(string expeditionId, out ExpeditionClaimResult result)
         {
             result = default;
+            if (!IsAvailable)
+            {
+                result = new ExpeditionClaimResult(
+                    false,
+                    ExpeditionClaimFailureReason.FeatureLocked,
+                    null,
+                    "远征系统尚未解锁。");
+                return false;
+            }
+
             var expedition = FindExpedition(expeditionId);
             if (expedition == null)
             {
@@ -868,6 +907,11 @@ namespace Landsong.ExpeditionSystem
 
         public void ExtendSubsidyPenalty(int currentTurn, int durationTurns)
         {
+            if (!IsAvailable)
+            {
+                return;
+            }
+
             if (subsidyPenaltyStacks <= 0)
             {
                 subsidyPenaltyActiveUntilTurn = 0;

@@ -81,8 +81,6 @@ namespace Landsong.UISystem
 
         public void Refresh()
         {
-            ReleaseActiveItems();
-
             if (gameSystem == null)
             {
                 ResolveReferences();
@@ -90,6 +88,7 @@ namespace Landsong.UISystem
 
             if (root_QuestItem == null || prefab_QuestItem == null || gameSystem == null)
             {
+                ReleaseActiveItems();
                 SetEmptyState(true, "任务系统未初始化");
                 return;
             }
@@ -106,17 +105,17 @@ namespace Landsong.UISystem
                     continue;
                 }
 
-                var item = GetItemFromPool();
+                var item = GetItemForRender(visibleCount);
                 item.Bind(
                     quest,
                     IsSelectedQuest(quest),
                     HandleQuestSelected,
                     HandleSubmitClicked,
                     HandleAbandonClicked);
-                activeItems.Add(item);
                 visibleCount++;
             }
 
+            ReleaseSurplusItems(visibleCount);
             SetEmptyState(visibleCount <= 0, "当前没有任务");
         }
 
@@ -254,8 +253,13 @@ namespace Landsong.UISystem
                    && string.Equals(quest.QuestId, selectedQuestId, System.StringComparison.Ordinal);
         }
 
-        private GamePanel_QuestItem GetItemFromPool()
+        private GamePanel_QuestItem GetItemForRender(int index)
         {
+            if (index >= 0 && index < activeItems.Count)
+            {
+                return activeItems[index];
+            }
+
             GamePanel_QuestItem item;
             var lastIndex = itemPool.Count - 1;
             if (lastIndex >= 0)
@@ -269,27 +273,54 @@ namespace Landsong.UISystem
             }
 
             item.transform.SetParent(root_QuestItem, false);
-            item.gameObject.SetActive(true);
+            if (!item.gameObject.activeSelf)
+            {
+                item.gameObject.SetActive(true);
+            }
+
+            activeItems.Add(item);
             return item;
+        }
+
+        private void ReleaseSurplusItems(int usedCount)
+        {
+            for (var i = activeItems.Count - 1; i >= Mathf.Max(0, usedCount); i--)
+            {
+                var item = activeItems[i];
+                activeItems.RemoveAt(i);
+                ReleaseItem(item);
+            }
         }
 
         private void ReleaseActiveItems()
         {
-            for (var i = 0; i < activeItems.Count; i++)
+            for (var i = activeItems.Count - 1; i >= 0; i--)
             {
                 var item = activeItems[i];
-                if (item == null)
-                {
-                    continue;
-                }
-
-                item.Unbind();
-                item.gameObject.SetActive(false);
-                item.transform.SetParent(root_QuestItem, false);
-                itemPool.Add(item);
+                ReleaseItem(item);
             }
 
             activeItems.Clear();
+        }
+
+        private void ReleaseItem(GamePanel_QuestItem item)
+        {
+            if (item == null)
+            {
+                return;
+            }
+
+            item.Unbind();
+            if (item.gameObject.activeSelf)
+            {
+                item.gameObject.SetActive(false);
+            }
+
+            item.transform.SetParent(root_QuestItem, false);
+            if (!itemPool.Contains(item))
+            {
+                itemPool.Add(item);
+            }
         }
 
         private void HandleQuestSelected(GameQuestState quest)

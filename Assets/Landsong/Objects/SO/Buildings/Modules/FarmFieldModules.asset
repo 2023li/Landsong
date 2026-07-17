@@ -37,12 +37,35 @@ MonoBehaviour:
         targetSubsidyGoldPerTurn: 0
         paidSubsidyGoldThisTurn: 0
         initialWorkersGranted: 0
+        workerProtectionTurnsRemaining: 0
         defaultsConfigured: 0
     - rid: 5711026424309612579
       type: {class: BuildingCropGrowthModule, ns: Landsong.BuildingSystem, asm: Assembly-CSharp}
       data:
         enabled: 1
-        crops: []
+        crops:
+        - cropId: crop.cabbage
+          displayName: "\u767D\u83DC"
+          icon: {fileID: 0}
+          growTurns: 2
+          plantCosts:
+          - itemDefinition: {fileID: 11400000, guid: 28c3507a6f3782297d6f317cb0a66799, type: 2}
+            amount: 1
+          harvestRewards:
+          - itemDefinition: {fileID: 11400000, guid: 28c3507a6f3782297d6f317cb0a66799, type: 2}
+            minAmount: 6
+            maxAmount: 10
+        - cropId: crop.wheat
+          displayName: "\u5C0F\u9EA6"
+          icon: {fileID: 0}
+          growTurns: 3
+          plantCosts:
+          - itemDefinition: {fileID: 11400000, guid: 8c2e6d47f03b49f9b8a0c6d1e7a45f32, type: 2}
+            amount: 1
+          harvestRewards:
+          - itemDefinition: {fileID: 11400000, guid: 8c2e6d47f03b49f9b8a0c6d1e7a45f32, type: 2}
+            minAmount: 8
+            maxAmount: 12
         autoHarvestCosts: []
         plantedCropId: 
         growthProgressTurns: 0

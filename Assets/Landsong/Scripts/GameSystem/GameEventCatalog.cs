@@ -48,6 +48,7 @@ namespace Landsong.GameEventSystem
         public const string GE_任务出现 = "quest_added";
         public const string GE_任务完成 = "quest_completed";
         public const string GE_任务失败 = "quest_failed";
+        public const string GE_任务奖励领取失败 = "quest_reward_claim_failed";
         public const string GE_任务提交资源 = "quest_resource_submitted";
         public const string GE_随机任务出现 = "quest_random_added";
         public const string GE_远征出发 = "expedition_started";
@@ -91,6 +92,7 @@ namespace Landsong.GameEventSystem
             new GameEventDefinition(GE_任务出现, "新任务"),
             new GameEventDefinition(GE_任务完成, "任务完成"),
             new GameEventDefinition(GE_任务失败, "任务失败"),
+            new GameEventDefinition(GE_任务奖励领取失败, "任务奖励领取失败"),
             new GameEventDefinition(GE_任务提交资源, "任务提交资源"),
             new GameEventDefinition(GE_随机任务出现, "随机任务出现"),
             new GameEventDefinition(GE_远征出发, "远征出发"),

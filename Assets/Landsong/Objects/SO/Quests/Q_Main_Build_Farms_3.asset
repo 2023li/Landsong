@@ -14,16 +14,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.QuestDefinition
   definition:
     questId: main_build_farms_3
-    displayName: "\u6574\u5907\u7530\u5784"
-    description: "\u5148\u5EFA\u9020 3 \u5EA7\u519C\u7530\uFF0C\u4E3A\u540E\u7EED\u5C45\u6C11\u6269\u5F20\u51C6\u5907\u7A33\u5B9A\u7684\u98DF\u7269\u6765\u6E90\u3002"
+    displayName: 开垦良田
+    description: 粮食是聚落延续的根基。建造 3 座农田，让荒地拥有孕育收获的可能。
     category: 1
     objectiveType: 1
-    turnLimit: 10
-    prerequisiteQuestIds: []
+    turnLimit: 0
+    prerequisiteQuestIds:
+    - main_collect_building_materials
     targetBuilding: {fileID: 8640536483753721910, guid: f14acff9a80333a428b3f2920c7920e4, type: 3}
     targetBuildingCount: 3
     requiredResources: []
     rewards:
-    - itemDefinition: {fileID: 11400000, guid: 3083d7b285a48b34384cf36253389185, type: 2}
-      amount: 500
+    - itemDefinition: {fileID: 11400000, guid: 8c2e6d47f03b49f9b8a0c6d1e7a45f32, type: 2}
+      amount: 20
+    - itemDefinition: {fileID: 11400000, guid: 28c3507a6f3782297d6f317cb0a66799, type: 2}
+      amount: 10
+    unlockedFeatures: []
     runtimeGenerated: 0

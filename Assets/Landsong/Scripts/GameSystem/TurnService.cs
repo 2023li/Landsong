@@ -39,6 +39,24 @@ namespace Landsong.TurnSystem
             CurrentTurn = Math.Max(1, currentTurn);
         }
 
+        /// <summary>
+        /// 发布一笔已经实际进入玩家库存的建筑资源收益。
+        /// 供双击采集等非回合即时结算使用；调用方必须先完成库存事务，再发布事件。
+        /// </summary>
+        public void PublishBuildingResourceProvided(
+            BuildingBase building,
+            BuildingResourceChange resource)
+        {
+            if (building == null || !resource.IsValid)
+            {
+                return;
+            }
+
+            BuildingResourceProvided?.Invoke(
+                this,
+                new BuildingResourceProvidedEvent(building, resource));
+        }
+
         public TurnAdvanceSummary NextTurn(IReadOnlyList<BuildingBase> runtimeBuildings)
         {
             ThrowIfAdvancing();
@@ -255,7 +273,7 @@ namespace Landsong.TurnSystem
                     continue;
                 }
 
-                BuildingResourceProvided?.Invoke(this, new BuildingResourceProvidedEvent(building, resource));
+                PublishBuildingResourceProvided(building, resource);
             }
         }
 

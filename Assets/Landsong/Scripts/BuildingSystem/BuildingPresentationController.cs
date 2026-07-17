@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -17,6 +18,8 @@ namespace Landsong.BuildingSystem
         private AsyncOperationHandle<GameObject>? currentAddressableHandle;
         private readonly List<AsyncOperationHandle<GameObject>> pendingAddressableHandles =
             new List<AsyncOperationHandle<GameObject>>();
+        private readonly List<IBuildingViewStateConsumer> viewStateConsumers =
+            new List<IBuildingViewStateConsumer>();
         private int requestVersion;
 
         private static Sprite placeholderSprite;
@@ -32,14 +35,26 @@ namespace Landsong.BuildingSystem
         private void OnDestroy()
         {
             requestVersion++;
+            UnbindOwner();
+            viewStateConsumers.Clear();
             ReleasePendingAddressables();
             ReleaseCurrentAddressable();
         }
 
         public void Bind(BuildingBase building)
         {
-            owner = building;
+            if (owner != building)
+            {
+                UnbindOwner();
+                owner = building;
+                if (owner != null)
+                {
+                    owner.StateChanged += HandleOwnerStateChanged;
+                }
+            }
+
             ResolveReferences();
+            RefreshViewStateConsumers();
         }
 
         public void RefreshImmediate()
@@ -202,6 +217,8 @@ namespace Landsong.BuildingSystem
 
             DestroyCurrentView();
             currentView = Instantiate(prefab, viewRoot, false);
+            CollectViewStateConsumers();
+            RefreshViewStateConsumers();
             viewAdapter?.PlayEntryAnimation(entryReason);
             if (currentView.GetComponentInChildren<BuildingBase>(true) != null)
             {
@@ -231,11 +248,71 @@ namespace Landsong.BuildingSystem
 
         private void DestroyCurrentView()
         {
+            viewStateConsumers.Clear();
             viewAdapter?.InvalidateVisualPlayers();
             if (currentView != null)
             {
                 Destroy(currentView);
                 currentView = null;
+            }
+        }
+
+        private void CollectViewStateConsumers()
+        {
+            viewStateConsumers.Clear();
+            if (currentView == null)
+            {
+                return;
+            }
+
+            var behaviours = currentView.GetComponentsInChildren<MonoBehaviour>(true);
+            for (var i = 0; i < behaviours.Length; i++)
+            {
+                if (behaviours[i] is IBuildingViewStateConsumer consumer)
+                {
+                    viewStateConsumers.Add(consumer);
+                }
+            }
+        }
+
+        private void RefreshViewStateConsumers()
+        {
+            if (owner == null)
+            {
+                return;
+            }
+
+            for (var i = 0; i < viewStateConsumers.Count; i++)
+            {
+                var consumer = viewStateConsumers[i];
+                if (consumer != null)
+                {
+                    try
+                    {
+                        consumer.Refresh(owner);
+                    }
+                    catch (Exception exception)
+                    {
+                        Debug.LogException(exception, consumer as UnityEngine.Object);
+                    }
+                }
+            }
+        }
+
+        private void HandleOwnerStateChanged(BuildingBase changedBuilding)
+        {
+            if (changedBuilding == owner)
+            {
+                RefreshViewStateConsumers();
+            }
+        }
+
+        private void UnbindOwner()
+        {
+            if (owner != null)
+            {
+                owner.StateChanged -= HandleOwnerStateChanged;
+                owner = null;
             }
         }
 

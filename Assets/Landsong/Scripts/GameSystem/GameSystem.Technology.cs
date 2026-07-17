@@ -183,6 +183,12 @@ namespace Landsong
 
         private bool ShouldCancelNextTurnForMissingResearch()
         {
+            if (Features == null || !Features.IsUnlocked(GameFeature.Technology))
+            {
+                ClearMissingResearchWarning();
+                return false;
+            }
+
             if (Technology == null)
             {
                 CreateTechnologyService();

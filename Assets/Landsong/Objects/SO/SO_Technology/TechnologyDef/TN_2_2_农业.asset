@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a3b70d7f4d394dd9a76b0bc2e5c6a101, type: 3}
-  m_Name: "TN_2_2_农业"
+  m_Name: "TN_2_2_\u519C\u4E1A"
   m_EditorClassIdentifier: Assembly-CSharp::Landsong.TechnologySystem.TechnologyDefinition
-  icon: {fileID: 0}
-  technologyId: "TN_2_2_农业"
-  displayName: "农业"
-  description: "从季节性采集转向有计划的播种与收获，建立稳定食物来源。"
+  icon: {fileID: 1102749585952049736, guid: 28064067c52d8894998b4eb1cd7b5136, type: 3}
+  technologyId: "TN_2_2_\u519C\u4E1A"
+  displayName: "\u519C\u4E1A"
+  description: "\u4ECE\u5B63\u8282\u6027\u91C7\u96C6\u8F6C\u5411\u6709\u8BA1\u5212\u7684\u64AD\u79CD\u4E0E\u6536\u83B7\uFF0C\u5EFA\u7ACB\u7A33\u5B9A\u98DF\u7269\u6765\u6E90\u3002"
   sciencePointCost: 8
   allowRepeatResearch: 0
   prerequisites:
