@@ -1,0 +1,261 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02d7d04a464b7214dac9f377de8cc861, type: 3}
+  m_Name: "b\u7CAE\u4ED3"
+  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.GameDefinitionAsset
+  Data:
+    Id: "b\u7CAE\u4ED3"
+    Name: "\u7CAE\u4ED3"
+    Description: "\u7CAE\u4ED3\u63D0\u4F9B\u4F4E\u635F\u8017\u7684\u7CAE\u5E93\u69FD\u4F4D\uFF1B\u5347\u7EA7\u3001\u8DB3\u591F\u5DE5\u4EBA\u548C\u7EF4\u62A4\u53EF\u6269\u5927\u5BB9\u91CF\u5E76\u79EF\u7D2F\u7ECF\u9A8C\uFF0C\u6EE1\u5458\u540E\u8FD8\u80FD\u89E3\u9501\u5956\u52B1\u69FD\u4F4D\u3002"
+    Kind: 3
+    Group: "limit.b\u7CAE\u4ED3"
+    Level: 3
+    Capacity: 1
+    Duration: 3
+    Value: 100
+    Limit: 0
+    Size: {x: 2, y: 2}
+    Health: 100
+    Damage: 10
+    Range: 1.4
+    Interval: 1
+    Speed: 0
+    ProjectileSpeed: 10
+    Chance: 1
+    Loss: 0
+    Population: 1
+    Cost: 0
+    Flags: 1
+    Prefab: {fileID: 4287943405103869813, guid: 4203de873cc118048bbb6d51f1496fc9, type: 3}
+    Icon: {fileID: 0}
+    Building:
+      Category: 2
+      MenuOrder: 30
+      ProviderPriority: 0
+      RepairTurns: 0
+      CanMove: 1
+      CanRotate: 1
+      MoveMaterialRatio: 0.3
+      MoveExperienceRatio: 0.3
+      RuinMovementCost: 4
+      DefaultSkin: 
+    Rules:
+    - Kind: 0
+      Target: "\u91D1\u5E01"
+      Secondary: 
+      Level: 1
+      Amount: 30
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 1
+      Target: "\u6CE5\u571F"
+      Secondary: 
+      Level: 1
+      Amount: 10
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 1
+      Target: "\u539F\u6728"
+      Secondary: 
+      Level: 2
+      Amount: 10
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 1
+      Target: "\u77F3\u5934"
+      Secondary: 
+      Level: 3
+      Amount: 10
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 52
+      Target: 
+      Secondary: 
+      Level: 0
+      Amount: 0
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: "\u9646\u5730"
+    - Kind: 5
+      Target: "\u91D1\u5E01"
+      Secondary: 
+      Level: 1
+      Amount: 2
+      B: 0
+      C: 0
+      Value: 55
+      Extra: 10
+      Key: 
+    - Kind: 10
+      Target: "slot.\u7CAE\u5E93"
+      Secondary: 
+      Level: 1
+      Amount: 2
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 9
+      Target: "\u91D1\u5E01"
+      Secondary: 
+      Level: 1
+      Amount: 1
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 16
+      Target: 
+      Secondary: 
+      Level: 1
+      Amount: 1
+      B: 30
+      C: 2
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 63
+      Target: 
+      Secondary: 
+      Level: 1
+      Amount: 2
+      B: 150
+      C: 0
+      Value: 10
+      Extra: 1.25
+      Key: 
+    - Kind: 5
+      Target: "\u91D1\u5E01"
+      Secondary: 
+      Level: 2
+      Amount: 3
+      B: 0
+      C: 0
+      Value: 55
+      Extra: 10
+      Key: 
+    - Kind: 10
+      Target: "slot.\u7CAE\u5E93"
+      Secondary: 
+      Level: 2
+      Amount: 4
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 9
+      Target: "\u91D1\u5E01"
+      Secondary: 
+      Level: 2
+      Amount: 2
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 16
+      Target: 
+      Secondary: 
+      Level: 2
+      Amount: 1
+      B: 50
+      C: 2
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 63
+      Target: 
+      Secondary: 
+      Level: 2
+      Amount: 3
+      B: 150
+      C: 0
+      Value: 10
+      Extra: 1.25
+      Key: 
+    - Kind: 5
+      Target: "\u91D1\u5E01"
+      Secondary: 
+      Level: 3
+      Amount: 5
+      B: 0
+      C: 0
+      Value: 55
+      Extra: 10
+      Key: 
+    - Kind: 10
+      Target: "slot.\u7CAE\u5E93"
+      Secondary: 
+      Level: 3
+      Amount: 6
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 10
+      Target: "slot.\u7CAE\u5E93"
+      Secondary: 
+      Level: 3
+      Amount: 1
+      B: 5
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 9
+      Target: "\u91D1\u5E01"
+      Secondary: 
+      Level: 3
+      Amount: 3
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 16
+      Target: 
+      Secondary: 
+      Level: 3
+      Amount: 0
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 63
+      Target: 
+      Secondary: 
+      Level: 3
+      Amount: 4
+      B: 150
+      C: 0
+      Value: 10
+      Extra: 1.25
+      Key: 

@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02d7d04a464b7214dac9f377de8cc861, type: 3}
+  m_Name: talent.slot2
+  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.GameDefinitionAsset
+  Data:
+    Id: talent.slot2
+    Name: "\u8425\u9020\u987E\u95EE"
+    Description: "Value \u4E3A\u804C\u4E1A\u63A5\u7EB3\uFF1B\u53EF\u7528 GeneRequired
+      \u89C4\u5219\u8981\u6C42\u5DF2\u63ED\u9732\u7279\u6027\u3002"
+    Kind: 13
+    Group: 
+    Level: 1
+    Capacity: 1
+    Duration: 1
+    Value: 2
+    Limit: 0
+    Size: {x: 1, y: 1}
+    Health: 100
+    Damage: 10
+    Range: 1.4
+    Interval: 1
+    Speed: 2
+    ProjectileSpeed: 10
+    Chance: 1
+    Loss: 0
+    Population: 1
+    Cost: 0
+    Flags: 0
+    QuestIntensity: 0
+    QuestWeight: 100
+    ItemQuantityScale: 1
+    Prefab: {fileID: 0}
+    Icon: {fileID: 0}
+    HasTechnologyPosition: 0
+    TechnologyPosition: {x: 0, y: 0}
+    Building:
+      Category: 0
+      MenuOrder: 0
+      ProviderPriority: 0
+      RepairTurns: 0
+      CanMove: 1
+      CanRotate: 1
+      MoveMaterialRatio: 0.3
+      MoveExperienceRatio: 0.3
+      RuinMovementCost: 4
+      DefaultSkin: 
+    Rules: []

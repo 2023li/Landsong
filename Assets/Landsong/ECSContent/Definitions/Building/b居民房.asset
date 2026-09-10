@@ -1,0 +1,251 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02d7d04a464b7214dac9f377de8cc861, type: 3}
+  m_Name: "b\u5C45\u6C11\u623F"
+  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.GameDefinitionAsset
+  Data:
+    Id: "b\u5C45\u6C11\u623F"
+    Name: "\u5C45\u6C11\u623F"
+    Description: "\u5C45\u6C11\u623F\u4E3A\u6574\u680B\u5C45\u6C11\u7EDF\u4E00\u5B89\u6392\u98DF\u8C31\uFF1A\u6BCF\u79CD\u8981\u6C42\u7684\u98DF\u7269\u7C7B\u578B\u6BCF\u4EBA\u6D88\u80171\u5355\u4F4D\uFF0C\u4F18\u5148\u4F7F\u7528\u5E93\u5B58\u6570\u91CF\u6700\u591A\u7684\u5408\u683C\u7269\u54C1\u3002\u98DF\u8C31\u5B8C\u6574\u4E14\u7F8E\u89C2\u3001\u533B\u7597\u3001\u6CBB\u5B89\u6761\u4EF6\u8FBE\u6807\u65F6\uFF0C\u4EBA\u53E3\u589E\u957F\u8FDB\u5EA6\u624D\u4F1A\u63A8\u8FDB\uFF1B\u6EE1\u5458\u540E\u5468\u671F\u6027\u4EA7\u51FA\u7A0E\u6536\u3002"
+    Kind: 3
+    Group: "limit.b\u5C45\u6C11\u623F"
+    Level: 2
+    Capacity: 1
+    Duration: 3
+    Value: 100
+    Limit: 99
+    Size: {x: 2, y: 2}
+    Health: 100
+    Damage: 10
+    Range: 1.4
+    Interval: 1
+    Speed: 0
+    ProjectileSpeed: 10
+    Chance: 1
+    Loss: 0
+    Population: 1
+    Cost: 0
+    Flags: 1
+    Prefab: {fileID: 1803082433438297581, guid: 43cf19b7ad4e36c4ba4ecf4ab821b49d, type: 3}
+    Icon: {fileID: 21300000, guid: 6ca5a27498fd33e4b9ec3c25c5851c53, type: 3}
+    Building:
+      Category: 1
+      MenuOrder: 0
+      ProviderPriority: 0
+      RepairTurns: 0
+      CanMove: 1
+      CanRotate: 1
+      MoveMaterialRatio: 0.3
+      MoveExperienceRatio: 0.3
+      RuinMovementCost: 4
+      DefaultSkin: 
+    Rules:
+    - Kind: 0
+      Target: "\u91D1\u5E01"
+      Secondary: 
+      Level: 1
+      Amount: 30
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 0
+      Target: "\u77F3\u5934"
+      Secondary: 
+      Level: 1
+      Amount: 1
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 0
+      Target: "\u539F\u6728"
+      Secondary: 
+      Level: 1
+      Amount: 1
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 1
+      Target: "\u6CE5\u571F"
+      Secondary: 
+      Level: 1
+      Amount: 10
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 1
+      Target: "\u77F3\u5934"
+      Secondary: 
+      Level: 2
+      Amount: 10
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 1
+      Target: "\u539F\u6728"
+      Secondary: 
+      Level: 3
+      Amount: 10
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 52
+      Target: 
+      Secondary: 
+      Level: 0
+      Amount: 0
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: "\u9646\u5730"
+    - Kind: 12
+      Target: 
+      Secondary: 
+      Level: 1
+      Amount: 5
+      B: 2
+      C: 3
+      Value: 3
+      Extra: 0
+      Key: 
+    - Kind: 61
+      Target: "\u91D1\u5E01"
+      Secondary: 
+      Level: 1
+      Amount: 1
+      B: 5
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 13
+      Target: food.vegetable.tier1
+      Secondary: 
+      Level: 1
+      Amount: 1
+      B: 1
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 13
+      Target: food.staple.tier1
+      Secondary: 
+      Level: 1
+      Amount: 1
+      B: 1
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 16
+      Target: 
+      Secondary: 
+      Level: 1
+      Amount: 1
+      B: 30
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 16
+      Target: 
+      Secondary: 
+      Level: 2
+      Amount: 1
+      B: 30
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 12
+      Target: 
+      Secondary: 
+      Level: 2
+      Amount: 5
+      B: 2
+      C: 3
+      Value: 3
+      Extra: 0
+      Key: 
+    - Kind: 61
+      Target: "\u91D1\u5E01"
+      Secondary: 
+      Level: 2
+      Amount: 1
+      B: 5
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 13
+      Target: food.vegetable.tier1
+      Secondary: 
+      Level: 2
+      Amount: 2
+      B: 1
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 13
+      Target: food.staple.tier1
+      Secondary: 
+      Level: 2
+      Amount: 1
+      B: 1
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 13
+      Target: food.meat.tier1
+      Secondary: 
+      Level: 2
+      Amount: 1
+      B: 1
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 14
+      Target: 
+      Secondary: 
+      Level: 2
+      Amount: 4
+      B: 20
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 14
+      Target: 
+      Secondary: 
+      Level: 2
+      Amount: 2
+      B: 40
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 

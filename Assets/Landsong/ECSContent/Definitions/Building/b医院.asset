@@ -1,0 +1,261 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02d7d04a464b7214dac9f377de8cc861, type: 3}
+  m_Name: "b\u533B\u9662"
+  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.GameDefinitionAsset
+  Data:
+    Id: "b\u533B\u9662"
+    Name: "\u533B\u9662"
+    Description: "\u533B\u9662\u6309\u7B49\u7EA7\u548C\u5F53\u524D\u5DE5\u4EBA\u6570\u6269\u5927\u533B\u7597\u8303\u56F4\u4E0E\u5F3A\u5EA6\uFF1B\u6B63\u5E38\u7EF4\u62A4\u548C\u8DB3\u591F\u5DE5\u4EBA\u8FD8\u80FD\u79EF\u7D2F\u8FD0\u8425\u7ECF\u9A8C\u7528\u4E8E\u5347\u7EA7\u3002"
+    Kind: 3
+    Group: "limit.b\u533B\u9662"
+    Level: 3
+    Capacity: 1
+    Duration: 2
+    Value: 100
+    Limit: 0
+    Size: {x: 2, y: 2}
+    Health: 100
+    Damage: 10
+    Range: 1.4
+    Interval: 1
+    Speed: 0
+    ProjectileSpeed: 10
+    Chance: 1
+    Loss: 0
+    Population: 1
+    Cost: 0
+    Flags: 1
+    Prefab: {fileID: 6855816879826162412, guid: 48362477d46c74f43b4dff5a772c8384, type: 3}
+    Icon: {fileID: 0}
+    Building:
+      Category: 33
+      MenuOrder: 35
+      ProviderPriority: 0
+      RepairTurns: 0
+      CanMove: 1
+      CanRotate: 1
+      MoveMaterialRatio: 0.3
+      MoveExperienceRatio: 0.3
+      RuinMovementCost: 4
+      DefaultSkin: 
+    Rules:
+    - Kind: 0
+      Target: "\u91D1\u5E01"
+      Secondary: 
+      Level: 1
+      Amount: 20
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 1
+      Target: "\u539F\u6728"
+      Secondary: 
+      Level: 1
+      Amount: 10
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 1
+      Target: "\u77F3\u5934"
+      Secondary: 
+      Level: 2
+      Amount: 10
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 52
+      Target: 
+      Secondary: 
+      Level: 0
+      Amount: 0
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: "\u9646\u5730"
+    - Kind: 15
+      Target: 
+      Secondary: 
+      Level: 1
+      Amount: 1
+      B: 30
+      C: 2
+      Value: 5
+      Extra: 20
+      Key: medical.hospital.lv1.2_workers
+    - Kind: 15
+      Target: 
+      Secondary: 
+      Level: 1
+      Amount: 1
+      B: 30
+      C: 4
+      Value: 8
+      Extra: 20
+      Key: medical.hospital.lv1.4_workers
+    - Kind: 5
+      Target: "\u91D1\u5E01"
+      Secondary: 
+      Level: 1
+      Amount: 4
+      B: 0
+      C: 0
+      Value: 55
+      Extra: 10
+      Key: 
+    - Kind: 9
+      Target: "\u91D1\u5E01"
+      Secondary: 
+      Level: 1
+      Amount: 1
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 16
+      Target: 
+      Secondary: 
+      Level: 1
+      Amount: 1
+      B: 30
+      C: 3
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 15
+      Target: 
+      Secondary: 
+      Level: 2
+      Amount: 2
+      B: 30
+      C: 4
+      Value: 8
+      Extra: 20
+      Key: medical.hospital.lv2.4_workers
+    - Kind: 15
+      Target: 
+      Secondary: 
+      Level: 2
+      Amount: 2
+      B: 30
+      C: 8
+      Value: 12
+      Extra: 20
+      Key: medical.hospital.lv2.8_workers
+    - Kind: 5
+      Target: "\u91D1\u5E01"
+      Secondary: 
+      Level: 2
+      Amount: 8
+      B: 0
+      C: 0
+      Value: 55
+      Extra: 10
+      Key: 
+    - Kind: 9
+      Target: "\u91D1\u5E01"
+      Secondary: 
+      Level: 2
+      Amount: 3
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 16
+      Target: 
+      Secondary: 
+      Level: 2
+      Amount: 1
+      B: 100
+      C: 8
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 3
+      Target: "\u91D1\u5E01"
+      Secondary: 
+      Level: 2
+      Amount: 300
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 15
+      Target: 
+      Secondary: 
+      Level: 3
+      Amount: 3
+      B: 30
+      C: 8
+      Value: 12
+      Extra: 20
+      Key: medical.hospital.lv3.8_workers
+    - Kind: 15
+      Target: 
+      Secondary: 
+      Level: 3
+      Amount: 3
+      B: 30
+      C: 16
+      Value: 18
+      Extra: 20
+      Key: medical.hospital.lv3.16_workers
+    - Kind: 5
+      Target: "\u91D1\u5E01"
+      Secondary: 
+      Level: 3
+      Amount: 16
+      B: 0
+      C: 0
+      Value: 55
+      Extra: 10
+      Key: 
+    - Kind: 9
+      Target: "\u91D1\u5E01"
+      Secondary: 
+      Level: 3
+      Amount: 6
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 16
+      Target: 
+      Secondary: 
+      Level: 3
+      Amount: 0
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 3
+      Target: "\u91D1\u5E01"
+      Secondary: 
+      Level: 3
+      Amount: 1000
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 

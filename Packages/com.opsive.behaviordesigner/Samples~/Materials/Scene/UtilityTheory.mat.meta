@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 2ef6d7b43a9199a4d82ab8ffa5416777
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 368344
+  packageName: Behavior Designer Pro 3 - DOTS Powered Behavior Trees
+  packageVersion: 3.3.2
+  assetPath: Packages/com.opsive.behaviordesigner/Samples~/Materials/Scene/UtilityTheory.mat
+  uploadId: 985370

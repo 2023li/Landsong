@@ -1,0 +1,267 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &224105630909416586
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1743039017201386248}
+  - component: {fileID: 6281734416232991429}
+  - component: {fileID: 7943419798141946011}
+  m_Layer: 0
+  m_Name: militia
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1743039017201386248
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 224105630909416586}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 3994920022209566033}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6281734416232991429
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 224105630909416586}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0cdaa3305fa954c45a80c9662aa6f425, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Opsive.BehaviorDesigner.Runtime.Wrappers::Opsive.BehaviorDesigner.Runtime.Wrappers.BehaviorTree
+  m_GraphName: "Landsong \xB7 \u539F\u751F\u6218\u672F\u6811"
+  m_Index: 0
+  m_Data:
+    m_TaskData: []
+    m_EventTaskData: []
+    m_SharedVariableData: []
+    m_DisabledEventNodesData: []
+    m_DisabledLogicNodesData: []
+    m_UniqueID: 1015297488
+    m_LogicNodePropertiesData: []
+    m_EventNodePropertiesData: []
+    m_GroupPropertiesData: []
+    m_SharedVariableGroupsData: []
+  m_AuthoringLayer: {fileID: 7943419798141946011}
+  m_StartWhenEnabled: 0
+  m_PauseWhenDisabled: 0
+  m_UpdateMode: 0
+  m_EvaluationType: 0
+  m_MaxEvaluationCount: 1
+  m_Subtree: {fileID: 0}
+--- !u!114 &7943419798141946011
+MonoBehaviour:
+  m_ObjectHideFlags: 2
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 224105630909416586}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c08814195b584721947ac0899da41712, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Opsive.BehaviorDesigner.Runtime.Wrappers::Opsive.BehaviorDesigner.Runtime.Wrappers.BehaviorTreeAuthoringLayer
+  m_Owner: {fileID: 6281734416232991429}
+  m_ParentLayer: {fileID: 0}
+  m_LayerID:
+    m_Low: 4998388317691761071
+    m_High: 10923864724616930968
+  m_SchemaVersion: 1
+  m_Overrides: []
+  m_SourceFingerprint: 0
+  m_EffectiveFingerprint: 8215816769345692545
+  m_Data:
+    m_TaskData:
+    - m_ObjectType: Opsive.BehaviorDesigner.Runtime.Tasks.Decorators.Repeater
+      m_ValueHashes: 
+      m_LongValueHashes: 30b77c28f48d1b2966cb3cf98c4bd96480f6501333363a665876362df79b58fae2039c790dc879a8770519b3aab1c06dc0a3d23692a50e0d1be8923c7659af365c3c4a29c3c32ba2a7364edcee18c55427e8ed2ee818c5546adb807ea82790593283189d77208dbee48d930b6b0cda08990a38d64fcf3e932eacf35377dbf0f38d1bd708c4c29d45b2336b4c26bdd55c01876e562dd96dde8159cda42bd96dde84d4a11b4d596ea73a54877c62e83ca098e0d57325363086b54b46875b75d83102ed8d0263611651c1942dce439cacb69e72151d320733fe0d1313cefea5391c8dcdb03cf8a5391ca895df4a59e38805f0cd47a986e495e2
+      m_ValuePositions: 000000000200000004000000060000000700000007000000070000000700000008000000080000001000000018000000190000001a0000001a0000001a0000001a0000001b0000001b000000230000002b0000002c000000300000003000000030000000300000003100000031000000390000004100000042000000
+      m_Values: 0000ffffffff01000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Opsive.BehaviorDesigner.Runtime.Tasks.Composites.Selector
+      m_ValueHashes: 
+      m_LongValueHashes: 30b77c28f48d1b2966cb3cf98c4bd96480f6501333363a665876362df79b58fa5b2ed1940de3c60b8ea6435e604d1251
+      m_ValuePositions: 000000000200000004000000060000000700000007000000
+      m_Values: 01000000ffff0100
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Landsong.ECS.AI.TacticalAction
+      m_ValueHashes: 
+      m_LongValueHashes: 30b77c28f48d1b2966cb3cf98c4bd96480f6501333363a665876362df79b58faf6cf2433e9d01daa346f68e7ba6325d9
+      m_ValuePositions: 000000000200000004000000060000000700000007000000
+      m_Values: 0200010003000100
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Landsong.ECS.AI.TacticalAction
+      m_ValueHashes: 
+      m_LongValueHashes: 30b77c28f48d1b2966cb3cf98c4bd96480f6501333363a665876362df79b58faf6cf2433e9d01daa346f68e7ba6325d9
+      m_ValuePositions: 000000000200000004000000060000000700000007000000
+      m_Values: 0300010004000101
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Landsong.ECS.AI.TacticalAction
+      m_ValueHashes: 
+      m_LongValueHashes: 30b77c28f48d1b2966cb3cf98c4bd96480f6501333363a665876362df79b58faf6cf2433e9d01daa346f68e7ba6325d9
+      m_ValuePositions: 000000000200000004000000060000000700000007000000
+      m_Values: 0400010005000102
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Landsong.ECS.AI.TacticalAction
+      m_ValueHashes: 
+      m_LongValueHashes: 30b77c28f48d1b2966cb3cf98c4bd96480f6501333363a665876362df79b58faf6cf2433e9d01daa346f68e7ba6325d9
+      m_ValuePositions: 000000000200000004000000060000000700000007000000
+      m_Values: 0500010006000103
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Landsong.ECS.AI.TacticalAction
+      m_ValueHashes: 
+      m_LongValueHashes: 30b77c28f48d1b2966cb3cf98c4bd96480f6501333363a665876362df79b58faf6cf2433e9d01daa346f68e7ba6325d9
+      m_ValuePositions: 000000000200000004000000060000000700000007000000
+      m_Values: 0600010007000104
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Landsong.ECS.AI.TacticalAction
+      m_ValueHashes: 
+      m_LongValueHashes: 30b77c28f48d1b2966cb3cf98c4bd96480f6501333363a665876362df79b58faf6cf2433e9d01daa346f68e7ba6325d9
+      m_ValuePositions: 000000000200000004000000060000000700000007000000
+      m_Values: 07000100ffff0105
+      m_UnityObjects: []
+      m_Version: 3.4
+    m_EventTaskData:
+    - m_ObjectType: Opsive.BehaviorDesigner.Runtime.Tasks.Events.Start
+      m_ValueHashes: 
+      m_LongValueHashes: 5876362df79b58fa59405171878141b1
+      m_ValuePositions: 0000000001000000
+      m_Values: 010000
+      m_UnityObjects: []
+      m_Version: 3.4
+    m_SharedVariableData: []
+    m_DisabledEventNodesData: []
+    m_DisabledLogicNodesData: []
+    m_UniqueID: 1605175689
+    m_LogicNodePropertiesData: []
+    m_EventNodePropertiesData: []
+    m_GroupPropertiesData: []
+    m_SharedVariableGroupsData: []
+--- !u!1 &9217611583931428839
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3994920022209566033}
+  - component: {fileID: 4497550883844730766}
+  - component: {fileID: 1691701725628752226}
+  - component: {fileID: 4401670879158257438}
+  m_Layer: 0
+  m_Name: Visual
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3994920022209566033
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9217611583931428839}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.5, z: 0}
+  m_LocalScale: {x: 0.6, y: 1, z: 0.6}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1743039017201386248}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &4497550883844730766
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9217611583931428839}
+  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &1691701725628752226
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9217611583931428839}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 81bea5a8567114140b0b7d2af4580e61, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 1
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &4401670879158257438
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9217611583931428839}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  Owner: {fileID: 224105630909416586}

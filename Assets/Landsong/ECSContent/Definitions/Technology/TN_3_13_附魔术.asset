@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02d7d04a464b7214dac9f377de8cc861, type: 3}
+  m_Name: "TN_3_13_\u9644\u9B54\u672F"
+  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.GameDefinitionAsset
+  Data:
+    Id: "TN_3_13_\u9644\u9B54\u672F"
+    Name: "\u9644\u9B54\u672F"
+    Description: "\u628A\u7A33\u5B9A\u6750\u6599\u53CD\u5E94\u4E0E\u7CBE\u786E\u63A7\u5236\u7ED3\u5408\u8D77\u6765\uFF0C\u4E3A\u7269\u54C1\u8D4B\u4E88\u53EF\u91CD\u590D\u7EF4\u6301\u7684\u672F\u5F0F\u3002"
+    Kind: 7
+    Group: 
+    Level: 1
+    Capacity: 1
+    Duration: 1
+    Value: 0
+    Limit: 0
+    Size: {x: 1, y: 1}
+    Health: 100
+    Damage: 10
+    Range: 1.4
+    Interval: 1
+    Speed: 2
+    ProjectileSpeed: 10
+    Chance: 1
+    Loss: 0
+    Population: 1
+    Cost: 168
+    Flags: 0
+    Prefab: {fileID: 0}
+    Icon: {fileID: 0}
+    HasTechnologyPosition: 1
+    TechnologyPosition: {x: 2640, y: 300}
+    Rules:
+    - Kind: 28
+      Target: "TN_3_11_\u70BC\u91D1\u672F"
+      Secondary: 
+      Level: 0
+      Amount: 1
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 28
+      Target: "TN_2_12_\u5316\u5B66"
+      Secondary: 
+      Level: 0
+      Amount: 1
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 

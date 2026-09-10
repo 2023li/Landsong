@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02d7d04a464b7214dac9f377de8cc861, type: 3}
+  m_Name: expedition.nearby_recon
+  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.GameDefinitionAsset
+  Data:
+    Id: expedition.nearby_recon
+    Name: "\u8FD1\u90CA\u4FA6\u5BDF"
+    Description: "\u6D3E\u51FA\u961F\u4F0D\u4FA6\u5BDF\u805A\u843D\u5468\u8FB9\uFF0C\u6536\u96C6\u5EFA\u9020\u7269\u8D44\u4E0E\u9053\u8DEF\u60C5\u62A5\u3002"
+    Kind: 11
+    Group: 
+    Level: 1
+    Capacity: 15
+    Duration: 3
+    Value: 1
+    Limit: 0
+    Size: {x: 1, y: 1}
+    Health: 100
+    Damage: 10
+    Range: 0.9
+    Interval: 0.03
+    Speed: 2
+    ProjectileSpeed: 10
+    Chance: 0.4
+    Loss: 0.2
+    Population: 10
+    Cost: 5
+    Flags: 1
+    Prefab: {fileID: 0}
+    Icon: {fileID: 0}
+    Rules:
+    - Kind: 29
+      Target: "\u539F\u6728"
+      Secondary: 
+      Level: 0
+      Amount: 12
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 29
+      Target: "\u77F3\u5934"
+      Secondary: 
+      Level: 0
+      Amount: 8
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 

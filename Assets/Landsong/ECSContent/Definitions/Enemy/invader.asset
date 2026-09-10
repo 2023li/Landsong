@@ -1,0 +1,67 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02d7d04a464b7214dac9f377de8cc861, type: 3}
+  m_Name: invader
+  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.GameDefinitionAsset
+  Data:
+    Id: invader
+    Name: "\u7A81\u51FB\u8005\uFF08\u5360\u4F4D\uFF09"
+    Description: 
+    Kind: 5
+    Group: 
+    Level: 1
+    Capacity: 1
+    Duration: 1
+    Value: 14
+    Limit: 0
+    Size: {x: 1, y: 1}
+    Health: 120
+    Damage: 12
+    Range: 4
+    Interval: 1
+    Speed: 1.8
+    ProjectileSpeed: 9
+    Chance: 1
+    Loss: 0
+    Population: 1
+    Cost: 0
+    Flags: 0
+    TargetCategory: 0
+    QuestIntensity: 0
+    QuestWeight: 100
+    ItemQuantityScale: 1
+    Prefab: {fileID: 8897883104741734442, guid: 824655bfbf8f9e34b992d53c4f3a04e0, type: 3}
+    Icon: {fileID: 0}
+    HasTechnologyPosition: 0
+    TechnologyPosition: {x: 0, y: 0}
+    Building:
+      Category: 0
+      MenuOrder: 0
+      ProviderPriority: 0
+      RepairTurns: 0
+      CanMove: 1
+      CanRotate: 1
+      MoveMaterialRatio: 0.3
+      MoveExperienceRatio: 0.3
+      RuinMovementCost: 4
+      DefaultSkin: 
+    Rules:
+    - Kind: 29
+      Target: "\u91D1\u5E01"
+      Secondary: 
+      Level: 0
+      Amount: 2
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 

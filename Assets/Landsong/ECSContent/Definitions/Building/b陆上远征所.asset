@@ -1,0 +1,211 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02d7d04a464b7214dac9f377de8cc861, type: 3}
+  m_Name: "b\u9646\u4E0A\u8FDC\u5F81\u6240"
+  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.GameDefinitionAsset
+  Data:
+    Id: "b\u9646\u4E0A\u8FDC\u5F81\u6240"
+    Name: "\u9646\u4E0A\u8FDC\u5F81\u6240"
+    Description: "\u9646\u4E0A\u8FDC\u5F81\u6240\u4ECE\u5C97\u4F4D\u5DE5\u4EBA\u4E2D\u7EC4\u5EFA\u961F\u4F0D\uFF1B\u6EE1\u8DB3\u4EBA\u6570\u548C\u7B49\u7EA7\u8981\u6C42\u540E\u53EF\u6D3E\u5F80\u76EE\u7684\u5730\uFF0C\u6EE1\u5458\u63D0\u9AD8\u7269\u54C1\u6536\u76CA\uFF0C\u6210\u529F\u8FDC\u5F81\u79EF\u7D2F\u5347\u7EA7\u7ECF\u9A8C\u3002"
+    Kind: 3
+    Group: "limit.b\u9646\u4E0A\u8FDC\u5F81\u6240"
+    Level: 2
+    Capacity: 1
+    Duration: 3
+    Value: 100
+    Limit: 0
+    Size: {x: 3, y: 3}
+    Health: 100
+    Damage: 10
+    Range: 1.4
+    Interval: 1
+    Speed: 0
+    ProjectileSpeed: 10
+    Chance: 1
+    Loss: 0
+    Population: 1
+    Cost: 0
+    Flags: 1
+    Prefab: {fileID: 7897583798518220402, guid: 260ff57acd4be414fb0e4fec88ec615c, type: 3}
+    Icon: {fileID: 0}
+    Building:
+      Category: 64
+      MenuOrder: 70
+      ProviderPriority: 0
+      RepairTurns: 0
+      CanMove: 1
+      CanRotate: 1
+      MoveMaterialRatio: 0.3
+      MoveExperienceRatio: 0.3
+      RuinMovementCost: 4
+      DefaultSkin: 
+    Rules:
+    - Kind: 0
+      Target: "\u91D1\u5E01"
+      Secondary: 
+      Level: 1
+      Amount: 50
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 1
+      Target: "\u6CE5\u571F"
+      Secondary: 
+      Level: 1
+      Amount: 10
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 1
+      Target: "\u539F\u6728"
+      Secondary: 
+      Level: 2
+      Amount: 15
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 1
+      Target: "\u77F3\u5934"
+      Secondary: 
+      Level: 3
+      Amount: 15
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 52
+      Target: 
+      Secondary: 
+      Level: 0
+      Amount: 0
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: "\u9646\u5730"
+    - Kind: 5
+      Target: "\u91D1\u5E01"
+      Secondary: 
+      Level: 1
+      Amount: 15
+      B: 0
+      C: 0
+      Value: 55
+      Extra: 10
+      Key: 
+    - Kind: 27
+      Target: 
+      Secondary: 
+      Level: 1
+      Amount: 10
+      B: 15
+      C: 1
+      Value: 0.25
+      Extra: 0
+      Key: 
+    - Kind: 16
+      Target: 
+      Secondary: 
+      Level: 1
+      Amount: 0
+      B: 5
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 26
+      Target: 
+      Secondary: 
+      Level: 1
+      Amount: 1
+      B: 3
+      C: 30
+      Value: 50
+      Extra: 0
+      Key: 
+    - Kind: 64
+      Target: "\u91D1\u5E01"
+      Secondary: 
+      Level: 1
+      Amount: 10
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 5
+      Target: "\u91D1\u5E01"
+      Secondary: 
+      Level: 2
+      Amount: 15
+      B: 0
+      C: 0
+      Value: 55
+      Extra: 10
+      Key: 
+    - Kind: 27
+      Target: 
+      Secondary: 
+      Level: 2
+      Amount: 10
+      B: 15
+      C: 1
+      Value: 0.25
+      Extra: 0
+      Key: 
+    - Kind: 16
+      Target: 
+      Secondary: 
+      Level: 2
+      Amount: 0
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 26
+      Target: 
+      Secondary: 
+      Level: 2
+      Amount: 1
+      B: 3
+      C: 30
+      Value: 50
+      Extra: 0
+      Key: 
+    - Kind: 64
+      Target: "\u91D1\u5E01"
+      Secondary: 
+      Level: 2
+      Amount: 10
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 3
+      Target: "\u91D1\u5E01"
+      Secondary: 
+      Level: 2
+      Amount: 100
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 

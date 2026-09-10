@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02d7d04a464b7214dac9f377de8cc861, type: 3}
+  m_Name: gene.beauty
+  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.GameDefinitionAsset
+  Data:
+    Id: gene.beauty
+    Name: 丽质
+    Description: 青年后可在已有部件中塑造一次容貌，修改后的基础颜色参与遗传。
+    Kind: 14
+    Group: 
+    Level: 0
+    Capacity: 1
+    Duration: 0
+    Value: 0
+    Limit: 0
+    Size: {x: 1, y: 1}
+    Health: 100
+    Damage: 10
+    Range: 1.4
+    Interval: 1
+    Speed: 2
+    ProjectileSpeed: 10
+    Chance: 0.5
+    Loss: 0
+    Population: 1
+    Cost: 0
+    Flags: 1
+    QuestIntensity: 0
+    QuestWeight: 100
+    ItemQuantityScale: 1
+    Prefab: {fileID: 0}
+    Icon: {fileID: 0}
+    HasTechnologyPosition: 0
+    TechnologyPosition: {x: 0, y: 0}
+    Building:
+      Category: 0
+      MenuOrder: 0
+      ProviderPriority: 0
+      RepairTurns: 0
+      CanMove: 1
+      CanRotate: 1
+      MoveMaterialRatio: 0.3
+      MoveExperienceRatio: 0.3
+      RuinMovementCost: 4
+      DefaultSkin: 
+    Rules: []

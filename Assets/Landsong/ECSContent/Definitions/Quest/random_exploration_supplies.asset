@@ -1,0 +1,83 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02d7d04a464b7214dac9f377de8cc861, type: 3}
+  m_Name: random_exploration_supplies
+  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.GameDefinitionAsset
+  Data:
+    Id: random_exploration_supplies
+    Name: "\u8FDC\u5F81\u8C03\u67E5\u8865\u7ED9"
+    Description: "\u5F52\u6765\u7684\u8FDC\u5F81\u961F\u53D1\u73B0\u4E86\u503C\u5F97\u7EE7\u7EED\u8C03\u67E5\u7684\u7EBF\u7D22\uFF0C\u9700\u8981\u4E00\u6279\u7269\u8D44\u7EC4\u7EC7\u540E\u7EED\u52D8\u5BDF\u3002"
+    Kind: 8
+    Group: 
+    Level: 1
+    Capacity: 1
+    Duration: 6
+    Value: 3
+    Limit: 0
+    Size: {x: 1, y: 1}
+    Health: 100
+    Damage: 10
+    Range: 1.4
+    Interval: 1
+    Speed: 2
+    ProjectileSpeed: 10
+    Chance: 100
+    Loss: 0
+    Population: 1
+    Cost: 0
+    Flags: 0
+    QuestIntensity: 1
+    QuestWeight: 100
+    ItemQuantityScale: 1
+    Prefab: {fileID: 0}
+    Icon: {fileID: 0}
+    Rules:
+    - Kind: 29
+      Target: "\u91D1\u5E01"
+      Secondary: 
+      Level: 0
+      Amount: 18
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 36
+      Target: "\u539F\u6728"
+      Secondary: 
+      Level: 0
+      Amount: 5
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: dcc601cbd59b4d1a9b0616697170637d.0
+    - Kind: 36
+      Target: "\u77F3\u5934"
+      Secondary: 
+      Level: 0
+      Amount: 3
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: dcc601cbd59b4d1a9b0616697170637d.1
+    - Kind: 41
+      Target: "\u91D1\u5E01"
+      Secondary: 
+      Level: 0
+      Amount: 5
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key:

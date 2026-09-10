@@ -1,0 +1,131 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02d7d04a464b7214dac9f377de8cc861, type: 3}
+  m_Name: "b\u738B\u5BAB"
+  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.GameDefinitionAsset
+  Data:
+    Id: "b\u738B\u5BAB"
+    Name: "\u738B\u5BAB"
+    Description: "\u738B\u5BAB\u662F\u805A\u843D\u7684\u6838\u5FC3\u5EFA\u7B51\uFF0C\u4E3A\u73A9\u5BB6\u63D0\u4F9B\u56FA\u5B9A\u4EBA\u53E3\u3001\u5E93\u5B58\u69FD\u4F4D\u548C\u79D1\u6280\u70B9\uFF0C\u4E5F\u662F\u91CD\u8981\u7684\u8D44\u6E90\u63D0\u4F9B\u8282\u70B9\u3002"
+    Kind: 3
+    Group: "limit.b\u738B\u5BAB"
+    Level: 1
+    Capacity: 1
+    Duration: 1
+    Value: 100
+    Limit: 1
+    Size: {x: 4, y: 4}
+    Health: 100
+    Damage: 10
+    Range: 1.4
+    Interval: 1
+    Speed: 0
+    ProjectileSpeed: 10
+    Chance: 1
+    Loss: 0
+    Population: 1
+    Cost: 0
+    Flags: 1
+    Prefab: {fileID: 312945332374858301, guid: ec4a6c1ef16c40e49b40604ba227fd40, type: 3}
+    Icon: {fileID: -3500720322899650623, guid: 8ea5bedac443ad54ea4d109d5e13e55e, type: 3}
+    Building:
+      Category: 32
+      MenuOrder: 0
+      ProviderPriority: 0
+      RepairTurns: 0
+      CanMove: 1
+      CanRotate: 1
+      MoveMaterialRatio: 0.3
+      MoveExperienceRatio: 0.3
+      RuinMovementCost: 4
+      DefaultSkin: 
+    Rules:
+    - Kind: 52
+      Target: 
+      Secondary: 
+      Level: 0
+      Amount: 0
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: "\u9646\u5730"
+    - Kind: 62
+      Target: 
+      Secondary: 
+      Level: 0
+      Amount: 0
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 11
+      Target: 
+      Secondary: 
+      Level: 1
+      Amount: 10
+      B: 1
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 10
+      Target: "slot.\u7B80\u964B\u5E93\u5B58"
+      Secondary: 
+      Level: 1
+      Amount: 15
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 59
+      Target: 
+      Secondary: 
+      Level: 1
+      Amount: 1
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 25
+      Target: 
+      Secondary: 
+      Level: 1
+      Amount: 4
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 26
+      Target: 
+      Secondary: 
+      Level: 1
+      Amount: 1
+      B: 0
+      C: 5
+      Value: 10
+      Extra: 0
+      Key: 
+    - Kind: 21
+      Target: militia
+      Secondary: 
+      Level: 1
+      Amount: 3
+      B: 1
+      C: 2
+      Value: 0
+      Extra: 0
+      Key: 

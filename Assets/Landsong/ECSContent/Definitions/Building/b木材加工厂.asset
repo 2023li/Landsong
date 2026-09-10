@@ -1,0 +1,161 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02d7d04a464b7214dac9f377de8cc861, type: 3}
+  m_Name: "b\u6728\u6750\u52A0\u5DE5\u5382"
+  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.GameDefinitionAsset
+  Data:
+    Id: "b\u6728\u6750\u52A0\u5DE5\u5382"
+    Name: "\u6728\u6750\u52A0\u5DE5\u5382"
+    Description: "\u6728\u6750\u52A0\u5DE5\u5382\u9700\u8981\u8FDE\u63A5\u8D44\u6E90\u63D0\u4F9B\u70B9\u5E76\u81F3\u5C11\u5B89\u6392\u56DB\u540D\u5DE5\u4EBA\u3002\u6BCF\u4E09\u4E2A\u8FD0\u8425\u56DE\u5408\u6D88\u8017\u4E24\u4EFD\u539F\u6728\u5E76\u4EA7\u51FA\u4E24\u4EFD\u6728\u677F\uFF0C\u516D\u540D\u5DE5\u4EBA\u6EE1\u5C97\u65F6\u751F\u4EA7\u5468\u671F\u7F29\u77ED\u4E3A\u4E24\u56DE\u5408\u3002"
+    Kind: 3
+    Group: "limit.b\u6728\u6750\u52A0\u5DE5\u5382"
+    Level: 1
+    Capacity: 1
+    Duration: 3
+    Value: 100
+    Limit: 0
+    Size: {x: 3, y: 3}
+    Health: 100
+    Damage: 10
+    Range: 1.4
+    Interval: 1
+    Speed: 0
+    ProjectileSpeed: 10
+    Chance: 1
+    Loss: 0
+    Population: 1
+    Cost: 0
+    Flags: 1
+    Prefab: {fileID: 1215663147666504650, guid: 24bd9029f7a79204c96c830b19f492a1, type: 3}
+    Icon: {fileID: 21300000, guid: 55c53c29866aaa940a50293de6d4c1ab, type: 3}
+    Building:
+      Category: 4
+      MenuOrder: 45
+      ProviderPriority: 0
+      RepairTurns: 0
+      CanMove: 1
+      CanRotate: 1
+      MoveMaterialRatio: 0.3
+      MoveExperienceRatio: 0.3
+      RuinMovementCost: 4
+      DefaultSkin: 
+    Rules:
+    - Kind: 0
+      Target: "\u91D1\u5E01"
+      Secondary: 
+      Level: 1
+      Amount: 50
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 1
+      Target: "\u77F3\u5934"
+      Secondary: 
+      Level: 1
+      Amount: 10
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 1
+      Target: "\u539F\u6728"
+      Secondary: 
+      Level: 2
+      Amount: 20
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 1
+      Target: "\u6CE5\u571F"
+      Secondary: 
+      Level: 3
+      Amount: 10
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 52
+      Target: 
+      Secondary: 
+      Level: 0
+      Amount: 0
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: "\u9646\u5730"
+    - Kind: 6
+      Target: 
+      Secondary: 
+      Level: 1
+      Amount: 1
+      B: 4
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 67
+      Target: 
+      Secondary: 
+      Level: 1
+      Amount: 3
+      B: 4
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 67
+      Target: 
+      Secondary: 
+      Level: 1
+      Amount: 2
+      B: 6
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 8
+      Target: "\u539F\u6728"
+      Secondary: 
+      Level: 1
+      Amount: 2
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 7
+      Target: "\u6728\u677F"
+      Secondary: 
+      Level: 1
+      Amount: 2
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 5
+      Target: "\u91D1\u5E01"
+      Secondary: 
+      Level: 1
+      Amount: 6
+      B: 0
+      C: 0
+      Value: 55
+      Extra: 10
+      Key: 

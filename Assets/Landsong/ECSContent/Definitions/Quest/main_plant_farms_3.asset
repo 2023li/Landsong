@@ -1,0 +1,91 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02d7d04a464b7214dac9f377de8cc861, type: 3}
+  m_Name: main_plant_farms_3
+  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.GameDefinitionAsset
+  Data:
+    Id: main_plant_farms_3
+    Name: "\u64AD\u4E0B\u5E0C\u671B"
+    Description: "\u7A7A\u7F6E\u7684\u7530\u5730\u4E0D\u4F1A\u81EA\u884C\u5E26\u6765\u6536\u6210\u3002\u6253\u5F00\u519C\u7530\u8BE6\u60C5\uFF0C\u4E3A
+      3 \u5EA7\u519C\u7530\u9009\u62E9\u4F5C\u7269\u5E76\u5B8C\u6210\u64AD\u79CD\u3002"
+    Kind: 8
+    Group: 
+    Level: 1
+    Capacity: 1
+    Duration: 0
+    Value: 0
+    Limit: 0
+    Size: {x: 1, y: 1}
+    Health: 100
+    Damage: 10
+    Range: 1.4
+    Interval: 1
+    Speed: 2
+    ProjectileSpeed: 10
+    Chance: 1
+    Loss: 0
+    Population: 1
+    Cost: 0
+    Flags: 1
+    Prefab: {fileID: 0}
+    Icon: {fileID: 0}
+    Rules:
+    - Kind: 28
+      Target: main_build_farms_3
+      Secondary: 
+      Level: 0
+      Amount: 1
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 29
+      Target: "\u5C0F\u9EA6"
+      Secondary: 
+      Level: 0
+      Amount: 200
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 29
+      Target: "\u5377\u5FC3\u83DC"
+      Secondary: 
+      Level: 0
+      Amount: 100
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 30
+      Target: "b\u5C45\u6C11\u623F"
+      Secondary: 
+      Level: 0
+      Amount: 1
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 34
+      Target: "b\u519C\u7530"
+      Secondary: 
+      Level: 0
+      Amount: 3
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 69dd2ae38a9d40a6b96b1ab09c56fae4

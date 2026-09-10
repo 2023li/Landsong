@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 8328903a459abfa4bbbcb675d1daa574
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 368344
+  packageName: Behavior Designer Pro 3 - DOTS Powered Behavior Trees
+  packageVersion: 3.3.2
+  assetPath: Packages/com.opsive.behaviordesigner/Samples~/Scenes/TurnBased/tilemap_33.asset
+  uploadId: 985370

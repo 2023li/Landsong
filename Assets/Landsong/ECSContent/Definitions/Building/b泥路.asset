@@ -1,0 +1,61 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02d7d04a464b7214dac9f377de8cc861, type: 3}
+  m_Name: "b\u6CE5\u8DEF"
+  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.GameDefinitionAsset
+  Data:
+    Id: "b\u6CE5\u8DEF"
+    Name: "\u6CE5\u8DEF"
+    Description: "\u6CE5\u8DEF\u5141\u8BB8\u5355\u4F4D\u4EE5\u8F83\u4F4E\u884C\u52A8\u529B\u901A\u8FC7\u6240\u5728\u683C\uFF0C\u7528\u4E8E\u6539\u5584\u805A\u843D\u5185\u7684\u8FDE\u63A5\u548C\u8FD0\u8F93\u6548\u7387\u3002"
+    Kind: 3
+    Group: "limit.b\u6CE5\u8DEF"
+    Level: 1
+    Capacity: 1
+    Duration: 1
+    Value: 100
+    Limit: 0
+    Size: {x: 1, y: 1}
+    Health: 100
+    Damage: 10
+    Range: 1.4
+    Interval: 1
+    Speed: 5
+    ProjectileSpeed: 10
+    Chance: 1
+    Loss: 0
+    Population: 1
+    Cost: 0
+    Flags: 1
+    Prefab: {fileID: 8449408324485368562, guid: 1b5e8ab3215f1294884d09bacf09f9db, type: 3}
+    Icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
+    Building:
+      Category: 128
+      MenuOrder: 0
+      ProviderPriority: 0
+      RepairTurns: 0
+      CanMove: 1
+      CanRotate: 1
+      MoveMaterialRatio: 0.3
+      MoveExperienceRatio: 0.3
+      RuinMovementCost: 4
+      DefaultSkin: 
+    Rules:
+    - Kind: 52
+      Target: 
+      Secondary: 
+      Level: 0
+      Amount: 0
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: "\u9646\u5730"

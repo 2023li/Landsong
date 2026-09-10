@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02d7d04a464b7214dac9f377de8cc861, type: 3}
+  m_Name: raider
+  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.GameDefinitionAsset
+  Data:
+    Id: raider
+    Name: "\u88AD\u51FB\u8005"
+    Description: 
+    Kind: 5
+    Group: 
+    Level: 1
+    Capacity: 1
+    Duration: 1
+    Value: 10
+    Limit: 0
+    Size: {x: 1, y: 1}
+    Health: 70
+    Damage: 8
+    Range: 4
+    Interval: 1
+    Speed: 1.8
+    ProjectileSpeed: 9
+    Chance: 1
+    Loss: 0
+    Population: 1
+    Cost: 0
+    Flags: 4
+    Prefab: {fileID: 8897883104741734442, guid: 824655bfbf8f9e34b992d53c4f3a04e0, type: 3}
+    Icon: {fileID: 0}
+    Rules:
+    - Kind: 29
+      Target: "\u91D1\u5E01"
+      Secondary: 
+      Level: 0
+      Amount: 2
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 

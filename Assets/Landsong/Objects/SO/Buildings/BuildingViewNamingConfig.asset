@@ -1,0 +1,133 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67e71d033d6e3f844b9a5fd7b81e0617, type: 3}
+  m_Name: BuildingViewNamingConfig
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.VisualSystem.LS_BuildingViewNamingConfig
+  viewOutputRoot: Assets/Landsong/Objects/Generated/BuildingVisuals
+  entries:
+  - Family: {fileID: 0}
+    Definition: {fileID: 11400000, guid: c87696cdc5ebee34995c59e1426cc85b, type: 2}
+    AuthoringPrefix: "\u4ED3\u5E93"
+    PrefabPrefix: "\u4ED3\u5E93"
+    ConstructionAuthoringNameOverride: "\u4ED3\u5E93\u5EFA\u9020_\u5EFA\u9020\u9636\u6BB5"
+    BareNameIsLevelOne: 0
+    ExpectedOperationalLevelsOverride: 010000000200000003000000
+    ExpectsConstructionView: 1
+    BindLevelOneAsPlacementPreview: 1
+  - Family: {fileID: 0}
+    Definition: {fileID: 11400000, guid: 4e640ac31d7d64647a7d20f4d4e9ec3a, type: 2}
+    AuthoringPrefix: "\u4F10\u6728\u5C0F\u5C4B"
+    PrefabPrefix: "\u4F10\u6728\u5C0F\u5C4B"
+    ConstructionAuthoringNameOverride: 
+    BareNameIsLevelOne: 0
+    ExpectedOperationalLevelsOverride: 0100000002000000
+    ExpectsConstructionView: 1
+    BindLevelOneAsPlacementPreview: 1
+  - Family: {fileID: 0}
+    Definition: {fileID: 11400000, guid: 618f3ee4e55c4374ba30755f95c9ac12, type: 2}
+    AuthoringPrefix: "\u533B\u9662"
+    PrefabPrefix: "\u533B\u9662"
+    ConstructionAuthoringNameOverride: 
+    BareNameIsLevelOne: 0
+    ExpectedOperationalLevelsOverride: 010000000200000003000000
+    ExpectsConstructionView: 1
+    BindLevelOneAsPlacementPreview: 1
+  - Family: {fileID: 0}
+    Definition: {fileID: 11400000, guid: c18eee413b97cad42baa968736fccae8, type: 2}
+    AuthoringPrefix: "\u5C45\u6C11\u623F"
+    PrefabPrefix: "\u5C45\u6C11\u623F"
+    ConstructionAuthoringNameOverride: 
+    BareNameIsLevelOne: 0
+    ExpectedOperationalLevelsOverride: 01000000020000000300000004000000
+    ExpectsConstructionView: 1
+    BindLevelOneAsPlacementPreview: 1
+  - Family: {fileID: 0}
+    Definition: {fileID: 11400000, guid: 0671289f890a23b4fb2dd0815eaf396a, type: 2}
+    AuthoringPrefix: "\u5E02\u573A"
+    PrefabPrefix: "\u5E02\u573A"
+    ConstructionAuthoringNameOverride: 
+    BareNameIsLevelOne: 0
+    ExpectedOperationalLevelsOverride: 01000000
+    ExpectsConstructionView: 1
+    BindLevelOneAsPlacementPreview: 1
+  - Family: {fileID: 0}
+    Definition: {fileID: 11400000, guid: 806559cafaef6f843916d5366cb523d6, type: 2}
+    AuthoringPrefix: "\u6355\u9C7C\u5C0F\u5C4B"
+    PrefabPrefix: "\u6355\u9C7C\u5C0F\u5C4B"
+    ConstructionAuthoringNameOverride: 
+    BareNameIsLevelOne: 0
+    ExpectedOperationalLevelsOverride: 0100000002000000
+    ExpectsConstructionView: 1
+    BindLevelOneAsPlacementPreview: 1
+  - Family: {fileID: 0}
+    Definition: {fileID: 11400000, guid: 5978a9e83a10f4642bd636d309e8e24d, type: 2}
+    AuthoringPrefix: "\u6CE5\u8DEF"
+    PrefabPrefix: "\u6CE5\u8DEF"
+    ConstructionAuthoringNameOverride: 
+    BareNameIsLevelOne: 0
+    ExpectedOperationalLevelsOverride: 01000000
+    ExpectsConstructionView: 1
+    BindLevelOneAsPlacementPreview: 1
+  - Family: {fileID: 0}
+    Definition: {fileID: 11400000, guid: 6f6af578252db9b4fb3f09dcdccc0ce6, type: 2}
+    AuthoringPrefix: "\u738B\u5BAB"
+    PrefabPrefix: "\u738B\u5BAB"
+    ConstructionAuthoringNameOverride: 
+    BareNameIsLevelOne: 0
+    ExpectedOperationalLevelsOverride: 01000000020000000300000004000000
+    ExpectsConstructionView: 1
+    BindLevelOneAsPlacementPreview: 1
+  - Family: {fileID: 0}
+    Definition: {fileID: 11400000, guid: 6032159b339e0d74990ea6b7609d34cd, type: 2}
+    AuthoringPrefix: "\u7CAE\u4ED3"
+    PrefabPrefix: "\u7CAE\u4ED3"
+    ConstructionAuthoringNameOverride: 
+    BareNameIsLevelOne: 0
+    ExpectedOperationalLevelsOverride: 010000000200000003000000
+    ExpectsConstructionView: 1
+    BindLevelOneAsPlacementPreview: 1
+  - Family: {fileID: 0}
+    Definition: {fileID: 11400000, guid: e46670930a5b7534cbb44cd9e8e54ea4, type: 2}
+    AuthoringPrefix: "\u9646\u4E0A\u8FDC\u5F81\u6240"
+    PrefabPrefix: "\u9646\u4E0A\u8FDC\u5F81\u6240"
+    ConstructionAuthoringNameOverride: 
+    BareNameIsLevelOne: 0
+    ExpectedOperationalLevelsOverride: 0100000002000000
+    ExpectsConstructionView: 1
+    BindLevelOneAsPlacementPreview: 1
+  - Family: {fileID: 0}
+    Definition: {fileID: 11400000, guid: 9fa3a2806db9e344f9eb32f738607cbb, type: 2}
+    AuthoringPrefix: "\u5C0F\u571F\u5806"
+    PrefabPrefix: "\u5C0F\u571F\u5806"
+    ConstructionAuthoringNameOverride: 
+    BareNameIsLevelOne: 1
+    ExpectedOperationalLevelsOverride: 01000000
+    ExpectsConstructionView: 0
+    BindLevelOneAsPlacementPreview: 1
+  - Family: {fileID: 0}
+    Definition: {fileID: 11400000, guid: 155cb2591269a5247b04d2c23ffbe330, type: 2}
+    AuthoringPrefix: "\u5C0F\u77F3\u5806"
+    PrefabPrefix: "\u5C0F\u77F3\u5806"
+    ConstructionAuthoringNameOverride: 
+    BareNameIsLevelOne: 1
+    ExpectedOperationalLevelsOverride: 01000000
+    ExpectsConstructionView: 0
+    BindLevelOneAsPlacementPreview: 1
+  - Family: {fileID: 0}
+    Definition: {fileID: 11400000, guid: 7df6157a6643e9c41951b0403decdba0, type: 2}
+    AuthoringPrefix: "\u519C\u7530"
+    PrefabPrefix: "\u519C\u7530"
+    ConstructionAuthoringNameOverride: 
+    BareNameIsLevelOne: 0
+    ExpectedOperationalLevelsOverride: 
+    ExpectsConstructionView: 1
+    BindLevelOneAsPlacementPreview: 1

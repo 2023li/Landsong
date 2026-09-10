@@ -1,0 +1,70 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02d7d04a464b7214dac9f377de8cc861, type: 3}
+  m_Name: expedition.abandoned_fort
+  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.GameDefinitionAsset
+  Data:
+    Id: expedition.abandoned_fort
+    Name: "\u5E9F\u5F03\u8981\u585E"
+    Description: "\u6DF1\u5165\u66F4\u5371\u9669\u7684\u65E7\u8981\u585E\uFF0C\u641C\u5BFB\u5927\u6279\u5EFA\u6750\u548C\u6B8B\u7559\u519B\u9700\u3002"
+    Kind: 11
+    Group: 
+    Level: 2
+    Capacity: 15
+    Duration: 5
+    Value: 2
+    Limit: 0
+    Size: {x: 1, y: 1}
+    Health: 100
+    Damage: 10
+    Range: 0.9
+    Interval: 0.035
+    Speed: 2
+    ProjectileSpeed: 10
+    Chance: 0.25
+    Loss: 0.35
+    Population: 10
+    Cost: 10
+    Flags: 1
+    Prefab: {fileID: 0}
+    Icon: {fileID: 0}
+    Rules:
+    - Kind: 29
+      Target: "\u539F\u6728"
+      Secondary: 
+      Level: 0
+      Amount: 25
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 29
+      Target: "\u77F3\u5934"
+      Secondary: 
+      Level: 0
+      Amount: 20
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 29
+      Target: "\u6CE5\u571F"
+      Secondary: 
+      Level: 0
+      Amount: 15
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 

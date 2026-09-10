@@ -1,0 +1,121 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02d7d04a464b7214dac9f377de8cc861, type: 3}
+  m_Name: "b\u6811\u67281"
+  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.GameDefinitionAsset
+  Data:
+    Id: "b\u6811\u67281"
+    Name: "\u6811\u6728 1"
+    Description: "\u8FD0\u8425\u540E\u4E3A\u6B63\u4EA4\u76F8\u90BB\u683C\u63D0\u4F9B\u7F8E\u5316\uFF0C\u53CC\u51FB\u53EF\u91C7\u96C6\uFF0C\u751F\u547D\u8017\u5C3D\u6216\u62C6\u9664\u65F6\u53D1\u653E\u8D44\u6E90\u3002"
+    Kind: 3
+    Group: "limit.b\u6811\u67281"
+    Level: 1
+    Capacity: 1
+    Duration: 1
+    Value: 100
+    Limit: 0
+    Size: {x: 1, y: 1}
+    Health: 100
+    Damage: 10
+    Range: 1.4
+    Interval: 1
+    Speed: 0
+    ProjectileSpeed: 10
+    Chance: 1
+    Loss: 0
+    Population: 1
+    Cost: 0
+    Flags: 1
+    Prefab: {fileID: 3041560448136292916, guid: 840daa6a35fb0e4459fdf936708cbb1a, type: 3}
+    Icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
+    Building:
+      Category: 256
+      MenuOrder: 0
+      ProviderPriority: 0
+      RepairTurns: 0
+      CanMove: 1
+      CanRotate: 1
+      MoveMaterialRatio: 0.3
+      MoveExperienceRatio: 0.3
+      RuinMovementCost: 4
+      DefaultSkin: 
+    Rules:
+    - Kind: 0
+      Target: "\u91D1\u5E01"
+      Secondary: 
+      Level: 1
+      Amount: 10
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 0
+      Target: "\u6811\u82D7"
+      Secondary: 
+      Level: 1
+      Amount: 1
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 52
+      Target: 
+      Secondary: 
+      Level: 0
+      Amount: 0
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: "\u9646\u5730"
+    - Kind: 19
+      Target: 
+      Secondary: 
+      Level: 1
+      Amount: 1
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 29
+      Target: "\u539F\u6728"
+      Secondary: 
+      Level: 1
+      Amount: 10
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 29
+      Target: "\u6811\u82D7"
+      Secondary: 
+      Level: 1
+      Amount: 3
+      B: 0
+      C: 0
+      Value: 0
+      Extra: 0
+      Key: 
+    - Kind: 15
+      Target: 
+      Secondary: 
+      Level: 1
+      Amount: 1
+      B: 20
+      C: 0
+      Value: 1
+      Extra: 20
+      Key: beauty.tree

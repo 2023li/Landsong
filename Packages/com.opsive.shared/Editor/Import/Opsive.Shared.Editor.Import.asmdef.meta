@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 27cb7fd045e5bb44f8c617ce69325b1d
+AssemblyDefinitionImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 368344
+  packageName: Behavior Designer Pro 3 - DOTS Powered Behavior Trees
+  packageVersion: 3.3.2
+  assetPath: Packages/com.opsive.shared/Editor/Import/Opsive.Shared.Editor.Import.asmdef
+  uploadId: 985370
