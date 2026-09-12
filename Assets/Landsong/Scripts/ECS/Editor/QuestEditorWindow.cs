@@ -13,6 +13,8 @@ namespace Landsong.ECS.Editor
         GameDefinitionAsset selected;
         Vector2 listScroll, detailScroll;
         string search = "", message = "";
+        UnityEditor.Editor contentEditor;
+        void OnDisable(){if(contentEditor!=null)DestroyImmediate(contentEditor);}
         [MenuItem("Landsong/ECS/任务配置与校验")]
         public static void Open() => GetWindow<QuestEditorWindow>("ECS 任务");
         void OnEnable() => catalog = AssetDatabase.LoadAssetAtPath<GameCatalogAsset>("Assets/Landsong/ECSContent/GameCatalog.asset");
@@ -34,17 +36,15 @@ namespace Landsong.ECS.Editor
             {
                 if (GUILayout.Button("在 Project 中定位定义")) { Selection.activeObject = selected; EditorGUIUtility.PingObject(selected); }
                 var d = selected.Data;
-                EditorGUILayout.LabelField("后续任务", string.Join("、", catalog.Content.Where(x => x.Kind == ContentKind.Quest && x.Rules.Any(r => r.Kind == RuleKind.Prerequisite && r.Target == d.Id)).Select(x => x.Name)), EditorStyles.wordWrappedLabel);
+                EditorGUILayout.LabelField("后续任务", string.Join("、", catalog.Content.Where(x => x.Kind == ContentKind.Quest && x.Configuration?.Conditions?.Enabled==true && (x.Configuration.Conditions.Completions??Array.Empty<CompletionsConfiguration>()).Any(r => r?.Content == selected)).Select(x => x.Name)), EditorStyles.wordWrappedLabel);
                 using (new EditorGUI.DisabledScope(EditorApplication.isPlayingOrWillChangePlaymode))
                 {
-                    var serialized = new SerializedObject(selected); serialized.Update(); var data = serialized.FindProperty("Data");
-                    foreach (var field in new[] { "Id", "Name", "Description", "Icon", "Duration", "Value", "Flags", "QuestIntensity", "QuestWeight", "ItemQuantityScale", "Rules" }) EditorGUILayout.PropertyField(data.FindPropertyRelative(field), true);
-                    EditorGUILayout.HelpBox("来源强度只改变抽取概率。物品 Amount 填基础数量，ItemQuantityScale 在 Baking 时统一缩放物品要求、奖励、失败惩罚；蓝图/Buff/功能许可不缩放。", MessageType.Info);
-                    serialized.ApplyModifiedProperties();
-                    EditorGUILayout.HelpBox("Flags：0 随机、1 主线，额外 +2 禁用草稿。Value：随机任务类别。Duration：签约期限，0 无限。要求 Amount 为目标数；建筑 B 最低等级/C 仅完工；回合 B=1 为相对签约回合。Prerequisite 在领奖后满足。", MessageType.None);
+                    UnityEditor.Editor.CreateCachedEditor(selected,typeof(ContentInspector),ref contentEditor);
+                    contentEditor.OnInspectorGUI();
+                    EditorGUILayout.HelpBox("任务目标保存稳定进度标识。物品填写基础数量，物品数量倍率在 Baking 时统一缩放；目标和奖励通过独立模块配置。", MessageType.Info);
                     if (GUILayout.Button("仅为缺失 Key 的要求生成稳定 ID"))
                     {
-                        Undo.RecordObject(selected, "Assign quest requirement IDs"); foreach (var rule in d.Rules) if (QuestOps.Requirement(rule.Kind) && string.IsNullOrWhiteSpace(rule.Key)) rule.Key = Guid.NewGuid().ToString("N"); EditorUtility.SetDirty(selected);
+                        Undo.RecordObject(selected, "Assign quest requirement IDs"); foreach (var rule in d.Configuration?.Objectives?.All??Array.Empty<ContentObjective>()) if (rule!=null&&string.IsNullOrWhiteSpace(rule.Key)) rule.Key = Guid.NewGuid().ToString("N"); EditorUtility.SetDirty(selected);
                     }
                     if (GUILayout.Button("保存配置")) AssetDatabase.SaveAssets();
                 }

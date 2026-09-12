@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6f00aa2b02c84b579ea3d9545b89036e, type: 3}
   m_Name: PortraitConfig
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.PortraitConfig
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.PortraitConfig
   Resolution: 64
   Settings:
     YouthAge: 16

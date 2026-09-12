@@ -36,7 +36,7 @@ namespace Landsong.ECS
             var q = new ExpeditionQuote { Crew = crew };
             if (!Sim.ValidDefinition(em, root, definition) || Sim.Definition(em, root, definition).Kind != ContentKind.Expedition) return q.Fail(ResultCode.InvalidContent, "目的地不存在");
             var d = Sim.Definition(em, root, definition);
-            for (var i = 0; i < d.RuleCount; i++) { var r = Sim.GetRule(em, root, d.RuleStart + i); if (r.Kind == RuleKind.VisiblePrerequisite && !Sim.HasGrant(em, root, r.Target, math.max(1, r.Amount))) q.Visible = false; if (r.Kind == RuleKind.Supply) q.Options.Add(r); }
+            for (var i = 0; i < d.RuleCount; i++) { var r = Sim.GetRule(em, root, d.RuleStart + i); if (r.Kind == RuleKind.VisiblePrerequisite && !ConditionOps.Satisfied(em, root, r.Target, math.max(1, r.Amount))) q.Visible = false; if (r.Kind == RuleKind.Supply) q.Options.Add(r); }
             if (site == Entity.Null || !em.HasComponent<Building>(site)) return q.Fail(ResultCode.InvalidTarget, "请选择远征所");
             var b = em.GetComponentData<Building>(site); var id = em.GetComponentData<Identity>(site);
             var rule = Sim.Rule(em, root, id.Definition, RuleKind.ExpeditionSite, b.Level);
@@ -64,7 +64,7 @@ namespace Landsong.ECS
             ulong hash = 14695981039346656037UL; foreach (var ch in stamp) { hash ^= ch; hash *= 1099511628211UL; } q.Stamp = hash.ToString("X16");
             if (!FeatureOps.Unlocked(em, root, "Expedition")) return q.Fail(ResultCode.Unavailable, "远征许可尚未解锁");
             if (s.Phase != Phase.Day || s.CheckpointPending != 0) return q.Fail(ResultCode.WrongPhase, "只能在可操作的白天派遣");
-            if (!q.Visible || !ProgressionOps.Prerequisites(em, root, definition) || (d.Flags & 1) == 0 && CompletedAt(em, site, definition)) return q.Fail(ResultCode.Unavailable, "目的地条件未满足，或此驻地已成功完成不可重复的目的地");
+            if (!q.Visible || !ConditionOps.Prerequisites(em, root, definition) || (d.Flags & 1) == 0 && CompletedAt(em, site, definition)) return q.Fail(ResultCode.Unavailable, "目的地条件未满足，或此驻地已成功完成不可重复的目的地");
             if (!Sim.Operational(em, site) || b.Maintained == 0 || rule.Level < 0 || b.Level < d.Level) return q.Fail(ResultCode.Unavailable, "需要正常运营、维护满足且等级足够的远征所");
             if (EconomyOps.WorkforceLocked(em, id.Id)) return q.Fail(ResultCode.Busy, "该远征所已有队伍在途");
             if (crew < q.Minimum || crew > q.Maximum) return q.Fail(ResultCode.InsufficientPopulation, "需要 " + q.Minimum + "～" + q.Maximum + " 人，受当前工人和稳定岗位限制");
@@ -103,8 +103,8 @@ namespace Landsong.ECS
             {
                 if (state.Status == ExpeditionStatus.Travelling) return ResultCode.Busy;
                 var definition = em.GetComponentData<Identity>(e).Definition;
-                if (state.Status == ExpeditionStatus.Success && !ProgressionOps.Reward(em, root, definition, 1 + state.RewardBonus)) return ResultCode.NoCapacity;
-                if (state.Status == ExpeditionStatus.Success) Sim.Grant(em, root, definition);
+                if (state.Status == ExpeditionStatus.Success && !RewardOps.ApplyDefinitionAndCommit(em, root, definition, 1 + state.RewardBonus, false, -1,
+                    () => ProgressionFacts.RecordExpeditionSuccess(em, root, definition))) return ResultCode.NoCapacity;
             }
             else if (command.Kind != CommandKind.AbandonExpedition) return ResultCode.InvalidContent;
             if(state.Status==ExpeditionStatus.Travelling)PersonRequestOps.Returned(em,root,e,false);
@@ -156,7 +156,7 @@ namespace Landsong.ECS
                     {
                         expedition.PenaltyStacks = (missing + 9) / 10; var session = em.GetComponentData<Session>(root); session.ExpeditionPenaltyStacks += expedition.PenaltyStacks;
                         session.ExpeditionPenaltyUntil = math.max(session.ExpeditionPenaltyUntil, s.Turn + em.GetComponentData<ContentCatalog>(root).Value.Value.Expeditions.PenaltyTurns - 1); em.SetComponentData(root, session);
-                        Sim.Emit(em, root, EventKind.Message, "远征抚恤不足，全局岗位吸引力下降", expedition.Site);
+                        Sim.Emit(em, root, EventKind.Message, "远征抚恤不足，全局岗位吸引力下降", expedition.Site, category: HistoryCategory.Economy);
                     }
                 }
                 em.SetComponentData(e, expedition); Sim.Emit(em, root, EventKind.Message, success ? "远征归来，可领取奖励" : "远征归来，请查看伤亡及抚恤", em.GetComponentData<Identity>(e).Id);

@@ -30,20 +30,21 @@ namespace Landsong.ECS.Editor
         static void Assets()
         {
             var catalog=AssetDatabase.LoadAssetAtPath<GamePresentationCatalog>(LanguageContentTools.Path);Check(catalog!=null,"Resources presentation catalog exists");
+            WorldPresentationMigration.Verify(catalog); Check(true,"All actor/effect templates have complete explicit serialized bindings");
             var content=AssetDatabase.LoadAssetAtPath<GameCatalogAsset>("Assets/Landsong/ECSContent/GameCatalog.asset");
             Check(catalog.DayAmbient!=null&&catalog.NightAmbient!=null,"Existing licensed project ambient clips reused");
             Check(catalog.Cues.Length==Enum.GetValues(typeof(PresentationCue)).Length&&catalog.Cues.Select(c=>c.Id).Distinct().Count()==catalog.Cues.Length,"One bounded cue binding for every semantic cue");
-            foreach(var cue in catalog.Cues){Check(cue.Clip!=null&&cue.Volume>=0&&cue.Volume<=1&&cue.Cooldown>=0&&cue.Concurrency>=1&&cue.Concurrency<=16,"Valid audio cue "+cue.Id);if(cue.Effect!=null)Check(GamePresentationCatalog.PurePrefab(cue.Effect)&&cue.Lifetime>0&&cue.Lifetime<=10,"Pure bounded particle prefab "+cue.Id);}
+            foreach(var cue in catalog.Cues){Check(cue.Clip!=null&&cue.Volume>=0&&cue.Volume<=1&&cue.Cooldown>=0&&cue.Concurrency>=1&&cue.Concurrency<=16,"Valid audio cue "+cue.Id);if(cue.EffectPrefab!=null)Check(WorldPresentationMigration.PurePrefab(cue.EffectPrefab.gameObject)&&cue.Lifetime>0&&cue.Lifetime<=10,"Pure bounded particle prefab "+cue.Id);}
             foreach(var definition in content.Definitions.Where(d=>d.Data.Kind==ContentKind.Soldier||d.Data.Kind==ContentKind.Hero||d.Data.Kind==ContentKind.Enemy))
             {
-                var model=catalog.Select(definition.Data.Id,LifeStage.Operational,1,"");Check(model!=null&&GamePresentationCatalog.PurePrefab(model.Prefab),"Replaceable pure actor "+definition.Data.Id);
-                var animator=model.Prefab.GetComponent<Animator>();Check(animator!=null&&animator.runtimeAnimatorController!=null,"Working placeholder Animator controller "+definition.Data.Id);
+                var model=catalog.Select(definition.Data.Id,LifeStage.Operational,1,"");Check(model!=null&&WorldPresentationMigration.PurePrefab(model.ActorPrefab.gameObject),"Replaceable pure actor "+definition.Data.Id);
+                var animator=model.ActorPrefab.Animator;Check(animator!=null&&animator.runtimeAnimatorController!=null,"Working placeholder Animator controller "+definition.Data.Id);
             }
             Check(catalog.Select("missing",LifeStage.Operational,1,"")==null,"Missing model leaves existing ECS renderer in charge");
             Check(catalog.Text.Select(t=>t.Table+"/"+t.Key).Distinct().Count()==catalog.Text.Length,"Semantic language keys unique");
             foreach(var definition in content.Definitions)Check(catalog.Text.Any(t=>t.Table=="Content"&&t.Key=="content."+definition.Data.Id+".name"),"Stable name key "+definition.Data.Id);
             foreach(var table in new[]{"UI","Content","Gameplay"})Check(catalog.Text.Any(t=>t.Table==table&&!string.IsNullOrEmpty(t.En)),"Retained bilingual table "+table);
-            var go=new GameObject("Owned unsafe model");try{go.AddComponent<AudioListener>();Check(!GamePresentationCatalog.PurePrefab(go),"Listener/gameplay components cannot become model authority");}finally{UnityEngine.Object.DestroyImmediate(go);}
+            var go=new GameObject("Owned unsafe model");try{go.AddComponent<AudioListener>();Check(!WorldPresentationMigration.PurePrefab(go),"Listener/gameplay components cannot become model authority");}finally{UnityEngine.Object.DestroyImmediate(go);}
             var p=InterfaceSettings.Decode("{\"Muted\":true,\"Language\":\"en\"}");Check(p.Muted&&p.Language=="en","Language/mute preferences roundtrip without save mutation");p.Language="../outside";p.Validate();Check(p.Language=="zh-Hans","Invalid preference language identifier normalized");
         }
         static void Languages()

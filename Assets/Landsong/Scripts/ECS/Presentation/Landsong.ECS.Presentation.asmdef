@@ -1,6 +1,0 @@
-{
-  "name": "Landsong.ECS.Presentation",
-  "rootNamespace": "Landsong.ECS.Presentation",
-  "references": ["Landsong.ECS", "Unity.Entities", "Unity.Transforms", "Unity.Mathematics", "Unity.Collections", "Unity.Scenes", "Unity.ugui", "Unity.InputSystem", "Unity.TextMeshPro"],
-  "autoReferenced": true
-}

@@ -62,22 +62,35 @@ namespace Landsong.ECS.Editor
                 Check(em.GetBuffer<HistoryEntry>(root).Length==before,"Forecast does not publish phantom history");
                 EconomyJournalOps.Begin(em,root,false);using(EconomyJournalOps.For(em,root,source,EconomyReason.NaturalLoss))EconomyJournalOps.Record(em,root,gold,-2);EconomyJournalOps.End(em,root);
                 Check(em.GetBuffer<HistoryEntry>(root).Length==before+1&&em.GetBuffer<HistoryEntry>(root)[before].Delta==-2,"Committed settlement history preserves cause and amount");
-                em.SetComponentData(root,new ManualHistoryContext {Active=1,Source=id.Id,Name=id.Name,Reason="主动丢弃"});
-                using(var transaction=new InventoryTransaction(em,root)){EconomyJournalOps.Record(em,root,gold,-3);}
-                Check(em.GetBuffer<HistoryEntry>(root).Length==before+1,"Rejected resource transaction removes history rows");
-                EconomyJournalOps.Record(em,root,gold,-3);Check(em.GetBuffer<HistoryEntry>(root)[before+1].Text.ToString()=="主动丢弃","Manual resource history has explicit reason");
-                em.SetComponentData(root,new ManualHistoryContext());
+                using(HistoryOps.ForCommand(em,root,new Command {Kind=CommandKind.Discard,Target=id.Id}))
+                {
+                    using(var transaction=new InventoryTransaction(em,root)){EconomyJournalOps.Record(em,root,gold,-3);}
+                    Check(em.GetBuffer<HistoryEntry>(root).Length==before+1,"Rejected resource transaction removes history rows");
+                    EconomyJournalOps.Record(em,root,gold,-3);Check(em.GetBuffer<HistoryEntry>(root)[before+1].Text.ToString()=="主动丢弃","Manual resource history has explicit reason");
+                }
                 EconomyJournalOps.Begin(em,root,false);using(EconomyJournalOps.For(em,root,source,EconomyReason.CapacityTransfer))EconomyJournalOps.Record(em,root,gold,4);EconomyJournalOps.End(em,root);
                 Check(em.GetBuffer<HistoryEntry>(root)[em.GetBuffer<HistoryEntry>(root).Length-1].Transfer==1,"Internal capacity transfers are not economic income");
-                em.SetComponentData(root,new ManualHistoryContext {Active=1,Reason="待存放转库"});EconomyJournalOps.Record(em,root,gold,4);em.SetComponentData(root,new ManualHistoryContext());
+                using(HistoryOps.ForCommand(em,root,new Command {Kind=CommandKind.StorePending}))EconomyJournalOps.Record(em,root,gold,4);
                 Check(em.GetBuffer<HistoryEntry>(root)[em.GetBuffer<HistoryEntry>(root).Length-1].Transfer==1,"Manual pending storage is not economic income");
+                foreach(var kind in new[]{CommandKind.StorePending,CommandKind.StorePendingSlot,CommandKind.Harvest})
+                {
+                    using(HistoryOps.ForCommand(em,root,new Command {Kind=kind}))
+                    {
+                        var context=em.GetComponentData<ManualHistoryContext>(root);
+                        context.Reason=kind==CommandKind.Harvest?"待存放转库":"Localized storage action";
+                        em.SetComponentData(root,context);EconomyJournalOps.Record(em,root,gold,4);
+                    }
+                    var row=em.GetBuffer<HistoryEntry>(root)[em.GetBuffer<HistoryEntry>(root).Length-1];
+                    Check(row.Transfer==(kind==CommandKind.Harvest?0:1),"Manual transfer classification follows command kind, independent of reason text: "+kind);
+                    Check(em.GetComponentData<ManualHistoryContext>(root).Active==0,"Manual history context is released after "+kind);
+                }
                 var saved=SnapshotCodec.Capture(em,root);SnapshotCodec.Restore(em,root,SnapshotCodec.Decode(em,root,saved));Check(saved.SequenceEqual(SnapshotCodec.Capture(em,root)),"History survives exact snapshot roundtrip");
                 foreach(var point in new[]{"root-reset","root-published"})
                 {Reject(()=>SnapshotCodec.Restore(em,root,SnapshotCodec.Decode(em,root,original),probe:stage=>{if(stage==point)throw new InvalidOperationException("owned fault");}),"History restore fault "+point);Check(saved.SequenceEqual(SnapshotCodec.Capture(em,root)),"History/root rollback exact "+point);}
                 var invalid=SnapshotCodec.Decode(em,root,saved);invalid.History[0].Position=new float3(float.NaN);Reject(()=>SnapshotCodec.Restore(em,root,invalid),"Nonfinite history position rejected before publication");
                 for(int i=0;i<2200;i++)em.GetBuffer<HistoryEntry>(root).Add(new HistoryEntry {Turn=1,Item=-1,Count=1,Text="有界历史"});HistoryOps.Trim(em,root);Check(em.GetBuffer<HistoryEntry>(root).Length==HistoryOps.Limit,"History bounded independently of UI reading");
                 SnapshotCodec.Restore(em,root,SnapshotCodec.Decode(em,root,original));
-                var cameraObject=new GameObject("Owned camera",typeof(Camera));try{var camera=cameraObject.GetComponent<Camera>();camera.transform.rotation=Quaternion.Euler(55,40,0);camera.transform.position=new Vector3(100000,30,100000);var grid=em.GetComponentData<GridData>(root);var clamped=EcsGameView.ClampCameraPosition(camera,grid,camera.transform.position);Check(math.all(math.isfinite((float3)clamped))&&clamped.x<100000&&clamped.z<100000,"Camera focus clamped to authored map rectangle");}finally{UnityEngine.Object.DestroyImmediate(cameraObject);}
+                var cameraObject=new GameObject("Owned camera",typeof(Camera));try{var camera=cameraObject.GetComponent<Camera>();camera.transform.rotation=Quaternion.Euler(55,40,0);camera.transform.position=new Vector3(100000,30,100000);var grid=em.GetComponentData<GridData>(root);var clamped=UI_GamePanel_WorldInteraction.ClampCameraPosition(camera,grid,camera.transform.position);Check(math.all(math.isfinite((float3)clamped))&&clamped.x<100000&&clamped.z<100000,"Camera focus clamped to authored map rectangle");}finally{UnityEngine.Object.DestroyImmediate(cameraObject);}
                 Archives(world,root);
             }
             finally{EditorSceneManager.ClosePreviewScene(scene);}

@@ -40,8 +40,14 @@ MonoBehaviour:
     - Coffee.UIParticle
     - Coffee.UIParticle.Demo
     - GiantGrey.TileWorldCreator
+    - Landsong.Application
     - Landsong.ECS
+    - Landsong.ECS.AI
+    - Landsong.ECS.Authoring
     - Landsong.ECS.Presentation
+    - Landsong.UI
+    - Landsong.Verification
+    - Moyo.Runtime
     - Opsive.BehaviorDesigner.Runtime.Systems
     - Opsive.BehaviorDesigner.Runtime.Tasks.Actions
     - Opsive.BehaviorDesigner.Runtime.Tasks.Composites

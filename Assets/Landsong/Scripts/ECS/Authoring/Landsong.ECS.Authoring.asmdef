@@ -1,0 +1,15 @@
+{
+  "name": "Landsong.ECS.Authoring",
+  "rootNamespace": "Landsong.ECS.Authoring",
+  "references": [
+    "Landsong.ECS",
+    "Unity.Entities",
+    "Unity.Entities.Hybrid",
+    "Unity.Entities.Graphics",
+    "Unity.Transforms",
+    "Unity.Mathematics",
+    "Unity.Collections"
+  ],
+  "allowUnsafeCode": true,
+  "autoReferenced": true
+}

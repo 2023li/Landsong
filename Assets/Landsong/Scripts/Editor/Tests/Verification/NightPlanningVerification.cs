@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR
+#if UNITY_EDITOR
 using System;
 using System.IO;
 using System.Linq;
@@ -58,7 +58,7 @@ namespace Landsong.ECS.Editor
                 ulong Id(Entity e) => em.GetComponentData<Identity>(e).Id;
                 int Def(string id) => Sim.FindDefinition(em, root, new FixedString128Bytes(id));
                 var original = SnapshotCodec.Capture(em, root); var settings = em.GetComponentData<GameSettings>(root);
-                void Reset() { SnapshotCodec.Restore(em, root, SnapshotCodec.Decode(em, root, original)); em.SetComponentData(root, settings); }
+                void Reset() { em.SetComponentData(root, settings); SnapshotCodec.Restore(em, root, SnapshotCodec.Decode(em, root, original)); }
                 void PhaseTo(Phase phase) { var s = em.GetComponentData<Session>(root); s.Phase = phase; s.PhaseTime = 0; s.CheckpointPending = 0; em.SetComponentData(root, s); }
                 void Force(int turn, bool boss = false)
                 {

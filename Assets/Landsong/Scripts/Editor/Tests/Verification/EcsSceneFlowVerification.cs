@@ -40,6 +40,9 @@ namespace Landsong.ECS.Editor
             if (!SessionState.GetBool(Key, false)) return;
             if (change == PlayModeStateChange.EnteredPlayMode)
             {
+                // Unity suspends WaitForEndOfFrame when a Scene/Inspector tab owns the play workspace.
+                // The visual smoke needs the actual Game view selected so screenshot frames can complete.
+                EditorApplication.ExecuteMenuItem("Window/General/Game");
                 var go = new GameObject("Four Scene Flow Verification"); UnityEngine.Object.DontDestroyOnLoad(go);
                 var smoke=go.AddComponent<EcsPlayerSmoke>();smoke.InterfaceOnly=SessionState.GetBool(Key+".InterfaceOnly",false);
                 smoke.GarrisonOnly=SessionState.GetBool(Key+".GarrisonOnly",false);
@@ -55,6 +58,7 @@ namespace Landsong.ECS.Editor
                 SessionState.SetBool(Key, false);
                 SessionState.SetBool(Key+".InterfaceOnly",false);
                 SessionState.SetBool(Key+".HudPanelsOnly",false);
+                SessionState.SetBool(Key+".GarrisonOnly",false);
                 var setup = JsonUtility.FromJson<Setup>(SessionState.GetString(Key + ".Setup", ""));
                 if (setup != null) EditorSceneManager.RestoreSceneManagerSetup(setup.Scenes);
             }

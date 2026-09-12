@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 02d7d04a464b7214dac9f377de8cc861, type: 3}
   m_Name: expedition.abandoned_fort
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.GameDefinitionAsset
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.GameDefinitionAsset
   Data:
     Id: expedition.abandoned_fort
     Name: "\u5E9F\u5F03\u8981\u585E"
@@ -37,34 +37,86 @@ MonoBehaviour:
     Flags: 1
     Prefab: {fileID: 0}
     Icon: {fileID: 0}
-    Rules:
-    - Kind: 29
-      Target: "\u539F\u6728"
-      Secondary: 
-      Level: 0
-      Amount: 25
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 29
-      Target: "\u77F3\u5934"
-      Secondary: 
-      Level: 0
-      Amount: 20
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 29
-      Target: "\u6CE5\u571F"
-      Secondary: 
-      Level: 0
-      Amount: 15
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
+    Configuration:
+      Conditions:
+        Enabled: 0
+        Completions: []
+        Visibility: []
+      Objectives:
+        Enabled: 0
+        Buildings: []
+        PlantedBuildings: []
+        OwnedItems: []
+        SubmittedItems: []
+        CameraMoves: []
+        CameraZooms: []
+        Technologies: []
+        Turns: []
+      Rewards:
+        Enabled: 1
+        Items:
+        - Order: 0
+          Item: {fileID: 11400000, guid: a761334fe1641a74f9948313fb5ff413, type: 2}
+          Quantity: 25
+        - Order: 1
+          Item: {fileID: 11400000, guid: a927377c37e532b49af819fa89b72369, type: 2}
+          Quantity: 20
+        - Order: 2
+          Item: {fileID: 11400000, guid: 000df9efbc381134e832f667a32c9572, type: 2}
+          Quantity: 15
+        Blueprints: []
+        Buffs: []
+        Features: []
+        Failures: []
+        SpecialDrops: []
+      UnitCosts:
+        Enabled: 0
+        Recruitment: []
+        Awakening: []
+        Offerings: []
+      Crops:
+        Enabled: 0
+        Seeds: []
+        AutomaticHarvest: []
+        Yields: []
+      Inventory:
+        Enabled: 0
+        Groups: []
+        Accepted: []
+        Losses: []
+      Expeditions:
+        Enabled: 0
+        Supplies: []
+      Modifiers:
+        Enabled: 0
+        LossModifier: []
+        ProductionBonus: []
+        AttackBonus: []
+        HealthBonus: []
+        PublicOpinion: []
+        SoldierAttackBonus: []
+        SoldierSpeedBonus: []
+        ActionPowerBonus: []
+        CropHarvestBonus: []
+        PlotRisk: []
+        NaturalDeathRisk: []
+        ResearchOutput: []
+        RangeBonus: []
+        AttackSpeedBonus: []
+        SpeedBonus: []
+        ArmorBonus: []
+        DamageReductionBonus: []
+        PenetrationBonus: []
+        ProjectileSpeedBonus: []
+        BlastRadiusBonus: []
+        FlatProduction: []
+        Intelligence: []
+      People:
+        Enabled: 0
+        Wages: []
+        Traits: []
+        Conflicts: []
+        Dependencies: []
+        SocialTasks: []
+        PeriodicItems: []
+        Effects: []

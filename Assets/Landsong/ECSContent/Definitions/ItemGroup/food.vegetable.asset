@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 02d7d04a464b7214dac9f377de8cc861, type: 3}
   m_Name: food.vegetable
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.GameDefinitionAsset
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.GameDefinitionAsset
   Data:
     Id: food.vegetable
     Name: "\u852C\u83DC"
@@ -37,4 +37,77 @@ MonoBehaviour:
     Flags: 0
     Prefab: {fileID: 0}
     Icon: {fileID: 0}
-    Rules: []
+    Configuration:
+      Conditions:
+        Enabled: 0
+        Completions: []
+        Visibility: []
+      Objectives:
+        Enabled: 0
+        Buildings: []
+        PlantedBuildings: []
+        OwnedItems: []
+        SubmittedItems: []
+        CameraMoves: []
+        CameraZooms: []
+        Technologies: []
+        Turns: []
+      Rewards:
+        Enabled: 0
+        Items: []
+        Blueprints: []
+        Buffs: []
+        Features: []
+        Failures: []
+        SpecialDrops: []
+      UnitCosts:
+        Enabled: 0
+        Recruitment: []
+        Awakening: []
+        Offerings: []
+      Crops:
+        Enabled: 0
+        Seeds: []
+        AutomaticHarvest: []
+        Yields: []
+      Inventory:
+        Enabled: 0
+        Groups: []
+        Accepted: []
+        Losses: []
+      Expeditions:
+        Enabled: 0
+        Supplies: []
+      Modifiers:
+        Enabled: 0
+        LossModifier: []
+        ProductionBonus: []
+        AttackBonus: []
+        HealthBonus: []
+        PublicOpinion: []
+        SoldierAttackBonus: []
+        SoldierSpeedBonus: []
+        ActionPowerBonus: []
+        CropHarvestBonus: []
+        PlotRisk: []
+        NaturalDeathRisk: []
+        ResearchOutput: []
+        RangeBonus: []
+        AttackSpeedBonus: []
+        SpeedBonus: []
+        ArmorBonus: []
+        DamageReductionBonus: []
+        PenetrationBonus: []
+        ProjectileSpeedBonus: []
+        BlastRadiusBonus: []
+        FlatProduction: []
+        Intelligence: []
+      People:
+        Enabled: 0
+        Wages: []
+        Traits: []
+        Conflicts: []
+        Dependencies: []
+        SocialTasks: []
+        PeriodicItems: []
+        Effects: []

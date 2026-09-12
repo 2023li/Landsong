@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
 
@@ -20,7 +20,7 @@ namespace Landsong.ECS
             {
                 var amount = math.min(cost.Amount, InventoryOps.Count(em, root, cost.Item));
                 InventoryOps.Remove(em, root, cost.Item, amount);
-                if (amount > 0) Sim.Emit(em, root, EventKind.Message, "任务惩罚已扣除", id.Id, cost.Item, amount);
+                if (amount > 0) Sim.Emit(em, root, EventKind.Message, "任务惩罚已扣除", id.Id, cost.Item, amount, category: HistoryCategory.Economy);
             }
             // Removal is the one-shot commit marker. Repeat commands and timeout cannot charge again.
             em.DestroyEntity(entity);

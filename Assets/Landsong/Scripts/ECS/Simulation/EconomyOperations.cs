@@ -114,7 +114,7 @@ namespace Landsong.ECS
             if (quote.SubsidyCost > 0)
             {
                 if (InventoryOps.Remove(em, root, quote.Gold, quote.SubsidyCost)) { b.PaidSubsidy = quote.SubsidyCost; attraction = quote.Planned; }
-                else { Sim.Emit(em, root, EventKind.Message, "岗位补贴资金不足", em.GetComponentData<Identity>(e).Id); EconomyJournalOps.Note(em, root, "补贴资金不足，未支付"); }
+                else { Sim.Emit(em, root, EventKind.Message, "岗位补贴资金不足", em.GetComponentData<Identity>(e).Id, category: HistoryCategory.Economy); EconomyJournalOps.Note(em, root, "补贴资金不足，未支付"); }
             }
             b.StableWorkers = WorkforceOps.Stable(stats.JobCapacity, attraction);
             if (EconomyJournalOps.Forecast(em, root)) { em.SetComponentData(e, b); EconomyJournalOps.Note(em, root, "预测沿用当前工人，实际可能招入或流失"); InventoryOps.Provision(em, root, e); return; }
@@ -178,8 +178,8 @@ namespace Landsong.ECS
                     {
                         var r = Sim.GetRule(em, root, d.RuleStart + i);
                         if (!Matches(r, RuleKind.ProductionTier, b.Level) || b.Workers < r.B || (r.C > 0 && b.Workers > r.C)) continue;
-                        var flat = 0; foreach (var grant in em.GetBuffer<Entitlement>(root)) { var buff = Sim.Definition(em, root, grant.Definition); if (buff.Kind != ContentKind.Buff) continue; for (var n = 0; n < buff.RuleCount; n++) { var term = Sim.GetRule(em, root, buff.RuleStart + n); if (term.Kind == RuleKind.FlatProductionBonus && term.Target == r.Target && term.Secondary == id.Definition) flat += term.Amount; } }
-                        var amount = (int)math.floor((r.Amount + flat) * math.max(0, 1 + Sim.Modifier(em, root, RuleKind.ProductionBonus, r.Target) + SpatialValue(em, root, e, 10) / 100f));
+                        var flat = EffectOps.FlatProduction(em, root, r.Target, em.GetComponentData<Identity>(e).Definition);
+                        var amount = (int)math.max(0, math.floor((r.Amount + flat) * math.max(0, 1 + EffectOps.Modifier(em, root, RuleKind.ProductionBonus, r.Target) + SpatialValue(em, root, e, 10) / 100f)));
                         success = InventoryOps.Add(em, root, r.Target, amount) == amount;
                         if (!success) failure = "产品放不下，整份配方的原料与产出撤销";
                     }
@@ -281,7 +281,7 @@ namespace Landsong.ECS
             for (var i = 0; i < crop.RuleCount; i++)
             {
                 var r = Sim.GetRule(em, root, crop.RuleStart + i); if (r.Kind != RuleKind.RewardItem) continue;
-                var amount = (int)math.floor(rng.NextInt(r.Amount, math.max(r.Amount, r.B) + 1) * math.max(0, 1 + bonus / 100f + Sim.Modifier(em, root, RuleKind.ProductionBonus, r.Target) + Sim.Modifier(em, root, RuleKind.CropHarvestBonus, r.Target)));
+                var amount = (int)math.floor(rng.NextInt(r.Amount, math.max(r.Amount, r.B) + 1) * math.max(0, 1 + bonus / 100f + EffectOps.Modifier(em, root, RuleKind.ProductionBonus, r.Target) + EffectOps.Modifier(em, root, RuleKind.CropHarvestBonus, r.Target)));
                 if (InventoryOps.Add(em, root, r.Target, amount) != amount) { harvest.Reject("收获放不下，全部产出与费用撤销"); return ResultCode.NoCapacity; }
             }
             harvest.Commit();
@@ -304,7 +304,7 @@ namespace Landsong.ECS
             {
                 var h = em.GetComponentData<Hero>(hero); if (h.Sanctum != id || h.Recruited == 0) continue;
                 if (!InventoryOps.Pay(em, root, stats.HeroDefinition, RuleKind.Supply, 1))
-                { b.Offering = 0; Sim.Emit(em, root, EventKind.Message, "金币不足，持续供奉已中断", id); EconomyJournalOps.Note(em, root, "供奉资金不足，持续供奉中断"); }
+                { b.Offering = 0; Sim.Emit(em, root, EventKind.Message, "金币不足，持续供奉已中断", id, category: HistoryCategory.Economy); EconomyJournalOps.Note(em, root, "供奉资金不足，持续供奉中断"); }
                 else
                 {
                     b.PaidOfferingTurn = em.GetComponentData<Session>(root).Turn; var growth = Sim.Definition(em, root, stats.HeroDefinition).HeroGrowth;

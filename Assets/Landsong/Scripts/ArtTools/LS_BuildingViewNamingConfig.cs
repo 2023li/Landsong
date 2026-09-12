@@ -8,8 +8,8 @@ namespace Landsong.VisualSystem
 {
     public enum LS_BuildingViewPurpose
     {
-        Operational = 0,
-        Construction = 10
+        [LabelText("运营表现")] Operational = 0,
+        [LabelText("施工表现")] Construction = 10
     }
 
     /// <summary>
@@ -29,7 +29,7 @@ namespace Landsong.VisualSystem
         [Serializable]
         public sealed class Entry
         {
-            [LabelText("ECS Definition")]
+            [LabelText("内容定义")]
             [Tooltip("允许暂时留空，但批量绑定会明确报告该前缀没有 ECS 定义，绝不会猜测。")]
             public GameDefinitionAsset Definition;
 

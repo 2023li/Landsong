@@ -19,8 +19,10 @@ namespace Landsong.ECS.Editor
             CombatVerification.Run, HeroVerification.Run, SoldierVerification.Run, NightPlanningVerification.Run,
             CourtVerification.Run, InvitationExpeditionVerification.Run, QuestVerification.Run,
             TechnologyVerification.Run, WorkforceVerification.Run, InventoryVerification.Run,
-            EconomyVerification.Run, TransactionVerification.Run, CoreRulesVerification.Run,
-            EcsVerification.Run, BuildingFeatureVerification.Run, PortraitVerification.Run, PortraitImportVerification.Run, ArchitectureVerification.Run
+            EconomyVerification.Run, TransactionVerification.Run, PersistenceContractVerification.Run, ArchiveApplicationServiceVerification.Run, CoreRulesVerification.Run, UiConfigurationVerification.Run,
+            EcsVerification.Run, BuildingFeatureVerification.Run, BuildingModuleVerification.Run, ContentInspectorVerification.Run, ContentCompilationVerification.Run, PortraitVerification.Run, PortraitImportVerification.Run, ArchitectureVerification.Run, GameUiRefreshVerification.Run, GameUiInputPolicyVerification.Run, GamePanelNavigationVerification.Run, GameUiStableRowsVerification.Run,
+            ApplicationCleanupRecoveryVerification.Run,
+            RewardAuthoringVerification.Run, EntitlementRewardVerification.Run, SessionBoundaryVerification.Run, EffectVerification.Run, ResearchAuthorityVerification.Run
         };
 
         [MenuItem("Landsong/ECS/Verification/Run all")]

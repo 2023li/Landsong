@@ -16,7 +16,7 @@ namespace Landsong.ECS.Authoring
     }
     public sealed class EntityVisualAuthoring : MonoBehaviour
     {
-        public GameObject Owner;
+        [Sirenix.OdinInspector.LabelText("所属实体对象")] public GameObject Owner;
         sealed class Baker : Baker<EntityVisualAuthoring>
         {
             public override void Bake(EntityVisualAuthoring authoring)

@@ -15,13 +15,38 @@ MonoBehaviour:
   m_GroupName: Default Local Group
   m_GUID: 6411b9c44ea25d544b13cd70250c2fb0
   m_SerializeEntries:
+  - m_GUID: 07a23f1318be86e43a017e00d611c9a7
+    m_Address: UI/UI_LoadingPanel
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 0d0947f61f500584da381ab01d49b014
+    m_Address: UI/UI_SettingPanel
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 4dd6e7bc56b34787b120ee5209cb7ef0
     m_Address: MoyoConfig
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7f0c0f6d9c7382149a91c5f0334eee1f
+    m_Address: UI/UI_GamePanel
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 873314c40647b4b4ea7e11c4122e31fb
+    m_Address: UI/UI_SavePanel
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 9024ec670dd2257479d5d3e117ba65da
     m_Address: Map_Test1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 90965a404e268234c8a3a0be097eca06
+    m_Address: UI/UI_ConfirmPanel
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -32,6 +57,16 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: c55bd9175cbf32745be4494db4b58946
     m_Address: UIConfig
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d67bdbb205bcd294f92f0dd22a63c36b
+    m_Address: UI/UI_StartPanel
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f423e38f8937db24e98dbbde38ca613e
+    m_Address: UI/UI_BootPanel
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

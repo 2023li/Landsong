@@ -1,0 +1,21 @@
+{
+  "name": "Landsong.Verification",
+  "rootNamespace": "Landsong.ECS.Presentation",
+  "references": [
+    "Landsong.ECS",
+    "Landsong.ECS.Authoring",
+    "Landsong.ECS.Presentation",
+    "Landsong.UI",
+    "Moyo.Runtime",
+    "Unity.Entities",
+    "Unity.Transforms",
+    "Unity.Mathematics",
+    "Unity.Collections",
+    "Unity.Scenes",
+    "Unity.ugui",
+    "Unity.InputSystem",
+    "Unity.TextMeshPro",
+    "Landsong.Application"
+  ],
+  "autoReferenced": true
+}

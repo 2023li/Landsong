@@ -32,7 +32,9 @@ namespace Landsong.ECS.Editor
                 Check(MilitaryOps.HeroAvailability(em, root, temple, false).Contains("工人"), "Recruit quote explains worker shortage");
                 var b = em.GetComponentData<Building>(temple); b.Workers = 30; em.SetComponentData(temple, b);
                 var beforeRecruit = SnapshotCodec.Capture(em, root);
-                Check(MilitaryOps.Recruit(em, root, new Command { Target = siteId }, true, at => { throw new InvalidOperationException("probe"); }) == ResultCode.PreparationFailed, "Recruitment after-charge failure is handled");
+                var recruitRequest = new Command { Kind = CommandKind.RecruitHero, Target = siteId };
+                using (HistoryOps.ForCommand(em, root, recruitRequest))
+                    Check(MilitaryOps.Recruit(em, root, recruitRequest, true, at => { throw new InvalidOperationException("probe"); }) == ResultCode.PreparationFailed, "Recruitment after-charge failure is handled in manual history context");
                 Check(beforeRecruit.SequenceEqual(SnapshotCodec.Capture(em, root)), "Recruitment failure restores population identity and inventory");
                 Check(MilitaryOps.Recruit(em, root, new Command { Target = siteId }, true) == ResultCode.Success, "Recruit legal persistent hero");
                 Entity hero; using (var heroes = Sim.Entities<Hero>(em)) hero = heroes[0]; ulong id = em.GetComponentData<Identity>(hero).Id;
@@ -52,7 +54,10 @@ namespace Landsong.ECS.Editor
                 foreach (var fail in new[] { "paid", "deployed" })
                 {
                     int before = InventoryOps.Count(em, root, gold), reportCount = em.GetBuffer<BattleReportEntry>(root).Length;
-                    Check(MilitaryOps.Wake(em, root, temple, at => { if (at == fail) throw new InvalidOperationException("probe"); }) == ResultCode.PreparationFailed, "Wake fault handled " + fail);
+                    var historyCount = em.GetBuffer<HistoryEntry>(root).Length; var oldOrder = em.GetComponentData<UnitOrder>(hero); var oldNavigation = em.GetComponentData<NavigationState>(hero); var oldTactics = em.GetComponentData<TacticalState>(hero);
+                    using (HistoryOps.ForCommand(em, root, new Command { Kind = CommandKind.WakeHero, Target = siteId }))
+                        Check(MilitaryOps.Wake(em, root, temple, at => { if (at == fail) throw new InvalidOperationException("probe"); }) == ResultCode.PreparationFailed, "Wake fault handled " + fail);
+                    Check(historyCount == em.GetBuffer<HistoryEntry>(root).Length && oldOrder.Equals(em.GetComponentData<UnitOrder>(hero)) && oldNavigation.Equals(em.GetComponentData<NavigationState>(hero)) && oldTactics.Equals(em.GetComponentData<TacticalState>(hero)), "Wake fault restores history and transient navigation/order/tactics " + fail);
                     Check(before == InventoryOps.Count(em, root, gold) && reportCount == em.GetBuffer<BattleReportEntry>(root).Length && em.GetComponentData<Combatant>(hero).Deployed == 0 && em.GetComponentData<Building>(temple).WokenTurn != s.Turn, "Wake fault restores costs and deployment " + fail);
                 }
                 Check(MilitaryOps.Wake(em, root, temple) == ResultCode.Success, "Paid hero wakes during peaceful night");

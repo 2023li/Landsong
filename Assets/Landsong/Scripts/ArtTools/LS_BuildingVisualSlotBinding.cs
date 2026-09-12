@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using Landsong.ECS;
 using Landsong.ECS.Authoring;
 using UnityEditor;
 using UnityEngine;

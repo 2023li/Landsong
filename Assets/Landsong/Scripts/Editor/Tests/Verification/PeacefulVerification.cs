@@ -31,7 +31,7 @@ namespace Landsong.ECS.Editor
         {
             var catalog = AssetDatabase.LoadAssetAtPath<GameCatalogAsset>("Assets/Landsong/ECSContent/GameCatalog.asset");
             PeacefulContentValidation.Validate(catalog); Check(catalog.Find("night.fairy") >= 0, "Separate fairy registered in formal catalog");
-            var copy = UnityEngine.Object.Instantiate(catalog); copy.Definitions = catalog.Definitions.Select(UnityEngine.Object.Instantiate).ToArray();
+            var copy = CatalogFixture.Clone(catalog);
             try
             {
                 var original = copy.Peaceful; var p = original; p.Interval = float.NaN; copy.Peaceful = p; Reject(() => PeacefulContentValidation.Validate(copy), "Nonfinite scheduling rejected"); copy.Peaceful = original;
@@ -120,7 +120,7 @@ namespace Landsong.ECS.Editor
             var source = Sim.Find(em, provider); var identity = em.GetComponentData<Identity>(source); var named = identity; named.Name = "国库"; em.SetComponentData(source, named);
             e = PeacefulOps.TrySpawn(em, root, thief, provider, 42); Check(e != Entity.Null, "Named source fixture"); em.SetComponentData(source, identity); PeacefulOps.Finish(em, root, e, false);
             Check(Report(em, root).Any(r => r.Kind == EventKind.VisitorEscaped && r.SourceName.ToString() == "国库"), "Source rename after spawn cannot rewrite captured report name");
-            var catalog = AssetDatabase.LoadAssetAtPath<GameCatalogAsset>("Assets/Landsong/ECSContent/GameCatalog.asset"); var copy = UnityEngine.Object.Instantiate(catalog); copy.Definitions = catalog.Definitions.Select(UnityEngine.Object.Instantiate).ToArray(); var original = em.GetComponentData<ContentCatalog>(root);
+            var catalog = AssetDatabase.LoadAssetAtPath<GameCatalogAsset>("Assets/Landsong/ECSContent/GameCatalog.asset"); var copy = CatalogFixture.Clone(catalog); var original = em.GetComponentData<ContentCatalog>(root);
             try
             {
                 using var inventory = em.GetBuffer<InventorySlot>(root).ToNativeArray(Allocator.Temp); var slot = inventory.First(x => x.Provider == provider && x.Count > 0); string itemId = Sim.Definition(em, root, slot.Item).Id.ToString();

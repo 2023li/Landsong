@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using UnityEngine;
+using Sirenix.OdinInspector;
 
 namespace Moyo.Unity
 {
@@ -12,11 +13,11 @@ namespace Moyo.Unity
     {
         public const string AddressableKey = "MoyoConfig";
 
-        [InspectorName("场景切换")]
+        [LabelText("场景切换")]
         [SerializeField]
         private SceneTransitionOptions sceneTransition = new SceneTransitionOptions();
 
-        [InspectorName("UI 系统")]
+        [LabelText("UI 系统")]
         [SerializeField]
         private UIOptions ui = new UIOptions();
 
@@ -49,7 +50,7 @@ namespace Moyo.Unity
     public sealed class SceneTransitionOptions
     {
         [Tooltip("是否在 Console 中打印 SceneTransitionManager 当前执行的加载步骤。")]
-        [InspectorName("打印加载流程")]
+        [LabelText("打印加载流程")]
         [SerializeField]
         private bool logLoadingSteps = true;
 
@@ -60,12 +61,12 @@ namespace Moyo.Unity
     public sealed class UIOptions
     {
         [Tooltip("是否在 UIManager 成功加载 UIConfig 后打印日志。")]
-        [InspectorName("打印 UIConfig 加载成功日志")]
+        [LabelText("打印 UIConfig 加载成功日志")]
         [SerializeField]
         private bool logConfigLoaded = true;
 
         [Tooltip("是否打印场景内未受 UIManager 管理的 Panel 被自动替换的日志。")]
-        [InspectorName("打印未受管理 Panel 修复日志")]
+        [LabelText("打印未受管理 Panel 修复日志")]
         [SerializeField]
         private bool logUnmanagedPanelRepair = true;
 

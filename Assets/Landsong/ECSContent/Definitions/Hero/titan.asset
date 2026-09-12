@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 02d7d04a464b7214dac9f377de8cc861, type: 3}
   m_Name: titan
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.GameDefinitionAsset
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.GameDefinitionAsset
   Data:
     Id: titan
     Name: "\u6CF0\u5766"
@@ -51,24 +51,85 @@ MonoBehaviour:
       BlocksProjectile: 0
     Prefab: {fileID: 38455565601157698, guid: 06414383ec350ce4996d90ed4f06a051, type: 3}
     Icon: {fileID: 0}
-    Rules:
-    - Kind: 56
-      Target: "\u91D1\u5E01"
-      Secondary: 
-      Level: 0
-      Amount: 50
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 57
-      Target: "\u91D1\u5E01"
-      Secondary: 
-      Level: 0
-      Amount: 10
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
+    Configuration:
+      Conditions:
+        Enabled: 0
+        Completions: []
+        Visibility: []
+      Objectives:
+        Enabled: 0
+        Buildings: []
+        PlantedBuildings: []
+        OwnedItems: []
+        SubmittedItems: []
+        CameraMoves: []
+        CameraZooms: []
+        Technologies: []
+        Turns: []
+      Rewards:
+        Enabled: 0
+        Items: []
+        Blueprints: []
+        Buffs: []
+        Features: []
+        Failures: []
+        SpecialDrops: []
+      UnitCosts:
+        Enabled: 1
+        Recruitment: []
+        Awakening:
+        - Order: 0
+          Level: 0
+          Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+          Quantity: 50
+        Offerings:
+        - Order: 1
+          Level: 0
+          Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+          Quantity: 10
+      Crops:
+        Enabled: 0
+        Seeds: []
+        AutomaticHarvest: []
+        Yields: []
+      Inventory:
+        Enabled: 0
+        Groups: []
+        Accepted: []
+        Losses: []
+      Expeditions:
+        Enabled: 0
+        Supplies: []
+      Modifiers:
+        Enabled: 0
+        LossModifier: []
+        ProductionBonus: []
+        AttackBonus: []
+        HealthBonus: []
+        PublicOpinion: []
+        SoldierAttackBonus: []
+        SoldierSpeedBonus: []
+        ActionPowerBonus: []
+        CropHarvestBonus: []
+        PlotRisk: []
+        NaturalDeathRisk: []
+        ResearchOutput: []
+        RangeBonus: []
+        AttackSpeedBonus: []
+        SpeedBonus: []
+        ArmorBonus: []
+        DamageReductionBonus: []
+        PenetrationBonus: []
+        ProjectileSpeedBonus: []
+        BlastRadiusBonus: []
+        FlatProduction: []
+        Intelligence: []
+      People:
+        Enabled: 0
+        Wages: []
+        Traits: []
+        Conflicts: []
+        Dependencies: []
+        SocialTasks: []
+        PeriodicItems: []
+        Effects: []

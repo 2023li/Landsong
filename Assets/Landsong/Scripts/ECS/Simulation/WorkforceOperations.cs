@@ -36,7 +36,7 @@ namespace Landsong.ECS
             sources?.Add(new AttractionSource { Definition = definition, Label = "基础吸引力", Value = value });
             var expeditionPenalty = ExpeditionOps.Penalty(em, root);
             if (expeditionPenalty > 0) { value -= expeditionPenalty; sources?.Add(new AttractionSource { Definition = -1, Label = "远征抚恤不足", Value = -expeditionPenalty }); }
-            value += Sim.Modifier(em, root, RuleKind.Attraction, definition, sources);
+            value += EffectOps.Modifier(em, root, RuleKind.Attraction, definition, sources);
             var nearby = Sim.Rule(em, root, definition, RuleKind.Attraction, b.Level);
             if (nearby.Level >= 0)
             {

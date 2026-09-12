@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 02d7d04a464b7214dac9f377de8cc861, type: 3}
   m_Name: talent.placeholder2
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.GameDefinitionAsset
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.GameDefinitionAsset
   Data:
     Id: talent.placeholder2
     Name: "\u4EBA\u624D2 \xB7 \u8425\u9020\u987E\u95EE"
@@ -53,44 +53,89 @@ MonoBehaviour:
       MoveExperienceRatio: 0.3
       RuinMovementCost: 4
       DefaultSkin: 
-    Rules:
-    - Kind: 75
-      Target: 
-      Secondary: 
-      Level: 0
-      Amount: 0
-      B: 0
-      C: 0
-      Value: 2
-      Extra: 0
-      Key: 
-    - Kind: 47
-      Target: 
-      Secondary: 
-      Level: 0
-      Amount: 2
-      B: 1
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 49
-      Target: gene.scholar
-      Secondary: 
-      Level: 0
-      Amount: 0
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 81
-      Target: "\u539F\u6728"
-      Secondary: 
-      Level: 0
-      Amount: 10
-      B: 30
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
+    Configuration:
+      Conditions:
+        Enabled: 0
+        Completions: []
+        Visibility: []
+      Objectives:
+        Enabled: 0
+        Buildings: []
+        PlantedBuildings: []
+        OwnedItems: []
+        SubmittedItems: []
+        CameraMoves: []
+        CameraZooms: []
+        Technologies: []
+        Turns: []
+      Rewards:
+        Enabled: 0
+        Items: []
+        Blueprints: []
+        Buffs: []
+        Features: []
+        Failures: []
+        SpecialDrops: []
+      UnitCosts:
+        Enabled: 0
+        Recruitment: []
+        Awakening: []
+        Offerings: []
+      Crops:
+        Enabled: 0
+        Seeds: []
+        AutomaticHarvest: []
+        Yields: []
+      Inventory:
+        Enabled: 0
+        Groups: []
+        Accepted: []
+        Losses: []
+      Expeditions:
+        Enabled: 0
+        Supplies: []
+      Modifiers:
+        Enabled: 1
+        LossModifier: []
+        ProductionBonus: []
+        AttackBonus: []
+        HealthBonus: []
+        PublicOpinion: []
+        SoldierAttackBonus: []
+        SoldierSpeedBonus: []
+        ActionPowerBonus:
+        - Order: 0
+          Subject: {fileID: 0}
+          Magnitude: 2
+        CropHarvestBonus: []
+        PlotRisk: []
+        NaturalDeathRisk: []
+        ResearchOutput: []
+        RangeBonus: []
+        AttackSpeedBonus: []
+        SpeedBonus: []
+        ArmorBonus: []
+        DamageReductionBonus: []
+        PenetrationBonus: []
+        ProjectileSpeedBonus: []
+        BlastRadiusBonus: []
+        FlatProduction: []
+        Intelligence: []
+      People:
+        Enabled: 1
+        Wages:
+        - Order: 1
+          BaseAmount: 2
+          PerLevel: 1
+        Traits:
+        - Order: 2
+          Trait: {fileID: 11400000, guid: 84b98ff3143d5bf499580e3f83100137, type: 2}
+        Conflicts: []
+        Dependencies: []
+        SocialTasks:
+        - Order: 3
+          Item: {fileID: 11400000, guid: a761334fe1641a74f9948313fb5ff413, type: 2}
+          Quantity: 10
+          AffectionReward: 30
+        PeriodicItems: []
+        Effects: []

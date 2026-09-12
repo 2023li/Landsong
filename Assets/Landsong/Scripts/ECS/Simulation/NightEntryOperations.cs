@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using Landsong.ECS.Persistence;
@@ -18,7 +18,6 @@ namespace Landsong.ECS
         public static ResultCode Begin(EntityManager em, Entity root, bool confirmed, ulong token, Action<string> probe = null)
         {
             if (em.GetComponentData<Session>(root).Phase != Phase.Day) return ResultCode.WrongPhase;
-            ProgressionOps.ReconcileQuestContainers(em, root);
             var bytes = SnapshotCodec.Capture(em, root);
             string fingerprint;
             using (var hash = SHA256.Create()) fingerprint = Convert.ToBase64String(hash.ComputeHash(bytes));
@@ -31,7 +30,13 @@ namespace Landsong.ECS
             using (var transaction = new RestoreTransaction(em, root))
             {
                 var candidate = transaction.Root;
-                SnapshotCodec.Rebuild(em, candidate, SnapshotCodec.Decode(em, candidate, bytes), probe);
+                SnapshotCodec.RebuildNightEntryCandidate(em, candidate, bytes, probe);
+                // Invalid quest slots can charge penalties and destroy quests. Preview those writes
+                // on the candidate too, so cancellation/failure preserves the reviewed live day.
+                ProgressionOps.ReconcileQuestContainers(em, candidate);
+                // No invalid relationship may survive staging into settlement or publication.
+                SnapshotCodec.ValidateReconciledNightEntry(em, candidate);
+                probe?.Invoke("quest-containers-reconciled");
                 em.GetBuffer<BattleReportEntry>(candidate).Clear();
                 var state = em.GetComponentData<Session>(candidate); state.Phase = Phase.Settlement; em.SetComponentData(candidate, state);
                 EconomyOps.Settle(em, candidate);

@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 02d7d04a464b7214dac9f377de8cc861, type: 3}
   m_Name: main_collect_building_materials
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.GameDefinitionAsset
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.GameDefinitionAsset
   Data:
     Id: main_collect_building_materials
     Name: "\u5907\u9F50\u57FA\u77F3"
@@ -37,94 +37,107 @@ MonoBehaviour:
     Flags: 1
     Prefab: {fileID: 0}
     Icon: {fileID: 0}
-    Rules:
-    - Kind: 28
-      Target: main_camera_survey
-      Secondary: 
-      Level: 0
-      Amount: 1
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 29
-      Target: "\u6CE5\u571F"
-      Secondary: 
-      Level: 0
-      Amount: 100
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 29
-      Target: "\u539F\u6728"
-      Secondary: 
-      Level: 0
-      Amount: 100
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 29
-      Target: "\u77F3\u5934"
-      Secondary: 
-      Level: 0
-      Amount: 100
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 30
-      Target: "b\u519C\u7530"
-      Secondary: 
-      Level: 0
-      Amount: 1
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 32
-      Target: feature.Building
-      Secondary: 
-      Level: 0
-      Amount: 1
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 35
-      Target: "\u6CE5\u571F"
-      Secondary: 
-      Level: 0
-      Amount: 10
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 1547c5584b474c32b1dd7b5f0f552b15.0
-    - Kind: 35
-      Target: "\u539F\u6728"
-      Secondary: 
-      Level: 0
-      Amount: 10
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 1547c5584b474c32b1dd7b5f0f552b15.1
-    - Kind: 35
-      Target: "\u77F3\u5934"
-      Secondary: 
-      Level: 0
-      Amount: 10
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 1547c5584b474c32b1dd7b5f0f552b15.2
+    Configuration:
+      Conditions:
+        Enabled: 1
+        Completions:
+        - Order: 0
+          Content: {fileID: 11400000, guid: 0dd27ad6898b992439c98b1aadb9d068, type: 2}
+          Count: 1
+        Visibility: []
+      Objectives:
+        Enabled: 1
+        Buildings: []
+        PlantedBuildings: []
+        OwnedItems:
+        - Order: 6
+          Key: 1547c5584b474c32b1dd7b5f0f552b15.0
+          Item: {fileID: 11400000, guid: 000df9efbc381134e832f667a32c9572, type: 2}
+          Quantity: 10
+        - Order: 7
+          Key: 1547c5584b474c32b1dd7b5f0f552b15.1
+          Item: {fileID: 11400000, guid: a761334fe1641a74f9948313fb5ff413, type: 2}
+          Quantity: 10
+        - Order: 8
+          Key: 1547c5584b474c32b1dd7b5f0f552b15.2
+          Item: {fileID: 11400000, guid: a927377c37e532b49af819fa89b72369, type: 2}
+          Quantity: 10
+        SubmittedItems: []
+        CameraMoves: []
+        CameraZooms: []
+        Technologies: []
+        Turns: []
+      Rewards:
+        Enabled: 1
+        Items:
+        - Order: 1
+          Item: {fileID: 11400000, guid: 000df9efbc381134e832f667a32c9572, type: 2}
+          Quantity: 100
+        - Order: 2
+          Item: {fileID: 11400000, guid: a761334fe1641a74f9948313fb5ff413, type: 2}
+          Quantity: 100
+        - Order: 3
+          Item: {fileID: 11400000, guid: a927377c37e532b49af819fa89b72369, type: 2}
+          Quantity: 100
+        Blueprints:
+        - Order: 4
+          Building: {fileID: 11400000, guid: 7df6157a6643e9c41951b0403decdba0, type: 2}
+          GrantedLevel: 1
+        Buffs: []
+        Features:
+        - Order: 5
+          Feature: {fileID: 11400000, guid: ca273f9a5d8160f48a6d4ef15c85daf5, type: 2}
+          GrantedLevel: 1
+        Failures: []
+        SpecialDrops: []
+      UnitCosts:
+        Enabled: 0
+        Recruitment: []
+        Awakening: []
+        Offerings: []
+      Crops:
+        Enabled: 0
+        Seeds: []
+        AutomaticHarvest: []
+        Yields: []
+      Inventory:
+        Enabled: 0
+        Groups: []
+        Accepted: []
+        Losses: []
+      Expeditions:
+        Enabled: 0
+        Supplies: []
+      Modifiers:
+        Enabled: 0
+        LossModifier: []
+        ProductionBonus: []
+        AttackBonus: []
+        HealthBonus: []
+        PublicOpinion: []
+        SoldierAttackBonus: []
+        SoldierSpeedBonus: []
+        ActionPowerBonus: []
+        CropHarvestBonus: []
+        PlotRisk: []
+        NaturalDeathRisk: []
+        ResearchOutput: []
+        RangeBonus: []
+        AttackSpeedBonus: []
+        SpeedBonus: []
+        ArmorBonus: []
+        DamageReductionBonus: []
+        PenetrationBonus: []
+        ProjectileSpeedBonus: []
+        BlastRadiusBonus: []
+        FlatProduction: []
+        Intelligence: []
+      People:
+        Enabled: 0
+        Wages: []
+        Traits: []
+        Conflicts: []
+        Dependencies: []
+        SocialTasks: []
+        PeriodicItems: []
+        Effects: []

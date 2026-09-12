@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 02d7d04a464b7214dac9f377de8cc861, type: 3}
   m_Name: "TN_2_3_\u6355\u9C7C"
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.GameDefinitionAsset
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.GameDefinitionAsset
   Data:
     Id: "TN_2_3_\u6355\u9C7C"
     Name: "\u6355\u9C7C"
@@ -39,24 +39,83 @@ MonoBehaviour:
     Icon: {fileID: 0}
     HasTechnologyPosition: 1
     TechnologyPosition: {x: 440, y: 150}
-    Rules:
-    - Kind: 28
-      Target: "TN_2_2_\u519C\u4E1A"
-      Secondary: 
-      Level: 0
-      Amount: 1
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 30
-      Target: "b\u6355\u9C7C\u5C0F\u5C4B"
-      Secondary: 
-      Level: 0
-      Amount: 1
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
+    Configuration:
+      Conditions:
+        Enabled: 1
+        Completions:
+        - Order: 0
+          Content: {fileID: 11400000, guid: b4f363072cdc6d244929901f78bf34df, type: 2}
+          Count: 1
+        Visibility: []
+      Objectives:
+        Enabled: 0
+        Buildings: []
+        PlantedBuildings: []
+        OwnedItems: []
+        SubmittedItems: []
+        CameraMoves: []
+        CameraZooms: []
+        Technologies: []
+        Turns: []
+      Rewards:
+        Enabled: 1
+        Items: []
+        Blueprints:
+        - Order: 1
+          Building: {fileID: 11400000, guid: 806559cafaef6f843916d5366cb523d6, type: 2}
+          GrantedLevel: 1
+        Buffs: []
+        Features: []
+        Failures: []
+        SpecialDrops: []
+      UnitCosts:
+        Enabled: 0
+        Recruitment: []
+        Awakening: []
+        Offerings: []
+      Crops:
+        Enabled: 0
+        Seeds: []
+        AutomaticHarvest: []
+        Yields: []
+      Inventory:
+        Enabled: 0
+        Groups: []
+        Accepted: []
+        Losses: []
+      Expeditions:
+        Enabled: 0
+        Supplies: []
+      Modifiers:
+        Enabled: 0
+        LossModifier: []
+        ProductionBonus: []
+        AttackBonus: []
+        HealthBonus: []
+        PublicOpinion: []
+        SoldierAttackBonus: []
+        SoldierSpeedBonus: []
+        ActionPowerBonus: []
+        CropHarvestBonus: []
+        PlotRisk: []
+        NaturalDeathRisk: []
+        ResearchOutput: []
+        RangeBonus: []
+        AttackSpeedBonus: []
+        SpeedBonus: []
+        ArmorBonus: []
+        DamageReductionBonus: []
+        PenetrationBonus: []
+        ProjectileSpeedBonus: []
+        BlastRadiusBonus: []
+        FlatProduction: []
+        Intelligence: []
+      People:
+        Enabled: 0
+        Wages: []
+        Traits: []
+        Conflicts: []
+        Dependencies: []
+        SocialTasks: []
+        PeriodicItems: []
+        Effects: []

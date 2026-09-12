@@ -102,7 +102,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 3264297437841501098}
 --- !u!1 &3264297437841501098
 GameObject:

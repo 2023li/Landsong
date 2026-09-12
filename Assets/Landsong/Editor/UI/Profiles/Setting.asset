@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8ff47332917421eb4e2efd5c139da08, type: 3}
+  m_Name: Setting
+  m_EditorClassIdentifier: Assembly-CSharp-Editor::Landsong.Editor.UI.UIPreviewProfile
+  kind: 1
+  texts:
+  - key: title
+    value: "\u8BBE\u7F6E"
+  - key: resolution
+    value: "1920 \xD7 1080"
+  - key: language
+    value: "\u7B80\u4F53\u4E2D\u6587"
+  - key: displayConfirmation
+    value: "\u4FDD\u7559\u8FD9\u4E9B\u663E\u793A\u8BBE\u7F6E\uFF1F\u5C06\u5728 15
+      \u79D2\u540E\u6062\u590D\u3002"
+  - key: status
+    value: "\u4FEE\u6539\u5C06\u5728\u70B9\u51FB\u201C\u5E94\u7528\u201D\u540E\u4FDD\u5B58"
+  lists:
+  - key: audio
+    rows:
+    - cells:
+      - "\u4E3B\u97F3\u91CF"
+      - 80%
+    - cells:
+      - "\u97F3\u4E50"
+      - 65%
+    - cells:
+      - "\u97F3\u6548"
+      - 90%
+  - key: keys
+    rows:
+    - cells:
+      - "\u6682\u505C"
+      - "\u7A7A\u683C"
+    - cells:
+      - "\u65CB\u8F6C\u5EFA\u7B51"
+      - R
+    - cells:
+      - "\u82F1\u96C4\u9A7B\u5B88"
+      - H

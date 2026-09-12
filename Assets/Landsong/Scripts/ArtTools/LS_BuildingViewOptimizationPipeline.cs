@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Landsong.ECS;
 using Landsong.ECS.Authoring;
 using UnityEditor;
 using UnityEngine;

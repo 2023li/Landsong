@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 02d7d04a464b7214dac9f377de8cc861, type: 3}
   m_Name: "b\u5C45\u6C11\u623F"
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.GameDefinitionAsset
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.GameDefinitionAsset
   Data:
     Id: "b\u5C45\u6C11\u623F"
     Name: "\u5C45\u6C11\u623F"
@@ -41,211 +41,168 @@ MonoBehaviour:
       Category: 1
       MenuOrder: 0
       ProviderPriority: 0
-      RepairTurns: 0
       CanMove: 1
       CanRotate: 1
       MoveMaterialRatio: 0.3
       MoveExperienceRatio: 0.3
       RuinMovementCost: 4
       DefaultSkin: 
-    Rules:
-    - Kind: 0
-      Target: "\u91D1\u5E01"
-      Secondary: 
-      Level: 1
-      Amount: 30
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 0
-      Target: "\u77F3\u5934"
-      Secondary: 
-      Level: 1
-      Amount: 1
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 0
-      Target: "\u539F\u6728"
-      Secondary: 
-      Level: 1
-      Amount: 1
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 1
-      Target: "\u6CE5\u571F"
-      Secondary: 
-      Level: 1
-      Amount: 10
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 1
-      Target: "\u77F3\u5934"
-      Secondary: 
-      Level: 2
-      Amount: 10
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 1
-      Target: "\u539F\u6728"
-      Secondary: 
-      Level: 3
-      Amount: 10
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 52
-      Target: 
-      Secondary: 
-      Level: 0
-      Amount: 0
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: "\u9646\u5730"
-    - Kind: 12
-      Target: 
-      Secondary: 
-      Level: 1
-      Amount: 5
-      B: 2
-      C: 3
-      Value: 3
-      Extra: 0
-      Key: 
-    - Kind: 61
-      Target: "\u91D1\u5E01"
-      Secondary: 
-      Level: 1
-      Amount: 1
-      B: 5
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 13
-      Target: food.vegetable.tier1
-      Secondary: 
-      Level: 1
-      Amount: 1
-      B: 1
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 13
-      Target: food.staple.tier1
-      Secondary: 
-      Level: 1
-      Amount: 1
-      B: 1
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 16
-      Target: 
-      Secondary: 
-      Level: 1
-      Amount: 1
-      B: 30
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 16
-      Target: 
-      Secondary: 
-      Level: 2
-      Amount: 1
-      B: 30
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 12
-      Target: 
-      Secondary: 
-      Level: 2
-      Amount: 5
-      B: 2
-      C: 3
-      Value: 3
-      Extra: 0
-      Key: 
-    - Kind: 61
-      Target: "\u91D1\u5E01"
-      Secondary: 
-      Level: 2
-      Amount: 1
-      B: 5
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 13
-      Target: food.vegetable.tier1
-      Secondary: 
-      Level: 2
-      Amount: 2
-      B: 1
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 13
-      Target: food.staple.tier1
-      Secondary: 
-      Level: 2
-      Amount: 1
-      B: 1
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 13
-      Target: food.meat.tier1
-      Secondary: 
-      Level: 2
-      Amount: 1
-      B: 1
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 14
-      Target: 
-      Secondary: 
-      Level: 2
-      Amount: 4
-      B: 20
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 14
-      Target: 
-      Secondary: 
-      Level: 2
-      Amount: 2
-      B: 40
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
+    Configuration:
+      Conditions:
+        Enabled: 0
+        Completions: []
+        Visibility: []
+      Objectives:
+        Enabled: 0
+        Buildings: []
+        PlantedBuildings: []
+        OwnedItems: []
+        SubmittedItems: []
+        CameraMoves: []
+        CameraZooms: []
+        Technologies: []
+        Turns: []
+      Rewards:
+        Enabled: 0
+        Items: []
+        Blueprints: []
+        Buffs: []
+        Features: []
+        Failures: []
+        SpecialDrops: []
+      UnitCosts:
+        Enabled: 0
+        Recruitment: []
+        Awakening: []
+        Offerings: []
+      Crops:
+        Enabled: 0
+        Seeds: []
+        AutomaticHarvest: []
+        Yields: []
+      Inventory:
+        Enabled: 0
+        Groups: []
+        Accepted: []
+        Losses: []
+      Expeditions:
+        Enabled: 0
+        Supplies: []
+      Modifiers:
+        Enabled: 0
+        LossModifier: []
+        ProductionBonus: []
+        AttackBonus: []
+        HealthBonus: []
+        PublicOpinion: []
+        SoldierAttackBonus: []
+        SoldierSpeedBonus: []
+        ActionPowerBonus: []
+        CropHarvestBonus: []
+        PlotRisk: []
+        NaturalDeathRisk: []
+        ResearchOutput: []
+        RangeBonus: []
+        AttackSpeedBonus: []
+        SpeedBonus: []
+        ArmorBonus: []
+        DamageReductionBonus: []
+        PenetrationBonus: []
+        ProjectileSpeedBonus: []
+        BlastRadiusBonus: []
+        FlatProduction: []
+        Intelligence: []
+      People:
+        Enabled: 0
+        Wages: []
+        Traits: []
+        Conflicts: []
+        Dependencies: []
+        SocialTasks: []
+        PeriodicItems: []
+        Effects: []
+    Modules:
+      Construction:
+        Enabled: 1
+        PlacementCosts:
+        - Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+          Quantity: 30
+        - Item: {fileID: 11400000, guid: a927377c37e532b49af819fa89b72369, type: 2}
+          Quantity: 1
+        - Item: {fileID: 11400000, guid: a761334fe1641a74f9948313fb5ff413, type: 2}
+          Quantity: 1
+        StageCosts:
+        - Stage: 1
+          Item: {fileID: 11400000, guid: 000df9efbc381134e832f667a32c9572, type: 2}
+          Quantity: 10
+        - Stage: 2
+          Item: {fileID: 11400000, guid: a927377c37e532b49af819fa89b72369, type: 2}
+          Quantity: 10
+        - Stage: 3
+          Item: {fileID: 11400000, guid: a761334fe1641a74f9948313fb5ff413, type: 2}
+          Quantity: 10
+      Placement:
+        Enabled: 1
+        RequiredTerrains:
+        - Terrain: "\u9646\u5730"
+      Housing:
+        Enabled: 1
+        Residences:
+        - Level: 1
+          Capacity: 5
+          InitialResidents: 2
+          StarvationThreshold: 3
+          GrowthInterval: 3.0
+        - Level: 2
+          Capacity: 5
+          InitialResidents: 2
+          StarvationThreshold: 3
+          GrowthInterval: 3.0
+        Taxes:
+        - Level: 1
+          Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+          PerResident: 1
+          Interval: 5
+        - Level: 2
+          Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+          PerResident: 1
+          Interval: 5
+        Food:
+        - Level: 1
+          FoodGroup: {fileID: 11400000, guid: 6b2682928fd25ee4d89bf546c38e8524, type: 2}
+          Varieties: 1
+          AmountPerResident: 1
+        - Level: 1
+          FoodGroup: {fileID: 11400000, guid: b264caf9b8dfef645ab8d53ff3b16f28, type: 2}
+          Varieties: 1
+          AmountPerResident: 1
+        - Level: 2
+          FoodGroup: {fileID: 11400000, guid: 6b2682928fd25ee4d89bf546c38e8524, type: 2}
+          Varieties: 2
+          AmountPerResident: 1
+        - Level: 2
+          FoodGroup: {fileID: 11400000, guid: b264caf9b8dfef645ab8d53ff3b16f28, type: 2}
+          Varieties: 1
+          AmountPerResident: 1
+        - Level: 2
+          FoodGroup: {fileID: 11400000, guid: 50ce930015186be4ab9204fe896d668c, type: 2}
+          Varieties: 1
+          AmountPerResident: 1
+        Environment:
+        - Level: 2
+          RequiredValue: 4
+          Type: 20
+        - Level: 2
+          RequiredValue: 2
+          Type: 40
+      Upgrade:
+        Enabled: 1
+        Experience:
+        - Level: 1
+          ExperiencePerTurn: 1
+          UpgradeExperience: 30
+          RequiredWorkers: 0
+        - Level: 2
+          ExperiencePerTurn: 1
+          UpgradeExperience: 30
+          RequiredWorkers: 0

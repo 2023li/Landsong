@@ -23,7 +23,7 @@ namespace Landsong.ECS
             {
                 var r = blob.Value.NightConditions[e.ConditionStart + i];
                 if (r.Kind == RuleKind.RequireTurn && s.Turn < r.Amount) return false;
-                if ((r.Kind == RuleKind.Prerequisite || r.Kind == RuleKind.RequireTechnology) && !Sim.HasGrant(em, root, r.Target, math.max(1, r.Amount))) return false;
+                if ((r.Kind == RuleKind.Prerequisite || r.Kind == RuleKind.RequireTechnology) && !ConditionOps.Satisfied(em, root, r.Target, math.max(1, r.Amount))) return false;
                 if (r.Kind == RuleKind.RequireItem && InventoryOps.Count(em, root, r.Target) < r.Amount) return false;
                 if (r.Kind == RuleKind.RequireBuilding)
                 { int count = 0; using var buildings = Sim.OrderedEntities<Building>(em); foreach (var b in buildings) if (Sim.Operational(em, b) && em.GetComponentData<Identity>(b).Definition == r.Target && em.GetComponentData<Building>(b).Level >= math.max(1, r.Level)) count++; if (count < math.max(1, r.Amount)) return false; }

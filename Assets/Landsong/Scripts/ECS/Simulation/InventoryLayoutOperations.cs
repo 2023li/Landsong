@@ -25,7 +25,7 @@ namespace Landsong.ECS
             if (slot.SlotType >= 0) { var type = Sim.Definition(em, root, slot.SlotType); for (var i = 0; i < type.RuleCount; i++) { var r = Sim.GetRule(em, root, type.RuleStart + i); if (r.Kind == RuleKind.SlotLoss && MatchesGroup(em, root, item, r.Target)) multiplier *= r.Value; } }
             var provider = Sim.Find(em, slot.Provider);
             if (provider != Entity.Null && em.HasComponent<Building>(provider)) { var b = em.GetComponentData<Building>(provider); var condition = Sim.Rule(em, root, em.GetComponentData<Identity>(provider).Definition, RuleKind.StorageCondition, b.Level); if (condition.Level >= 0) { if (b.Workers < condition.Amount) multiplier *= condition.Extra; if (b.Maintained == 0) multiplier *= condition.B / 100f; } }
-            return math.saturate(Sim.Definition(em, root, item).Loss * multiplier * (1 - math.saturate(Sim.Modifier(em, root, RuleKind.LossModifier, item))));
+            return math.saturate(Sim.Definition(em, root, item).Loss * multiplier * (1 - math.saturate(EffectOps.Modifier(em, root, RuleKind.LossModifier, item))));
         }
         static int StableSlot(InventorySlot a, InventorySlot b) { var c = a.Provider.CompareTo(b.Provider); return c != 0 ? c : a.Index.CompareTo(b.Index); }
         public static int CompareStorage(EntityManager em, Entity root, InventorySlot a, InventorySlot b, int item)

@@ -76,9 +76,12 @@ namespace Landsong.ECS.Editor
             var three = BuildingVisualResolver.Select(warehouse.Prefab, LifeStage.Operational, 3, 1, warehouse.Building.DefaultSkin);
             Check(one != two && two != three && one.Level == 1 && two.Level == 2 && three.Level == 3, "Warehouse has three real distinct level models");
             Check(BuildingVisualResolver.Score(BuildingVisualPurpose.Operational, 1, 0, "another", false, BuildingVisualPurpose.Operational, 3, 1, "") < 0, "Never substitutes a different skin silently");
-            var scene = EditorSceneManager.OpenPreviewScene(EcsSceneFlow.Game);
-            try { var view = scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<EcsGameView>(true)).Single(); Check(view.BuildingToolbar != null && view.BuildingDetailsRows != null && view.BuildingConfirmRows != null && view.BuildingCatalog == catalog && view.BuildingBar != null && view.BuildingBar.Cards != null && view.BuildingBar.Tabs != null, "Game scene serialized building UGUI wiring"); }
-            finally { EditorSceneManager.ClosePreviewScene(scene); }
+            var gamePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(ApplicationUiMigration.GamePath);
+            Check(gamePrefab != null, "Game panel prefab exists");
+            var view = gamePrefab.GetComponent<UI_GamePanel>();
+            Check(view != null && view.Buildings != null, "Game panel has configured building controller");
+            var buildings = view.Buildings;
+            Check(buildings.BuildingToolbar != null && buildings.BuildingCard != null && buildings.BuildingDetailsRows == buildings.BuildingCard.Block<UI_GamePanel_BuildingDetails_Block_其他>().Rows && buildings.BuildingConfirmRows != null && buildings.BuildingCatalog == catalog && buildings.BuildingBar != null && buildings.BuildingBar.Cards != null && buildings.BuildingBar.Tabs != null, "Game panel serialized building UGUI wiring");
         }
         static void VerifyMap(string path)
         {
@@ -87,7 +90,7 @@ namespace Landsong.ECS.Editor
             try
             {
                 EcsVerification.Bake(world, scene.GetRootGameObjects(), store); var em = world.EntityManager; var root = Sim.Root(em); GameLoopSystem.Initialize(em, root); InvitationExpeditionVerification.FixturePermissions(em, root); Funds(em, root);
-                var warehouse = Sim.FindDefinition(em, root, "b仓库"); Sim.Grant(em, root, warehouse, 3);
+                var warehouse = Sim.FindDefinition(em, root, "b仓库"); BlueprintOps.Grant(em, root, warehouse, 3);
                 var e = BuildingOps.Create(em, root, warehouse, Free(em, root, warehouse), 0, 1, true); var id = em.GetComponentData<Identity>(e).Id;
                 var b = em.GetComponentData<Building>(e); b.Experience = 100; em.SetComponentData(e, b);
                 var position = Free(em, root, warehouse, id, b.Cell); var quote = BuildingOps.CheckMove(em, root, e, position, 0);
@@ -144,7 +147,7 @@ namespace Landsong.ECS.Editor
             var garrison = BuildingOps.Create(em, root, Sim.FindDefinition(em, root, "b驻军营地"), new int2(-13000), 0, 1, true);
             var id = em.GetComponentData<Identity>(garrison).Id; var s = em.GetComponentData<Session>(root); s.BasePopulation = 100; em.SetComponentData(root, s);
             Funds(em, root); MilitaryOps.Recruit(em, root, new Command { Target = id, Definition = Sim.FindDefinition(em, root, "militia") }, false); MilitaryOps.PrepareNight(em, root);
-            Entity troop; using (var troops = Sim.Entities<Soldier>(em)) troop = troops[0];
+            var troop = MilitaryOps.AtSlot(em,id,1);
             s = em.GetComponentData<Session>(root); s.Phase = Phase.Night; em.SetComponentData(root, s); BuildingOps.Ruin(em, root, garrison);
             Check(em.GetComponentData<Combatant>(troop).Deployed == 0 && em.GetComponentData<Health>(troop).Current == em.GetComponentData<Health>(troop).Maximum * .5f, "Queued sortie from ruined garrison has 50 percent health");
             BuildingOps.DawnBuildings(em, root); Check(em.GetComponentData<Soldier>(troop).Garrison == 0, "Ruined garrison unassigned only after dawn");
@@ -155,7 +158,7 @@ namespace Landsong.ECS.Editor
         {
             var definition = -1; var count = em.GetComponentData<ContentCatalog>(root).Value.Value.Definitions.Length;
             for (var i = 0; i < count; i++) if (Sim.Definition(em, root, i).Kind == ContentKind.Building && BuildingRoadOps.IsRoad(em, root, i)) { definition = i; break; }
-            Check(definition >= 0, "Road category migrated"); Sim.Grant(em, root, definition); var start = Free(em, root, definition);
+            Check(definition >= 0, "Road category migrated"); BlueprintOps.Grant(em, root, definition); var start = Free(em, root, definition);
             var plan = BuildingRoadOps.Plan(em, root, definition, start, start); Check(plan.Quote.Allowed && plan.NewCells.Count == 1, "Road single-segment quote");
             var grid = em.GetComponentData<GridData>(root); var point = GridOps.Position(grid, start, new int2(1));
             Check(BuildingRoadOps.Build(em, root, new Command { Definition = definition, Position = point, EndPosition = point }) == ResultCode.Success, "Road command creates quoted path");

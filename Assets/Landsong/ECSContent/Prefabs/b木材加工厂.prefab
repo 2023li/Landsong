@@ -103,7 +103,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 1215663147666504650}
 --- !u!1 &1215663147666504650
 GameObject:
@@ -115,6 +115,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5298176039768219294}
   - component: {fileID: 6429774112239335268}
+  - component: {fileID: 1277116921339727086}
   m_Layer: 0
   m_Name: "b\u6728\u6750\u52A0\u5DE5\u5382"
   m_TagString: Untagged
@@ -150,8 +151,45 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 844c2095aae9ed545930c932bf270977, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualAuthoring
   Definition: {fileID: 11400000, guid: 4cb4c9aaae2edf7428b4d89b7c0e22f0, type: 2}
+--- !u!114 &1277116921339727086
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1215663147666504650}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2330cbfc01cb87e4491406fd4a56bf6f, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Landsong.ECS.Presentation::Landsong.ECS.Presentation.BuildingPlacementPreviewBinding
+  Colliders: []
+  Behaviours:
+  - {fileID: 6429774112239335268}
+  - {fileID: 1456639959228260976}
+  - {fileID: 6443501523448588434}
+  - {fileID: 2322152106017279489}
+  - {fileID: 152383216086707149}
+  - {fileID: 5815107372351906657}
+  - {fileID: 3892342820956536671}
+  Slots:
+  - {fileID: 1456639959228260976}
+  - {fileID: 2322152106017279489}
+  Parts:
+  - Renderer: {fileID: 219543982400005323}
+    Slot: {fileID: 1456639959228260976}
+    Crop: 0
+  - Renderer: {fileID: 3881563743775751977}
+    Slot: {fileID: 2322152106017279489}
+    Crop: 0
+  - Renderer: {fileID: 3310167734996273953}
+    Slot: {fileID: 2322152106017279489}
+    Crop: 0
+  - Renderer: {fileID: 715737982340646353}
+    Slot: {fileID: 2322152106017279489}
+    Crop: 0
 --- !u!1 &1460759275982031383
 GameObject:
   m_ObjectHideFlags: 0
@@ -196,7 +234,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3f48b4f71bbca284498dce92744bd9c9, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualSlotAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualSlotAuthoring
   Purpose: 0
   Level: 1
   Step: 0
@@ -442,7 +480,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 1215663147666504650}
 --- !u!1 &5391084818471386681
 GameObject:
@@ -488,7 +526,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3f48b4f71bbca284498dce92744bd9c9, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualSlotAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualSlotAuthoring
   Purpose: 1
   Level: 1
   Step: 0
@@ -597,7 +635,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 1215663147666504650}
 --- !u!1 &6333745789343240910
 GameObject:
@@ -736,7 +774,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 1215663147666504650}
 --- !u!1 &8219794777640131982
 GameObject:

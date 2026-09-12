@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d5ac6164bd37bca4f9607bf58fefe227, type: 3}
   m_Name: Map_Test2
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.MapAsset
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.MapAsset
   MapId: Map_Test2
   TwcSourceSceneGuid: b77db0c2dafca7e4b9083c61e144bee5
   Min: {x: 0, y: 0}

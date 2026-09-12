@@ -14,6 +14,8 @@ namespace Landsong.ECS.Editor
         GameDefinitionAsset selected;
         Vector2 graphScroll, detailScroll;
         string search = "", validation = "";
+        UnityEditor.Editor contentEditor;
+        void OnDisable(){if(contentEditor!=null)DestroyImmediate(contentEditor);}
         void OnEnable() => minSize = new Vector2(860, 480);
         [MenuItem("Landsong/ECS/Technology tree authoring")]
         public static void Open() => GetWindow<TechnologyEditorWindow>("ECS 科技配置");
@@ -43,9 +45,9 @@ namespace Landsong.ECS.Editor
                     foreach (var n in nodes)
                     {
                         var end = area.position + n.Data.TechnologyPosition + new Vector2(10, 40);
-                        foreach (var rule in n.Data.Rules.Where(r => r.Kind == RuleKind.Prerequisite))
+                        foreach (var rule in n.Data.Configuration?.Conditions?.Enabled==true ? n.Data.Configuration.Conditions.Completions??Array.Empty<CompletionsConfiguration>() : Array.Empty<CompletionsConfiguration>())
                         {
-                            var parent = nodes.FirstOrDefault(p => p.Data.Id == rule.Target); if (parent == null) continue;
+                            var parent = nodes.FirstOrDefault(p => p == rule?.Content); if (parent == null) continue;
                             var start = area.position + parent.Data.TechnologyPosition + new Vector2(190, 40);
                             Handles.color = n == selected || parent == selected ? Color.cyan : Color.gray;
                             Handles.DrawAAPolyLine(2, start, new Vector2((start.x + end.x) / 2, start.y), new Vector2((start.x + end.x) / 2, end.y), end);
@@ -67,18 +69,27 @@ namespace Landsong.ECS.Editor
                     EditorGUILayout.ObjectField("当前模板", selected, typeof(GameDefinitionAsset), false);
                     if (GUILayout.Button("在 Project / Inspector 中定位")) { Selection.activeObject = selected; EditorGUIUtility.PingObject(selected); }
                     EditorGUILayout.LabelField("前置 / 首次奖励引用（点击定位来源）", EditorStyles.boldLabel);
-                    foreach (var rule in selected.Data.Rules)
+                    void Link(string label,GameDefinitionAsset asset,int quantity)
                     {
-                        var target = catalog.Definitions.FirstOrDefault(d => d != null && d.Data.Id == rule.Target);
-                        if (GUILayout.Button(rule.Kind + " · " + (target != null ? target.Data.Name : rule.Target) + " ×" + rule.Amount))
-                        { if (target != null && target.Data.Kind == ContentKind.Technology) selected = target; else { Selection.activeObject = target; EditorGUIUtility.PingObject(target); } break; }
+                        if(!GUILayout.Button(label+" · "+(asset!=null?asset.Data.Name:"未指定")+" ×"+quantity)||asset==null)return;
+                        if(asset.Data.Kind==ContentKind.Technology)selected=asset;else{Selection.activeObject=asset;EditorGUIUtility.PingObject(asset);}
                     }
-                    EditorGUILayout.HelpBox("Prerequisite：Target=科技 ID，Amount=1；RewardBlueprint：Target=建筑 ID，Amount=最高许可等级；RewardBuff/Feature：Target=对应 ID；RewardItem：Amount=数量。Level 均为 0，功能奖励不可指向 limit.* 限建分组。", MessageType.None);
-                    var serialized = new SerializedObject(selected); serialized.Update(); var data = serialized.FindProperty("Data");
+                    var configuration=selected.Data.Configuration;
+                    if(configuration?.Conditions?.Enabled==true)
+                        foreach(var entry in configuration.Conditions.Completions??Array.Empty<CompletionsConfiguration>())if(entry!=null)Link("完成前置",entry.Content,entry.Count);
+                    var rewards=configuration?.Rewards;
+                    if(rewards?.Enabled==true)
+                    {
+                        foreach(var entry in rewards.Items??Array.Empty<ItemsReward>())if(entry!=null)Link("物品奖励",entry.Item,entry.Quantity);
+                        foreach(var entry in rewards.Blueprints??Array.Empty<BlueprintsReward>())if(entry!=null)Link("蓝图奖励",entry.Building,entry.GrantedLevel);
+                        foreach(var entry in rewards.Buffs??Array.Empty<BuffsReward>())if(entry!=null)Link("增益奖励",entry.Buff,entry.GrantedLevel);
+                        foreach(var entry in rewards.Features??Array.Empty<FeaturesReward>())if(entry!=null)Link("功能许可",entry.Feature,entry.GrantedLevel);
+                    }
+                    EditorGUILayout.HelpBox("在功能配置中编辑完成前置、奖励和情报。目标直接选择内容资产；执行顺序控制发奖先后，科技前置只接受科技。", MessageType.None);
                     using (new EditorGUI.DisabledScope(EditorApplication.isPlayingOrWillChangePlaymode))
                     {
-                        foreach (var field in new[] { "Name", "Description", "Icon", "Cost", "Flags", "HasTechnologyPosition", "TechnologyPosition", "Rules" }) EditorGUILayout.PropertyField(data.FindPropertyRelative(field), true);
-                        serialized.ApplyModifiedProperties();
+                        UnityEditor.Editor.CreateCachedEditor(selected,typeof(ContentInspector),ref contentEditor);
+                        contentEditor.OnInspectorGUI();
                     }
                 }
             }

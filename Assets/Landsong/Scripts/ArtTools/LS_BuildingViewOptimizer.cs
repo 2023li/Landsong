@@ -90,7 +90,7 @@ namespace Landsong.VisualSystem
         private DynamicPartSettings[] dynamicParts = Array.Empty<DynamicPartSettings>();
 
         [ShowInInspector, ReadOnly, TitleGroup("上次导出")]
-        public string LastExportedPrefabPath { get; private set; } = string.Empty;
+        [LabelText("上次导出预制体路径")] public string LastExportedPrefabPath { get; private set; } = string.Empty;
 
         public bool EnableLodOptimization => enableLodOptimization;
         public float LOD0TransitionHeight => lod0TransitionHeight;

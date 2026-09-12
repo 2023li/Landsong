@@ -107,14 +107,14 @@ namespace Landsong.ECS.Persistence
                 catch (Exception error)
                 {
                     if (!dirty) { var state = EntityManager.GetComponentData<Session>(root); state.CheckpointPending = 0; EntityManager.SetComponentData(root, state); }
-                    Sim.Emit(EntityManager, root, EventKind.Message, "节点操作未完成，请检查磁盘空间或 Console。"); Debug.LogException(error);
+                    Sim.Emit(EntityManager, root, EventKind.Message, "节点操作未完成，请检查磁盘空间或 Console。", category: HistoryCategory.Important); Debug.LogException(error);
                 }
             }
             if (dirty && UnityEngine.Time.realtimeSinceStartupAsDouble >= nextWrite)
             {
                 try { Flush(root); }
                 catch (Exception error)
-                { nextWrite = UnityEngine.Time.realtimeSinceStartupAsDouble + 10; Sim.Emit(EntityManager, root, EventKind.Message, "记录写入失败，阶段已锁定；请检查磁盘空间。"); Debug.LogException(error); }
+                { nextWrite = UnityEngine.Time.realtimeSinceStartupAsDouble + 10; Sim.Emit(EntityManager, root, EventKind.Message, "记录写入失败，阶段已锁定；请检查磁盘空间。", category: HistoryCategory.Important); Debug.LogException(error); }
             }
         }
         void PrepareRecovery(Entity root)

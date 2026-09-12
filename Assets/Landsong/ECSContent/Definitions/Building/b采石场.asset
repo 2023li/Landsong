@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 02d7d04a464b7214dac9f377de8cc861, type: 3}
   m_Name: "b\u91C7\u77F3\u573A"
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.GameDefinitionAsset
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.GameDefinitionAsset
   Data:
     Id: "b\u91C7\u77F3\u573A"
     Name: "\u91C7\u77F3\u573A"
@@ -41,321 +41,296 @@ MonoBehaviour:
       Category: 4
       MenuOrder: 40
       ProviderPriority: 0
-      RepairTurns: 0
       CanMove: 1
       CanRotate: 1
       MoveMaterialRatio: 0.3
       MoveExperienceRatio: 0.3
       RuinMovementCost: 4
       DefaultSkin: 
-    Rules:
-    - Kind: 0
-      Target: "\u91D1\u5E01"
-      Secondary: 
-      Level: 1
-      Amount: 100
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 2
-      Target: "\u6CE5\u571F"
-      Secondary: 
-      Level: 1
-      Amount: 10
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 2
-      Target: "\u77F3\u5934"
-      Secondary: 
-      Level: 1
-      Amount: 20
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 1
-      Target: "\u6728\u677F"
-      Secondary: 
-      Level: 2
-      Amount: 30
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 2
-      Target: "\u77F3\u5934"
-      Secondary: 
-      Level: 3
-      Amount: 100
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 52
-      Target: 
-      Secondary: 
-      Level: 0
-      Amount: 0
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: "\u9646\u5730"
-    - Kind: 52
-      Target: 
-      Secondary: 
-      Level: 0
-      Amount: 0
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: "\u77F3\u77FF"
-    - Kind: 5
-      Target: "\u91D1\u5E01"
-      Secondary: 
-      Level: 1
-      Amount: 6
-      B: 0
-      C: 0
-      Value: 55
-      Extra: 10
-      Key: 
-    - Kind: 9
-      Target: "\u91D1\u5E01"
-      Secondary: 
-      Level: 1
-      Amount: 3
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 6
-      Target: 
-      Secondary: 
-      Level: 1
-      Amount: 1
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 7
-      Target: "\u77F3\u5934"
-      Secondary: 
-      Level: 1
-      Amount: 1
-      B: 2
-      C: 3
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 7
-      Target: "\u77F3\u5934"
-      Secondary: 
-      Level: 1
-      Amount: 2
-      B: 4
-      C: 5
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 7
-      Target: "\u77F3\u5934"
-      Secondary: 
-      Level: 1
-      Amount: 4
-      B: 6
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 5
-      Target: "\u91D1\u5E01"
-      Secondary: 
-      Level: 2
-      Amount: 6
-      B: 0
-      C: 0
-      Value: 55
-      Extra: 10
-      Key: 
-    - Kind: 9
-      Target: "\u91D1\u5E01"
-      Secondary: 
-      Level: 2
-      Amount: 5
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 6
-      Target: 
-      Secondary: 
-      Level: 2
-      Amount: 1
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 7
-      Target: "\u77F3\u5934"
-      Secondary: 
-      Level: 2
-      Amount: 1
-      B: 1
-      C: 1
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 7
-      Target: "\u77F3\u5934"
-      Secondary: 
-      Level: 2
-      Amount: 2
-      B: 2
-      C: 2
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 7
-      Target: "\u77F3\u5934"
-      Secondary: 
-      Level: 2
-      Amount: 3
-      B: 3
-      C: 3
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 7
-      Target: "\u77F3\u5934"
-      Secondary: 
-      Level: 2
-      Amount: 4
-      B: 4
-      C: 4
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 7
-      Target: "\u77F3\u5934"
-      Secondary: 
-      Level: 2
-      Amount: 5
-      B: 5
-      C: 5
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 7
-      Target: "\u77F3\u5934"
-      Secondary: 
-      Level: 2
-      Amount: 9
-      B: 6
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 5
-      Target: "\u91D1\u5E01"
-      Secondary: 
-      Level: 3
-      Amount: 6
-      B: 0
-      C: 0
-      Value: 55
-      Extra: 10
-      Key: 
-    - Kind: 9
-      Target: "\u91D1\u5E01"
-      Secondary: 
-      Level: 3
-      Amount: 10
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 6
-      Target: 
-      Secondary: 
-      Level: 3
-      Amount: 1
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 7
-      Target: "\u77F3\u5934"
-      Secondary: 
-      Level: 3
-      Amount: 2
-      B: 1
-      C: 1
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 7
-      Target: "\u77F3\u5934"
-      Secondary: 
-      Level: 3
-      Amount: 4
-      B: 2
-      C: 2
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 7
-      Target: "\u77F3\u5934"
-      Secondary: 
-      Level: 3
-      Amount: 6
-      B: 3
-      C: 3
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 7
-      Target: "\u77F3\u5934"
-      Secondary: 
-      Level: 3
-      Amount: 8
-      B: 4
-      C: 4
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 7
-      Target: "\u77F3\u5934"
-      Secondary: 
-      Level: 3
-      Amount: 10
-      B: 5
-      C: 5
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 7
-      Target: "\u77F3\u5934"
-      Secondary: 
-      Level: 3
-      Amount: 22
-      B: 6
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
+    Configuration:
+      Conditions:
+        Enabled: 0
+        Completions: []
+        Visibility: []
+      Objectives:
+        Enabled: 0
+        Buildings: []
+        PlantedBuildings: []
+        OwnedItems: []
+        SubmittedItems: []
+        CameraMoves: []
+        CameraZooms: []
+        Technologies: []
+        Turns: []
+      Rewards:
+        Enabled: 0
+        Items: []
+        Blueprints: []
+        Buffs: []
+        Features: []
+        Failures: []
+        SpecialDrops: []
+      UnitCosts:
+        Enabled: 0
+        Recruitment: []
+        Awakening: []
+        Offerings: []
+      Crops:
+        Enabled: 0
+        Seeds: []
+        AutomaticHarvest: []
+        Yields: []
+      Inventory:
+        Enabled: 0
+        Groups: []
+        Accepted: []
+        Losses: []
+      Expeditions:
+        Enabled: 0
+        Supplies: []
+      Modifiers:
+        Enabled: 0
+        LossModifier: []
+        ProductionBonus: []
+        AttackBonus: []
+        HealthBonus: []
+        PublicOpinion: []
+        SoldierAttackBonus: []
+        SoldierSpeedBonus: []
+        ActionPowerBonus: []
+        CropHarvestBonus: []
+        PlotRisk: []
+        NaturalDeathRisk: []
+        ResearchOutput: []
+        RangeBonus: []
+        AttackSpeedBonus: []
+        SpeedBonus: []
+        ArmorBonus: []
+        DamageReductionBonus: []
+        PenetrationBonus: []
+        ProjectileSpeedBonus: []
+        BlastRadiusBonus: []
+        FlatProduction: []
+        Intelligence: []
+      People:
+        Enabled: 0
+        Wages: []
+        Traits: []
+        Conflicts: []
+        Dependencies: []
+        SocialTasks: []
+        PeriodicItems: []
+        Effects: []
+    Modules:
+      Construction:
+        Enabled: 1
+        PlacementCosts:
+        - Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+          Quantity: 100
+        StageOutputs:
+        - Stage: 1
+          Item: {fileID: 11400000, guid: 000df9efbc381134e832f667a32c9572, type: 2}
+          Quantity: 10
+        - Stage: 1
+          Item: {fileID: 11400000, guid: a927377c37e532b49af819fa89b72369, type: 2}
+          Quantity: 20
+        - Stage: 3
+          Item: {fileID: 11400000, guid: a927377c37e532b49af819fa89b72369, type: 2}
+          Quantity: 100
+        StageCosts:
+        - Stage: 2
+          Item: {fileID: 11400000, guid: 068cd4cc6c016594ea75645e4d037f1d, type: 2}
+          Quantity: 30
+      Placement:
+        Enabled: 1
+        RequiredTerrains:
+        - Terrain: "\u9646\u5730"
+        - Terrain: "\u77f3\u77ff"
+      Workforce:
+        Enabled: 1
+        Levels:
+        - Level: 1
+          Currency: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+          Capacity: 6
+          InitialWorkers: 0
+          InitialSubsidy: 0
+          BaseAttraction: 55.0
+          RecruitmentCost: 10.0
+        - Level: 2
+          Currency: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+          Capacity: 6
+          InitialWorkers: 0
+          InitialSubsidy: 0
+          BaseAttraction: 55.0
+          RecruitmentCost: 10.0
+        - Level: 3
+          Currency: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+          Capacity: 6
+          InitialWorkers: 0
+          InitialSubsidy: 0
+          BaseAttraction: 55.0
+          RecruitmentCost: 10.0
+        EfficiencyTiers:
+        - Level: 1
+          MinimumWorkers: 0
+          MaximumWorkers: 0
+        - Level: 1
+          MinimumWorkers: 1
+          MaximumWorkers: 1
+        - Level: 1
+          MinimumWorkers: 2
+          MaximumWorkers: 2
+        - Level: 1
+          MinimumWorkers: 3
+          MaximumWorkers: 3
+        - Level: 1
+          MinimumWorkers: 4
+          MaximumWorkers: 4
+        - Level: 1
+          MinimumWorkers: 5
+          MaximumWorkers: 5
+        - Level: 1
+          MinimumWorkers: 6
+          MaximumWorkers: 6
+        - Level: 2
+          MinimumWorkers: 0
+          MaximumWorkers: 0
+        - Level: 2
+          MinimumWorkers: 1
+          MaximumWorkers: 1
+        - Level: 2
+          MinimumWorkers: 2
+          MaximumWorkers: 2
+        - Level: 2
+          MinimumWorkers: 3
+          MaximumWorkers: 3
+        - Level: 2
+          MinimumWorkers: 4
+          MaximumWorkers: 4
+        - Level: 2
+          MinimumWorkers: 5
+          MaximumWorkers: 5
+        - Level: 2
+          MinimumWorkers: 6
+          MaximumWorkers: 6
+        - Level: 3
+          MinimumWorkers: 0
+          MaximumWorkers: 0
+        - Level: 3
+          MinimumWorkers: 1
+          MaximumWorkers: 1
+        - Level: 3
+          MinimumWorkers: 2
+          MaximumWorkers: 2
+        - Level: 3
+          MinimumWorkers: 3
+          MaximumWorkers: 3
+        - Level: 3
+          MinimumWorkers: 4
+          MaximumWorkers: 4
+        - Level: 3
+          MinimumWorkers: 5
+          MaximumWorkers: 5
+        - Level: 3
+          MinimumWorkers: 6
+          MaximumWorkers: 6
+      Maintenance:
+        Enabled: 1
+        Costs:
+        - Level: 1
+          Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+          Quantity: 3
+        - Level: 2
+          Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+          Quantity: 5
+        - Level: 3
+          Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+          Quantity: 10
+      Production:
+        Enabled: 1
+        Cycles:
+        - Level: 1
+          Interval: 1
+          RequiredWorkers: 0
+        - Level: 2
+          Interval: 1
+          RequiredWorkers: 0
+        - Level: 3
+          Interval: 1
+          RequiredWorkers: 0
+        Outputs:
+        - Level: 1
+          Item: {fileID: 11400000, guid: a927377c37e532b49af819fa89b72369, type: 2}
+          Quantity: 1
+          MinimumWorkers: 2
+          MaximumWorkers: 3
+        - Level: 1
+          Item: {fileID: 11400000, guid: a927377c37e532b49af819fa89b72369, type: 2}
+          Quantity: 2
+          MinimumWorkers: 4
+          MaximumWorkers: 5
+        - Level: 1
+          Item: {fileID: 11400000, guid: a927377c37e532b49af819fa89b72369, type: 2}
+          Quantity: 4
+          MinimumWorkers: 6
+          MaximumWorkers: 0
+        - Level: 2
+          Item: {fileID: 11400000, guid: a927377c37e532b49af819fa89b72369, type: 2}
+          Quantity: 1
+          MinimumWorkers: 1
+          MaximumWorkers: 1
+        - Level: 2
+          Item: {fileID: 11400000, guid: a927377c37e532b49af819fa89b72369, type: 2}
+          Quantity: 2
+          MinimumWorkers: 2
+          MaximumWorkers: 2
+        - Level: 2
+          Item: {fileID: 11400000, guid: a927377c37e532b49af819fa89b72369, type: 2}
+          Quantity: 3
+          MinimumWorkers: 3
+          MaximumWorkers: 3
+        - Level: 2
+          Item: {fileID: 11400000, guid: a927377c37e532b49af819fa89b72369, type: 2}
+          Quantity: 4
+          MinimumWorkers: 4
+          MaximumWorkers: 4
+        - Level: 2
+          Item: {fileID: 11400000, guid: a927377c37e532b49af819fa89b72369, type: 2}
+          Quantity: 5
+          MinimumWorkers: 5
+          MaximumWorkers: 5
+        - Level: 2
+          Item: {fileID: 11400000, guid: a927377c37e532b49af819fa89b72369, type: 2}
+          Quantity: 9
+          MinimumWorkers: 6
+          MaximumWorkers: 0
+        - Level: 3
+          Item: {fileID: 11400000, guid: a927377c37e532b49af819fa89b72369, type: 2}
+          Quantity: 2
+          MinimumWorkers: 1
+          MaximumWorkers: 1
+        - Level: 3
+          Item: {fileID: 11400000, guid: a927377c37e532b49af819fa89b72369, type: 2}
+          Quantity: 4
+          MinimumWorkers: 2
+          MaximumWorkers: 2
+        - Level: 3
+          Item: {fileID: 11400000, guid: a927377c37e532b49af819fa89b72369, type: 2}
+          Quantity: 6
+          MinimumWorkers: 3
+          MaximumWorkers: 3
+        - Level: 3
+          Item: {fileID: 11400000, guid: a927377c37e532b49af819fa89b72369, type: 2}
+          Quantity: 8
+          MinimumWorkers: 4
+          MaximumWorkers: 4
+        - Level: 3
+          Item: {fileID: 11400000, guid: a927377c37e532b49af819fa89b72369, type: 2}
+          Quantity: 10
+          MinimumWorkers: 5
+          MaximumWorkers: 5
+        - Level: 3
+          Item: {fileID: 11400000, guid: a927377c37e532b49af819fa89b72369, type: 2}
+          Quantity: 22
+          MinimumWorkers: 6
+          MaximumWorkers: 0

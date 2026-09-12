@@ -1,13 +1,15 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Sirenix.OdinInspector;
 namespace Moyo.Unity
 {
     public class TextIconButton : MonoBehaviour
     {
-        [SerializeField] private Button btn;
-        [SerializeField] private TMP_Text text;
-        [SerializeField] private Image icon;
+        [SerializeField, LabelText("按钮"), Required] private Button btn;
+        [SerializeField, LabelText("文字"), Required] private TMP_Text text;
+        [SerializeField, LabelText("图标"), Required] private Image icon;
+        private UnityEngine.Events.UnityAction boundAction;
 
 
 
@@ -38,7 +40,8 @@ namespace Moyo.Unity
                 Debug.LogWarning("Button is not assigned.");
                 return false;
             }
-            btn.onClick.RemoveAllListeners();
+            if (boundAction != null) btn.onClick.RemoveListener(boundAction);
+            boundAction = action;
             btn.onClick.AddListener(action);
             return true;
         }
@@ -57,6 +60,12 @@ namespace Moyo.Unity
         {
             result = btn;
             return btn != null;
+        }
+
+        private void OnDestroy()
+        {
+            if (btn != null && boundAction != null) btn.onClick.RemoveListener(boundAction);
+            boundAction = null;
         }
     }
 }

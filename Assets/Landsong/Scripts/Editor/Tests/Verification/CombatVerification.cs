@@ -96,7 +96,7 @@ namespace Landsong.ECS.Editor
                 SnapshotCodec.Restore(em, root, SnapshotCodec.Decode(em, root, original));
                 NightPlanOps.Prepare(em, root); var prepared = Prepared(em, root); Check(prepared.Any(p => Sim.Definition(em, root, p.Definition).Kind == ContentKind.Building), "Building defense participates in dusk snapshot");
                 var expected = prepared.First(p => p.Definition == soldier); Check(CombatProfile.Valid(expected.Combat) && expected.Interval > 0 && expected.ProjectileSpeed > 0, "Prepared unit carries complete combat profile");
-                s = em.GetComponentData<Session>(root); s.Phase = Phase.Deployment; em.SetComponentData(root, s); var saved = SnapshotCodec.Capture(em, root); SnapshotCodec.Restore(em, root, SnapshotCodec.Decode(em, root, saved));
+                s = em.GetComponentData<Session>(root); s.Phase = Phase.Deployment; em.SetComponentData(root, s); MilitaryOps.PrepareNight(em,root); var saved = SnapshotCodec.Capture(em, root); SnapshotCodec.Restore(em, root, SnapshotCodec.Decode(em, root, saved));
                 Check(expected.Equals(Prepared(em, root).First(p => p.Definition == soldier)), "Expanded prepared payload survives dusk reconstruction");
                 var malformed = SnapshotCodec.Decode(em, root, saved); malformed.Preparation[0].Combat.Reduction = float.NaN; bool rejected = false; try { SnapshotCodec.Restore(em, root, malformed); } catch (InvalidDataException) { rejected = true; } Check(rejected && saved.SequenceEqual(SnapshotCodec.Capture(em, root)), "Malformed defense rejected before mutation");
                 foreach (var fail in new[] { "garrisons-prepared", "root-published", "before-retire" })
@@ -107,17 +107,25 @@ namespace Landsong.ECS.Editor
         }
         static void Modifiers(EntityManager em, Entity root, int soldier)
         {
-            var source = AssetDatabase.LoadAssetAtPath<GameCatalogAsset>("Assets/Landsong/ECSContent/GameCatalog.asset"); var catalog = UnityEngine.Object.Instantiate(source);
-            int at = Array.FindIndex(source.Definitions, d => d.Data.Kind == ContentKind.Buff); var buff = UnityEngine.Object.Instantiate(source.Definitions[at]); catalog.Definitions = (GameDefinitionAsset[])source.Definitions.Clone(); catalog.Definitions[at] = buff;
+            var source = AssetDatabase.LoadAssetAtPath<GameCatalogAsset>("Assets/Landsong/ECSContent/GameCatalog.asset"); var catalog = CatalogFixture.Clone(source);
+            int at = Array.FindIndex(source.Definitions, d => d.Data.Kind == ContentKind.Buff); var buff = catalog.Definitions[at];
             var kinds = new[] { RuleKind.RangeBonus, RuleKind.AttackSpeedBonus, RuleKind.SpeedBonus, RuleKind.ArmorBonus, RuleKind.DamageReductionBonus, RuleKind.PenetrationBonus, RuleKind.ProjectileSpeedBonus, RuleKind.BlastRadiusBonus };
-            buff.Data.Rules = kinds.Select(kind => new RuleSource { Kind = kind, Target = source.Definitions[soldier].Data.Id, Value = kind == RuleKind.ArmorBonus ? 4 : kind == RuleKind.PenetrationBonus ? 3 : kind == RuleKind.BlastRadiusBonus ? 1 : .2f }).ToArray();
+            buff.Data.Configuration.Modifiers=new ModifiersContentModule{Enabled=true,
+                RangeBonus=new[]{new RangeBonusModifier{Subject=catalog.Definitions[soldier],Magnitude=.2f}},
+                AttackSpeedBonus=new[]{new AttackSpeedBonusModifier{Subject=catalog.Definitions[soldier],Magnitude=.2f}},
+                SpeedBonus=new[]{new SpeedBonusModifier{Subject=catalog.Definitions[soldier],Magnitude=.2f}},
+                ArmorBonus=new[]{new ArmorBonusModifier{Subject=catalog.Definitions[soldier],Magnitude=4}},
+                DamageReductionBonus=new[]{new DamageReductionBonusModifier{Subject=catalog.Definitions[soldier],Magnitude=.2f}},
+                PenetrationBonus=new[]{new PenetrationBonusModifier{Subject=catalog.Definitions[soldier],Magnitude=3}},
+                ProjectileSpeedBonus=new[]{new ProjectileSpeedBonusModifier{Subject=catalog.Definitions[soldier],Magnitude=.2f}},
+                BlastRadiusBonus=new[]{new BlastRadiusBonusModifier{Subject=catalog.Definitions[soldier],Magnitude=1}}};
             var original = em.GetComponentData<ContentCatalog>(root);
             try
             {
                 using var blob = GameWorldAuthoring.BuildCatalog(catalog); em.SetComponentData(root, new ContentCatalog { Value = blob });
                 var grants = em.GetBuffer<Entitlement>(root); for (int i = grants.Length - 1; i >= 0; i--) if (grants[i].Definition == at) grants.RemoveAt(i);
                 var s = em.GetComponentData<Session>(root); s.Phase = Phase.Day; em.SetComponentData(root, s);
-                var before = MilitaryOps.CurrentStats(em, root, soldier, false); Sim.Grant(em, root, at); var after = MilitaryOps.CurrentStats(em, root, soldier, false);
+                var before = MilitaryOps.CurrentStats(em, root, soldier, false); PermanentBuffOps.Grant(em, root, at); var after = MilitaryOps.CurrentStats(em, root, soldier, false);
                 Check(after.Range > before.Range && after.Interval < before.Interval && after.Speed > before.Speed, "Range attack-speed movement modifiers execute");
                 Check(after.Combat.Armor == before.Combat.Armor + 4 && after.Combat.Reduction > before.Combat.Reduction && after.Combat.Penetration == before.Combat.Penetration + 3, "Defense reduction penetration modifiers execute");
                 Check(after.ProjectileSpeed > before.ProjectileSpeed && after.Combat.BlastRadius == before.Combat.BlastRadius + 1, "Projectile speed and area modifiers execute");
@@ -127,7 +135,7 @@ namespace Landsong.ECS.Editor
                 grants = em.GetBuffer<Entitlement>(root); for (int i = grants.Length - 1; i >= 0; i--) if (grants[i].Definition == at) grants.RemoveAt(i);
                 Check(MilitaryOps.CurrentStats(em, root, soldier, false).Combat.Armor < after.Combat.Armor && MilitaryOps.Stats(em, root, soldier, false).Equals(after), "Night source loss cannot change frozen stats");
             }
-            finally { em.SetComponentData(root, original); UnityEngine.Object.DestroyImmediate(buff); UnityEngine.Object.DestroyImmediate(catalog); }
+            finally { em.SetComponentData(root, original); CatalogFixture.Destroy(catalog); }
         }
     }
 }

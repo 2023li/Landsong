@@ -18,7 +18,12 @@ namespace Landsong.ECS.Editor
         public static string Run()
         {
             log=new StringBuilder(); count=0;
-            try { Verify(); log.AppendLine("Assertions: "+count); return log.ToString(); }
+            try
+            {
+                if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling || EditorApplication.isUpdating)
+                    throw new InvalidOperationException("肖像导入验证需要退出 Play，并等待脚本编译和资源导入完成。");
+                Verify(); log.AppendLine("Assertions: "+count); return log.ToString();
+            }
             catch(Exception e) { log.AppendLine(e.ToString()); throw; }
             finally { Directory.CreateDirectory("Library/LandsongEcs"); File.WriteAllText("Library/LandsongEcs/portrait-import-verification.txt",log.ToString()); }
         }
@@ -41,6 +46,11 @@ namespace Landsong.ECS.Editor
             var front=Png("front",32,32);var back=Png("back",32,32);var wrong=Png("large",64,64);var rectangle=Png("rectangle",32,64);
             var draft=new PortraitImportDraft {Id="verify_"+unique,Type=PortraitPartType.Hair};draft.ResetLayers();
             PortraitImportLayer Layer(PortraitLayer layer)=>draft.Layers.Single(l=>l.Layer==layer);
+            void Valid(string label)
+            {
+                string error = PortraitPartImporter.Validate(config, draft);
+                Check(error.Length == 0, label + (error.Length == 0 ? "" : " — " + error));
+            }
             void Invalid(string label)
             {
                 int before=config.Parts.Length;string path=PortraitPartImporter.Destination(draft);bool failed=false;
@@ -51,10 +61,10 @@ namespace Landsong.ECS.Editor
             {
                 Invalid("Empty logical part rejected before project files exist");
                 draft.AddLayer(PortraitLayer.HairFront);Layer(PortraitLayer.HairFront).File=front;
-                Check(PortraitPartImporter.Validate(config,draft)=="","Front hair alone is valid without back hair");
+                Valid("Front hair alone is valid without back hair");
                 Check(!draft.AddLayer(PortraitLayer.HairFront)&&!draft.AddLayer(PortraitLayer.ClothesFront)&&draft.Layers.Count==1,"Adding layers excludes duplicates and layers belonging to other part types");
                 draft.AddLayer(PortraitLayer.HairBack);
-                Check(PortraitPartImporter.Validate(config,draft)=="","Unfilled optional layer does not block a valid single-layer part");
+                Valid("Unfilled optional layer does not block a valid single-layer part");
                 Layer(PortraitLayer.HairBack).File=back;draft.Male=draft.Female=false;Invalid("No gender selection rejected");draft.Male=true;
                 Layer(PortraitLayer.HairBack).File=wrong;Invalid("Raw 64 PNG rejected for a 32 project");
                 Layer(PortraitLayer.HairBack).File=rectangle;Invalid("Non-square source rejected");

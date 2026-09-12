@@ -8,16 +8,7 @@ namespace Landsong.ECS
     public static partial class MilitaryOps
     {
         static float Modifier(EntityManager em, Entity root, RuleKind kind, int target)
-        {
-            float result = Sim.Modifier(em, root, kind, target);
-            void Add(int definition, int level)
-            { var d = Sim.Definition(em, root, definition); for (int i = 0; i < d.RuleCount; i++) { var r = Sim.GetRule(em, root, d.RuleStart + i); if (r.Kind == kind && r.Level <= level && (r.Target < 0 || r.Target == target)) result += r.Value; } }
-            foreach (var grant in em.GetBuffer<Entitlement>(root)) if (Sim.Definition(em, root, grant.Definition).Kind == ContentKind.Technology) Add(grant.Definition, grant.Level);
-            using var buildings = Sim.OrderedEntities<Building>(em);
-            foreach (var e in buildings) if (Sim.Operational(em, e))
-            { var b = em.GetComponentData<Building>(e); var stats = em.GetComponentData<BuildingStats>(e); if (b.Maintained != 0 && b.Workers >= stats.RequiredWorkers) Add(em.GetComponentData<Identity>(e).Definition, b.Level); }
-            return result;
-        }
+            => EffectOps.Value(em, root, new EffectQuery(kind, target, domain: EffectDomain.Military));
         public static NightPreparation CurrentStats(EntityManager em, Entity root, int definition, bool hero)
         {
             var d = Sim.Definition(em, root, definition);
@@ -86,11 +77,9 @@ namespace Landsong.ECS
             var gold = em.GetComponentData<GameSettings>(root).Gold;
             if (InventoryOps.Count(em, root, gold) < d.Cost) return ResultCode.InsufficientResources;
             var session = em.GetComponentData<Session>(root);
-            using var stock = em.GetBuffer<InventorySlot>(root).ToNativeArray(Allocator.Temp);
-            int ledger = em.HasBuffer<EconomyEntry>(root) ? em.GetBuffer<EconomyEntry>(root).Length : 0; Entity unit = existingHero;
-            var oldHero = existingHero == Entity.Null ? default : em.GetComponentData<Hero>(existingHero);
-            var oldActor = existingHero == Entity.Null ? default : em.GetComponentData<Combatant>(existingHero);
-            var oldHealth = existingHero == Entity.Null ? default : em.GetComponentData<Health>(existingHero);
+            using var resources = new InventoryTransaction(em, root);
+            using var actorState = existingHero == Entity.Null ? null : new HeroMutationTransaction(em, existingHero);
+            Entity unit = existingHero;
             try
             {
                 if (unit == Entity.Null) {unit = Sim.Spawn(em, root, index, Sim.Position(em, site), true);PortraitOps.Ensure(em,root,unit);}
@@ -98,13 +87,13 @@ namespace Landsong.ECS
                 ConfigureCombatant(em, root, unit, 0, hero, false, c.Target, Sim.Position(em, site));
                 if (!InventoryOps.Remove(em, root, gold, d.Cost)) throw new System.InvalidOperationException("Hero recruitment resources changed");
                 probe?.Invoke("paid");
+                resources.Commit(); actorState?.Commit();
                 return ResultCode.Success;
             }
             catch (System.Exception)
             {
                 if (existingHero == Entity.Null) { if (em.Exists(unit)) em.DestroyEntity(unit); }
-                else { em.SetComponentData(existingHero, oldHero); em.SetComponentData(existingHero, oldActor); em.SetComponentData(existingHero, oldHealth); }
-                em.SetComponentData(root, session); em.GetBuffer<InventorySlot>(root).CopyFrom(stock); if (em.HasBuffer<EconomyEntry>(root)) em.GetBuffer<EconomyEntry>(root).ResizeUninitialized(ledger);
+                em.SetComponentData(root, session);
                 return ResultCode.PreparationFailed;
             }
         }
@@ -196,9 +185,9 @@ namespace Landsong.ECS
             {
                 var h = em.GetComponentData<Hero>(e); if (h.Sanctum != id || h.Recruited == 0) continue;
                 var definition = em.GetComponentData<Identity>(e).Definition;
-                using var stock = em.GetBuffer<InventorySlot>(root).ToNativeArray(Allocator.Temp);
-                int reportCount = em.GetBuffer<BattleReportEntry>(root).Length, ledgerCount = em.HasBuffer<EconomyEntry>(root) ? em.GetBuffer<EconomyEntry>(root).Length : 0;
-                var oldActor = em.GetComponentData<Combatant>(e); var oldHealth = em.GetComponentData<Health>(e); var oldTransform = em.GetComponentData<LocalTransform>(e); var oldVisual = em.GetComponentData<VisualState>(e); var oldCombat = em.GetComponentData<HeroCombat>(e);
+                using var resources = new InventoryTransaction(em, root);
+                using var actorState = new HeroMutationTransaction(em, e);
+                int reportCount = em.GetBuffer<BattleReportEntry>(root).Length;
                 try
                 {
                     if (!InventoryOps.Pay(em, root, definition, RuleKind.WakeCost, 1)) return ResultCode.InsufficientResources;
@@ -207,12 +196,12 @@ namespace Landsong.ECS
                     em.SetComponentData(e, LocalTransform.FromPosition(entrance));
                     foreach (var cost in BuildingCostOps.Rules(em, root, definition, RuleKind.WakeCost, 1))
                         em.GetBuffer<BattleReportEntry>(root).Add(new BattleReportEntry { Kind = EventKind.HeroWakeCost, Id = em.GetComponentData<Identity>(e).Id, Definition = cost.Item, Amount = cost.Amount, SourceName = em.GetComponentData<Identity>(e).Name });
-                    probe?.Invoke("deployed"); b.WokenTurn = state.Turn; em.SetComponentData(site, b); return ResultCode.Success;
+                    probe?.Invoke("deployed"); b.WokenTurn = state.Turn; em.SetComponentData(site, b); resources.Commit(); actorState.Commit(); return ResultCode.Success;
                 }
                 catch (System.Exception)
                 {
-                    em.GetBuffer<InventorySlot>(root).CopyFrom(stock); em.GetBuffer<BattleReportEntry>(root).ResizeUninitialized(reportCount); if (em.HasBuffer<EconomyEntry>(root)) em.GetBuffer<EconomyEntry>(root).ResizeUninitialized(ledgerCount);
-                    em.SetComponentData(e, oldActor); em.SetComponentData(e, oldHealth); em.SetComponentData(e, oldTransform); em.SetComponentData(e, oldVisual); em.SetComponentData(e, oldCombat); return ResultCode.PreparationFailed;
+                    em.GetBuffer<BattleReportEntry>(root).ResizeUninitialized(reportCount);
+                    return ResultCode.PreparationFailed;
                 }
             }
             return ResultCode.Unavailable;

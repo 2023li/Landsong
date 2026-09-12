@@ -43,15 +43,14 @@ namespace Landsong.ECS.Editor
                 Check(store.Slots(other).Length == 1, "Quick save without active slot creates one");
                 store.End(run, "隔离测试", 1); Check(!Directory.Exists(Path.Combine(store.RunDirectory(run), "slots")) && File.Exists(store.SlotPath(other, otherSlot)), "End removes only owned dynasty slots");
                 rejected = false; try { store.ReadSlot(run, first, out _); } catch (InvalidDataException) { rejected = true; } Check(rejected, "Ended dynasty cannot resurrect from slot");
-                var scene = EditorSceneManager.OpenPreviewScene(EcsSceneFlow.Game);
-                try
-                {
-                    var view = scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<EcsGameView>(true)).Single(); var menu = view.PauseMenu;
-                    Check(menu != null && menu.View == view && !menu.Overlay.activeSelf, "Scene-authored pause panel starts hidden");
-                    Check(new UnityEngine.Object[] { menu.OpenButton, menu.SaveButton, menu.QuickSaveButton, menu.SettingsButton, menu.ResumeButton, menu.MenuButton, menu.QuitButton, menu.Volume, menu.Fullscreen, menu.SlotRows, menu.SlotTemplate }.All(o => o != null), "Six actions settings and slots are wired");
-                    Check(menu.Overlay.GetComponent<Canvas>().overrideSorting && menu.Overlay.GetComponent<Canvas>().sortingOrder == 500, "Pause overlay renders above dynamic HUD");
-                }
-                finally { EditorSceneManager.ClosePreviewScene(scene); }
+                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(ApplicationUiMigration.GamePath);
+                Check(prefab != null, "GamePanel prefab exists independently from Game scene");
+                var view = prefab.GetComponent<UI_GamePanel>(); var menu = view.PauseMenu;
+                Check(menu != null && menu.View == view && menu.gameObject == menu.Overlay && menu.transform.parent == view.ModalRoot, "Pause popup has one explicit game owner");
+                menu.ValidateConfiguration();
+                Check(menu.gameObject.activeSelf && menu.ModalGroup.alpha == 0 && !menu.ModalGroup.blocksRaycasts && !menu.OverlayImage.enabled, "Authored pause popup begins hidden");
+                Check(menu.GetComponentsInChildren<UI_SettingPanel>(true).Length == 0 && menu.GetComponentsInChildren<UI_SavePanel>(true).Length == 0, "Pause owns no duplicate shared settings or archive view");
+                Check(menu.GetComponent<Canvas>() == null && menu.ModalGroup.ignoreParentGroups, "Pause uses shared canvas and explicitly escapes the blocked game interaction group");
                 log.AppendLine("Assertions: " + count); return log.ToString();
             }
             finally { if (Directory.Exists(temporary)) Directory.Delete(temporary, true); Directory.CreateDirectory("Library/LandsongEcs"); File.WriteAllText("Library/LandsongEcs/pause-menu-verification.txt", log.ToString()); }

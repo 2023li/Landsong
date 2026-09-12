@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f69a7583c0a8434783c5ce228bbbd70b, type: 3}
+  m_Name: SoldierDetailsRecipe
+  m_EditorClassIdentifier: Assembly-CSharp-Editor::Landsong.Editor.UI.UIPreviewRecipe
+  targetView: {fileID: 7514950858683775348, guid: 187c15f1a5d57c647b30a94d681ba619, type: 3}
+  profile: {fileID: 11400000, guid: 97ccc011bfcc6bb4da805baa4f736db1, type: 2}
+  texts:
+  - key: name
+    target: {fileID: 2668139987512289367, guid: 187c15f1a5d57c647b30a94d681ba619, type: 3}
+    runtimeText: "\u58EB\u5175\u59D3\u540D"
+  - key: age
+    target: {fileID: 192108152934790642, guid: 187c15f1a5d57c647b30a94d681ba619, type: 3}
+    runtimeText: 
+  - key: stats
+    target: {fileID: 4421929948978705950, guid: 187c15f1a5d57c647b30a94d681ba619, type: 3}
+    runtimeText: 
+  - key: abilities
+    target: {fileID: 8097880125851859642, guid: 187c15f1a5d57c647b30a94d681ba619, type: 3}
+    runtimeText: 
+  lists: []

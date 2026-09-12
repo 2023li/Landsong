@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 02d7d04a464b7214dac9f377de8cc861, type: 3}
   m_Name: "b\u6811\u67284"
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.GameDefinitionAsset
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.GameDefinitionAsset
   Data:
     Id: "b\u6811\u67284"
     Name: "\u6811\u6728 4"
@@ -41,81 +41,120 @@ MonoBehaviour:
       Category: 256
       MenuOrder: 0
       ProviderPriority: 0
-      RepairTurns: 0
       CanMove: 1
       CanRotate: 1
       MoveMaterialRatio: 0.3
       MoveExperienceRatio: 0.3
       RuinMovementCost: 4
       DefaultSkin: 
-    Rules:
-    - Kind: 0
-      Target: "\u91D1\u5E01"
-      Secondary: 
-      Level: 1
-      Amount: 10
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 0
-      Target: "\u6811\u82D7"
-      Secondary: 
-      Level: 1
-      Amount: 1
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 52
-      Target: 
-      Secondary: 
-      Level: 0
-      Amount: 0
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: "\u9646\u5730"
-    - Kind: 19
-      Target: 
-      Secondary: 
-      Level: 1
-      Amount: 1
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 29
-      Target: "\u539F\u6728"
-      Secondary: 
-      Level: 1
-      Amount: 10
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 29
-      Target: "\u6811\u82D7"
-      Secondary: 
-      Level: 1
-      Amount: 3
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 15
-      Target: 
-      Secondary: 
-      Level: 1
-      Amount: 1
-      B: 20
-      C: 0
-      Value: 1
-      Extra: 20
-      Key: beauty.tree
+    Configuration:
+      Conditions:
+        Enabled: 0
+        Completions: []
+        Visibility: []
+      Objectives:
+        Enabled: 0
+        Buildings: []
+        PlantedBuildings: []
+        OwnedItems: []
+        SubmittedItems: []
+        CameraMoves: []
+        CameraZooms: []
+        Technologies: []
+        Turns: []
+      Rewards:
+        Enabled: 0
+        Items: []
+        Blueprints: []
+        Buffs: []
+        Features: []
+        Failures: []
+        SpecialDrops: []
+      UnitCosts:
+        Enabled: 0
+        Recruitment: []
+        Awakening: []
+        Offerings: []
+      Crops:
+        Enabled: 0
+        Seeds: []
+        AutomaticHarvest: []
+        Yields: []
+      Inventory:
+        Enabled: 0
+        Groups: []
+        Accepted: []
+        Losses: []
+      Expeditions:
+        Enabled: 0
+        Supplies: []
+      Modifiers:
+        Enabled: 0
+        LossModifier: []
+        ProductionBonus: []
+        AttackBonus: []
+        HealthBonus: []
+        PublicOpinion: []
+        SoldierAttackBonus: []
+        SoldierSpeedBonus: []
+        ActionPowerBonus: []
+        CropHarvestBonus: []
+        PlotRisk: []
+        NaturalDeathRisk: []
+        ResearchOutput: []
+        RangeBonus: []
+        AttackSpeedBonus: []
+        SpeedBonus: []
+        ArmorBonus: []
+        DamageReductionBonus: []
+        PenetrationBonus: []
+        ProjectileSpeedBonus: []
+        BlastRadiusBonus: []
+        FlatProduction: []
+        Intelligence: []
+      People:
+        Enabled: 0
+        Wages: []
+        Traits: []
+        Conflicts: []
+        Dependencies: []
+        SocialTasks: []
+        PeriodicItems: []
+        Effects: []
+    Modules:
+      Construction:
+        Enabled: 1
+        PlacementCosts:
+        - Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+          Quantity: 10
+        - Item: {fileID: 11400000, guid: bcf108fee9cd3d64bb8483fd44f93440, type: 2}
+          Quantity: 1
+      Placement:
+        Enabled: 1
+        RequiredTerrains:
+        - Terrain: "\u9646\u5730"
+      Gathering:
+        Enabled: 1
+        Levels:
+        - Level: 1
+          Item: {fileID: 0}
+          Uses: 1
+          AmountPerUse: 0
+        Rewards:
+        - Level: 1
+          Item: {fileID: 11400000, guid: a761334fe1641a74f9948313fb5ff413, type: 2}
+          Quantity: 10
+        - Level: 1
+          Item: {fileID: 11400000, guid: bcf108fee9cd3d64bb8483fd44f93440, type: 2}
+          Quantity: 3
+      Effects:
+        Enabled: 1
+        Spatial:
+        - Level: 1
+          Building: {fileID: 0}
+          Magnitude: 1
+          Type: 20
+          RequiredWorkers: 0
+          Radius: 1.0
+          Stacking: 20
+          Group: "beauty.tree"

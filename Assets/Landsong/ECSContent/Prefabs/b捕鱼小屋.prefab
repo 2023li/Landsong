@@ -102,7 +102,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 2625550449883910690}
 --- !u!1 &1547558520648679201
 GameObject:
@@ -274,7 +274,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 2625550449883910690}
 --- !u!1 &1598927832820689040
 GameObject:
@@ -415,7 +415,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 2625550449883910690}
 --- !u!1 &1880017039217057388
 GameObject:
@@ -522,7 +522,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 2625550449883910690}
 --- !u!1 &2116932933311030114
 GameObject:
@@ -629,7 +629,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 2625550449883910690}
 --- !u!1 &2313104537169960091
 GameObject:
@@ -675,7 +675,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3f48b4f71bbca284498dce92744bd9c9, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualSlotAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualSlotAuthoring
   Purpose: 1
   Level: 1
   Step: 0
@@ -691,6 +691,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6508899903867716552}
   - component: {fileID: 711731381673058827}
+  - component: {fileID: 9122772648250840338}
   m_Layer: 0
   m_Name: "b\u6355\u9C7C\u5C0F\u5C4B"
   m_TagString: Untagged
@@ -726,8 +727,55 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 844c2095aae9ed545930c932bf270977, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualAuthoring
   Definition: {fileID: 11400000, guid: 806559cafaef6f843916d5366cb523d6, type: 2}
+--- !u!114 &9122772648250840338
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2625550449883910690}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2330cbfc01cb87e4491406fd4a56bf6f, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Landsong.ECS.Presentation::Landsong.ECS.Presentation.BuildingPlacementPreviewBinding
+  Colliders: []
+  Behaviours:
+  - {fileID: 711731381673058827}
+  - {fileID: 2358759107539963534}
+  - {fileID: 4982945927513558595}
+  - {fileID: 6353093488020086660}
+  - {fileID: 1803965249664676517}
+  - {fileID: 2072938482571486281}
+  - {fileID: 2492334455956560611}
+  - {fileID: 5722305225858035574}
+  - {fileID: 1737295413068485951}
+  - {fileID: 5843117867094867802}
+  Slots:
+  - {fileID: 2358759107539963534}
+  - {fileID: 6353093488020086660}
+  - {fileID: 5722305225858035574}
+  Parts:
+  - Renderer: {fileID: 7362220733969564481}
+    Slot: {fileID: 2358759107539963534}
+    Crop: 0
+  - Renderer: {fileID: 3680415405306363370}
+    Slot: {fileID: 6353093488020086660}
+    Crop: 0
+  - Renderer: {fileID: 1078068045555646563}
+    Slot: {fileID: 6353093488020086660}
+    Crop: 0
+  - Renderer: {fileID: 4814996000812851471}
+    Slot: {fileID: 6353093488020086660}
+    Crop: 0
+  - Renderer: {fileID: 2688727708216876458}
+    Slot: {fileID: 5722305225858035574}
+    Crop: 0
+  - Renderer: {fileID: 3686982558017378818}
+    Slot: {fileID: 5722305225858035574}
+    Crop: 0
 --- !u!1 &2638534046165753623
 GameObject:
   m_ObjectHideFlags: 0
@@ -773,7 +821,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3f48b4f71bbca284498dce92744bd9c9, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualSlotAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualSlotAuthoring
   Purpose: 0
   Level: 1
   Step: 0
@@ -890,7 +938,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3f48b4f71bbca284498dce92744bd9c9, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualSlotAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualSlotAuthoring
   Purpose: 1
   Level: 2
   Step: 0
@@ -1032,7 +1080,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 2625550449883910690}
 --- !u!1 &7223963996727976593
 GameObject:

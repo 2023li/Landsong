@@ -1,3 +1,4 @@
+using Sirenix.OdinInspector;
 using Landsong.ECS.Authoring;
 using UnityEngine;
 
@@ -8,7 +9,7 @@ namespace Landsong.GridSystem
     [AddComponentMenu("Landsong/Map/Initial Building Preview")]
     public sealed class InitialBuildingPreview : MonoBehaviour
     {
-        public GameDefinitionAsset Definition;
-        [Min(1)] public int Level = 1;
+        [LabelText("建筑内容定义")] public GameDefinitionAsset Definition;
+        [Min(1)] [LabelText("初始等级")] public int Level = 1;
     }
 }

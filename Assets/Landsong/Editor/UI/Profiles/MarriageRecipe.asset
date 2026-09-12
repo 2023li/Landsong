@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f69a7583c0a8434783c5ce228bbbd70b, type: 3}
+  m_Name: MarriageRecipe
+  m_EditorClassIdentifier: Assembly-CSharp-Editor::Landsong.Editor.UI.UIPreviewRecipe
+  targetView: {fileID: 7084358871778141050, guid: 035f5a461f19ade4fba42d4cde191dc2, type: 3}
+  profile: {fileID: 11400000, guid: 9c065227232c93e449a53ab2b2f7a034, type: 2}
+  texts:
+  - key: title
+    target: {fileID: 7725611011748038737, guid: 035f5a461f19ade4fba42d4cde191dc2, type: 3}
+    runtimeText: 
+  - key: hint
+    target: {fileID: 909242622586047773, guid: 035f5a461f19ade4fba42d4cde191dc2, type: 3}
+    runtimeText: 
+  - key: person
+    target: {fileID: 7399262666172673753, guid: 035f5a461f19ade4fba42d4cde191dc2, type: 3}
+    runtimeText: 
+  - key: mate
+    target: {fileID: 6579355714187553749, guid: 035f5a461f19ade4fba42d4cde191dc2, type: 3}
+    runtimeText: 
+  - key: approve
+    target: {fileID: 4447019074157163945, guid: 035f5a461f19ade4fba42d4cde191dc2, type: 3}
+    runtimeText: 
+  - key: refuse
+    target: {fileID: 7186478370443437282, guid: 035f5a461f19ade4fba42d4cde191dc2, type: 3}
+    runtimeText: 
+  - key: close
+    target: {fileID: 5746154941673494502, guid: 035f5a461f19ade4fba42d4cde191dc2, type: 3}
+    runtimeText: 
+  lists: []

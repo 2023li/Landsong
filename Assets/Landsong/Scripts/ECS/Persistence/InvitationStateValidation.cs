@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -8,6 +8,8 @@ namespace Landsong.ECS.Persistence
     public static class InvitationStateValidation
     {
         public static void Validate(EntityManager em, Entity root, SnapshotCodec.Snapshot snapshot)
+            => Validate(em, root, snapshot, false);
+        internal static void Validate(EntityManager em, Entity root, SnapshotCodec.Snapshot snapshot, bool deferQuestContainerReconciliation)
         {
             if (snapshot.Session.ExpeditionPenaltyStacks < 0 || snapshot.Session.ExpeditionPenaltyUntil < 0) throw new InvalidDataException("Invalid expedition penalty");
             var containers = new HashSet<(ulong,int)>();
@@ -28,10 +30,20 @@ namespace Landsong.ECS.Persistence
                     if(bound)
                     {
                         var provider=System.Array.Find(snapshot.Records,b=>(b.Mask&2)!=0 && b.Identity.Id==q.Container);
-                        if(provider==null || q.ContainerSlot<0 || !containers.Add((q.Container,q.ContainerSlot)))throw new InvalidDataException("Invalid or duplicate quest container");
-                        var capacity=0;var definition=Sim.Definition(em,root,provider.Identity.Definition);
-                        for(var i=0;i<definition.RuleCount;i++){var rule=Sim.GetRule(em,root,definition.RuleStart+i);if(rule.Kind==RuleKind.QuestCapacity && (rule.Level==0 || rule.Level==provider.Building.Level))capacity+=rule.Amount;}
-                        if(q.ContainerSlot>=capacity)throw new InvalidDataException("Quest container slot exceeds configured capacity");
+                        // Duplicate authority is never a repairable capacity change. A disappeared
+                        // provider or invalid slot can only be deferred inside night-entry staging,
+                        // where ReconcileQuestContainers removes it before strict revalidation.
+                        if(!containers.Add((q.Container,q.ContainerSlot)))throw new InvalidDataException("Duplicate quest container");
+                        if(provider==null || q.ContainerSlot<0)
+                        {
+                            if(!deferQuestContainerReconciliation)throw new InvalidDataException("Invalid quest container");
+                        }
+                        else
+                        {
+                            var capacity=0;var definition=Sim.Definition(em,root,provider.Identity.Definition);
+                            for(var i=0;i<definition.RuleCount;i++){var rule=Sim.GetRule(em,root,definition.RuleStart+i);if(rule.Kind==RuleKind.QuestCapacity && (rule.Level==0 || rule.Level==provider.Building.Level))capacity+=rule.Amount;}
+                            if(q.ContainerSlot>=capacity && !deferQuestContainerReconciliation)throw new InvalidDataException("Quest container slot exceeds configured capacity");
+                        }
                     }
                     else if(q.Container!=0 || q.ContainerSlot!=0)throw new InvalidDataException("Unexpected quest container");
                 }

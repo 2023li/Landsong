@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR
+#if UNITY_EDITOR
 using System;
 using System.IO;
 using System.Linq;
@@ -138,8 +138,8 @@ namespace Landsong.ECS.Editor
         }
         static void ImportFailure(World world, Entity root)
         {
-            var em = world.EntityManager; var settings = em.GetComponentData<GameSettings>(root);
-            settings.FirstInvasion = 1; settings.FirstBoss = 99999; settings.InvasionChance = 1; em.SetComponentData(root, settings); Sim.Set(em, root, new NightPlanState { BossDefinition = -1 }); NightOps.Plan(em, root, false);
+            var em = world.EntityManager; var settings = em.GetComponentData<GameSettings>(root); var originalSettings = settings;
+            settings.FirstInvasion = 1; settings.FirstBoss = 99999; settings.InvasionChance = 1; em.SetComponentData(root, settings); Sim.Set(em, root, new NightPlanState { BossDefinition = -1 }); NightOps.Plan(em, root, false); em.SetComponentData(root, originalSettings);
             var checkpoint = world.GetOrCreateSystemManaged<CheckpointSystem>(); var archive = checkpoint.Export(root);
             var applied = archive.Copy(); applied.Recovery.LossCount = 1; applied.Recovery.Seed = 987;
             var session = em.GetComponentData<Session>(root); session.RetryCount = 1; em.SetComponentData(root, session);

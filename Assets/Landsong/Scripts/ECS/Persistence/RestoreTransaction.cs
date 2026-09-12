@@ -88,6 +88,13 @@ namespace Landsong.ECS.Persistence
         sealed class RootState
         {
             readonly List<Action<EntityManager, Entity>> apply = new List<Action<EntityManager, Entity>>();
+            readonly HashSet<Type> captured = new HashSet<Type>();
+            static readonly HashSet<Type> StaticRootTypes = new HashSet<Type>
+            {
+                typeof(ContentCatalog), typeof(MapIdentity), typeof(GameSettings), typeof(DynastySettings),
+                typeof(PortraitLibrary), typeof(ContentPrefab), typeof(InitialBuilding), typeof(InitialRoyal),
+                typeof(StartingGrant), typeof(SpawnRegion), typeof(SimulationReady)
+            };
             public RootState(EntityManager manager, Entity root)
             {
                 Component<Session>(manager, root); Component<GridData>(manager, root);
@@ -108,14 +115,24 @@ namespace Landsong.ECS.Persistence
                 Buffer<NightWave>(manager, root); Buffer<BattleReportEntry>(manager, root); Buffer<NightReward>(manager, root);
                 Buffer<Command>(manager, root); Buffer<GameEvent>(manager, root); Buffer<DamageRequest>(manager, root);
                 Buffer<NightEntryLoss>(manager, root);
+                using var types = manager.GetComponentTypes(root, Allocator.Temp);
+                foreach (var component in types)
+                {
+                    var type = component.GetManagedType();
+                    if (type?.Namespace == null || !type.Namespace.StartsWith("Landsong.", StringComparison.Ordinal)) continue;
+                    if (!captured.Contains(type) && !StaticRootTypes.Contains(type))
+                        throw new InvalidOperationException("会话根组件没有声明恢复所有权，请登记可变或只读配置：" + type.FullName);
+                }
             }
             void Component<T>(EntityManager manager, Entity root) where T : unmanaged, IComponentData
             {
+                captured.Add(typeof(T));
                 var exists = manager.HasComponent<T>(root); var value = exists ? manager.GetComponentData<T>(root) : default;
                 apply.Add((m, e) => { if (exists) Sim.Set(m, e, value); else if (m.HasComponent<T>(e)) m.RemoveComponent<T>(e); });
             }
             void Buffer<T>(EntityManager manager, Entity root) where T : unmanaged, IBufferElementData
             {
+                captured.Add(typeof(T));
                 var exists = manager.HasBuffer<T>(root); T[] values = null;
                 if (exists) { using var array = manager.GetBuffer<T>(root).ToNativeArray(Allocator.Temp); values = array.ToArray(); }
                 apply.Add((m, e) => { if (exists) { Sim.Buffer<T>(m, e); m.GetBuffer<T>(e).CopyFrom(values); } else if (m.HasBuffer<T>(e)) m.RemoveComponent<T>(e); });

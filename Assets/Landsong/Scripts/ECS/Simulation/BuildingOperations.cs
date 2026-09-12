@@ -1,4 +1,4 @@
-﻿using Unity.Collections;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -86,7 +86,7 @@ namespace Landsong.ECS
             if (stats.IsCore != 0)
             {
                 state.Phase = Phase.GameOver; state.Paused = 0; em.SetComponentData(root, state);
-                Sim.Emit(em, root, EventKind.Message, "聚落核心失守"); return;
+                Sim.Emit(em, root, EventKind.Message, "聚落核心失守", category: HistoryCategory.Important); return;
             }
             b.Stage = LifeStage.Ruined; b.RuinPending = 1; b.Offering = 0; b.PaidSubsidy = 0; b.PaidSubsidyTurn = 0;
             em.SetComponentData(e, b); GridOps.Occupy(em, root, e);

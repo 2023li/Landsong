@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f69a7583c0a8434783c5ce228bbbd70b, type: 3}
+  m_Name: GameHudRecipe
+  m_EditorClassIdentifier: Assembly-CSharp-Editor::Landsong.Editor.UI.UIPreviewRecipe
+  targetView: {fileID: 467804560998025700, guid: 133f09e95b8909f4591023fe4754da06, type: 3}
+  profile: {fileID: 11400000, guid: 02a53ab1a25a52b4c853da5c108d9b18, type: 2}
+  texts:
+  - key: turn
+    target: {fileID: 3852120812719164223, guid: 133f09e95b8909f4591023fe4754da06, type: 3}
+    runtimeText: 
+  - key: message
+    target: {fileID: 2352198363297018126, guid: 133f09e95b8909f4591023fe4754da06, type: 3}
+    runtimeText: 
+  - key: population
+    target: {fileID: 5558987924017359797, guid: 133f09e95b8909f4591023fe4754da06, type: 3}
+    runtimeText: 
+  lists: []

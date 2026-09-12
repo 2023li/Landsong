@@ -140,6 +140,8 @@ MonoBehaviour:
   MovingPart: {fileID: 449662098742130709}
   RotationPerSecond: {x: 0, y: 0, z: 0}
   BobHeight: 0.05
+  Renderers:
+  - {fileID: 5062835071879278305}
   WorkingParticles: []
   WorkingLights: []
 --- !u!95 &4129299812368002324

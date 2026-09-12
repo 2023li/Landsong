@@ -1,3 +1,4 @@
+using Sirenix.OdinInspector;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,18 +16,18 @@ namespace Landsong.GridSystem
     [AddComponentMenu("Landsong/Map/Map Content Authoring")]
     public sealed class MapContentAuthoring : MonoBehaviour
     {
-        public MapAsset TargetMap;
-        [SerializeField] UnityEngine.Grid unityGrid;
-        [SerializeField] GridMapDefinition mapDefinition;
-        [SerializeField] List<GameObject> mapVisualRoots = new List<GameObject>();
+        [LabelText("目标运行地图")] public MapAsset TargetMap;
+        [SerializeField, Sirenix.OdinInspector.LabelText("世界网格")] UnityEngine.Grid unityGrid;
+        [SerializeField, Sirenix.OdinInspector.LabelText("逻辑地形定义")] GridMapDefinition mapDefinition;
+        [SerializeField, Sirenix.OdinInspector.LabelText("地图表现根对象")] List<GameObject> mapVisualRoots = new List<GameObject>();
 #if UNITY_EDITOR
-        [SerializeField] bool showInitialBuildingFootprints = true;
-        [SerializeField] bool showInitialBuildingLabels = true;
-        [SerializeField] bool showBakedGridCells;
-        [SerializeField] bool showUnbakedGridCells = true;
-        [SerializeField] bool showBakedGridCoordinates;
-        [SerializeField] Color bakedGridCellColor = new Color(0, .85f, .35f, .16f);
-        [SerializeField] Color unbakedGridCellColor = new Color(1, .15f, .05f, .1f);
+        [SerializeField, Sirenix.OdinInspector.LabelText("显示初始建筑占地")] bool showInitialBuildingFootprints = true;
+        [SerializeField, Sirenix.OdinInspector.LabelText("显示初始建筑标签")] bool showInitialBuildingLabels = true;
+        [SerializeField, Sirenix.OdinInspector.LabelText("显示已烘焙地块")] bool showBakedGridCells;
+        [SerializeField, Sirenix.OdinInspector.LabelText("显示未烘焙地块")] bool showUnbakedGridCells = true;
+        [SerializeField, Sirenix.OdinInspector.LabelText("显示已烘焙格坐标")] bool showBakedGridCoordinates;
+        [SerializeField, Sirenix.OdinInspector.LabelText("已烘焙地块颜色")] Color bakedGridCellColor = new Color(0, .85f, .35f, .16f);
+        [SerializeField, Sirenix.OdinInspector.LabelText("未烘焙地块颜色")] Color unbakedGridCellColor = new Color(1, .15f, .05f, .1f);
 #endif
 
         public UnityEngine.Grid UnityGrid => unityGrid;
@@ -69,8 +70,8 @@ namespace Landsong.GridSystem
                 var origin = new GridPosition(Mathf.RoundToInt(point.x - size.x * .5f), Mathf.RoundToInt(point.y - size.y * .5f));
                 if (!GridPlacementRuleEvaluator.TryResolveFlatFootprint(mapDefinition, origin, data.Size, orientation, out var footprint, out var failure, out var failedCell) ||
                     !GridPlacementRuleEvaluator.TryValidateStaticPlacement(mapDefinition, footprint,
-                        data.Rules.Where(r => r.Kind == RuleKind.RequiredTerrain).Select(r => r.Key).ToArray(),
-                        data.Rules.Where(r => r.Kind == RuleKind.AnyTerrain).Select(r => r.Key).ToArray(), out failure, out failedCell))
+                        data.Modules.Placement.Enabled ? data.Modules.Placement.RequiredTerrains.Select(r => r.Terrain).ToArray() : Array.Empty<string>(),
+                        data.Modules.Placement.Enabled ? data.Modules.Placement.AlternativeTerrains.Select(r => r.Terrain).ToArray() : Array.Empty<string>(), out failure, out failedCell))
                 { error = preview.name + ": " + failure + " @ " + failedCell; return false; }
                 foreach (var cell in footprint.Positions()) if (!occupied.Add(cell)) { error = "初始建筑占地重叠：" + preview.name; return false; }
                 result.Add(new InitialSource { Definition = data.Id, Name = preview.name, Cell = new Vector2Int(origin.X, origin.Z), Rotation = (int)orientation, Level = preview.Level });

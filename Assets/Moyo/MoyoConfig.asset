@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e5687b722f5d7cf4fa338a54bb98ad23, type: 3}
   m_Name: MoyoConfig
-  m_EditorClassIdentifier: Assembly-CSharp::Moyo.Unity.MoyoConfig
+  m_EditorClassIdentifier: Moyo.Runtime::Moyo.Unity.MoyoConfig
   sceneTransition:
     logLoadingSteps: 0
   ui:

@@ -6,36 +6,6 @@ namespace Landsong.ECS
 {
     public static partial class ProgressionOps
     {
-        public static bool Prerequisites(EntityManager em, Entity root, int definition)
-        {
-            var d = Sim.Definition(em, root, definition);
-            for (var i = 0; i < d.RuleCount; i++)
-            {
-                var r = Sim.GetRule(em, root, d.RuleStart + i);
-                if (r.Kind == RuleKind.Prerequisite && !Sim.HasGrant(em, root, r.Target, math.max(1, r.Amount))) return false;
-            }
-            return true;
-        }
-
-        public static bool Reward(EntityManager em, Entity root, int definition, float multiplier = 1, bool pending = false)
-        {
-            var d = Sim.Definition(em, root, definition);
-            using var reward = new InventoryTransaction(em, root);
-            for (var i = 0; i < d.RuleCount; i++)
-            {
-                var r = Sim.GetRule(em, root, d.RuleStart + i); if (r.Kind != RuleKind.RewardItem) continue;
-                var amount = (int)math.floor(r.Amount * multiplier);
-                if (InventoryOps.Add(em, root, r.Target, amount, pending) != amount && !pending)
-                { reward.Reject("奖励放不下，整份物品奖励未入库"); return false; }
-            }
-            for (var i = 0; i < d.RuleCount; i++)
-            {
-                var r = Sim.GetRule(em, root, d.RuleStart + i);
-                if (r.Kind == RuleKind.RewardBlueprint || r.Kind == RuleKind.RewardBuff || r.Kind == RuleKind.RewardFeature) Sim.Grant(em, root, r.Target, math.max(1, r.Amount));
-            }
-            reward.Commit(); return true;
-        }
-
         public static ResultCode Research(EntityManager em, Entity root, int definition, bool cancel)
         {
             return ResearchOps.Command(em, root, definition, cancel);
@@ -50,7 +20,7 @@ namespace Landsong.ECS
         {
             if (!Sim.ValidDefinition(em, root, definition)) return ResultCode.InvalidContent;
             var d = Sim.Definition(em, root, definition);
-            if (d.Kind != ContentKind.Policy || !Prerequisites(em, root, definition)) return ResultCode.Unavailable;
+            if (d.Kind != ContentKind.Policy || !ConditionOps.Prerequisites(em, root, definition)) return ResultCode.Unavailable;
             if (em.GetComponentData<Session>(root).PublicOpinion < d.Cost) return ResultCode.Unavailable;
             var policies = em.GetBuffer<PolicyChoice>(root);
             for (var i = 0; i < policies.Length; i++)
@@ -143,7 +113,7 @@ namespace Landsong.ECS
                 if (d.Kind != ContentKind.Quest || (d.Flags & 2) != 0 ||
                     (d.Flags & 1) != 0 && existing.Contains(i) ||
                     !QuestOps.HasQuestPredecessor(em, root, i, predecessor)) continue;
-                var ready = Prerequisites(em, root, i);
+                var ready = ConditionOps.Prerequisites(em, root, i);
                 var value = QuestOps.RewardValue(em, root, i);
                 if (best < 0 || ready && !bestReady || ready == bestReady && value > bestValue) { best = i; bestValue = value; bestReady = ready; }
             }
@@ -165,7 +135,7 @@ namespace Landsong.ECS
             var waiting=new System.Collections.Generic.List<int>();var catalog=em.GetComponentData<ContentCatalog>(root).Value;
             for(var i=0;i<catalog.Value.Definitions.Length;i++)
             {
-                var d=catalog.Value.Definitions[i];if(d.Kind==ContentKind.Quest && (d.Flags&1)!=0 && (d.Flags&2)==0 && !existing.Contains(i) && Prerequisites(em,root,i))waiting.Add(i);
+                var d=catalog.Value.Definitions[i];if(d.Kind==ContentKind.Quest && (d.Flags&1)!=0 && (d.Flags&2)==0 && !existing.Contains(i) && ConditionOps.Prerequisites(em,root,i))waiting.Add(i);
             }
             return waiting;
         }
@@ -204,8 +174,8 @@ namespace Landsong.ECS
                 EvaluateQuests(em, root); if (!em.Exists(e)) return ResultCode.Unavailable; q = em.GetComponentData<Quest>(e);
                 if (q.Status != QuestStatus.Completed) return ResultCode.Unavailable;
                 var follow=QuestOps.Tracking(em,root).Target==command.Target;
-                if (!Reward(em, root, definition)) return ResultCode.NoCapacity;
-                Sim.Grant(em, root, definition);
+                if (!RewardOps.ApplyDefinitionAndCommit(em, root, definition, 1, false, -1,
+                    () => ProgressionFacts.RecordQuestClaim(em, root, definition))) return ResultCode.NoCapacity;
                 var previous = q;
                 if (q.Mainline != 0) { q.Status = QuestStatus.Claimed; q.Container=0; q.ContainerSlot=0; em.SetComponentData(e, q); }
                 else em.DestroyEntity(e);
@@ -224,7 +194,7 @@ namespace Landsong.ECS
             foreach (var e in all)
             {
                 if (em.GetComponentData<Quest>(e).Status != QuestStatus.Active ||
-                    !Prerequisites(em, root, em.GetComponentData<Identity>(e).Definition)) continue;
+                    !ConditionOps.Prerequisites(em, root, em.GetComponentData<Identity>(e).Definition)) continue;
                 var progress = em.GetBuffer<QuestProgress>(e);
                 for (var i = 0; i < progress.Length; i++) { var p = progress[i]; var rule = Sim.GetRule(em, root, p.RuleIndex); if (rule.Kind == kind && p.Amount < rule.Amount) { p.Amount++; progress[i] = p; } }
             }
@@ -244,7 +214,7 @@ namespace Landsong.ECS
                 }
                 if (q.Status == QuestStatus.Claimed || q.Status == QuestStatus.Completed) continue;
                 var definition = em.GetComponentData<Identity>(e).Definition;
-                if (!Prerequisites(em, root, definition)) continue;
+                if (!ConditionOps.Prerequisites(em, root, definition)) continue;
                 if (q.StartTurn == 0 && QuestOps.HasQuestPredecessor(em, root, definition))
                 {
                     q.StartTurn = em.GetComponentData<Session>(root).Turn;
@@ -261,7 +231,7 @@ namespace Landsong.ECS
                         case RuleKind.SubmitItem: case RuleKind.RequireCameraMove: case RuleKind.RequireCameraZoom: count = p.Amount; break;
                         case RuleKind.RequireTurn: count = em.GetComponentData<Session>(root).Turn - (r.B != 0 ? q.StartTurn : 0); break;
                         case RuleKind.RequireTechnology:
-                            count = 0; var queue = ResearchOps.Queue(em, root); if (queue.Count > 0 && (r.Target < 0 || queue[0].Definition == r.Target) && Prerequisites(em, root, queue[0].Definition)) count = 1; break;
+                            count = 0; var queue = ResearchOps.Queue(em, root); if (queue.Count > 0 && (r.Target < 0 || queue[0].Definition == r.Target) && ConditionOps.Prerequisites(em, root, queue[0].Definition)) count = 1; break;
                         case RuleKind.RequireBuilding: case RuleKind.RequireCrop:
                             count = 0; using (var buildings = Sim.OrderedEntities<Building>(em)) foreach (var b in buildings)
                             {

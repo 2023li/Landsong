@@ -8,8 +8,13 @@ namespace Landsong.ECS
         public static bool Unlocked(EntityManager em, Entity root, string feature)
         {
             var index = Sim.FindDefinition(em, root, new FixedString128Bytes("feature." + feature));
-            return index >= 0 && Sim.HasGrant(em, root, index);
+            return IsUnlocked(em, root, index);
         }
+        public static bool IsUnlocked(EntityManager em, Entity root, int definition)
+            => Sim.ValidDefinition(em, root, definition) && Sim.Definition(em, root, definition).Kind == ContentKind.Feature
+                && EntitlementStore.Level(em, root, definition) == 1;
+        public static void Unlock(EntityManager em, Entity root, int definition)
+            => EntitlementStore.Put(em, root, definition, 1, ContentKind.Feature);
         public static string Required(CommandKind kind)
         {
             switch (kind)

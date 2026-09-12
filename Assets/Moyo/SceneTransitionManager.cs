@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using Sirenix.OdinInspector;
 using UnityEngine.SceneManagement;
 
 namespace Moyo.Unity
@@ -141,16 +142,16 @@ namespace Moyo.Unity
     public class SceneTransitionManager : MonoSingleton<SceneTransitionManager>
     {
         [Header("进度配置")]
-        [SerializeField] private float prepareProgress = 0.05f;
-        [SerializeField] private float startProgress = 0.10f;
-        [SerializeField] private float beforeExitProgress = 0.15f;
-        [SerializeField] private float transitionSceneProgress = 0.30f;
-        [SerializeField] private float unloadResourcesProgress = 0.40f;
-        [SerializeField] private float preloadResourcesProgress = 0.55f;
-        [SerializeField] private float beforeLoadTargetProgress = 0.60f;
-        [SerializeField] private float targetSceneLoadedProgress = 0.85f;
-        [SerializeField] private float targetSceneInitializedProgress = 0.95f;
-        [SerializeField] private float completedProgress = 1f;
+        [SerializeField, LabelText("准备完成进度")] private float prepareProgress = 0.05f;
+        [SerializeField, LabelText("加载开始进度")] private float startProgress = 0.10f;
+        [SerializeField, LabelText("退出当前场景进度")] private float beforeExitProgress = 0.15f;
+        [SerializeField, LabelText("进入过渡场景进度")] private float transitionSceneProgress = 0.30f;
+        [SerializeField, LabelText("卸载资源进度")] private float unloadResourcesProgress = 0.40f;
+        [SerializeField, LabelText("预加载资源进度")] private float preloadResourcesProgress = 0.55f;
+        [SerializeField, LabelText("载入目标前进度")] private float beforeLoadTargetProgress = 0.60f;
+        [SerializeField, LabelText("目标场景就绪进度")] private float targetSceneLoadedProgress = 0.85f;
+        [SerializeField, LabelText("目标初始化进度")] private float targetSceneInitializedProgress = 0.95f;
+        [SerializeField, LabelText("完成进度")] private float completedProgress = 1f;
 
         private float transitionStartTime;
 

@@ -30,8 +30,8 @@ namespace Landsong.ECS.Editor
         static void Configuration()
         {
             var source = AssetDatabase.LoadAssetAtPath<GameCatalogAsset>("Assets/Landsong/ECSContent/GameCatalog.asset");
-            var catalog = UnityEngine.Object.Instantiate(source); int at = Array.FindIndex(source.Definitions, d => d.Data.Kind == ContentKind.Soldier); var soldier = UnityEngine.Object.Instantiate(source.Definitions[at]);
-            catalog.Definitions = (GameDefinitionAsset[])source.Definitions.Clone(); catalog.Definitions[at] = soldier;
+            var catalog = CatalogFixture.Clone(source); int at = Array.FindIndex(source.Definitions, d => d.Data.Kind == ContentKind.Soldier); var soldier = catalog.Definitions[at];
+
             void Invalid(Action mutate, string name)
             { var growth = soldier.Data.SoldierGrowth; bool invalid = false; mutate(); try { using var blob = GameWorldAuthoring.BuildCatalog(catalog); } catch (InvalidOperationException) { invalid = true; } finally { soldier.Data.SoldierGrowth = growth; } Check(invalid, name); }
             try
@@ -40,10 +40,10 @@ namespace Landsong.ECS.Editor
                 Invalid(() => soldier.Data.SoldierGrowth.HealthPerLevel = float.NaN, "Nonfinite growth rejected during baking");
                 Invalid(() => soldier.Data.SoldierGrowth.FirstLevelExperience = 0, "Zero experience threshold rejected during baking");
                 Invalid(() => { soldier.Data.SoldierGrowth.MaxLevel = 100; soldier.Data.SoldierGrowth.ExperienceStep = 1000000; }, "Overflowing cumulative experience rejected during baking");
-                var rules = soldier.Data.Rules; soldier.Data.Rules = new[] { new RuleSource { Kind = RuleKind.RecruitCost, Target = "missing-resource", Amount = 1 } };
-                Invalid(() => { }, "Missing recruitment resource rejected during baking"); soldier.Data.Rules = rules;
+                var costs = soldier.Data.Configuration.UnitCosts; soldier.Data.Configuration.UnitCosts = new UnitCostsContentModule{Enabled=true,Recruitment=new[]{new RecruitmentCost{Item=null,Quantity=1}}};
+                Invalid(() => { }, "Missing recruitment resource rejected during baking"); soldier.Data.Configuration.UnitCosts = costs;
             }
-            finally { UnityEngine.Object.DestroyImmediate(soldier); UnityEngine.Object.DestroyImmediate(catalog); }
+            finally { CatalogFixture.Destroy(catalog); }
         }
         static void Verify()
         {
@@ -123,8 +123,10 @@ namespace Landsong.ECS.Editor
                 foreach (int fail in new[] { 0, 1, 2 })
                 {
                     var before = SnapshotCodec.Capture(em, root);
-                    Check(MilitaryOps.RecruitSoldiers(em, root, new Command { Target = secondHomeId, Definition = soldierDefinition, Amount = 2 }, index => { if (index == fail) throw new InvalidOperationException("injected"); }) == ResultCode.PreparationFailed, "Injected recruitment failure " + fail);
-                    Check(before.SequenceEqual(SnapshotCodec.Capture(em, root)), "Whole quantity / money / IDs / quota rollback " + fail);
+                    var request = new Command { Kind = CommandKind.RecruitSoldier, Target = secondHomeId, Definition = soldierDefinition, Amount = 2 };
+                    using (HistoryOps.ForCommand(em, root, request))
+                        Check(MilitaryOps.RecruitSoldiers(em, root, request, index => { if (index == fail) throw new InvalidOperationException("injected"); }) == ResultCode.PreparationFailed, "Injected recruitment failure " + fail);
+                    Check(before.SequenceEqual(SnapshotCodec.Capture(em, root)), "Whole quantity / money / IDs / quota / manual history rollback " + fail);
                 }
                 foreach (string failure in new[] { "record-created", "garrisons-prepared", "root-published", "before-retire" })
                 {

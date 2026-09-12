@@ -37,12 +37,17 @@ namespace Landsong.ECS.Editor
                 new ContentSource { Id = "food", Kind = ContentKind.ItemGroup, Group = "parent" },
                 new ContentSource { Id = "parent", Kind = ContentKind.ItemGroup },
                 new ContentSource { Id = "normal", Kind = ContentKind.SlotType, Loss = 1 },
-                new ContentSource { Id = "cold", Kind = ContentKind.SlotType, Loss = .5f, Rules = new[] { new RuleSource { Kind = RuleKind.SlotAccept, Target = "parent" } } },
-                new ContentSource { Id = "warehouse", Kind = ContentKind.Building, Rules = new[] { new RuleSource { Kind = RuleKind.Warehouse, Target = "cold", Amount = 1 }, new RuleSource { Kind = RuleKind.Warehouse, Target = "normal", Amount = 1, B = 2 }, new RuleSource { Kind = RuleKind.StorageCondition, Amount = 2, Extra = 2, B = 300 } } },
-                new ContentSource { Id = "buff", Kind = ContentKind.Buff, Rules = new[] { new RuleSource { Kind = RuleKind.LossModifier, Value = .5f } } },
+                new ContentSource { Id = "cold", Kind = ContentKind.SlotType, Loss = .5f },
+                new ContentSource { Id = "warehouse", Kind = ContentKind.Building },
+                new ContentSource { Id = "buff", Kind = ContentKind.Buff },
                 new ContentSource { Id = "feature.Inventory", Kind = ContentKind.Feature }
             };
             catalog.Definitions = data.Select(d => { d.Name = d.Id; var asset = ScriptableObject.CreateInstance<GameDefinitionAsset>(); asset.Data = d; return asset; }).ToArray();
+            data[5].Configuration.Inventory = new InventoryContentModule{Enabled=true,Accepted=new[]{new StorageAcceptance{Content=catalog.Definitions[3]}}};
+            data[7].Configuration.Modifiers = new ModifiersContentModule{Enabled=true,LossModifier=new[]{new InventoryLossModifier{Magnitude=.5f}}};
+            data[6].Modules.Storage=new StorageModule { Enabled=true,
+                Warehouses=new[]{new WarehouseLevel{Level=0,SlotType=catalog.Definitions[5],Slots=1},new WarehouseLevel{Level=0,SlotType=catalog.Definitions[4],Slots=1,RequiredWorkers=2}},
+                Conditions=new[]{new StorageConditionEntry{Level=0,RequiredWorkers=2,UnderstaffedLossMultiplier=2,MaintenanceLossPercent=300}} };
             try
             {
                 using var blob = GameWorldAuthoring.BuildCatalog(catalog); using var world = new World("Inventory fixture"); var em = world.EntityManager; var root = em.CreateEntity();
@@ -119,13 +124,14 @@ namespace Landsong.ECS.Editor
         static void Map(string path)
         {
             log.AppendLine("MAP " + path); var scene = EditorSceneManager.OpenPreviewScene(path); using var store = new BlobAssetStore(128); using var world = new World("Inventory baked map", WorldFlags.Game);
+
             try
             {
                 EcsVerification.Bake(world, scene.GetRootGameObjects(), store); var em = world.EntityManager; var root = Sim.Root(em); GameLoopSystem.Initialize(em, root); InvitationExpeditionVerification.FixturePermissions(em, root);
                 var gold = em.GetComponentData<GameSettings>(root).Gold; var slots = em.GetBuffer<InventorySlot>(root); Check(slots.Length >= 2, "Map supplies multiple real inventory slots");
                 for (var i = 0; i < slots.Length; i++) { var s = slots[i]; s.Item = -1; s.Count = 0; s.LossRemainder = 0; slots[i] = s; }
                 var first = slots[0]; first.Item = gold; first.Count = 8; first.LossRemainder = .8f; slots[0] = first; var second = slots[1];
-                var command = new Command { Kind = CommandKind.MoveInventory, Target = first.Provider, SourceSlot = first.Index, Other = second.Provider, DestinationSlot = second.Index, Definition = gold, Amount = 3, Text = InventoryOps.Fingerprint(em, root) };
+                var command = CommandRequests.TransferInventory(new InventorySelection(false, first.Provider, first.Index, gold, 3, InventoryOps.Fingerprint(em, root)), second.Provider, second.Index);
                 Check(GameLoopSystem.Execute(em, root, command) == ResultCode.Success, "Real command processor dispatches stable-key transfer");
                 em.GetBuffer<PendingItem>(root).Add(new PendingItem { Item = gold, Amount = 5, LossRemainder = .5f });
                 var snapshot = SnapshotCodec.Decode(em, root, SnapshotCodec.Capture(em, root)); var before = InventoryOps.Fingerprint(em, root);
@@ -137,8 +143,18 @@ namespace Landsong.ECS.Editor
                 try { SnapshotCodec.Restore(em, root, invalid); } catch (InvalidDataException) { failed = true; }
                 Check(failed && before == InventoryOps.Fingerprint(em, root), "Nonfinite pending loss is rejected atomically");
                 Check(EconomyForecastOps.Create(em, root) == ResultCode.Success && before == InventoryOps.Fingerprint(em, root), "New inventory schema works inside forecast transaction");
+                var historyStart = em.GetBuffer<HistoryEntry>(root).Length;
+                var storeSelected = CommandRequests.TransferInventory(new InventorySelection(true, 0, -1, gold, 1, InventoryOps.Fingerprint(em, root)), first.Provider, first.Index);
+                Check(GameLoopSystem.Execute(em, root, storeSelected) == ResultCode.Success, "Real command processor stores selected pending quantity");
+                var transfers = Rows<HistoryEntry>(em, root).Skip(historyStart).Where(row => row.Item == gold && row.Delta != 0).ToArray();
+                Check(transfers.Length == 2 && transfers.All(row => row.Transfer == 1) && transfers.Sum(row => row.Delta) == 0 && transfers.Any(row => row.Pending != 0) && transfers.Any(row => row.Pending == 0), "Selected pending storage records both sides as a transfer, never economic income");
                 var stale = new Command { Kind = CommandKind.DiscardSlot, Target = first.Provider, SourceSlot = first.Index, Definition = gold, Amount = 1, Text = InventoryOps.Fingerprint(em, root) };
-                GameLoopSystem.Execute(em, root, new Command { Kind = CommandKind.StorePending }); before = InventoryOps.Fingerprint(em, root);
+                historyStart = em.GetBuffer<HistoryEntry>(root).Length;
+                Check(GameLoopSystem.Execute(em, root, CommandRequests.StorePending(InventoryOps.Fingerprint(em, root))) == ResultCode.Success, "Real command processor stores all pending quantity");
+                transfers = Rows<HistoryEntry>(em, root).Skip(historyStart).Where(row => row.Item == gold && row.Delta != 0).ToArray();
+                Check(transfers.Length >= 2 && transfers.All(row => row.Transfer == 1) && transfers.Sum(row => row.Delta) == 0 && transfers.Any(row => row.Pending != 0) && transfers.Any(row => row.Pending == 0), "Store-all pending records balanced transfers, never economic income");
+                Check(em.GetComponentData<ManualHistoryContext>(root).Active == 0, "Real pending commands release their manual history context");
+                before = InventoryOps.Fingerprint(em, root);
                 Check(GameLoopSystem.Execute(em, root, stale) != ResultCode.Success && before == InventoryOps.Fingerprint(em, root), "Old discard authorization cannot apply after pool storage");
             }
             finally { EditorSceneManager.ClosePreviewScene(scene); }

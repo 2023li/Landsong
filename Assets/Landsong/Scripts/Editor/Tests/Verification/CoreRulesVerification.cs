@@ -91,27 +91,34 @@ namespace Landsong.ECS.Editor
             Check(InventoryOps.PendingCount(em, root, gold) == 9, "Full storage routes all night reward overflow to pending pool");
             PhaseTo(em, root, Phase.Night); NightResultOps.Reset(em, root);
             var blueprint = Sim.FindDefinition(em, root, "b仓库"); var receipts = Sim.AllocateId(em, root);
-            NightResultOps.Record(em, root, receipts, 0, RuleKind.RewardBlueprint, blueprint, 0);
-            Check(em.GetBuffer<NightReward>(root)[0].Amount == 1, "Zero-default entitlement reward preserves minimum level one semantics");
+            bool invalidLicenseRejected = false;
+            try { NightResultOps.Record(em, root, receipts, 0, RuleKind.RewardBlueprint, blueprint, 0); }
+            catch (InvalidOperationException) { invalidLicenseRejected = true; }
+            Check(invalidLicenseRejected && em.GetBuffer<NightReward>(root).Length == 0,
+                "Zero-level entitlement reward is rejected before writing a night receipt");
+            NightResultOps.Record(em, root, receipts, 0, RuleKind.RewardBlueprint, blueprint, 1);
+            Check(em.GetBuffer<NightReward>(root)[0].Amount == 1, "Explicit level-one entitlement reward is recorded");
             PhaseTo(em, root, Phase.Report); NightOps.Dawn(em, root);
-            Check(Sim.HasGrant(em, root, blueprint), "Night entitlement reward commits through the same journal");
-            PhaseTo(em, root, Phase.Night); NightResultOps.Reset(em, root); NightOps.PickUp(em, root, Drop(em, root, gold, 11));
+            Check(BlueprintOps.Has(em, root, blueprint), "Night entitlement reward commits through the same journal");
+            PhaseTo(em, root, Phase.Night); NightResultOps.Reset(em, root);
+            int soldiersBefore;using(var roster=Sim.Entities<Soldier>(em))soldiersBefore=roster.Length; NightOps.PickUp(em, root, Drop(em, root, gold, 11));
             total = InventoryOps.Count(em, root, gold) + InventoryOps.PendingCount(em, root, gold);
             PhaseTo(em, root, Phase.GameOver); NightOps.Dawn(em, root);
             Check(total == InventoryOps.Count(em, root, gold) + InventoryOps.PendingCount(em, root, gold), "Core loss cannot commit rewards or advance dawn");
         }
         static void Deaths(EntityManager em, Entity root)
         {
+            int soldiersBefore;using(var roster=Sim.Entities<Soldier>(em))soldiersBefore=roster.Length;
             PhaseTo(em, root, Phase.Night); NightResultOps.Reset(em, root);
             var core = Core(em); var home = em.GetComponentData<Identity>(core).Id; var pos = Sim.Position(em, core);
             var troop = Sim.Spawn(em, root, Sim.FirstDefinition(em, root, ContentKind.Soldier), pos, true);
             MilitaryOps.ConfigureCombatant(em, root, troop, 0, false, true, home, pos); Sim.Set(em, troop, new Soldier { Garrison = home, PopulationCost = 2 });
             var hero = Sim.Spawn(em, root, Sim.FirstDefinition(em, root, ContentKind.Hero), pos, true);
             MilitaryOps.ConfigureCombatant(em, root, hero, 0, true, true, home, pos); Sim.Set(em, hero, new Hero { Sanctum = home, Recruited = 1, Experience = 100 });
-            var employed = Sim.Employed(em); var heroCost = Sim.Definition(em, root, em.GetComponentData<Identity>(hero).Definition).Population;
+            var garrisonCount = MilitaryOps.GarrisonCount(em,home); var employed = Sim.Employed(em); var heroCost = Sim.Definition(em, root, em.GetComponentData<Identity>(hero).Definition).Population;
             CombatOps.ApplyDamage(em, root, new DamageRequest { Target = troop, Amount = 999999 });
             CombatOps.ApplyDamage(em, root, new DamageRequest { Target = hero, Amount = 999999 });
-            Check(Sim.Employed(em) == employed && MilitaryOps.GarrisonCount(em, home) == 1, "Dead troops and heroes retain population and slots until dawn");
+            Check(Sim.Employed(em) == employed && MilitaryOps.GarrisonCount(em, home) == garrisonCount, "Dead troops and heroes retain population and slots until dawn");
             Check(em.GetComponentData<Hero>(hero).DeathPending != 0 && em.GetComponentData<Hero>(hero).CooldownUntil == 0, "Hero cooldown is pending during night");
             em.GetBuffer<NightWave>(root).Clear(); NightOps.Tick(em, root, .1f);
             Check(em.Exists(troop) && !Sim.Alive(em, troop), "Celebration does not delete or resurrect dead soldiers");
@@ -121,7 +128,7 @@ namespace Landsong.ECS.Editor
             var h = em.GetComponentData<Hero>(hero);
             Check(h.DeathPending == 0 && h.Experience == 0 && h.CooldownUntil == turn + 1 + math.max(1, Sim.Definition(em, root, em.GetComponentData<Identity>(hero).Definition).Duration), "Hero full cooldown starts at next dawn");
             Check(em.GetComponentData<Health>(core).Current == health.Maximum, "Surviving PlayerHome recovers full durability at dawn");
-            using var troops = Sim.Entities<Soldier>(em); Check(troops.Length == 0, "Dead soldier removed from persistent roster");
+            using var troops = Sim.Entities<Soldier>(em); Check(troops.Length == soldiersBefore, "Dead soldier removed while existing starting soldiers remain in roster");
         }
         static void Quests(EntityManager em, Entity root)
         {
@@ -177,7 +184,8 @@ namespace Landsong.ECS.Editor
             Check(InventoryOps.Count(em, root, gold) == manualGold, "Cold envelope restore resumes manual white-day state");
             Check(NightOps.Begin(em, root, true) == ResultCode.Success, "Test reaches dusk"); checkpoint.Update();
             var duskGold = InventoryOps.Count(em, root, gold); var originalStrength = em.GetComponentData<Session>(root).StartCombatStrength;
-            PhaseTo(em, root, Phase.Night); NightResultOps.Reset(em, root); NightOps.PickUp(em, root, Drop(em, root, gold, 19));
+            PhaseTo(em, root, Phase.Night); NightResultOps.Reset(em, root);
+            int soldiersBefore;using(var roster=Sim.Entities<Soldier>(em))soldiersBefore=roster.Length; NightOps.PickUp(em, root, Drop(em, root, gold, 19));
             CombatOps.ApplyDamage(em, root, new DamageRequest { Target = Core(em), Amount = 9999999 }); checkpoint.Update();
             var lost = store.ReadContinue(out _); var ticket = lost.Recovery;
             Check(ticket.AwaitingDecision != 0 && ticket.LossCount == 1 && ticket.Seed != 0, "Core loss persists one recovery ticket before any player choice");

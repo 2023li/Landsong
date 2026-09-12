@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 02d7d04a464b7214dac9f377de8cc861, type: 3}
   m_Name: "TN_1_5_\u6CD5\u5F8B"
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.GameDefinitionAsset
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.GameDefinitionAsset
   Data:
     Id: "TN_1_5_\u6CD5\u5F8B"
     Name: "\u6CD5\u5F8B"
@@ -39,34 +39,86 @@ MonoBehaviour:
     Icon: {fileID: 2597996580673615598, guid: c57366780f4e4844583074ece5c7ee58, type: 3}
     HasTechnologyPosition: 1
     TechnologyPosition: {x: 880, y: 0}
-    Rules:
-    - Kind: 28
-      Target: "TN_1_4_\u54F2\u5B66"
-      Secondary: 
-      Level: 0
-      Amount: 1
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 28
-      Target: "TN_2_4_\u5386\u6CD5"
-      Secondary: 
-      Level: 0
-      Amount: 1
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 30
-      Target: "b\u8B66\u5C40"
-      Secondary: 
-      Level: 0
-      Amount: 1
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
+    Configuration:
+      Conditions:
+        Enabled: 1
+        Completions:
+        - Order: 0
+          Content: {fileID: 11400000, guid: 277813ca0c9b60a43b9a0b53bad1c53d, type: 2}
+          Count: 1
+        - Order: 1
+          Content: {fileID: 11400000, guid: 593e207d40a2f8545a126e8a7b474447, type: 2}
+          Count: 1
+        Visibility: []
+      Objectives:
+        Enabled: 0
+        Buildings: []
+        PlantedBuildings: []
+        OwnedItems: []
+        SubmittedItems: []
+        CameraMoves: []
+        CameraZooms: []
+        Technologies: []
+        Turns: []
+      Rewards:
+        Enabled: 1
+        Items: []
+        Blueprints:
+        - Order: 2
+          Building: {fileID: 11400000, guid: 7cc7729af4b8fb044bd897faf009b2b3, type: 2}
+          GrantedLevel: 1
+        Buffs: []
+        Features: []
+        Failures: []
+        SpecialDrops: []
+      UnitCosts:
+        Enabled: 0
+        Recruitment: []
+        Awakening: []
+        Offerings: []
+      Crops:
+        Enabled: 0
+        Seeds: []
+        AutomaticHarvest: []
+        Yields: []
+      Inventory:
+        Enabled: 0
+        Groups: []
+        Accepted: []
+        Losses: []
+      Expeditions:
+        Enabled: 0
+        Supplies: []
+      Modifiers:
+        Enabled: 0
+        LossModifier: []
+        ProductionBonus: []
+        AttackBonus: []
+        HealthBonus: []
+        PublicOpinion: []
+        SoldierAttackBonus: []
+        SoldierSpeedBonus: []
+        ActionPowerBonus: []
+        CropHarvestBonus: []
+        PlotRisk: []
+        NaturalDeathRisk: []
+        ResearchOutput: []
+        RangeBonus: []
+        AttackSpeedBonus: []
+        SpeedBonus: []
+        ArmorBonus: []
+        DamageReductionBonus: []
+        PenetrationBonus: []
+        ProjectileSpeedBonus: []
+        BlastRadiusBonus: []
+        FlatProduction: []
+        Intelligence: []
+      People:
+        Enabled: 0
+        Wages: []
+        Traits: []
+        Conflicts: []
+        Dependencies: []
+        SocialTasks: []
+        PeriodicItems: []
+        Effects: []

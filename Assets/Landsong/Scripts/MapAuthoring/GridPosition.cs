@@ -1,3 +1,4 @@
+using Sirenix.OdinInspector;
 using System;
 using UnityEngine;
 
@@ -6,8 +7,8 @@ namespace Landsong.GridSystem
     [Serializable]
     public struct GridPosition : IEquatable<GridPosition>
     {
-        [SerializeField] private int x;
-        [SerializeField] private int z;
+        [SerializeField] [LabelText("横向格坐标")] private int x;
+        [SerializeField] [LabelText("纵向格坐标")] private int z;
 
         public GridPosition(int x, int z)
         {

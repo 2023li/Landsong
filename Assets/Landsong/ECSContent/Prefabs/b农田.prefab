@@ -103,7 +103,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0
@@ -120,7 +120,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &159886112196270916
 GameObject:
@@ -225,7 +225,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.33
@@ -242,7 +242,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &169927112385366675
 GameObject:
@@ -347,7 +347,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0
@@ -364,7 +364,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &185864944475649980
 GameObject:
@@ -469,7 +469,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.66
@@ -486,7 +486,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &232377745612007216
 GameObject:
@@ -591,7 +591,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0.5
@@ -608,7 +608,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &256171131597201591
 GameObject:
@@ -713,7 +713,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0.5
@@ -730,7 +730,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &283397971134013481
 GameObject:
@@ -914,7 +914,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 1
@@ -931,7 +931,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &315484913931053822
 GameObject:
@@ -1138,7 +1138,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0
@@ -1155,7 +1155,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &384802915413858060
 GameObject:
@@ -1372,7 +1372,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0
@@ -1389,7 +1389,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &671306116881059000
 GameObject:
@@ -1529,7 +1529,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 1
@@ -1546,7 +1546,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &707516823586277590
 GameObject:
@@ -1651,7 +1651,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0.5
@@ -1668,7 +1668,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &716031230124372924
 GameObject:
@@ -1773,7 +1773,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0
@@ -1790,7 +1790,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &721482920827352343
 GameObject:
@@ -2007,7 +2007,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 1
@@ -2024,7 +2024,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &909902638810326857
 GameObject:
@@ -2129,7 +2129,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0
@@ -2146,7 +2146,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &976858276172635940
 GameObject:
@@ -2251,7 +2251,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 1
@@ -2268,7 +2268,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &1060571471710817978
 GameObject:
@@ -2373,7 +2373,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0
@@ -2390,7 +2390,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &1263138098884726976
 GameObject:
@@ -2495,7 +2495,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 1
@@ -2512,7 +2512,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &1264070245748582903
 GameObject:
@@ -2617,7 +2617,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 1
@@ -2634,7 +2634,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &1269974005717634932
 GameObject:
@@ -2739,7 +2739,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0.5
@@ -2756,7 +2756,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &1290222676012751552
 GameObject:
@@ -2895,7 +2895,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0
@@ -2912,7 +2912,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &1375005199742216233
 GameObject:
@@ -3052,7 +3052,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0.5
@@ -3069,7 +3069,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &1451396686778166770
 GameObject:
@@ -3174,7 +3174,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.66
@@ -3191,7 +3191,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &1458983096957581143
 GameObject:
@@ -3296,7 +3296,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0.5
@@ -3313,7 +3313,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &1518056872138664528
 GameObject:
@@ -3418,7 +3418,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0
@@ -3435,7 +3435,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &1591969084138628250
 GameObject:
@@ -3540,7 +3540,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0
@@ -3557,7 +3557,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &1598614383483656041
 GameObject:
@@ -3662,7 +3662,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 1
@@ -3679,7 +3679,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &1634448095350073949
 GameObject:
@@ -3818,7 +3818,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 1
@@ -3835,7 +3835,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &1707108610427108699
 GameObject:
@@ -3940,7 +3940,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 1
@@ -3957,7 +3957,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &1738697335260802897
 GameObject:
@@ -4062,7 +4062,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0.5
@@ -4079,7 +4079,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &1747014045032366216
 GameObject:
@@ -4184,7 +4184,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.33
@@ -4201,7 +4201,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &1825340338794929919
 GameObject:
@@ -4340,7 +4340,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.33
@@ -4357,7 +4357,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &1894753375579380996
 GameObject:
@@ -4462,7 +4462,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.33
@@ -4479,7 +4479,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &1923036608775743013
 GameObject:
@@ -4584,7 +4584,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 1
@@ -4601,7 +4601,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &1997944699656838912
 GameObject:
@@ -4706,7 +4706,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0
@@ -4723,7 +4723,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &2022948644254214497
 GameObject:
@@ -4951,7 +4951,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0.5
@@ -4968,7 +4968,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &2173626773650969715
 GameObject:
@@ -5073,7 +5073,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 1
@@ -5090,7 +5090,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &2248003864816752782
 GameObject:
@@ -5264,7 +5264,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0.5
@@ -5281,7 +5281,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &2370324036480391243
 GameObject:
@@ -5421,7 +5421,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.66
@@ -5438,7 +5438,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &2531129051628250273
 GameObject:
@@ -5543,7 +5543,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 1
@@ -5560,7 +5560,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &2611808089611881079
 GameObject:
@@ -5665,7 +5665,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0
@@ -5682,7 +5682,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &2666361545391859520
 GameObject:
@@ -5822,7 +5822,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 1
@@ -5839,7 +5839,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &2778612193622434909
 GameObject:
@@ -5944,7 +5944,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 1
@@ -5961,7 +5961,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &2780404679167767202
 GameObject:
@@ -6101,7 +6101,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.33
@@ -6118,7 +6118,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &2890825814803520042
 GameObject:
@@ -6223,7 +6223,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.33
@@ -6240,7 +6240,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &2913444213266945478
 GameObject:
@@ -6345,7 +6345,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0
@@ -6362,7 +6362,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &2992569679097777784
 GameObject:
@@ -6537,7 +6537,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.33
@@ -6554,7 +6554,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &3104746970909181884
 GameObject:
@@ -6737,7 +6737,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 1
@@ -6754,7 +6754,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &3192318019757648579
 GameObject:
@@ -6903,7 +6903,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0.5
@@ -6920,7 +6920,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &3246481138349263250
 GameObject:
@@ -7025,7 +7025,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0
@@ -7042,7 +7042,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &3426693190531889685
 GameObject:
@@ -7147,7 +7147,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 1
@@ -7164,7 +7164,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &3426717369372351418
 GameObject:
@@ -7357,7 +7357,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.33
@@ -7374,7 +7374,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &3542966866786428105
 GameObject:
@@ -7479,7 +7479,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0
@@ -7496,7 +7496,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &3693211447448855395
 GameObject:
@@ -7601,7 +7601,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0
@@ -7618,7 +7618,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &3738815900442046935
 GameObject:
@@ -7723,7 +7723,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 1
@@ -7740,7 +7740,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &3768986221973360327
 GameObject:
@@ -7845,7 +7845,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 1
@@ -7862,7 +7862,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &3770528561767244189
 GameObject:
@@ -7967,7 +7967,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0.5
@@ -7984,7 +7984,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &3847163117584676912
 GameObject:
@@ -8089,7 +8089,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.66
@@ -8106,7 +8106,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &3899714252055656454
 GameObject:
@@ -8245,7 +8245,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 1
@@ -8262,7 +8262,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &3976982819396793677
 GameObject:
@@ -8367,7 +8367,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0
@@ -8384,7 +8384,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &4037335832760862466
 GameObject:
@@ -8533,7 +8533,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.66
@@ -8550,7 +8550,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &4065304850738752824
 GameObject:
@@ -8690,7 +8690,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0.5
@@ -8707,7 +8707,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &4168785363212200764
 GameObject:
@@ -8847,7 +8847,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0
@@ -8864,7 +8864,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &4217150620742937341
 GameObject:
@@ -8969,7 +8969,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0
@@ -8986,7 +8986,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &4298138303981546273
 GameObject:
@@ -9091,7 +9091,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.33
@@ -9108,7 +9108,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &4364062402286771492
 GameObject:
@@ -9244,7 +9244,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0
@@ -9261,7 +9261,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &4451337310080863357
 GameObject:
@@ -9366,7 +9366,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 1
@@ -9383,7 +9383,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &4489176303569243551
 GameObject:
@@ -9488,7 +9488,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 1
@@ -9505,7 +9505,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &4489538625044931058
 GameObject:
@@ -9610,7 +9610,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0.5
@@ -9627,7 +9627,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &4522883186370751576
 GameObject:
@@ -9732,7 +9732,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0
@@ -9749,7 +9749,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &4570126622957840372
 GameObject:
@@ -9854,7 +9854,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 1
@@ -9871,7 +9871,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &4673657485635178554
 GameObject:
@@ -9976,7 +9976,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 1
@@ -9993,7 +9993,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &4674123536252126343
 GameObject:
@@ -10133,7 +10133,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 1
@@ -10150,7 +10150,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &4681403662852172020
 GameObject:
@@ -10255,7 +10255,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0
@@ -10272,7 +10272,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &4684926879537128317
 GameObject:
@@ -10499,7 +10499,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 1
@@ -10516,7 +10516,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &4785447757885265894
 GameObject:
@@ -10652,7 +10652,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0
@@ -10669,7 +10669,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &4822869675908089691
 GameObject:
@@ -10807,7 +10807,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.66
@@ -10824,7 +10824,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &4895418030367748379
 GameObject:
@@ -10929,7 +10929,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.66
@@ -10946,7 +10946,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &4901703206989570460
 GameObject:
@@ -10958,6 +10958,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4628323259363902638}
   - component: {fileID: 2237169044509749792}
+  - component: {fileID: 1882160217436278420}
   m_Layer: 0
   m_Name: "b\u519C\u7530"
   m_TagString: Untagged
@@ -10993,8 +10994,758 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 844c2095aae9ed545930c932bf270977, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualAuthoring
   Definition: {fileID: 11400000, guid: 7df6157a6643e9c41951b0403decdba0, type: 2}
+--- !u!114 &1882160217436278420
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4901703206989570460}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2330cbfc01cb87e4491406fd4a56bf6f, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Landsong.ECS.Presentation::Landsong.ECS.Presentation.BuildingPlacementPreviewBinding
+  Colliders: []
+  Behaviours:
+  - {fileID: 2237169044509749792}
+  - {fileID: 738559771274648328}
+  - {fileID: 7169585240232497415}
+  - {fileID: 176795807142348461}
+  - {fileID: 740312190011133797}
+  - {fileID: 1585594718872772477}
+  - {fileID: 4803423788797375787}
+  - {fileID: 7150640410077337852}
+  - {fileID: 4366069099521039074}
+  - {fileID: 3427303561302812184}
+  - {fileID: 3123182460670123940}
+  - {fileID: 4509234210124310323}
+  - {fileID: 1338196701270115078}
+  - {fileID: 6079936721239946684}
+  - {fileID: 3286280803007841916}
+  - {fileID: 4715307327363620687}
+  - {fileID: 8797452681405512066}
+  - {fileID: 1392659597291514308}
+  - {fileID: 2443153221844130046}
+  - {fileID: 2434127476246857918}
+  - {fileID: 1754611905224868070}
+  - {fileID: 6832459007351297432}
+  - {fileID: 4506602031566914348}
+  - {fileID: 5882205636048339384}
+  - {fileID: 3748150330704835709}
+  - {fileID: 3446358776152039771}
+  - {fileID: 50287253019070968}
+  - {fileID: 5179756643286960829}
+  - {fileID: 1964764836867251038}
+  - {fileID: 4702693311422648012}
+  - {fileID: 2347178045824127733}
+  - {fileID: 9188329542292033760}
+  - {fileID: 4334890742004634359}
+  - {fileID: 5724795533598345003}
+  - {fileID: 5659073747866775766}
+  - {fileID: 2286275782677787253}
+  - {fileID: 4587333869451585865}
+  - {fileID: 3608095223505246159}
+  - {fileID: 8992816200939601245}
+  - {fileID: 5791440685185488318}
+  - {fileID: 5613246176533606908}
+  - {fileID: 7125044702332583713}
+  - {fileID: 2383011800449479451}
+  - {fileID: 6402981331861423218}
+  - {fileID: 2162951462200506364}
+  - {fileID: 841215486943968914}
+  - {fileID: 74687569115062168}
+  - {fileID: 5466299528623385625}
+  - {fileID: 1963810393664164579}
+  - {fileID: 6851447142684746565}
+  - {fileID: 6833241553230541019}
+  - {fileID: 4647990921074945234}
+  - {fileID: 3744254493726309235}
+  - {fileID: 8943095444137597333}
+  - {fileID: 3396527053784002797}
+  - {fileID: 2538042686929572708}
+  - {fileID: 4312579021186079250}
+  - {fileID: 773216536498403792}
+  - {fileID: 3336621798400837129}
+  - {fileID: 3434955353394654115}
+  - {fileID: 8295857911797078100}
+  - {fileID: 7830110073512596093}
+  - {fileID: 6169477553099437687}
+  - {fileID: 319639232691148165}
+  - {fileID: 1497453350401204093}
+  - {fileID: 769065677981660438}
+  - {fileID: 184214359139922897}
+  - {fileID: 5624516819809315433}
+  - {fileID: 1333211711569902615}
+  - {fileID: 6921371124295464845}
+  - {fileID: 217678422047951177}
+  - {fileID: 2990538011926757797}
+  - {fileID: 8287869907585354591}
+  - {fileID: 1056670268760767320}
+  - {fileID: 6587508942742920728}
+  - {fileID: 8379257004616822023}
+  - {fileID: 7076054143489990378}
+  - {fileID: 1234103246921275160}
+  - {fileID: 8048074972415880397}
+  - {fileID: 8615963720721396542}
+  - {fileID: 6098064892970068156}
+  - {fileID: 3547247932848855895}
+  - {fileID: 131909674901001395}
+  - {fileID: 412271283022485251}
+  - {fileID: 7448761701700150048}
+  - {fileID: 3410120172159200766}
+  - {fileID: 258549558527692870}
+  - {fileID: 7068652451129918256}
+  - {fileID: 4651889287021713899}
+  - {fileID: 464390794652095192}
+  - {fileID: 3029134156452765320}
+  - {fileID: 1951178791890204821}
+  - {fileID: 7576338567740105480}
+  - {fileID: 8480156576508113792}
+  - {fileID: 4650145651120800664}
+  - {fileID: 8074722112442457243}
+  - {fileID: 7950154107072499863}
+  - {fileID: 1762108153515708831}
+  - {fileID: 730300644027124266}
+  - {fileID: 4757984533705346911}
+  - {fileID: 7243939731284026668}
+  - {fileID: 8732942274936749426}
+  - {fileID: 7964897407431526032}
+  - {fileID: 4521716827014110363}
+  - {fileID: 9078875020349627782}
+  - {fileID: 3670902820870832650}
+  - {fileID: 9048092569760141189}
+  - {fileID: 785106710502329068}
+  - {fileID: 4485793147276424465}
+  - {fileID: 3851004390259496761}
+  - {fileID: 746330271390124516}
+  - {fileID: 7191001040098596028}
+  - {fileID: 5660536116427398224}
+  - {fileID: 3238475047123932681}
+  - {fileID: 8648643701441314845}
+  - {fileID: 7331550231438079900}
+  - {fileID: 140223430971719059}
+  - {fileID: 6208633910860399608}
+  - {fileID: 8751505881163078514}
+  - {fileID: 870453926263013525}
+  - {fileID: 4779158769682738015}
+  - {fileID: 9198119662974988247}
+  - {fileID: 414254960849842423}
+  - {fileID: 6621842457712857028}
+  - {fileID: 1236617847674323312}
+  - {fileID: 658962131179054015}
+  - {fileID: 5686998567027528771}
+  - {fileID: 4956688314631855200}
+  - {fileID: 7252366231784051121}
+  - {fileID: 3496004887847084312}
+  - {fileID: 8091182321147349081}
+  - {fileID: 7239984071799861450}
+  - {fileID: 357971947762975300}
+  - {fileID: 6732243782747453748}
+  - {fileID: 3626682955714674271}
+  - {fileID: 3496671707649348453}
+  - {fileID: 5122663696898491741}
+  - {fileID: 5353128475870259753}
+  - {fileID: 5264534275714556731}
+  - {fileID: 5945483119479113284}
+  - {fileID: 7648844905556350267}
+  - {fileID: 6455453967324841700}
+  - {fileID: 9053832458148878026}
+  - {fileID: 3211409762827538722}
+  - {fileID: 6020399153186762571}
+  - {fileID: 8853397182483018058}
+  - {fileID: 3686221354882106448}
+  - {fileID: 2222274927164719824}
+  - {fileID: 7377838545397913311}
+  - {fileID: 992612126371173180}
+  - {fileID: 356029762825369777}
+  - {fileID: 5777096669119543395}
+  - {fileID: 4275088741595550836}
+  - {fileID: 6136317180475561028}
+  - {fileID: 3688415103125641476}
+  - {fileID: 1375328569736269742}
+  - {fileID: 8675266083193886592}
+  - {fileID: 5858692746708416399}
+  - {fileID: 3295858735635785755}
+  - {fileID: 4353574570447626016}
+  - {fileID: 337722867805654693}
+  - {fileID: 1315445617216692817}
+  - {fileID: 1676887627421519005}
+  - {fileID: 2414402136398412322}
+  - {fileID: 8951209437091843503}
+  - {fileID: 1176910176787979343}
+  - {fileID: 8636477500128430445}
+  - {fileID: 1033028673815037732}
+  - {fileID: 4616367945578827672}
+  - {fileID: 3955476368012927012}
+  - {fileID: 7974637358433424506}
+  - {fileID: 1931089893475143754}
+  - {fileID: 1027198493013910957}
+  - {fileID: 6166268996328387731}
+  - {fileID: 3761153031290383107}
+  - {fileID: 572910231791011168}
+  - {fileID: 4115502162089527781}
+  - {fileID: 4066717261772992517}
+  - {fileID: 706955776349194884}
+  - {fileID: 5496963540948000483}
+  - {fileID: 2398847988037654471}
+  - {fileID: 8146383630204200748}
+  - {fileID: 5715278808131505105}
+  - {fileID: 1921398373154588002}
+  - {fileID: 6519155827325082437}
+  - {fileID: 8830642972694238139}
+  - {fileID: 7693597838493851748}
+  - {fileID: 7865369943256514620}
+  - {fileID: 7979261824845123248}
+  - {fileID: 8908141834402423425}
+  - {fileID: 2047966824732371679}
+  - {fileID: 9192262565558128158}
+  - {fileID: 5239251197227801260}
+  - {fileID: 2262747109252855529}
+  - {fileID: 5164366668071270637}
+  - {fileID: 8657731086268096497}
+  - {fileID: 853044855456764133}
+  - {fileID: 3026066855993023942}
+  - {fileID: 6550977759718320133}
+  - {fileID: 7175958223314536370}
+  - {fileID: 1986063311638771792}
+  - {fileID: 8856851584632732240}
+  - {fileID: 2311829803461537373}
+  - {fileID: 1430324435010140948}
+  - {fileID: 4728644760701276282}
+  - {fileID: 3535393446522989284}
+  - {fileID: 7327737678814739014}
+  - {fileID: 7945075767566678231}
+  - {fileID: 6463918050347131666}
+  - {fileID: 1812657887302018800}
+  - {fileID: 280220567254451771}
+  - {fileID: 5251869997796029617}
+  - {fileID: 3138620663433205319}
+  - {fileID: 1461253644740708353}
+  - {fileID: 551746718535500714}
+  - {fileID: 6787431456383435870}
+  - {fileID: 1886898895289116428}
+  - {fileID: 6364406874197167270}
+  - {fileID: 1674268493290265841}
+  - {fileID: 3610239692421452690}
+  - {fileID: 7577331361211600022}
+  - {fileID: 2458390298659131476}
+  - {fileID: 2925929315334004903}
+  - {fileID: 6556817591433619052}
+  - {fileID: 7482147304604960623}
+  - {fileID: 9189375647319790880}
+  - {fileID: 923558152592090945}
+  - {fileID: 3892272817813692850}
+  - {fileID: 5263386030906173631}
+  - {fileID: 6364208461832959063}
+  - {fileID: 438012437440058471}
+  - {fileID: 1005719258990185567}
+  - {fileID: 5000381700612167111}
+  - {fileID: 3467055784087386769}
+  - {fileID: 1228258971800031671}
+  - {fileID: 4867773695260136991}
+  - {fileID: 4747314065182803190}
+  - {fileID: 4467546576312599342}
+  - {fileID: 5075740700419522492}
+  - {fileID: 2222945881489680929}
+  - {fileID: 8757613467799042429}
+  - {fileID: 8529223596485887061}
+  - {fileID: 20076856903919058}
+  - {fileID: 6798080044944316720}
+  - {fileID: 7757928940048304186}
+  - {fileID: 3156426152265745914}
+  - {fileID: 6947597543791863582}
+  - {fileID: 1521752462167763557}
+  - {fileID: 7518980642691236575}
+  - {fileID: 468989133007960849}
+  - {fileID: 2206281932685350787}
+  - {fileID: 2792117497670978782}
+  - {fileID: 8020943638059475950}
+  - {fileID: 3342560480171687395}
+  - {fileID: 4990115788116958440}
+  - {fileID: 4079366360860381846}
+  - {fileID: 8316921221796254866}
+  - {fileID: 9075609871944196015}
+  - {fileID: 7494915444014000174}
+  - {fileID: 5335731756541318032}
+  - {fileID: 4928343684428037287}
+  - {fileID: 8853522771361909938}
+  - {fileID: 1380809455169051428}
+  - {fileID: 898661376287128270}
+  - {fileID: 4888512749724205763}
+  - {fileID: 4097950201716432350}
+  - {fileID: 7579580785473533137}
+  - {fileID: 134949793652538069}
+  - {fileID: 3545099336235838082}
+  - {fileID: 5956236491889883502}
+  - {fileID: 5065697790131821790}
+  - {fileID: 4316389306455938832}
+  - {fileID: 5109876972158001114}
+  - {fileID: 830082835877545659}
+  - {fileID: 1556238627313033799}
+  - {fileID: 1856701533571775033}
+  - {fileID: 7981640073733904193}
+  - {fileID: 8583967360442598617}
+  - {fileID: 2093124745068488501}
+  - {fileID: 5080888814118464792}
+  - {fileID: 7712588337290446260}
+  - {fileID: 4360773544425993547}
+  - {fileID: 8895412408349612820}
+  - {fileID: 691543759349344316}
+  - {fileID: 2434533364468048070}
+  - {fileID: 4639620858392007205}
+  - {fileID: 7216602578470619085}
+  - {fileID: 7887071040064409667}
+  - {fileID: 8119633387330635319}
+  - {fileID: 3363377605773323700}
+  - {fileID: 8932716891006117506}
+  - {fileID: 5015432649617899982}
+  - {fileID: 7902791873659416526}
+  - {fileID: 8237153993122988168}
+  - {fileID: 4197849047313040916}
+  - {fileID: 3630217047063700973}
+  - {fileID: 5425391101779027522}
+  - {fileID: 7141921241219787910}
+  - {fileID: 9176657983938694718}
+  - {fileID: 9217620219557567442}
+  - {fileID: 7673577656819553647}
+  - {fileID: 4361403436061500396}
+  - {fileID: 6771105846020596995}
+  - {fileID: 7003625653192977326}
+  - {fileID: 6596543335848346315}
+  - {fileID: 7221127187686246164}
+  Slots:
+  - {fileID: 738559771274648328}
+  - {fileID: 6596543335848346315}
+  Parts:
+  - Renderer: {fileID: 1425138380137763214}
+    Slot: {fileID: 738559771274648328}
+    Crop: 0
+  - Renderer: {fileID: 5047818263179702034}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 1330031130050394770}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 1731694026476881709}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 6634319248173444687}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 5901938090802254861}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 9217308536900330512}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 1259667386240652950}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 7173132706805659644}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 2918890753470198431}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 4866632701015499403}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 8708325678217459069}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 4379650573846140059}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 4763866704072835064}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 6481158644200845168}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 920681335534741301}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 5052892402000443587}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 7774831739943562396}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 939633358687228820}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 5877155445059157012}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 9131342447741803981}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 2682072401996326007}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 1797831706385406892}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 5618362709377169633}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 4044689076595562822}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 6906679224990892016}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 1245919233994366234}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 1916608790581686425}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 6985895620445621784}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 8307454927312096136}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 373883286799218021}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 7540482752965811691}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 7558548577558877501}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 1593986355834279631}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 9000300522619851488}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 8550331761483986417}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 40272111846136490}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 8048585710239498145}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 8022596940988835520}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 4963127956157670245}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 123766692756618304}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 1873954500473305901}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 3170329115508558936}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 634814921187293126}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 2893428118991689096}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 461731241273789767}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 2337117118559379387}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 4277217487210969915}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 5945830689207323808}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 6713553606000740843}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 4254053562935308584}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 3979614503548405111}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 2717385593240302042}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 8003948194253035740}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 4423443930402296034}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 7801923469167084335}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 8193516354515454161}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 2721684465007166865}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 1037484289615650252}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 4706585024534149449}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 1481514466263581208}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 811308221551767828}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 6741564234029361375}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 24822558413072195}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 2671886172900982132}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 2770346846781746339}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 6316362961826411997}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 993890964765301020}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 625851830419195112}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 987968915108329977}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 4014607742752968670}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 456055065453573216}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 2061075876704893157}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 4849593210539125848}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 4704395420473779755}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 6258129760426645100}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 2990728817698665166}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 4833494086800294180}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 5836022668977574647}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 7755741434842792830}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 2970034737784758292}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 9195157454375801993}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 1596352152040814349}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 1836802793569732423}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 6979620200168715648}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 4700545856558973229}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 2470162374680098366}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 4662768386763730434}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 357900920545389145}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 5913473435910216758}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 2032519060635034347}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 8399056743553105531}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 4952927103005524709}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 1010201552103918614}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 6071611617577780278}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 5716031537210242494}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 1935154165234251637}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 6239828317746530914}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 7409749080312192985}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 6065940089471121781}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 464801437515570068}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 2909866568073057245}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 5700698779813762948}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 3041532062122994351}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 154941483862989772}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 6967564514456533725}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 6403036167757137498}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 2363881737481901460}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 2742304372567992976}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 8368472597791178522}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 3404237859927261346}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 447179031267606121}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 2075637521590634523}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 9158687874974538161}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 4462068738301822645}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 2168670988911463639}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 4547426483729956492}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 3877670509717647318}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 8811519661772609626}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 3805524890468481461}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 4454211163664834364}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 7312521600886194029}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 521803719077189343}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 5371597452084874574}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 7204102197320714946}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 5874419968484107694}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 4498033335240801665}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 2194890708268211677}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 1985842847802928473}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 2030555809960986105}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 969355710135473763}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 4388828473920029006}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 7978869638310430712}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 8674779637675423706}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 1595285578377072494}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 1134004013942067754}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 2907053713463220226}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 3730015489175918947}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 7357900753748863533}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 2575229200503306799}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 9070119780933462252}
+    Slot: {fileID: 738559771274648328}
+    Crop: 1
+  - Renderer: {fileID: 1228568800337394325}
+    Slot: {fileID: 6596543335848346315}
+    Crop: 0
 --- !u!1 &4983184513998636540
 GameObject:
   m_ObjectHideFlags: 0
@@ -11098,7 +11849,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0
@@ -11115,7 +11866,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &5005511418402793520
 GameObject:
@@ -11220,7 +11971,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.33
@@ -11237,7 +11988,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &5102664884112241326
 GameObject:
@@ -11407,7 +12158,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.33
@@ -11424,7 +12175,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &5287443857743311650
 GameObject:
@@ -11563,7 +12314,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0
@@ -11580,7 +12331,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &5328869653643008988
 GameObject:
@@ -11685,7 +12436,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0
@@ -11702,7 +12453,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &5386455776499362899
 GameObject:
@@ -11886,7 +12637,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.33
@@ -11903,7 +12654,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &5707601221912261101
 GameObject:
@@ -12008,7 +12759,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0
@@ -12025,7 +12776,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &5730049994029532821
 GameObject:
@@ -12130,7 +12881,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.66
@@ -12147,7 +12898,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &5752365038198426122
 GameObject:
@@ -12252,7 +13003,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.66
@@ -12269,7 +13020,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &5754672177691728186
 GameObject:
@@ -12374,7 +13125,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 1
@@ -12391,7 +13142,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &5758840065453832822
 GameObject:
@@ -12496,7 +13247,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.66
@@ -12513,7 +13264,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &5892150814604988682
 GameObject:
@@ -12618,7 +13369,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.33
@@ -12635,7 +13386,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &6032331310075718686
 GameObject:
@@ -12740,7 +13491,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0.5
@@ -12757,7 +13508,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &6038683481480879062
 GameObject:
@@ -12862,7 +13613,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0
@@ -12879,7 +13630,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &6116680968834998997
 GameObject:
@@ -12984,7 +13735,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0
@@ -13001,7 +13752,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &6134199044683387271
 GameObject:
@@ -13140,7 +13891,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.33
@@ -13157,7 +13908,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &6309446469440563159
 GameObject:
@@ -13296,7 +14047,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.33
@@ -13313,7 +14064,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &6375399438884090994
 GameObject:
@@ -13418,7 +14169,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0.5
@@ -13435,7 +14186,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &6450508170653489125
 GameObject:
@@ -13540,7 +14291,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.66
@@ -13557,7 +14308,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &6476213441364342524
 GameObject:
@@ -13662,7 +14413,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0.5
@@ -13679,7 +14430,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &6487674280815071127
 GameObject:
@@ -13863,7 +14614,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 1
@@ -13880,7 +14631,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &6517023091592674466
 GameObject:
@@ -13970,7 +14721,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3f48b4f71bbca284498dce92744bd9c9, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualSlotAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualSlotAuthoring
   Purpose: 1
   Level: 1
   Step: 0
@@ -14157,7 +14908,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &6667233438740900339
 GameObject:
@@ -14262,7 +15013,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0
@@ -14279,7 +15030,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &6672864183996799542
 GameObject:
@@ -14384,7 +15135,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0
@@ -14401,7 +15152,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &6696852403622935681
 GameObject:
@@ -14506,7 +15257,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.66
@@ -14523,7 +15274,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &6697744614708697327
 GameObject:
@@ -14628,7 +15379,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0.5
@@ -14645,7 +15396,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &6727022328260285120
 GameObject:
@@ -14750,7 +15501,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0
@@ -14767,7 +15518,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &6764926474980765298
 GameObject:
@@ -14951,7 +15702,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0.5
@@ -14968,7 +15719,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &6904411406692906893
 GameObject:
@@ -15073,7 +15824,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 1
@@ -15090,7 +15841,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &6918884495120820258
 GameObject:
@@ -15195,7 +15946,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 1
@@ -15212,7 +15963,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &6932996870493323624
 GameObject:
@@ -15352,7 +16103,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 1
@@ -15369,7 +16120,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &7147929482515380565
 GameObject:
@@ -15545,7 +16296,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 1
@@ -15562,7 +16313,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &7239262415463915889
 GameObject:
@@ -15701,7 +16452,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 1
@@ -15718,7 +16469,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &7267427583457533591
 GameObject:
@@ -15857,7 +16608,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.33
@@ -15874,7 +16625,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &7316419475689305122
 GameObject:
@@ -15979,7 +16730,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.33
@@ -15996,7 +16747,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &7389602112749888780
 GameObject:
@@ -16101,7 +16852,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.66
@@ -16118,7 +16869,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &7551248260947075463
 GameObject:
@@ -16223,7 +16974,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0.5
@@ -16240,7 +16991,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &7601446824588810162
 GameObject:
@@ -16380,7 +17131,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.66
@@ -16397,7 +17148,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &7783919740336052868
 GameObject:
@@ -16536,7 +17287,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.66
@@ -16553,7 +17304,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &7814555699395378886
 GameObject:
@@ -16658,7 +17409,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0
@@ -16675,7 +17426,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &7818172345983822753
 GameObject:
@@ -16780,7 +17531,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.66
@@ -16797,7 +17548,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &7861865331468559623
 GameObject:
@@ -16902,7 +17653,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0
@@ -16919,7 +17670,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &7862019338011368208
 GameObject:
@@ -17024,7 +17775,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 1
@@ -17041,7 +17792,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &7963281710309367055
 GameObject:
@@ -17146,7 +17897,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0
@@ -17163,7 +17914,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &7995104237647203350
 GameObject:
@@ -17268,7 +18019,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 1
@@ -17285,7 +18036,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &8064026594157460309
 GameObject:
@@ -17390,7 +18141,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 1
@@ -17407,7 +18158,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &8071529315570060006
 GameObject:
@@ -17512,7 +18263,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0
@@ -17529,7 +18280,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &8138427598594147441
 GameObject:
@@ -17634,7 +18385,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0
@@ -17651,7 +18402,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &8163344047025667164
 GameObject:
@@ -17756,7 +18507,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.66
@@ -17773,7 +18524,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &8190996034061681644
 GameObject:
@@ -17922,7 +18673,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 1
@@ -17939,7 +18690,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &8280745461945954261
 GameObject:
@@ -18044,7 +18795,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 1
@@ -18061,7 +18812,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &8341854067221604484
 GameObject:
@@ -18108,7 +18859,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3f48b4f71bbca284498dce92744bd9c9, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualSlotAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualSlotAuthoring
   Purpose: 0
   Level: 1
   Step: 0
@@ -18296,7 +19047,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0
@@ -18313,7 +19064,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &8568363248379464247
 GameObject:
@@ -18418,7 +19169,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.33
@@ -18435,7 +19186,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &8605007136878025444
 GameObject:
@@ -18540,7 +19291,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.66
@@ -18557,7 +19308,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &8609963296862620993
 GameObject:
@@ -18662,7 +19413,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.66
@@ -18679,7 +19430,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &8788674079233371781
 GameObject:
@@ -18819,7 +19570,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 1
@@ -18836,7 +19587,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &8837419380652241447
 GameObject:
@@ -18941,7 +19692,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 1
@@ -18958,7 +19709,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &8880043973343975117
 GameObject:
@@ -19107,7 +19858,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0
@@ -19124,7 +19875,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &9029539096895145040
 GameObject:
@@ -19260,7 +20011,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 0.5
@@ -19277,7 +20028,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &9050216741737529609
 GameObject:
@@ -19382,7 +20133,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.33
@@ -19399,7 +20150,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &9057891507117211669
 GameObject:
@@ -19504,7 +20255,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0
@@ -19521,7 +20272,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &9136998979951963405
 GameObject:
@@ -19626,7 +20377,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.66
@@ -19643,7 +20394,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &9143736764794427465
 GameObject:
@@ -19781,7 +20532,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &9178853254754549969
 GameObject:
@@ -19930,7 +20681,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.wheat
   GrowthFrom: 0.33
@@ -19947,7 +20698,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}
 --- !u!1 &9222024137238989669
 GameObject:
@@ -20052,7 +20803,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1592272c525a3714194b4dfe33ac927f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.BuildingVisualPartAuthoring
   HarvestRemaining: 0
   CropId: crop.cabbage
   GrowthFrom: 1
@@ -20069,5 +20820,5 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c7f73da05478e947a7881c9ea0c736b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.EntityVisualAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.EntityVisualAuthoring
   Owner: {fileID: 4901703206989570460}

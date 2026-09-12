@@ -145,7 +145,7 @@ namespace Landsong.ECS.Editor
             var garrison = BuildingOps.Create(em, root, Sim.FindDefinition(em, root, "b驻军营地"), new int2(-100, -100), 0, 1, true);
             var id = em.GetComponentData<Identity>(garrison).Id; var militia = Sim.FindDefinition(em, root, "militia");
             Check(MilitaryOps.Recruit(em, root, new Command { Target = id, Definition = militia }, false) == ResultCode.Success, "Soldier recruitment reserves population");
-            Entity troop; using (var troops = Sim.Entities<Soldier>(em)) troop = troops[0];
+            var troop = MilitaryOps.AtSlot(em,id,1);
             var stableId = em.GetComponentData<Identity>(troop).Id;
             Check(MilitaryOps.Recruit(em, root, new Command { Target = id, Definition = militia }, false) == ResultCode.Success, "Second soldier recruited for capacity test");
             var stats = em.GetComponentData<BuildingStats>(garrison); stats.Garrison = 1; em.SetComponentData(garrison, stats);

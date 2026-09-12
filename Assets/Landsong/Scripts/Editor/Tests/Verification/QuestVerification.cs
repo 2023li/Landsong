@@ -35,9 +35,9 @@ namespace Landsong.ECS.Editor
             var c = AssetDatabase.LoadAssetAtPath<GameCatalogAsset>("Assets/Landsong/ECSContent/GameCatalog.asset"); QuestContentValidation.Validate(c);
             var quests = c.Content.Where(x => x.Kind == ContentKind.Quest).ToArray();
             Check(quests.Length == 11 && quests.Count(x => x.Flags == 1) == 6 && quests.Count(x => x.Flags == 0) == 4 && quests.Single(x => x.Id == "QM007").Flags == 3, "11 definitions: six mainline, four random, one disabled original placeholder");
-            foreach (var d in quests.Where(x => (x.Flags & 2) == 0)) Check(d.Rules.Where(r => QuestOps.Requirement(r.Kind)).All(r => r.Key.Length >= 32), "Authored stable requirement IDs: " + d.Id);
+            foreach (var d in quests.Where(x => (x.Flags & 2) == 0)) Check(d.Configuration.Objectives.All.All(r => r.Key.Length >= 32), "Authored stable requirement IDs: " + d.Id);
             // Compared against the actual archived eleven assets, not the stale mainline prose.
-            void Expected(string id, int duration, int type, string rules) { var d = quests.Single(x => x.Id == id); Check(d.Duration == duration && d.Value == type && string.Join(";", d.Rules.Select(r => (int)r.Kind + ":" + r.Target + ":" + r.Amount + ":" + r.B + ":" + r.C)) == rules, "Legacy requirements, base rewards, penalties, parents and timing: " + id); }
+            void Expected(string id, int duration, int type, string rules) { var d = quests.Single(x => x.Id == id); Check(d.Duration == duration && d.Value == type && string.Join(";", new ContentCompilation(c).For(d).Select(r => (int)r.Kind + ":" + (r.Target<0?"":c.Definitions[r.Target].Data.Id) + ":" + r.Amount + ":" + r.B + ":" + r.C)) == rules, "Legacy requirements, base rewards, penalties, parents and timing: " + id); }
             Expected("main_build_farms_3", 0, 0, "28:main_collect_building_materials:1:0:0;29:小麦:20:0:0;29:卷心菜:10:0:0;33:b农田:3:0:0;40::1:1:0");
             Expected("main_build_residential_houses_3", 0, 0, "28:main_plant_farms_3:1:0:0;32:feature.Technology:1:0:0;29:金币:100:0:0;33:b居民房:3:0:1");
             Expected("main_camera_survey", 0, 0, "29:金币:500:0:0;32:feature.Inventory:1:0:0;37::1:0:0;38::1:0:0");
@@ -49,16 +49,16 @@ namespace Landsong.ECS.Editor
             Expected("random_supply_soil", 5, 0, "29:金币:15:0:0;36:泥土:10:0:0;41:金币:5:0:0"); // v8 authoring restores base amount; baking applies x3 to all item rules.
             Expected("random_supply_stone", 5, 0, "29:金币:8:0:0;36:石头:5:0:0;41:金币:4:0:0"); // v8 authoring x2, runtime requirement remains 10.
             Expected("random_supply_wood", 5, 0, "29:金币:15:0:0;36:原木:10:0:0;41:金币:3:0:0");
-            var clone = ScriptableObject.CreateInstance<GameCatalogAsset>(); clone.Definitions = c.Definitions.Select(UnityEngine.Object.Instantiate).ToArray();
+            var clone = ScriptableObject.CreateInstance<GameCatalogAsset>(); clone.Definitions = CatalogFixture.CloneDefinitions(c.Definitions);
             try
             {
-                var d = clone.Definitions[clone.Find("main_camera_survey")].Data; var requirements = d.Rules.Where(r => QuestOps.Requirement(r.Kind)).ToArray(); var key = requirements[1].Key;
+                var d = clone.Definitions[clone.Find("main_camera_survey")].Data; var requirements = d.Configuration.Objectives.All.ToArray(); var key = requirements[1].Key;
                 void Invalid(Action action, string label) { action(); var failed = false; try { QuestContentValidation.Validate(clone); } catch (InvalidOperationException) { failed = true; } Check(failed, label); }
                 Invalid(() => requirements[1].Key = requirements[0].Key, "Duplicate requirement ID rejected"); requirements[1].Key = key;
                 Invalid(() => requirements[1].Key = "", "Missing requirement ID rejected"); requirements[1].Key = key;
-                Invalid(() => requirements[1].Amount = 0, "Zero requirement rejected"); requirements[1].Amount = 1;
-                var old = d.Rules; d.Rules = old.Concat(new[] { new RuleSource { Kind = RuleKind.Prerequisite, Target = "main_collect_building_materials", Amount = 1 } }).ToArray();
-                Invalid(() => { }, "Cyclic mainline dependencies rejected"); d.Rules = old;
+                Invalid(() => d.Configuration.Objectives.CameraZooms[0].Count = 0, "Zero requirement rejected"); d.Configuration.Objectives.CameraZooms[0].Count = 1;
+                var old = d.Configuration.Conditions; d.Configuration.Conditions = new ConditionsContentModule{Enabled=true,Completions=new[]{new CompletionsConfiguration{Content=clone.Definitions[clone.Find("main_collect_building_materials")],Count=1}}};
+                Invalid(() => { }, "Cyclic mainline dependencies rejected"); d.Configuration.Conditions = old;
                 QuestContentValidation.Validate(clone); Check(true, "Valid configuration still accepted after rejected edits");
             }
             finally { foreach (var asset in clone.Definitions) UnityEngine.Object.DestroyImmediate(asset); UnityEngine.Object.DestroyImmediate(clone); }
@@ -104,7 +104,7 @@ namespace Landsong.ECS.Editor
                 Check(requirements.Length == 2 && requirements[0].Key != requirements[1].Key, "Grouped legacy submit produces two stable individual requirements");
                 foreach (var p in requirements) { var r = Sim.GetRule(em, root, p.RuleIndex); Stock(r.Target, r.Amount); }
                 var first = requirements[0]; var rule = Sim.GetRule(em, root, first.RuleIndex); var quote = QuestOps.Submission(em, root, offer, first.Key.ToString());
-                var submit = new Command { Kind = CommandKind.SubmitQuest, Target = offerId, Definition = quote.Item, Amount = 1, Text = first.Key + "|" + quote.Stamp };
+                var submit = CommandRequests.SubmitQuest(offerId, quote.Item, 1, first.Key.ToString(), quote.Stamp);
                 Check(GameLoopSystem.Execute(em, root, new Command { Kind = CommandKind.SubmitQuest, Target = offerId }) == ResultCode.InvalidTarget, "Legacy batch submit is refused");
                 Check(GameLoopSystem.Execute(em, root, submit) == ResultCode.Success && em.GetBuffer<QuestProgress>(offer)[0].Amount == 1 && em.GetBuffer<QuestProgress>(offer)[1].Amount == 0, "Selected quantity only increments selected requirement");
                 Check(InventoryOps.Count(em, root, rule.Target) == rule.Amount - 1, "Submission removes precisely one normal item");
@@ -128,7 +128,7 @@ namespace Landsong.ECS.Editor
                 foreach (var p in requirements)
                 {
                     var q = QuestOps.Submission(em, root, offer, p.Key.ToString()); if (q.Maximum == 0) continue;
-                    Check(GameLoopSystem.Execute(em, root, new Command { Kind = CommandKind.SubmitQuest, Target = offerId, Definition = q.Item, Amount = q.Maximum, Text = p.Key + "|" + q.Stamp }) == ResultCode.Success, "Submit remaining requirement " + p.Key);
+                    Check(GameLoopSystem.Execute(em, root, CommandRequests.SubmitQuest(offerId, q.Item, q.Maximum, p.Key.ToString(), q.Stamp)) == ResultCode.Success, "Submit remaining requirement " + p.Key);
                 }
                 Check(em.GetComponentData<Quest>(offer).Status == QuestStatus.Completed && ProgressionOps.QuestCount(em) == 2, "Completed random task retains capacity until reward");
                 Check(Command(CommandKind.AbandonQuest, offer) == ResultCode.Unavailable, "Completed task cannot be abandoned");
@@ -196,11 +196,11 @@ namespace Landsong.ECS.Editor
         }
         static void Reorder(EntityManager em, Entity root, byte[] original, ulong questId, GameCatalogAsset source)
         {
-            var clone = UnityEngine.Object.Instantiate(source); clone.Definitions = source.Definitions.Select(UnityEngine.Object.Instantiate).ToArray(); var old = em.GetComponentData<ContentCatalog>(root);
+            var clone = CatalogFixture.Clone(source); var old = em.GetComponentData<ContentCatalog>(root);
             try
             {
-                var rules = clone.Definitions[clone.Find("random_exploration_supplies")].Data.Rules; var indices = Enumerable.Range(0, rules.Length).Where(i => QuestOps.Requirement(rules[i].Kind)).ToArray();
-                (rules[indices[0]], rules[indices[1]]) = (rules[indices[1]], rules[indices[0]]);
+                var rules = clone.Definitions[clone.Find("random_exploration_supplies")].Data.Configuration.Objectives.SubmittedItems; var indices = Enumerable.Range(0, rules.Length).ToArray();
+                (rules[indices[0]].Order, rules[indices[1]].Order) = (rules[indices[1]].Order, rules[indices[0]].Order);
                 using var blob = GameWorldAuthoring.BuildCatalog(clone); em.SetComponentData(root, new ContentCatalog { Value = blob });
                 var decoded = SnapshotCodec.Decode(em, root, original); var p = decoded.Records.Single(x => x.Identity.Id == questId).Progress;
                 Check(p[0].Amount == 1 && p[0].RuleIndex > p[1].RuleIndex, "Stable IDs remap saved progress when authored requirements reorder");

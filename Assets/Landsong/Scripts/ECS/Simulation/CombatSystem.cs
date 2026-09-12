@@ -133,9 +133,7 @@ namespace Landsong.ECS
         }
     }
 
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateAfter(typeof(PerceptionSystem))]
-    [UpdateAfter(typeof(Opsive.BehaviorDesigner.Runtime.Groups.BehaviorTreeSystemGroup))]
+    [UpdateInGroup(typeof(CombatResolutionGroup))]
     public partial struct CombatSystem : ISystem
     {
         public void OnCreate(ref SystemState state) => state.RequireForUpdate<SimulationReady>();
@@ -160,7 +158,7 @@ namespace Landsong.ECS
         }
     }
 
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
+    [UpdateInGroup(typeof(CombatResolutionGroup))]
     [UpdateAfter(typeof(CombatSystem))]
     public partial struct ProjectileSystem : ISystem
     {
@@ -221,7 +219,7 @@ namespace Landsong.ECS
         }
     }
 
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
+    [UpdateInGroup(typeof(CombatResolutionGroup))]
     [UpdateAfter(typeof(ProjectileSystem))]
     public partial struct DamageSystem : ISystem
     {

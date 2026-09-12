@@ -100,7 +100,7 @@ namespace Landsong.ECS
             var phase = em.GetComponentData<Session>(root); var quest = em.GetComponentData<Quest>(entity);
             if (phase.Phase != Phase.Day || phase.CheckpointPending != 0) { quote.Code = ResultCode.WrongPhase; quote.Reason = "仅白天可提交"; return quote; }
             if (quest.Status != QuestStatus.Active) { quote.Code = ResultCode.Unavailable; quote.Reason = "仅进行中的任务可提交"; return quote; }
-            if (!ProgressionOps.Prerequisites(em, root, em.GetComponentData<Identity>(entity).Definition))
+            if (!ConditionOps.Prerequisites(em, root, em.GetComponentData<Identity>(entity).Definition))
             { quote.Code = ResultCode.Unavailable; quote.Reason = "等待前置条件，原承接槽位保留"; return quote; }
             var progress = em.GetBuffer<QuestProgress>(entity);
             for (var i = 0; i < progress.Length; i++)

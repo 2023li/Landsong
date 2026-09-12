@@ -1,3 +1,4 @@
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Landsong.VisualSystem
@@ -8,9 +9,9 @@ namespace Landsong.VisualSystem
     [DisallowMultipleComponent]
     public sealed class LS_LocalAxisRotator : MonoBehaviour
     {
-        [SerializeField] private Vector3 localAxis = Vector3.forward;
-        [SerializeField] private float degreesPerSecond = 30f;
-        [SerializeField] private bool useUnscaledTime;
+        [SerializeField] [LabelText("局部旋转轴")] private Vector3 localAxis = Vector3.forward;
+        [SerializeField] [LabelText("每秒旋转角度")] private float degreesPerSecond = 30f;
+        [SerializeField] [LabelText("使用不缩放时间")] private bool useUnscaledTime;
 
         public Vector3 LocalAxis => localAxis;
         public float DegreesPerSecond => degreesPerSecond;

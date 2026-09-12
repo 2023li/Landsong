@@ -67,7 +67,7 @@ namespace Landsong.ECS.Editor
             Check(ResidentialFoodOps.Plan(em, root, house, out plan) && plan[0].Item == 1, "Equal stocks use stable item ID, not catalog order");
             Stocks(11, 10); Check(ResidentialFoodOps.Plan(em, root, house, out plan) && plan[0].Item == 0, "Higher total inventory has first preference");
             Stocks(3, 100); before = Rows<InventorySlot>(em, root); journal = Rows<EconomyEntry>(em, root);
-            Check(!ProgressionOps.Reward(em, root, 5) && before.SequenceEqual(Rows<InventorySlot>(em, root)), "Partial reward capacity failure rolls back every item");
+            Check(!RewardOps.ApplyDefinition(em, root, 5) && before.SequenceEqual(Rows<InventorySlot>(em, root)), "Partial reward capacity failure rolls back every item");
             Check(Rows<EconomyEntry>(em, root).Count(r => r.Delta != 0) == journal.Count(r => r.Delta != 0), "Rolled-back reward has no phantom monetary rows");
             using (var payment = new InventoryTransaction(em, root)) { InventoryOps.Remove(em, root, 0, 2); payment.Reject("测试回滚"); }
             Check(before.SequenceEqual(Rows<InventorySlot>(em, root)), "Rejected transaction restores resources and keeps diagnostic only");
@@ -123,7 +123,7 @@ namespace Landsong.ECS.Editor
             var rules = new Dictionary<int, Rule[]>();
             for (var i = 0; i < definitions.Length; i++) { var d = definitions[i]; rules[i] = Enumerable.Range(d.RuleStart, d.RuleCount).Select(r => original.Value.Rules[r]).ToArray(); }
             var gold = em.GetComponentData<GameSettings>(root).Gold; var wood = Array.FindIndex(definitions, d => d.Kind == ContentKind.Item && d.Id != definitions[gold].Id);
-            rules[coreDef] = rules[coreDef].Where(r => r.Kind == RuleKind.Population || r.Kind == RuleKind.Warehouse || r.Kind == RuleKind.Provider).Concat(new[] { new Rule { Kind = RuleKind.Production, Amount = 1 }, new Rule { Kind = RuleKind.ProductionTier, Target = wood, Amount = 7 } }).ToArray();
+            rules[coreDef] = rules[coreDef].Where(r => r.Kind == RuleKind.Population || r.Kind == RuleKind.Warehouse || r.Kind == RuleKind.Provider || r.Kind == RuleKind.QuestCapacity || r.Kind == RuleKind.Garrison).Concat(new[] { new Rule { Kind = RuleKind.Production, Amount = 1 }, new Rule { Kind = RuleKind.ProductionTier, Target = wood, Amount = 7 } }).ToArray();
             rules[otherDef] = new[] { new Rule { Kind = RuleKind.Maintenance, Target = wood, Amount = 7 }, new Rule { Kind = RuleKind.Production, Amount = 1 }, new Rule { Kind = RuleKind.ProductionTier, Target = gold, Amount = 10 } };
             definitions[otherDef].Duration = 1; foreach (var i in Enumerable.Range(0, definitions.Length)) if (definitions[i].Kind == ContentKind.Item) definitions[i].Loss = 0;
             using var blob = Blob(definitions, rules, original);

@@ -10,7 +10,7 @@ namespace Landsong.ECS
             var blob=em.GetComponentData<ContentCatalog>(root).Value;
             for(int d=0;d<blob.Value.Definitions.Length;d++)
             {
-                if(blob.Value.Definitions[d].Kind!=ContentKind.Talent || !ProgressionOps.Prerequisites(em,root,d)) continue;
+                if(blob.Value.Definitions[d].Kind!=ContentKind.Talent || !ConditionOps.Prerequisites(em,root,d)) continue;
                 bool found=false; using(var all=Sim.OrderedEntities<Talent>(em)) foreach(var e in all) if(em.GetComponentData<Identity>(e).Definition==d && CourtOps.Alive(em,e)) found=true;
                 if(found) continue;
                 var person=Sim.Spawn(em,root,d,default,true); Sim.Set(em,person,new Talent { Slot=-1,Level=math.max(1,blob.Value.Definitions[d].Level) });
@@ -25,7 +25,7 @@ namespace Landsong.ECS
         {
             if(!Sim.ValidDefinition(em,root,slot) || !CourtOps.JobEligible(em,person)) return false;
             var s=Sim.Definition(em,root,slot); var d=Sim.Definition(em,root,em.GetComponentData<Identity>(person).Definition);
-            if(s.Kind!=ContentKind.TalentSlot || !ProgressionOps.Prerequisites(em,root,slot) || s.Value!=0 && s.Value!=d.Value) return false;
+            if(s.Kind!=ContentKind.TalentSlot || !ConditionOps.Prerequisites(em,root,slot) || s.Value!=0 && s.Value!=d.Value) return false;
             for(int i=0;i<s.RuleCount;i++) { var r=Sim.GetRule(em,root,s.RuleStart+i); if(r.Kind!=RuleKind.GeneRequired) continue; bool found=false; foreach(var t in em.GetBuffer<TraitEntry>(person)) if(t.Definition==r.Target && t.Revealed!=0) found=true; if(!found) return false; }
             return true;
         }

@@ -20,7 +20,7 @@ namespace Landsong.ECS.Editor
         static void Check(bool value, string label) { if (!value) throw new InvalidOperationException("FAIL " + label); checks++; log.AppendLine("PASS " + label); }
         public static void FixturePermissions(EntityManager em, Entity root)
         {
-            foreach (var name in new[] { "Building", "Inventory", "Expedition" }) { var d = Sim.FindDefinition(em, root, new FixedString128Bytes("feature." + name)); if (d >= 0) Sim.Grant(em, root, d); }
+            foreach (var name in new[] { "Building", "Inventory", "Expedition" }) { var d = Sim.FindDefinition(em, root, new FixedString128Bytes("feature." + name)); if (d >= 0) FeatureOps.Unlock(em, root, d); }
         }
         [MenuItem("Landsong/ECS/Verification/InvitationExpedition")]
         public static string Run()
@@ -56,9 +56,9 @@ namespace Landsong.ECS.Editor
                 var d = c.Content[c.Find(entry.Item1)];
                 Check(d.Level == entry.Item2 && d.Duration == entry.Item3 && d.Population == 10 && d.Capacity == 15 && d.Flags == 1, "Legacy destination level/duration/crew/repeat " + d.Id);
                 Check(d.Chance == entry.Item4 && d.Interval == entry.Item5 && d.Range == .9f && d.Loss == entry.Item6 && d.Cost == entry.Item7 && d.Value == entry.Item8, "Legacy destination probability/casualties/pension " + d.Id);
-                Check(d.Rules.Count(r => r.Kind == RuleKind.RewardItem) == entry.Item9 && !d.Rules.Any(r => r.Kind == RuleKind.Supply), "Original reward count and intentionally empty supplies " + d.Id);
+                Check(d.Configuration.Rewards.Items.Length == entry.Item9 && d.Configuration.Expeditions.Supplies.Length==0, "Original reward count and intentionally empty supplies " + d.Id);
             }
-            var clone = ScriptableObject.CreateInstance<GameCatalogAsset>(); clone.Definitions = c.Definitions.Select(UnityEngine.Object.Instantiate).ToArray();
+            var clone = ScriptableObject.CreateInstance<GameCatalogAsset>(); clone.Definitions = CatalogFixture.CloneDefinitions(c.Definitions);
             try
             {
                 var q = clone.Definitions[clone.Find("random_supply_soil")].Data;
@@ -67,9 +67,9 @@ namespace Landsong.ECS.Editor
                 Invalid(() => q.QuestWeight = -1, "Negative weight rejected"); q.QuestWeight = 100;
                 Invalid(() => q.QuestIntensity = 4, "Unknown intensity rejected"); q.QuestIntensity = 2;
                 var destination = clone.Definitions[clone.Find("expedition.nearby_recon")].Data;
-                destination.Rules = destination.Rules.Concat(new[] { new RuleSource { Kind = RuleKind.Supply, Target = "原木", Amount = 10, Value = .01f, Extra = .02f } }).ToArray();
+                destination.Configuration.Expeditions = new ExpeditionsContentModule{Enabled=true,Supplies=new[]{new ExpeditionSupplyConfiguration{Item=clone.Definitions[clone.Find("原木")],MinimumQuantity=10,SuccessPerExtra=.01f,RewardPerExtra=.02f}}};
                 InvitationExpeditionValidation.Validate(clone); Check(true, "Optional authored supplies accepted");
-                Invalid(() => destination.Rules.Last().B = 6, "Extra supply cannot exceed 50 percent minimum");
+                Invalid(() => destination.Configuration.Expeditions.Supplies[0].ExtraLimit = 6, "Extra supply cannot exceed 50 percent minimum");
             }
             finally { foreach (var d in clone.Definitions) UnityEngine.Object.DestroyImmediate(d); UnityEngine.Object.DestroyImmediate(clone); }
         }
@@ -134,7 +134,7 @@ namespace Landsong.ECS.Editor
                 var destination = Def("expedition.nearby_recon"); var departure = ExpeditionOps.Quote(em, root, post, destination, 15);
                 Check(departure.Code == ResultCode.Success && departure.Minimum == 10 && departure.Maximum == 15 && math.abs(departure.SuccessChance - .85f) < .00001f && departure.RewardBonus == .25f, "Crew bounds, success and full-crew bonus preview");
                 Check(ExpeditionOps.Quote(em, root, post, destination, 9).Code == ResultCode.InsufficientPopulation, "Understaffed departure refused");
-                var command = new Command { Kind = CommandKind.StartExpedition, Target = postId, Definition = destination, Amount = 15, Text = ExpeditionOps.Payload(departure) };
+                var command = CommandRequests.StartExpedition(postId, 0, destination, departure);
                 InventoryOps.Add(em, root, gold, 1); before = SnapshotCodec.Capture(em, root); Check(GameLoopSystem.Execute(em, root, command) == ResultCode.Unavailable && before.SequenceEqual(SnapshotCodec.Capture(em, root)), "Stale departure confirmation cannot spend");
                 departure = ExpeditionOps.Quote(em, root, post, destination, 15); command.Text = ExpeditionOps.Payload(departure);
                 Check(GameLoopSystem.Execute(em, root, command) == ResultCode.Success && EconomyOps.WorkforceLocked(em, postId), "Departure locks current building workforce");
@@ -146,7 +146,7 @@ namespace Landsong.ECS.Editor
                 var oldArrival = j.Arrival; var frozenRandom = em.GetComponentData<Session>(root).RandomState; ExpeditionOps.Settle(em, root);
                 Check(em.GetComponentData<Expedition>(journey).Arrival == oldArrival + 1 && em.GetComponentData<Session>(root).RandomState == frozenRandom, "Locked expedition pauses travel duration without rolling outcome");
                 Check(GameLoopSystem.Execute(em, root, new Command { Kind = CommandKind.AbandonExpedition, Target = journeyId }) == ResultCode.Unavailable && EconomyOps.WorkforceLocked(em, postId), "Locked action cannot abandon frozen party");
-                Sim.Grant(em, root, Def("feature.Expedition")); j = em.GetComponentData<Expedition>(journey); j.SuccessChance = 1; em.SetComponentData(journey, j); Turn(j.Arrival - 1);
+                FeatureOps.Unlock(em, root, Def("feature.Expedition")); j = em.GetComponentData<Expedition>(journey); j.SuccessChance = 1; em.SetComponentData(journey, j); Turn(j.Arrival - 1);
                 before = SnapshotCodec.Capture(em, root); Check(EconomyForecastOps.Create(em, root) == ResultCode.Success && before.SequenceEqual(SnapshotCodec.Capture(em, root)), "Arrival forecast preserves departure, supplies and RNG");
                 ExpeditionOps.Settle(em, root); Check(em.GetComponentData<Expedition>(journey).Status == ExpeditionStatus.Success && !EconomyOps.WorkforceLocked(em, postId), "Successful arrival frees workforce and awaits manual claim");
                 var exp = em.GetComponentData<Building>(post).Experience; ExpeditionOps.Settle(em, root); Check(em.GetComponentData<Building>(post).Experience == exp, "Arrival experience cannot settle twice");
@@ -177,16 +177,18 @@ namespace Landsong.ECS.Editor
         }
         static void SupplyAndCapacity(EntityManager em, Entity root, Func<string,int,Entity> building, Func<string,int> def, Action<int> turn, Action<int,int> stock)
         {
-            var originalCatalog = em.GetComponentData<ContentCatalog>(root); var c = UnityEngine.Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameCatalogAsset>("Assets/Landsong/ECSContent/GameCatalog.asset")); c.Definitions = c.Definitions.Select(UnityEngine.Object.Instantiate).ToArray();
+            var originalCatalog = em.GetComponentData<ContentCatalog>(root); var c = CatalogFixture.Clone(AssetDatabase.LoadAssetAtPath<GameCatalogAsset>("Assets/Landsong/ECSContent/GameCatalog.asset"));
             try
             {
                 var destination = c.Definitions[c.Find("expedition.nearby_recon")].Data;
                 destination.Flags = 0;
-                destination.Rules = destination.Rules.Concat(new[] { new RuleSource { Kind = RuleKind.Supply, Target = "原木", Amount = 10, Value = .01f, Extra = .02f } }).ToArray();
-                var marketData = c.Definitions[c.Find("b市场")].Data; marketData.Rules.Single(r => r.Kind == RuleKind.QuestSource).Amount = 2;
+                destination.Configuration.Expeditions = new ExpeditionsContentModule{Enabled=true,Supplies=new[]{new ExpeditionSupplyConfiguration{Item=c.Definitions[c.Find("原木")],MinimumQuantity=10,SuccessPerExtra=.01f,RewardPerExtra=.02f}}};
+                var marketData = c.Definitions[c.Find("b市场")].Data; marketData.Modules.Quests.Invitations.Single().Slots = 2;
                 marketData.Level = 2;
-                marketData.Rules = marketData.Rules.Concat(new[] { new RuleSource { Kind = RuleKind.QuestSource, Level = 2, Amount = 1, B = 0, C = 30, Value = 50 }, new RuleSource { Kind = RuleKind.QuestCapacity, Amount = 4 }, new RuleSource { Kind = RuleKind.Maintenance, Target = "金币", Amount = 1000000 } }).ToArray();
-                marketData.Rules.First(r => r.Kind == RuleKind.QuestSource).Level = 1;
+                marketData.Modules.Quests.Invitations=marketData.Modules.Quests.Invitations.Append(new QuestInvitationEntry{Level=2,Slots=1,Type=InvitationKind.贸易,MinimumRefreshTurns=30,MaximumRefreshTurns=50}).ToArray();
+                marketData.Modules.Quests.Capacity=marketData.Modules.Quests.Capacity.Append(new QuestCapacityEntry{Level=0,Slots=4}).ToArray();
+                marketData.Modules.Maintenance.Enabled=true;marketData.Modules.Maintenance.Costs=marketData.Modules.Maintenance.Costs.Append(new MaintenanceEntry{Level=0,Item=c.Definitions[c.Find("金币")],Quantity=1000000}).ToArray();
+                marketData.Modules.Quests.Invitations[0].Level = 1;
                 using var blob = GameWorldAuthoring.BuildCatalog(c); em.SetComponentData(root, new ContentCatalog { Value = blob });
                 // This isolated fixture adds rules to earlier definitions; rebind existing stable keys to its new blob offsets.
                 using (var tasks = Sim.OrderedEntities<Quest>(em)) foreach (var e in tasks)

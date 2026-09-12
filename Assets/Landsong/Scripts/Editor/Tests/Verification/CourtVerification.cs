@@ -60,13 +60,13 @@ namespace Landsong.ECS.Editor
                 Check(Cmd(CommandKind.CompleteSocialTask,pid)==ResultCode.Success,"Personal task raises affection");
                 Check(Cmd(CommandKind.CompleteSocialTask,pid)==ResultCode.Unavailable,"Personal task cannot repeat");
                 Check(Cmd(CommandKind.RecruitTalent,pid)==ResultCode.Success && Id(person)==pid,"Recruitment keeps same person ID");
-                Check(Sim.Modifier(em,root,RuleKind.SoldierAttackBonus,-1)==0,"Unassigned recruitment grants no bonus");
+                Check(EffectOps.Modifier(em,root,RuleKind.SoldierAttackBonus,-1)==0,"Unassigned recruitment grants no bonus");
                 Check(Cmd(CommandKind.AssignTalent,pid,Def("talent.slot2"))==ResultCode.Unavailable,"Wrong profession rejected");
                 Check(Cmd(CommandKind.AssignTalent,pid,Def("talent.slot1"))==ResultCode.Success,"Paid profession appointment");
-                Check(math.abs(Sim.Modifier(em,root,RuleKind.SoldierAttackBonus,-1)-.1f)<.0001f,"Talent one exactly ten percent; personal genes do not double stack");
-                Check(Sim.Modifier(em,root,RuleKind.AttackBonus,-1)==0,"Talent soldier effect does not leak to hero generic damage");
+                Check(math.abs(EffectOps.Modifier(em,root,RuleKind.SoldierAttackBonus,-1)-.1f)<.0001f,"Talent one exactly ten percent; personal genes do not double stack");
+                Check(EffectOps.Modifier(em,root,RuleKind.AttackBonus,-1)==0,"Talent soldier effect does not leak to hero generic damage");
                 var wageBefore=InventoryOps.Count(em,root,gold); SocialOps.PayWages(em,root); Check(InventoryOps.Count(em,root,gold)==wageBefore,"Entry wage not charged again in same turn");
-                Turn(2); Stock(gold,0); SocialOps.PayWages(em,root); Check(Sim.Modifier(em,root,RuleKind.SoldierAttackBonus,-1)==0,"Unpaid bonus disabled before production");
+                Turn(2); Stock(gold,0); SocialOps.PayWages(em,root); Check(EffectOps.Modifier(em,root,RuleKind.SoldierAttackBonus,-1)==0,"Unpaid bonus disabled before production");
                 Stock(gold,100); Turn(3); SocialOps.PayWages(em,root); Check(em.GetComponentData<Talent>(person).Paid==1,"Salary resumes next settlement");
                 var snap=SnapshotCodec.Capture(em,root); SnapshotCodec.Restore(em,root,SnapshotCodec.Decode(em,root,snap)); person=Sim.Find(em,pid);
                 Check(snap.SequenceEqual(SnapshotCodec.Capture(em,root)),"v9 roundtrip keeps wages affection task and traits");
@@ -131,10 +131,10 @@ namespace Landsong.ECS.Editor
                 Check(em.GetComponentData<Royal>(child).Age==age+1 && settled.SequenceEqual(SnapshotCodec.Capture(em,root)),"Age/political settlement runs exactly once per turn");
                 Reset(); Check(CourtOps.State(em,root).Extinction==0 && em.GetComponentData<Session>(root).Phase==Phase.Day,"Living childless king is not an immediate game over");
                 foreach(var entry in new[]{("talent.placeholder2","talent.slot2",RuleKind.ActionPowerBonus,2f),("talent.placeholder3","talent.slot3",RuleKind.CropHarvestBonus,.2f)})
-                { person=Person(entry.Item1); State(person,(ref Royal r)=>r.Affection=100); Cmd(CommandKind.RecruitTalent,Id(person)); Check(Cmd(CommandKind.AssignTalent,Id(person),Def(entry.Item2))==ResultCode.Success,"Appoint "+entry.Item1); Check(math.abs(Sim.Modifier(em,root,entry.Item3,-1)-entry.Item4)<.0001,"Specific modifier "+entry.Item3); }
+                { person=Person(entry.Item1); State(person,(ref Royal r)=>r.Affection=100); Cmd(CommandKind.RecruitTalent,Id(person)); Check(Cmd(CommandKind.AssignTalent,Id(person),Def(entry.Item2))==ResultCode.Success,"Appoint "+entry.Item1); Check(math.abs(EffectOps.Modifier(em,root,entry.Item3,-1)-entry.Item4)<.0001,"Specific modifier "+entry.Item3); }
                 var core=Entity.Null; using(var all=Sim.OrderedEntities<Building>(em)) foreach(var e in all) if(em.GetComponentData<BuildingStats>(e).IsCore!=0) core=e;
                 Check(BuildingRangeOps.ActionPower(em,root,core)==em.GetComponentData<BuildingStats>(core).ActionPower+2,"Building connection calculation includes talent AP");
-                Check(Sim.Modifier(em,root,RuleKind.ProductionBonus,Def("原木"))==0,"Crop talent does not affect ordinary production");
+                Check(EffectOps.Modifier(em,root,RuleKind.ProductionBonus,Def("原木"))==0,"Crop talent does not affect ordinary production");
                 Reset(); king=CourtOps.Monarch(em); var traits=em.GetBuffer<TraitEntry>(king); traits.Add(new TraitEntry {Definition=Def("gene.military"),Revealed=1,Active=1});
                 Check(CourtOps.Modifier(em,root,RuleKind.SoldierAttackBonus,-1)==.1f && CourtOps.Modifier(em,root,RuleKind.SoldierSpeedBonus,-1)==.1f,"Reigning military genius drives soldier attack and speed");
                 traits.Add(new TraitEntry {Definition=Def("gene.scholar"),Revealed=1,Active=1}); var research=em.GetComponentData<Session>(root).ResearchPoints; CourtOps.Settle(em,root); Check(em.GetComponentData<Session>(root).ResearchPoints==research+1,"Scholar gene pays one research point");

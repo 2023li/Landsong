@@ -1,0 +1,7 @@
+{
+  "name": "Moyo.Editor",
+  "rootNamespace": "Moyo.Unity.Editor",
+  "references": ["Moyo.Runtime", "Unity.Addressables.Editor", "Unity.Addressables", "Unity.ResourceManager", "Unity.ugui", "Unity.TextMeshPro"],
+  "includePlatforms": ["Editor"],
+  "autoReferenced": true
+}

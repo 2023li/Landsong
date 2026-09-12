@@ -6,7 +6,7 @@ namespace Landsong.ECS
 {
     public static class BuildingRangeOps
     {
-        public static int ActionPower(EntityManager em, Entity root, Entity building) => math.max(0, em.GetComponentData<BuildingStats>(building).ActionPower + (int)math.floor(Sim.Modifier(em, root, RuleKind.ActionPowerBonus, em.GetComponentData<Identity>(building).Definition)));
+        public static int ActionPower(EntityManager em, Entity root, Entity building) => math.max(0, em.GetComponentData<BuildingStats>(building).ActionPower + (int)math.floor(EffectOps.Modifier(em, root, RuleKind.ActionPowerBonus, em.GetComponentData<Identity>(building).Definition)));
         // Full weighted flood for the selected building. Provider selection and overlay share this graph.
         public static NativeArray<float> Reach(EntityManager em, Entity root, Entity building, Allocator allocator)
         {

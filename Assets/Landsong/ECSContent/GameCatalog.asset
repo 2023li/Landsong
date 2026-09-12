@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5cf3bba7cb5234c47a9d99732ff07881, type: 3}
   m_Name: GameCatalog
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.GameCatalogAsset
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.GameCatalogAsset
   Definitions:
   - {fileID: 11400000, guid: 03e6eefa9ddbcaa4ca3552ff906f195b, type: 2}
   - {fileID: 11400000, guid: a761334fe1641a74f9948313fb5ff413, type: 2}
@@ -199,187 +199,68 @@ MonoBehaviour:
   - {fileID: 11400000, guid: ce9632952dbfa044c9cedf709e65786d, type: 2}
   - {fileID: 11400000, guid: 3238681f138c4cbd86680513f1ee65ad, type: 2}
   Portraits: {fileID: 11400000, guid: c6ce5a3c11f94d3aab8e0bcb7d4c40c6, type: 2}
-  StartingGrants:
-  - Kind: 30
-    Target: "b\u519C\u7530"
-    Secondary: 
-    Level: 0
-    Amount: 1
-    B: 0
-    C: 0
-    Value: 0
-    Extra: 0
-    Key: 
-  - Kind: 30
-    Target: "b\u738B\u5BAB"
-    Secondary: 
-    Level: 0
-    Amount: 1
-    B: 0
-    C: 0
-    Value: 0
-    Extra: 0
-    Key: 
-  - Kind: 30
-    Target: "b\u5C45\u6C11\u623F"
-    Secondary: 
-    Level: 0
-    Amount: 1
-    B: 0
-    C: 0
-    Value: 0
-    Extra: 0
-    Key: 
-  - Kind: 30
-    Target: "b\u5C0F\u571F\u5806"
-    Secondary: 
-    Level: 0
-    Amount: 1
-    B: 0
-    C: 0
-    Value: 0
-    Extra: 0
-    Key: 
-  - Kind: 30
-    Target: "b\u5C0F\u77F3\u5806"
-    Secondary: 
-    Level: 0
-    Amount: 1
-    B: 0
-    C: 0
-    Value: 0
-    Extra: 0
-    Key: 
-  - Kind: 30
-    Target: "b\u6811\u67281"
-    Secondary: 
-    Level: 0
-    Amount: 1
-    B: 0
-    C: 0
-    Value: 0
-    Extra: 0
-    Key: 
-  - Kind: 30
-    Target: "b\u6811\u67282"
-    Secondary: 
-    Level: 0
-    Amount: 1
-    B: 0
-    C: 0
-    Value: 0
-    Extra: 0
-    Key: 
-  - Kind: 30
-    Target: "b\u6811\u67283"
-    Secondary: 
-    Level: 0
-    Amount: 1
-    B: 0
-    C: 0
-    Value: 0
-    Extra: 0
-    Key: 
-  - Kind: 30
-    Target: "b\u6811\u67284"
-    Secondary: 
-    Level: 0
-    Amount: 1
-    B: 0
-    C: 0
-    Value: 0
-    Extra: 0
-    Key: 
-  - Kind: 30
-    Target: "b\u6811\u67285"
-    Secondary: 
-    Level: 0
-    Amount: 1
-    B: 0
-    C: 0
-    Value: 0
-    Extra: 0
-    Key: 
-  - Kind: 30
-    Target: "b\u6811\u67286"
-    Secondary: 
-    Level: 0
-    Amount: 1
-    B: 0
-    C: 0
-    Value: 0
-    Extra: 0
-    Key: 
-  - Kind: 30
-    Target: "b\u6811\u67287"
-    Secondary: 
-    Level: 0
-    Amount: 1
-    B: 0
-    C: 0
-    Value: 0
-    Extra: 0
-    Key: 
-  - Kind: 30
-    Target: "b\u6811\u67288"
-    Secondary: 
-    Level: 0
-    Amount: 1
-    B: 0
-    C: 0
-    Value: 0
-    Extra: 0
-    Key: 
-  - Kind: 30
-    Target: "b\u4ED3\u5E93"
-    Secondary: 
-    Level: 0
-    Amount: 1
-    B: 0
-    C: 0
-    Value: 0
-    Extra: 0
-    Key: 
-  - Kind: 30
-    Target: "b\u9A7B\u519B\u8425\u5730"
-    Secondary: 
-    Level: 0
-    Amount: 1
-    B: 0
-    C: 0
-    Value: 0
-    Extra: 0
-    Key: 
-  - Kind: 30
-    Target: "b\u8B66\u949F"
-    Secondary: 
-    Level: 0
-    Amount: 1
-    B: 0
-    C: 0
-    Value: 0
-    Extra: 0
-    Key: 
-  - Kind: 30
-    Target: "b\u77AD\u671B\u5854"
-    Secondary: 
-    Level: 0
-    Amount: 1
-    B: 0
-    C: 0
-    Value: 0
-    Extra: 0
-    Key: 
-  - Kind: 30
-    Target: "b\u6CF0\u5766\u795E\u6BBF"
-    Secondary: 
-    Level: 0
-    Amount: 1
-    B: 0
-    C: 0
-    Value: 0
-    Extra: 0
-    Key: 
+  StartingRewards:
+    Enabled: 1
+    Items: []
+    Blueprints:
+    - Order: 0
+      Building: {fileID: 11400000, guid: 7df6157a6643e9c41951b0403decdba0, type: 2}
+      GrantedLevel: 1
+    - Order: 1
+      Building: {fileID: 11400000, guid: 6f6af578252db9b4fb3f09dcdccc0ce6, type: 2}
+      GrantedLevel: 1
+    - Order: 2
+      Building: {fileID: 11400000, guid: c18eee413b97cad42baa968736fccae8, type: 2}
+      GrantedLevel: 1
+    - Order: 3
+      Building: {fileID: 11400000, guid: 9fa3a2806db9e344f9eb32f738607cbb, type: 2}
+      GrantedLevel: 1
+    - Order: 4
+      Building: {fileID: 11400000, guid: 155cb2591269a5247b04d2c23ffbe330, type: 2}
+      GrantedLevel: 1
+    - Order: 5
+      Building: {fileID: 11400000, guid: a2182b384ef4c1d4e8686eb47baf6d8e, type: 2}
+      GrantedLevel: 1
+    - Order: 6
+      Building: {fileID: 11400000, guid: 7cc15ec393fa4e04a8888b7c175a5fee, type: 2}
+      GrantedLevel: 1
+    - Order: 7
+      Building: {fileID: 11400000, guid: 0936fea0a9d82d749b434926dbdc0e73, type: 2}
+      GrantedLevel: 1
+    - Order: 8
+      Building: {fileID: 11400000, guid: 55927e016d7fc4943b8a04c4b4b5519f, type: 2}
+      GrantedLevel: 1
+    - Order: 9
+      Building: {fileID: 11400000, guid: 20e887997f2c61b48b80e05180f2d6d6, type: 2}
+      GrantedLevel: 1
+    - Order: 10
+      Building: {fileID: 11400000, guid: ad9295df8f9551f4083a8ab0cee9e5f5, type: 2}
+      GrantedLevel: 1
+    - Order: 11
+      Building: {fileID: 11400000, guid: 28f0ec903d18e88448189df9c4c15a9c, type: 2}
+      GrantedLevel: 1
+    - Order: 12
+      Building: {fileID: 11400000, guid: 89366b61e9faf50419826d977cbe0d92, type: 2}
+      GrantedLevel: 1
+    - Order: 13
+      Building: {fileID: 11400000, guid: c87696cdc5ebee34995c59e1426cc85b, type: 2}
+      GrantedLevel: 1
+    - Order: 14
+      Building: {fileID: 11400000, guid: 62bf30afa734e93469bee29a9de8623f, type: 2}
+      GrantedLevel: 1
+    - Order: 15
+      Building: {fileID: 11400000, guid: 38ed7581ff011bf4fbf01e6d551e20de, type: 2}
+      GrantedLevel: 1
+    - Order: 16
+      Building: {fileID: 11400000, guid: f8e8aa19bbff9174782c5da9388a4bfd, type: 2}
+      GrantedLevel: 1
+    - Order: 17
+      Building: {fileID: 11400000, guid: 303e5797fd454ea4eae3dce83db41730, type: 2}
+      GrantedLevel: 1
+    Buffs: []
+    Features: []
+    Failures: []
+    SpecialDrops: []
   GoldId: "\u91D1\u5E01"
   QuestGeneration:
     StrengthStep: 10
@@ -491,7 +372,13 @@ MonoBehaviour:
     Forced: 0
     WaveTimes: []
     Enemies: []
-    Conditions: []
+    Conditions:
+      Enabled: 0
+      Turns: []
+      Buildings: []
+      Items: []
+      Technologies: []
+      Completions: []
   - Id: night.raid
     FollowUp: 
     Kind: 1
@@ -514,7 +401,13 @@ MonoBehaviour:
       Weight: 1
     - Enemy: invader
       Weight: 1
-    Conditions: []
+    Conditions:
+      Enabled: 0
+      Turns: []
+      Buildings: []
+      Items: []
+      Technologies: []
+      Completions: []
   - Id: night.boss
     FollowUp: night.boss.return
     Kind: 2
@@ -539,7 +432,13 @@ MonoBehaviour:
       Weight: 1
     - Enemy: invader
       Weight: 1
-    Conditions: []
+    Conditions:
+      Enabled: 0
+      Turns: []
+      Buildings: []
+      Items: []
+      Technologies: []
+      Completions: []
   - Id: night.boss.return
     FollowUp: night.boss.return
     Kind: 2
@@ -564,7 +463,13 @@ MonoBehaviour:
       Weight: 1
     - Enemy: invader
       Weight: 1
-    Conditions: []
+    Conditions:
+      Enabled: 0
+      Turns: []
+      Buildings: []
+      Items: []
+      Technologies: []
+      Completions: []
   Dynasty:
     MaxChildren: 8
     TalentCapacity: 8

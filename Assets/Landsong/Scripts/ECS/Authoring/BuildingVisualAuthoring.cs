@@ -1,22 +1,14 @@
+using Sirenix.OdinInspector;
 using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
 
 namespace Landsong.ECS.Authoring
 {
-    public struct BuildingVisualSelection : IComponentData { public Entity Slot; }
-    [InternalBufferCapacity(0)] public struct BuildingVisualSlot : IBufferElementData
-    {
-        public Entity Slot;
-        public BuildingVisualPurpose Purpose;
-        public int Level, Step;
-        public FixedString64Bytes Skin;
-        public byte Placeholder;
-    }
     [DisallowMultipleComponent, AddComponentMenu("Landsong/ECS/Building Visual Root")]
     public sealed class BuildingVisualAuthoring : MonoBehaviour
     {
-        [Tooltip("仅用于配置校验和编辑器打开定义；运行时状态仍来自 Building 实体。")] public GameDefinitionAsset Definition;
+        [Tooltip("仅用于配置校验和编辑器打开定义；运行时状态仍来自 Building 实体。")] [LabelText("建筑内容定义")] public GameDefinitionAsset Definition;
         sealed class Baker : Baker<BuildingVisualAuthoring>
         {
             public override void Bake(BuildingVisualAuthoring source)

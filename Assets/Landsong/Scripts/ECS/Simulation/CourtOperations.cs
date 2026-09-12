@@ -16,12 +16,12 @@ namespace Landsong.ECS
         { if(!em.HasComponent<Royal>(e)) return true; var p=em.GetComponentData<Royal>(e); return p.Alive!=0 && p.Role!=0 && p.Role!=1 && p.Role!=3 && p.Retired==0; }
         public static void Vacate(EntityManager em, Entity e)
         { if(!em.HasComponent<Talent>(e)) return; var t=em.GetComponentData<Talent>(e); t.Slot=-1; t.Paid=0; em.SetComponentData(e,t); }
-        public static void Log(EntityManager em, Entity root, string message, ulong person=0)
+        public static void Log(EntityManager em, Entity root, string message, ulong person=0, HistoryCategory category=HistoryCategory.General)
         {
             Sim.Buffer<CourtLogEntry>(em,root); var logs=em.GetBuffer<CourtLogEntry>(root);
             if(logs.Length>=64) logs.RemoveAt(0);
             logs.Add(new CourtLogEntry { Turn=em.GetComponentData<Session>(root).Turn,Person=person,Message=new FixedString128Bytes(message) });
-            Sim.Emit(em,root,EventKind.Message,message,person);
+            Sim.Emit(em,root,EventKind.Message,message,person,category:category);
         }
         public static Royal NewPerson(EntityManager em, Entity root, byte role, int age, ulong parent=0)
         {
@@ -95,7 +95,7 @@ namespace Landsong.ECS
             p.Alive=0; p.VisitUntil=0; em.SetComponentData(e,p); Vacate(em,e);
             if(em.HasComponent<Talent>(e)) { var talent=em.GetComponentData<Talent>(e); talent.Recruited=0; em.SetComponentData(e,talent); }
             var c=State(em,root); if(c.Crown==id) { c.Crown=0; Sim.Set(em,root,c); Disorder(em,root,1); Log(em,root,"储君去世，继承秩序受损",id); }
-            Log(em,root,cause==0?"王室成员自然逝世":cause==1?"王室成员被赐死":cause==2?"君王遭弑杀":"王室成员在高风险出访中遇难",id);
+            Log(em,root,cause==0?"王室成员自然逝世":cause==1?"王室成员被赐死":cause==2?"君王遭弑杀":"王室成员在高风险出访中遇难",id, category: HistoryCategory.Important);
             if(p.Role==0 && cause!=2) Succeed(em,root,e,Entity.Null,false);
             RoyalFamilyOps.ClearInvalidRequests(em,root);
             PersonRequestOps.CancelInvalid(em,root);
@@ -132,7 +132,7 @@ namespace Landsong.ECS
                 if(total>0) { var pick=(Sim.NextRandom(em,root)%1000000)/1000000f*total; foreach(var e in all) if(Eligible(em,former,e)) { chosen=e; pick-=math.max(1,em.GetComponentData<Royal>(e).Influence); if(pick<0) break; } }
             }
             if(chosen==Entity.Null)
-            { c.Extinction=1; Sim.Set(em,root,c); var s=em.GetComponentData<Session>(root); s.Phase=Phase.GameOver; s.Paused=0; em.SetComponentData(root,s); Log(em,root,"王朝绝嗣：没有在世直系后代，王朝终结"); return; }
+            { c.Extinction=1; Sim.Set(em,root,c); var s=em.GetComponentData<Session>(root); s.Phase=Phase.GameOver; s.Paused=0; em.SetComponentData(root,s); Log(em,root,"王朝绝嗣：没有在世直系后代，王朝终结", category: HistoryCategory.Important); return; }
             var old=em.GetComponentData<Royal>(former); old.Role=3; old.Retired=1; em.SetComponentData(former,old); Vacate(em,former);
             var spouse=Sim.Find(em,old.Spouse); if(Alive(em,spouse)) { var p=em.GetComponentData<Royal>(spouse); p.Role=3; p.Retired=1; em.SetComponentData(spouse,p); Vacate(em,spouse); }
             var next=em.GetComponentData<Royal>(chosen); next.Role=0; next.EverMonarch=1; next.ReignSince=turn; em.SetComponentData(chosen,next); Vacate(em,chosen);
@@ -165,7 +165,7 @@ namespace Landsong.ECS
         {
             var p=em.GetComponentData<Royal>(person); var q=Rules(em,root);
             var chance=p.Age<18?q.DeathYoung:p.Age<50?q.DeathAdult:p.Age<65?q.DeathMature:p.Age<80?q.DeathOld:q.DeathAncient;
-            return math.clamp(chance*(1+PersonalModifier(em,root,person,RuleKind.NaturalDeathRisk)),0,1);
+            return math.clamp(chance*(1+EffectOps.PersonalRisk(em,root,person)),0,1);
         }
         public static int FateGrace(int age) => math.clamp(15-(age-30)/5,5,15);
         public static bool NaturalDeath(EntityManager em, Entity root, Entity e)
@@ -178,21 +178,12 @@ namespace Landsong.ECS
         }
         public static bool HasTrait(EntityManager em, Entity root, Entity e, string key)
         { if(!em.HasBuffer<TraitEntry>(e)) return false; var d=Sim.FindDefinition(em,root,new FixedString128Bytes(key)); foreach(var t in em.GetBuffer<TraitEntry>(e)) if(t.Definition==d && t.Active!=0) return true; return false; }
-        public static float PersonalModifier(EntityManager em, Entity root, Entity e, RuleKind kind)
-        { float value=0; if(e==Entity.Null || !em.HasBuffer<TraitEntry>(e)) return value; foreach(var t in em.GetBuffer<TraitEntry>(e)) if(t.Active!=0) value+=DefinitionModifier(em,root,t.Definition,kind,-1); return value; }
-        public static float DefinitionModifier(EntityManager em, Entity root, int definition, RuleKind kind, int target)
-        { float result=0; var d=Sim.Definition(em,root,definition); for(int i=0;i<d.RuleCount;i++) { var r=Sim.GetRule(em,root,d.RuleStart+i); if(r.Kind==kind && (r.Target<0 || r.Target==target)) result+=r.Value; } return result; }
+
+
         public static bool PolicyActive(EntityManager em, Entity root, int definition)
-        { var d=Sim.Definition(em,root,definition); return em.GetComponentData<Session>(root).PublicOpinion>=d.Cost && ProgressionOps.Prerequisites(em,root,definition); }
+        { var d=Sim.Definition(em,root,definition); return em.GetComponentData<Session>(root).PublicOpinion>=d.Cost && ConditionOps.Prerequisites(em,root,definition); }
         public static float Modifier(EntityManager em, Entity root, RuleKind kind, int target)
-        {
-            float value=0; if(em.HasBuffer<PolicyChoice>(root)) foreach(var p in em.GetBuffer<PolicyChoice>(root)) if(PolicyActive(em,root,p.Definition)) value+=DefinitionModifier(em,root,p.Definition,kind,target);
-            var king=Monarch(em); if(king!=Entity.Null) foreach(var t in em.GetBuffer<TraitEntry>(king)) if(t.Active!=0) value+=DefinitionModifier(em,root,t.Definition,kind,target);
-            var c=State(em,root); var turn=em.HasComponent<Session>(root)?em.GetComponentData<Session>(root).Turn:0;
-            if(kind==RuleKind.ProductionBonus) value+=c.LegacyProduction+(turn<=c.TemporaryUntil?c.TemporaryProduction:0)-(turn<=c.DisorderUntil?c.Disorder:0);
-            if(kind==RuleKind.SoldierAttackBonus) value+=c.LegacyAttack+(turn<=c.TemporaryUntil?c.TemporaryAttack:0)-(turn<=c.DisorderUntil?c.Disorder:0);
-            return value;
-        }
+            => EffectOps.Value(em, root, new EffectQuery(kind, target, domain: EffectDomain.Court));
         public static void RefreshTraits(EntityManager em, Entity root, Entity person)
         {
             if(!em.HasBuffer<TraitEntry>(person)) return; var p=em.GetComponentData<Royal>(person); var traits=em.GetBuffer<TraitEntry>(person);
@@ -200,7 +191,7 @@ namespace Landsong.ECS
             {
                 var t=traits[i]; var d=Sim.Definition(em,root,t.Definition); if(d.Kind!=ContentKind.RoyalTrait) continue;
                 if(p.Age>=d.Level) t.Revealed=1;
-                bool valid=p.Alive!=0 && t.Revealed!=0 && p.Age>=d.Duration && ProgressionOps.Prerequisites(em,root,t.Definition);
+                bool valid=p.Alive!=0 && t.Revealed!=0 && p.Age>=d.Duration && ConditionOps.Prerequisites(em,root,t.Definition);
                 for(int n=0;n<d.RuleCount;n++) { var r=Sim.GetRule(em,root,d.RuleStart+n); if(r.Kind!=RuleKind.GeneRequired) continue; bool found=false; foreach(var other in traits) if(other.Definition==r.Target) found=true; if(!found) valid=false; }
                 t.Active=(byte)(valid?1:0); traits[i]=t;
             }
@@ -230,7 +221,7 @@ namespace Landsong.ECS
         {
             if(!Eligible(em,king,e)) return 0; var q=Rules(em,root); var p=em.GetComponentData<Royal>(e); var k=em.GetComponentData<Royal>(king);
             if(p.Influence<k.Influence-q.RegicideGap) return 0;
-            var chance=q.RegicideChance*p.Ambition*(1+p.Grievance)*math.max(0,1+Modifier(em,root,RuleKind.PlotRisk,-1));
+            var chance=q.RegicideChance*p.Ambition*(1+p.Grievance)*math.max(0,1+EffectOps.Modifier(em,root,RuleKind.PlotRisk,-1));
             if(State(em,root).Crown==em.GetComponentData<Identity>(e).Id) chance*=q.PrinceRisk;
             return math.clamp(chance,0,.5f);
         }
@@ -251,10 +242,10 @@ namespace Landsong.ECS
             if(EconomyJournalOps.Forecast(em,root)) return;
             var turn=em.GetComponentData<Session>(root).Turn; var c=State(em,root); if(c.LastSettledTurn==turn || c.Extinction!=0) return;
             c.LastSettledTurn=turn; if(c.VisitOfferTurn==0 || turn-c.VisitOfferTurn>=Rules(em,root).VisitInterval) { c.VisitOfferTurn=turn; c.VisitResolved=0; } Sim.Set(em,root,c);
-            var reigning=Monarch(em); var research=(int)math.floor(Modifier(em,root,RuleKind.ResearchOutput,-1));
+            var reigning=Monarch(em); var research=(int)math.floor(EffectOps.Modifier(em,root,RuleKind.ResearchOutput,-1));
             var opinion=em.GetComponentData<Session>(root); var rules=Rules(em,root);
             var recovery=opinion.PublicOpinion<rules.InitialOpinion?math.min(rules.OpinionRecovery,rules.InitialOpinion-opinion.PublicOpinion):0;
-            opinion.PublicOpinion=math.clamp(opinion.PublicOpinion+recovery+(int)math.floor(Sim.Modifier(em,root,RuleKind.PublicOpinion,-1)),0,100); em.SetComponentData(root,opinion);
+            opinion.PublicOpinion=math.clamp(opinion.PublicOpinion+recovery+(int)math.floor(EffectOps.Modifier(em,root,RuleKind.PublicOpinion,-1)),0,100); em.SetComponentData(root,opinion);
             if(research!=0) { var s=em.GetComponentData<Session>(root); s.ResearchPoints=math.max(0,s.ResearchPoints+research); em.SetComponentData(root,s); }
             using(var all=Sim.OrderedEntities<Royal>(em)) foreach(var e in all)
             {
@@ -270,7 +261,7 @@ namespace Landsong.ECS
             {
                 using var all=Sim.OrderedEntities<Royal>(em);
                 foreach(var e in all) if(PlotChance(em,root,king,e)>0 && Roll(em,root,PlotChance(em,root,king,e)))
-                { if(Roll(em,root,.5f)) { Die(em,root,king,2); Succeed(em,root,king,e,false,true); } else { var p=em.GetComponentData<Royal>(e); p.Evidence=1; em.SetComponentData(e,p); Log(em,root,"弑君阴谋失败，已查获确凿证据",em.GetComponentData<Identity>(e).Id); } break; }
+                { if(Roll(em,root,.5f)) { Die(em,root,king,2); Succeed(em,root,king,e,false,true); } else { var p=em.GetComponentData<Royal>(e); p.Evidence=1; em.SetComponentData(e,p); Log(em,root,"弑君阴谋失败，已查获确凿证据",em.GetComponentData<Identity>(e).Id, category: HistoryCategory.Important); } break; }
             }
             RoyalFamilyOps.Settle(em,root);
             PersonRequestOps.Settle(em,root);

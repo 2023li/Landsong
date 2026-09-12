@@ -1,8 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Transforms;
 
@@ -11,18 +10,37 @@ namespace Landsong.ECS.Persistence
     // DTOs exist only at the IO boundary. They never simulate or feed UI as a second live state.
     public static class SnapshotCodec
     {
-        const int Version = 22;
+        public const int CurrentVersion = 24;
+        const int Version = CurrentVersion;
+        static int Header(BinaryReader reader)
+        {
+            if (reader.ReadString() != "LANDSONG-ECS") throw new InvalidDataException("不是 ECS 存档。");
+            int version = reader.ReadInt32();
+            if (version != 22 && version != 23 && version != Version) throw new InvalidDataException("不是当前支持的 ECS 存档版本。");
+            if (reader is SnapshotReader snapshot) snapshot.FormatVersion = version;
+            return version;
+        }
+        sealed class SnapshotReader : BinaryReader
+        {
+            public int FormatVersion;
+            public SnapshotReader(Stream stream) : base(stream) { }
+        }
+        sealed class SnapshotWriter : BinaryWriter
+        {
+            public readonly int FormatVersion;
+            public SnapshotWriter(Stream stream, int version) : base(stream) { FormatVersion = version; }
+        }
         const int MaximumRecords = 1000000;
         public static string ReadMapId(byte[] bytes)
         {
             using var reader = new BinaryReader(new MemoryStream(bytes, false));
-            if (reader.ReadString() != "LANDSONG-ECS" || reader.ReadInt32() != Version) throw new InvalidDataException("不是当前 ECS 基准版本的存档。");
+            int version=Header(reader);
             return reader.ReadString();
         }
         public static (string Map, Session Session) ReadSummary(byte[] bytes)
         {
-            using var reader=new BinaryReader(new MemoryStream(bytes,false));
-            if(reader.ReadString()!="LANDSONG-ECS"||reader.ReadInt32()!=Version)throw new InvalidDataException("不是当前基准版本。");
+            using var reader=new SnapshotReader(new MemoryStream(bytes,false));
+            Header(reader);
             var map=reader.ReadString();reader.ReadString();var count=Count(reader);for(int i=0;i<count;i++)reader.ReadString();var session=Read<Session>(reader);
             if(session.Turn<1||(byte)session.Phase>(byte)Phase.Ended)throw new InvalidDataException("节点摘要无效。");return(map,session);
         }
@@ -48,6 +66,13 @@ namespace Landsong.ECS.Persistence
             public int LedgerTurn;
             public EconomyEntry[] Economy;
             public Record[] Records;
+            internal Snapshot WithResearchState(ResearchEntry[] research, Entitlement[] grants)
+            {
+                var copy = (Snapshot)MemberwiseClone();
+                copy.Research = research;
+                copy.Grants = grants;
+                return copy;
+            }
         }
         public sealed class Record
         {
@@ -74,12 +99,19 @@ namespace Landsong.ECS.Persistence
             public PersonRequestEntry[] PersonRequests;
         }
         public static byte[] Capture(EntityManager em, Entity root)
+            => CaptureVersion(em, root, Version);
+#if UNITY_EDITOR
+        // Verification only: exact legacy ABI and legacy signature; never a production write mode.
+        public static byte[] CaptureLegacyV23ForVerification(EntityManager em, Entity root)
+            => CaptureVersion(em, root, 23);
+#endif
+        static byte[] CaptureVersion(EntityManager em, Entity root, int version)
         {
             em.CompleteAllTrackedJobs();
-            using var stream = new MemoryStream(); using var writer = new BinaryWriter(stream);
-            writer.Write("LANDSONG-ECS"); writer.Write(Version);
+            using var stream = new MemoryStream(); using var writer = new SnapshotWriter(stream, version);
+            writer.Write("LANDSONG-ECS"); writer.Write(version);
             writer.Write(em.GetComponentData<MapIdentity>(root).Id.ToString());
-            writer.Write(ContentSignature(em, root));
+            writer.Write(ContentSignature(em, root, version));
             var blob = em.GetComponentData<ContentCatalog>(root).Value; writer.Write(blob.Value.Definitions.Length);
             for (var i = 0; i < blob.Value.Definitions.Length; i++) writer.Write(blob.Value.Definitions[i].Id.ToString());
             var session = em.GetComponentData<Session>(root); session.SelectedHero = Entity.Null; session.ActiveBell = 0; session.Paused = 0; session.CheckpointPending = 0; session.IntelligenceMode = 0; Write(writer, session);
@@ -125,11 +157,15 @@ namespace Landsong.ECS.Persistence
             return stream.ToArray();
         }
         public static Snapshot Decode(EntityManager em, Entity root, byte[] bytes)
+            => DecodeCore(em, root, bytes, false);
+        static Snapshot DecodeCore(EntityManager em, Entity root, byte[] bytes, bool deferQuestContainerReconciliation)
         {
-            using var stream = new MemoryStream(bytes, false); using var reader = new BinaryReader(stream);
-            if (reader.ReadString() != "LANDSONG-ECS" || reader.ReadInt32() != Version) throw new InvalidDataException("不是当前 ECS 基准版本的存档。");
+            using var stream = new MemoryStream(bytes, false); using var reader = new SnapshotReader(stream);
+            int version=Header(reader);
             if (reader.ReadString() != em.GetComponentData<MapIdentity>(root).Id.ToString()) throw new InvalidDataException("存档属于另一张地图，请返回主菜单选择对应地图。");
-            if (reader.ReadString() != ContentSignature(em, root)) throw new InvalidDataException("内容规则已改变，请开始新王朝；原存档未修改。");
+            // Old files cannot authenticate settings they never stored. They retain the exact
+            // historical signature contract; only v24 writes/read checks use the complete contract.
+            if (reader.ReadString() != ContentSignature(em, root, version)) throw new InvalidDataException("内容规则已改变，请开始新王朝；原存档未修改。");
             var count = Count(reader); var remap = new int[count];
             for (var i = 0; i < count; i++)
             {
@@ -168,7 +204,7 @@ namespace Landsong.ECS.Persistence
                 if ((r.Mask & 32) != 0) r.Expedition = Read<Expedition>(reader);
                 if ((r.Mask & 64) != 0) { r.Talent = Read<Talent>(reader); r.Talent.Slot = Map(r.Talent.Slot); }
                 if ((r.Mask & 128) != 0) r.Royal = Read<Royal>(reader);
-                if((r.Mask&256)!=0)r.Portrait=Read<PortraitDNA>(reader);if((r.Mask&512)!=0)r.SoldierPerson=Read<SoldierPerson>(reader);
+                if((r.Mask&256)!=0)r.Portrait=Read<PortraitDNA>(reader);if((r.Mask&512)!=0){r.SoldierPerson=Read<SoldierPerson>(reader);if(version==22){if(r.SoldierPerson.SpecialAttention>1)throw new InvalidDataException("Invalid legacy soldier name mark");r.SoldierPerson.SpecialAttention=0;}}
                 r.Food = ReadArray<FoodSelection>(reader); r.Offers = ReadArray<QuestOfferSlot>(reader); r.Progress = ReadArray<QuestProgress>(reader); r.Traits = ReadArray<TraitEntry>(reader);
                 r.Supplies = ReadArray<ExpeditionSupply>(reader); for (var n = 0; n < r.Supplies.Length; n++) { var supply = r.Supplies[n]; supply.Item = Map(supply.Item); r.Supplies[n] = supply; }
                 r.ExpeditionHistory = ReadArray<ExpeditionDestinationHistory>(reader); for (var n = 0; n < r.ExpeditionHistory.Length; n++) { var history = r.ExpeditionHistory[n]; history.Definition = Map(history.Definition); r.ExpeditionHistory[n] = history; }
@@ -193,11 +229,19 @@ namespace Landsong.ECS.Persistence
             }
             foreach (var slot in snapshot.Inventory) if (!buildings.Contains(slot.Provider)) throw new InvalidDataException("Inventory provider is missing");
             if (stream.Position != stream.Length) throw new InvalidDataException("Snapshot trailing data");
-            ValidateRestore(em, root, snapshot);
+            snapshot = NormalizeResearch(em, root, snapshot);
+            ValidateRestore(em, root, snapshot, deferQuestContainerReconciliation);
             return snapshot;
+        }
+        static Snapshot NormalizeResearch(EntityManager em, Entity root, Snapshot snapshot)
+        {
+            if (snapshot == null) throw new InvalidDataException("Missing snapshot");
+            var research = ResearchOps.NormalizeImportedState(em, root, snapshot.Session.ResearchPoints, snapshot.Research, snapshot.Grants);
+            return snapshot.WithResearchState(research, (Entitlement[])snapshot.Grants.Clone());
         }
         public static void Restore(EntityManager em, Entity root, Snapshot snapshot, Action<EntityManager, Entity> prepare = null, Action<string> probe = null)
         {
+            snapshot = NormalizeResearch(em, root, snapshot);
             ValidateRestore(em, root, snapshot);
             using var transaction = new RestoreTransaction(em, root);
             Rebuild(em, transaction.Root, snapshot, probe);
@@ -207,7 +251,19 @@ namespace Landsong.ECS.Persistence
         }
         // Only called within a RestoreTransaction; all previous runtime entities are isolated.
         internal static void Rebuild(EntityManager em, Entity root, Snapshot snapshot, Action<string> probe = null)
+            => RebuildCore(em, root, snapshot, false, probe);
+        // Only the live-day night-entry transaction may defer a lost quest binding. This is not
+        // an archive import option: all other constraints remain enforced during decode/rebuild.
+        internal static void RebuildNightEntryCandidate(EntityManager em, Entity root, byte[] liveDay, Action<string> probe = null)
+            => RebuildCore(em, root, DecodeCore(em, root, liveDay, true), true, probe);
+        internal static void ValidateReconciledNightEntry(EntityManager em, Entity root)
+            => Decode(em, root, Capture(em, root));
+        static void RebuildCore(EntityManager em, Entity root, Snapshot snapshot, bool deferQuestContainerReconciliation, Action<string> probe)
         {
+            // Normalize before derived entity statistics read research completion. The DTO belongs
+            // to the caller, so never append legacy completion rows into its arrays in place.
+            snapshot = NormalizeResearch(em, root, snapshot);
+            ValidateRestore(em, root, snapshot, deferQuestContainerReconciliation);
             var occupied = em.GetBuffer<Occupancy>(root); for (var i = 0; i < occupied.Length; i++) occupied[i] = default;
             em.GetBuffer<InventorySlot>(root).Clear();
             em.GetBuffer<Command>(root).Clear(); em.GetBuffer<DamageRequest>(root).Clear();
@@ -264,10 +320,11 @@ namespace Landsong.ECS.Persistence
             if (snapshot.Session.Phase == Phase.Deployment) MilitaryOps.PrepareNight(em, root);
             probe?.Invoke("garrisons-prepared");
         }
-        static string ContentSignature(EntityManager em, Entity root)
+        public static string ContentFingerprint(EntityManager em, Entity root) => ContentSignature(em, root, Version);
+        static string ContentSignature(EntityManager em, Entity root, int version)
         {
             var catalog = em.GetComponentData<ContentCatalog>(root).Value;
-            using var stream = new MemoryStream(); using var writer = new BinaryWriter(stream);
+            using var stream = new MemoryStream(); using var writer = new SnapshotWriter(stream, version);
             writer.Write(catalog.Value.Definitions.Length); writer.Write(catalog.Value.Rules.Length);
             var grid = em.GetComponentData<GridData>(root); writer.Write(grid.Value.Value.Cells.Length);
             for (int i = 0; i < grid.Value.Value.Cells.Length; i++) Write(writer, grid.Value.Value.Cells[i]);
@@ -280,18 +337,39 @@ namespace Landsong.ECS.Persistence
             writer.Write(catalog.Value.NightEvents.Length); for (int i = 0; i < catalog.Value.NightEvents.Length; i++) Write(writer, catalog.Value.NightEvents[i]);
             writer.Write(catalog.Value.NightEnemies.Length); for (int i = 0; i < catalog.Value.NightEnemies.Length; i++) Write(writer, catalog.Value.NightEnemies[i]);
             writer.Write(catalog.Value.NightConditions.Length); for (int i = 0; i < catalog.Value.NightConditions.Length; i++) Write(writer, catalog.Value.NightConditions[i]);
-            for (var i = 0; i < catalog.Value.Definitions.Length; i++) Write(writer, catalog.Value.Definitions[i]);
+            for (var i = 0; i < catalog.Value.Definitions.Length; i++)
+            {
+                var definition = catalog.Value.Definitions[i];
+                if (version >= 24) { definition.Name = default; definition.DefaultSkin = default; definition.BuildingPolicy.MenuOrder = 0; }
+                Write(writer, definition);
+            }
             for (var i = 0; i < catalog.Value.Definitions.Length; i++)
             {
                 var d = catalog.Value.Definitions[i]; var requirements = new List<Rule>();
                 for (var n = 0; n < d.RuleCount; n++) { var rule = catalog.Value.Rules[d.RuleStart + n]; if (d.Kind == ContentKind.Quest && QuestOps.Requirement(rule.Kind)) requirements.Add(rule); else Write(writer, rule); }
                 requirements.Sort((a, b) => string.CompareOrdinal(a.Key.ToString(), b.Key.ToString())); foreach (var rule in requirements) Write(writer, rule);
             }
+            if (version >= 24)
+            {
+                Write(writer, em.GetComponentData<GameSettings>(root));
+                Write(writer, grid.Origin); writer.Write(grid.CellSize);
+                Write(writer, grid.Value.Value.Min); Write(writer, grid.Value.Value.Size);
+                WriteBuffer<SpawnRegion>(writer, em, root);
+                var royalCount = em.HasBuffer<InitialRoyal>(root) ? em.GetBuffer<InitialRoyal>(root).Length : 0;
+                writer.Write(royalCount);
+                for (int i = 0; i < royalCount; i++) { var royal = em.GetBuffer<InitialRoyal>(root)[i]; royal.Name = default; Write(writer, royal); }
+                var buildingCount = em.HasBuffer<InitialBuilding>(root) ? em.GetBuffer<InitialBuilding>(root).Length : 0;
+                writer.Write(buildingCount);
+                for (int i = 0; i < buildingCount; i++) { var building = em.GetBuffer<InitialBuilding>(root)[i]; building.Name = default; Write(writer, building); }
+                var rewardCount = em.HasBuffer<StartingGrant>(root) ? em.GetBuffer<StartingGrant>(root).Length : 0;
+                writer.Write(rewardCount);
+                for (int i = 0; i < rewardCount; i++) Write(writer, em.GetBuffer<StartingGrant>(root)[i].Rule);
+            }
             using var hash = System.Security.Cryptography.SHA256.Create();
             return Convert.ToBase64String(hash.ComputeHash(stream.ToArray()));
         }
         // All predictable content/format failures are rejected before destroying any live entities.
-        static void ValidateRestore(EntityManager em, Entity root, Snapshot snapshot)
+        static void ValidateRestore(EntityManager em, Entity root, Snapshot snapshot, bool deferQuestContainerReconciliation = false)
         {
             if (snapshot?.Economy == null || snapshot.LedgerTurn < 0 || snapshot.LedgerTurn > snapshot.Session.Turn) throw new InvalidDataException("Invalid economy journal");
             foreach (var entry in snapshot.Economy)
@@ -306,6 +384,7 @@ namespace Landsong.ECS.Persistence
             foreach (var h in snapshot.BattleHistory) { if (h.Turn < 1 || h.Turn < historyTurn || h.Turn > s.Turn) throw new InvalidDataException("Invalid battle history turn"); historyTurn = h.Turn; ValidateReport(h.Entry); }
             void ValidateReport(BattleReportEntry entry)
             { if (entry.Amount < 0 || !Unity.Mathematics.math.isfinite(entry.Value) || entry.Value < 0 || (byte)entry.Kind > (byte)EventKind.HeroOfferingExperience || entry.Definition >= 0 && !Sim.ValidDefinition(em, root, entry.Definition)) throw new InvalidDataException("Invalid battle report"); }
+            EntitlementStore.ValidateImport(em, root, snapshot.Grants);
             ResearchOps.ValidateState(em, root, s.ResearchPoints, snapshot.Research, snapshot.Grants);
             if ((s.Phase != Phase.Day && s.Phase != Phase.Deployment && !(s.Phase == Phase.GameOver && snapshot.Court.Extinction == 1)) || s.Turn < 1 || s.RandomState == 0 || s.NextId == 0) throw new InvalidDataException("Invalid session");
             var ids = new HashSet<ulong>(); var buildings = new HashSet<ulong>();
@@ -316,7 +395,7 @@ namespace Landsong.ECS.Persistence
                 if (definition >= 0 && !Sim.ValidDefinition(em, root, definition)) throw new InvalidDataException("Invalid entity definition");
                 if (r.Food == null || r.Offers == null || r.Progress == null || r.Traits == null || r.Investment == null || r.RepairMaterials == null) throw new InvalidDataException("Missing entity buffers");
                 if((r.Mask&256)!=0){if((r.Mask&(4|8|128))==0||!PortraitOps.Ready(em,root))throw new InvalidDataException("Invalid portrait owner");var lib=em.GetComponentData<PortraitLibrary>(root).Value;var gender=(r.Mask&128)!=0?r.Royal.Gender:(r.Mask&512)!=0?r.SoldierPerson.Gender:PersonGender.Male;if(!PortraitOps.Valid(ref lib.Value,r.Portrait,gender))throw new InvalidDataException("Invalid portrait DNA");}
-                if((r.Mask&512)!=0){var p=r.SoldierPerson;if((r.Mask&4)==0||(r.Mask&256)==0||p.Age<0||p.Lifespan<=p.Age||p.LastAgeTurn<0||p.LastAgeTurn>s.Turn||p.Incarnation<0||p.CustomName>1||p.DeathNotified>1||(p.Gender!=PersonGender.Male&&p.Gender!=PersonGender.Female))throw new InvalidDataException("Invalid soldier person");}
+                if((r.Mask&512)!=0){var p=r.SoldierPerson;if((r.Mask&4)==0||(r.Mask&256)==0||p.Age<0||p.Lifespan<=p.Age||p.LastAgeTurn<0||p.LastAgeTurn>s.Turn||p.Incarnation<0||p.SpecialAttention>1||p.DeathNotified>1||(p.Gender!=PersonGender.Male&&p.Gender!=PersonGender.Female))throw new InvalidDataException("Invalid soldier person");}
                 if(r.PersonRequests==null||r.PersonRequests.Length>16||(r.Mask&128)==0&&r.PersonRequests.Length!=0)throw new InvalidDataException("Invalid person request buffer");
                 if ((r.Mask & 16) != 0) QuestOps.ValidateProgress(em, root, definition, r.Quest, r.Progress, s.Turn);
                 if ((r.Mask & 1) != 0 && (!Unity.Mathematics.math.isfinite(r.Health.Current) || !Unity.Mathematics.math.isfinite(r.Health.Maximum) || r.Health.Current < 0 || r.Health.Maximum <= 0 || r.Health.Current > r.Health.Maximum)) throw new InvalidDataException("Invalid health");
@@ -334,7 +413,7 @@ namespace Landsong.ECS.Persistence
                 else if ((r.Mask & (2u | 4u | 8u | 16u | 32u | 64u)) != 0) throw new InvalidDataException("Missing required definition");
                 if ((r.Mask & 2) != 0) { if (r.Building.Level < 1 || r.Building.Workers < 0 || r.Building.Population < 0 || r.Building.SubsidyBudget < 0 || r.Building.SubsidyBudget > Math.Max(0,Sim.Rule(em,root,r.Identity.Definition,RuleKind.Workforce,r.Building.Level).Amount) || r.Building.PaidSubsidy < 0 || r.Building.PaidSubsidyTurn < 0 || r.Building.PaidSubsidyTurn > snapshot.Session.Turn) throw new InvalidDataException("Invalid building state"); buildings.Add(r.Identity.Id); }
             }
-            InvitationStateValidation.Validate(em, root, snapshot);
+            InvitationStateValidation.Validate(em, root, snapshot, deferQuestContainerReconciliation);
             CourtStateValidation.Validate(em, root, snapshot);
             NightStateValidation.Validate(em, root, snapshot);
             ValidateSoldiers(em, root, snapshot);
@@ -387,9 +466,9 @@ namespace Landsong.ECS.Persistence
         { if (data.Length == 0 && !em.HasBuffer<T>(e)) return; Sim.Buffer<T>(em, e); var buffer = em.GetBuffer<T>(e); buffer.Clear(); foreach (var value in data) buffer.Add(value); }
         static T[] ReadArray<T>(BinaryReader reader) where T : unmanaged
         { var array = new T[Count(reader)]; for (var i = 0; i < array.Length; i++) array[i] = Read<T>(reader); return array; }
-        static unsafe void Write<T>(BinaryWriter writer, T value) where T : unmanaged
-        { var bytes = new byte[UnsafeUtility.SizeOf<T>()]; fixed (byte* address = bytes) UnsafeUtility.CopyStructureToPtr(ref value, address); writer.Write(bytes); }
-        static unsafe T Read<T>(BinaryReader reader) where T : unmanaged
-        { var size = UnsafeUtility.SizeOf<T>(); var bytes = reader.ReadBytes(size); if (bytes.Length != size) throw new EndOfStreamException(); fixed (byte* address = bytes) return UnsafeUtility.ReadArrayElement<T>(address, 0); }
+        static void Write<T>(BinaryWriter writer, T value) where T : unmanaged
+        { if (((SnapshotWriter)writer).FormatVersion >= 24) SnapshotBinaryV24.Write(writer, value); else LegacySnapshotBinaryV23.Write(writer, value); }
+        static T Read<T>(BinaryReader reader) where T : unmanaged
+            => ((SnapshotReader)reader).FormatVersion >= 24 ? SnapshotBinaryV24.Read<T>(reader) : LegacySnapshotBinaryV23.Read<T>(reader);
     }
 }

@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 02d7d04a464b7214dac9f377de8cc861, type: 3}
   m_Name: "b\u77AD\u671B\u5854"
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.GameDefinitionAsset
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.GameDefinitionAsset
   Data:
     Id: "b\u77AD\u671B\u5854"
     Name: "\u77AD\u671B\u5854"
@@ -41,71 +41,130 @@ MonoBehaviour:
       Category: 64
       MenuOrder: 502
       ProviderPriority: 0
-      RepairTurns: 0
       CanMove: 1
       CanRotate: 1
       MoveMaterialRatio: 0.3
       MoveExperienceRatio: 0.3
       RuinMovementCost: 4
       DefaultSkin: 
-    Rules:
-    - Kind: 1
-      Target: "\u91D1\u5E01"
-      Secondary: 
-      Level: 1
-      Amount: 60
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 1
-      Target: "\u91D1\u5E01"
-      Secondary: 
-      Level: 2
-      Amount: 60
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 52
-      Target: 
-      Secondary: 
-      Level: 0
-      Amount: 0
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: "\u9646\u5730"
-    - Kind: 23
-      Target: 
-      Secondary: 
-      Level: 1
-      Amount: 40
-      B: 2
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 5
-      Target: "\u91D1\u5E01"
-      Secondary: 
-      Level: 1
-      Amount: 2
-      B: 2
-      C: 0
-      Value: 75
-      Extra: 5
-      Key: 
-    - Kind: 9
-      Target: "\u91D1\u5E01"
-      Secondary: 
-      Level: 1
-      Amount: 1
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
+    Configuration:
+      Conditions:
+        Enabled: 0
+        Completions: []
+        Visibility: []
+      Objectives:
+        Enabled: 0
+        Buildings: []
+        PlantedBuildings: []
+        OwnedItems: []
+        SubmittedItems: []
+        CameraMoves: []
+        CameraZooms: []
+        Technologies: []
+        Turns: []
+      Rewards:
+        Enabled: 0
+        Items: []
+        Blueprints: []
+        Buffs: []
+        Features: []
+        Failures: []
+        SpecialDrops: []
+      UnitCosts:
+        Enabled: 0
+        Recruitment: []
+        Awakening: []
+        Offerings: []
+      Crops:
+        Enabled: 0
+        Seeds: []
+        AutomaticHarvest: []
+        Yields: []
+      Inventory:
+        Enabled: 0
+        Groups: []
+        Accepted: []
+        Losses: []
+      Expeditions:
+        Enabled: 0
+        Supplies: []
+      Modifiers:
+        Enabled: 0
+        LossModifier: []
+        ProductionBonus: []
+        AttackBonus: []
+        HealthBonus: []
+        PublicOpinion: []
+        SoldierAttackBonus: []
+        SoldierSpeedBonus: []
+        ActionPowerBonus: []
+        CropHarvestBonus: []
+        PlotRisk: []
+        NaturalDeathRisk: []
+        ResearchOutput: []
+        RangeBonus: []
+        AttackSpeedBonus: []
+        SpeedBonus: []
+        ArmorBonus: []
+        DamageReductionBonus: []
+        PenetrationBonus: []
+        ProjectileSpeedBonus: []
+        BlastRadiusBonus: []
+        FlatProduction: []
+        Intelligence: []
+      People:
+        Enabled: 0
+        Wages: []
+        Traits: []
+        Conflicts: []
+        Dependencies: []
+        SocialTasks: []
+        PeriodicItems: []
+        Effects: []
+    Modules:
+      Construction:
+        Enabled: 1
+        StageCosts:
+        - Stage: 1
+          Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+          Quantity: 60
+        - Stage: 2
+          Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+          Quantity: 60
+      Placement:
+        Enabled: 1
+        RequiredTerrains:
+        - Terrain: "\u9646\u5730"
+      Defence:
+        Enabled: 1
+        Intelligence:
+        - Level: 1
+          Technology: {fileID: 0}
+          Points: 40
+          RequiredWorkers: 2
+      Workforce:
+        Enabled: 1
+        Levels:
+        - Level: 1
+          Currency: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+          Capacity: 2
+          InitialWorkers: 2
+          InitialSubsidy: 0
+          BaseAttraction: 75.0
+          RecruitmentCost: 5.0
+        EfficiencyTiers:
+        - Level: 1
+          MinimumWorkers: 0
+          MaximumWorkers: 0
+        - Level: 1
+          MinimumWorkers: 1
+          MaximumWorkers: 1
+        - Level: 1
+          MinimumWorkers: 2
+          MaximumWorkers: 2
+      Maintenance:
+        Enabled: 1
+        Costs:
+        - Level: 1
+          Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+          Quantity: 1

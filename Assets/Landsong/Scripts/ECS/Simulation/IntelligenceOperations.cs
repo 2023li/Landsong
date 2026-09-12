@@ -35,35 +35,10 @@ namespace Landsong.ECS
         public static List<IntelSource> Sources(EntityManager em, Entity root)
         {
             var result = new List<IntelSource>();
-            void Add(int definition, int level, ulong owner, string name, Building building, bool granted)
-            {
-                var d = Sim.Definition(em, root, definition);
-                for (int i = 0; i < d.RuleCount; i++)
-                {
-                    var rule = Sim.GetRule(em, root, d.RuleStart + i); if (!EconomyOps.Matches(rule, RuleKind.Intelligence, level)) continue;
-                    var reason = !granted ? (d.Kind == ContentKind.Policy ? "未采用或政策条件未满足" : "尚未获得") : owner != 0 && building.Stage != LifeStage.Operational ? "建筑未运营"
-                        : owner != 0 && building.Maintained == 0 ? "维护未满足"
-                        : owner != 0 && building.Workers < rule.B ? "工人不足（需要 " + rule.B + "）"
-                        : rule.Target >= 0 && !Sim.HasGrant(em, root, rule.Target) ? "需要科技：" + Sim.Definition(em, root, rule.Target).Name : "";
-                    result.Add(new IntelSource { Building = owner, Definition = definition, Name = name, Points = rule.Amount, Effective = reason.Length == 0 ? rule.Amount : 0, Reason = reason.Length == 0 ? "生效" : reason });
-                }
-            }
-            using var buildings = Sim.OrderedEntities<Building>(em);
-            foreach (var e in buildings) { var id = em.GetComponentData<Identity>(e); var b = em.GetComponentData<Building>(e); Add(id.Definition, b.Level, id.Id, id.Name.ToString(), b, true); }
-            var blob = em.GetComponentData<ContentCatalog>(root).Value;
-            for (int i = 0; i < blob.Value.Definitions.Length; i++)
-            {
-                var d = blob.Value.Definitions[i];
-                if (d.Kind != ContentKind.Technology && d.Kind != ContentKind.Buff && d.Kind != ContentKind.Policy) continue;
-                // Buff entitlements cover event rewards; policies use their separate live selection/opinion authority.
-                bool granted = Sim.HasGrant(em, root, i);
-                if (d.Kind == ContentKind.Policy)
-                {
-                    granted = false;
-                    if (em.HasBuffer<PolicyChoice>(root)) foreach (var policy in em.GetBuffer<PolicyChoice>(root)) if (policy.Definition == i && CourtOps.PolicyActive(em, root, i)) granted = true;
-                }
-                Add(i, 1, 0, d.Name.ToString(), default, granted);
-            }
+            var quote = EffectOps.Query(em, root, new EffectQuery(RuleKind.Intelligence, domain: EffectDomain.Intelligence));
+            foreach (var source in quote.Sources)
+                result.Add(new IntelSource { Building = source.Owner, Definition = source.Definition,
+                    Name = source.Name, Points = (int)source.Value, Effective = (int)source.Applied, Reason = source.Reason });
             return result;
         }
         public static int Current(EntityManager em, Entity root)

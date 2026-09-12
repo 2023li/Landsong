@@ -1,6 +1,13 @@
 {
   "name": "Landsong.ECS.Editor",
-  "references": ["Landsong.ECS", "Unity.Entities", "Unity.Collections"],
-  "includePlatforms": ["Editor"],
+  "references": [
+    "Landsong.ECS",
+    "Landsong.ECS.Authoring",
+    "Unity.Entities",
+    "Unity.Collections"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
   "autoReferenced": true
 }

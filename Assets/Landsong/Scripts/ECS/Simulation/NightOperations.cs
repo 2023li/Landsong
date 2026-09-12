@@ -136,7 +136,7 @@ namespace Landsong.ECS
         public static ResultCode PickUp(EntityManager em, Entity root, Entity e)
         {
             if (e == Entity.Null || !em.Exists(e)) return ResultCode.InvalidTarget;
-            if (em.HasComponent<Loot>(e)) { var loot = em.GetComponentData<Loot>(e); NightResultOps.Record(em, root, em.GetComponentData<Identity>(e).Id, 0, RuleKind.RewardItem, loot.Item, loot.Count, loot.SourceName); em.GetBuffer<GameEvent>(root).Add(new GameEvent { Kind = EventKind.Reward, Target = em.GetComponentData<Identity>(e).Id, Definition = loot.Item, Amount = loot.Count, Position = Sim.Position(em, e) }); Sim.Emit(em, root, EventKind.Message, "已收取特殊战利品，黎明统一入库。"); }
+            if (em.HasComponent<Loot>(e)) { var loot = em.GetComponentData<Loot>(e); NightResultOps.Record(em, root, em.GetComponentData<Identity>(e).Id, 0, RuleKind.RewardItem, loot.Item, loot.Count, loot.SourceName); em.GetBuffer<GameEvent>(root).Add(new GameEvent { Kind = EventKind.Reward, Target = em.GetComponentData<Identity>(e).Id, Definition = loot.Item, Amount = loot.Count, Position = Sim.Position(em, e) }); Sim.Emit(em, root, EventKind.Message, "已收取特殊战利品，黎明统一入库。", category: HistoryCategory.Economy); }
             else if (em.HasComponent<Opportunity>(e)) return PeacefulOps.Claim(em, root, e);
             else return ResultCode.InvalidTarget;
             em.DestroyEntity(e); return ResultCode.Success;

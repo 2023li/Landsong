@@ -65,11 +65,6 @@ namespace Landsong.ECS
         }
         public static bool Operational(EntityManager em, Entity e) => e != Entity.Null && em.Exists(e) && em.HasComponent<Building>(e) && em.GetComponentData<Building>(e).Stage == LifeStage.Operational;
         public static bool Alive(EntityManager em, Entity e) => e != Entity.Null && em.Exists(e) && em.HasComponent<Health>(e) && em.GetComponentData<Health>(e).Current > 0;
-        public static bool HasGrant(EntityManager em, Entity root, int definition, int level = 1)
-        {
-            foreach (var g in em.GetBuffer<Entitlement>(root)) if (g.Definition == definition && g.Level >= level) return true;
-            return false;
-        }
         public static ulong AllocateId(EntityManager em, Entity root)
         {
             var s = em.GetComponentData<Session>(root);
@@ -84,10 +79,11 @@ namespace Landsong.ECS
             var result = r.NextUInt(); s.RandomState = r.state; em.SetComponentData(root, s);
             return result;
         }
-        public static void Emit(EntityManager em, Entity root, EventKind kind, FixedString128Bytes message, ulong target = 0, int definition = -1, int amount = 0)
+        public static void Emit(EntityManager em, Entity root, EventKind kind, FixedString128Bytes message, ulong target = 0, int definition = -1, int amount = 0, HistoryCategory? category = null)
         {
-            em.GetBuffer<GameEvent>(root).Add(new GameEvent { Kind = kind, Message = message, Target = target, Definition = definition, Amount = amount });
-            HistoryOps.Message(em, root, kind, message, target);
+            var historyCategory = category ?? HistoryOps.DefaultCategory(kind);
+            em.GetBuffer<GameEvent>(root).Add(new GameEvent { Kind = kind, Category = historyCategory, Message = message, Target = target, Definition = definition, Amount = amount });
+            HistoryOps.Message(em, root, kind, message, target, historyCategory);
         }
         public static Entity Spawn(EntityManager em, Entity root, int definition, float3 position, bool persistent)
         {
@@ -130,26 +126,6 @@ namespace Landsong.ECS
             return count;
         }
         public static float3 Position(EntityManager em, Entity e) => em.GetComponentData<LocalTransform>(e).Position;
-        public static void Grant(EntityManager em, Entity root, int definition, int level = 1)
-        {
-            var list = em.GetBuffer<Entitlement>(root);
-            for (var i = 0; i < list.Length; i++) if (list[i].Definition == definition) { var g = list[i]; g.Level = math.max(g.Level, level); list[i] = g; return; }
-            list.Add(new Entitlement { Definition = definition, Level = math.max(1, level) });
-        }
-        public static float Modifier(EntityManager em, Entity root, RuleKind kind, int target, System.Collections.Generic.List<AttractionSource> sources = null)
-        {
-            var value = 0f;
-            foreach (var grant in em.GetBuffer<Entitlement>(root))
-            {
-                var d = Definition(em, root, grant.Definition);
-                if (d.Kind != ContentKind.Buff) continue;
-                for (var i = 0; i < d.RuleCount; i++) { var r = GetRule(em, root, d.RuleStart + i); if (r.Kind == kind && (r.Target < 0 || r.Target == target)) { value += r.Value; if (r.Value != 0) sources?.Add(new AttractionSource { Definition = grant.Definition, Label = "Buff", Value = r.Value }); } }
-            }
-            using var talents = OrderedEntities<Talent>(em);
-            foreach (var e in talents) { var t = em.GetComponentData<Talent>(e); if (t.Recruited != 0 && t.Paid != 0 && t.Slot >= 0 && CourtOps.JobEligible(em, e) && SocialOps.Accepts(em, root, e, t.Slot)) { var id = em.GetComponentData<Identity>(e); var amount = DynastyOps.PassiveModifier(em, root, id.Definition, t.Level, kind, target); value += amount; if (amount != 0) sources?.Add(new AttractionSource { Definition = id.Definition, Label = "人才", Value = amount }); foreach (var trait in em.GetBuffer<TraitEntry>(e)) if (trait.Active != 0 && Definition(em, root, trait.Definition).Kind != ContentKind.RoyalTrait) { amount = DynastyOps.PassiveModifier(em, root, trait.Definition, t.Level, kind, target); value += amount; if (amount != 0) sources?.Add(new AttractionSource { Definition = trait.Definition, Label = "人才特性", Value = amount }); } } }
-            var court = CourtOps.Modifier(em, root, kind, target); value += court;
-            if (court != 0) sources?.Add(new AttractionSource { Definition = -1, Label = "王室与政策", Value = court });
-            return value;
-        }
+
     }
 }

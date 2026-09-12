@@ -14,14 +14,12 @@ namespace Landsong.ECS
             var lib=em.GetComponentData<PortraitLibrary>(root).Value;Sim.Set(em,unit,PortraitOps.Generate(ref lib.Value,random.NextUInt(1,uint.MaxValue),PortraitOps.Gender(em,unit)));
             if(incarnation>0){var identity=em.GetComponentData<Identity>(unit);ulong next=id+(ulong)incarnation*1000003;var name=SoldierName(next);while(name==identity.Name)name=SoldierName(++next);identity.Name=name;em.SetComponentData(unit,identity);}
         }
-        public static void MarkCustomName(EntityManager em,Entity unit)
-        {if(!em.HasComponent<SoldierPerson>(unit))return;var p=em.GetComponentData<SoldierPerson>(unit);p.CustomName=1;em.SetComponentData(unit,p);}
         public static void RememberSoldier(EntityManager em,Entity root,Entity unit,bool natural)
         {
             if(!em.HasComponent<SoldierPerson>(unit)||EconomyJournalOps.Forecast(em,root))return;
-            var person=em.GetComponentData<SoldierPerson>(unit);if(person.CustomName==0||person.DeathNotified!=0)return;person.DeathNotified=1;em.SetComponentData(unit,person);
+            var person=em.GetComponentData<SoldierPerson>(unit);if(person.SpecialAttention==0||person.DeathNotified!=0)return;person.DeathNotified=1;em.SetComponentData(unit,person);
             var identity=em.GetComponentData<Identity>(unit);string name=identity.Name.ToString();if(name.Length>12)name=name.Substring(0,12);
-            Sim.Emit(em,root,EventKind.Message,new FixedString128Bytes(natural?name+"自然死亡。遗言：愿后来的人守住家园。":name+"阵亡。遗愿：替我看看太平的日子。"),identity.Id);
+            Sim.Emit(em,root,EventKind.Message,new FixedString128Bytes(natural?name+"自然死亡。遗言：愿后来的人守住家园。":name+"阵亡。遗愿：替我看看太平的日子。"),identity.Id, category: HistoryCategory.Important);
         }
         public static void AgeSoldiers(EntityManager em,Entity root)
         {

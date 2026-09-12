@@ -27,12 +27,12 @@ namespace Landsong.ECS
                 for(int i=0;i<definition.RuleCount;i++)
                 {
                     var rule=Sim.GetRule(em,root,definition.RuleStart+i);
-                    if(!EconomyOps.Matches(rule,RuleKind.Garrison,building.Level)||rule.C==0)continue;
-                    if(rule.C<0||!Sim.ValidDefinition(em,root,rule.Target)||Sim.Definition(em,root,rule.Target).Kind!=ContentKind.Soldier)
+                    if(!EconomyOps.Matches(rule,RuleKind.InitialGarrison,building.Level)||rule.Amount==0)continue;
+                    if(rule.Amount<0||!Sim.ValidDefinition(em,root,rule.Target)||Sim.Definition(em,root,rule.Target).Kind!=ContentKind.Soldier)
                         throw new InvalidOperationException("Invalid initial garrison: "+definition.Id);
-                    if(rule.C>em.GetComponentData<BuildingStats>(site).Garrison-GarrisonCount(em,identity.Id))
+                    if(rule.Amount>em.GetComponentData<BuildingStats>(site).Garrison-GarrisonCount(em,identity.Id))
                         throw new InvalidOperationException("Initial garrison exceeds building slots: "+definition.Id);
-                    for(int n=0;n<rule.C;n++)
+                    for(int n=0;n<rule.Amount;n++)
                     {
                         int slot=FreeSlot(em,site);if(slot==0)throw new InvalidOperationException("Initial garrison has no operational slot: "+definition.Id);
                         var unit=Sim.Spawn(em,root,rule.Target,Sim.Position(em,site),true);
@@ -109,8 +109,7 @@ namespace Landsong.ECS
             bool pending=c.Argument==1;
             var q = RecruitQuote(em, root, c.Target, c.Definition, quantity,pending); if (q.Code != ResultCode.Success) return q.Code;
             var site = Sim.Find(em, c.Target); var before = em.GetComponentData<Building>(site); var session = em.GetComponentData<Session>(root);
-            using var stock = em.GetBuffer<InventorySlot>(root).ToNativeArray(Allocator.Temp);
-            int ledgerCount = em.HasBuffer<EconomyEntry>(root) ? em.GetBuffer<EconomyEntry>(root).Length : 0;
+            using var resources = new InventoryTransaction(em, root);
             var created = new List<Entity>();
             try
             {
@@ -124,13 +123,12 @@ namespace Landsong.ECS
                 }
                 if (!BuildingCostOps.Pay(em, root, q.Costs)) throw new InvalidOperationException("招募资源发生变化");
                 var b = before; b.SoldiersRecruited = (b.SoldierRecruitTurn == session.Turn ? b.SoldiersRecruited : 0) + quantity; b.SoldierRecruitTurn = session.Turn; em.SetComponentData(site, b);
-                probe?.Invoke(quantity); return ResultCode.Success;
+                probe?.Invoke(quantity); resources.Commit(); return ResultCode.Success;
             }
             catch (Exception)
             {
                 foreach (var e in created) if (em.Exists(e)) em.DestroyEntity(e);
-                em.SetComponentData(root, session); em.SetComponentData(site, before); em.GetBuffer<InventorySlot>(root).CopyFrom(stock);
-                if (em.HasBuffer<EconomyEntry>(root)) em.GetBuffer<EconomyEntry>(root).ResizeUninitialized(ledgerCount);
+                em.SetComponentData(root, session); em.SetComponentData(site, before);
                 return ResultCode.PreparationFailed;
             }
         }
@@ -140,13 +138,22 @@ namespace Landsong.ECS
         { uint hash = math.hash(new uint2((uint)id, (uint)(id >> 32) ^ 0x51a7u)); return new FixedString128Bytes(Surnames[hash % 16] + GivenNames[(hash / 16) % 16]); }
         public static ResultCode SoldierCommand(EntityManager em, Entity root, Command c)
         {
-            var session = em.GetComponentData<Session>(root); if (session.Phase != Phase.Day) return ResultCode.WrongPhase;
+            var session = em.GetComponentData<Session>(root);
             var unit = Sim.Find(em, c.Target);
+            if(c.Kind==CommandKind.SetSoldierAttention)
+            {
+                if(session.Paused!=0||session.CheckpointPending!=0||session.IntelligenceMode!=0)return ResultCode.Busy;
+                if(session.Phase==Phase.GameOver||session.Phase==Phase.Ended)return ResultCode.WrongPhase;
+                if(unit==Entity.Null||!em.HasComponent<Soldier>(unit)||!em.HasComponent<SoldierPerson>(unit)||!Sim.Alive(em,unit))return ResultCode.InvalidTarget;
+                if(c.Argument!=0&&c.Argument!=1)return ResultCode.InvalidContent;
+                var person=em.GetComponentData<SoldierPerson>(unit);person.SpecialAttention=(byte)c.Argument;em.SetComponentData(unit,person);return ResultCode.Success;
+            }
+            if(session.Phase!=Phase.Day)return ResultCode.WrongPhase;
             if (unit == Entity.Null || !em.HasComponent<Soldier>(unit) || !Sim.Alive(em, unit)) return ResultCode.InvalidTarget;
             if (c.Kind == CommandKind.RenameSoldier)
             {
                 var name = BuildingOps.SanitizeName(c.Text.ToString()); if (string.IsNullOrWhiteSpace(name)) return ResultCode.InvalidContent;
-                var identity = em.GetComponentData<Identity>(unit); identity.Name = new FixedString128Bytes(name); em.SetComponentData(unit, identity); MarkCustomName(em,unit); return ResultCode.Success;
+                var identity = em.GetComponentData<Identity>(unit); identity.Name = new FixedString128Bytes(name); em.SetComponentData(unit, identity); return ResultCode.Success;
             }
             if (c.Kind != CommandKind.DismissSoldier) return ResultCode.InvalidContent;
             if (c.Argument != 1) return ResultCode.ConfirmationRequired;

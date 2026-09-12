@@ -149,24 +149,27 @@ namespace Landsong.ECS.Editor
         static void SourceConditions(EntityManager em, Entity root)
         {
             var catalog = AssetDatabase.LoadAssetAtPath<GameCatalogAsset>("Assets/Landsong/ECSContent/GameCatalog.asset");
-            var copy = UnityEngine.Object.Instantiate(catalog); copy.Definitions = (GameDefinitionAsset[])catalog.Definitions.Clone();
+            var copy = CatalogFixture.Clone(catalog);
             int tower = copy.Find("b瞭望塔"), tech = Array.FindIndex(copy.Definitions, d => d.Data.Kind == ContentKind.Technology), buff = Array.FindIndex(copy.Definitions, d => d.Data.Kind == ContentKind.Buff), policy = Array.FindIndex(copy.Definitions, d => d.Data.Kind == ContentKind.Policy);
-            foreach (int i in new[] { tower, tech, buff, policy }) copy.Definitions[i] = UnityEngine.Object.Instantiate(copy.Definitions[i]);
             var original = em.GetComponentData<ContentCatalog>(root); using var grants = em.GetBuffer<Entitlement>(root).ToNativeArray(Allocator.Temp);
+            using var research = em.GetBuffer<ResearchEntry>(root).ToNativeArray(Allocator.Temp);
             using var policies = em.GetBuffer<PolicyChoice>(root).ToNativeArray(Allocator.Temp); var originalSession = em.GetComponentData<Session>(root);
             BlobAssetReference<ContentBlob> blob = default;
             try
             {
-                copy.Definitions[tower].Data.Rules.First(r => r.Kind == RuleKind.Intelligence).Target = copy.Definitions[tech].Data.Id;
-                copy.Definitions[tech].Data.Rules = copy.Definitions[tech].Data.Rules.Concat(new[] { new RuleSource { Kind = RuleKind.Intelligence, Level = 1, Amount = 30 } }).ToArray();
-                copy.Definitions[buff].Data.Rules = copy.Definitions[buff].Data.Rules.Concat(new[] { new RuleSource { Kind = RuleKind.Intelligence, Level = 1, Amount = 40 } }).ToArray();
-                copy.Definitions[policy].Data.Rules = new[] { new RuleSource { Kind = RuleKind.Intelligence, Amount = 10 } }; copy.Definitions[policy].Data.Cost = 10;
+                copy.Definitions[tower].Data.Modules.Defence.Intelligence[0].Technology = copy.Definitions[tech];
+                copy.Definitions[tech].Data.Configuration.Modifiers.Enabled=true; copy.Definitions[tech].Data.Configuration.Modifiers.Intelligence=new[]{new PassiveIntelligence{Level=1,Points=30}};
+                copy.Definitions[buff].Data.Configuration.Modifiers.Enabled=true; copy.Definitions[buff].Data.Configuration.Modifiers.Intelligence=new[]{new PassiveIntelligence{Level=1,Points=40}};
+                copy.Definitions[policy].Data.Configuration.Modifiers = new ModifiersContentModule{Enabled=true,Intelligence=new[]{new PassiveIntelligence{Points=10}}}; copy.Definitions[policy].Data.Cost = 10;
                 blob = GameWorldAuthoring.BuildCatalog(copy); em.SetComponentData(root, new ContentCatalog { Value = blob });
                 em.GetBuffer<PolicyChoice>(root).Clear();
                 var g = em.GetBuffer<Entitlement>(root); for (int i = g.Length - 1; i >= 0; i--) if (g[i].Definition == tech || g[i].Definition == buff) g.RemoveAt(i);
+                var entries = em.GetBuffer<ResearchEntry>(root); for (int i = entries.Length - 1; i >= 0; i--) if (entries[i].Definition == tech) entries.RemoveAt(i);
                 Check(IntelOps.Current(em, root) == 0 && IntelOps.Sources(em, root).Any(x => x.Reason.Contains("需要科技")), "Source technology prerequisite explains disabled contribution");
-                Sim.Grant(em, root, tech); Check(IntelOps.Current(em, root) == 70, "Unlocked technology contributes and enables its building source");
-                Sim.Grant(em, root, buff); Check(IntelOps.Current(em, root) == 100, "Event Buff plus technology and building clamp completeness at one hundred");
+                entries.Add(new ResearchEntry { Definition = tech, Completions = 1 });
+                g.Add(new Entitlement { Definition = tech, Level = 1 });
+                Check(IntelOps.Current(em, root) == 70, "Completed technology contributes and enables its building source");
+                PermanentBuffOps.Grant(em, root, buff); Check(IntelOps.Current(em, root) == 100, "Event Buff plus technology and building clamp completeness at one hundred");
                 g = em.GetBuffer<Entitlement>(root); for (int i = g.Length - 1; i >= 0; i--) if (g[i].Definition == buff) g.RemoveAt(i);
                 Check(IntelOps.Current(em, root) == 70, "Expired/revoked event Buff no longer contributes");
                 var s = originalSession; s.PublicOpinion = 20; em.SetComponentData(root, s);
@@ -177,8 +180,9 @@ namespace Landsong.ECS.Editor
             finally
             {
                 em.SetComponentData(root, original); em.GetBuffer<Entitlement>(root).Clear(); em.GetBuffer<Entitlement>(root).AddRange(grants);
+                em.GetBuffer<ResearchEntry>(root).Clear(); em.GetBuffer<ResearchEntry>(root).AddRange(research);
                 em.GetBuffer<PolicyChoice>(root).Clear(); em.GetBuffer<PolicyChoice>(root).AddRange(policies); em.SetComponentData(root, originalSession);
-                if (blob.IsCreated) blob.Dispose(); foreach (int i in new[] { tower, tech, buff, policy }) UnityEngine.Object.DestroyImmediate(copy.Definitions[i]); UnityEngine.Object.DestroyImmediate(copy);
+                if (blob.IsCreated) blob.Dispose(); CatalogFixture.Destroy(copy);
             }
         }
         static void RetryKnowledge(EntityManager em, Entity root, CheckpointSystem checkpoint)

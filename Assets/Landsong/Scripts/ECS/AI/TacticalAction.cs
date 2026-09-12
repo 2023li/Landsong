@@ -2,6 +2,7 @@ using Opsive.BehaviorDesigner.Runtime;
 using Opsive.BehaviorDesigner.Runtime.Components;
 using Opsive.BehaviorDesigner.Runtime.Groups;
 using Opsive.BehaviorDesigner.Runtime.Tasks;
+using LabelText = Sirenix.OdinInspector.LabelTextAttribute;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -10,14 +11,22 @@ using Unity.Transforms;
 
 namespace Landsong.ECS.AI
 {
-    public enum TacticalMode : byte { Dormant, Retreat, PlayerOrder, EngageEnemy, AttackBuilding, Patrol }
+    public enum TacticalMode : byte
+    {
+        [LabelText("休眠")] Dormant = 0,
+        [LabelText("撤退")] Retreat = 1,
+        [LabelText("执行玩家命令")] PlayerOrder = 2,
+        [LabelText("交战")] EngageEnemy = 3,
+        [LabelText("攻击建筑")] AttackBuilding = 4,
+        [LabelText("巡逻")] Patrol = 5
+    }
 
     // Only this authoring object is managed. Baking creates the buffer and enableable task flag.
     [Opsive.Shared.Utility.Category("Landsong/ECS")]
     [Opsive.Shared.Utility.Description("Choose one tactical action. Selector ordering in the authored tree determines priority; movement and damage remain independent ECS systems.")]
     public sealed class TacticalAction : ECSActionTask<TacticalActionSystem, TacticalActionData, TacticalActionFlag>
     {
-        public TacticalMode Mode;
+        [LabelText("战术模式")] public TacticalMode Mode;
         public override TacticalActionData GetBufferElement() => new TacticalActionData { Index = RuntimeIndex, Mode = Mode, LastExecution = -1 };
     }
     public struct TacticalActionData : IBufferElementData { public ushort Index; public TacticalMode Mode; public float LastExecution; }

@@ -1,7 +1,13 @@
 {
   "name": "Landsong.ECS",
   "rootNamespace": "Landsong.ECS",
-  "references": ["Unity.Entities", "Unity.Entities.Hybrid", "Unity.Transforms", "Unity.Mathematics", "Unity.Collections", "Unity.Burst", "Unity.Scenes", "Unity.Entities.Graphics", "Opsive.BehaviorDesigner.Runtime", "Opsive.GraphDesigner.Runtime", "Opsive.Shared.Runtime", "Opsive.BehaviorDesigner.Runtime.Systems", "Opsive.BehaviorDesigner.Runtime.Tasks.Composites", "Opsive.BehaviorDesigner.Runtime.Tasks.Decorators"],
+  "references": [
+    "Unity.Entities",
+    "Unity.Transforms",
+    "Unity.Mathematics",
+    "Unity.Collections",
+    "Unity.Burst"
+  ],
   "allowUnsafeCode": true,
   "autoReferenced": true
 }

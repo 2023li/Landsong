@@ -1,0 +1,431 @@
+{
+  "Buildings": [
+    {
+      "Id": "b仓库",
+      "Rules": [
+        "ConstructionCost|原木||2|10|0|0|0|0|",
+        "ConstructionCost|泥土||1|10|0|0|0|0|",
+        "ConstructionCost|石头||3|10|0|0|0|0|",
+        "Experience|||1|1|30|2|0|0|",
+        "Experience|||2|1|50|2|0|0|",
+        "Experience|||3|0|0|0|0|0|",
+        "Maintenance|金币||1|1|0|0|0|0|",
+        "Maintenance|金币||2|2|0|0|0|0|",
+        "Maintenance|金币||3|3|0|0|0|0|",
+        "PlacementCost|金币||1|30|0|0|0|0|",
+        "Provider|||0|0|0|0|0|0|",
+        "RequiredTerrain|||0|0|0|0|0|0|陆地",
+        "StorageCondition|||1|2|150|0|10|1.25|",
+        "StorageCondition|||2|3|150|0|10|1.25|",
+        "StorageCondition|||3|4|150|0|10|1.25|",
+        "Warehouse|slot.普通库存||2|2|0|0|0|0|",
+        "Warehouse|slot.简陋库存||1|1|0|0|0|0|",
+        "Warehouse|slot.高级库存||3|1|5|0|0|0|",
+        "Warehouse|slot.高级库存||3|3|0|0|0|0|",
+        "Workforce|金币||1|2|0|0|55|10|",
+        "Workforce|金币||2|3|0|0|55|10|",
+        "Workforce|金币||3|5|0|0|55|10|"
+      ]
+    },
+    {
+      "Id": "b伐木小屋",
+      "Rules": [
+        "ProductionTier|原木||1|1|2|2|0|0|",
+        "ProductionTier|原木||1|2|3|0|0|0|",
+        "ProductionTier|原木||2|1|2|2|0|0|",
+        "ProductionTier|原木||2|2|3|4|0|0|",
+        "ProductionTier|原木||2|4|5|0|0|0|",
+        "Production|||1|3|0|0|0|0|",
+        "Production|||2|3|0|0|0|0|",
+        "RequiredTerrain|||0|0|0|0|0|0|陆地",
+        "UpgradeCost|金币||2|30|0|0|0|0|",
+        "Workforce|金币||1|3|2|0|55|10|",
+        "Workforce|金币||2|5|2|0|55|10|"
+      ]
+    },
+    {
+      "Id": "b农田",
+      "Rules": [
+        "Crop|crop.cabbage||1|0|0|0|0|0|",
+        "Crop|crop.wheat||1|0|0|0|0|0|",
+        "RequiredTerrain|||0|0|0|0|0|0|陆地",
+        "Workforce|金币||1|3|0|0|55|10|"
+      ]
+    },
+    {
+      "Id": "b医院",
+      "Rules": [
+        "ConstructionCost|原木||1|10|0|0|0|0|",
+        "ConstructionCost|石头||2|10|0|0|0|0|",
+        "Experience|||1|1|30|3|0|0|",
+        "Experience|||2|1|100|8|0|0|",
+        "Experience|||3|0|0|0|0|0|",
+        "Maintenance|金币||1|1|0|0|0|0|",
+        "Maintenance|金币||2|3|0|0|0|0|",
+        "Maintenance|金币||3|6|0|0|0|0|",
+        "PlacementCost|金币||1|20|0|0|0|0|",
+        "RequiredTerrain|||0|0|0|0|0|0|陆地",
+        "SpatialEffect|||1|1|30|2|5|20|medical.hospital.lv1.2_workers",
+        "SpatialEffect|||1|1|30|4|8|20|medical.hospital.lv1.4_workers",
+        "SpatialEffect|||2|2|30|4|8|20|medical.hospital.lv2.4_workers",
+        "SpatialEffect|||2|2|30|8|12|20|medical.hospital.lv2.8_workers",
+        "SpatialEffect|||3|3|30|16|18|20|medical.hospital.lv3.16_workers",
+        "SpatialEffect|||3|3|30|8|12|20|medical.hospital.lv3.8_workers",
+        "UpgradeCost|金币||2|300|0|0|0|0|",
+        "UpgradeCost|金币||3|1000|0|0|0|0|",
+        "Workforce|金币||1|4|0|0|55|10|",
+        "Workforce|金币||2|8|0|0|55|10|",
+        "Workforce|金币||3|16|0|0|55|10|"
+      ]
+    },
+    {
+      "Id": "b小土堆",
+      "Rules": [
+        "Harvest|泥土||1|3|10|0|0|0|",
+        "RequiredTerrain|||0|0|0|0|0|0|陆地"
+      ]
+    },
+    {
+      "Id": "b小石堆",
+      "Rules": [
+        "Harvest|石头||1|3|10|0|0|0|",
+        "RequiredTerrain|||0|0|0|0|0|0|陆地"
+      ]
+    },
+    {
+      "Id": "b居民房",
+      "Rules": [
+        "ConstructionCost|原木||3|10|0|0|0|0|",
+        "ConstructionCost|泥土||1|10|0|0|0|0|",
+        "ConstructionCost|石头||2|10|0|0|0|0|",
+        "Environment|||2|2|40|0|0|0|",
+        "Environment|||2|4|20|0|0|0|",
+        "Experience|||1|1|30|0|0|0|",
+        "Experience|||2|1|30|0|0|0|",
+        "Food|food.meat.tier1||2|1|1|0|0|0|",
+        "Food|food.staple.tier1||1|1|1|0|0|0|",
+        "Food|food.staple.tier1||2|1|1|0|0|0|",
+        "Food|food.vegetable.tier1||1|1|1|0|0|0|",
+        "Food|food.vegetable.tier1||2|2|1|0|0|0|",
+        "PlacementCost|原木||1|1|0|0|0|0|",
+        "PlacementCost|石头||1|1|0|0|0|0|",
+        "PlacementCost|金币||1|30|0|0|0|0|",
+        "RequiredTerrain|||0|0|0|0|0|0|陆地",
+        "Residence|||1|5|2|3|3|0|",
+        "Residence|||2|5|2|3|3|0|",
+        "Tax|金币||1|1|5|0|0|0|",
+        "Tax|金币||2|1|5|0|0|0|"
+      ]
+    },
+    {
+      "Id": "b市场",
+      "Rules": [
+        "Market|金币||1|100|0|0|0.100000001|0|",
+        "Provider|||0|0|0|0|0|0|",
+        "QuestRecruitCost|金币||1|10|0|0|0|0|",
+        "QuestSource|||1|1|0|30|50|0|",
+        "RequiredTerrain|||0|0|0|0|0|0|陆地",
+        "Workforce|金币||1|3|3|1|100|10|"
+      ]
+    },
+    {
+      "Id": "b捕鱼小屋",
+      "Rules": [
+        "ProductionTier|沙丁鱼||1|1|2|2|0|0|",
+        "ProductionTier|沙丁鱼||1|2|3|0|0|0|",
+        "Production|||1|3|0|0|0|0|",
+        "RequiredTerrain|||0|0|0|0|0|0|陆地",
+        "Workforce|金币||1|3|0|0|55|10|"
+      ]
+    },
+    {
+      "Id": "b木材加工厂",
+      "Rules": [
+        "ConstructionCost|原木||2|20|0|0|0|0|",
+        "ConstructionCost|泥土||3|10|0|0|0|0|",
+        "ConstructionCost|石头||1|10|0|0|0|0|",
+        "Input|原木||1|2|0|0|0|0|",
+        "PlacementCost|金币||1|50|0|0|0|0|",
+        "ProcessingTier|||1|2|6|0|0|0|",
+        "ProcessingTier|||1|3|4|0|0|0|",
+        "ProductionTier|木板||1|2|0|0|0|0|",
+        "Production|||1|1|4|0|0|0|",
+        "RequiredTerrain|||0|0|0|0|0|0|陆地",
+        "Workforce|金币||1|6|0|0|55|10|"
+      ]
+    },
+    {
+      "Id": "b树木1",
+      "Rules": [
+        "Harvest|||1|1|0|0|0|0|",
+        "PlacementCost|树苗||1|1|0|0|0|0|",
+        "PlacementCost|金币||1|10|0|0|0|0|",
+        "RequiredTerrain|||0|0|0|0|0|0|陆地",
+        "RewardItem|原木||1|10|0|0|0|0|",
+        "RewardItem|树苗||1|3|0|0|0|0|",
+        "SpatialEffect|||1|1|20|0|1|20|beauty.tree"
+      ]
+    },
+    {
+      "Id": "b树木2",
+      "Rules": [
+        "Harvest|||1|1|0|0|0|0|",
+        "PlacementCost|树苗||1|1|0|0|0|0|",
+        "PlacementCost|金币||1|10|0|0|0|0|",
+        "RequiredTerrain|||0|0|0|0|0|0|陆地",
+        "RewardItem|原木||1|10|0|0|0|0|",
+        "RewardItem|树苗||1|3|0|0|0|0|",
+        "SpatialEffect|||1|1|20|0|1|20|beauty.tree"
+      ]
+    },
+    {
+      "Id": "b树木3",
+      "Rules": [
+        "Harvest|||1|1|0|0|0|0|",
+        "PlacementCost|树苗||1|1|0|0|0|0|",
+        "PlacementCost|金币||1|10|0|0|0|0|",
+        "RequiredTerrain|||0|0|0|0|0|0|陆地",
+        "RewardItem|原木||1|10|0|0|0|0|",
+        "RewardItem|树苗||1|3|0|0|0|0|",
+        "SpatialEffect|||1|1|20|0|1|20|beauty.tree"
+      ]
+    },
+    {
+      "Id": "b树木4",
+      "Rules": [
+        "Harvest|||1|1|0|0|0|0|",
+        "PlacementCost|树苗||1|1|0|0|0|0|",
+        "PlacementCost|金币||1|10|0|0|0|0|",
+        "RequiredTerrain|||0|0|0|0|0|0|陆地",
+        "RewardItem|原木||1|10|0|0|0|0|",
+        "RewardItem|树苗||1|3|0|0|0|0|",
+        "SpatialEffect|||1|1|20|0|1|20|beauty.tree"
+      ]
+    },
+    {
+      "Id": "b树木5",
+      "Rules": [
+        "Harvest|||1|1|0|0|0|0|",
+        "PlacementCost|树苗||1|1|0|0|0|0|",
+        "PlacementCost|金币||1|10|0|0|0|0|",
+        "RequiredTerrain|||0|0|0|0|0|0|陆地",
+        "RewardItem|原木||1|10|0|0|0|0|",
+        "RewardItem|树苗||1|3|0|0|0|0|",
+        "SpatialEffect|||1|1|20|0|1|20|beauty.tree"
+      ]
+    },
+    {
+      "Id": "b树木6",
+      "Rules": [
+        "Harvest|||1|1|0|0|0|0|",
+        "PlacementCost|树苗||1|1|0|0|0|0|",
+        "PlacementCost|金币||1|10|0|0|0|0|",
+        "RequiredTerrain|||0|0|0|0|0|0|陆地",
+        "RewardItem|原木||1|10|0|0|0|0|",
+        "RewardItem|树苗||1|3|0|0|0|0|",
+        "SpatialEffect|||1|1|20|0|1|20|beauty.tree"
+      ]
+    },
+    {
+      "Id": "b树木7",
+      "Rules": [
+        "Harvest|||1|1|0|0|0|0|",
+        "PlacementCost|树苗||1|1|0|0|0|0|",
+        "PlacementCost|金币||1|10|0|0|0|0|",
+        "RequiredTerrain|||0|0|0|0|0|0|陆地",
+        "RewardItem|原木||1|10|0|0|0|0|",
+        "RewardItem|树苗||1|3|0|0|0|0|",
+        "SpatialEffect|||1|1|20|0|1|20|beauty.tree"
+      ]
+    },
+    {
+      "Id": "b树木8",
+      "Rules": [
+        "Harvest|||1|1|0|0|0|0|",
+        "PlacementCost|树苗||1|1|0|0|0|0|",
+        "PlacementCost|金币||1|10|0|0|0|0|",
+        "RequiredTerrain|||0|0|0|0|0|0|陆地",
+        "RewardItem|原木||1|10|0|0|0|0|",
+        "RewardItem|树苗||1|3|0|0|0|0|",
+        "SpatialEffect|||1|1|20|0|1|20|beauty.tree"
+      ]
+    },
+    {
+      "Id": "b泥路",
+      "Rules": [
+        "RequiredTerrain|||0|0|0|0|0|0|陆地"
+      ]
+    },
+    {
+      "Id": "b泰坦神殿",
+      "Rules": [
+        "ConstructionCost|金币||1|167|0|0|0|0|",
+        "ConstructionCost|金币||2|167|0|0|0|0|",
+        "ConstructionCost|金币||3|166|0|0|0|0|",
+        "RequiredTerrain|||0|0|0|0|0|0|陆地",
+        "Sanctum|titan||1|30|0|0|0|0|",
+        "Workforce|金币||1|30|0|0|65|10|"
+      ]
+    },
+    {
+      "Id": "b王宫",
+      "Rules": [
+        "Garrison|||1|3|1|0|0|0|",
+        "InitialGarrison|militia||1|2|0|0|0|0|",
+        "Population|||1|10|1|0|0|0|",
+        "Provider|||0|0|0|0|0|0|",
+        "QuestCapacity|||1|4|0|0|0|0|",
+        "QuestSource|||1|1|0|5|10|0|",
+        "RequiredTerrain|||0|0|0|0|0|0|陆地",
+        "ResearchOutput|||1|1|0|0|0|0|",
+        "Warehouse|slot.简陋库存||1|15|0|0|0|0|"
+      ]
+    },
+    {
+      "Id": "b瞭望塔",
+      "Rules": [
+        "ConstructionCost|金币||1|60|0|0|0|0|",
+        "ConstructionCost|金币||2|60|0|0|0|0|",
+        "Intelligence|||1|40|2|0|0|0|",
+        "Maintenance|金币||1|1|0|0|0|0|",
+        "RequiredTerrain|||0|0|0|0|0|0|陆地",
+        "Workforce|金币||1|2|2|0|75|5|"
+      ]
+    },
+    {
+      "Id": "b粮仓",
+      "Rules": [
+        "ConstructionCost|原木||2|10|0|0|0|0|",
+        "ConstructionCost|泥土||1|10|0|0|0|0|",
+        "ConstructionCost|石头||3|10|0|0|0|0|",
+        "Experience|||1|1|30|2|0|0|",
+        "Experience|||2|1|50|2|0|0|",
+        "Experience|||3|0|0|0|0|0|",
+        "Maintenance|金币||1|1|0|0|0|0|",
+        "Maintenance|金币||2|2|0|0|0|0|",
+        "Maintenance|金币||3|3|0|0|0|0|",
+        "PlacementCost|金币||1|30|0|0|0|0|",
+        "RequiredTerrain|||0|0|0|0|0|0|陆地",
+        "StorageCondition|||1|2|150|0|10|1.25|",
+        "StorageCondition|||2|3|150|0|10|1.25|",
+        "StorageCondition|||3|4|150|0|10|1.25|",
+        "Warehouse|slot.粮库||1|2|0|0|0|0|",
+        "Warehouse|slot.粮库||2|4|0|0|0|0|",
+        "Warehouse|slot.粮库||3|1|5|0|0|0|",
+        "Warehouse|slot.粮库||3|6|0|0|0|0|",
+        "Workforce|金币||1|2|0|0|55|10|",
+        "Workforce|金币||2|3|0|0|55|10|",
+        "Workforce|金币||3|5|0|0|55|10|"
+      ]
+    },
+    {
+      "Id": "b警局",
+      "Rules": [
+        "ConstructionCost|原木||1|10|0|0|0|0|",
+        "ConstructionCost|石头||2|10|0|0|0|0|",
+        "Experience|||1|1|30|3|0|0|",
+        "Experience|||2|1|100|8|0|0|",
+        "Experience|||3|0|0|0|0|0|",
+        "Maintenance|金币||1|1|0|0|0|0|",
+        "Maintenance|金币||2|3|0|0|0|0|",
+        "Maintenance|金币||3|6|0|0|0|0|",
+        "PlacementCost|金币||1|20|0|0|0|0|",
+        "RequiredTerrain|||0|0|0|0|0|0|陆地",
+        "SpatialEffect|||1|1|40|2|5|20|security.police_station.lv1.2_workers",
+        "SpatialEffect|||1|1|40|4|8|20|security.police_station.lv1.4_workers",
+        "SpatialEffect|||2|2|40|4|8|20|security.police_station.lv2.4_workers",
+        "SpatialEffect|||2|2|40|8|12|20|security.police_station.lv2.8_workers",
+        "SpatialEffect|||3|3|40|16|18|20|security.police_station.lv3.16_workers",
+        "SpatialEffect|||3|3|40|8|12|20|security.police_station.lv3.8_workers",
+        "UpgradeCost|金币||2|300|0|0|0|0|",
+        "UpgradeCost|金币||3|1000|0|0|0|0|",
+        "Workforce|金币||1|4|0|0|55|10|",
+        "Workforce|金币||2|8|0|0|55|10|",
+        "Workforce|金币||3|16|0|0|55|10|"
+      ]
+    },
+    {
+      "Id": "b警钟",
+      "Rules": [
+        "Bell|||1|0|0|0|12|0|",
+        "ConstructionCost|金币||1|60|0|0|0|0|",
+        "RequiredTerrain|||0|0|0|0|0|0|陆地"
+      ]
+    },
+    {
+      "Id": "b采石场",
+      "Rules": [
+        "ConstructionCost|木板||2|30|0|0|0|0|",
+        "ConstructionOutput|泥土||1|10|0|0|0|0|",
+        "ConstructionOutput|石头||1|20|0|0|0|0|",
+        "ConstructionOutput|石头||3|100|0|0|0|0|",
+        "Maintenance|金币||1|3|0|0|0|0|",
+        "Maintenance|金币||2|5|0|0|0|0|",
+        "Maintenance|金币||3|10|0|0|0|0|",
+        "PlacementCost|金币||1|100|0|0|0|0|",
+        "ProductionTier|石头||1|1|2|3|0|0|",
+        "ProductionTier|石头||1|2|4|5|0|0|",
+        "ProductionTier|石头||1|4|6|0|0|0|",
+        "ProductionTier|石头||2|1|1|1|0|0|",
+        "ProductionTier|石头||2|2|2|2|0|0|",
+        "ProductionTier|石头||2|3|3|3|0|0|",
+        "ProductionTier|石头||2|4|4|4|0|0|",
+        "ProductionTier|石头||2|5|5|5|0|0|",
+        "ProductionTier|石头||2|9|6|0|0|0|",
+        "ProductionTier|石头||3|10|5|5|0|0|",
+        "ProductionTier|石头||3|22|6|0|0|0|",
+        "ProductionTier|石头||3|2|1|1|0|0|",
+        "ProductionTier|石头||3|4|2|2|0|0|",
+        "ProductionTier|石头||3|6|3|3|0|0|",
+        "ProductionTier|石头||3|8|4|4|0|0|",
+        "Production|||1|1|0|0|0|0|",
+        "Production|||2|1|0|0|0|0|",
+        "Production|||3|1|0|0|0|0|",
+        "RequiredTerrain|||0|0|0|0|0|0|石矿",
+        "RequiredTerrain|||0|0|0|0|0|0|陆地",
+        "Workforce|金币||1|6|0|0|55|10|",
+        "Workforce|金币||2|6|0|0|55|10|",
+        "Workforce|金币||3|6|0|0|55|10|"
+      ]
+    },
+    {
+      "Id": "b陆上远征所",
+      "Rules": [
+        "ConstructionCost|原木||2|15|0|0|0|0|",
+        "ConstructionCost|泥土||1|10|0|0|0|0|",
+        "ConstructionCost|石头||3|15|0|0|0|0|",
+        "ExpeditionSite|||1|10|15|0|0.25|0|",
+        "ExpeditionSite|||2|10|15|0|0.25|0|",
+        "Experience|||1|0|5|0|0|0|",
+        "Experience|||2|0|0|0|0|0|",
+        "PlacementCost|金币||1|50|0|0|0|0|",
+        "QuestRecruitCost|金币||1|10|0|0|0|0|",
+        "QuestRecruitCost|金币||2|10|0|0|0|0|",
+        "QuestSource|||1|1|3|30|50|0|",
+        "QuestSource|||2|1|3|30|50|0|",
+        "RequiredTerrain|||0|0|0|0|0|0|陆地",
+        "UpgradeCost|金币||2|100|0|0|0|0|",
+        "Workforce|金币||1|15|0|0|55|10|",
+        "Workforce|金币||2|15|0|0|55|10|"
+      ]
+    },
+    {
+      "Id": "b雕塑",
+      "Rules": [
+        "ConstructionCost|石头||1|20|0|0|0|0|",
+        "PlacementCost|金币||1|100|0|0|0|0|",
+        "RequiredTerrain|||0|0|0|0|0|0|陆地",
+        "SpatialEffect|||1|1|20|0|1|20|beauty.sculpture"
+      ]
+    },
+    {
+      "Id": "b驻军营地",
+      "Rules": [
+        "ConstructionCost|金币||1|75|0|0|0|0|",
+        "ConstructionCost|金币||2|75|0|0|0|0|",
+        "Garrison|||1|8|2|0|0|0|",
+        "RequiredTerrain|||0|0|0|0|0|0|陆地"
+      ]
+    }
+  ]
+}

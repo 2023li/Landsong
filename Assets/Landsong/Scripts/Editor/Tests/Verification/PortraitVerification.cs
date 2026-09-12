@@ -108,19 +108,30 @@ namespace Landsong.ECS.Editor
             int definition=Sim.FirstDefinition(em,root,ContentKind.Soldier);var unit=Sim.Spawn(em,root,definition,float3.zero,true);
             Sim.Set(em,unit,new Soldier{Experience=39});MilitaryOps.ConfigureCombatant(em,root,unit,0,false,false,0,float3.zero);MilitaryOps.InitializePerson(em,root,unit);
             ulong id=em.GetComponentData<Identity>(unit).Id;var state=em.GetComponentData<Session>(root);state.Phase=Phase.Day;state.Paused=0;em.SetComponentData(root,state);
-            Check(GameLoopSystem.Execute(em,root,new Command{Kind=CommandKind.RenameSoldier,Target=id,Text="老兵见山"})==ResultCode.Success&&em.GetComponentData<SoldierPerson>(unit).CustomName==1,"Player rename persistently marks individual");
+            Check(GameLoopSystem.Execute(em,root,new Command{Kind=CommandKind.RenameSoldier,Target=id,Text="老兵见山"})==ResultCode.Success&&em.GetComponentData<SoldierPerson>(unit).SpecialAttention==0,"Renaming never implicitly enables special attention");
+            int beforeMemorial=em.GetBuffer<HistoryEntry>(root).Length;MilitaryOps.RememberSoldier(em,root,unit,false);
+            Check(em.GetBuffer<HistoryEntry>(root).Length==beforeMemorial&&em.GetComponentData<SoldierPerson>(unit).DeathNotified==0,"Renamed but unwatched soldier has no memorial");
+            Check(GameLoopSystem.Execute(em,root,new Command{Kind=CommandKind.SetSoldierAttention,Target=id,Argument=1})==ResultCode.Success,"Explicit special attention is authoritative");
+            var attentionBytes=SnapshotCodec.Capture(em,root);var attentionSnapshot=SnapshotCodec.Decode(em,root,attentionBytes);
+            Check(attentionSnapshot.Records.Any(r=>r.Identity.Id==id&&r.SoldierPerson.SpecialAttention==1),"Special attention survives snapshot serialization");
+            var legacy=SnapshotCodec.CaptureLegacyV23ForVerification(em,root);using(var stream=new System.IO.MemoryStream(legacy,true)){using var reader=new System.IO.BinaryReader(stream,System.Text.Encoding.UTF8,true);reader.ReadString();using var writer=new System.IO.BinaryWriter(stream,System.Text.Encoding.UTF8,true);writer.Write(22);}
+            Check(SnapshotCodec.Decode(em,root,legacy).Records.Single(r=>r.Identity.Id==id).SoldierPerson.SpecialAttention==0,"Version 22 name marker never becomes attention during migration");
+            GameLoopSystem.Execute(em,root,new Command{Kind=CommandKind.SetSoldierAttention,Target=id,Argument=0});MilitaryOps.RememberSoldier(em,root,unit,false);
+            Check(em.GetBuffer<HistoryEntry>(root).Length==beforeMemorial,"Unchecking attention suppresses memorial again");
+            Check(GameLoopSystem.Execute(em,root,new Command{Kind=CommandKind.SetSoldierAttention,Target=id,Argument=2})==ResultCode.InvalidContent,"Invalid attention toggle value rejected");
+            GameLoopSystem.Execute(em,root,new Command{Kind=CommandKind.SetSoldierAttention,Target=id,Argument=1});
             var oldDNA=em.GetComponentData<PortraitDNA>(unit);var military=em.GetComponentData<Soldier>(unit);var stats=em.GetComponentData<Combatant>(unit);var health=em.GetComponentData<Health>(unit);
             var person=em.GetComponentData<SoldierPerson>(unit);person.Age=person.Lifespan-1;person.LastAgeTurn=state.Turn-1;em.SetComponentData(unit,person);
             MilitaryOps.AgeSoldiers(em,root);person=em.GetComponentData<SoldierPerson>(unit);
-            Check(person.Incarnation==1&&person.Age>=18&&person.Age<=30&&person.CustomName==0&&em.GetComponentData<Identity>(unit).Name.ToString()!="老兵见山"&&em.GetComponentData<PortraitDNA>(unit).Seed!=oldDNA.Seed,"Natural death refreshes age name portrait and resets personal mark");
+            Check(person.Incarnation==1&&person.Age>=18&&person.Age<=30&&person.SpecialAttention==0&&em.GetComponentData<Identity>(unit).Name.ToString()!="老兵见山"&&em.GetComponentData<PortraitDNA>(unit).Seed!=oldDNA.Seed,"Natural death refreshes age name portrait and resets personal mark");
             Check(military.Equals(em.GetComponentData<Soldier>(unit))&&stats.Equals(em.GetComponentData<Combatant>(unit))&&health.Equals(em.GetComponentData<Health>(unit)),"Natural replacement leaves military attributes untouched");
             Check(em.GetBuffer<HistoryEntry>(root).AsNativeArray().ToArray().Any(h=>h.SourceName.ToString()=="老兵见山"&&h.Category==HistoryCategory.Important&&h.Text.ToString().Contains("遗言")),"Natural memorial freezes original full name in history");
             MilitaryOps.AgeSoldiers(em,root);Check(person.Equals(em.GetComponentData<SoldierPerson>(unit)),"Dawn age settlement is idempotent");
             var saved=SnapshotCodec.Capture(em,root);SnapshotCodec.Restore(em,root,SnapshotCodec.Decode(em,root,saved));unit=Sim.Find(em,id);
             Check(saved.SequenceEqual(SnapshotCodec.Capture(em,root)),"Soldier incarnation and appearance persist");
-            GameLoopSystem.Execute(em,root,new Command{Kind=CommandKind.RenameSoldier,Target=id,Text="守城新兵"});
+            GameLoopSystem.Execute(em,root,new Command{Kind=CommandKind.SetSoldierAttention,Target=id,Argument=1});
             health=em.GetComponentData<Health>(unit);health.Current=0;em.SetComponentData(unit,health);CombatOps.Death(em,root,unit,Entity.Null);int events=em.GetBuffer<HistoryEntry>(root).Length;CombatOps.Death(em,root,unit,Entity.Null);
-            Check(em.GetComponentData<SoldierPerson>(unit).DeathNotified==1&&events==em.GetBuffer<HistoryEntry>(root).Length,"Named battle casualty emits memorial once");
+            Check(em.GetComponentData<SoldierPerson>(unit).DeathNotified==1&&events==em.GetBuffer<HistoryEntry>(root).Length,"Watched, never-renamed replacement emits battle memorial once");
             MilitaryOps.AgeSoldiers(em,root);Check(!Sim.Alive(em,unit)&&em.GetComponentData<SoldierPerson>(unit).Incarnation==1,"Battle death never triggers natural replacement");
             MilitaryOps.Dawn(em,root);Check(Sim.Find(em,id)==Entity.Null,"Battle casualty still removed by existing dawn rules");
         }

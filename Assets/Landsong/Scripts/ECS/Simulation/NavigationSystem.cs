@@ -25,7 +25,7 @@ namespace Landsong.ECS
     }
     public struct SeparationSample { public Entity Entity; public ulong Id; public float3 Position; public float Radius; }
 
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
+    [UpdateInGroup(typeof(CombatResolutionGroup))]
     [UpdateAfter(typeof(CombatSystem))]
     public partial struct NavigationSystem : ISystem
     {

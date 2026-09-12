@@ -26,7 +26,7 @@ namespace Landsong.ECS
             var d = Sim.Definition(em, root, definition); q.Costs = BuildingCostOps.Rules(em, root, definition, RuleKind.PlacementCost, 1);
             if (em.GetComponentData<Session>(root).Phase != Phase.Day) return q.Fail(ResultCode.WrongPhase, "只能在白天建造");
             if (!FeatureOps.Unlocked(em, root, "Building")) return q.Fail(ResultCode.Unavailable, "建造许可尚未解锁，请先完成主线任务");
-            if (!Sim.HasGrant(em, root, definition)) return q.Fail(ResultCode.Unavailable, "尚未获得建筑蓝图");
+            if (!BlueprintOps.Has(em, root, definition)) return q.Fail(ResultCode.Unavailable, "尚未获得建筑蓝图");
             var count = 0; using (var buildings = Sim.Entities<Building>(em)) foreach (var e in buildings)
             { var other = em.GetComponentData<Identity>(e).Definition; if (other == definition || d.Group >= 0 && Sim.Definition(em, root, other).Group == d.Group) count++; }
             if (d.Limit > 0 && count >= d.Limit) return q.Fail(ResultCode.NoCapacity, "已达到建造数量上限（含施工与荒废建筑）");
@@ -79,7 +79,7 @@ namespace Landsong.ECS
             var b = em.GetComponentData<Building>(e); var definition = em.GetComponentData<Identity>(e).Definition; var d = Sim.Definition(em, root, definition);
             q.Costs = BuildingCostOps.Rules(em, root, definition, RuleKind.UpgradeCost, b.Level + 1);
             if (b.Level >= d.Level) return q.Fail(ResultCode.Unavailable, "已达到最高等级");
-            if (!Sim.HasGrant(em, root, definition, b.Level + 1)) return q.Fail(ResultCode.MissingResearch, "尚未获得下一等级蓝图");
+            if (!BlueprintOps.Has(em, root, definition, b.Level + 1)) return q.Fail(ResultCode.MissingResearch, "尚未获得下一等级蓝图");
             if (EconomyOps.WorkforceLocked(em, em.GetComponentData<Identity>(e).Id)) return q.Fail(ResultCode.Busy, "远征在途，不能升级驻地");
             var experience = Sim.Rule(em, root, definition, RuleKind.Experience, b.Level);
             if (b.Experience < experience.B) return q.Fail(ResultCode.Unavailable, "经验不足：" + b.Experience + "/" + experience.B);

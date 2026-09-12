@@ -48,7 +48,7 @@ namespace Landsong.ECS.Editor
             }
             foreach (var cap in new[] { 1, 3, 10, 30, 100, 10000 })
             {
-                var ticks = WorkforceScaleView.TickValues(cap, cap / 3, cap / 2, cap - 1, 12);
+                var ticks = UI_GamePanel_WorkforceScale.TickValues(cap, cap / 3, cap / 2, cap - 1, 12);
                 Check(ticks.Count <= 12 && ticks.Distinct().Count() == ticks.Count && ticks.Contains(0) && ticks.Contains(cap) && ticks.Contains(cap / 3) && ticks.Contains(cap / 2) && ticks.Contains(cap - 1), "Bounded genuine tick values retain important points, capacity " + cap);
             }
             Check(WorkforceOps.Stable(0, 100) == 0 && WorkforceOps.SubsidyCost(0, 0, 3) == 0 && WorkforceOps.Stable(9, 20) == 2, "No jobs and integer threshold boundaries");
@@ -70,20 +70,22 @@ namespace Landsong.ECS.Editor
             {
                 coin.Data = new Authoring.ContentSource { Id = "coin", Kind = ContentKind.Item };
                 building.Data = new Authoring.ContentSource { Id = "building", Kind = ContentKind.Building }; catalog.Definitions = new[] { coin, building };
-                void Reject(Authoring.RuleSource rule, string label) { building.Data.Rules = new[] { rule }; var failed = false; try { Authoring.GameWorldAuthoring.ValidateWorkforce(catalog); } catch (InvalidOperationException) { failed = true; } Check(failed, label); }
-                building.Data.Rules = new[] { new Authoring.RuleSource { Kind = RuleKind.Workforce, Amount = 10, B = 1, Value = 55, Extra = 10, Target = "coin" } };
-                Authoring.GameWorldAuthoring.ValidateWorkforce(catalog); Check(true, "Authoring accepts ordinary workforce configuration");
-                Reject(new Authoring.RuleSource { Kind = RuleKind.Workforce, Amount = -1 }, "Authoring rejects negative job capacity");
-                Reject(new Authoring.RuleSource { Kind = RuleKind.Workforce, Amount = 10, B = 11 }, "Authoring rejects excess initial workers");
-                Reject(new Authoring.RuleSource { Kind = RuleKind.Workforce, Value = float.NaN }, "Authoring rejects non-finite attraction");
-                Reject(new Authoring.RuleSource { Kind = RuleKind.Workforce, Extra = float.PositiveInfinity }, "Authoring rejects infinite recruitment price");
-                Reject(new Authoring.RuleSource { Kind = RuleKind.Workforce, Extra = 1073741824f }, "Authoring rejects float-rounded price that could overflow integer payment");
-                Reject(new Authoring.RuleSource { Kind = RuleKind.Workforce, Target = "building" }, "Authoring workforce payment must target an item");
-                Reject(new Authoring.RuleSource { Kind = RuleKind.SpatialEffect, Extra = 11 }, "Authoring rejects unknown spatial stacking mode");
-                Reject(new Authoring.RuleSource { Kind = RuleKind.SpatialEffect, Target = "coin" }, "Authoring spatial target must be a building");
-                Reject(new Authoring.RuleSource { Kind = RuleKind.SpatialEffect, Value = float.NaN }, "Authoring rejects non-finite spatial radius");
-                building.Data.Rules = new[] { new Authoring.RuleSource { Kind = RuleKind.SpatialEffect, Value = 4, Amount = 10, Extra = 20 } };
-                Authoring.GameWorldAuthoring.ValidateWorkforce(catalog); Check(true, "Authoring accepts unfiltered highest spatial effect");
+                void Use(Authoring.WorkforceLevel row) { building.Data.Modules=new Authoring.BuildingModules();building.Data.Modules.Workforce.Enabled=true;building.Data.Modules.Workforce.Levels=new[]{row}; }
+                void Effect(Authoring.SpatialEffectEntry row) { building.Data.Modules=new Authoring.BuildingModules();building.Data.Modules.Effects.Enabled=true;building.Data.Modules.Effects.Spatial=new[]{row}; }
+                void Reject(Action configure,string label) { configure();var failed=false;try { Authoring.GameWorldAuthoring.ValidateWorkforce(catalog); } catch(InvalidOperationException) { failed=true; } Check(failed,label); }
+                Use(new Authoring.WorkforceLevel{Capacity=10,InitialWorkers=1,BaseAttraction=55,RecruitmentCost=10,Currency=coin});
+                Authoring.GameWorldAuthoring.ValidateWorkforce(catalog); Check(true,"Authoring accepts ordinary workforce configuration");
+                Reject(()=>Use(new Authoring.WorkforceLevel{Capacity=-1}),"Authoring rejects negative job capacity");
+                Reject(()=>Use(new Authoring.WorkforceLevel{Capacity=10,InitialWorkers=11}),"Authoring rejects excess initial workers");
+                Reject(()=>Use(new Authoring.WorkforceLevel{BaseAttraction=float.NaN}),"Authoring rejects non-finite attraction");
+                Reject(()=>Use(new Authoring.WorkforceLevel{RecruitmentCost=float.PositiveInfinity}),"Authoring rejects infinite recruitment price");
+                Reject(()=>Use(new Authoring.WorkforceLevel{RecruitmentCost=1073741824f}),"Authoring rejects float-rounded price that could overflow integer payment");
+                Reject(()=>Use(new Authoring.WorkforceLevel{Currency=building}),"Authoring workforce payment must target an item");
+                Reject(()=>Effect(new Authoring.SpatialEffectEntry{Stacking=(Authoring.EffectStacking)11}),"Authoring rejects unknown spatial stacking mode");
+                Reject(()=>Effect(new Authoring.SpatialEffectEntry{Building=coin}),"Authoring spatial target must be a building");
+                Reject(()=>Effect(new Authoring.SpatialEffectEntry{Radius=float.NaN}),"Authoring rejects non-finite spatial radius");
+                Effect(new Authoring.SpatialEffectEntry{Radius=4,Magnitude=10,Stacking=Authoring.EffectStacking.同类最高});
+                Authoring.GameWorldAuthoring.ValidateWorkforce(catalog); Check(true,"Authoring accepts unfiltered highest spatial effect");
             }
             finally { UnityEngine.Object.DestroyImmediate(catalog); UnityEngine.Object.DestroyImmediate(coin); UnityEngine.Object.DestroyImmediate(building); }
         }
@@ -120,16 +122,16 @@ namespace Landsong.ECS.Editor
             Workers(first, 1); Workers(priority, 1); Workers(tie, 1);
             var slots = em.GetBuffer<InventorySlot>(root); slots.Add(new InventorySlot { Provider = 2, Item = 0, Count = 100, SlotType = -1 });
             var q = WorkforceOps.Quote(em, root, target); Check(q.NaturalStable == 2 && q.CurrentStable == 2 && q.RecruitCost == 18 && q.Sources.Sum(s => s.Value) == q.Raw, "Workforce quote uses real source sum and current recruitment price");
-            Check(GameLoopSystem.Execute(em,root,new Command{Kind=CommandKind.WorkforceBudget,Target=1,Amount=3})==ResultCode.Success&&InventoryOps.Count(em,root,0)==100,"Direct subsidy budget changes without immediate payment");
+            Check(GameLoopSystem.Execute(em,root,CommandRequests.SetWorkforceBudget(1,3))==ResultCode.Success&&InventoryOps.Count(em,root,0)==100,"Direct subsidy budget changes without immediate payment");
             q=WorkforceOps.Quote(em,root,target);Check(q.SubsidyCost==3&&q.Planned==50&&q.Current==20,"Budget preview separates unpaid and actual attraction");
             Workers(target,0,0);q=WorkforceOps.Quote(em,root,target);Check(q.Natural==15&&q.SubsidyCost==3,"Direct subsidy budget stays fixed when natural attraction changes");Workers(target,0);
             Check(WorkforceOps.SetBudget(em,root,target,11)==ResultCode.InvalidTarget&&WorkforceOps.SetBudget(em,root,target,-1)==ResultCode.InvalidTarget,"Budget rejects negative or excessive amounts");
-            var step=new Command{Kind=CommandKind.WorkforceBudget,Target=1,Amount=1,Argument=1};
+            var step=CommandRequests.AdjustWorkforceBudget(1,1);
             Check(GameLoopSystem.Execute(em,root,step)==ResultCode.Success&&GameLoopSystem.Execute(em,root,step)==ResultCode.Success&&WorkforceOps.Quote(em,root,target).SubsidyCost==5,"Rapid arrow commands each apply one budget step against current state");
             Check(GameLoopSystem.Execute(em, root, new Command { Kind = CommandKind.WorkforceTarget, Target = 1, Amount = 10 }) == ResultCode.Success && InventoryOps.Count(em, root, 0) == 100, "Target command is non-paying");
             q = WorkforceOps.Quote(em, root, target); Check(q.PlannedStable == 10 && q.CurrentStable == 2 && q.SubsidyCost == 8, "Unpaid target cannot enlarge current stable workforce");
             Check(EconomyOps.ChangeWorkers(em, root, target, 3) == ResultCode.NoCapacity && InventoryOps.Count(em, root, 0) == 100, "Unpaid subsidy cannot fund recruitment eligibility");
-            Check(GameLoopSystem.Execute(em, root, new Command { Kind = CommandKind.Workers, Target = 1, Amount = 1, Argument = 17, Text = "workforce-quote" }) == ResultCode.Unavailable && InventoryOps.Count(em, root, 0) == 100, "Stale displayed recruitment price rejected without charge");
+            Check(GameLoopSystem.Execute(em, root, CommandRequests.RecruitWorkers(1, 1, 17)) == ResultCode.Unavailable && InventoryOps.Count(em, root, 0) == 100, "Stale displayed recruitment price rejected without charge");
             Check(EconomyOps.ChangeWorkers(em, root, target, 1) == ResultCode.Success && InventoryOps.Count(em, root, 0) == 82, "Recruit charges exactly current quoted price");
             Check(WorkforceOps.SetTarget(em, root, target, 0) == ResultCode.Success && WorkforceOps.Quote(em, root, target).Target == 2 && em.GetComponentData<Building>(target).Workers == 1, "Low target clamps to natural stable count without layoffs");
             Workers(target, 1, 0); q = WorkforceOps.Quote(em, root, target); Check(q.Raw == 15 && q.Sources.Any(s => s.Value == -5), "Maintenance penalty included in source breakdown"); Workers(target, 1);

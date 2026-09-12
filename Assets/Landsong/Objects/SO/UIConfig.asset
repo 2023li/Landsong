@@ -11,69 +11,68 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9dad11d8bc358e1469715148b91cdabb, type: 3}
   m_Name: UIConfig
-  m_EditorClassIdentifier: Assembly-CSharp::Moyo.Unity.UIConfig
+  m_EditorClassIdentifier: Moyo.Runtime::Moyo.Unity.UIConfig
   panels:
-  - panelId: UIPanel_Game
-    addressableKey: UIPanel_Game
-    layer: 1
-    cachePolicy: 0
-    destroyOnSceneChange: 1
+  - panelId: UI_BootPanel
+    asset: {fileID: 0}
+    assetAddress: UI/UI_BootPanel
+    layer: 2
+    cachePolicy: 1
+    scopePolicy: 0
     canCloseByBack: 0
-    blurPreviousOnOpen: 0
+    takesFocus: 1
     hideSameLayerPanels: 0
-  - panelId: UIPanel_Loading
-    addressableKey: UIPanel_Loading
+  - panelId: UI_StartPanel
+    asset: {fileID: 0}
+    assetAddress: UI/UI_StartPanel
+    layer: 2
+    cachePolicy: 1
+    scopePolicy: 0
+    canCloseByBack: 0
+    takesFocus: 1
+    hideSameLayerPanels: 0
+  - panelId: UI_LoadingPanel
+    asset: {fileID: 0}
+    assetAddress: UI/UI_LoadingPanel
     layer: 6
-    cachePolicy: 0
-    destroyOnSceneChange: 0
+    cachePolicy: 1
+    scopePolicy: 0
     canCloseByBack: 0
-    blurPreviousOnOpen: 0
+    takesFocus: 1
     hideSameLayerPanels: 0
-  - panelId: UIPanel_MainMenu
-    addressableKey: UIPanel_MainMenu
-    layer: 2
-    cachePolicy: 0
-    destroyOnSceneChange: 1
-    canCloseByBack: 0
-    blurPreviousOnOpen: 0
-    hideSameLayerPanels: 1
-  - panelId: UIPanel_Setting
-    addressableKey: UIPanel_Setting
-    layer: 2
-    cachePolicy: 0
-    destroyOnSceneChange: 1
-    canCloseByBack: 1
-    blurPreviousOnOpen: 0
-    hideSameLayerPanels: 1
-  - panelId: UIPanel_LoadGame
-    addressableKey: UIPanel_LoadGame
-    layer: 2
-    cachePolicy: 1
-    destroyOnSceneChange: 1
-    canCloseByBack: 1
-    blurPreviousOnOpen: 0
-    hideSameLayerPanels: 1
-  - panelId: UIPanel_SaveConfirmation
-    addressableKey: UIPanel_SaveConfirmation
-    layer: 2
-    cachePolicy: 1
-    destroyOnSceneChange: 0
-    canCloseByBack: 1
-    blurPreviousOnOpen: 0
-    hideSameLayerPanels: 0
-  - panelId: UIPanel_Debug
-    addressableKey: UIPanel_Debug
-    layer: 7
-    cachePolicy: 1
-    destroyOnSceneChange: 1
-    canCloseByBack: 1
-    blurPreviousOnOpen: 0
-    hideSameLayerPanels: 0
-  - panelId: UIPanel_SystemConfirmationDialog
-    addressableKey: UIPanel_SystemConfirmationDialog
+  - panelId: UI_SettingPanel
+    asset: {fileID: 0}
+    assetAddress: UI/UI_SettingPanel
     layer: 3
     cachePolicy: 1
-    destroyOnSceneChange: 1
+    scopePolicy: 0
     canCloseByBack: 1
-    blurPreviousOnOpen: 1
+    takesFocus: 1
+    hideSameLayerPanels: 0
+  - panelId: UI_SavePanel
+    asset: {fileID: 0}
+    assetAddress: UI/UI_SavePanel
+    layer: 3
+    cachePolicy: 1
+    scopePolicy: 0
+    canCloseByBack: 1
+    takesFocus: 1
+    hideSameLayerPanels: 0
+  - panelId: UI_ConfirmPanel
+    asset: {fileID: 0}
+    assetAddress: UI/UI_ConfirmPanel
+    layer: 3
+    cachePolicy: 1
+    scopePolicy: 0
+    canCloseByBack: 1
+    takesFocus: 1
+    hideSameLayerPanels: 0
+  - panelId: UI_GamePanel
+    asset: {fileID: 0}
+    assetAddress: UI/UI_GamePanel
+    layer: 1
+    cachePolicy: 0
+    scopePolicy: 1
+    canCloseByBack: 0
+    takesFocus: 1
     hideSameLayerPanels: 0

@@ -1,0 +1,15 @@
+{
+  "name": "Landsong.ECS.AI",
+  "rootNamespace": "Landsong.ECS.AI",
+  "references": [
+    "Landsong.ECS",
+    "Unity.Entities",
+    "Unity.Transforms",
+    "Unity.Mathematics",
+    "Unity.Collections",
+    "Unity.Burst",
+    "Opsive.BehaviorDesigner.Runtime.Systems"
+  ],
+  "allowUnsafeCode": true,
+  "autoReferenced": true
+}

@@ -1,1042 +1,536 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
-using Moyo.Unity;
+using Sirenix.OdinInspector;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
-using UnityEngine.ResourceManagement.AsyncOperations;
-using UnityEngine.SceneManagement;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace Moyo.Unity
 {
     /// <summary>
-    /// 项目 UI 管理器。
-    /// 
-    /// 新架构规则：
-    /// 1. PanelId 固定等于 Panel 脚本类名。
-    /// 2. 外部打开 UI 使用 OpenAsync<T>()。
-    /// 3. 外部关闭 UI 使用 CloseAsync<T>()。
-    /// 4. 不再通过字符串常量打开 UI。
-    /// 5. 场景中未通过 UIManager 打开的 Panel 会自动销毁并重新通过 UIManager 打开。
+    /// 唯一应用 UI 根。由组合入口显式 Initialize；不扫描场景、不补建组件、不监听场景名。
+    /// 所有导航经同一队列串行化，因此 Open/Preload 同类型并发只有一个创建者。
+    /// 生命周期内不要 await 另一个 Manager 导航操作；子视图可使用自己的 OpenViewAsync。
     /// </summary>
-    public class UIManager : MonoSingleton<UIManager>
+    public sealed class UIManager : MonoBehaviour
     {
-        [Header("UI Config")]
-        [SerializeField] private UIConfig uiConfig;
+        [SerializeField, LabelText("面板注册表"), Required] private UIConfig uiConfig;
+        [SerializeField, LabelText("根画布"), Required] private Canvas rootCanvas;
+        [SerializeField, LabelText("画布缩放器"), Required] private CanvasScaler canvasScaler;
+        [SerializeField, LabelText("图形射线检测"), Required] private GraphicRaycaster graphicRaycaster;
+        [SerializeField, LabelText("输入事件系统"), Required] private EventSystem eventSystem;
+        [SerializeField, LabelText("输入模块"), Required] private BaseInputModule inputModule;
+        [SerializeField, LabelText("隐藏创建容器"), Required] private RectTransform inactiveRoot;
+        [SerializeField, LabelText("显示层级")] private UILayerBinding[] layers = Array.Empty<UILayerBinding>();
 
-        [Tooltip("UIConfig 的 Addressables Key。")]
-        [SerializeField] private string uiConfigAddress = "SSBX_UIConfig";
+        private static UIManager instance;
+        private readonly SemaphoreSlim operationGate = new SemaphoreSlim(1, 1);
+        private readonly AsyncLocal<int> lifecycleDepth = new AsyncLocal<int>();
+        private readonly CancellationTokenSource lifetime = new CancellationTokenSource();
+        private readonly Dictionary<string, Entry> entries = new Dictionary<string, Entry>(StringComparer.Ordinal);
+        private readonly Dictionary<UILayer, RectTransform> layerRoots = new Dictionary<UILayer, RectTransform>();
+        private readonly List<string> openOrder = new List<string>();
+        private readonly HashSet<UIScope> scopes = new HashSet<UIScope>();
+        private Dictionary<string, UIPanelConfig> registry;
+        private UIPanelBase focused;
+        private long nextGeneration;
+        private bool shuttingDown;
+        private Task shutdownTask;
 
-
-        [Header("UI Layers")]
-        [SerializeField] private Transform backgroundLayer;
-        [SerializeField] private Transform hudLayer;
-        [SerializeField] private Transform normalLayer;
-        [SerializeField] private Transform popupLayer;
-        [SerializeField] private Transform toastLayer;
-        [SerializeField] private Transform guideLayer;
-        [SerializeField] private Transform blockerLayer;
-        [SerializeField] private Transform debugerLayer;
-
-
-        /// <summary>
-        /// 当前已经打开的面板。
-        /// Key 固定为 Panel 类名。
-        /// </summary>
-        private readonly Dictionary<string, UIPanelBase> openedPanels = new();
-
-        /// <summary>
-        /// 已创建但当前未打开的缓存面板。
-        /// Key 固定为 Panel 类名。
-        /// </summary>
-        private readonly Dictionary<string, UIPanelBase> cachedPanels = new();
-
-        /// <summary>
-        /// 返回关闭栈。
-        /// canCloseByBack = true 的面板打开时进入这个栈。
-        /// BackAsync 会关闭最近打开的此类面板。
-        /// </summary>
-        private readonly Stack<string> closeStack = new();
-
-        /// <summary>
-        /// 记录某个 owner 面板隐藏过哪些面板。
-        /// Key：ownerPanelId。
-        /// Value：被 owner 隐藏的 panelId 列表。
-        /// </summary>
-        private readonly Dictionary<string, List<string>> hiddenPanelsByOwner = new();
-
-        /// <summary>
-        /// 记录某个 panel 当前被哪些 owner 隐藏。
-        /// 用于处理嵌套隐藏，防止过早恢复。
-        /// </summary>
-        private readonly Dictionary<string, HashSet<string>> hideOwnersByPanel = new();
-
-        private bool isLoadingUIConfig;
-        private bool isShuttingDown;
-
-        protected override void Init()
+        private sealed class Entry
         {
-            base.Init();
-
-            SceneManager.activeSceneChanged -= HandleActiveSceneChanged;
-            SceneManager.activeSceneChanged += HandleActiveSceneChanged;
+            internal UIPanelConfig Config;
+            internal UIPanelBase Panel;
+            internal UIPanelLease Lease;
+            internal UIScope Scope;
+            internal bool Visible;
+            internal UIPanelState State;
         }
 
-        private void OnDestroy()
+        public static UIManager Instance => instance != null && instance.IsInitialized ? instance
+            : throw new InvalidOperationException("UIManager 尚未由应用启动入口初始化。");
+        public static bool TryGetInstance(out UIManager manager)
+        { manager = instance; return manager != null && manager.IsInitialized; }
+        public bool IsInitialized { get; private set; }
+        public bool IsShuttingDown => shuttingDown;
+        public bool IsBusy => operationGate.CurrentCount == 0;
+        public Canvas RootCanvas => rootCanvas;
+        public CanvasScaler Scaler => canvasScaler;
+        public EventSystem EventSystem => eventSystem;
+        public BaseInputModule InputModule => inputModule;
+        public UIPanelBase TopFocusedPanel => focused;
+        public UIScope ApplicationScope { get; private set; }
+        public int LoadedPanelCount => entries.Count;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetRegistration() { instance = null; }
+
+        /// <summary>用于编辑器制作和显式组合，不用于缺失配置时的运行时修补。</summary>
+        public void Configure(UIConfig config, Canvas canvas, CanvasScaler scaler, GraphicRaycaster raycaster,
+            EventSystem events, BaseInputModule input, RectTransform inactiveContainer, params UILayerBinding[] layerBindings)
         {
-            isShuttingDown = true;
-            SceneManager.activeSceneChanged -= HandleActiveSceneChanged;
+            if (IsInitialized || shuttingDown) throw new InvalidOperationException("已初始化的 UI 根不可重新配置。");
+            uiConfig = config; rootCanvas = canvas; canvasScaler = scaler; graphicRaycaster = raycaster;
+            eventSystem = events; inputModule = input; inactiveRoot = inactiveContainer;
+            layers = layerBindings == null ? Array.Empty<UILayerBinding>() : (UILayerBinding[])layerBindings.Clone();
         }
 
-        private void OnApplicationQuit()
+        public void ValidateConfiguration()
         {
-            isShuttingDown = true;
+            if (rootCanvas == null || rootCanvas.gameObject != gameObject || transform.parent != null)
+                throw new InvalidOperationException("UIManager 必须显式绑定同对象的根 Canvas，且该对象不能有父级。");
+            if (canvasScaler == null || canvasScaler.gameObject != gameObject
+                || graphicRaycaster == null || graphicRaycaster.gameObject != gameObject)
+                throw new InvalidOperationException("UI 根必须绑定自身的 CanvasScaler 和 GraphicRaycaster。");
+            if (eventSystem == null || eventSystem.transform == transform || !eventSystem.transform.IsChildOf(transform)
+                || inputModule == null || inputModule.gameObject != eventSystem.gameObject)
+                throw new InvalidOperationException("UI 根必须绑定所属子对象上的 EventSystem 及同对象输入模块。");
+            if (inactiveRoot == null || inactiveRoot.parent != transform || inactiveRoot.gameObject.activeSelf)
+                throw new InvalidOperationException("隐藏创建容器必须是 UI 根的直属子对象，且保持未激活。");
+            if (uiConfig == null) throw new InvalidOperationException("UI 根未绑定面板注册表。");
+            var configuredLayers = new Dictionary<UILayer, RectTransform>();
+            var roots = new HashSet<RectTransform>();
+            if (layers == null) throw new InvalidOperationException("UI 根未配置显示层列表。");
+            foreach (var binding in layers)
+            {
+                if (binding == null || binding.root == null || binding.root.parent != transform
+                    || binding.root == inactiveRoot || !binding.root.gameObject.activeSelf)
+                    throw new InvalidOperationException("每个 UI 显示层必须显式绑定根下已激活的独立容器。");
+                if (!Enum.IsDefined(typeof(UILayer), binding.layer)
+                    || configuredLayers.ContainsKey(binding.layer) || !roots.Add(binding.root))
+                    throw new InvalidOperationException("UI 显示层包含无效枚举、重复层级或重复容器。");
+                configuredLayers.Add(binding.layer, binding.root);
+            }
+            foreach (var pair in uiConfig.CreateValidatedRegistry())
+                if (!configuredLayers.ContainsKey(pair.Value.layer))
+                    throw new InvalidOperationException($"面板 {pair.Key} 使用了未配置的层 {pair.Value.layer}。");
         }
 
-        private async void HandleActiveSceneChanged(Scene current, Scene next)
+        public void Initialize()
         {
-            if (isShuttingDown || !Application.isPlaying)
-            {
-                return;
-            }
-
-            try
-            {
-                await DestroySceneChangePanelsAsync();
-            }
-            catch (Exception exception)
-            {
-                Debug.LogException(exception, this);
-            }
+            if (IsInitialized) return;
+            if (shuttingDown) throw new InvalidOperationException("已结束的 UIManager 不能重新初始化。");
+            if (instance != null && instance != this)
+                throw new InvalidOperationException("应用已经注册了另一份 UIManager；请修正重复启动配置。");
+            ValidateConfiguration();
+            registry = uiConfig.CreateValidatedRegistry();
+            layerRoots.Clear();
+            foreach (var binding in layers) layerRoots.Add(binding.layer, binding.root);
+            ApplicationScope = new UIScope(this, "应用", ++nextGeneration);
+            scopes.Add(ApplicationScope);
+            instance = this;
+            IsInitialized = true;
+            if (Application.isPlaying) DontDestroyOnLoad(gameObject);
         }
 
-
-        #region Open / Close API
-
-        /// <summary>
-        /// 打开指定类型的 UI 面板。
-        /// PanelId 使用 typeof(T).Name。
-        /// </summary>
-        public async Task<T> OpenAsync<T>(object args = null) where T : UIPanelBase
+        public UIScope CreateScope(string name)
         {
-            var panel = await OpenAsync(typeof(T), args);
-            return panel as T;
+            EnsureReady();
+            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("UI 会话名称不能为空。", nameof(name));
+            var scope = new UIScope(this, name, ++nextGeneration);
+            scopes.Add(scope);
+            return scope;
         }
 
-        /// <summary>
-        /// 通过运行时类型打开 UI。
-        /// 主要用于 UIPanelBase 自动修复场景中未通过 Manager 打开的 Panel。
-        /// </summary>
-        public async Task<UIPanelBase> OpenAsync(Type panelType, object args = null)
+        public Task<T> OpenAsync<T>(object args = null, UIScope scope = null, CancellationToken cancellationToken = default)
+            where T : UIPanelBase => OpenTypedAsync<T>(args, scope, cancellationToken);
+
+        private async Task<T> OpenTypedAsync<T>(object args, UIScope scope, CancellationToken token) where T : UIPanelBase
+        { return (T)await OpenAsync(typeof(T), args, scope, token); }
+
+        public Task<UIPanelBase> OpenAsync(Type panelType, object args = null, UIScope scope = null,
+            CancellationToken cancellationToken = default)
         {
-            if (panelType == null)
-            {
-                Debug.LogError("打开 UI 失败：panelType 为空。");
-                return null;
-            }
-
-            if (!typeof(UIPanelBase).IsAssignableFrom(panelType))
-            {
-                Debug.LogError($"打开 UI 失败：{panelType.Name} 不是 UIPanelBase。");
-                return null;
-            }
-
-            if (!await EnsureUIConfigAsync())
-            {
-                return null;
-            }
-
-            var panelId = GetPanelId(panelType);
-            var config = uiConfig.Get(panelId);
-            if (config == null)
-            {
-                return null;
-            }
-
-            // 已经打开：只恢复显示、置顶、聚焦。
-            if (openedPanels.TryGetValue(panelId, out var openedPanel))
-            {
-                ClearHideStateForPanel(panelId);
-
-                SetPanelVisible(openedPanel, true);
-                openedPanel.transform.SetAsLastSibling();
-
-                await openedPanel.OnFocusAsync();
-
-                return openedPanel;
-            }
-
-            // 打开前让当前返回栈顶部窗口失焦。
-            if (config.blurPreviousOnOpen)
-            {
-                await BlurTopPanelAsync();
-            }
-
-            var panel = await GetOrCreatePanelAsync(config, panelType);
-            if (panel == null)
-            {
-                return null;
-            }
-
-            openedPanels[panelId] = panel;
-
-            SetPanelVisible(panel, true);
-
-            if (config.hideSameLayerPanels)
-            {
-                await HideSameLayerPanelsAsync(panelId, config.layer);
-            }
-
-            panel.transform.SetAsLastSibling();
-
-            if (config.canCloseByBack)
-            {
-                RemoveFromCloseStack(panelId);
-                closeStack.Push(panelId);
-            }
-
-            await panel.OnOpenAsync(args);
-            await panel.OnFocusAsync();
-
-            return panel;
+            EnsurePanelType(panelType);
+            var config = GetConfig(panelType.Name);
+            var actualScope = ResolveScope(config, scope);
+            return RunQueuedAsync(token => OpenCoreAsync(config, panelType, args, actualScope, token), actualScope, cancellationToken);
         }
 
-        /// <summary>
-        /// 关闭指定类型的 UI。
-        /// </summary>
-        public Task CloseAsync<T>() where T : UIPanelBase
+        public Task<T> PreloadAsync<T>(UIScope scope = null, CancellationToken cancellationToken = default)
+            where T : UIPanelBase => PreloadTypedAsync<T>(scope, cancellationToken);
+
+        private async Task<T> PreloadTypedAsync<T>(UIScope scope, CancellationToken cancellationToken) where T : UIPanelBase
         {
-            return CloseAsync(typeof(T));
+            var config = GetConfig(typeof(T).Name);
+            var actualScope = ResolveScope(config, scope);
+            return (T)await RunQueuedAsync(async token =>
+                (await GetOrCreateAsync(config, typeof(T), actualScope, token)).Panel, actualScope, cancellationToken);
         }
 
-        /// <summary>
-        /// 关闭指定运行时类型的 UI。
-        /// </summary>
+        public Task CloseAsync<T>() where T : UIPanelBase => CloseAsync(typeof(T));
         public Task CloseAsync(Type panelType)
+        { EnsurePanelType(panelType); return CloseAsync(panelType.Name); }
+        public Task CloseAsync(string panelId)
         {
-            if (panelType == null)
+            EnsureReady();
+            return RunQueuedAsync(async token =>
             {
-                Debug.LogError("关闭 UI 失败：panelType 为空。");
-                return Task.CompletedTask;
-            }
-
-            return CloseAsync(GetPanelId(panelType));
+                if (entries.TryGetValue(panelId, out var entry) && entry.State == UIPanelState.Open)
+                    await CloseCoreAsync(entry, false);
+                return true;
+            }, ApplicationScope, CancellationToken.None);
         }
 
-        /// <summary>
-        /// 关闭指定 panelId 的 UI。
-        /// panelId 固定等于 Panel 类名。
-        /// </summary>
-        public async Task CloseAsync(string panelId)
+        /// <summary>先处理最上层根的局部返回；不可关闭弹窗消费返回，不能穿透关闭下面的窗口。</summary>
+        public Task<bool> BackAsync()
         {
-            if (string.IsNullOrEmpty(panelId))
+            EnsureReady();
+            return RunQueuedAsync(async token =>
             {
-                return;
-            }
-
-            if (!await EnsureUIConfigAsync())
-            {
-                return;
-            }
-
-            if (!openedPanels.TryGetValue(panelId, out var panel))
-            {
-                return;
-            }
-
-            var config = uiConfig.Get(panelId);
-            if (config == null)
-            {
-                return;
-            }
-
-            await panel.OnBlurAsync();
-            await panel.OnCloseAsync();
-
-            openedPanels.Remove(panelId);
-            RemoveFromCloseStack(panelId);
-
-            RemoveClosedPanelFromHideRecords(panelId);
-
-            if (config.cachePolicy == UICachePolicy.DestroyOnClose)
-            {
-                cachedPanels.Remove(panelId);
-
-                await panel.OnReleaseAsync();
-
-                Destroy(panel.gameObject);
-            }
-            else
-            {
-                cachedPanels[panelId] = panel;
-                SetPanelVisible(panel, false);
-            }
-
-            var restoredPanel = await RestorePanelsHiddenByAsync(panelId);
-
-            if (!restoredPanel)
-            {
-                await FocusTopPanelAsync();
-            }
+                var top = FindTopFocusable();
+                if (top == null) return false;
+                if (await InvokeLifecycleAsync(() => top.Panel.TryHandleBackAsync())) return true;
+                if (!top.Config.canCloseByBack) return false;
+                if (!top.Panel.CanCloseByBack) return true;
+                await CloseCoreAsync(top, false);
+                return true;
+            }, ApplicationScope, CancellationToken.None);
         }
 
-        /// <summary>
-        /// 返回操作。
-        /// 关闭最近一个 canCloseByBack = true 的面板。
-        /// </summary>
-        public async Task BackAsync()
-        {
-            while (closeStack.Count > 0)
-            {
-                var panelId = closeStack.Pop();
-
-                if (openedPanels.ContainsKey(panelId))
-                {
-                    await CloseAsync(panelId);
-                    return;
-                }
-            }
-        }
-
-        #endregion
-
-
-        #region Query API
-
-        /// <summary>
-        /// 尝试获取当前已经打开的指定类型面板。
-        /// 被隐藏但未关闭的面板也算已打开。
-        /// </summary>
         public bool TryGetActivePanel<T>(out T panel) where T : UIPanelBase
         {
-            var panelId = GetPanelId<T>();
-
-            if (openedPanels.TryGetValue(panelId, out var openedPanel) && openedPanel is T typedPanel)
-            {
-                panel = typedPanel;
-                return true;
-            }
-
-            panel = null;
-            return false;
+            if (entries.TryGetValue(typeof(T).Name, out var entry) && entry.State == UIPanelState.Open && entry.Panel is T value)
+            { panel = value; return true; }
+            panel = null; return false;
         }
-
-        /// <summary>
-        /// 指定类型面板是否已经打开。
-        /// </summary>
         public bool IsOpened<T>() where T : UIPanelBase
+            => entries.TryGetValue(typeof(T).Name, out var entry) && entry.State == UIPanelState.Open;
+        public bool TryGetState<T>(out UIPanelState state) where T : UIPanelBase
         {
-            return openedPanels.ContainsKey(GetPanelId<T>());
+            if (entries.TryGetValue(typeof(T).Name, out var entry)) { state = entry.State; return true; }
+            state = UIPanelState.Released; return false;
         }
 
-        #endregion
-
-
-        #region Scene Change Cleanup
-
-        private async Task DestroySceneChangePanelsAsync()
+        public Task ClearCacheAsync(bool includePermanent = false)
         {
-            if (uiConfig == null)
+            EnsureReady();
+            return RunQueuedAsync(async token =>
             {
-                return;
-            }
-
-            var panelIds = new HashSet<string>();
-
-            foreach (var panelId in openedPanels.Keys)
-            {
-                if (ShouldDestroyOnSceneChange(panelId))
+                var errors = new List<Exception>();
+                foreach (var entry in new List<Entry>(entries.Values))
                 {
-                    panelIds.Add(panelId);
+                    if (entry.State != UIPanelState.Cached || (!includePermanent && entry.Config.cachePolicy == UICachePolicy.Permanent)) continue;
+                    try { await ReleaseEntryAsync(entry); } catch (Exception error) { errors.Add(error); }
                 }
-            }
-
-            foreach (var panelId in cachedPanels.Keys)
-            {
-                if (ShouldDestroyOnSceneChange(panelId))
-                {
-                    panelIds.Add(panelId);
-                }
-            }
-
-            foreach (var panelId in panelIds)
-            {
-                await DestroyPanelCompletelyAsync(panelId, true);
-            }
-
-            await FocusTopPanelAsync();
-        }
-
-        private bool ShouldDestroyOnSceneChange(string panelId)
-        {
-            return uiConfig != null
-                && uiConfig.TryGet(panelId, out var config)
-                && config != null
-                && config.destroyOnSceneChange;
-        }
-
-        private async Task DestroyPanelCompletelyAsync(string panelId, bool runCloseLifecycle)
-        {
-            if (string.IsNullOrEmpty(panelId))
-            {
-                return;
-            }
-
-            openedPanels.TryGetValue(panelId, out var openedPanel);
-            cachedPanels.TryGetValue(panelId, out var cachedPanel);
-
-            var panel = openedPanel != null ? openedPanel : cachedPanel;
-            var wasOpened = openedPanel != null;
-
-            if (wasOpened && panel != null && runCloseLifecycle)
-            {
-                await panel.OnBlurAsync();
-
-                if (panel != null)
-                {
-                    await panel.OnCloseAsync();
-                }
-            }
-
-            openedPanels.Remove(panelId);
-            cachedPanels.Remove(panelId);
-            RemoveFromCloseStack(panelId);
-
-            RemoveClosedPanelFromHideRecords(panelId);
-
-            if (panel != null)
-            {
-                await panel.OnReleaseAsync();
-
-                if (panel != null)
-                {
-                    Destroy(panel.gameObject);
-                }
-            }
-
-            await RestorePanelsHiddenByAsync(panelId);
-        }
-
-        #endregion
-
-
-        #region Preload / Cache
-
-        /// <summary>
-        /// 预加载指定类型 UI。
-        /// 只创建并缓存，不打开。
-        /// </summary>
-        public async Task<T> PreloadAsync<T>() where T : UIPanelBase
-        {
-            if (!await EnsureUIConfigAsync())
-            {
-                return null;
-            }
-
-            var panelType = typeof(T);
-            var panelId = GetPanelId(panelType);
-            var config = uiConfig.Get(panelId);
-
-            if (config == null)
-            {
-                return null;
-            }
-
-            if (openedPanels.TryGetValue(panelId, out var openedPanel))
-            {
-                return openedPanel as T;
-            }
-
-            if (cachedPanels.TryGetValue(panelId, out var cachedPanel) && cachedPanel != null)
-            {
-                return cachedPanel as T;
-            }
-
-            var panel = await CreatePanelAsync(config, panelType);
-            if (panel == null)
-            {
-                return null;
-            }
-
-            cachedPanels[panelId] = panel;
-            SetPanelVisible(panel, false);
-
-            return panel as T;
-        }
-
-        /// <summary>
-        /// 清理所有未打开的缓存 UI。
-        /// 已打开的 UI 不会被销毁。
-        /// </summary>
-        public void ClearCache()
-        {
-            var keys = new List<string>(cachedPanels.Keys);
-
-            foreach (var key in keys)
-            {
-                if (openedPanels.ContainsKey(key))
-                {
-                    continue;
-                }
-
-                if (cachedPanels.TryGetValue(key, out var panel) && panel != null)
-                {
-                    Destroy(panel.gameObject);
-                }
-
-                cachedPanels.Remove(key);
-            }
-        }
-
-        /// <summary>
-        /// 清理指定类型的未打开缓存 UI。
-        /// </summary>
-        public void ClearCache<T>() where T : UIPanelBase
-        {
-            ClearCache(GetPanelId<T>());
-        }
-
-        /// <summary>
-        /// 清理指定 panelId 的未打开缓存 UI。
-        /// </summary>
-        public void ClearCache(string panelId)
-        {
-            if (openedPanels.ContainsKey(panelId))
-            {
-                return;
-            }
-
-            if (cachedPanels.TryGetValue(panelId, out var panel))
-            {
-                if (panel != null)
-                {
-                    Destroy(panel.gameObject);
-                }
-
-                cachedPanels.Remove(panelId);
-            }
-        }
-
-        #endregion
-
-
-        #region Unmanaged Scene Panel Repair
-
-        /// <summary>
-        /// 被 UIPanelBase 调用。
-        /// 当场景中存在未通过 UIManager 打开的 Panel 时，重新通过 UIManager 打开同类型 Panel。
-        /// </summary>
-        public async Task<bool> ReopenUnmanagedScenePanelAsync(UIPanelBase unmanagedPanel)
-        {
-            if (isShuttingDown || !Application.isPlaying || unmanagedPanel == null)
-            {
-                return false;
-            }
-
-            var panelType = unmanagedPanel.GetType();
-            var openedPanel = await OpenAsync(panelType);
-
-            return openedPanel != null;
-        }
-
-        #endregion
-
-
-        #region Create Panel
-
-        private async Task<UIPanelBase> GetOrCreatePanelAsync(UIPanelConfig config, Type expectedPanelType)
-        {
-            if (cachedPanels.TryGetValue(config.PanelId, out var cachedPanel))
-            {
-                if (cachedPanel != null)
-                {
-                    cachedPanel.BindToManager(this);
-                    SetPanelVisible(cachedPanel, true);
-                    return cachedPanel;
-                }
-
-                cachedPanels.Remove(config.PanelId);
-            }
-
-            var panel = await CreatePanelAsync(config, expectedPanelType);
-
-            if (panel == null)
-            {
-                return null;
-            }
-
-            cachedPanels[config.PanelId] = panel;
-
-            return panel;
-        }
-
-        private async Task<UIPanelBase> CreatePanelAsync(UIPanelConfig config, Type expectedPanelType)
-        {
-            if (config == null)
-            {
-                return null;
-            }
-
-            var prefab = await UILoader.LoadPrefabAsync(config.addressableKey);
-            if (prefab == null)
-            {
-                return null;
-            }
-
-            Transform parent = GetLayer(config.layer);
-            if (parent == null)
-            {
-                Debug.LogError($"UI Layer 未配置：{config.layer}");
-                return null;
-            }
-
-            var instance = Instantiate(prefab, parent);
-            instance.name = config.PanelId;
-
-            var panel = instance.GetComponent<UIPanelBase>();
-            if (panel == null)
-            {
-                Debug.LogError($"UI Prefab 上没有 UIPanelBase 组件：{config.PanelId}");
-                Destroy(instance);
-                return null;
-            }
-
-            var actualPanelId = panel.PanelId;
-
-            if (actualPanelId != config.PanelId)
-            {
-                Debug.LogError(
-                    $"UI 配置错误：PanelId 必须等于 Panel 脚本类名。\n" +
-                    $"Config PanelId = {config.PanelId}\n" +
-                    $"Prefab Panel Class = {actualPanelId}",
-                    instance);
-
-                Destroy(instance);
-                return null;
-            }
-
-            if (expectedPanelType != null && !expectedPanelType.IsAssignableFrom(panel.GetType()))
-            {
-                Debug.LogError(
-                    $"UI Prefab 类型错误。\n" +
-                    $"期望类型：{expectedPanelType.Name}\n" +
-                    $"实际类型：{panel.GetType().Name}",
-                    instance);
-
-                Destroy(instance);
-                return null;
-            }
-
-            panel.BindToManager(this);
-
-            await panel.OnCreateAsync();
-
-            return panel;
-        }
-
-        #endregion
-
-
-        #region Same Layer Hide / Restore
-
-        private async Task HideSameLayerPanelsAsync(string ownerPanelId, UILayer layer)
-        {
-            hiddenPanelsByOwner.Remove(ownerPanelId);
-
-            var hiddenPanelIds = new List<string>();
-            var snapshot = new List<KeyValuePair<string, UIPanelBase>>(openedPanels);
-
-            foreach (var kvp in snapshot)
-            {
-                var otherPanelId = kvp.Key;
-                var otherPanel = kvp.Value;
-
-                if (otherPanel == null)
-                {
-                    continue;
-                }
-
-                if (otherPanelId == ownerPanelId)
-                {
-                    continue;
-                }
-
-                var otherConfig = uiConfig.Get(otherPanelId);
-                if (otherConfig == null)
-                {
-                    continue;
-                }
-
-                if (otherConfig.layer != layer)
-                {
-                    continue;
-                }
-
-                var wasVisible = IsPanelVisible(otherPanel);
-
-                if (!hideOwnersByPanel.TryGetValue(otherPanelId, out var owners))
-                {
-                    owners = new HashSet<string>();
-                    hideOwnersByPanel[otherPanelId] = owners;
-                }
-
-                if (owners.Add(ownerPanelId))
-                {
-                    hiddenPanelIds.Add(otherPanelId);
-                }
-
-                if (wasVisible)
-                {
-                    await otherPanel.OnBlurAsync();
-                }
-
-                SetPanelVisible(otherPanel, false);
-            }
-
-            if (hiddenPanelIds.Count > 0)
-            {
-                hiddenPanelsByOwner[ownerPanelId] = hiddenPanelIds;
-            }
-        }
-
-        private async Task<bool> RestorePanelsHiddenByAsync(string ownerPanelId)
-        {
-            if (!hiddenPanelsByOwner.TryGetValue(ownerPanelId, out var hiddenPanelIds))
-            {
-                return false;
-            }
-
-            hiddenPanelsByOwner.Remove(ownerPanelId);
-
-            UIPanelBase topRestoredPanel = null;
-            var topSiblingIndex = -1;
-
-            foreach (var hiddenPanelId in hiddenPanelIds)
-            {
-                if (!hideOwnersByPanel.TryGetValue(hiddenPanelId, out var owners))
-                {
-                    continue;
-                }
-
-                owners.Remove(ownerPanelId);
-
-                if (owners.Count > 0)
-                {
-                    continue;
-                }
-
-                hideOwnersByPanel.Remove(hiddenPanelId);
-
-                if (!openedPanels.TryGetValue(hiddenPanelId, out var panel))
-                {
-                    continue;
-                }
-
-                SetPanelVisible(panel, true);
-
-                var siblingIndex = panel.transform.GetSiblingIndex();
-                if (siblingIndex > topSiblingIndex)
-                {
-                    topSiblingIndex = siblingIndex;
-                    topRestoredPanel = panel;
-                }
-            }
-
-            if (topRestoredPanel != null)
-            {
-                await topRestoredPanel.OnFocusAsync();
+                ThrowCollected(errors, "UI 缓存清理失败。");
                 return true;
-            }
-
-            return false;
+            }, ApplicationScope, CancellationToken.None);
         }
-
-        private void RemoveClosedPanelFromHideRecords(string closedPanelId)
+        public Task ClearCacheAsync<T>() where T : UIPanelBase
         {
-            hideOwnersByPanel.Remove(closedPanelId);
-
-            var emptyOwnerIds = new List<string>();
-
-            foreach (var kvp in hiddenPanelsByOwner)
+            EnsureReady();
+            return RunQueuedAsync(async token =>
             {
-                if (kvp.Key == closedPanelId)
-                {
-                    continue;
-                }
-
-                kvp.Value.Remove(closedPanelId);
-
-                if (kvp.Value.Count == 0)
-                {
-                    emptyOwnerIds.Add(kvp.Key);
-                }
-            }
-
-            foreach (var ownerId in emptyOwnerIds)
-            {
-                hiddenPanelsByOwner.Remove(ownerId);
-            }
-        }
-
-        private void ClearHideStateForPanel(string panelId)
-        {
-            hideOwnersByPanel.Remove(panelId);
-
-            var emptyOwnerIds = new List<string>();
-
-            foreach (var kvp in hiddenPanelsByOwner)
-            {
-                kvp.Value.Remove(panelId);
-
-                if (kvp.Value.Count == 0)
-                {
-                    emptyOwnerIds.Add(kvp.Key);
-                }
-            }
-
-            foreach (var ownerId in emptyOwnerIds)
-            {
-                hiddenPanelsByOwner.Remove(ownerId);
-            }
-        }
-
-        #endregion
-
-
-        #region Focus / Blur
-
-        private async Task BlurTopPanelAsync()
-        {
-            while (closeStack.Count > 0)
-            {
-                var topPanelId = closeStack.Peek();
-
-                if (!openedPanels.TryGetValue(topPanelId, out var panel))
-                {
-                    closeStack.Pop();
-                    continue;
-                }
-
-                if (IsPanelVisible(panel))
-                {
-                    await panel.OnBlurAsync();
-                }
-
-                return;
-            }
-        }
-
-        private async Task FocusTopPanelAsync()
-        {
-            while (closeStack.Count > 0)
-            {
-                var topPanelId = closeStack.Peek();
-
-                if (!openedPanels.TryGetValue(topPanelId, out var panel))
-                {
-                    closeStack.Pop();
-                    continue;
-                }
-
-                if (hideOwnersByPanel.ContainsKey(topPanelId))
-                {
-                    return;
-                }
-
-                if (IsPanelVisible(panel))
-                {
-                    await panel.OnFocusAsync();
-                }
-
-                return;
-            }
-        }
-
-        #endregion
-
-
-        #region Visibility
-
-        private void SetPanelVisible(UIPanelBase panel, bool visible)
-        {
-            if (panel == null)
-            {
-                return;
-            }
-
-            var canvasGroup = panel.GetComponent<CanvasGroup>();
-            if (canvasGroup == null)
-            {
-                canvasGroup = panel.gameObject.AddComponent<CanvasGroup>();
-            }
-
-            panel.gameObject.SetActive(true);
-
-            canvasGroup.alpha = visible ? 1f : 0f;
-            canvasGroup.interactable = visible;
-            canvasGroup.blocksRaycasts = visible;
-        }
-
-        private bool IsPanelVisible(UIPanelBase panel)
-        {
-            if (panel == null)
-            {
-                return false;
-            }
-
-            if (!panel.gameObject.activeInHierarchy)
-            {
-                return false;
-            }
-
-            var canvasGroup = panel.GetComponent<CanvasGroup>();
-
-            return canvasGroup == null || canvasGroup.alpha > 0.001f;
-        }
-
-        #endregion
-
-
-        #region Stack
-
-        private void RemoveFromCloseStack(string panelId)
-        {
-            if (closeStack.Count == 0)
-            {
-                return;
-            }
-
-            var tempStack = new Stack<string>();
-
-            while (closeStack.Count > 0)
-            {
-                var id = closeStack.Pop();
-
-                if (id != panelId)
-                {
-                    tempStack.Push(id);
-                }
-            }
-
-            while (tempStack.Count > 0)
-            {
-                closeStack.Push(tempStack.Pop());
-            }
-        }
-
-        #endregion
-
-
-        #region Config / Layer
-
-        private async Task<bool> EnsureUIConfigAsync()
-        {
-            if (uiConfig != null)
-            {
+                if (entries.TryGetValue(typeof(T).Name, out var entry) && entry.State == UIPanelState.Cached)
+                    await ReleaseEntryAsync(entry);
                 return true;
-            }
-
-            uiConfig = await GetUIConfigAsync();
-
-            return uiConfig != null;
+            }, ApplicationScope, CancellationToken.None);
         }
 
-        public async Task<UIConfig> GetUIConfigAsync()
+        public Task EndScopeAsync(UIScope scope)
         {
-            if (uiConfig != null)
+            EnsureReady();
+            ValidateScope(scope);
+            if (scope == ApplicationScope) throw new InvalidOperationException("应用作用域只能通过 ShutdownAsync 结束。");
+            scope.Cancel(); // 在等待导航队列之前失效；迟到加载永远无法发布。
+            return RunQueuedAsync(async token =>
             {
-                return uiConfig;
-            }
-
-            if (isLoadingUIConfig)
-            {
-                while (isLoadingUIConfig)
+                var errors = new List<Exception>();
+                foreach (var entry in new List<Entry>(entries.Values))
                 {
-                    await Task.Yield();
+                    if (entry.Scope != scope) continue;
+                    try { await CloseCoreAsync(entry, true, false); } catch (Exception error) { errors.Add(error); }
                 }
-
-                return uiConfig;
-            }
-
-            isLoadingUIConfig = true;
-
-            var handle = Addressables.LoadAssetAsync<UIConfig>(uiConfigAddress);
-
-            await handle.Task;
-
-            isLoadingUIConfig = false;
-
-            if (handle.Status != AsyncOperationStatus.Succeeded)
-            {
-                Debug.LogError($"UIConfig 加载失败：{uiConfigAddress}");
-                return null;
-            }
-
-            uiConfig = handle.Result;
-
-            var moyoConfig = MoyoConfig.Instance;
-            if (moyoConfig != null && moyoConfig.UI.LogConfigLoaded)
-            {
-                Debug.Log($"已加载 UIConfig：{uiConfigAddress}");
-            }
-
-            return uiConfig;
+                scopes.Remove(scope);
+                try { await SynchronizePresentationAsync(); } catch (Exception error) { errors.Add(error); }
+                ThrowCollected(errors, "UI 会话结束失败。");
+                return true;
+            }, ApplicationScope, CancellationToken.None);
         }
 
-        private Transform GetLayer(UILayer layer)
+        public Task ShutdownAsync()
         {
-            return layer switch
+            if (shutdownTask != null) return shutdownTask;
+            RejectLifecycleNavigation();
+            shuttingDown = true;
+            foreach (var scope in scopes) scope.Cancel();
+            lifetime.Cancel();
+            shutdownTask = ShutdownCoreAsync();
+            return shutdownTask;
+        }
+
+        private async Task ShutdownCoreAsync()
+        {
+            await operationGate.WaitAsync();
+            var errors = new List<Exception>();
+            try
             {
-                UILayer.Background => backgroundLayer,
-                UILayer.HUD => hudLayer,
-                UILayer.Normal => normalLayer,
-                UILayer.Popup => popupLayer,
-                UILayer.Toast => toastLayer,
-                UILayer.Guide => guideLayer,
-                UILayer.Blocker => blockerLayer,
-                UILayer.Debuger => debugerLayer,
-                _ => normalLayer
-            };
-        }
-
-        private static string GetPanelId<T>() where T : UIPanelBase
-        {
-            return typeof(T).Name;
-        }
-
-        private static string GetPanelId(Type panelType)
-        {
-            return panelType.Name;
-        }
-
-        #endregion
-    }
-
-    /// <summary>
-    /// UI Prefab 加载器。
-    /// </summary>
-    public static class UILoader
-    {
-        public static async Task<GameObject> LoadPrefabAsync(string key)
-        {
-            if (string.IsNullOrEmpty(key))
-            {
-                Debug.LogError("UI Prefab Addressables Key 为空。");
-                return null;
+                foreach (var entry in new List<Entry>(entries.Values))
+                { try { await CloseCoreAsync(entry, true, false); } catch (Exception error) { errors.Add(error); } }
+                entries.Clear(); openOrder.Clear(); scopes.Clear(); focused = null;
+                if (eventSystem != null) eventSystem.enabled = false;
             }
-
-            var handle = Addressables.LoadAssetAsync<GameObject>(key);
-
-            await handle.Task;
-
-            if (handle.Status != AsyncOperationStatus.Succeeded)
+            finally
             {
-                Debug.LogError($"UI Prefab Addressables 加载失败：{key}");
-                Addressables.Release(handle);
-                return null;
+                IsInitialized = false;
+                if (instance == this) instance = null;
+                operationGate.Release();
             }
+            ThrowCollected(errors, "UI 根释放失败。");
+        }
 
-            return handle.Result;
+        private async Task<UIPanelBase> OpenCoreAsync(UIPanelConfig config, Type type, object args,
+            UIScope scope, CancellationToken token)
+        {
+            Entry entry = null;
+            try
+            {
+                entry = await GetOrCreateAsync(config, type, scope, token);
+                if (entry.State == UIPanelState.Open)
+                {
+                    await BlurIfFocusedAsync(entry);
+                    await InvokeLifecycleAsync(entry.Panel.CloseTreeAsync);
+                    openOrder.Remove(config.PanelId);
+                    entry.Panel.SetVisibility(false);
+                }
+                SetState(entry, UIPanelState.Opening);
+                await InvokeLifecycleAsync(() => entry.Panel.OpenTreeAsync(args, token));
+                token.ThrowIfCancellationRequested();
+                SetState(entry, UIPanelState.Open);
+                openOrder.Remove(config.PanelId);
+                openOrder.Add(config.PanelId);
+                entry.Panel.transform.SetAsLastSibling();
+                await SynchronizePresentationAsync();
+                token.ThrowIfCancellationRequested();
+                return entry.Panel;
+            }
+            catch
+            {
+                if (entry != null)
+                {
+                    try { await ReleaseEntryAsync(entry); } catch (Exception cleanup) { Debug.LogException(cleanup, this); }
+                    try { await SynchronizePresentationAsync(); } catch (Exception cleanup) { Debug.LogException(cleanup, this); }
+                }
+                throw;
+            }
+        }
+
+        private async Task<Entry> GetOrCreateAsync(UIPanelConfig config, Type expectedType, UIScope scope, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+            if (entries.TryGetValue(config.PanelId, out var existing))
+            {
+                if (existing.Scope != scope) throw new InvalidOperationException($"面板 {config.PanelId} 仍属于 {existing.Scope}，请先结束旧作用域。");
+                if (existing.Panel == null || !expectedType.IsInstanceOfType(existing.Panel))
+                    throw new InvalidOperationException($"面板 {config.PanelId} 的实例被外部销毁或类型与注册不符。");
+                return existing;
+            }
+            var entry = new Entry { Config = config, Scope = scope, State = UIPanelState.Creating };
+            // 先登记唯一创建者；所有调用仍由队列串行化，预加载与打开共享此条目。
+            entries.Add(config.PanelId, entry);
+            try
+            {
+                entry.Lease = await UILoader.LoadAsync(config, token);
+                token.ThrowIfCancellationRequested();
+                entry.Lease.Asset.Validate(config.PanelId);
+                if (!expectedType.IsInstanceOfType(entry.Lease.Asset.PrefabRoot))
+                    throw new InvalidOperationException($"面板 {config.PanelId} 的预制体类型与请求不匹配。");
+                entry.Panel = Instantiate(entry.Lease.Asset.PrefabRoot, inactiveRoot, false);
+                entry.Panel.name = config.PanelId;
+                entry.Panel.gameObject.SetActive(false);
+                entry.Panel.BindToManager(this, scope);
+                await InvokeLifecycleAsync(() => entry.Panel.CreateTreeAsync(token));
+                token.ThrowIfCancellationRequested();
+                entry.Panel.transform.SetParent(layerRoots[config.layer], false);
+                entry.Panel.SetVisibility(false);
+                SetState(entry, UIPanelState.Cached);
+                return entry;
+            }
+            catch
+            {
+                try { await ReleaseEntryAsync(entry); } catch (Exception cleanup) { Debug.LogException(cleanup, this); }
+                throw;
+            }
+        }
+
+        private async Task CloseCoreAsync(Entry entry, bool forceRelease, bool synchronize = true)
+        {
+            var errors = new List<Exception>();
+            if (entry.State == UIPanelState.Open || entry.State == UIPanelState.Opening)
+            {
+                SetState(entry, UIPanelState.Closing);
+                try { await BlurIfFocusedAsync(entry); } catch (Exception error) { errors.Add(error); }
+                try { if (entry.Panel != null) await InvokeLifecycleAsync(entry.Panel.CloseTreeAsync); }
+                catch (Exception error) { errors.Add(error); }
+                finally
+                {
+                    openOrder.Remove(entry.Config.PanelId);
+                    entry.Visible = false;
+                    if (entry.Panel != null) entry.Panel.SetVisibility(false);
+                    SetState(entry, UIPanelState.Cached);
+                }
+            }
+            if (forceRelease || entry.Config.cachePolicy == UICachePolicy.DestroyOnClose || errors.Count > 0)
+            {
+                try { await ReleaseEntryAsync(entry); } catch (Exception error) { errors.Add(error); }
+            }
+            if (synchronize)
+            { try { await SynchronizePresentationAsync(); } catch (Exception error) { errors.Add(error); } }
+            ThrowCollected(errors, $"面板 {entry.Config.PanelId} 关闭失败。");
+        }
+
+        private async Task ReleaseEntryAsync(Entry entry)
+        {
+            var errors = new List<Exception>();
+            try { await BlurIfFocusedAsync(entry); } catch (Exception error) { errors.Add(error); }
+            entries.Remove(entry.Config.PanelId);
+            openOrder.Remove(entry.Config.PanelId);
+            SetState(entry, UIPanelState.Released);
+            try
+            {
+                if (entry.Panel != null) await InvokeLifecycleAsync(entry.Panel.ReleaseTreeAsync);
+            }
+            catch (Exception error) { errors.Add(error); }
+            finally
+            {
+                if (entry.Panel != null)
+                {
+                    entry.Panel.ClearScope();
+                    entry.Panel.gameObject.SetActive(false);
+                    if (Application.isPlaying) Destroy(entry.Panel.gameObject); else DestroyImmediate(entry.Panel.gameObject);
+                }
+                entry.Panel = null;
+                entry.Lease?.Dispose();
+                entry.Lease = null;
+                entry.Visible = false;
+            }
+            ThrowCollected(errors, $"面板 {entry.Config.PanelId} 释放失败。");
+        }
+
+        private async Task SynchronizePresentationAsync()
+        {
+            if (shuttingDown) return;
+            var hiddenLayers = new HashSet<UILayer>();
+            for (var i = openOrder.Count - 1; i >= 0; i--)
+            {
+                var entry = entries[openOrder[i]];
+                entry.Visible = entry.State == UIPanelState.Open && !entry.Scope.IsEnded && !hiddenLayers.Contains(entry.Config.layer);
+                if (entry.Panel != null) entry.Panel.SetVisibility(entry.Visible);
+                if (entry.Visible && entry.Config.hideSameLayerPanels) hiddenLayers.Add(entry.Config.layer);
+            }
+            var top = FindTopFocusable();
+            var next = top?.Panel;
+            if (focused == next) return;
+            var previous = focused;
+            focused = null;
+            if (previous != null) await InvokeLifecycleAsync(previous.OnBlurAsync);
+            if (next != null)
+            {
+                await InvokeLifecycleAsync(next.OnFocusAsync);
+                focused = next;
+            }
+        }
+
+        private Entry FindTopFocusable()
+        {
+            Entry result = null;
+            var bestLayer = int.MinValue;
+            for (var i = openOrder.Count - 1; i >= 0; i--)
+            {
+                if (!entries.TryGetValue(openOrder[i], out var entry) || !entry.Visible || !entry.Config.takesFocus
+                    || entry.State != UIPanelState.Open || entry.Scope.IsEnded || entry.Panel == null) continue;
+                var rank = layerRoots[entry.Config.layer].GetSiblingIndex();
+                if (rank <= bestLayer) continue;
+                bestLayer = rank;
+                result = entry;
+            }
+            return result;
+        }
+
+        private async Task BlurIfFocusedAsync(Entry entry)
+        {
+            if (focused == null || focused != entry.Panel) return;
+            var previous = focused;
+            focused = null;
+            await InvokeLifecycleAsync(previous.OnBlurAsync);
+        }
+
+        private static void SetState(Entry entry, UIPanelState state)
+        { entry.State = state; if (entry.Panel != null) entry.Panel.State = state; }
+
+        private async Task<T> RunQueuedAsync<T>(Func<CancellationToken, Task<T>> action, UIScope scope, CancellationToken token)
+        {
+            RejectLifecycleNavigation();
+            EnsureReady();
+            using var linked = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token, scope.Token, token);
+            await operationGate.WaitAsync(linked.Token);
+            try
+            {
+                linked.Token.ThrowIfCancellationRequested();
+                EnsureReady();
+                return await action(linked.Token);
+            }
+            finally { operationGate.Release(); }
+        }
+
+        private async Task InvokeLifecycleAsync(Func<Task> callback)
+        {
+            lifecycleDepth.Value++;
+            try { await callback(); }
+            finally { lifecycleDepth.Value--; }
+        }
+        private async Task<T> InvokeLifecycleAsync<T>(Func<Task<T>> callback)
+        {
+            lifecycleDepth.Value++;
+            try { return await callback(); }
+            finally { lifecycleDepth.Value--; }
+        }
+        private void RejectLifecycleNavigation()
+        {
+            if (lifecycleDepth.Value != 0)
+                throw new InvalidOperationException("面板生命周期内不能等待另一个 UIManager 导航操作。请在应用流程中依次导航，或使用子视图 API。");
+        }
+        private void EnsureReady()
+        {
+            if (!IsInitialized || shuttingDown) throw new InvalidOperationException("UIManager 尚未初始化或已经开始释放。");
+        }
+        private static void EnsurePanelType(Type type)
+        {
+            if (type == null || type.IsAbstract || !typeof(UIPanelBase).IsAssignableFrom(type))
+                throw new ArgumentException("必须提供具体的 UIPanelBase 类型。", nameof(type));
+        }
+        private UIPanelConfig GetConfig(string panelId)
+        {
+            EnsureReady();
+            if (!registry.TryGetValue(panelId, out var config)) throw new InvalidOperationException($"UI 注册表中不存在 {panelId}。");
+            return config;
+        }
+        private UIScope ResolveScope(UIPanelConfig config, UIScope requested)
+        {
+            var scope = requested ?? ApplicationScope;
+            ValidateScope(scope);
+            if (scope.IsEnded) throw new OperationCanceledException($"UI 作用域 {scope} 已结束。", scope.Token);
+            if (config.scopePolicy == UIScopePolicy.Application && scope != ApplicationScope)
+                throw new InvalidOperationException($"共享面板 {config.PanelId} 必须使用应用作用域。");
+            if (config.scopePolicy == UIScopePolicy.Session && scope == ApplicationScope)
+                throw new InvalidOperationException($"面板 {config.PanelId} 必须提供明确的游戏会话作用域。");
+            return scope;
+        }
+        private void ValidateScope(UIScope scope)
+        {
+            if (scope == null || scope.Owner != this) throw new InvalidOperationException("UI 作用域不属于当前管理器。");
+        }
+        private static void ThrowCollected(List<Exception> errors, string message)
+        { if (errors.Count > 0) throw new AggregateException(message, errors); }
+
+        private async void OnDestroy()
+        {
+            if (!IsInitialized && shutdownTask == null) return;
+            try { await ShutdownAsync(); }
+            catch (Exception error) { Debug.LogException(error); }
         }
     }
 }

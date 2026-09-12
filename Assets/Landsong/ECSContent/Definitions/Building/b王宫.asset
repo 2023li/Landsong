@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 02d7d04a464b7214dac9f377de8cc861, type: 3}
   m_Name: "b\u738B\u5BAB"
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.GameDefinitionAsset
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.GameDefinitionAsset
   Data:
     Id: "b\u738B\u5BAB"
     Name: "\u738B\u5BAB"
@@ -41,91 +41,129 @@ MonoBehaviour:
       Category: 32
       MenuOrder: 0
       ProviderPriority: 0
-      RepairTurns: 0
       CanMove: 1
       CanRotate: 1
       MoveMaterialRatio: 0.3
       MoveExperienceRatio: 0.3
       RuinMovementCost: 4
       DefaultSkin: 
-    Rules:
-    - Kind: 52
-      Target: 
-      Secondary: 
-      Level: 0
-      Amount: 0
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: "\u9646\u5730"
-    - Kind: 62
-      Target: 
-      Secondary: 
-      Level: 0
-      Amount: 0
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 11
-      Target: 
-      Secondary: 
-      Level: 1
-      Amount: 10
-      B: 1
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 10
-      Target: "slot.\u7B80\u964B\u5E93\u5B58"
-      Secondary: 
-      Level: 1
-      Amount: 15
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 59
-      Target: 
-      Secondary: 
-      Level: 1
-      Amount: 1
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 25
-      Target: 
-      Secondary: 
-      Level: 1
-      Amount: 4
-      B: 0
-      C: 0
-      Value: 0
-      Extra: 0
-      Key: 
-    - Kind: 26
-      Target: 
-      Secondary: 
-      Level: 1
-      Amount: 1
-      B: 0
-      C: 5
-      Value: 10
-      Extra: 0
-      Key: 
-    - Kind: 21
-      Target: militia
-      Secondary: 
-      Level: 1
-      Amount: 3
-      B: 1
-      C: 2
-      Value: 0
-      Extra: 0
-      Key: 
+    Configuration:
+      Conditions:
+        Enabled: 0
+        Completions: []
+        Visibility: []
+      Objectives:
+        Enabled: 0
+        Buildings: []
+        PlantedBuildings: []
+        OwnedItems: []
+        SubmittedItems: []
+        CameraMoves: []
+        CameraZooms: []
+        Technologies: []
+        Turns: []
+      Rewards:
+        Enabled: 0
+        Items: []
+        Blueprints: []
+        Buffs: []
+        Features: []
+        Failures: []
+        SpecialDrops: []
+      UnitCosts:
+        Enabled: 0
+        Recruitment: []
+        Awakening: []
+        Offerings: []
+      Crops:
+        Enabled: 0
+        Seeds: []
+        AutomaticHarvest: []
+        Yields: []
+      Inventory:
+        Enabled: 0
+        Groups: []
+        Accepted: []
+        Losses: []
+      Expeditions:
+        Enabled: 0
+        Supplies: []
+      Modifiers:
+        Enabled: 0
+        LossModifier: []
+        ProductionBonus: []
+        AttackBonus: []
+        HealthBonus: []
+        PublicOpinion: []
+        SoldierAttackBonus: []
+        SoldierSpeedBonus: []
+        ActionPowerBonus: []
+        CropHarvestBonus: []
+        PlotRisk: []
+        NaturalDeathRisk: []
+        ResearchOutput: []
+        RangeBonus: []
+        AttackSpeedBonus: []
+        SpeedBonus: []
+        ArmorBonus: []
+        DamageReductionBonus: []
+        PenetrationBonus: []
+        ProjectileSpeedBonus: []
+        BlastRadiusBonus: []
+        FlatProduction: []
+        Intelligence: []
+      People:
+        Enabled: 0
+        Wages: []
+        Traits: []
+        Conflicts: []
+        Dependencies: []
+        SocialTasks: []
+        PeriodicItems: []
+        Effects: []
+    Modules:
+      Placement:
+        Enabled: 1
+        RequiredTerrains:
+        - Terrain: "\u9646\u5730"
+      Storage:
+        Enabled: 1
+        Providers:
+        - Level: 0
+        Warehouses:
+        - Level: 1
+          SlotType: {fileID: 11400000, guid: 1f9a9c9bb078fce4ca49c9b5809c20af, type: 2}
+          Slots: 15
+          RequiredWorkers: 0
+      Housing:
+        Enabled: 1
+        Population:
+        - Level: 1
+          Population: 10
+          IsCore: 1
+      Research:
+        Enabled: 1
+        Levels:
+        - Level: 1
+          PointsPerTurn: 1
+      Quests:
+        Enabled: 1
+        Capacity:
+        - Level: 1
+          Slots: 4
+        Invitations:
+        - Level: 1
+          Slots: 1
+          Type: 0
+          MinimumRefreshTurns: 5
+          MaximumRefreshTurns: 10.0
+      Garrison:
+        Enabled: 1
+        Levels:
+        - Level: 1
+          Capacity: 3
+          DeploymentBatchSize: 1
+        InitialUnits:
+        - Level: 1
+          Soldier: {fileID: 11400000, guid: 64f87f79126d02d4e83d00dda39c89e9, type: 2}
+          Count: 2

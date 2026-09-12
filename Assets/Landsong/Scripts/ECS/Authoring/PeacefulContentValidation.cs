@@ -6,8 +6,9 @@ namespace Landsong.ECS.Authoring
 {
     public static class PeacefulContentValidation
     {
-        public static void Validate(GameCatalogAsset catalog)
+        public static void Validate(GameCatalogAsset catalog, ContentCompilation compiled=null)
         {
+            compiled??=new ContentCompilation(catalog);
             var r = catalog.Peaceful;
             if (r.MaximumPerNight < 0 || r.MaximumPerNight > 32 || r.MaximumConcurrent < 1 || r.MaximumConcurrent > 8 || r.TheftValueBudget < 0 || r.TheftValueBudget > 100000 || !math.isfinite(r.FirstOpportunity) || r.FirstOpportunity < 1 || !math.isfinite(r.Interval) || r.Interval < 1) throw new InvalidOperationException("Invalid peaceful night budget/timing");
             foreach (var d in catalog.Content)
@@ -24,9 +25,9 @@ namespace Landsong.ECS.Authoring
                     var t = d.Theft;
                     if ((byte)t.Protection > 7 || t.Weight < 0 || t.Weight > 10000 || t.Maximum < 0 || t.Maximum > 10000 || t.UnitValue < 1 || t.UnitValue > 100000) throw new InvalidOperationException(d.Id + ": invalid theft value/weight/cap");
                 }
-                foreach (var rule in d.Rules) if (rule.Kind == RuleKind.SpecialDrop)
+                foreach (var rule in compiled.For(d)) if (rule.Kind == RuleKind.SpecialDrop)
                 {
-                    int item = catalog.Find(rule.Target);
+                    int item = rule.Target;
                     if (d.Kind != ContentKind.Enemy || item < 0 || catalog.Content[item].Kind != ContentKind.Item || rule.Amount < 1 || rule.Amount > 100000 || rule.B < 1 || rule.B > 3) throw new InvalidOperationException(d.Id + ": SpecialDrop needs an item, positive quantity and rarity B=1..3");
                     if (!catalog.Content.Any(c => c.Kind == ContentKind.Loot && c.Prefab != null)) throw new InvalidOperationException(d.Id + ": missing special loot visual definition");
                 }

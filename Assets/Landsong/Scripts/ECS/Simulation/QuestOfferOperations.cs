@@ -66,7 +66,7 @@ namespace Landsong.ECS
             var blob = em.GetComponentData<ContentCatalog>(root).Value;
             for (var i = 0; i < blob.Value.Definitions.Length; i++)
             {
-                var d = blob.Value.Definitions[i]; if (d.Kind != ContentKind.Quest || (d.Flags & 3) != 0 || d.Value != slot.Type || QuestOps.HasQuestPredecessor(em, root, i) || !ProgressionOps.Prerequisites(em, root, i)) continue;
+                var d = blob.Value.Definitions[i]; if (d.Kind != ContentKind.Quest || (d.Flags & 3) != 0 || d.Value != slot.Type || QuestOps.HasQuestPredecessor(em, root, i) || !ConditionOps.Prerequisites(em, root, i)) continue;
                 var weight = Weight(blob.Value.Quests, d, q.Strength); if (weight <= 0) continue; q.Candidates.Add(i); q.Weights.Add(weight);
             }
             q.Code = q.Candidates.Count == 0 ? ResultCode.Unavailable : ResultCode.Success; q.Reason = q.Candidates.Count == 0 ? "暂无符合条件的邀约，不会扣费" : ""; return q;

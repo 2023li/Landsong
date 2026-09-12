@@ -86,6 +86,8 @@ namespace Landsong.ECS.Editor
             };
             foreach(var row in rows)yield return new GamePresentationCatalog.Translation{Table="UI",Key=row.Item1,Zh=row.Item2,En=row.Item3};
             foreach(var row in new[]{
+                ("ui.ecs.cleanup.retry","重试清理并返回","Retry cleanup and return"),("ui.ecs.cleanup.pending","正在清理","Cleaning up"),
+                ("ui.ecs.settings.apply_short","应用","Apply"),("ui.ecs.settings.defaults_short","恢复默认","Restore defaults"),("ui.ecs.archive.title","存档记录","Save records"),
                 ("ui.ecs.settings.bus_hint","分类音量即时作用于表现音源；主音量只在唯一监听器上应用。","Bus volumes apply to presentation sources; master volume is applied once."),
                 ("ui.ecs.settings.apply_hint","修改后点击应用。显示变更需在 15 秒内确认，否则恢复。","Apply to save. Confirm display changes within 15 seconds or they revert."),
                 ("ui.ecs.settings.important_hint","重要消息不静音；筛选不删除历史。情报仍为独立按钮。","Important messages remain visible. Filters keep history; intelligence is separate."),

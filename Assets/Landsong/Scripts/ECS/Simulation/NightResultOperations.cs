@@ -17,10 +17,10 @@ namespace Landsong.ECS
 
         public static void Record(EntityManager em, Entity root, ulong source, int entry, RuleKind kind, int definition, int amount, FixedString128Bytes sourceName = default)
         {
-            if (kind != RuleKind.RewardItem) amount = Unity.Mathematics.math.max(1, amount);
+            if (source == 0 || kind == RuleKind.RewardItem && amount <= 0) return;
+            RewardOps.Validate(em, root, new RewardGrant(kind, definition, amount, source, sourceName));
             if (!em.HasComponent<NightResultState>(root)) Reset(em, root);
             if (em.GetComponentData<NightResultState>(root).Committed != 0 || source == 0 || amount <= 0) return;
-            if (!Sim.ValidDefinition(em, root, definition)) throw new InvalidOperationException("夜间奖励引用无效。");
             var journal = em.GetBuffer<NightReward>(root);
             foreach (var reward in journal) if (reward.Source == source && reward.Entry == entry) return;
             if (sourceName.IsEmpty) { var entity = Sim.Find(em, source); if (entity != Entity.Null) sourceName = em.GetComponentData<Identity>(entity).Name; }
@@ -31,6 +31,12 @@ namespace Landsong.ECS
         public static void RecordDefinition(EntityManager em, Entity root, ulong source, int definition)
         {
             var d = Sim.Definition(em, root, definition);
+            for (var i = 0; i < d.RuleCount; i++)
+            {
+                var r = Sim.GetRule(em, root, d.RuleStart + i);
+                if (r.Kind >= RuleKind.RewardItem && r.Kind <= RuleKind.RewardFeature)
+                    RewardOps.Validate(em, root, new RewardGrant(r.Kind, r.Target, r.Amount));
+            }
             for (var i = 0; i < d.RuleCount; i++)
             {
                 var r = Sim.GetRule(em, root, d.RuleStart + i);
@@ -45,29 +51,10 @@ namespace Landsong.ECS
             var state = em.GetComponentData<NightResultState>(root);
             if (state.Committed != 0 || state.Turn != em.GetComponentData<Session>(root).Turn) return;
             using var journal = em.GetBuffer<NightReward>(root).ToNativeArray(Allocator.Temp);
-            // Roll back this small transaction if a content/runtime error occurs mid-commit.
-            using var stock = em.GetBuffer<InventorySlot>(root).ToNativeArray(Allocator.Temp);
-            using var pending = em.GetBuffer<PendingItem>(root).ToNativeArray(Allocator.Temp);
-            using var grants = em.GetBuffer<Entitlement>(root).ToNativeArray(Allocator.Temp);
-            var reportCount = em.GetBuffer<BattleReportEntry>(root).Length;
-            try
-            {
-                foreach (var reward in journal)
-                {
-                    if (reward.Kind == RuleKind.RewardItem)
-                    {
-                        var stored = InventoryOps.Add(em, root, reward.Definition, reward.Amount, true);
-                        if (stored < reward.Amount) em.GetBuffer<BattleReportEntry>(root).Add(new BattleReportEntry { Kind = EventKind.RewardOverflow, Id = reward.Source, Definition = reward.Definition, Amount = reward.Amount - stored, SourceName = reward.SourceName });
-                    }
-                    else Sim.Grant(em, root, reward.Definition, Unity.Mathematics.math.max(1, reward.Amount));
-                }
-                state.Committed = 1; em.SetComponentData(root, state);
-            }
-            catch
-            {
-                em.GetBuffer<InventorySlot>(root).CopyFrom(stock); em.GetBuffer<PendingItem>(root).CopyFrom(pending); em.GetBuffer<Entitlement>(root).CopyFrom(grants);
-                em.GetBuffer<BattleReportEntry>(root).ResizeUninitialized(reportCount); throw;
-            }
+            var rewards = new System.Collections.Generic.List<RewardGrant>(journal.Length);
+            foreach (var reward in journal) rewards.Add(new RewardGrant(reward.Kind, reward.Definition, reward.Amount, reward.Source, reward.SourceName));
+            RewardOps.ApplyBatch(em, root, rewards, true,
+                () => { state.Committed = 1; em.SetComponentData(root, state); }, reportOverflow: true);
         }
     }
 }

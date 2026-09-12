@@ -6,8 +6,9 @@ namespace Landsong.ECS.Authoring
 {
     public static class CourtContentValidation
     {
-        public static void Validate(GameCatalogAsset c)
+        public static void Validate(GameCatalogAsset c, ContentCompilation compiled=null)
         {
+            compiled??=new ContentCompilation(c);
             var q=c.Court;
             if(q.ExpeditionRequestCooldown<1||!math.isfinite(q.ExpeditionRequestChance)||q.ExpeditionRequestChance<0||q.ExpeditionRequestChance>1)throw new InvalidOperationException("Court: invalid expedition request settings");
             foreach(var person in c.RoyalFamily)if((byte)person.Gender>2)throw new InvalidOperationException("Court: invalid initial gender");
@@ -25,13 +26,13 @@ namespace Landsong.ECS.Authoring
                 if(d.Kind==ContentKind.Talent && (d.Level<1 || d.Capacity<d.Level || d.Cost<1 || d.Duration<0)) throw new InvalidOperationException(d.Id+": invalid talent growth");
                 if(d.Kind==ContentKind.RoyalTrait && (d.Level<0 || d.Duration<d.Level || !math.isfinite(d.Chance) || d.Chance<0 || d.Chance>1)) throw new InvalidOperationException(d.Id+": invalid reveal/activation/inheritance");
                 var traits=new HashSet<string>();
-                foreach(var r in d.Rules)
+                foreach(var r in compiled.For(d))
                 {
                     if(!math.isfinite(r.Value) || !math.isfinite(r.Extra)) throw new InvalidOperationException(d.Id+": nonfinite rule");
                     if(r.Kind==RuleKind.Wage && (r.Amount<0 || r.B<0)) throw new InvalidOperationException(d.Id+": negative wage");
                     if(r.Kind==RuleKind.Trait || r.Kind==RuleKind.GeneConflict || r.Kind==RuleKind.GeneRequired)
-                    { var at=c.Find(r.Target); if(at<0 || c.Content[at].Kind!=ContentKind.RoyalTrait || r.Target==d.Id || r.Kind==RuleKind.Trait && !traits.Add(r.Target)) throw new InvalidOperationException(d.Id+": invalid gene reference"); }
-                    if(r.Kind==RuleKind.SocialTask) { var at=c.Find(r.Target); if(at<0 || c.Content[at].Kind!=ContentKind.Item || r.Amount<1 || r.B<1) throw new InvalidOperationException(d.Id+": invalid social task"); }
+                    { var at=r.Target; if(at<0 || c.Content[at].Kind!=ContentKind.RoyalTrait || compiled.Id(r.Target)==d.Id || r.Kind==RuleKind.Trait && !traits.Add(compiled.Id(r.Target))) throw new InvalidOperationException(d.Id+": invalid gene reference"); }
+                    if(r.Kind==RuleKind.SocialTask) { var at=r.Target; if(at<0 || c.Content[at].Kind!=ContentKind.Item || r.Amount<1 || r.B<1) throw new InvalidOperationException(d.Id+": invalid social task"); }
                 }
             }
         }

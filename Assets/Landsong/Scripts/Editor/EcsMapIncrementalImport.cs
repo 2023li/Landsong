@@ -116,14 +116,15 @@ namespace Landsong.ECS.Editor
         }
         public static void ValidateInitialBuildings(MapAsset map, TerrainSnapshot terrain)
         {
-            var definitions = AssetDatabase.LoadAssetAtPath<GameCatalogAsset>("Assets/Landsong/ECSContent/GameCatalog.asset").Definitions.ToDictionary(d => d.Data.Id, d => d.Data);
+            var catalog=AssetDatabase.LoadAssetAtPath<GameCatalogAsset>("Assets/Landsong/ECSContent/GameCatalog.asset");
+            var definitions=catalog.Content.ToDictionary(d=>d.Id);var compiled=new ContentCompilation(catalog);
             var occupied = new HashSet<Vector2Int>(); var cores = 0;
             foreach (var building in map.InitialBuildings)
             {
                 if (!definitions.TryGetValue(building.Definition, out var definition)) throw new InvalidOperationException("Unknown initial definition.");
                 if (definition.Kind != ContentKind.Building || definition.Size.x <= 0 || definition.Size.y <= 0 || building.Level < 1 || building.Level > definition.Level || building.Rotation < 0 || building.Rotation > 3)
                     throw new InvalidOperationException("Invalid initial building definition/level/rotation: " + building.Name);
-                if (definition.Rules.Any(r => r.Kind == RuleKind.Population && r.B != 0 && (r.Level == 0 || r.Level == building.Level))) cores++;
+                if (compiled.For(definition).Any(r => r.Kind == RuleKind.Population && r.B != 0 && (r.Level == 0 || r.Level == building.Level))) cores++;
                 var size = (building.Rotation & 1) == 0 ? definition.Size : new Vector2Int(definition.Size.y, definition.Size.x);
                 var elevation = int.MinValue; var surface = int.MinValue; ulong terrainUnion = 0;
                 for (var z = 0; z < size.y; z++) for (var x = 0; x < size.x; x++)
@@ -134,12 +135,12 @@ namespace Landsong.ECS.Editor
                     var value = terrain.Cells[local.y * terrain.Size.x + local.x];
                     if (!value.Exists || !value.Buildable || (elevation != int.MinValue && (elevation != value.Elevation || surface != value.Surface)))
                         throw new InvalidOperationException("New terrain invalidates initial building footprint: " + building.Name);
-                    foreach (var rule in definition.Rules.Where(r => r.Kind == RuleKind.RequiredTerrain))
-                        if ((value.Terrain & GridOps.TerrainBit(new FixedString64Bytes(rule.Key))) == 0) throw new InvalidOperationException("Initial building required terrain removed: " + building.Name);
+                    foreach (var rule in compiled.For(definition).Where(r => r.Kind == RuleKind.RequiredTerrain))
+                        if ((value.Terrain & GridOps.TerrainBit(rule.Key)) == 0) throw new InvalidOperationException("Initial building required terrain removed: " + building.Name);
                     elevation = value.Elevation; surface = value.Surface; terrainUnion |= value.Terrain;
                 }
-                var any = definition.Rules.Where(r => r.Kind == RuleKind.AnyTerrain).ToArray();
-                if (any.Length > 0 && !any.Any(r => (terrainUnion & GridOps.TerrainBit(new FixedString64Bytes(r.Key))) != 0))
+                var any = compiled.For(definition).Where(r => r.Kind == RuleKind.AnyTerrain).ToArray();
+                if (any.Length > 0 && !any.Any(r => (terrainUnion & GridOps.TerrainBit(r.Key)) != 0))
                     throw new InvalidOperationException("Initial building required adjacent terrain removed: " + building.Name);
             }
             if (cores != 1) throw new InvalidOperationException("An ECS map needs exactly one PlayerHome core.");

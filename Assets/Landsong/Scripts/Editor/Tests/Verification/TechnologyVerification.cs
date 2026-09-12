@@ -38,13 +38,21 @@ namespace Landsong.ECS.Editor
             c.Definitions = Enumerable.Range(0, 9).Select(_ => ScriptableObject.CreateInstance<GameDefinitionAsset>()).ToArray();
             c.Definitions[0].Data = new ContentSource { Id = "coin", Name = "金币", Kind = ContentKind.Item, Capacity = 10 };
             c.Definitions[1].Data = new ContentSource { Id = "root", Name = "基础", Kind = ContentKind.Technology, Cost = 5 };
-            c.Definitions[2].Data = new ContentSource { Id = "leaf", Name = "目标", Kind = ContentKind.Technology, Cost = 8, Rules = new[] { new RuleSource { Kind = RuleKind.Prerequisite, Target = "middle", Amount = 1 }, new RuleSource { Kind = RuleKind.RewardItem, Target = "coin", Amount = 2 }, new RuleSource { Kind = RuleKind.RewardBlueprint, Target = "building", Amount = 2 }, new RuleSource { Kind = RuleKind.RewardBuff, Target = "buff", Amount = 1 }, new RuleSource { Kind = RuleKind.RewardFeature, Target = "other", Amount = 1 } } };
-            c.Definitions[3].Data = new ContentSource { Id = "middle", Name = "中间", Kind = ContentKind.Technology, Cost = 3, Rules = new[] { new RuleSource { Kind = RuleKind.Prerequisite, Target = "root", Amount = 1 } } };
+            c.Definitions[2].Data = new ContentSource { Id = "leaf", Name = "目标", Kind = ContentKind.Technology, Cost = 8 };
+            c.Definitions[3].Data = new ContentSource { Id = "middle", Name = "中间", Kind = ContentKind.Technology, Cost = 3 };
             c.Definitions[4].Data = new ContentSource { Id = ResearchOps.FeatureId, Name = "科技", Kind = ContentKind.Feature };
-            c.Definitions[5].Data = new ContentSource { Id = "repeat", Name = "可重复", Kind = ContentKind.Technology, Cost = 0, Flags = 1, Rules = new[] { new RuleSource { Kind = RuleKind.RewardItem, Target = "coin", Amount = 1 } } };
+            c.Definitions[5].Data = new ContentSource { Id = "repeat", Name = "可重复", Kind = ContentKind.Technology, Cost = 0, Flags = 1 };
             c.Definitions[6].Data = new ContentSource { Id = "building", Kind = ContentKind.Building, Level = 2 };
             c.Definitions[7].Data = new ContentSource { Id = "buff", Kind = ContentKind.Buff };
             c.Definitions[8].Data = new ContentSource { Id = "other", Kind = ContentKind.Feature };
+            c.Definitions[2].Data.Configuration.Conditions=new ConditionsContentModule{Enabled=true,Completions=new[]{new CompletionsConfiguration{Content=c.Definitions[3],Count=1}}};
+            c.Definitions[2].Data.Configuration.Rewards=new RewardsContentModule{Enabled=true,
+                Items=new[]{new ItemsReward{Order=1,Item=c.Definitions[0],Quantity=2}},
+                Blueprints=new[]{new BlueprintsReward{Order=2,Building=c.Definitions[6],GrantedLevel=2}},
+                Buffs=new[]{new BuffsReward{Order=3,Buff=c.Definitions[7],GrantedLevel=1}},
+                Features=new[]{new FeaturesReward{Order=4,Feature=c.Definitions[8],GrantedLevel=1}}};
+            c.Definitions[3].Data.Configuration.Conditions=new ConditionsContentModule{Enabled=true,Completions=new[]{new CompletionsConfiguration{Content=c.Definitions[1],Count=1}}};
+            c.Definitions[5].Data.Configuration.Rewards=new RewardsContentModule{Enabled=true,Items=new[]{new ItemsReward{Item=c.Definitions[0],Quantity=1}}};
             foreach (var d in c.Definitions) if (string.IsNullOrEmpty(d.Data.Name)) d.Data.Name = d.Data.Id;
             return c;
         }
@@ -57,22 +65,23 @@ namespace Landsong.ECS.Editor
                 TechnologyContentValidation.Validate(c); Check(true, "Synthetic valid graph supports out-of-index-order dependencies");
                 var initial = c.Definitions[1].Data;
                 void Reject(ContentSource invalid, string label) { c.Definitions[1].Data = invalid; var failed = false; try { TechnologyContentValidation.Validate(c); } catch (InvalidOperationException) { failed = true; } finally { c.Definitions[1].Data = initial; } Check(failed, label); }
-                ContentSource Bad(RuleSource r) => new ContentSource { Id = "root", Kind = ContentKind.Technology, Rules = new[] { r } };
+                ContentSource Bad(Action<ContentModules> configure){var result=new ContentSource{Id="root",Kind=ContentKind.Technology};configure(result.Configuration);return result;}
+                ContentSource Parent(GameDefinitionAsset asset,int count=1)=>Bad(m=>m.Conditions=new ConditionsContentModule{Enabled=true,Completions=new[]{new CompletionsConfiguration{Content=asset,Count=count}}});
                 Reject(new ContentSource { Id = "root", Kind = ContentKind.Technology, Cost = -1 }, "Reject negative technology cost");
                 Reject(new ContentSource { Id = "root", Kind = ContentKind.Technology, Flags = 2 }, "Reject unsupported repeat flags");
                 Reject(new ContentSource { Id = "root", Kind = ContentKind.Technology, TechnologyPosition = new Vector2(float.NaN, 0) }, "Reject nonfinite graph coordinates");
-                Reject(Bad(new RuleSource { Kind = RuleKind.Prerequisite, Target = "leaf", Amount = 1 }), "Reject dependency cycle");
-                Reject(Bad(new RuleSource { Kind = RuleKind.Prerequisite, Target = "coin", Amount = 1 }), "Prerequisites must be technologies");
-                Reject(Bad(new RuleSource { Kind = RuleKind.Prerequisite, Target = "missing", Amount = 1 }), "Reject unregistered prerequisites");
-                Reject(Bad(new RuleSource { Kind = RuleKind.Prerequisite, Target = "repeat", Amount = 2 }), "Reject unsupported repeat-completion prerequisite count");
-                Reject(Bad(new RuleSource { Kind = RuleKind.RewardItem, Target = "coin", Amount = 0 }), "Reject nonpositive reward");
-                Reject(Bad(new RuleSource { Kind = RuleKind.RewardBlueprint, Target = "building", Amount = 3 }), "Blueprint cannot exceed authored building level");
-                Reject(Bad(new RuleSource { Kind = RuleKind.RewardBuff, Target = "coin", Amount = 1 }), "Reward type matches target type");
-                Reject(Bad(new RuleSource { Kind = RuleKind.RewardItem, Target = "coin", Amount = 1, Level = 1 }), "Tech rewards cannot silently use level filters");
-                Reject(Bad(new RuleSource { Kind = RuleKind.ResearchCost, Target = "coin", Amount = 1 }), "Reject unsupported technology resource costs");
+                Reject(Parent(c.Definitions[2]), "Reject dependency cycle");
+                Reject(Parent(c.Definitions[0]), "Prerequisites must be technologies");
+                Reject(Parent(null), "Reject missing prerequisites");
+                Reject(Parent(c.Definitions[5],2), "Reject unsupported repeat-completion prerequisite count");
+                Reject(Bad(m=>m.Rewards=new RewardsContentModule{Enabled=true,Items=new[]{new ItemsReward{Item=c.Definitions[0],Quantity=0}}}), "Reject nonpositive reward");
+                Reject(Bad(m=>m.Rewards=new RewardsContentModule{Enabled=true,Blueprints=new[]{new BlueprintsReward{Building=c.Definitions[6],GrantedLevel=3}}}), "Blueprint cannot exceed authored building level");
+                Reject(Bad(m=>m.Rewards=new RewardsContentModule{Enabled=true,Buffs=new[]{new BuffsReward{Buff=c.Definitions[0],GrantedLevel=1}}}), "Reward type matches target type");
+                Reject(Bad(m=>m.Conditions=new ConditionsContentModule{Enabled=true,Completions=new[]{new CompletionsConfiguration{Content=c.Definitions[5]},new CompletionsConfiguration{Content=c.Definitions[5]}}}), "Duplicate prerequisites cannot silently merge");
+                Reject(Bad(m=>m.UnitCosts=new UnitCostsContentModule{Enabled=true,Recruitment=new[]{new RecruitmentCost{Item=c.Definitions[0],Quantity=1}}}), "Recruitment costs cannot be configured on technology");
                 c.Definitions[8].Data.Id = "limit.test";
-                c.Definitions[2].Data.Rules = c.Definitions[2].Data.Rules.Where(r => r.Kind != RuleKind.RewardFeature).ToArray();
-                Reject(Bad(new RuleSource { Kind = RuleKind.RewardFeature, Target = "limit.test", Amount = 1 }), "Building limit groups are not feature rewards");
+                c.Definitions[2].Data.Configuration.Rewards.Features=Array.Empty<FeaturesReward>();
+                Reject(Bad(m=>m.Rewards=new RewardsContentModule{Enabled=true,Features=new[]{new FeaturesReward{Feature=c.Definitions[8],GrantedLevel=1}}}), "Building limit groups are not feature rewards");
             }
             finally { Destroy(c); }
             var formal = AssetDatabase.LoadAssetAtPath<GameCatalogAsset>("Assets/Landsong/ECSContent/GameCatalog.asset");
@@ -85,9 +94,9 @@ namespace Landsong.ECS.Editor
                 Check(node.Cost == costs[column - 1] && node.HasTechnologyPosition && Mathf.Abs(node.TechnologyPosition.x - (column - 1) * 220) < 2 && Mathf.Abs(node.TechnologyPosition.y - (row - 1) * 150) < 2, "Retained cost and legacy layout: " + node.Id);
             }
             Check(nodes.All(n => n.Flags == 0), "Formal content retains all 56 nonrepeatable flags, including future");
-            Check(nodes.Sum(n => n.Rules.Count(r => r.Kind == RuleKind.Prerequisite)) == 104 && nodes.Sum(n => n.Rules.Count(r => r.Kind >= RuleKind.RewardItem && r.Kind <= RuleKind.RewardFeature)) == 24, "All 104 prerequisite edges and 24 reward mappings retained");
+            Check(nodes.Sum(n => n.Configuration.Conditions.Completions.Length) == 104 && nodes.Sum(n => (n.Configuration.Rewards.Items.Length+n.Configuration.Rewards.Blueprints.Length+n.Configuration.Rewards.Buffs.Length+n.Configuration.Rewards.Features.Length)) == 24, "All 104 prerequisite edges and 24 reward mappings retained");
             Check(formal.Content.Count(d => d.Kind == ContentKind.Feature && !d.Id.StartsWith("limit.")) == 4, "Four real feature licenses distinct from limit keys");
-            Check(formal.Content.Any(d => d.Kind == ContentKind.Quest && d.Rules.Any(r => r.Kind == RuleKind.RewardFeature && r.Target == ResearchOps.FeatureId)), "Mainline can grant technology access");
+            Check(formal.Content.Any(d => d.Kind == ContentKind.Quest && d.Configuration.Rewards.Features.Any(r => r.Feature.Data.Id == ResearchOps.FeatureId)), "Mainline can grant technology access");
         }
         static void Research()
         {
@@ -99,7 +108,7 @@ namespace Landsong.ECS.Editor
                 void Points(int n) { var s = em.GetComponentData<Session>(root); s.ResearchPoints = n; em.SetComponentData(root, s); }
                 int PointsNow() => em.GetComponentData<Session>(root).ResearchPoints;
                 Check(!ResearchOps.Unlocked(em, root) && ResearchOps.Command(em, root, 1, false) == ResultCode.Unavailable && ResearchOps.Plan(em, root, 2) == ResultCode.Unavailable, "Locked feature blocks single and path commands");
-                Sim.Grant(em, root, 4); Check(ResearchOps.Unlocked(em, root), "Feature entitlement opens research");
+                FeatureOps.Unlock(em, root, 4); Check(ResearchOps.Unlocked(em, root), "Feature entitlement opens research");
                 Check(ResearchOps.Command(em, root, 2, false) == ResultCode.MissingResearch && ResearchOps.Command(em, root, 0, false) == ResultCode.InvalidContent, "Single enqueue rejects missing prerequisite and nontechnology");
                 var path = ResearchOps.Path(em, root, 2); Check(path.Definitions.SequenceEqual(new[] { 1, 3, 2 }) && path.Remaining == 16, "Path topological order not catalog index order");
                 Points(2); Check(ResearchOps.Plan(em, root, 2) == ResultCode.Success && PointsNow() == 2, "Planning does not charge points");
@@ -111,14 +120,14 @@ namespace Landsong.ECS.Editor
                 Check(ResearchOps.Plan(em, root, 2) == ResultCode.Success && ResearchOps.Path(em, root, 2).Remaining == 14, "Rebuild path reuses retained investment");
                 ResearchOps.Settle(em, root);
                 Check(ResearchOps.Completed(em, root, 1) == 1 && ResearchOps.Completed(em, root, 3) == 1 && ResearchOps.Entry(em, root, 2).Progress == 8 && PointsNow() == 16, "One settlement completes funded prerequisites then holds full reward-blocked target");
-                Check(ResearchOps.Completed(em, root, 2) == 0 && !Sim.HasGrant(em, root, 6) && !Sim.HasGrant(em, root, 7) && !Sim.HasGrant(em, root, 8), "No completion or nonitem grants before all rewards fit");
+                Check(ResearchOps.Completed(em, root, 2) == 0 && !ConditionOps.Satisfied(em, root, 6) && !ConditionOps.Satisfied(em, root, 7) && !ConditionOps.Satisfied(em, root, 8), "No completion or nonitem grants before all rewards fit");
                 Check(ResearchOps.Quote(em, root, 2).Status == ResearchStatus.AwaitingRewards, "Awaiting-reward status explicit");
                 em.GetBuffer<InventorySlot>(root).Add(new InventorySlot { Provider = 1, Index = 0, Item = -1, SlotType = -1 });
                 var testSlots = em.GetBuffer<InventorySlot>(root); var limited = testSlots[0]; limited.Item = 0; limited.Count = 9; testSlots[0] = limited;
-                ResearchOps.Settle(em, root); Check(InventoryOps.Count(em, root, 0) == 9 && ResearchOps.Completed(em, root, 2) == 0 && !Sim.HasGrant(em, root, 6), "Partially fitting reward rolls back items and grants together");
+                ResearchOps.Settle(em, root); Check(InventoryOps.Count(em, root, 0) == 9 && ResearchOps.Completed(em, root, 2) == 0 && !ConditionOps.Satisfied(em, root, 6), "Partially fitting reward rolls back items and grants together");
                 limited.Item = -1; limited.Count = 0; testSlots = em.GetBuffer<InventorySlot>(root); testSlots[0] = limited;
                 ResearchOps.Settle(em, root);
-                Check(ResearchOps.Completed(em, root, 2) == 1 && PointsNow() == 16 && InventoryOps.Count(em, root, 0) == 2 && Sim.HasGrant(em, root, 6, 2) && Sim.HasGrant(em, root, 7) && Sim.HasGrant(em, root, 8), "Deferred award commits all reward kinds once with no extra research charge");
+                Check(ResearchOps.Completed(em, root, 2) == 1 && PointsNow() == 16 && InventoryOps.Count(em, root, 0) == 2 && ConditionOps.Satisfied(em, root, 6, 2) && ConditionOps.Satisfied(em, root, 7) && ConditionOps.Satisfied(em, root, 8), "Deferred award commits all reward kinds once with no extra research charge");
                 Check(ResearchOps.Command(em, root, 2, false) == ResultCode.Unavailable && ResearchOps.Queue(em, root).Count == 0, "Nonrepeatable completed node cannot enqueue again");
                 ResearchOps.Command(em, root, 5, false); ResearchOps.Settle(em, root); ResearchOps.Settle(em, root);
                 Check(ResearchOps.Completed(em, root, 5) == 1 && InventoryOps.Count(em, root, 0) == 3, "Zero-cost repeated technology completes only once per explicit enqueue");
@@ -141,7 +150,7 @@ namespace Landsong.ECS.Editor
                 EcsVerification.Bake(world, scene.GetRootGameObjects(), store); var em = world.EntityManager; var root = Sim.Root(em); GameLoopSystem.Initialize(em, root);
                 var catalog = AssetDatabase.LoadAssetAtPath<GameCatalogAsset>("Assets/Landsong/ECSContent/GameCatalog.asset"); var target = catalog.Find("TN_4_2_木工术"); var first = catalog.Find("TN_3_1_启蒙");
                 Check(!ResearchOps.Unlocked(em, root) && GameLoopSystem.Execute(em, root, new Command { Kind = CommandKind.Research, Definition = first }) == ResultCode.Unavailable, "Real map starts with locked technology command");
-                Sim.Grant(em, root, catalog.Find(ResearchOps.FeatureId));
+                FeatureOps.Unlock(em, root, catalog.Find(ResearchOps.FeatureId));
                 Check(GameLoopSystem.Execute(em, root, new Command { Kind = CommandKind.PlanResearch, Definition = target }) == ResultCode.Success, "Real processor dispatches research path");
                 var s = em.GetComponentData<Session>(root); s.ResearchPoints = 2; em.SetComponentData(root, s); ResearchOps.Settle(em, root);
                 var original = SnapshotCodec.Capture(em, root); SnapshotCodec.Restore(em, root, SnapshotCodec.Decode(em, root, original));
@@ -160,7 +169,7 @@ namespace Landsong.ECS.Editor
                 Reject(x => x.Session.ResearchPoints = -1, "Negative saved research pool rejected atomically");
                 s = em.GetComponentData<Session>(root); s.ResearchPoints = 100; em.SetComponentData(root, s); ResearchOps.Settle(em, root);
                 Check(ResearchOps.Completed(em, root, target) == 1 && ResearchOps.Queue(em, root).Count == 0, "Real woodwork path completes in one funded settlement");
-                var d = Sim.Definition(em, root, target); for (var i = 0; i < d.RuleCount; i++) { var r = Sim.GetRule(em, root, d.RuleStart + i); if (r.Kind == RuleKind.RewardBlueprint) Check(Sim.HasGrant(em, root, r.Target, r.Amount), "Woodwork building unlock retained: " + r.Target); }
+                var d = Sim.Definition(em, root, target); for (var i = 0; i < d.RuleCount; i++) { var r = Sim.GetRule(em, root, d.RuleStart + i); if (r.Kind == RuleKind.RewardBlueprint) Check(ConditionOps.Satisfied(em, root, r.Target, r.Amount), "Woodwork building unlock retained: " + r.Target); }
                 var completed = SnapshotCodec.Capture(em, root); SnapshotCodec.Restore(em, root, SnapshotCodec.Decode(em, root, completed)); ResearchOps.Settle(em, root);
                 Check(completed.SequenceEqual(SnapshotCodec.Capture(em, root)), "Load cannot reaward completed technology");
             }

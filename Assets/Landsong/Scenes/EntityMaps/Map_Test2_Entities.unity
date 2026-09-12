@@ -63797,7 +63797,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ad5356c4690bb3e4588b3fa55544e1bc, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS::Landsong.ECS.Authoring.GameWorldAuthoring
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.GameWorldAuthoring
   Catalog: {fileID: 11400000, guid: 55548412761483842b03be3e06e32ae4, type: 2}
   Map: {fileID: 11400000, guid: 5c68ff49d0b448740b475b28aab44226, type: 2}
   DynastyName: "\u65E0\u540D\u738B\u671D"
