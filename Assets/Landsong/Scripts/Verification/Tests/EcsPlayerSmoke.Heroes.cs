@@ -33,11 +33,13 @@ namespace Landsong.ECS.Presentation
             s = em.GetComponentData<Session>(root); s.NightDuration = 120; em.SetComponentData(root, s);
             Transform hud = view.Hud.BattleHud.transform;
             yield return WaitFor(() => hud.gameObject.activeInHierarchy && hud.GetComponentsInChildren<Button>().Any(button => button.interactable), "Independent hero HUD available");
+            Require(!view.Hud.HeroSelection.gameObject.activeSelf, "Hero selection bar excludes heroes that have not awakened");
             hud.GetComponentsInChildren<Button>().First(button => button.interactable).onClick.Invoke();
             Button WakeButton() => view.Buildings.BuildingDetailsRows.GetComponentsInChildren<Button>().FirstOrDefault(button => button.interactable && button.GetComponentInChildren<Text>()?.text == "唤醒英雄");
             yield return WaitFor(() => WakeButton() != null, "Sleeping portrait opens temple with wake quote"); WakeButton().onClick.Invoke();
             yield return WaitFor(() => em.GetComponentData<Combatant>(Sim.Find(em, heroId)).Deployed != 0, "Real temple UI wakes hero");
-            yield return new WaitForSecondsRealtime(.5f); hud.GetComponentsInChildren<Button>().First(button => button.interactable).onClick.Invoke();
+            yield return WaitFor(() => view.Hud.heroSelectionItems.TryGetValue(heroId, out var item) && item.gameObject.activeInHierarchy, "Awakened hero appears in the hero selection bar");
+            view.Hud.heroSelectionItems[heroId].Select.onClick.Invoke();
             yield return WaitFor(() => em.GetComponentData<Session>(root).SelectedHero == Sim.Find(em, heroId), "Portrait selects active hero");
             var hero = Sim.Find(em, heroId); var from = Sim.Position(em, hero); float3 destination = from;
             using (var reach = new NightSpatialOps.Reach(em, root, from))

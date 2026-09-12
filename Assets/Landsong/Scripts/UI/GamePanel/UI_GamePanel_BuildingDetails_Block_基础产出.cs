@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,20 +9,12 @@ namespace Landsong.ECS.Presentation
 {
     public sealed class UI_GamePanel_BuildingDetails_Block_基础产出 : UI_GamePanel_BuildingDetails_Block
     {
-        [Sirenix.OdinInspector.LabelText("基础产出")]
+        [LabelText("基础产出"), Required]
         public TMP_Text Label;
-        [Sirenix.OdinInspector.LabelText("布局")]
+        [LabelText("布局"), Required]
         public LayoutElement Layout;
-        [Sirenix.OdinInspector.LabelText("侧栏触发器")]
+        [LabelText("侧栏触发器"), Required]
         public UI_GamePanel_BuildingDetails_SidebarTrigger Hover;
-
-        public override void ValidateConfiguration()
-        {
-            ValidateReferences((Label, nameof(Label)), (Layout, nameof(Layout)), (Hover, nameof(Hover)));
-            Hover.ValidateConfiguration();
-            if (Hover.View != View)
-                throw new InvalidOperationException(name + " 模块的侧栏目标错误。");
-        }
 
         public void Refresh(IReadOnlyList<string> outputs, Func<string> sidebarContent)
         {

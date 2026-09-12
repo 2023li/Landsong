@@ -116,12 +116,27 @@ namespace Landsong.ECS.Presentation
 
         [Sirenix.OdinInspector.LabelText("战斗信息栏")]
         public UI_GamePanel_BattleHud BattleHud;
+        [Sirenix.OdinInspector.LabelText("英雄选择")]
+        public RectTransform HeroSelection;
+        [Sirenix.OdinInspector.LabelText("英雄选择模板")]
+        public UI_GamePanel_英雄选择Item HeroSelectionTemplate;
         internal RectTransform heroHud;
         internal RectTransform heroCards;
         internal Text defenseStatus;
         internal Button defenseFocus;
         internal readonly Dictionary<ulong, UI_GamePanel_HeroHudItem> heroButtons = new Dictionary<ulong, UI_GamePanel_HeroHudItem>();
+        internal readonly Dictionary<ulong, UI_GamePanel_英雄选择Item> heroSelectionItems = new Dictionary<ulong, UI_GamePanel_英雄选择Item>();
         internal readonly List<ulong> heroIds = new List<ulong>();
+
+        internal void ValidateHeroSelectionConfiguration()
+        {
+            if (HeroSelection == null || HeroSelectionTemplate == null)
+                throw new InvalidOperationException("英雄选择栏检查器引用不完整。");
+            if (HeroSelectionTemplate.transform.parent != HeroSelection)
+                throw new InvalidOperationException("英雄选择模板必须是英雄选择容器的直接子对象。");
+            HeroSelectionTemplate.ValidateConfiguration();
+        }
+
         internal void HeroHotkeys(Keyboard keyboard)
         {
             var s = sessionController.em.GetComponentData<Session>(sessionController.root);
@@ -147,12 +162,14 @@ namespace Landsong.ECS.Presentation
                 heroCards = BattleHud.HeroCards;
                 defenseStatus = BattleHud.DefenseStatus;
                 defenseFocus = BattleHud.DefenseFocus;
+                ValidateHeroSelectionConfiguration();
             }
 
             var s = sessionController.em.GetComponentData<Session>(sessionController.root);
             bool visible = s.Phase == Phase.Night || s.Phase == Phase.Retreat || s.Phase == Phase.Celebration;
             visible &= !sessionController.intel && navigation.Panel != GamePanelId.Technology && navigation.Panel != GamePanelId.Quest && (buildingController.BuildingConfirmPanel == null || !buildingController.BuildingConfirmPanel.activeSelf);
             heroHud.gameObject.SetActive(visible);
+            RefreshHeroSelection(s, visible);
             if (!visible)
             {
                 heroIds.Clear();
@@ -254,7 +271,8 @@ namespace Landsong.ECS.Presentation
                 var a = sessionController.em.GetComponentData<Combatant>(e);
                 var hp = sessionController.em.GetComponentData<Health>(e);
                 bool active = h.Recruited != 0 && hp.Current > 0 && a.Deployed != 0;
-                heroIds.Add(id.Id);
+                if (active)
+                    heroIds.Add(id.Id);
                 Button button;
                 seenHeroes.Add(id.Id);
                 if (!heroButtons.TryGetValue(id.Id, out var itemView))
@@ -298,6 +316,60 @@ namespace Landsong.ECS.Presentation
             foreach (var key in new List<ulong>(heroButtons.Keys))
                 if (!seenHeroes.Contains(key) && !heroButtons[key].Interaction.IsPinned)
                 { Destroy(heroButtons[key].gameObject); heroButtons.Remove(key); }
+        }
+
+        void RefreshHeroSelection(Session session, bool hudVisible)
+        {
+            bool activePhase = session.Phase == Phase.Night || session.Phase == Phase.Retreat;
+            if (!activePhase)
+            {
+                foreach (var item in heroSelectionItems.Values)
+                {
+                    item.Release();
+                    Destroy(item.gameObject);
+                }
+                heroSelectionItems.Clear();
+                HeroSelection.gameObject.SetActive(false);
+                return;
+            }
+
+            HeroSelection.gameObject.SetActive(hudVisible);
+            if (!hudVisible)
+                return;
+
+            var seen = new HashSet<ulong>();
+            int index = 0;
+            using var heroes = Sim.OrderedEntities<Hero>(sessionController.em);
+            foreach (var entity in heroes)
+            {
+                var hero = sessionController.em.GetComponentData<Hero>(entity);
+                var actor = sessionController.em.GetComponentData<Combatant>(entity);
+                if (hero.Recruited == 0 || actor.Deployed == 0 || !Sim.Alive(sessionController.em, entity))
+                    continue;
+
+                var id = sessionController.em.GetComponentData<Identity>(entity).Id;
+                seen.Add(id);
+                if (!heroSelectionItems.TryGetValue(id, out var item))
+                {
+                    item = Instantiate(HeroSelectionTemplate, HeroSelection);
+                    heroSelectionItems.Add(id, item);
+                }
+
+                item.transform.SetSiblingIndex(index++);
+                item.Bind(sessionController.em, sessionController.root, id, session.SelectedHero == entity, session.Paused == 0,
+                    selected => commandsController.Send(CommandKind.SelectHero, selected));
+                item.gameObject.SetActive(true);
+            }
+
+            foreach (var id in new List<ulong>(heroSelectionItems.Keys))
+                if (!seen.Contains(id))
+                {
+                    heroSelectionItems[id].Release();
+                    Destroy(heroSelectionItems[id].gameObject);
+                    heroSelectionItems.Remove(id);
+                }
+
+            HeroSelection.gameObject.SetActive(index > 0);
         }
 
         internal void RefreshInterfaceBarrier()

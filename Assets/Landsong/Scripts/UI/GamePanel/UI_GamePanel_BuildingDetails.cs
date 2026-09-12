@@ -4,59 +4,60 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
+using Sirenix.OdinInspector;
 
 namespace Landsong.ECS.Presentation
 {
     // Stable controls preserve input focus while the simulation refreshes their read models.
     public sealed class UI_GamePanel_BuildingDetails : MonoBehaviour
     {
-        [Sirenix.OdinInspector.LabelText("名称")]
+        [LabelText("名称"), Required]
         public TMP_InputField Name;
-        [Sirenix.OdinInspector.LabelText("图标")]
+        [LabelText("图标"), Required]
         public Image Icon;
-        [Sirenix.OdinInspector.LabelText("经验填充")]
+        [LabelText("经验填充"), Required]
         public Image ExperienceFill;
-        [Sirenix.OdinInspector.LabelText("等级")]
+        [LabelText("等级"), Required]
         public TMP_Text Level;
-        [Sirenix.OdinInspector.LabelText("经验")]
+        [LabelText("经验"), Required]
         public TMP_Text Experience;
-        [Sirenix.OdinInspector.LabelText("耐久条")]
+        [LabelText("耐久条"), Required]
         public Slider silder_HP条;
-        [Sirenix.OdinInspector.LabelText("耐久文本")]
+        [LabelText("耐久文本"), Required]
         public TMP_Text TMP_Text_HP_文本;
-        [Sirenix.OdinInspector.LabelText("页脚")]
+        [LabelText("页脚"), Required]
         public TMP_Text Footer;
-        [Sirenix.OdinInspector.LabelText("关闭")]
+        [LabelText("关闭"), Required]
         public Button Close;
-        [Sirenix.OdinInspector.LabelText("样式")]
+        [LabelText("样式"), Required]
         public Button Style;
-        [Sirenix.OdinInspector.LabelText("升级")]
+        [LabelText("升级"), Required]
         public Button Upgrade;
-        [Sirenix.OdinInspector.LabelText("警告")]
+        [LabelText("警告"), Required]
         public Button Warning;
-        [Sirenix.OdinInspector.LabelText("经验跟踪")]
+        [LabelText("经验跟踪"), Required]
         public GameObject ExperienceTrack;
-        [Sirenix.OdinInspector.LabelText("经验悬浮信息")]
+        [LabelText("经验悬浮信息"), Required]
         public UI_GamePanel_BuildingDetails_SidebarTrigger ExperienceHover;
-        [Sirenix.OdinInspector.LabelText("模块滚动视图")]
+        [LabelText("模块滚动视图"), Required]
         public ScrollRect ModulesScroll;
-        [Sirenix.OdinInspector.LabelText("建筑模块")]
+        [LabelText("建筑模块"), Required]
         public List<UI_GamePanel_BuildingDetails_Block> Blocks = new List<UI_GamePanel_BuildingDetails_Block>();
         [FormerlySerializedAs("WorkerSidebarScroll")]
-        [Sirenix.OdinInspector.LabelText("侧栏滚动视图")]
+        [LabelText("侧栏滚动视图"), Required]
         public ScrollRect SidebarScroll;
         [FormerlySerializedAs("WorkerSidebarLayout")]
-        [Sirenix.OdinInspector.LabelText("侧栏布局")]
+        [LabelText("侧栏布局"), Required]
         public LayoutElement SidebarLayout;
-        [Sirenix.OdinInspector.LabelText("提示框")]
+        [LabelText("提示框"), Required]
         public GameObject Tooltip;
-        [Sirenix.OdinInspector.LabelText("提示框文字")]
+        [LabelText("提示框文字"), Required]
         public TMP_Text TooltipText;
         [FormerlySerializedAs("WorkerSidebar")]
-        [Sirenix.OdinInspector.LabelText("侧栏")]
+        [LabelText("侧栏"), Required]
         public GameObject Sidebar;
         [FormerlySerializedAs("WorkerSidebarText")]
-        [Sirenix.OdinInspector.LabelText("侧栏文字")]
+        [LabelText("侧栏文字"), Required]
         public TMP_Text SidebarText;
         Component sidebarOwner;
         Func<string> sidebarContent;
@@ -65,56 +66,6 @@ namespace Landsong.ECS.Presentation
         public ulong BuildingId { get; private set; }
 
         string warningText;
-        public void ValidateConfiguration()
-        {
-            var missing = new List<string>();
-            void Need(UnityEngine.Object value, string name)
-            {
-                if (value == null)
-                    missing.Add(name);
-            }
-
-            Need(Name, nameof(Name));
-            Need(Icon, nameof(Icon));
-            Need(ExperienceFill, nameof(ExperienceFill));
-            Need(Level, nameof(Level));
-            Need(Experience, nameof(Experience));
-            Need(silder_HP条, nameof(silder_HP条));
-            Need(TMP_Text_HP_文本, nameof(TMP_Text_HP_文本));
-            Need(Footer, nameof(Footer));
-            Need(Close, nameof(Close));
-            Need(Style, nameof(Style));
-            Need(Upgrade, nameof(Upgrade));
-            Need(Warning, nameof(Warning));
-            Need(ExperienceTrack, nameof(ExperienceTrack));
-            Need(ExperienceHover, nameof(ExperienceHover));
-            Need(ModulesScroll, nameof(ModulesScroll));
-            Need(SidebarScroll, nameof(SidebarScroll));
-            Need(SidebarLayout, nameof(SidebarLayout));
-            Need(Tooltip, nameof(Tooltip));
-            Need(TooltipText, nameof(TooltipText));
-            Need(Sidebar, nameof(Sidebar));
-            Need(SidebarText, nameof(SidebarText));
-            if (missing.Count > 0)
-                throw new InvalidOperationException("建筑详情面板检查器引用不完整：" + string.Join("、", missing));
-
-            if (Blocks == null || Blocks.Count == 0)
-                throw new InvalidOperationException("建筑详情面板未配置建筑模块。");
-            if (ModulesScroll.content == null || ModulesScroll.content.childCount != Blocks.Count)
-                throw new InvalidOperationException("建筑详情的每个 Content 直接子模块都必须对应一个 Block。");
-            var moduleObjects = new HashSet<GameObject>();
-            foreach (var block in Blocks)
-            {
-                if (block == null)
-                    throw new InvalidOperationException("建筑详情面板包含空 Block 引用。");
-                if (block.View != this || block.transform.parent != ModulesScroll.content || !moduleObjects.Add(block.gameObject))
-                    throw new InvalidOperationException(block.name + " 未作为唯一 Block 正确绑定到建筑模块 Content。");
-                block.ValidateConfiguration();
-            }
-            ExperienceHover.ValidateConfiguration();
-            if (ExperienceHover.View != this)
-                throw new InvalidOperationException("建筑详情经验悬浮目标错误。");
-        }
 
         public T Block<T>() where T : UI_GamePanel_BuildingDetails_Block
         {
@@ -179,8 +130,6 @@ namespace Landsong.ECS.Presentation
 
         public void ConfigureSidebar(UI_GamePanel_BuildingDetails_SidebarTrigger trigger, Func<string> content)
         {
-            if (trigger == null || trigger.View != this)
-                throw new InvalidOperationException("建筑详情侧栏触发器配置错误。");
             trigger.Content = content;
             if (sidebarOwner == trigger && content == null)
                 HideSidebar();

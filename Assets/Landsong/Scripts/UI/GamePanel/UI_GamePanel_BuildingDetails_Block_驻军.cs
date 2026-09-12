@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Sirenix.OdinInspector;
 using TMPro;
 using Unity.Entities;
 using UnityEngine;
@@ -23,24 +24,17 @@ namespace Landsong.ECS.Presentation
             }
         }
 
-        [Sirenix.OdinInspector.LabelText("驻军文字")]
+        [LabelText("驻军文字"), Required]
         public TMP_Text Label;
-        [Sirenix.OdinInspector.LabelText("调整驻军")]
+        [LabelText("调整驻军"), Required]
         public Button Adjust;
-        [Sirenix.OdinInspector.LabelText("驻军槽位")]
+        [LabelText("驻军槽位"), Required]
         public RectTransform Slots;
-        [Sirenix.OdinInspector.LabelText("驻军槽位模板")]
+        [LabelText("驻军槽位模板"), Required]
         public UI_GamePanel_GarrisonSlot SlotTemplate;
 
         readonly List<(UI_Common_PortraitImageBinding Binding, ulong Id)> portraits = new List<(UI_Common_PortraitImageBinding, ulong)>();
         string signature;
-
-        public override void ValidateConfiguration()
-        {
-            ValidateReferences((Label, nameof(Label)), (Adjust, nameof(Adjust)), (Slots, nameof(Slots)),
-                (SlotTemplate, nameof(SlotTemplate)));
-            SlotTemplate.ValidateConfiguration();
-        }
 
         public void Refresh(ulong buildingId, IReadOnlyList<SlotModel> models, EntityManager manager, Entity simulation,
             Action adjust, Action<ulong> select)

@@ -1,4 +1,5 @@
 using System;
+using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -7,27 +8,18 @@ namespace Landsong.ECS.Presentation
 {
     public sealed class UI_GamePanel_BuildingDetails_Block_种植 : UI_GamePanel_BuildingDetails_Block
     {
-        [Sirenix.OdinInspector.LabelText("作物填充")]
+        [LabelText("作物填充"), Required]
         public Image Fill;
-        [Sirenix.OdinInspector.LabelText("作物图标")]
+        [LabelText("作物图标"), Required]
         public Image Icon;
-        [Sirenix.OdinInspector.LabelText("作物文字")]
+        [LabelText("作物文字"), Required]
         public TMP_Text Label;
-        [Sirenix.OdinInspector.LabelText("选择作物")]
+        [LabelText("选择作物"), Required]
         public Button Select;
-        [Sirenix.OdinInspector.LabelText("清除作物")]
+        [LabelText("清除作物"), Required]
         public Button Clear;
-        [Sirenix.OdinInspector.LabelText("侧栏触发器")]
+        [LabelText("侧栏触发器"), Required]
         public UI_GamePanel_BuildingDetails_SidebarTrigger Hover;
-
-        public override void ValidateConfiguration()
-        {
-            ValidateReferences((Fill, nameof(Fill)), (Icon, nameof(Icon)), (Label, nameof(Label)),
-                (Select, nameof(Select)), (Clear, nameof(Clear)), (Hover, nameof(Hover)));
-            Hover.ValidateConfiguration();
-            if (Hover.View != View)
-                throw new InvalidOperationException(name + " 模块的侧栏目标错误。");
-        }
 
         public void Hide()
         {

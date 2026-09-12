@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,41 +9,30 @@ namespace Landsong.ECS.Presentation
 {
     public sealed class UI_GamePanel_BuildingDetails_Block_岗位 : UI_GamePanel_BuildingDetails_Block
     {
-        [Sirenix.OdinInspector.LabelText("岗位")]
+        [LabelText("岗位"), Required]
         public TMP_Text Jobs;
-        [Sirenix.OdinInspector.LabelText("预算")]
+        [LabelText("预算"), Required]
         public TMP_Text Budget;
-        [Sirenix.OdinInspector.LabelText("吸引力")]
+        [LabelText("吸引力"), Required]
         public TMP_Text Attraction;
-        [Sirenix.OdinInspector.LabelText("增加")]
+        [LabelText("增加"), Required]
         public Button Increase;
-        [Sirenix.OdinInspector.LabelText("减少")]
+        [LabelText("减少"), Required]
         public Button Decrease;
-        [Sirenix.OdinInspector.LabelText("招募工人")]
+        [LabelText("招募工人"), Required]
         public Button RecruitWorker;
-        [Sirenix.OdinInspector.LabelText("释放工人")]
+        [LabelText("招募工人费用"), Required]
+        public TMP_Text RecruitWorkerCost;
+        [LabelText("释放工人"), Required]
         public Button ReleaseWorker;
-        [Sirenix.OdinInspector.LabelText("侧栏触发器")]
+        [LabelText("侧栏触发器"), Required]
         public UI_GamePanel_BuildingDetails_SidebarTrigger Hover;
-        [Sirenix.OdinInspector.LabelText("自然填充")]
+        [LabelText("自然填充"), Required]
         public Image NaturalFill;
-        [Sirenix.OdinInspector.LabelText("补贴填充")]
+        [LabelText("补贴填充"), Required]
         public Image SubsidyFill;
-        [Sirenix.OdinInspector.LabelText("岗位刻度")]
+        [LabelText("岗位刻度"), Required]
         public List<Image> JobTicks = new List<Image>();
-
-        public override void ValidateConfiguration()
-        {
-            ValidateReferences((Jobs, nameof(Jobs)), (Budget, nameof(Budget)), (Attraction, nameof(Attraction)),
-                (Increase, nameof(Increase)), (Decrease, nameof(Decrease)),
-                (RecruitWorker, nameof(RecruitWorker)), (ReleaseWorker, nameof(ReleaseWorker)), (Hover, nameof(Hover)),
-                (NaturalFill, nameof(NaturalFill)), (SubsidyFill, nameof(SubsidyFill)));
-            Hover.ValidateConfiguration();
-            if (Hover.View != View)
-                throw new InvalidOperationException(name + " 模块的侧栏目标错误。");
-            if (JobTicks == null || JobTicks.Count != 10 || JobTicks.Exists(mark => mark == null))
-                throw new InvalidOperationException(name + " 模块必须配置 10 个岗位刻度。");
-        }
 
         public void Refresh(WorkforceQuote quote, string item, bool editable, Action<int> changeBudget,
             Action recruitWorker, Action releaseWorker, Func<string> sidebarContent)
@@ -59,6 +49,7 @@ namespace Landsong.ECS.Presentation
 
             Jobs.text = $"岗位：{quote.Workers}/{quote.Capacity}";
             Budget.text = $"补贴 {quote.SubsidyCost}";
+            RecruitWorkerCost.text = $"{quote.RecruitCost} {item}";
             Bind(Increase, editable && !quote.Locked && quote.SubsidyCost < quote.Capacity ? () => changeBudget(quote.SubsidyCost + 1) : null);
             Bind(Decrease, editable && !quote.Locked && quote.SubsidyCost > 0 ? () => changeBudget(quote.SubsidyCost - 1) : null);
             Bind(RecruitWorker, recruitWorker);

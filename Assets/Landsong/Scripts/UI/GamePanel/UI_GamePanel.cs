@@ -287,7 +287,6 @@ namespace Landsong.ECS.Presentation
             Need(marriageController.MarriageEventLabel, nameof(marriageController.MarriageEventLabel));
             Need(buildingController.BuildingConfirmTitle, nameof(buildingController.BuildingConfirmTitle));
             Need(buildingController.BuildingConfirmGroup, nameof(buildingController.BuildingConfirmGroup));
-            buildingController.BuildingCard.ValidateConfiguration();
             buildingController.BuildingBar.ValidateConfiguration();
             technologyController.TechnologyTree.ValidateConfiguration();
             courtController.CourtGraph.ValidateConfiguration();
@@ -301,6 +300,7 @@ namespace Landsong.ECS.Presentation
             portraitController.PortraitPanel.ValidateConfiguration();
             technologyController.ResearchHud.ValidateConfiguration();
             hudController.BattleHud.ValidateConfiguration();
+            hudController.ValidateHeroSelectionConfiguration();
             hudController.NightHud.ValidateConfiguration();
             historyController.NavigationPanel.ValidateConfiguration();
             rowsController.RowTemplate.ValidateConfiguration();
