@@ -42,7 +42,7 @@ namespace Landsong.ECS.Editor
                 EnsureSpecializedEntries(root);
                 ConfigurePresenters(root);
                 // Each authored view becomes its own asset. Scene owner references remain explicit overrides in Game.
-                extracted += Extract(game, root.Buildings.BuildingCard.gameObject, "BuildingDetails");
+                extracted += Extract(game, root.BuildingDetails.gameObject, "BuildingDetails");
                 extracted += Extract(game, root.Buildings.BuildingBar.gameObject, "BuildingCatalog");
                 extracted += Extract(game, root.Technology.TechnologyTree.gameObject, "Technology");
                 extracted += Extract(game, root.Quests.QuestPanel.gameObject, "Quest");
@@ -129,13 +129,13 @@ namespace Landsong.ECS.Editor
                 }
                 configured.gameObject.SetActive(false);
                 if (configured is UI_GamePanel_WorkerInfoRow worker)
-                { worker.WorkerHover.View = root.Buildings.BuildingCard; Record(worker.WorkerHover); }
+                { worker.WorkerHover.View = root.BuildingDetails; Record(worker.WorkerHover); }
                 foreach (var portrait in configured.GetComponentsInChildren<UI_Common_PortraitImageBinding>(true))
                 { portrait.Cache = cache; Record(portrait); }
                 configured.ValidateConfiguration();
             }
             Configure(View<UI_GamePanel_RowRenderer>(root, "rowsController"), "RowTemplate");
-            Configure(root.Buildings, "WorkerInfoTemplate"); Configure(root.Buildings, "WorkforceTemplate");
+            Configure(root.BuildingDetails, "WorkerInfoTemplate"); Configure(root.BuildingDetails, "WorkforceTemplate");
             Configure(root.InventoryWindow, "GridTemplate"); Configure(root.InventoryWindow, "QuantityTemplate");
             Configure(root.GarrisonWindow, "GroupTemplate"); Configure(root.GarrisonWindow, "SoldierTemplate");
             Configure(root.Quests, "QuantityTemplate"); Configure(View<UI_GamePanel_Portrait>(root, "portraitController"), "PortraitTemplate");
@@ -169,7 +169,7 @@ namespace Landsong.ECS.Editor
         {
             var presenters = new Dictionary<GamePanelId, MonoBehaviour>
             {
-                [GamePanelId.History] = View<UI_GamePanel_History>(root, "historyController"), [GamePanelId.Building] = root.Buildings,
+                [GamePanelId.History] = View<UI_GamePanel_History>(root, "historyController"),
                 [GamePanelId.Technology] = root.Technology, [GamePanelId.Quest] = root.Quests, [GamePanelId.Expedition] = View<UI_GamePanel_Expedition>(root, "expeditionController"),
                 [GamePanelId.Talent] = root.Talents, [GamePanelId.Royal] = root.Court, [GamePanelId.Policy] = root.Policies,
                 [GamePanelId.DynastyEnd] = View<UI_GamePanel_Phase>(root, "phaseController"), [GamePanelId.NightConfirmation] = View<UI_GamePanel_Phase>(root, "phaseController")
@@ -294,7 +294,7 @@ namespace Landsong.ECS.Editor
             foreach (var row in game.GetComponentsInChildren<UI_GamePanel_Row>(true)) row.ValidateConfiguration();
             foreach (var binding in game.GetComponentsInChildren<UI_Common_PortraitImageBinding>(true)) binding.ValidateConfiguration();
             foreach (var preview in game.GetComponentsInChildren<UIPreviewOnly>(true)) preview.ValidateConfiguration();
-            if (root.Buildings.WorkerInfoTemplate.WorkerHover.View != root.Buildings.BuildingCard)
+            if (root.BuildingDetails.WorkerInfoTemplate.WorkerHover.View != root.BuildingDetails)
                 throw new InvalidOperationException("工人行模板没有绑定当前建筑详情。");
             if (root.InventoryWindow.DragSpace != root.InventoryWindow.DragRoot.parent || root.Hud.NightHud.RewardSpace != root.Hud.NightHud.transform)
                 throw new InvalidOperationException("库存拖拽或夜间奖励坐标空间不正确。");
@@ -326,10 +326,11 @@ namespace Landsong.ECS.Editor
                 return matches[0];
             }
             var hud = PreviewOwner<UI_GamePanel_Hud>();
-            var building = PreviewOwner<UI_GamePanel_Building>();
+            var building = PreviewOwner<UI_GamePanel_BuildingActionBar>();
             Recipe(hud, "GameHud", UIPreviewKind.GameHud, new[] { new UIPreviewTextBinding("turn", hud.Status), new UIPreviewTextBinding("message", hud.Message), new UIPreviewTextBinding("population", hud.Selection) }, Array.Empty<UIPreviewListBinding>());
             GameFeaturePreviewRecipes.ConfigureRecipes();
-            Recipe(building, "BuildingDetails", UIPreviewKind.BuildingDetails, new[] { new UIPreviewTextBinding("title", (TMP_Text)building.BuildingCard.Name.placeholder, "建筑名称"), new UIPreviewTextBinding("level", building.BuildingCard.Level), new UIPreviewTextBinding("production", building.BuildingCard.Block<UI_GamePanel_BuildingDetails_Block_基础产出>().Label), new UIPreviewTextBinding("workers", building.BuildingCard.Block<UI_GamePanel_BuildingDetails_Block_岗位>().Jobs), new UIPreviewTextBinding("experience", building.BuildingCard.Experience), new UIPreviewTextBinding("position", building.BuildingCard.Footer) }, Array.Empty<UIPreviewListBinding>());
+            var details = building.DetailsPanel;
+            Recipe(building, "BuildingDetails", UIPreviewKind.BuildingDetails, new[] { new UIPreviewTextBinding("title", (TMP_Text)details.Name.placeholder, "建筑名称"), new UIPreviewTextBinding("level", details.Level), new UIPreviewTextBinding("production", details.Block<UI_GamePanel_BuildingDetails_Block_基础产出>().Label), new UIPreviewTextBinding("workers", details.Block<UI_GamePanel_BuildingDetails_Block_岗位>().Jobs), new UIPreviewTextBinding("experience", details.Experience), new UIPreviewTextBinding("position", details.Footer) }, Array.Empty<UIPreviewListBinding>());
             foreach (var name in new[] { "GameHud", "Technology", "Talent", "BuildingDetails" })
             {
                 var recipe = AssetDatabase.LoadAssetAtPath<UIPreviewRecipe>(ProfilesPath + name + "Recipe.asset");
@@ -348,7 +349,7 @@ namespace Landsong.ECS.Editor
 
         static string FeatureAssetName(GamePanelId id) => id switch
         {
-            GamePanelId.Economy => "Economy", GamePanelId.History => "HistoryList", GamePanelId.Building => "BuildingList", GamePanelId.Inventory => "Inventory", GamePanelId.Garrison => "Garrison",
+            GamePanelId.Economy => "Economy", GamePanelId.History => "HistoryList", GamePanelId.Inventory => "Inventory", GamePanelId.Garrison => "Garrison",
             GamePanelId.Technology => "TechnologyList", GamePanelId.Quest => "QuestList", GamePanelId.Expedition => "Expedition", GamePanelId.Talent => "TalentList", GamePanelId.Royal => "RoyalList", GamePanelId.Policy => "PolicyList",
             GamePanelId.Intelligence => "Intelligence", GamePanelId.BattleReport => "BattleReport", GamePanelId.DynastyEnd => "DynastyEnd", GamePanelId.NightConfirmation => "NightConfirmation",
             _ => throw new InvalidOperationException("尚未命名的功能资产：" + id)

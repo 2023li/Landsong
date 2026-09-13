@@ -24,7 +24,7 @@ namespace Landsong.ECS.Presentation
             var original = SnapshotCodec.Capture(em, root);
             Require(!FeatureOps.Unlocked(em, root, "Inventory") && !FeatureOps.Unlocked(em, root, "Building") && !FeatureOps.Unlocked(em, root, "Expedition"), "Formal player starts without invitations-expeditions permissions");
             view.OpenPanel(GamePanelId.Inventory); Require(view.Panel != GamePanelId.Inventory, "Inventory panel rejects direct locked entry"); view.OpenPanel(GamePanelId.Expedition); Require(view.Panel != GamePanelId.Expedition, "Expedition panel rejects direct locked entry");
-            yield return WaitFor(() => view.PrimaryRows.GetComponentsInChildren<Text>().Any(t => t.text.Contains("建造许可尚未解锁")), "Locked construction menu explains tutorial path");
+            view.OpenPanel(GamePanelId.Building); Require(!view.IsPanelOpen || view.Panel != GamePanelId.Building, "Building catalog rejects direct locked entry");
             foreach (var permission in new[] { "feature.Inventory", "feature.Building", "feature.Expedition" }) FeatureOps.Unlock(em, root, Sim.FindDefinition(em, root, new FixedString128Bytes(permission)));
             Entity Create(string name)
             {

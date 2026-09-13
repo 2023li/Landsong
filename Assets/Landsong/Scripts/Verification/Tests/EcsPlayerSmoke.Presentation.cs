@@ -40,7 +40,7 @@ namespace Landsong.ECS.Presentation
                 Require(saved!=null&&InterfaceSettings.Decode(saved).Language=="en"&&PresentationText.Language=="en","15 language selected through actual settings and owned persistence sink");
                 var translated=settingsPanel.ApplyButton.GetComponentInChildren<TMP_Text>();translated.ForceMeshUpdate(false,true);
                 Require(translated.text=="应用"&&translated.GetParsedText().Contains("Apply"),"15 rendered TMP text translates without mutating raw routing text");
-                Require(view.Buildings.NameInput.textComponent.GetComponent<UI_Common_TextBinding>()==null,"15 editable player names are not language preprocessed");
+                Require(view.BuildingDetails.Name.textComponent.GetComponent<UI_Common_TextBinding>()==null,"15 editable player names are not language preprocessed");
                 if(Application.isEditor){ScreenCapture.CaptureScreenshot("Library/LandsongEcs/presentation-language.png");yield return new WaitForEndOfFrame();}
                 yield return CloseShared<UI_SettingPanel>();
                 view.PauseMenu.Close();yield return null;InterfaceSettings.Apply(new InterfacePreferences(),false,false);

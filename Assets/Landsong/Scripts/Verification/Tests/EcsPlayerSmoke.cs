@@ -87,7 +87,7 @@ namespace Landsong.ECS.Presentation
                 var em = World.DefaultGameObjectInjectionWorld.EntityManager; var root = Sim.Root(em);
                 Require(SceneManager.GetActiveScene().path == EcsSceneFlow.Game && em.GetComponentData<MapIdentity>(root).Id.ToString() == ids[map], "Common Game scene loads selected map " + ids[map]);
                 var view = FindFirstObjectByType<UI_GamePanel>();
-                Require(view != null && view.WorldInteraction.Camera.isActiveAndEnabled && view.PrimaryRows != null && view.SecondaryRows != null, "Game camera and native UI bindings");
+                Require(view != null && view.WorldInteraction.Camera.isActiveAndEnabled && view.Buildings.BuildingBar != null && view.SecondaryRows != null, "Game camera, building catalog and native UI bindings");
                 ObserveGameLifetime(view, "new Game");
                 RequireNoLegacyManagers();
                 using (var roots = Sim.Entities<Session>(em)) Require(roots.Length == 1, "Exactly one simulation root");

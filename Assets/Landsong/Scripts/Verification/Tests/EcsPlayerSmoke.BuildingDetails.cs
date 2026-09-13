@@ -25,14 +25,16 @@ namespace Landsong.ECS.Presentation
                 for(int i=0;i<grid.Value.Value.Cells.Length;i++){var cell=grid.Value.Value.Min+new int2(i%grid.Value.Value.Size.x,i/grid.Value.Value.Size.x);if(GridOps.CanPlace(em,root,definition,cell,0)){farm=BuildingOps.Create(em,root,definition,cell,0,1,true);break;}}
                 Require(farm!=Entity.Null,"Building detail fixture has real farm");ulong key=em.GetComponentData<Identity>(farm).Id;
                 var state=em.GetComponentData<Building>(farm);state.SubsidyBudget=state.PaidSubsidy=0;state.Workers=0;em.SetComponentData(farm,state);
-                view.OpenPanel(GamePanelId.Building);view.Buildings.SelectBuildingDetails(key);
-                yield return WaitFor(()=>view.Buildings.BuildingDetailsPanel.activeSelf&&view.Buildings.BuildingCard.BuildingId==key,"Selecting building automatically opens redesigned detail card");
-                var card=view.Buildings.BuildingCard;
+                view.OpenPanel(GamePanelId.Building);view.Buildings.SelectBuilding(key);
+                yield return WaitFor(()=>view.Buildings.BuildingActionBar.gameObject.activeSelf&&!view.BuildingDetails.gameObject.activeSelf,"Selecting building opens only its world-anchored action bar");
+                view.Buildings.BuildingDetailsButton.onClick.Invoke();
+                yield return WaitFor(()=>view.BuildingDetails.gameObject.activeSelf&&view.BuildingDetails.BuildingId==key,"Action bar details button opens redesigned detail card");
+                var card=view.BuildingDetails;
                 var baseOutput=card.Block<UI_GamePanel_BuildingDetails_Block_基础产出>();
                 var workforce=card.Block<UI_GamePanel_BuildingDetails_Block_岗位>();
                 var planting=card.Block<UI_GamePanel_BuildingDetails_Block_种植>();
                 Require(view.Buildings.BuildingRangesVisible&&card.Footer.text.Contains("移动力"),"Selection defaults to range overlays and fixed coordinates/action power: "+view.Buildings.BuildingRangesVisible+" / "+card.Footer.text);
-                Require(view.Buildings.BuildingToolbar.parent==card.transform,"Building actions belong to the fixed detail footer");
+                Require(view.Buildings.transform.parent==view.BuildingRoot&&card.transform.parent==view.FeatureRoot,"Building action bar uses the world overlay layer while details belongs directly to the feature layer");
                 Require(card.Name.transform.IsChildOf(card.transform)&&!view.GetComponentsInChildren<UnityEngine.UI.Button>(true).Any(b=>b.name=="Rename"),"Editable building name is inside detail header without old rename toolbar");
                 card.Name.text="春耕园";card.Name.onEndEdit.Invoke(card.Name.text);
                 yield return WaitFor(()=>em.GetComponentData<Identity>(farm).Name.ToString()=="春耕园","Name field commits player rename through ECS");
@@ -88,7 +90,7 @@ namespace Landsong.ECS.Presentation
                 Require(warehouse!=Entity.Null,"Upgrade fixture creates multilevel warehouse");ulong warehouseId=em.GetComponentData<Identity>(warehouse).Id;
                 var wb=em.GetComponentData<Building>(warehouse);wb.Experience=100000;wb.Workers=em.GetComponentData<BuildingStats>(warehouse).JobCapacity;wb.Maintained=1;em.SetComponentData(warehouse,wb);
                 var grants=em.GetBuffer<Entitlement>(root);for(int i=grants.Length-1;i>=0;i--)if(grants[i].Definition==warehouseDef)grants.RemoveAt(i);BlueprintOps.Grant(em,root,warehouseDef,1);
-                view.Buildings.SelectBuildingDetails(warehouseId);yield return new WaitForSecondsRealtime(.3f);card.Upgrade.onClick.Invoke();Require(!view.Buildings.BuildingConfirmPanel.activeSelf&&view.Hud.Message.text.Contains("下一等级蓝图"),"Full XP without higher blueprint stays gray and explains missing blueprint");
+                view.Buildings.SelectBuilding(warehouseId);view.Buildings.BuildingDetailsButton.onClick.Invoke();yield return new WaitForSecondsRealtime(.3f);card.Upgrade.onClick.Invoke();Require(!view.Buildings.BuildingConfirmPanel.activeSelf&&view.Hud.Message.text.Contains("下一等级蓝图"),"Full XP without higher blueprint stays gray and explains missing blueprint");
                 Require(baseOutput.gameObject.activeSelf,"Selecting warehouse restores populated base output block");
                 ExecuteEvents.Execute(baseOutput.gameObject,new PointerEventData(EventSystem.current),ExecuteEvents.pointerEnterHandler);
                 Require(card.Sidebar.activeSelf&&card.SidebarText.text.Contains("库存槽")&&!card.SidebarText.text.Contains(cropName),"Warehouse hover shows its own worker effects without stale crop data");
@@ -103,15 +105,15 @@ namespace Landsong.ECS.Presentation
                 ExecuteEvents.Execute(workforce.gameObject,new PointerEventData(EventSystem.current),ExecuteEvents.pointerEnterHandler);
                 yield return new WaitForSecondsRealtime(.3f);
                 Require(!view.Quests.QuestTracking.gameObject.activeSelf,"Building details suppress quest tracking before local close");
-                card.Close.onClick.Invoke();yield return new WaitForSecondsRealtime(.3f);Require(!view.Buildings.BuildingDetailsPanel.activeSelf&&!card.Sidebar.activeSelf,"Building detail X remains closed across refresh and clears its sidebar");
+                card.Close.onClick.Invoke();yield return new WaitForSecondsRealtime(.3f);Require(!view.BuildingDetails.gameObject.activeSelf&&!card.Sidebar.activeSelf,"Building detail X remains closed across refresh and clears its sidebar");
                 Require(view.Quests.QuestTracking.gameObject.activeInHierarchy,"Closing building details restores quest HUD during idle day without another command");
-                view.Buildings.SelectBuildingDetails(warehouseId);yield return new WaitForSecondsRealtime(.3f);
-                Require(view.Buildings.BuildingDetailsPanel.activeSelf&&!view.Quests.QuestTracking.gameObject.activeSelf,"Reopened building details hide quest tracking again");
+                view.Buildings.SelectBuilding(warehouseId);view.Buildings.BuildingDetailsButton.onClick.Invoke();yield return new WaitForSecondsRealtime(.3f);
+                Require(view.BuildingDetails.gameObject.activeSelf&&!view.Quests.QuestTracking.gameObject.activeSelf,"Reopened building details hide quest tracking again");
                 for(int i=0;i<4&&view.Buildings.CancelBuildingInteraction();i++) { }
                 yield return new WaitForSecondsRealtime(.3f);
-                Require(!view.Buildings.BuildingDetailsPanel.activeSelf&&view.Quests.QuestTracking.gameObject.activeInHierarchy,"Cancelling building details restores quest HUD without relying on periodic idle rebuilds");
+                Require(!view.BuildingDetails.gameObject.activeSelf&&view.Quests.QuestTracking.gameObject.activeInHierarchy,"Cancelling building details restores quest HUD without relying on periodic idle rebuilds");
             }
-            finally{view.Buildings.BuildingConfirmPanel.SetActive(false);view.Buildings.BuildingDetailsClose.onClick.Invoke();view.ClosePanel();SnapshotCodec.Restore(em,root,SnapshotCodec.Decode(em,root,original));}
+            finally{view.Buildings.BuildingConfirmPanel.SetActive(false);view.BuildingDetails.Close.onClick.Invoke();view.ClosePanel();SnapshotCodec.Restore(em,root,SnapshotCodec.Decode(em,root,original));}
         }
     }
 }

@@ -61,6 +61,7 @@ namespace Landsong.ECS.Editor
             foreach (var d in catalog.Definitions.Where(d => d.Data.Kind == ContentKind.Building))
             {
                 var prefab = d.Data.Prefab; Check(prefab != null && prefab.GetComponent<BuildingVisualAuthoring>()?.Definition == d, d.Data.Id + " visual authoring bound");
+                Check(prefab.GetComponentsInChildren<Transform>(true).Count(t => t.name == "SelectionAnchor") == 1, d.Data.Id + " has exactly one SelectionAnchor");
                 foreach (var renderer in prefab.GetComponentsInChildren<MeshRenderer>(true))
                 { Check(renderer.GetComponent<MeshFilter>()?.sharedMesh != null && renderer.sharedMaterials.Length > 0 && renderer.sharedMaterials.All(m => m != null), d.Data.Id + " mesh/material references " + renderer.name); Check(renderer.GetComponent<EntityVisualAuthoring>()?.Owner == prefab, d.Data.Id + " renderer owned by persistent root"); }
                 for (var level = 1; level <= d.Data.Level; level++)
@@ -81,7 +82,8 @@ namespace Landsong.ECS.Editor
             var view = gamePrefab.GetComponent<UI_GamePanel>();
             Check(view != null && view.Buildings != null, "Game panel has configured building controller");
             var buildings = view.Buildings;
-            Check(buildings.BuildingToolbar != null && buildings.BuildingCard != null && buildings.BuildingDetailsRows == buildings.BuildingCard.Block<UI_GamePanel_BuildingDetails_Block_其他>().Rows && buildings.BuildingConfirmRows != null && buildings.BuildingCatalog == catalog && buildings.BuildingBar != null && buildings.BuildingBar.Cards != null && buildings.BuildingBar.Tabs != null, "Game panel serialized building UGUI wiring");
+            var details = view.BuildingDetails;
+            Check(buildings.BuildingActionBar != null && buildings.BuildingDetailsButton != null && details != null && buildings.DetailsPanel == details && details.DetailsRows == details.Block<UI_GamePanel_BuildingDetails_Block_其他>().Rows && details.WorkerInfoTemplate != null && details.WorkforceTemplate != null && buildings.BuildingConfirmRows != null && buildings.BuildingCatalog == catalog && buildings.BuildingBar != null && buildings.BuildingBar.Cards != null && buildings.BuildingBar.Tabs != null, "Game panel serialized building UGUI wiring");
         }
         static void VerifyMap(string path)
         {

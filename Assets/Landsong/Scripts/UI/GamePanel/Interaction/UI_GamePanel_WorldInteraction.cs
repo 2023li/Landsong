@@ -32,7 +32,7 @@ namespace Landsong.ECS.Presentation
 
         [Sirenix.OdinInspector.LabelText("预览模板集合")]
         public PreviewTemplate[] PreviewTemplates = Array.Empty<PreviewTemplate>();
-        internal UI_GamePanel_Building buildingController;
+        internal UI_GamePanel_BuildingActionBar buildingController;
         internal GameUiCommandWriter commandsController;
         internal UI_GamePanel_Hud hudController;
         internal IGameUiNavigation navigation;
@@ -238,7 +238,7 @@ namespace Landsong.ECS.Presentation
         {
             var entity = Sim.Find(sessionController.em, sessionController.selected);
             var grid = sessionController.em.GetComponentData<GridData>(sessionController.root);
-            if (buildingController.showBuildingRange && !HasBuildingPlacement && (navigation.Panel == GamePanelId.Building || buildingController.showBuildingDetails) && entity != Entity.Null && sessionController.em.HasComponent<Building>(entity) && !sessionController.intel)
+            if (buildingController.showBuildingRange && !HasBuildingPlacement && (navigation.Panel == GamePanelId.Building || buildingController.showBuildingActionBar) && entity != Entity.Null && sessionController.em.HasComponent<Building>(entity) && !sessionController.intel)
             {
                 if (rangeBuilding != sessionController.selected || rangeRevision != grid.Revision || Time.unscaledTime >= nextRangeRefresh)
                 {
@@ -704,9 +704,9 @@ namespace Landsong.ECS.Presentation
                 return;
             if (sessionController.selected == identity.Id && Time.unscaledTime - clickTime < .35f && sessionController.em.GetComponentData<Session>(sessionController.root).Phase == Phase.Day)
                 commandsController.TryQueue(CommandRequests.Harvest(identity.Id));
-            buildingController.SelectBuildingDetails(identity.Id);
+            buildingController.SelectBuilding(identity.Id);
             clickTime = Time.unscaledTime;
-            buildingController.NameInput.SetTextWithoutNotify(identity.Name.ToString());
+            buildingController.DetailsPanel.Name.SetTextWithoutNotify(identity.Name.ToString());
             sessionController.nextRefresh = 0;
             if (sessionController.em.GetComponentData<Session>(sessionController.root).Phase == Phase.Night && sessionController.em.GetComponentData<BuildingStats>(entity).BellRadius > 0)
                 commandsController.Send(CommandKind.Bell, identity.Id);

@@ -34,7 +34,7 @@ namespace Landsong.ECS.Presentation
         public void Render() => Quests();
         [Sirenix.OdinInspector.LabelText("数量模板")]
         public UI_GamePanel_QuantityRow QuantityTemplate;
-        internal UI_GamePanel_Building buildingController;
+        internal UI_GamePanel_BuildingActionBar buildingController;
         internal GameUiCommandWriter commandsController;
         internal UI_GamePanel_Hud hudController;
         internal IGameUiNavigation navigation;
@@ -249,7 +249,7 @@ namespace Landsong.ECS.Presentation
             if (QuestTracking == null)
                 throw new InvalidOperationException("任务追踪面板检查器引用缺失。");
             QuestHudRows = QuestTracking.Rows;
-            var visible = !sessionController.intel && navigation.Panel != GamePanelId.Quest && navigation.Panel != GamePanelId.Technology && navigation.Panel != GamePanelId.BattleReport && navigation.Panel != GamePanelId.DynastyEnd && !(buildingController.BuildingDetailsPanel != null && buildingController.BuildingDetailsPanel.activeSelf);
+            var visible = !sessionController.intel && navigation.Panel != GamePanelId.Quest && navigation.Panel != GamePanelId.Technology && navigation.Panel != GamePanelId.BattleReport && navigation.Panel != GamePanelId.DynastyEnd && !buildingController.DetailsPanel.gameObject.activeSelf;
             QuestTracking.gameObject.SetActive(visible);
             if (!visible)
                 return;
@@ -415,10 +415,9 @@ namespace Landsong.ECS.Presentation
             QuestWindow.SetActive(true);
             QuestDetailRows = null;
             seenQuestCards.Clear();
-            if (buildingController.BuildingToolbar != null)
-                buildingController.BuildingToolbar.gameObject.SetActive(false);
-            if (buildingController.BuildingDetailsPanel != null)
-                buildingController.BuildingDetailsPanel.SetActive(false);
+            if (buildingController.BuildingActionBar != null)
+                buildingController.BuildingActionBar.gameObject.SetActive(false);
+            buildingController.DetailsPanel.Hide();
             var day = sessionController.em.GetComponentData<Session>(sessionController.root).Phase == Phase.Day && sessionController.em.GetComponentData<Session>(sessionController.root).CheckpointPending == 0;
             questCapacityLabel.text = "已接受任务 · " + ProgressionOps.QuestCount(sessionController.em) + "/" + ProgressionOps.QuestCapacity(sessionController.em);
             QuestPanel.SourceFilterLabel.text = questSourceFilter == 0 ? "全部来源" : "取消来源筛选：" + sessionController.EntityName(questSourceFilter);

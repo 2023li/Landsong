@@ -50,11 +50,11 @@ namespace Landsong.ECS.Editor
                     var id = Parse(match.Groups[1].Value); panels++;
                     // Existing typed assets keep authored permission configuration on repeat runs.
                     if (int.TryParse(match.Groups[1].Value.Trim(), out _)) return match.Value;
-                    string feature = id == GamePanelId.Building ? "feature.Building" : id == GamePanelId.Inventory ? "feature.Inventory"
+                    string feature = id == GamePanelId.Inventory ? "feature.Inventory"
                         : id == GamePanelId.Expedition ? "feature.Expedition" : id == GamePanelId.Technology ? "feature.Technology" : "";
                     return "  PanelId: " + (int)id + "\n  RequiredFeatureId: " + feature
                         + "\n  AllowMissingFeature: " + (id == GamePanelId.Technology ? 1 : 0)
-                        + "\n  AllowLockedOpen: " + (id == GamePanelId.Building ? 1 : 0);
+                        + "\n  AllowLockedOpen: 0";
                 });
                 result = Regex.Replace(result, @"(?m)^  Panel: ([^\r\n]+)\r?$", match => "  Panel: " + (int)Parse(match.Groups[1].Value));
                 result = Regex.Replace(result, @"(?m)^(\s*)m_MethodName: OpenPanel\r?\n(?<body>[\s\S]*?m_StringArgument: )(?<value>[^\r\n]*)", match =>

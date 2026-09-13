@@ -70,7 +70,7 @@ namespace Landsong.ECS.Editor
                 if (state != null && panel.TryGetComponent<UI_GamePanel>(out var game))
                 {
                     if (state == "Technology") game.Technology.TechnologyTree.gameObject.SetActive(true);
-                    if (state == "BuildingDetails") game.Buildings.BuildingCard.gameObject.SetActive(true);
+                    if (state == "BuildingDetails") game.BuildingDetails.gameObject.SetActive(true);
                     if (state == "Talent") foreach (var view in panel.GetComponentsInChildren<UI_GamePanel_Talent>(true)) view.gameObject.SetActive(true);
                     if (state == "RoyalDetails")
                     {

@@ -41,7 +41,7 @@ UI 使用 TMP 与 UGUI。应用由一份跨场景保留的 `UI_Root.prefab` 承�
 
 Game 功能窗口在根的显式导航注册表中各自拥有固定容器。根负责互斥、导航历史和输入门禁；各控制器负责其领域的数据展示。窗口容器的本地显隐与框架根面板的打开/关闭是两个层次，不能绕过根管理器直接激活共享 Setting、Save 或另一个 Game 根。
 
-局部导航使用稳定枚举 `GamePanelId`，`FeaturePanels`、`NavigationButtons`、当前窗口和返回历史都保存类型化目标；中文标题不参与查找或跳转。窗口的 `RequiredFeatureId` 显式配置 `feature.*` 内容 ID，访问规则由其 `CanOpen` 核验。Unity 持久 Button 事件通过 `OpenPanelFromEvent(int)` 校验后转换为枚举，非法值或 `None` 直接报配置错误，不提供显示名到面板的兼容回落。这里的 `GamePanelId` 与 Moyo 根注册表的类名 `panelId` 是两个不同层次。
+局部导航使用稳定枚举 `GamePanelId`，`FeaturePanels`、`NavigationButtons`、当前窗口和返回历史都保存类型化目标；中文标题不参与查找或跳转。通用窗口的 `RequiredFeatureId` 显式配置 `feature.*` 内容 ID，访问规则由其 `CanOpen` 核验；`Building` 是直接打开建造目录栏的特殊目的地，不属于 `FeaturePanels`，由根直接校验 `feature.Building`。Unity 持久 Button 事件通过 `OpenPanelFromEvent(int)` 校验后转换为枚举，非法值或 `None` 直接报配置错误，不提供显示名到面板的兼容回落。这里的 `GamePanelId` 与 Moyo 根注册表的类名 `panelId` 是两个不同层次。
 
 `GameUiRefreshScheduler` 归当前会话拥有，分别调度 HUD 与可见内容。回合、阶段、暂停、情报、存档等待、夜间速度、设置版本、表现事件、交互结束及显式失效请求会更新展示版本；HUD 与较重内容的默认节流周期分别是 0.2 秒、0.25 秒；状态变化可提前刷新 HUD，显式命令失效可请求立即刷新内容，版本未变且没有连续模拟时不重绘。夜间等连续阶段仍按节流更新。输入框、库存拖动/编辑和劳动力调整可暂缓内容重绘，HUD 继续运行，避免全局按住鼠标就冻结信息。
 

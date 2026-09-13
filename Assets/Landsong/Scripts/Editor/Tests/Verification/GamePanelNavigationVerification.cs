@@ -48,11 +48,15 @@ namespace Landsong.ECS.Editor
                 var ids = view.FeaturePanels.Select(panel => panel.PanelId).ToArray();
                 Check(ids.All(id => id != GamePanelId.None && Enum.IsDefined(typeof(GamePanelId), id)) && ids.Distinct().Count() == ids.Length,
                     "All child identities survive migration without missing or duplicate enum values");
+                Check(!ids.Contains(GamePanelId.Building) && view.Buildings.BuildingBar != null,
+                    "Building navigation owns the catalog bar directly and has no generic list panel");
+                Check(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Landsong/Objects/Prefabs/UI/GamePanel/Views/UI_GamePanel_List_Building.prefab") == null,
+                    "Obsolete building permission panel asset is deleted");
                 foreach (var panel in view.FeaturePanels) panel.ValidateConfiguration();
-                foreach (var requirement in new[] { (GamePanelId.Building, "feature.Building"), (GamePanelId.Inventory, "feature.Inventory"), (GamePanelId.Expedition, "feature.Expedition"), (GamePanelId.Technology, ResearchOps.FeatureId) })
+                foreach (var requirement in new[] { (GamePanelId.Inventory, "feature.Inventory"), (GamePanelId.Expedition, "feature.Expedition"), (GamePanelId.Technology, ResearchOps.FeatureId) })
                     Check(view.GetListPanel(requirement.Item1).RequiredFeatureId == requirement.Item2, "Permission remains configured on destination: " + requirement.Item1);
-                Check(view.GetListPanel(GamePanelId.Building).AllowLockedOpen && view.GetListPanel(GamePanelId.Technology).AllowMissingFeature,
-                    "Building explanation and optional custom-catalog research semantics are preserved");
+                Check(view.GetListPanel(GamePanelId.Technology).AllowMissingFeature,
+                    "Optional custom-catalog research semantics are preserved");
                 int typedEvents = 0;
                 foreach (var button in game.GetComponentsInChildren<Button>(true))
                 {
@@ -68,13 +72,13 @@ namespace Landsong.ECS.Editor
                         int value = call.FindPropertyRelative("m_Arguments.m_IntArgument").intValue;
                         Check(call.FindPropertyRelative("m_Target").objectReferenceValue == view && call.FindPropertyRelative("m_Mode").intValue == 3
                             && Enum.IsDefined(typeof(GamePanelId), value) && value != 0
-                            && ((GamePanelId)value == GamePanelId.Pause || ids.Contains((GamePanelId)value)), "Typed static event retains target and valid destination: " + button.name);
+                            && ((GamePanelId)value == GamePanelId.Pause || (GamePanelId)value == GamePanelId.Building || ids.Contains((GamePanelId)value)), "Typed static event retains target and valid destination: " + button.name);
                     }
                 }
                 Check(typedEvents == 9, "All nine authored navigation button calls survive the parameter migration");
                 foreach (var binding in view.NavigationButtons)
                 {
-                    Check(binding.Button != null && ids.Contains(binding.Target), "Permission-controlled navigation button has a configured destination: " + binding.Target);
+                    Check(binding.Button != null && (binding.Target == GamePanelId.Building || ids.Contains(binding.Target)), "Permission-controlled navigation button has a configured destination: " + binding.Target);
                     var calls = new SerializedObject(binding.Button).FindProperty("m_OnClick.m_PersistentCalls.m_Calls");
                     bool matches = false;
                     for (int i = 0; i < calls.arraySize; i++)

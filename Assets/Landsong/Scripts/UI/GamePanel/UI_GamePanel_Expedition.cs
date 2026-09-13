@@ -31,7 +31,7 @@ namespace Landsong.ECS.Presentation
         }
 
         public void Render() => Expeditions();
-        internal UI_GamePanel_Building buildingController;
+        internal UI_GamePanel_BuildingActionBar buildingController;
         internal GameUiCommandWriter commandsController;
         internal UI_GamePanel_Court courtController;
         internal UI_GamePanel_RowRenderer rowsController;

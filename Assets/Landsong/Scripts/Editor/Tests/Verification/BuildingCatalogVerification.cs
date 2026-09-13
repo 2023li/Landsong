@@ -34,7 +34,7 @@ namespace Landsong.ECS.Editor
                     var bar = view.Buildings.BuildingBar;
                     Check(bar != null && bar.CardScroll.horizontal && !bar.CardScroll.vertical, "Authored bottom tray scrolls horizontally");
                     Check(bar.TabTemplate != null && bar.CardTemplate != null && bar.TooltipText != null, "Editable tab/icon/tooltip templates are wired");
-                    Check(view.Hud.Status != null && view.Hud.Selection != null && view.Hud.Message != null && view.Buildings.NameInput.textComponent != null && view.PauseMenu.Status != null, "Game and pause serialized TMP references preserved");
+                    Check(view.Hud.Status != null && view.Hud.Selection != null && view.Hud.Message != null && view.BuildingDetails.Name.textComponent != null && view.PauseMenu.Status != null, "Game and pause serialized TMP references preserved");
                     Check(!prefab.GetComponentsInChildren<Transform>(true).Any(t => t.name == "Building Catalog Filters"), "Obsolete building filter removed");
                 }
             }

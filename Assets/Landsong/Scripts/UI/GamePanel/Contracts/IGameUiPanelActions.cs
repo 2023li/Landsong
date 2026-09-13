@@ -11,6 +11,8 @@ namespace Landsong.ECS.Presentation
         string CostText(IEnumerable<BuildingCost> costs);
         void FocusBuilding(ulong id);
         void ShowBuildingConfirmation(string title, IEnumerable<string> lines, Action confirm);
+        void ShowBuildingChoices(string title, Action<RectTransform, Action> populate);
+        void ConfirmBuildingCommand(CommandKind kind);
     }
 
     public interface IGameWorldUi

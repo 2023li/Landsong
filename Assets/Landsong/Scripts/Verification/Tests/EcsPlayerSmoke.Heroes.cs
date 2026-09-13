@@ -35,7 +35,7 @@ namespace Landsong.ECS.Presentation
             yield return WaitFor(() => hud.gameObject.activeInHierarchy && hud.GetComponentsInChildren<Button>().Any(button => button.interactable), "Independent hero HUD available");
             Require(!view.Hud.HeroSelection.gameObject.activeSelf, "Hero selection bar excludes heroes that have not awakened");
             hud.GetComponentsInChildren<Button>().First(button => button.interactable).onClick.Invoke();
-            Button WakeButton() => view.Buildings.BuildingDetailsRows.GetComponentsInChildren<Button>().FirstOrDefault(button => button.interactable && button.GetComponentInChildren<Text>()?.text == "唤醒英雄");
+            Button WakeButton() => view.BuildingDetails.DetailsRows.GetComponentsInChildren<Button>().FirstOrDefault(button => button.interactable && button.GetComponentInChildren<Text>()?.text == "唤醒英雄");
             yield return WaitFor(() => WakeButton() != null, "Sleeping portrait opens temple with wake quote"); WakeButton().onClick.Invoke();
             yield return WaitFor(() => em.GetComponentData<Combatant>(Sim.Find(em, heroId)).Deployed != 0, "Real temple UI wakes hero");
             yield return WaitFor(() => view.Hud.heroSelectionItems.TryGetValue(heroId, out var item) && item.gameObject.activeInHierarchy, "Awakened hero appears in the hero selection bar");
@@ -49,7 +49,7 @@ namespace Landsong.ECS.Presentation
             view.Commands.Send(CommandKind.SelectHero); yield return WaitFor(() => em.GetComponentData<Session>(root).SelectedHero == Entity.Null, "Cancel hero selection through command");
             Require(math.all(em.GetComponentData<Combatant>(hero).Home == destination), "Unselected hero keeps player anchor");
             Require(hud.GetComponentsInChildren<Text>().Any(label => label.text.Contains("本夜 +0")), "Peaceful HUD shows zero combat XP after awakening");
-            view.Buildings.BuildingDetailsClose.onClick.Invoke();
+            view.BuildingDetails.Close.onClick.Invoke();
             if (Application.isEditor) { ScreenCapture.CaptureScreenshot("Library/LandsongEcs/heroes-" + map + ".png"); yield return new WaitForEndOfFrame(); }
             SnapshotCodec.Restore(em, root, SnapshotCodec.Decode(em, root, original)); view.OpenPanel(GamePanelId.Building); yield return null;
         }

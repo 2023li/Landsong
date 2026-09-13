@@ -25,7 +25,10 @@ namespace Landsong.ECS.Presentation
     {
         [SerializeField]
         [Sirenix.OdinInspector.LabelText("建筑控制器")]
-        internal UI_GamePanel_Building buildingController;
+        internal UI_GamePanel_BuildingActionBar buildingController;
+        [SerializeField]
+        [Sirenix.OdinInspector.LabelText("建筑详情控制器")]
+        internal UI_GamePanel_BuildingDetails buildingDetailsController;
         [SerializeField]
         [Sirenix.OdinInspector.LabelText("人才控制器")]
         internal UI_GamePanel_Talent talentController;
@@ -108,7 +111,9 @@ namespace Landsong.ECS.Presentation
             if (worldController == null)
                 throw new InvalidOperationException("游戏面板未配置控制器：UI_GamePanel_WorldInteraction");
             if (buildingController == null)
-                throw new InvalidOperationException("游戏面板未配置控制器：GameBuildingController");
+                throw new InvalidOperationException("游戏面板未配置控制器：UI_GamePanel_BuildingActionBar");
+            if (buildingDetailsController == null)
+                throw new InvalidOperationException("游戏面板未配置控制器：UI_GamePanel_BuildingDetails");
             if (technologyController == null)
                 throw new InvalidOperationException("游戏面板未配置控制器：GameTechnologyController");
             if (questController == null)
@@ -157,12 +162,10 @@ namespace Landsong.ECS.Presentation
             buildingController.sessionController = sessionController;
             buildingController.worldController = worldController;
             buildingController.commandsController = commandsController;
-            buildingController.soldierController = soldierController;
-            buildingController.marriageController = marriageController;
-            buildingController.requestsController = requestsController;
             buildingController.hudController = hudController;
             buildingController.rowsController = rowsController;
-            buildingController.courtController = courtController;
+            buildingDetailsController.BindPresenter(sessionController, commandsController, this, rowsController,
+                buildingController, courtController, hudController, soldierController);
             technologyController.navigation = this;
             technologyController.buildingController = buildingController;
             technologyController.sessionController = sessionController;
@@ -258,7 +261,9 @@ namespace Landsong.ECS.Presentation
             Need(InterfaceScaler, nameof(InterfaceScaler));
             Need(worldController.Camera, nameof(worldController.Camera));
             Need(buildingController.BuildingBar, nameof(buildingController.BuildingBar));
-            Need(buildingController.BuildingCard, nameof(buildingController.BuildingCard));
+            Need(buildingDetailsController, nameof(buildingDetailsController));
+            if (buildingController.DetailsPanel != buildingDetailsController)
+                throw new InvalidOperationException("建筑操作条与游戏根必须绑定同一个建筑详情面板。");
             Need(technologyController.TechnologyTree, nameof(technologyController.TechnologyTree));
             Need(courtController.CourtGraph, nameof(courtController.CourtGraph));
             Need(courtController.RoyalDetails, nameof(courtController.RoyalDetails));
@@ -304,16 +309,18 @@ namespace Landsong.ECS.Presentation
             hudController.NightHud.ValidateConfiguration();
             historyController.NavigationPanel.ValidateConfiguration();
             rowsController.RowTemplate.ValidateConfiguration();
-            buildingController.WorkerInfoTemplate.ValidateConfiguration();
-            buildingController.WorkforceTemplate.ValidateConfiguration();
+            buildingDetailsController.WorkerInfoTemplate.ValidateConfiguration();
+            buildingDetailsController.WorkforceTemplate.ValidateConfiguration();
             questController.QuantityTemplate.ValidateConfiguration();
             portraitController.PortraitTemplate.ValidateConfiguration();
             if (FeaturePanels == null || FeaturePanels.Length == 0 || FeaturePanels.Any(p => p == null) || FeaturePanels.GroupBy(p => p.PanelId).Any(g => g.Key == GamePanelId.None || g.Count() != 1))
                 throw new InvalidOperationException("FeaturePanels 必须检查器绑定且 PanelId 唯一。");
+            if (FeaturePanels.Any(panel => panel.PanelId == GamePanelId.Building))
+                throw new InvalidOperationException("建筑目的地由建造目录栏承载，不得配置为通用功能面板。");
             foreach (var panel in FeaturePanels)
                 if (panel.transform.parent != FeatureRoot)
                     throw new InvalidOperationException(panel.name + " 必须是功能面板根对象的直接子对象。");
-            if (buildingController.BuildingCard.transform.parent != FeatureRoot)
+            if (buildingDetailsController.transform.parent != FeatureRoot)
                 throw new InvalidOperationException("建筑详情必须是功能面板根对象的直接子对象。");
             foreach (var modal in new Component[]
             {
@@ -329,7 +336,7 @@ namespace Landsong.ECS.Presentation
                     throw new InvalidOperationException(modal.name + " 必须位于模态面板根对象下。");
         }
 
-        [Sirenix.OdinInspector.LabelText("功能面板集合")]
+        [Sirenix.OdinInspector.LabelText("通用功能面板集合")]
         public UI_GamePanel_List[] FeaturePanels;
         public RectTransform PrimaryRows => ActiveListPanel.PrimaryRows;
         public RectTransform SecondaryRows => GarrisonWindow.SecondaryRows;
@@ -376,7 +383,7 @@ namespace Landsong.ECS.Presentation
             worldController.Input();
             if (refresh.TakeHudRefresh(Time.unscaledTime)) RefreshHud(state);
             bool editing = TextFocused || InventoryWindow.IsDragging || InventoryWindow.IsEditing ||
-                buildingController.workforceScale != null && buildingController.workforceScale.Interacting;
+                buildingDetailsController.WorkforceScale != null && buildingDetailsController.WorkforceScale.Interacting;
             // Pointer ownership belongs to each configured row; holding the mouse never freezes the HUD.
             if (refresh.NeedsPanelRefresh(Time.unscaledTime, true, editing))
             {
@@ -449,17 +456,16 @@ namespace Landsong.ECS.Presentation
                 rowsController.Clear(SecondaryRows);
             buildingController.RefreshBuildingCatalog();
             RefreshPanelVisibility();
-            buildingController.Details();
-            buildingController.NameInput.gameObject.SetActive(buildingController.showBuildingDetails && !sessionController.intel);
+            buildingController.RefreshBuildingSelection();
             if (sessionController.intel)
                 hudController.Selection.text = "情报模式：WASD / 滚轮调整镜头；退出后恢复操作。";
             questController.RefreshQuestTracking();
-            if (IsPanelOpen && !sessionController.intel && s.Phase == Phase.Night && s.NightKind == NightKind.Peaceful)
+            if (listPanel != null && !sessionController.intel && s.Phase == Phase.Night && s.NightKind == NightKind.Peaceful)
                 rowsController.Row(s.NightSpeed == 2 ? "平安夜速度 2×（切回 1×）" : "平安夜速度 1×（切换 2×）", s.Paused == 0 ? () => commandsController.TryQueue(CommandRequests.SetNightSpeed(s.NightSpeed == 2 ? 1 : 2)) : null);
-            if (IsPanelOpen && s.Phase == Phase.Day && sessionController.em.GetBuffer<BattleReportEntry>(sessionController.root).Length > 0 && Panel != GamePanelId.BattleReport)
+            if (listPanel != null && s.Phase == Phase.Day && sessionController.em.GetBuffer<BattleReportEntry>(sessionController.root).Length > 0 && Panel != GamePanelId.BattleReport)
                 rowsController.Row("查看上一晚结算（含被盗物资）", () => OpenPanel(GamePanelId.BattleReport));
-            if (IsPanelOpen)
-                ActiveListPanel.Render();
+            if (listPanel != null)
+                listPanel.Render();
             rowsController.FinishRows();
             courtController.RefreshCourtPresentation();
             talentController.RefreshPresentation();
@@ -483,19 +489,26 @@ namespace Landsong.ECS.Presentation
         Button NavigationButton(GamePanelId target) => NavigationButtons.FirstOrDefault(binding => binding.Target == target)?.Button;
         internal void InitializeFeatureButtons()
         {
-            if (NavigationButtons == null || NavigationButtons.Length == 0 || NavigationButtons.Any(binding => binding == null || binding.Button == null || FindListPanel(binding.Target) == null)
+            if (NavigationButtons == null || NavigationButtons.Length == 0 || NavigationButtons.Any(binding => binding == null || binding.Button == null || binding.Target != GamePanelId.Building && FindListPanel(binding.Target) == null)
                 || NavigationButtons.Select(binding => binding.Button).Distinct().Count() != NavigationButtons.Length)
-                throw new InvalidOperationException("功能导航必须显式配置有效面板与唯一按钮。");
+                throw new InvalidOperationException("功能导航必须显式配置有效目的地与唯一按钮。");
         }
 
         internal void RefreshFeatureAccess()
         {
             foreach (var binding in NavigationButtons)
-                binding.Button.interactable = GetListPanel(binding.Target).IsFeatureUnlocked(sessionController.em, sessionController.root);
-            var active = FindListPanel(Panel);
-            if (IsPanelOpen && active != null && !active.CanOpen(sessionController.em, sessionController.root))
+                binding.Button.interactable = IsDestinationUnlocked(binding.Target);
+            if (IsPanelOpen && !CanOpenDestination(Panel))
                 ClosePanel();
         }
+
+        bool IsDestinationUnlocked(GamePanelId panel) => panel == GamePanelId.Building
+            ? FeatureOps.Unlocked(sessionController.em, sessionController.root, "Building")
+            : GetListPanel(panel).IsFeatureUnlocked(sessionController.em, sessionController.root);
+
+        bool CanOpenDestination(GamePanelId panel) => panel == GamePanelId.Building
+            ? FeatureOps.Unlocked(sessionController.em, sessionController.root, "Building")
+            : GetListPanel(panel).CanOpen(sessionController.em, sessionController.root);
 
         internal readonly Stack<GamePanelId> panelHistory = new Stack<GamePanelId>();
         public bool TextFocused => UiInputState.TextFocused;
@@ -559,8 +572,7 @@ namespace Landsong.ECS.Presentation
         {
             if (!sessionController.IsBound || !InputPolicy.Capture().CanNavigate) return;
             if (panel == GamePanelId.Pause) { PauseMenu.Open(); return; }
-            var destination = GetListPanel(panel);
-            if (!destination.CanOpen(sessionController.em, sessionController.root)) return;
+            if (!CanOpenDestination(panel)) return;
             bool enteringIntel = panel == GamePanelId.Intelligence;
             if (sessionController.intel != enteringIntel)
                 commandsController.TryQueue(CommandRequests.SetIntelligenceMode(enteringIntel));
@@ -595,9 +607,10 @@ namespace Landsong.ECS.Presentation
             sessionController.nextRefresh = 0;
             if (panel != GamePanelId.Building)
             {
-                buildingController.showBuildingDetails = false;
-                if (buildingController.BuildingDetailsPanel != null)
-                    buildingController.BuildingDetailsPanel.SetActive(false);
+                buildingController.showBuildingActionBar = false;
+                buildingDetailsController.Hide();
+                if (buildingController.BuildingActionBar != null)
+                    buildingController.BuildingActionBar.gameObject.SetActive(false);
             }
 
             buildingController.buildingBarOpen = panel == GamePanelId.Building;
@@ -682,8 +695,7 @@ namespace Landsong.ECS.Presentation
         {
             if (IsPanelOpen && portraitController.BeautyEventButton != null)
                 portraitController.BeautyEventButton.gameObject.SetActive(false);
-            bool buildingUnlocked = GetListPanel(GamePanelId.Building).IsFeatureUnlocked(sessionController.em, sessionController.root);
-            bool primary = IsPanelOpen && Panel != GamePanelId.Technology && Panel != GamePanelId.Quest && (Panel != GamePanelId.Royal || courtController.royalOverview) && (Panel != GamePanelId.Building || !buildingUnlocked);
+            bool primary = IsPanelOpen && Panel != GamePanelId.Technology && Panel != GamePanelId.Quest && (Panel != GamePanelId.Royal || courtController.royalOverview);
             foreach (var window in FeaturePanels)
                 window.gameObject.SetActive(IsPanelOpen && window.PanelId == Panel);
             var active = FindListPanel(Panel);
@@ -711,7 +723,8 @@ namespace Landsong.ECS.Presentation
         bool sessionBound;
         public GameUiSession Session => sessionController;
         public GameUiCommandWriter Commands => commandsController;
-        public UI_GamePanel_Building Buildings => buildingController;
+        public UI_GamePanel_BuildingActionBar Buildings => buildingController;
+        public UI_GamePanel_BuildingDetails BuildingDetails => buildingDetailsController;
         public UI_GamePanel_Technology Technology => technologyController;
         public UI_GamePanel_Quest Quests => questController;
         public UI_GamePanel_Court Court => courtController;

@@ -23,7 +23,7 @@ namespace Landsong.ECS.Presentation
         internal GameUiCommandWriter commandsController;
         internal UI_GamePanel_RowRenderer rowsController;
         internal IGameUiNavigation navigation;
-        internal UI_GamePanel_Building buildingController;
+        internal UI_GamePanel_BuildingActionBar buildingController;
         internal bool CourtDay => sessionController.em.GetComponentData<Session>(sessionController.root).Phase == Phase.Day;
 
         [Sirenix.OdinInspector.LabelText("王室图视图")]

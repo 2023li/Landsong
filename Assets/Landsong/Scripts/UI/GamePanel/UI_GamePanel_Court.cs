@@ -32,7 +32,7 @@ namespace Landsong.ECS.Presentation
         }
 
         public void Render() => Royals();
-        internal UI_GamePanel_Building buildingController;
+        internal UI_GamePanel_BuildingActionBar buildingController;
         internal GameUiCommandWriter commandsController;
         internal UI_GamePanel_Marriage marriageController;
         internal UI_GamePanel_PersonRequests requestsController;

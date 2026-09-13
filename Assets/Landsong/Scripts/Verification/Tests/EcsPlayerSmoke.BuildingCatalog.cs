@@ -68,8 +68,8 @@ namespace Landsong.ECS.Presentation
                 Require(!view.Buildings.BuildingPlacementPanel.activeSelf&&string.IsNullOrEmpty(view.Buildings.BuildingHint.text),"Cancel placement removes both hint and stale text");
                 trigger.onClick.Invoke(); Require(!bar.gameObject.activeSelf && !bar.Tooltip.gameObject.activeSelf, "Building button collapses tray and tooltip");
                 foreach (var legacy in view.GetComponentInParent<Canvas>().GetComponentsInChildren<UnityEngine.UI.Text>(true)) Require(false, "Unexpected legacy Text: " + legacy.name);
-                view.Buildings.NameInput.text = "测试国库"; Require(view.Buildings.NameInput.textComponent.text.Contains("测试国库"), "TMP rename input updates displayed Chinese text");
-                Require(view.Buildings.NameInput.textViewport != null, "TMP rename has caret viewport");
+                view.BuildingDetails.Name.text = "测试国库"; Require(view.BuildingDetails.Name.textComponent.text.Contains("测试国库"), "TMP rename input updates displayed Chinese text");
+                Require(view.BuildingDetails.Name.textViewport != null, "TMP rename has caret viewport");
             }
             finally
             {

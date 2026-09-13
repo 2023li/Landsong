@@ -28,7 +28,7 @@ namespace Landsong.ECS.Presentation
             button.onClick.Invoke();
             yield return WaitFor(() => view.Hud.InIntelligenceMode && em.GetComponentData<Session>(root).IntelligenceMode != 0 && view.PrimaryRows.GetComponentsInChildren<TMP_Text>().Any(t => t.text == "当晚军情"), "12 dedicated intelligence button opens isolated TMP panel");
             Require(!view.Hud.Advance.interactable && view.PrimaryRows.GetComponentsInChildren<TMP_Text>().Any(t => t.text.Contains(" × ")), "12 high daytime aggregates and disabled phase button");
-            Require(!view.Buildings.NameInput.gameObject.activeInHierarchy && !view.Quests.QuestHudRows.gameObject.activeInHierarchy, "12 unrelated rename and quest controls hidden in intelligence mode");
+            Require(!view.BuildingDetails.Name.gameObject.activeInHierarchy && !view.Quests.QuestHudRows.gameObject.activeInHierarchy, "12 unrelated rename and quest controls hidden in intelligence mode");
             yield return WaitFor(() => !IntelOps.Read(em, root).Unread, "12 rendered report acknowledges unread");
             var pending = em.GetBuffer<Command>(root).Length; view.Commands.Send(CommandKind.Advance); view.Commands.Send(CommandKind.WakeHero);
             Require(em.GetBuffer<Command>(root).Length == pending, "12 presentation refuses gameplay input while viewing");

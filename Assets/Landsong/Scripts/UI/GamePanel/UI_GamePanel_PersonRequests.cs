@@ -21,7 +21,7 @@ namespace Landsong.ECS.Presentation
 {
     public sealed class UI_GamePanel_PersonRequests : Moyo.Unity.UIViewBase
     {
-        internal UI_GamePanel_Building buildingController;
+        internal UI_GamePanel_BuildingActionBar buildingController;
         internal GameUiCommandWriter commandsController;
         internal UI_GamePanel_Court courtController;
         internal UI_GamePanel_Expedition expeditionController;

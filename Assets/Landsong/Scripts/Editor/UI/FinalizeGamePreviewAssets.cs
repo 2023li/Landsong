@@ -32,7 +32,7 @@ namespace Landsong.ECS.Editor
                 });
             Edit("BuildingDetails", root =>
             {
-                var card = root.GetComponent<UI_GamePanel_Building>().BuildingCard;
+                var card = root.GetComponent<UI_GamePanel_BuildingDetails>();
                 var style = card.Style.GetComponentsInChildren<TMP_Text>(true).Single();
                 style.text = "外观";
                 EnsureNamePlaceholder(card.Name).gameObject.SetActive(true);

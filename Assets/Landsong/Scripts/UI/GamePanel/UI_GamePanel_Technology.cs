@@ -32,7 +32,7 @@ namespace Landsong.ECS.Presentation
         }
 
         public void Render() => Research();
-        internal UI_GamePanel_Building buildingController;
+        internal UI_GamePanel_BuildingActionBar buildingController;
         internal GameUiCommandWriter commandsController;
         internal IGameUiNavigation navigation;
         internal UI_GamePanel_RowRenderer rowsController;

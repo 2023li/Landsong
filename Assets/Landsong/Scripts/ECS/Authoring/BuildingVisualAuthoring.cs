@@ -14,6 +14,18 @@ namespace Landsong.ECS.Authoring
             public override void Bake(BuildingVisualAuthoring source)
             {
                 var entity = GetEntity(TransformUsageFlags.Dynamic); var slots = AddBuffer<BuildingVisualSlot>(entity); AddComponent(entity, new BuildingVisualSelection());
+                Transform selectionAnchor = null;
+                foreach (var candidate in source.GetComponentsInChildren<Transform>(true))
+                {
+                    if (candidate.name != "SelectionAnchor") continue;
+                    if (selectionAnchor != null)
+                        throw new System.InvalidOperationException(source.name + " 配置了多个 SelectionAnchor。");
+                    selectionAnchor = candidate;
+                }
+                if (selectionAnchor == null)
+                    throw new System.InvalidOperationException(source.name + " 缺少 SelectionAnchor。");
+                DependsOn(selectionAnchor);
+                AddComponent(entity, new BuildingSelectionAnchor { Value = GetEntity(selectionAnchor.gameObject, TransformUsageFlags.Dynamic) });
                 foreach (var slot in GetComponentsInChildren<BuildingVisualSlotAuthoring>())
                 {
                     DependsOn(slot);

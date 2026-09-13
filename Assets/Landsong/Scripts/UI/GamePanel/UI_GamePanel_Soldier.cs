@@ -21,7 +21,7 @@ namespace Landsong.ECS.Presentation
 {
     public sealed class UI_GamePanel_Soldier : Moyo.Unity.UIViewBase, IGameSoldierUi
     {
-        internal UI_GamePanel_Building buildingController;
+        internal UI_GamePanel_BuildingActionBar buildingController;
         internal GameUiCommandWriter commandsController;
         internal UI_GamePanel_Marriage marriageController;
         internal UI_GamePanel_Portrait portraitController;
@@ -40,7 +40,7 @@ namespace Landsong.ECS.Presentation
         internal ulong detailsSoldier;
         internal void RefreshBuildingGarrison(Entity site)
         {
-            var card = buildingController.BuildingCard;
+            var card = buildingController.DetailsPanel;
             var block = card.Block<UI_GamePanel_BuildingDetails_Block_驻军>();
             int capacity = sessionController.em.GetComponentData<BuildingStats>(site).Garrison;
             ulong home = sessionController.em.GetComponentData<Identity>(site).Id;

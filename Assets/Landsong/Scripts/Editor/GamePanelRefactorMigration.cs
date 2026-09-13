@@ -137,7 +137,11 @@ WorkforceScale: {fileID: 8398850338613958617}";
                     return component;
                 }
                 GameObject Host(string field) => GameObjectOf(legacy[field]);
-                var building = Add<UI_GamePanel_Building>("buildingController", Host("BuildingCard"));
+                var building = Add<UI_GamePanel_BuildingActionBar>("buildingController", Host("BuildingCard"));
+                var buildingDetails = Host("BuildingCard").GetComponent<UI_GamePanel_BuildingDetails>();
+                if (buildingDetails == null) throw new InvalidOperationException("旧建筑详情对象缺少 UI_GamePanel_BuildingDetails。");
+                SetReference(root, "buildingDetailsController", buildingDetails);
+                building.DetailsPanel = buildingDetails;
                 var technology = Add<UI_GamePanel_Technology>("technologyController", Host("TechnologyTree"));
                 var quest = Add<UI_GamePanel_Quest>("questController", Host("QuestPanel"));
                 var court = Add<UI_GamePanel_Court>("courtController", Host("CourtGraph"));
@@ -179,8 +183,8 @@ WorkforceScale: {fileID: 8398850338613958617}";
                 root.InventoryWindow.QuantityTemplate = MakeRow<UI_GamePanel_QuantityRow>(sourceRow, rowFields, templateRoot, "库存数量", "转移数量", ("Quantity", "InventoryQuantity"));
                 root.GarrisonWindow.GroupTemplate = MakeRow<UI_GamePanel_GarrisonRow>(sourceRow, rowFields, templateRoot, "驻军分组", "城堡守军", ("Group", "GarrisonGroup"));
                 root.GarrisonWindow.SoldierTemplate = MakeRow<UI_GamePanel_SoldierRow>(sourceRow, rowFields, templateRoot, "士兵条目", "守卫 · 等级 3", ("Soldier", "SoldierItem"));
-                building.WorkerInfoTemplate = MakeRow<UI_GamePanel_WorkerInfoRow>(sourceRow, rowFields, templateRoot, "工人信息", "工人岗位 · 4 / 6", ("WorkerHover", "WorkerHover"));
-                building.WorkforceTemplate = MakeRow<UI_GamePanel_WorkforceRow>(sourceRow, rowFields, templateRoot, "岗位预算", "招募预算 · 24 金币", ("Workforce", "WorkforceScale"));
+                buildingDetails.WorkerInfoTemplate = MakeRow<UI_GamePanel_WorkerInfoRow>(sourceRow, rowFields, templateRoot, "工人信息", "工人岗位 · 4 / 6", ("WorkerHover", "WorkerHover"));
+                buildingDetails.WorkforceTemplate = MakeRow<UI_GamePanel_WorkforceRow>(sourceRow, rowFields, templateRoot, "岗位预算", "招募预算 · 24 金币", ("Workforce", "WorkforceScale"));
                 quest.QuantityTemplate = MakeRow<UI_GamePanel_QuantityRow>(sourceRow, rowFields, templateRoot, "任务数量", "提交数量", ("Quantity", "QuestQuantity"));
                 portrait.PortraitTemplate = MakeRow<UI_GamePanel_PortraitRow>(sourceRow, rowFields, templateRoot, "人物肖像", "伊莲娜 · 王室成员", ("Portrait", "PersonPortrait"), ("PortraitBinding", "PersonPortraitBinding"));
                 Object.DestroyImmediate(sourceRow.gameObject);
@@ -203,7 +207,7 @@ WorkforceScale: {fileID: 8398850338613958617}";
                 CreatePreviews(root, hud, technology, talent, building);
                 talentGraph.gameObject.SetActive(false); policyGraph.gameObject.SetActive(false); court.CourtGraph.gameObject.SetActive(false);
                 foreach (var panel in root.FeaturePanels) panel.gameObject.SetActive(false);
-                building.BuildingCard.gameObject.SetActive(false);
+                buildingDetails.gameObject.SetActive(false);
                 quest.QuestPanel.gameObject.SetActive(false);
                 technology.TechnologyTree.gameObject.SetActive(false);
                 if (game.GetComponentsInChildren<UIPanelBase>(true).Length != 1 || game.GetComponentsInChildren<UI_SettingPanel>(true).Length != 0 || game.GetComponentsInChildren<MonoBehaviour>(true).Where(component => component != null && component.GetType().Name == "SaveSlotView").ToArray().Length != 0)
@@ -374,7 +378,7 @@ WorkforceScale: {fileID: 8398850338613958617}";
             rect.anchorMin = new Vector2(family ? 0 : .31f, .04f); rect.offsetMin = new Vector2(220, 0);
             ((RectTransform)graph.Scroll.transform).anchorMax = new Vector2(family ? .705f : .99f, .91f);
         }
-        static void CreatePreviews(UI_GamePanel root, UI_GamePanel_Hud hud, UI_GamePanel_Technology technology, UI_GamePanel_Talent talent, UI_GamePanel_Building building)
+        static void CreatePreviews(UI_GamePanel root, UI_GamePanel_Hud hud, UI_GamePanel_Technology technology, UI_GamePanel_Talent talent, UI_GamePanel_BuildingActionBar building)
         {
             Preview(hud, "GameHud", UIPreviewKind.GameHud,
                 new[] { new UIPreviewTextBinding("turn", hud.Status), new UIPreviewTextBinding("message", hud.Message), new UIPreviewTextBinding("population", hud.Selection) }, Array.Empty<UIPreviewListBinding>());
@@ -384,8 +388,9 @@ WorkforceScale: {fileID: 8398850338613958617}";
             Preview(talent, "Talent", UIPreviewKind.Talent,
                 new[] { new UIPreviewTextBinding("title", talent.CourtGraph.Header) },
                 new[] { new UIPreviewListBinding("people", talent.CourtGraph.NodesRoot, (RectTransform)talent.CourtGraph.NodeTemplate.transform, new TMP_Text[] { talent.CourtGraph.NodeTemplate.Label }, new[] { 0 }) });
+            var details = building.DetailsPanel;
             Preview(building, "BuildingDetails", UIPreviewKind.BuildingDetails,
-                new[] { new UIPreviewTextBinding("level", building.BuildingCard.Level), new UIPreviewTextBinding("production", building.BuildingCard.Block<UI_GamePanel_BuildingDetails_Block_基础产出>().Label), new UIPreviewTextBinding("workers", building.BuildingCard.Block<UI_GamePanel_BuildingDetails_Block_岗位>().Jobs), new UIPreviewTextBinding("experience", building.BuildingCard.Experience) }, Array.Empty<UIPreviewListBinding>());
+                new[] { new UIPreviewTextBinding("level", details.Level), new UIPreviewTextBinding("production", details.Block<UI_GamePanel_BuildingDetails_Block_基础产出>().Label), new UIPreviewTextBinding("workers", details.Block<UI_GamePanel_BuildingDetails_Block_岗位>().Jobs), new UIPreviewTextBinding("experience", details.Experience) }, Array.Empty<UIPreviewListBinding>());
         }
         static void Preview(UIViewBase owner, string name, UIPreviewKind kind, UIPreviewTextBinding[] texts, UIPreviewListBinding[] lists)
         {

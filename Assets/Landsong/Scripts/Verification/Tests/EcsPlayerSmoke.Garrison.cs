@@ -28,8 +28,8 @@ namespace Landsong.ECS.Presentation
                 Require(home!=Entity.Null,"Garrison fixture has an operational home");ulong homeId=em.GetComponentData<Identity>(home).Id;
                 var b=em.GetComponentData<Building>(home);b.SoldiersRecruited=0;em.SetComponentData(home,b);
                 int definition=Sim.FirstDefinition(em,root,ContentKind.Soldier);var quote=MilitaryOps.RecruitQuote(em,root,homeId,definition,1,true);foreach(var cost in quote.Costs)InventoryOps.Add(em,root,cost.Item,cost.Amount);
-                view.Buildings.SelectBuildingDetails(homeId);yield return WaitFor(()=>view.Buildings.BuildingCard.Block<UI_GamePanel_BuildingDetails_Block_驻军>().gameObject.activeSelf&&view.Buildings.BuildingCard.BuildingId==homeId,"Building displays standalone garrison module");
-                var card=view.Buildings.BuildingCard;
+                view.Buildings.SelectBuilding(homeId);view.Buildings.BuildingDetailsButton.onClick.Invoke();yield return WaitFor(()=>view.BuildingDetails.Block<UI_GamePanel_BuildingDetails_Block_驻军>().gameObject.activeSelf&&view.BuildingDetails.BuildingId==homeId,"Building displays standalone garrison module");
+                var card=view.BuildingDetails;
                 var baseOutput=card.Block<UI_GamePanel_BuildingDetails_Block_基础产出>();
                 var garrison=card.Block<UI_GamePanel_BuildingDetails_Block_驻军>();
                 Require(baseOutput.transform.parent==garrison.transform.parent&&baseOutput.Label.text.Contains("士兵槽"),"Base output is in main container and includes soldier slots");
@@ -78,9 +78,9 @@ namespace Landsong.ECS.Presentation
                 yield return WaitFor(()=>view.SecondaryRows.GetComponentsInChildren<UI_GamePanel_SoldierItem>().First().PersonId==sortingIds[1],"Total-attribute sorting uses the actual displayed health maximum, independent of equal levels");
                 yield return new WaitForSecondsRealtime(.4f);Canvas.ForceUpdateCanvases();
                 var title=AssignedCard().Title;title.ForceMeshUpdate();Require(title.textInfo.characterInfo.Take(title.textInfo.characterCount).Any(c=>c.isVisible),"Soldier name actually renders within its reserved line");
-                Require(!view.Buildings.BuildingToolbar.gameObject.activeSelf,"Building action toolbar cannot cover garrison cards");
+                Require(!view.Buildings.BuildingActionBar.gameObject.activeSelf,"Building action bar cannot cover garrison cards");
                 ScreenCapture.CaptureScreenshot("Library/LandsongEcs/garrison-cards.png");yield return new WaitForEndOfFrame();
-                view.Buildings.SelectBuildingDetails(assigned);
+                view.Buildings.SelectBuilding(assigned);view.Buildings.BuildingDetailsButton.onClick.Invoke();
                 yield return WaitFor(()=>card.BuildingId==assigned&&garrison.Slots.GetComponentsInChildren<TMP_Text>().Any(x=>x.text==em.GetComponentData<Identity>(Sim.Find(em,id)).Name.ToString()),"Occupied slot displays soldier name");
                 UI_GamePanel_GarrisonSlot BuildingSlot()=>garrison.Slots.GetComponentsInChildren<UI_GamePanel_GarrisonSlot>().FirstOrDefault(slot=>slot.NameLabel.gameObject.activeSelf&&slot.NameLabel.text==em.GetComponentData<Identity>(Sim.Find(em,id)).Name.ToString());
                 Image BuildingPortrait()=>BuildingSlot()?.Portrait;
@@ -109,7 +109,7 @@ namespace Landsong.ECS.Presentation
                 yield return WaitFor(()=>view.SecondaryRows.GetComponentsInChildren<TMP_Text>().Any(t=>t.text.Contains("按等级")),"Pending pool can return to level sorting");
                 yield return new WaitForEndOfFrame();ScreenCapture.CaptureScreenshot("Library/LandsongEcs/building-garrison.png");yield return null;
             }
-            finally{view.soldierController.CloseSoldierDetails();if(view.Buildings.BuildingConfirmPanel!=null)view.Buildings.BuildingConfirmPanel.SetActive(false);view.Buildings.BuildingDetailsPanel.SetActive(false);view.ClosePanel();SnapshotCodec.Restore(em,root,SnapshotCodec.Decode(em,root,original));}
+            finally{view.soldierController.CloseSoldierDetails();if(view.Buildings.BuildingConfirmPanel!=null)view.Buildings.BuildingConfirmPanel.SetActive(false);view.BuildingDetails.gameObject.SetActive(false);view.ClosePanel();SnapshotCodec.Restore(em,root,SnapshotCodec.Decode(em,root,original));}
         }
     }
 }

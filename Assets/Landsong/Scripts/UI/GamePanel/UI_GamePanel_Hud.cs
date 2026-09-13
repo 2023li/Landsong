@@ -32,7 +32,7 @@ namespace Landsong.ECS.Presentation
             Moon.text = s.Paused != 0 ? "已暂停" : s.Phase == Phase.Night ? "月亮进度" : GameUiSession.PhaseName(s.Phase);
         }
 
-        internal UI_GamePanel_Building buildingController;
+        internal UI_GamePanel_BuildingActionBar buildingController;
         internal GameUiCommandWriter commandsController;
         internal UI_GamePanel_History historyController;
         internal UI_GamePanel_Quest questController;
@@ -297,8 +297,7 @@ namespace Landsong.ECS.Presentation
                     else
                     {
                         navigation.LocateGarrison(sanctum);
-                        buildingController.showBuildingDetails = true;
-                        navigation.OpenPanel(GamePanelId.Building);
+                        buildingController.SelectBuilding(sanctum);
                     }
                 });
                 var label = itemView.Label;

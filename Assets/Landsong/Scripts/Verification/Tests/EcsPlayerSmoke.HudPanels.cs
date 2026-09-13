@@ -16,7 +16,7 @@ namespace Landsong.ECS.Presentation
         {
             var original = SnapshotCodec.Capture(em, root);
             var canvas = view.GetComponentInParent<Canvas>();
-            var primary = view.GetListPanel(view.Panel).PrimaryScroll.gameObject;
+            var primary = view.GetListPanel(GamePanelId.Economy).PrimaryScroll.gameObject;
             var secondary = view.GarrisonWindow.SecondaryRows.GetComponentInParent<ScrollRect>(true).gameObject;
             try
             {
@@ -25,9 +25,9 @@ namespace Landsong.ECS.Presentation
                 Require(view.PauseMenu.transform.parent==view.ModalRoot&&view.PauseMenu.gameObject==view.PauseMenu.Overlay&&view.GetComponent<UI_GamePanel_PausePop>()==null,"Pause menu controller belongs to its modal panel instead of the UI root");
                 Require(view.FeaturePanels.Select(p=>p.PrimaryRows).Distinct().Count()==view.FeaturePanels.Length,"Every function owns a separate content container");
                 Require(view.FeaturePanels.All(p=>p.transform.parent==view.FeatureRoot),"Feature windows are scene-owned children of the feature layer");
-                Require(view.Buildings.BuildingDetailsPanel.transform.parent==view.FeatureRoot,"Building details belongs to the feature panel layer");
+                Require(view.BuildingDetails.transform.parent==view.FeatureRoot&&view.Buildings.transform.parent==view.BuildingRoot,"Building details and the world action bar have separate explicit owners");
                 Require(view.GarrisonWindow.PrimaryRows.IsChildOf(view.GarrisonWindow.transform)&&view.GarrisonWindow.SecondaryRows.IsChildOf(view.GarrisonWindow.transform),"Assigned and pending soldiers share only their garrison owner");
-                Require(view.Buildings.NameInput.transform.IsChildOf(view.Buildings.BuildingDetailsPanel.transform),"Building name input belongs to details from scene initialization");
+                Require(view.BuildingDetails.Name.transform.IsChildOf(view.BuildingDetails.gameObject.transform),"Building name input belongs to details from scene initialization");
                 Require(!view.Buildings.BuildingPlacementPanel.activeSelf,"Placement hint is hidden outside placement");
                 Require(view.Buildings.BuildingHint.transform.IsChildOf(view.Buildings.BuildingPlacementPanel.transform)&&view.Buildings.BuildingPlacementPanel.transform.parent==view.BuildingRoot,"Placement background and text have one visibility owner");
                 Require(!view.IsPanelOpen && !primary.activeInHierarchy && !secondary.activeInHierarchy, "Entering Game leaves function scroll panels closed");

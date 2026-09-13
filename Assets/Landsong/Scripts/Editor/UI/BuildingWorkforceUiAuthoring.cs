@@ -13,12 +13,12 @@ namespace Landsong.ECS.Editor
     {
         public static void ConfigureLayout()
         {
-            const string path = "Assets/Landsong/Objects/Prefabs/UI/GamePanel/Views/UI_GamePanel_Building.prefab";
+            const string path = "Assets/Landsong/Objects/Prefabs/UI/GamePanel/Views/UI_GamePanel_建筑详情.prefab";
             var contents = PrefabUtility.LoadPrefabContents(path);
             try
             {
                 using var rootLayout = UiPanelLayoutAuthoring.Preserve(contents.transform as RectTransform);
-                var card = contents.GetComponent<UI_GamePanel_Building>().BuildingCard;
+                var card = contents.GetComponent<UI_GamePanel_BuildingDetails>();
                 var workforce = card.Block<UI_GamePanel_BuildingDetails_Block_岗位>();
                 var parent = workforce.Increase.transform.parent;
                 var group = parent.GetComponent<HorizontalLayoutGroup>();

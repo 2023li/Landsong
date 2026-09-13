@@ -16,6 +16,9 @@ namespace Landsong.ECS
 
     public struct BuildingVisualSelection : IComponentData { public Entity Slot; }
 
+    /// <summary>建筑表现 Prefab 中用于承载选中态 UI 的世界空间锚点。</summary>
+    public struct BuildingSelectionAnchor : IComponentData { public Entity Value; }
+
     [InternalBufferCapacity(0)]
     public struct BuildingVisualSlot : IBufferElementData
     {

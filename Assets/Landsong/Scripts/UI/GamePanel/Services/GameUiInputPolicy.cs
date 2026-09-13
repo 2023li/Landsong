@@ -21,14 +21,14 @@ namespace Landsong.ECS.Presentation
     {
         readonly GameUiSession session;
         readonly IGameUiNavigation navigation;
-        readonly UI_GamePanel_Building building;
+        readonly UI_GamePanel_BuildingActionBar building;
         readonly UI_GamePanel_Soldier soldier;
         readonly UI_GamePanel_Portrait portrait;
         readonly UI_GamePanel_PersonRequests requests;
         readonly UI_GamePanel_Marriage marriage;
 
         public GameUiInputPolicy(GameUiSession session, IGameUiNavigation navigation,
-            UI_GamePanel_Building building, UI_GamePanel_Soldier soldier, UI_GamePanel_Portrait portrait,
+            UI_GamePanel_BuildingActionBar building, UI_GamePanel_Soldier soldier, UI_GamePanel_Portrait portrait,
             UI_GamePanel_PersonRequests requests, UI_GamePanel_Marriage marriage)
         {
             this.session = session ?? throw new ArgumentNullException(nameof(session));

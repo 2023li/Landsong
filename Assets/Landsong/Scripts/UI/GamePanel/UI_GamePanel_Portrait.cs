@@ -23,7 +23,7 @@ namespace Landsong.ECS.Presentation
     {
         [Sirenix.OdinInspector.LabelText("肖像模板")]
         public UI_GamePanel_PortraitRow PortraitTemplate;
-        internal UI_GamePanel_Building buildingController;
+        internal UI_GamePanel_BuildingActionBar buildingController;
         internal GameUiCommandWriter commandsController;
         internal UI_GamePanel_Court courtController;
         internal UI_GamePanel_Marriage marriageController;
