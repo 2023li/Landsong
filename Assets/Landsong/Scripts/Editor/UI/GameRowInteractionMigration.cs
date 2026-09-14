@@ -41,6 +41,7 @@ namespace Landsong.ECS.Editor
                     { marker.Interaction = Own(marker); Record(marker); }
                     foreach (var hud in contents.GetComponentsInChildren<UI_GamePanel_BattleHud>(true))
                     { hud.FocusInteraction = Own(hud.DefenseFocus); Record(hud); }
+                    foreach (var state in contents.GetComponentsInChildren<UI_GamePanel_InteractionLock>(true)) locks.Add(state);
                     if (locks.Count == 0) continue;
                     foreach (var state in locks)
                     {
@@ -57,7 +58,7 @@ namespace Landsong.ECS.Editor
                         state.Bindings = bindings.ToArray(); Record(state); state.ValidateConfiguration();
                     }
                     foreach (var slot in contents.GetComponentsInChildren<UI_GamePanel_InventorySlot>(true))
-                    { slot.InteractionOwner = slot.GetComponentInParent<UI_GamePanel_Row>(true); Record(slot); }
+                    { slot.InteractionOwner = slot.GetComponent<UI_GamePanel_InteractionLock>() ?? slot.GetComponentInParent<UI_GamePanel_InventoryGrid>(true)?.Interaction; Record(slot); }
                     PrefabUtility.SaveAsPrefabAsset(contents, path);
                 }
                 finally { PrefabUtility.UnloadPrefabContents(contents); }

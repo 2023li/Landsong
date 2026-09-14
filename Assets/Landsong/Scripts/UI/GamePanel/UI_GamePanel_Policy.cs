@@ -8,7 +8,7 @@ namespace Landsong.ECS.Presentation
 {
     public sealed class UI_GamePanel_Policy : Moyo.Unity.UIViewBase, IGameFeatureRenderer
     {
-        public void BindFeature(GameUiSession session, GameUiCommandWriter commands, IGameUiNavigation navigation, UI_GamePanel_RowRenderer rows)
+        public void BindFeature(GameUiSession session, GameUiCommandWriter commands, IGameUiNavigation navigation, UI_GamePanel_List rows)
         {
             if (session == null || commands == null || navigation == null || rows == null)
                 throw new System.ArgumentException("功能展示器缺少会话服务。");
@@ -21,7 +21,7 @@ namespace Landsong.ECS.Presentation
         public void Render() => PolicyRows();
         internal GameUiSession sessionController;
         internal GameUiCommandWriter commandsController;
-        internal UI_GamePanel_RowRenderer rowsController;
+        internal UI_GamePanel_List rowsController;
         internal IGameUiNavigation navigation;
         internal UI_GamePanel_BuildingActionBar buildingController;
         internal bool CourtDay => sessionController.em.GetComponentData<Session>(sessionController.root).Phase == Phase.Day;

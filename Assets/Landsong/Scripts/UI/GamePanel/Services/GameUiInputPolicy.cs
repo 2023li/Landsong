@@ -13,7 +13,8 @@ namespace Landsong.ECS.Presentation
         [LabelText("人物请求")] PersonRequests = 8,
         [LabelText("婚姻交互")] Marriage = 16,
         [LabelText("暂停菜单")] Pause = 32,
-        [LabelText("建筑操作确认")] BuildingConfirmation = 64
+        [LabelText("建筑操作确认")] BuildingConfirmation = 64,
+        [LabelText("资源详情")] InventoryDetails = 128
     }
 
     /// <summary>由 Game 根注入固定所有者；每次事件读取当前状态，不维护另一份模态开关。</summary>
@@ -26,11 +27,13 @@ namespace Landsong.ECS.Presentation
         readonly UI_GamePanel_Portrait portrait;
         readonly UI_GamePanel_PersonRequests requests;
         readonly UI_GamePanel_Marriage marriage;
+        readonly UI_GamePanel_Inventory inventory;
 
         public GameUiInputPolicy(GameUiSession session, IGameUiNavigation navigation,
             UI_GamePanel_BuildingActionBar building, UI_GamePanel_Soldier soldier, UI_GamePanel_Portrait portrait,
-            UI_GamePanel_PersonRequests requests, UI_GamePanel_Marriage marriage)
+            UI_GamePanel_PersonRequests requests, UI_GamePanel_Marriage marriage, UI_GamePanel_Inventory inventory)
         {
+            this.inventory = inventory != null ? inventory : throw new ArgumentNullException(nameof(inventory));
             this.session = session ?? throw new ArgumentNullException(nameof(session));
             this.navigation = navigation ?? throw new ArgumentNullException(nameof(navigation));
             this.building = building != null ? building : throw new ArgumentNullException(nameof(building));
@@ -47,6 +50,7 @@ namespace Landsong.ECS.Presentation
             if (portrait.PortraitOpen) owners |= GameUiInputOwner.Portrait;
             if (requests.PersonRequestsOpen) owners |= GameUiInputOwner.PersonRequests;
             if (marriage.MarriageOpen) owners |= GameUiInputOwner.Marriage;
+            if (inventory.ResourceDetailsOpen) owners |= GameUiInputOwner.InventoryDetails;
             var pause = navigation.PauseMenu;
             if (pause != null && pause.IsOpen) owners |= GameUiInputOwner.Pause;
             if (building.BuildingConfirmPanel != null && building.BuildingConfirmPanel.activeSelf)
@@ -64,7 +68,7 @@ namespace Landsong.ECS.Presentation
     public readonly struct GameUiInputSnapshot
     {
         [Flags]
-        enum CommandAccess { Gameplay = 1, Pause = 2, Archive = 4, SoldierRename = 8, Intelligence = 16, Camera = 32, All = 63 }
+        enum CommandAccess { Gameplay = 1, Pause = 2, Archive = 4, SoldierRename = 8, Intelligence = 16, Camera = 32, Forecast = 64, All = 127 }
 
         static readonly (GameUiInputOwner Owner, CommandAccess Commands)[] Rules =
         {
@@ -73,6 +77,7 @@ namespace Landsong.ECS.Presentation
             (GameUiInputOwner.Portrait, CommandAccess.Pause),
             (GameUiInputOwner.PersonRequests, CommandAccess.Pause),
             (GameUiInputOwner.Marriage, CommandAccess.Pause),
+            (GameUiInputOwner.InventoryDetails, CommandAccess.Pause | CommandAccess.Forecast),
             (GameUiInputOwner.Pause, CommandAccess.Pause | CommandAccess.Archive),
             (GameUiInputOwner.BuildingConfirmation, CommandAccess.Pause)
         };
@@ -109,7 +114,7 @@ namespace Landsong.ECS.Presentation
         {
             if (requested != GameUiInputOwner.SoldierDetails && requested != GameUiInputOwner.Portrait
                 && requested != GameUiInputOwner.PersonRequests && requested != GameUiInputOwner.Marriage
-                && requested != GameUiInputOwner.BuildingConfirmation)
+                && requested != GameUiInputOwner.BuildingConfirmation && requested != GameUiInputOwner.InventoryDetails)
                 throw new ArgumentOutOfRangeException(nameof(requested));
             return SessionBound && !Intelligence && (Owners & ~(allowReopen ? requested : GameUiInputOwner.None)) == 0;
         }
@@ -148,6 +153,7 @@ namespace Landsong.ECS.Presentation
                 case CommandKind.RenameSoldier: return CommandAccess.SoldierRename;
                 case CommandKind.IntelligenceMode:
                 case CommandKind.ReadIntelligence: return CommandAccess.Intelligence;
+                case CommandKind.ForecastEconomy: return CommandAccess.Forecast;
                 case CommandKind.CameraMoved:
                 case CommandKind.CameraZoomed: return CommandAccess.Camera;
                 default: return CommandAccess.Gameplay;

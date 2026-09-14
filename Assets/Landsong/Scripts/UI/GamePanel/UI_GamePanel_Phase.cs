@@ -21,7 +21,7 @@ namespace Landsong.ECS.Presentation
 {
     public sealed class UI_GamePanel_Phase : Moyo.Unity.UIViewBase, IGameFeatureRenderer
     {
-        public void BindFeature(GameUiSession session, GameUiCommandWriter commands, IGameUiNavigation navigation, UI_GamePanel_RowRenderer rows)
+        public void BindFeature(GameUiSession session, GameUiCommandWriter commands, IGameUiNavigation navigation, UI_GamePanel_List rows)
         {
             if (session == null || commands == null || navigation == null || rows == null)
                 throw new System.ArgumentException("功能展示器缺少会话服务。");
@@ -43,7 +43,7 @@ namespace Landsong.ECS.Presentation
 
         internal GameUiCommandWriter commandsController;
         internal IGameUiNavigation navigation;
-        internal UI_GamePanel_RowRenderer rowsController;
+        internal UI_GamePanel_List rowsController;
         internal GameUiSession sessionController;
         internal void GameOver()
         {

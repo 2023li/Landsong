@@ -20,6 +20,7 @@ namespace Landsong.ECS.Presentation
         internal IGameBuildingUi Buildings;
         internal IGameSoldierUi Soldiers;
         internal IGameWorldUi World;
+        internal PortraitCache Portraits;
         [Sirenix.OdinInspector.LabelText("已选士兵")]
         public ulong SelectedSoldier;
         int soldierFilter = -1, soldierSort, recruitQuantity = 1;
@@ -39,6 +40,8 @@ namespace Landsong.ECS.Presentation
 
         public override void Render()
         {
+            if (Portraits == null || SoldierTemplate == null || SoldierTemplate.Soldier == null || SoldierTemplate.Soldier.PortraitBinding == null)
+                throw new InvalidOperationException("驻军面板未配置士兵肖像依赖。");
             var state = em.GetComponentData<Session>(root);
             bool unlocked = state.Paused == 0 && state.CheckpointPending == 0;
             bool day = state.Phase == Phase.Day && unlocked;
@@ -87,7 +90,7 @@ namespace Landsong.ECS.Presentation
                     throw new InvalidOperationException("通用行模板缺少 GarrisonGroup 引用。");
                 group.gameObject.SetActive(true);
                 group.BuildingId = home;
-                Rows.OwnContainer(group.Rows, host.Interaction);
+                Rows.Own(group.Rows, host.Interaction);
                 Clear(group.Rows);
                 Row($"【{identity.Name} #{home}】{MilitaryOps.GarrisonCount(em, home)}/{stats.Garrison}" + (normal ? " · 点击定位" : " · 不可接收驻军"), () => LocateGarrison(home), parent: group.Rows, key: "building-title:" + home);
                 for (int slot = 1; slot <= stats.Garrison; slot++)
@@ -118,7 +121,7 @@ namespace Landsong.ECS.Presentation
                     Row("取消途中召回（已归营不再出勤）", () => Commands.TryQueue(CommandRequests.RecallGarrison(home, true)), parent: group.Rows);
                 }
 
-                float height = 16 + Rows.PanelItemsHeight(group.Rows);
+                float height = 16 + Rows.Height(group.Rows);
                 host.Layout.minHeight = host.Layout.preferredHeight = height;
             }
 
@@ -155,7 +158,8 @@ namespace Landsong.ECS.Presentation
         void SoldierCard(Entity unit, RectTransform rows, bool pending, bool day, bool unlocked, string slot)
         {
             var identity = em.GetComponentData<Identity>(unit);
-            var row = Rows.Item(SoldierTemplate, "", parent: rows, key: "soldier:" + identity.Id);
+            var row = Rows.Item(SoldierTemplate, "", parent: rows, key: "soldier:" + identity.Id,
+                prepare: candidate => candidate.Soldier.PortraitBinding.Cache = Portraits);
             if (row == null || !row.CanRebind) return;
             var card = row.Soldier;
             if (card == null)

@@ -17,6 +17,23 @@ namespace Landsong.ECS.Editor
     public static class UiVisualVerification
     {
         const string Output = "Library/LandsongEcs/UiPreviews";
+        public static string RenderInventory()
+        {
+            Directory.CreateDirectory(Output);
+            var files = new List<string>();
+            foreach (var state in new[] { "InventoryBuildings", "InventoryResources", "InventoryDetails" })
+            {
+                files.Add(Render(InventoryUiMigration.Path, 1920, 1080, state));
+                files.Add(Render(InventoryUiMigration.Path, 1280, 720, state));
+            }
+            return string.Join("\n", files);
+        }
+        public static string RenderBills()
+        {
+            Directory.CreateDirectory(Output);
+            return string.Join("\n", new[] { Render(BillUiMigration.BillPath, 1920, 1080), Render(BillUiMigration.BillPath, 1280, 720),
+                Render(InventoryUiMigration.Path, 1920, 1080, "InventoryDetails"), Render(InventoryUiMigration.Path, 1280, 720, "InventoryDetails") });
+        }
         public static string RenderAll()
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode) throw new InvalidOperationException("预制体视觉验收需要退出Play。");
@@ -66,6 +83,19 @@ namespace Landsong.ECS.Editor
                 var panel = (GameObject)PrefabUtility.InstantiatePrefab(asset, scene); panel.transform.SetParent(canvasObject.transform, false); panel.SetActive(true);
                 var rect = (RectTransform)panel.transform;
                 UiPanelLayoutAuthoring.RequireStretchRoot(panel);
+                if (panel.TryGetComponent<UI_GamePanel_Inventory>(out var inventory)) InventoryUiVerification.PreparePreview(inventory, state);
+                if (panel.TryGetComponent<UI_GamePanel_Economy>(out var bill))
+                {
+                    bill.EmptyState.gameObject.SetActive(false);
+                    for (int turn = 351; turn <= 356; turn++)
+                    {
+                        var group = UnityEngine.Object.Instantiate(bill.TurnTemplate, bill.BillScroll.content); group.TurnLabel.text = turn + "回合"; group.gameObject.SetActive(true);
+                        var stone = UnityEngine.Object.Instantiate(group.RowTemplate, group.Rows); stone.gameObject.SetActive(true);
+                        stone.Show("石头", new EconomyBillEntry { Income = 20, Expense = 25, Stored = 500 - 5 * (turn - 351) });
+                        var wood = UnityEngine.Object.Instantiate(group.RowTemplate, group.Rows); wood.gameObject.SetActive(true);
+                        wood.Show("原木", new EconomyBillEntry { Income = 30, Expense = 21, Stored = 321 + 9 * (turn - 351) });
+                    }
+                }
                 if (state == "GameStartPop") panel.GetComponent<UI_StartPanel>().NewDynasty.gameObject.SetActive(true);
                 if (state != null && panel.TryGetComponent<UI_GamePanel>(out var game))
                 {
@@ -100,7 +130,21 @@ namespace Landsong.ECS.Editor
                 }
                 Canvas.ForceUpdateCanvases(); LayoutRebuilder.ForceRebuildLayoutImmediate(rect);
                 foreach (var text in panel.GetComponentsInChildren<TMP_Text>(true)) if (text.gameObject.activeInHierarchy) text.ForceMeshUpdate(true, true);
-                Canvas.ForceUpdateCanvases(); camera.Render(); RenderTexture.active = render;
+                Canvas.ForceUpdateCanvases();
+                if (inventory != null)
+                {
+                    var scroll = state == "InventoryBuildings" ? inventory.BuildingsScroll : inventory.ResourcesScroll;
+                    scroll.verticalNormalizedPosition = 1;
+                    Canvas.ForceUpdateCanvases();
+                }
+                if (inventory != null && state == "InventoryBuildings")
+                {
+                    var diagnostics = new System.Text.StringBuilder();
+                    foreach (var transform in inventory.BuildingsScroll.GetComponentsInChildren<RectTransform>())
+                        diagnostics.AppendLine(transform.name + " rect=" + transform.rect + " position=" + transform.anchoredPosition);
+                    File.WriteAllText(Output + "/inventory-layout.txt", diagnostics.ToString());
+                }
+                camera.Render(); RenderTexture.active = render;
                 if (state == "Marriage" || state == "Portrait")
                 {
                     foreach (var button in panel.GetComponentsInChildren<Button>())

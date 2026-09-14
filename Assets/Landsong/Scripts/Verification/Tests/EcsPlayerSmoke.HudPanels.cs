@@ -16,14 +16,14 @@ namespace Landsong.ECS.Presentation
         {
             var original = SnapshotCodec.Capture(em, root);
             var canvas = view.GetComponentInParent<Canvas>();
-            var primary = view.GetListPanel(GamePanelId.Economy).PrimaryScroll.gameObject;
+            var primary = view.EconomyWindow.BillScroll.gameObject;
             var secondary = view.GarrisonWindow.SecondaryRows.GetComponentInParent<ScrollRect>(true).gameObject;
             try
             {
                 yield return new WaitForSecondsRealtime(.4f);
                 Require(view.HudRoot!=null&&view.FeatureRoot!=null&&view.BuildingRoot!=null&&view.ModalRoot!=null,"Game scene binds explicit UI ownership layers");
                 Require(view.PauseMenu.transform.parent==view.ModalRoot&&view.PauseMenu.gameObject==view.PauseMenu.Overlay&&view.GetComponent<UI_GamePanel_PausePop>()==null,"Pause menu controller belongs to its modal panel instead of the UI root");
-                Require(view.FeaturePanels.Select(p=>p.PrimaryRows).Distinct().Count()==view.FeaturePanels.Length,"Every function owns a separate content container");
+                Require(view.FeaturePanels.Select(p=>p.ContentRoot).Distinct().Count()==view.FeaturePanels.Length,"Every function owns a separate content container");
                 Require(view.FeaturePanels.All(p=>p.transform.parent==view.FeatureRoot),"Feature windows are scene-owned children of the feature layer");
                 Require(view.BuildingDetails.transform.parent==view.FeatureRoot&&view.Buildings.transform.parent==view.BuildingRoot,"Building details and the world action bar have separate explicit owners");
                 Require(view.GarrisonWindow.PrimaryRows.IsChildOf(view.GarrisonWindow.transform)&&view.GarrisonWindow.SecondaryRows.IsChildOf(view.GarrisonWindow.transform),"Assigned and pending soldiers share only their garrison owner");
@@ -40,12 +40,12 @@ namespace Landsong.ECS.Presentation
                 foreach (var panel in new[] { GamePanelId.Economy, GamePanelId.Inventory, GamePanelId.Garrison, GamePanelId.Expedition, GamePanelId.Talent, GamePanelId.Royal, GamePanelId.Policy, GamePanelId.History, GamePanelId.BattleReport })
                 {
                     view.OpenPanel(panel);
-                    primary = panel==GamePanelId.Royal ? view.Court.RoyalOverviewRoot.gameObject : view.GetListPanel(panel).PrimaryScroll.gameObject;
+                    primary = panel == GamePanelId.Royal ? view.Court.RoyalOverviewRoot.gameObject : panel == GamePanelId.Economy ? view.EconomyWindow.BillScroll.gameObject : panel == GamePanelId.Inventory ? view.InventoryWindow.ResourcesScroll.gameObject : view.GetListPanel(panel).PrimaryScroll.gameObject;
                     yield return new WaitForSecondsRealtime(.3f);
                     Require(view.IsPanelOpen && (panel==GamePanelId.Royal?view.Court.RoyalDetails!=null&&view.Court.RoyalDetails.gameObject.activeInHierarchy:primary.activeInHierarchy) && view.PanelCloseButton.interactable, panel + " opens a dismissible function panel");
                     if (panel == GamePanelId.Garrison) Require(secondary.activeInHierarchy, "Military opens both coordinated scroll views");
                     Require(view.FeaturePanels.All(p=>p.gameObject.activeSelf==(p.PanelId==panel)),"Opening a feature activates exactly its registered root and hides unrelated windows");
-                    var scroll = view.PrimaryRows.GetComponentInParent<ScrollRect>(true);
+                    var scroll = panel == GamePanelId.Economy ? view.EconomyWindow.BillScroll : panel == GamePanelId.Inventory ? view.InventoryWindow.ResourcesScroll : view.PrimaryRows.GetComponentInParent<ScrollRect>(true);
                     scroll.verticalNormalizedPosition = 0;
                     Require(!view.PanelCloseButton.transform.IsChildOf(scroll.content), "Close button remains outside scrolling content: " + panel);
                     if (panel == GamePanelId.Inventory && Application.isEditor)

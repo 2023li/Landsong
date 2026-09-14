@@ -76,9 +76,9 @@ namespace Landsong.ECS.Editor
                         var target = call.FindPropertyRelative("m_Target").objectReferenceValue;
                         if (!HasValidMethod(target, call))
                         {
-                            // A former root method may now belong to exactly one authored
-                            // controller. Missing targets and ambiguous methods are errors.
-                            if (target != root)
+                            // A former root method or an extracted prefab's missing external target
+                            // may now belong to exactly one authored controller.
+                            if (target != null && target != root)
                                 throw new InvalidOperationException("按钮事件目标或方法无效：" + button.name + "." + call.FindPropertyRelative("m_MethodName").stringValue);
                             var candidates = components.Where(component => component != root && HasValidMethod(component, call)).ToArray();
                             if (candidates.Length != 1)

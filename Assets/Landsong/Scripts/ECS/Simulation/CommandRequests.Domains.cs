@@ -54,6 +54,11 @@ namespace Landsong.ECS
             Target = source.Provider, SourceSlot = source.Slot, Other = destinationProvider, DestinationSlot = destinationSlot,
             Definition = source.Item, Amount = source.Quantity, Text = Text(source.ExpectedInventory)
         };
+        public static Command MoveInventoryToPending(InventorySelection source) => new Command
+        {
+            Kind = CommandKind.MoveInventoryToPending, Target = source.Provider, SourceSlot = source.Slot,
+            Definition = source.Item, Amount = source.Pending ? 0 : source.Quantity, Text = Text(source.ExpectedInventory)
+        };
         public static Command DiscardInventory(InventorySelection source, int quantity) => new Command
         {
             Kind = source.Pending ? CommandKind.DiscardPending : CommandKind.DiscardSlot,

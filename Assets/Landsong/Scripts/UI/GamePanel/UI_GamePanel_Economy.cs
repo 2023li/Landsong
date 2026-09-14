@@ -1,123 +1,82 @@
+using System;
 using System.Collections.Generic;
-using Unity.Entities;
+using System.Linq;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Landsong.ECS.Presentation
 {
-    public sealed class UI_GamePanel_Economy : UI_GamePanel_List
+    // Economy remains the stable navigation/serialized feature identity; this view presents historical bills.
+    public sealed class UI_GamePanel_Economy : UI_GamePanel_View
     {
-        protected override bool UsesConfiguredPresenter => false;
-
+        [Sirenix.OdinInspector.LabelText("账单滚动视图")] public ScrollRect BillScroll;
+        [Sirenix.OdinInspector.LabelText("回合账单模板")] public UI_GamePanel_BillTurn TurnTemplate;
+        [Sirenix.OdinInspector.LabelText("无记录提示")] public TMP_Text EmptyState;
+        [Sirenix.OdinInspector.LabelText("账单范围")] public TMP_Text ScopeLabel;
+        [Sirenix.OdinInspector.LabelText("查看全城")] public Button AllSources;
         internal IGameBuildingUi Buildings;
         ulong economySource;
-        bool economyForecast, forecastCurrent;
-        float forecastCheckAt;
-        string checkedFingerprint;
-        Entity checkedRoot;
+        readonly Dictionary<int, UI_GamePanel_BillTurn> turns = new Dictionary<int, UI_GamePanel_BillTurn>();
+        readonly Dictionary<(int turn, int item), UI_GamePanel_BillRow> rows = new Dictionary<(int, int), UI_GamePanel_BillRow>();
+        public IEnumerable<UI_GamePanel_BillTurn> TurnViews => turns.Values;
+        public IEnumerable<UI_GamePanel_BillRow> ResourceRows => rows.Values;
+        public override void ValidateConfiguration()
+        {
+            base.ValidateConfiguration();
+            if (BillScroll == null || BillScroll.content == null || TurnTemplate == null || TurnTemplate.TurnLabel == null
+                || TurnTemplate.Rows == null || TurnTemplate.RowTemplate == null || EmptyState == null || ScopeLabel == null || AllSources == null)
+                throw new InvalidOperationException("账单面板引用不完整。");
+            var row = TurnTemplate.RowTemplate;
+            if (row.Resource == null || row.Income == null || row.Expense == null || row.Net == null || row.Stored == null)
+                throw new InvalidOperationException("账单表格必须配置资源名、产出、消耗、净量、库存五列。");
+        }
+        public override void Bind(GameUiSession session, GameUiCommandWriter commands, IGameUiNavigation navigation)
+        {
+            base.Bind(session, commands, navigation);
+            AllSources.onClick.RemoveAllListeners(); AllSources.onClick.AddListener(() => navigation.OpenEconomy());
+        }
         public void OpenEconomy(ulong source = 0)
         {
+            if (economySource != source) ClearAllRows();
             economySource = source;
-            forecastCheckAt = 0;
             Navigation.OpenPanel(GamePanelId.Economy);
         }
-
         public override void Render()
         {
-            Row(economySource == 0 ? "经济总览 · 全城" : "建筑经济 · " + Session.EntityName(economySource));
-            if (economySource != 0)
-                Row("查看全城", () => Navigation.OpenEconomy());
-            Row(economyForecast ? "切换：最近实际账本" : "切换：白天参考预测", () =>
+            Title.text = "账单";
+            ScopeLabel.text = economySource == 0 ? "全城 · 已结算回合；库存为当回合结算后已入库数量。" : Session.EntityName(economySource) + " · 本建筑收支与结算后库存";
+            AllSources.gameObject.SetActive(economySource != 0);
+            var groups = new SortedDictionary<int, List<EconomyBillEntry>>();
+            if (em.HasBuffer<EconomyBillEntry>(root)) foreach (var bill in em.GetBuffer<EconomyBillEntry>(root))
             {
-                economyForecast = !economyForecast;
-                Session.NextRefresh = 0;
-            });
-            var rows = new List<EconomyEntry>();
-            if (economyForecast)
-            {
-                var session = em.GetComponentData<Session>(root);
-                Row("刷新预测（不扣资源，不推进回合）", session.Phase == Phase.Day ? () =>
-                {
-                    Commands.Send(CommandKind.ForecastEconomy);
-                    forecastCheckAt = 0;
-                } : null);
-                Row("按当前工人和确定性规则计算。随机产物、随机收获及费用、远征结果不计入净额；王室事件不预告。下游资源可能因此与实际不同。未含入夜待存放清空。");
-                if (!em.HasComponent<EconomyForecastState>(root) || em.GetComponentData<EconomyForecastState>(root).Fingerprint.IsEmpty)
-                {
-                    Row("尚未生成预测，请在白天刷新。");
-                    return;
-                }
-
-                var model = em.GetComponentData<EconomyForecastState>(root);
-                var key = model.Fingerprint.ToString();
-                if (Time.unscaledTime >= forecastCheckAt || checkedRoot != root || checkedFingerprint != key)
-                {
-                    forecastCheckAt = Time.unscaledTime + 1;
-                    checkedRoot = root;
-                    checkedFingerprint = key;
-                    forecastCurrent = session.Phase == Phase.Day && key == EconomyForecastOps.Fingerprint(em, root);
-                }
-
-                Row($"白天 {model.Turn} 的参考值 · " + (forecastCurrent ? "条件核对通过（每秒检查）" : "条件已变化，请刷新"));
-                if (!forecastCurrent)
-                    return;
-                foreach (var row in em.GetBuffer<EconomyForecastEntry>(root))
-                    if (economySource == 0 || row.Value.Source == economySource)
-                        rows.Add(row.Value);
+                if (bill.Source != economySource) continue;
+                if (!groups.TryGetValue(bill.Turn, out var list)) groups.Add(bill.Turn, list = new List<EconomyBillEntry>());
+                if (bill.Item >= 0) list.Add(bill);
             }
-            else
+            EmptyState.gameObject.SetActive(groups.Count == 0);
+            EmptyState.text = "暂无账单记录。完成回合结算后显示；旧存档未保存的历史库存不补算。";
+            var keys = new HashSet<(int, int)>(); int index = 1;
+            foreach (var group in groups)
             {
-                if (!em.HasComponent<EconomyJournalState>(root) || em.GetComponentData<EconomyJournalState>(root).Turn == 0)
+                if (!turns.TryGetValue(group.Key, out var turn))
                 {
-                    Row("尚无已提交的白天结算账本。");
-                    return;
+                    turn = Instantiate(TurnTemplate, BillScroll.content); turn.RowTemplate.gameObject.SetActive(false);
+                    turn.gameObject.SetActive(true); turns.Add(group.Key, turn);
                 }
-
-                Row($"最近一次白天结算：回合 {em.GetComponentData<EconomyJournalState>(root).Turn}。不含白天手动建造、招募及夜战收支；已确认的入夜清空单列。");
-                foreach (var row in em.GetBuffer<EconomyEntry>(root))
-                    if (economySource == 0 || row.Source == economySource)
-                        rows.Add(row);
-            }
-
-            var totals = new SortedDictionary<int, (long income, long expense, long normal, long pending)>();
-            foreach (var row in rows)
-            {
-                if (row.Delta == 0)
-                    continue;
-                totals.TryGetValue(row.Item, out var total);
-                if (row.Reason != EconomyReason.CapacityTransfer)
+                turn.TurnLabel.text = group.Key + "回合"; turn.transform.SetSiblingIndex(index++);
+                foreach (var entry in group.Value.OrderBy(r => r.Item))
                 {
-                    if (row.Delta > 0)
-                        total.income += row.Delta;
-                    else
-                        total.expense -= row.Delta;
+                    var key = (group.Key, entry.Item); keys.Add(key);
+                    if (!rows.TryGetValue(key, out var row)) { row = Instantiate(turn.RowTemplate, turn.Rows); row.gameObject.SetActive(true); rows.Add(key, row); }
+                    row.Show(Session.Name(entry.Item), entry);
                 }
-
-                if (row.Pending == 0)
-                    total.normal += row.Delta;
-                else
-                    total.pending += row.Delta;
-                totals[row.Item] = total;
             }
-
-            Row("资源汇总（转库不计作收入/支出；库存与待存放净变动分别显示）");
-            foreach (var item in totals)
-                Row($"{Session.Name(item.Key)}：收入 {item.Value.income} / 支出 {item.Value.expense} / 净额 {Signed(item.Value.income - item.Value.expense)}\n库存 {Signed(item.Value.normal)} · 待存放 {Signed(item.Value.pending)}");
-            Row("逐笔原因与停滞提示");
-            foreach (var row in rows)
-            {
-                var source = row.Source == 0 ? row.SourceName.ToString() : Sim.Find(em, row.Source) != Entity.Null ? Session.EntityName(row.Source) : row.SourceName.ToString();
-                var amount = row.Delta == 0 ? row.Item >= 0 ? " · " + Session.Name(row.Item) : "" : $" · {Session.Name(row.Item)} {Signed(row.Delta)} · {(row.Pending == 0 ? "库存" : "待存放")}";
-                var sourceEntity = Sim.Find(em, row.Source);
-                var building = sourceEntity != Entity.Null && em.HasComponent<Building>(sourceEntity);
-                Row($"{source} / {EconomyReasonName(row.Reason)}{amount}" + (row.Note.IsEmpty ? "" : "\n" + row.Note), building ? () => Buildings.FocusBuilding(row.Source) : null);
-            }
-
-            if (rows.Count == 0)
-                Row("本次没有该来源的记录。");
+            foreach (var key in rows.Keys.Where(k => !keys.Contains(k)).ToArray()) { Destroy(rows[key].gameObject); rows.Remove(key); }
+            foreach (var key in turns.Keys.Where(k => !groups.ContainsKey(k)).ToArray()) { Destroy(turns[key].gameObject); turns.Remove(key); }
         }
-
         internal static string Signed(long amount) => amount > 0 ? "+" + amount : amount.ToString();
-        static string EconomyReasonName(EconomyReason reason) => reason switch
+        internal static string EconomyReasonName(EconomyReason reason) => reason switch
         {
             EconomyReason.Construction => "施工",
             EconomyReason.Repair => "修复",
@@ -138,13 +97,11 @@ namespace Landsong.ECS.Presentation
             EconomyReason.QuestPenalty => "任务惩罚",
             EconomyReason.NightDiscard => "入夜清空",
             _ => reason.ToString()};
-        internal void ResetSession()
+        internal void ResetSession() { ClearAllRows(); economySource = 0; }
+        internal override void ClearAllRows()
         {
-            economySource = 0;
-            economyForecast = forecastCurrent = false;
-            forecastCheckAt = 0;
-            checkedFingerprint = null;
-            checkedRoot = Entity.Null;
+            foreach (var turn in turns.Values) if (turn != null) { turn.gameObject.SetActive(false); Destroy(turn.gameObject); }
+            rows.Clear(); turns.Clear();
         }
     }
 }

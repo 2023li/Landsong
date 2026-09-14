@@ -17,9 +17,11 @@ namespace Landsong.ECS.Presentation
         internal GameUiCommandWriter commandsController;
         internal UI_GamePanel_Hud hudController;
         internal IGameUiNavigation navigation;
-        internal UI_GamePanel_RowRenderer rowsController;
+        UI_GamePanel_RowCollection rowsController;
         internal GameUiSession sessionController;
         internal UI_GamePanel_WorldInteraction worldController;
+        [Sirenix.OdinInspector.LabelText("确认条目模板"), Sirenix.OdinInspector.Required]
+        public UI_GamePanel_Row ConfirmRowTemplate;
         [Sirenix.OdinInspector.LabelText("建筑栏")]
         public UI_GamePanel_BuildingCatalogBar BuildingBar;
         internal bool buildingBarOpen;
@@ -42,6 +44,10 @@ namespace Landsong.ECS.Presentation
 
         internal void InitializeBuildingCatalog()
         {
+            if (ConfirmRowTemplate == null)
+                throw new InvalidOperationException("建筑操作条缺少确认条目模板。");
+            ConfirmRowTemplate.ValidateConfiguration();
+            rowsController = new UI_GamePanel_RowCollection(ConfirmRowTemplate);
             if (BuildingBar == null)
                 return;
             BuildingBar.CloseButton.onClick.AddListener(navigation.ClosePanel);
@@ -281,6 +287,15 @@ namespace Landsong.ECS.Presentation
             rowsController.Row(title, parent: BuildingConfirmRows);
             populate(BuildingConfirmRows, () => BuildingConfirmPanel.SetActive(false));
         }
+
+        internal T ConfirmationItem<T>(T template, string label, RectTransform parent, string key) where T : UI_GamePanel_Row
+        {
+            if (rowsController == null)
+                throw new InvalidOperationException("建筑确认条目尚未初始化。");
+            return rowsController.Item(template, label, parent: parent, key: key);
+        }
+
+        internal void ClearRows() => rowsController?.ClearAll();
 
         public void ConfirmBuildingCommand(CommandKind kind)
         {

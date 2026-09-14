@@ -10,13 +10,13 @@ namespace Landsong.ECS.Persistence
     // DTOs exist only at the IO boundary. They never simulate or feed UI as a second live state.
     public static class SnapshotCodec
     {
-        public const int CurrentVersion = 24;
+        public const int CurrentVersion = 25;
         const int Version = CurrentVersion;
         static int Header(BinaryReader reader)
         {
             if (reader.ReadString() != "LANDSONG-ECS") throw new InvalidDataException("不是 ECS 存档。");
             int version = reader.ReadInt32();
-            if (version != 22 && version != 23 && version != Version) throw new InvalidDataException("不是当前支持的 ECS 存档版本。");
+            if (version != 22 && version != 23 && version != 24 && version != Version) throw new InvalidDataException("不是当前支持的 ECS 存档版本。");
             if (reader is SnapshotReader snapshot) snapshot.FormatVersion = version;
             return version;
         }
@@ -65,6 +65,7 @@ namespace Landsong.ECS.Persistence
             public HistoryEntry[] History = Array.Empty<HistoryEntry>();
             public int LedgerTurn;
             public EconomyEntry[] Economy;
+            public EconomyBillEntry[] Bills = Array.Empty<EconomyBillEntry>();
             public Record[] Records;
             internal Snapshot WithResearchState(ResearchEntry[] research, Entitlement[] grants)
             {
@@ -104,6 +105,8 @@ namespace Landsong.ECS.Persistence
         // Verification only: exact legacy ABI and legacy signature; never a production write mode.
         public static byte[] CaptureLegacyV23ForVerification(EntityManager em, Entity root)
             => CaptureVersion(em, root, 23);
+        public static byte[] CaptureLegacyV24ForVerification(EntityManager em, Entity root)
+            => CaptureVersion(em, root, 24);
 #endif
         static byte[] CaptureVersion(EntityManager em, Entity root, int version)
         {
@@ -124,6 +127,13 @@ namespace Landsong.ECS.Persistence
             WriteBuffer<HistoryEntry>(writer, em, root);
             writer.Write(em.HasComponent<EconomyJournalState>(root) ? em.GetComponentData<EconomyJournalState>(root).Turn : 0);
             WriteBuffer<EconomyEntry>(writer, em, root);
+            if (version >= 25)
+            {
+                int billCount = em.HasBuffer<EconomyBillEntry>(root) ? em.GetBuffer<EconomyBillEntry>(root).Length : 0;
+                writer.Write(billCount);
+                if (billCount > 0) foreach (var bill in em.GetBuffer<EconomyBillEntry>(root))
+                { writer.Write(bill.Turn); writer.Write(bill.Item); writer.Write(bill.Source); writer.Write(bill.Income); writer.Write(bill.Expense); writer.Write(bill.Stored); writer.Write(bill.Pending); }
+            }
             using var all = Sim.OrderedEntities<Persistent>(em); writer.Write(all.Length);
             foreach (var e in all)
             {
@@ -183,6 +193,12 @@ namespace Landsong.ECS.Persistence
             if (snapshot.Session.Phase != Phase.Day && snapshot.Session.Phase != Phase.Deployment && !(snapshot.Session.Phase == Phase.GameOver && snapshot.Court.Extinction != 0)) throw new InvalidDataException("只允许白天、黄昏节点或绝嗣终局快照。");
             snapshot.LedgerTurn = reader.ReadInt32(); snapshot.Economy = ReadArray<EconomyEntry>(reader);
             for (var i = 0; i < snapshot.Economy.Length; i++) { var e = snapshot.Economy[i]; e.Item = Map(e.Item); snapshot.Economy[i] = e; }
+            if (version >= 25)
+            {
+                snapshot.Bills = new EconomyBillEntry[Count(reader)];
+                for (int i = 0; i < snapshot.Bills.Length; i++)
+                    snapshot.Bills[i] = new EconomyBillEntry { Turn = reader.ReadInt32(), Item = Map(reader.ReadInt32()), Source = reader.ReadUInt64(), Income = reader.ReadInt64(), Expense = reader.ReadInt64(), Stored = reader.ReadInt64(), Pending = reader.ReadInt64() };
+            }
             for (var i = 0; i < snapshot.Inventory.Length; i++) { var s = snapshot.Inventory[i]; s.Item = Map(s.Item); s.SlotType = Map(s.SlotType); if (s.Count < 0) throw new InvalidDataException("Negative stock"); snapshot.Inventory[i] = s; }
             for (var i = 0; i < snapshot.Pending.Length; i++) { var p = snapshot.Pending[i]; p.Item = Map(p.Item); snapshot.Pending[i] = p; }
             for (var i = 0; i < snapshot.Grants.Length; i++) { var g = snapshot.Grants[i]; g.Definition = Map(g.Definition); snapshot.Grants[i] = g; }
@@ -279,6 +295,7 @@ namespace Landsong.ECS.Persistence
             Sim.Set(em, root, snapshot.NightPlan); RestoreBuffer(em, root, snapshot.NightHistory); RestoreBuffer(em, root, snapshot.Bosses); RestoreBuffer(em, root, snapshot.Preparation);
             NightEntryOps.Clear(em, root);
             Sim.Set(em, root, new EconomyJournalState { Turn = snapshot.LedgerTurn }); RestoreBuffer(em, root, snapshot.Economy);
+            RestoreBuffer(em, root, snapshot.Bills);
             EconomyForecastOps.Clear(em, root);
             RestoreBuffer(em, root, snapshot.Grants); RestoreBuffer(em, root, snapshot.Research); RestoreBuffer(em, root, snapshot.Policies);
             probe?.Invoke("root-reset");
@@ -374,6 +391,13 @@ namespace Landsong.ECS.Persistence
             if (snapshot?.Economy == null || snapshot.LedgerTurn < 0 || snapshot.LedgerTurn > snapshot.Session.Turn) throw new InvalidDataException("Invalid economy journal");
             foreach (var entry in snapshot.Economy)
                 if (entry.Turn != snapshot.LedgerTurn || entry.Source > snapshot.Session.NextId || entry.Pending > 1 || (byte)entry.Reason > (byte)EconomyReason.NightDiscard || entry.Delta != 0 && !Sim.ValidDefinition(em, root, entry.Item)) throw new InvalidDataException("Invalid economy entry");
+            if (snapshot.Bills == null) throw new InvalidDataException("Missing bill history");
+            var billKeys = new HashSet<(int, ulong, int)>();
+            foreach (var bill in snapshot.Bills)
+                if (bill.Turn < 1 || bill.Turn > snapshot.Session.Turn || bill.Source > snapshot.Session.NextId || bill.Item < -1
+                    || bill.Item >= 0 && !Sim.ValidDefinition(em, root, bill.Item) || bill.Income < 0 || bill.Expense < 0 || bill.Stored < 0 || bill.Pending < 0
+                    || bill.Item == -1 && (bill.Source != 0 || bill.Income != 0 || bill.Expense != 0 || bill.Stored != 0 || bill.Pending != 0)
+                    || !billKeys.Add((bill.Turn, bill.Source, bill.Item))) throw new InvalidDataException("Invalid bill history");
             if (snapshot == null || snapshot.Records == null || snapshot.Inventory == null || snapshot.Pending == null || snapshot.Grants == null || snapshot.Waves == null || snapshot.Research == null || snapshot.Policies == null || snapshot.Report == null) throw new InvalidDataException("Incomplete snapshot");
             var s = snapshot.Session;
             if (snapshot.BattleHistory == null) throw new InvalidDataException("Missing battle history");

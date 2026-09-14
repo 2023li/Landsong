@@ -31,6 +31,7 @@ namespace Landsong.ECS.Editor
             EditorSceneManager.OpenScene(EcsSceneFlow.Boot, OpenSceneMode.Single);
             EditorApplication.EnterPlaymode(); return "Scheduled four-scene integration test.";
         }
+        public static string InventoryPlay(){SessionState.SetBool(Key+".InventoryOnly",true);try{return Run();}catch{SessionState.SetBool(Key+".InventoryOnly",false);throw;}}
         public static string InterfacePlay(){SessionState.SetBool(Key+".InterfaceOnly",true);try{return Run();}catch{SessionState.SetBool(Key+".InterfaceOnly",false);throw;}}
         [MenuItem("Landsong/ECS/Verify research HUD and panels (Play)")]
         public static string HudPanelsPlay(){SessionState.SetBool(Key+".HudPanelsOnly",true);try{return Run();}catch{SessionState.SetBool(Key+".HudPanelsOnly",false);throw;}}
@@ -45,17 +46,19 @@ namespace Landsong.ECS.Editor
                 EditorApplication.ExecuteMenuItem("Window/General/Game");
                 var go = new GameObject("Four Scene Flow Verification"); UnityEngine.Object.DontDestroyOnLoad(go);
                 var smoke=go.AddComponent<EcsPlayerSmoke>();smoke.InterfaceOnly=SessionState.GetBool(Key+".InterfaceOnly",false);
+                smoke.InventoryOnly=SessionState.GetBool(Key+".InventoryOnly",false);
                 smoke.GarrisonOnly=SessionState.GetBool(Key+".GarrisonOnly",false);
                 smoke.HudPanelsOnly=SessionState.GetBool(Key+".HudPanelsOnly",false);
                 smoke.Completed = (passed, detail) =>
                 {
-                    Directory.CreateDirectory("Library/LandsongEcs"); File.WriteAllText(smoke.GarrisonOnly?"Library/LandsongEcs/garrison-ui-verification.txt":smoke.HudPanelsOnly?"Library/LandsongEcs/hud-panels-verification.txt":smoke.InterfaceOnly?"Library/LandsongEcs/interface-ui-verification.txt":"Library/LandsongEcs/scene-flow-verification.txt", (passed ? "PASS " : "FAIL ") + DateTime.Now.ToString("O") + "\n" + detail);
+                    Directory.CreateDirectory("Library/LandsongEcs"); File.WriteAllText(smoke.InventoryOnly?"Library/LandsongEcs/inventory-ui-play-verification.txt":smoke.GarrisonOnly?"Library/LandsongEcs/garrison-ui-verification.txt":smoke.HudPanelsOnly?"Library/LandsongEcs/hud-panels-verification.txt":smoke.InterfaceOnly?"Library/LandsongEcs/interface-ui-verification.txt":"Library/LandsongEcs/scene-flow-verification.txt", (passed ? "PASS " : "FAIL ") + DateTime.Now.ToString("O") + "\n" + detail);
                     EditorApplication.ExitPlaymode();
                 };
             }
             if (change == PlayModeStateChange.EnteredEditMode)
             {
                 SessionState.SetBool(Key, false);
+                SessionState.SetBool(Key+".InventoryOnly",false);
                 SessionState.SetBool(Key+".InterfaceOnly",false);
                 SessionState.SetBool(Key+".HudPanelsOnly",false);
                 SessionState.SetBool(Key+".GarrisonOnly",false);

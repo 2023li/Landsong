@@ -15,6 +15,13 @@ namespace Landsong.ECS.Presentation
         public LayoutElement Layout;
         [LabelText("侧栏触发器"), Required]
         public UI_GamePanel_BuildingDetails_SidebarTrigger Hover;
+        public void ValidateConfiguration()
+        {
+            if (View == null || Hover == null)
+                throw new InvalidOperationException("基础产出模块缺少建筑详情或侧栏触发器。");
+            if (Hover.View != View)
+                throw new InvalidOperationException("基础产出模块侧栏触发器没有绑定所属建筑详情。");
+        }
 
         public void Refresh(IReadOnlyList<string> outputs, Func<string> sidebarContent)
         {

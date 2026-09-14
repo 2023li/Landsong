@@ -13,8 +13,6 @@ namespace Landsong.ECS.Presentation
         public TMP_Text Jobs;
         [LabelText("预算"), Required]
         public TMP_Text Budget;
-        [LabelText("吸引力"), Required]
-        public TMP_Text Attraction;
         [LabelText("增加"), Required]
         public Button Increase;
         [LabelText("减少"), Required]
@@ -35,11 +33,11 @@ namespace Landsong.ECS.Presentation
         public List<Image> JobTicks = new List<Image>();
 
         public void Refresh(WorkforceQuote quote, string item, bool editable, Action<int> changeBudget,
-            Action recruitWorker, Action releaseWorker, Func<string> sidebarContent)
+            Action recruitWorker, Action releaseWorker, Func<WorkforceQuote> sidebarQuote)
         {
             bool visible = quote.Capacity > 0;
             gameObject.SetActive(visible);
-            BindSidebar(Hover, visible ? sidebarContent : null);
+            BindSidebar(Hover, visible && sidebarQuote != null ? () => AttractionDetails(sidebarQuote()) : null);
             if (!visible)
             {
                 Bind(RecruitWorker, null);
@@ -70,8 +68,9 @@ namespace Landsong.ECS.Presentation
                 rect.anchoredPosition = Vector2.zero;
                 mark.color = quote.Workers >= jobs ? new Color(1, .94f, .13f) : new Color(.52f, .51f, .15f);
             }
-
-            Attraction.text = $"白：自然 {quote.Natural:0.#} + 黄：预算加成 {quote.Planned - quote.Natural:0.#} / 100\n下次支付 {quote.SubsidyCost} {item} 后生效 · 当前实际 {quote.Current:0.#}" + (quote.Locked ? " · 在途锁定" : "");
         }
+
+        static string AttractionDetails(WorkforceQuote quote) =>
+            $"基础吸引力：{quote.Natural:0.#}\n\n补贴吸引力：{quote.Planned - quote.Natural:0.#}";
     }
 }

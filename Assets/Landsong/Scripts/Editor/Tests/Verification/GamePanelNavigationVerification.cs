@@ -54,7 +54,7 @@ namespace Landsong.ECS.Editor
                     "Obsolete building permission panel asset is deleted");
                 foreach (var panel in view.FeaturePanels) panel.ValidateConfiguration();
                 foreach (var requirement in new[] { (GamePanelId.Inventory, "feature.Inventory"), (GamePanelId.Expedition, "feature.Expedition"), (GamePanelId.Technology, ResearchOps.FeatureId) })
-                    Check(view.GetListPanel(requirement.Item1).RequiredFeatureId == requirement.Item2, "Permission remains configured on destination: " + requirement.Item1);
+                    Check(view.GetPanel(requirement.Item1).RequiredFeatureId == requirement.Item2, "Permission remains configured on destination: " + requirement.Item1);
                 Check(view.GetListPanel(GamePanelId.Technology).AllowMissingFeature,
                     "Optional custom-catalog research semantics are preserved");
                 int typedEvents = 0;

@@ -21,15 +21,12 @@ namespace Landsong.ECS.Presentation
 {
     public sealed class UI_GamePanel_Portrait : Moyo.Unity.UIViewBase
     {
-        [Sirenix.OdinInspector.LabelText("肖像模板")]
-        public UI_GamePanel_PortraitRow PortraitTemplate;
         internal UI_GamePanel_BuildingActionBar buildingController;
         internal GameUiCommandWriter commandsController;
         internal UI_GamePanel_Court courtController;
         internal UI_GamePanel_Marriage marriageController;
         internal UI_GamePanel_PersonRequests requestsController;
         internal IGameUiNavigation navigation;
-        internal UI_GamePanel_RowRenderer rowsController;
         internal GameUiSession sessionController;
         internal UI_GamePanel_Soldier soldierController;
         internal UI_GamePanel_WorldInteraction worldController;
@@ -39,16 +36,11 @@ namespace Landsong.ECS.Presentation
         public Button PortraitConfirmButton => PortraitPanel != null ? PortraitPanel.Confirm : null;
         public Button PortraitCloseButton => PortraitPanel != null ? PortraitPanel.Close : null;
 
-        [Sirenix.OdinInspector.LabelText("美貌事件按钮")]
-        public Button BeautyEventButton;
-        [Sirenix.OdinInspector.LabelText("美貌事件文字")]
-        public TMP_Text BeautyEventLabel;
         public bool PortraitOpen => PortraitWindow != null && PortraitWindow.activeSelf;
 
         internal PortraitDNA portraitDraft;
         internal ulong portraitPerson;
         internal UI_Common_PortraitImageBinding portraitPreview;
-        internal float nextPortraitRefresh;
         internal static readonly string[] PortraitPartNames =
         {
             "脸型",
@@ -69,38 +61,15 @@ namespace Landsong.ECS.Presentation
         {
             if (PortraitWindow != null)
                 PortraitWindow.SetActive(false);
-            sessionController.nextRefresh = nextPortraitRefresh = 0;
+            sessionController.nextRefresh = 0;
         }
 
         internal void RefreshPortraitCustomization()
         {
-            if (BeautyEventButton != null && (navigation.IsPanelOpen || PortraitOpen || marriageController.MarriageOpen || requestsController.PersonRequestsOpen || sessionController.intel || navigation.PauseMenu != null && navigation.PauseMenu.IsOpen))
-                BeautyEventButton.gameObject.SetActive(false);
             if (PortraitOpen && !PortraitOps.CanCustomize(sessionController.em, sessionController.root, Sim.Find(sessionController.em, portraitPerson)))
                 ClosePortrait();
             if (PortraitOpen)
                 PortraitConfirmButton.interactable = courtController.CourtDay && sessionController.em.GetComponentData<Session>(sessionController.root).Paused == 0;
-            if (Time.unscaledTime < nextPortraitRefresh)
-                return;
-            nextPortraitRefresh = Time.unscaledTime + .25f;
-            ulong first = 0;
-            int count = 0;
-            using (var people = Sim.OrderedEntities<Royal>(sessionController.em))
-                foreach (var person in people)
-                    if (PortraitOps.CanCustomize(sessionController.em, sessionController.root, person))
-                    {
-                        if (first == 0)
-                            first = sessionController.em.GetComponentData<Identity>(person).Id;
-                        count++;
-                    }
-
-            if (BeautyEventButton == null || BeautyEventLabel == null)
-                throw new InvalidOperationException("丽质事件 HUD 检查器引用缺失。");
-            BeautyEventButton.gameObject.SetActive(count > 0 && !sessionController.intel && !navigation.IsPanelOpen && !PortraitOpen && !marriageController.MarriageOpen && !requestsController.PersonRequestsOpen && (navigation.PauseMenu == null || !navigation.PauseMenu.IsOpen));
-            BeautyEventButton.interactable = true;
-            BeautyEventLabel.text = "丽质初成：" + courtController.PersonName(first) + "（待塑容 " + count + "）";
-            BeautyEventButton.onClick.RemoveAllListeners();
-            BeautyEventButton.onClick.AddListener(() => OpenPortrait(first));
         }
 
         public void OpenPortrait(ulong id)
@@ -195,20 +164,5 @@ namespace Landsong.ECS.Presentation
         }
 
         internal void UpdatePortraitPreview() => portraitPreview.Bind(sessionController.em, sessionController.root, portraitPerson, portraitDraft);
-        internal GameObject SoldierPortraitRow(Entity unit, string label, Action click = null, bool right = false)
-        {
-            var id = sessionController.em.GetComponentData<Identity>(unit).Id;
-            var binding = rowsController.Item(PortraitTemplate, label, click, right ? navigation.SecondaryRows : navigation.PrimaryRows, key: "portrait:" + id);
-            if (binding == null) return null;
-            if (!binding.CanRebind) return binding.gameObject;
-            var portrait = binding.Portrait;
-            if (portrait == null || binding.PortraitBinding == null)
-                throw new InvalidOperationException("通用行模板缺少人物肖像引用。");
-            portrait.gameObject.SetActive(true);
-            binding.Label.margin = new Vector4(68, 4, 8, 4);
-            binding.Layout.preferredHeight = Mathf.Max(68, binding.Layout.preferredHeight);
-            binding.PortraitBinding.Bind(sessionController.em, sessionController.root, sessionController.em.GetComponentData<Identity>(unit).Id);
-            return binding.gameObject;
-        }
     }
 }

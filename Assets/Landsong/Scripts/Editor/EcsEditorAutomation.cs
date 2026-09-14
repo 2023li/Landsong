@@ -30,6 +30,12 @@ public static class EcsEditorAutomation
         {
             switch (request.Action)
             {
+                case "InspectBillUi": response.Details = Landsong.ECS.Editor.BillUiMigration.Inspect(); break;
+                case "MigrateBillUi": response.Details = Landsong.ECS.Editor.BillUiMigration.Run(); break;
+                case "VerifyBill": response.Details = Landsong.ECS.Editor.BillVerification.Run(); break;
+                case "RenderBillUi": response.Details = Landsong.ECS.Editor.UiVisualVerification.RenderBills(); break;
+                case "MigrateInventoryUi": response.Details = Landsong.ECS.Editor.InventoryUiMigration.Run(); break;
+                case "VerifyInventoryUi": response.Details = Landsong.ECS.Editor.InventoryVerification.Run() + "\n" + Landsong.ECS.Editor.InventoryUiVerification.Run(); break;
                 case "InspectEditor":
                     response.Details = "playing=" + EditorApplication.isPlaying + "; changingPlayMode=" + EditorApplication.isPlayingOrWillChangePlaymode + "; paused=" + EditorApplication.isPaused + "; sceneFlowTest=" + SessionState.GetBool("Landsong.ECS.SceneFlowTest", false); break;
                 case "InspectScenes":
@@ -49,6 +55,7 @@ public static class EcsEditorAutomation
                 case "MigrateRowInteraction": response.Details = Landsong.ECS.Editor.GameRowInteractionMigration.Run(); break;
                 case "CompleteGameFeaturePreviews": response.Details = Landsong.ECS.Editor.GameFeaturePreviewRecipes.Run(); break;
                 case "MigrateWorldPresentation": response.Details = Landsong.ECS.Editor.WorldPresentationMigration.Run(); break;
+                case "RenderInventoryUi": response.Details = Landsong.ECS.Editor.UiVisualVerification.RenderInventory(); break;
                 case "RenderUiPreviews": response.Details = Landsong.ECS.Editor.UiVisualVerification.RenderAll(); break;
                 case "VerifyUiFramework": RunFramework(request); response.Status = "running"; response.Details = "正在异步验证框架生命周期。"; break;
                 case "SaveOpenScenes": response.Details = UnityEditor.SceneManagement.EditorSceneManager.SaveOpenScenes() ? "Open scenes saved" : "No open scene changes saved"; break;
@@ -67,6 +74,7 @@ public static class EcsEditorAutomation
                 case "VerifyArchitecture": response.Details = Landsong.ECS.Editor.ArchitectureVerification.Run(); break;
                 case "VerifyUiConfiguration": response.Details = Landsong.ECS.Editor.UiConfigurationVerification.Run(); break;
                 case "VerifyPauseMenu": response.Details = Landsong.ECS.Editor.PauseMenuVerification.Run(); break;
+                case "InventoryUiPlay": response.Details = Landsong.ECS.Editor.EcsSceneFlowVerification.InventoryPlay(); break;
                 case "SceneFlowPlay": response.Details = Landsong.ECS.Editor.EcsSceneFlowVerification.Run(); break;
                 case "SceneFlowInterfacePlay": response.Details = Landsong.ECS.Editor.EcsSceneFlowVerification.InterfacePlay(); break;
                 case "SceneFlowGarrisonPlay": response.Details = Landsong.ECS.Editor.EcsSceneFlowVerification.GarrisonPlay(); break;

@@ -37,6 +37,7 @@ namespace Landsong.ECS
             BuildingOps.Changed(em, root);
             }
             finally { EconomyJournalOps.End(em, root); }
+            if (!forecast) EconomyBillOps.CaptureSettlement(em, root);
         }
 
         static void Construct(EntityManager em, Entity root, Entity e)

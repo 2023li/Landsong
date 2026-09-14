@@ -53,7 +53,11 @@ namespace Landsong.ECS.Presentation
                 Require(workforce.SubsidyFill.rectTransform.anchorMax.x>workforce.SubsidyFill.rectTransform.anchorMin.x&&workforce.JobTicks.Count(t=>t.gameObject.activeSelf)==Mathf.Min(10,q.Capacity),"Paid attraction and at most ten proportional job markers rendered");
                 workforce.Decrease.onClick.Invoke();yield return WaitFor(()=>em.GetComponentData<Building>(farm).SubsidyBudget==0,"Right arrow reduces future subsidy without erasing paid benefit");
                 yield return new WaitForSecondsRealtime(.3f);
-                Require(Mathf.Approximately(workforce.SubsidyFill.rectTransform.anchorMin.x,workforce.SubsidyFill.rectTransform.anchorMax.x)&&em.GetComponentData<Building>(farm).PaidSubsidy==1&&workforce.Attraction.text.Contains("当前实际"),"Removing future budget clears yellow preview while preserving and explaining paid attraction");
+                Require(Mathf.Approximately(workforce.SubsidyFill.rectTransform.anchorMin.x,workforce.SubsidyFill.rectTransform.anchorMax.x)&&em.GetComponentData<Building>(farm).PaidSubsidy==1,"Removing future budget clears the yellow preview without erasing the paid benefit");
+                ExecuteEvents.Execute(workforce.gameObject,new PointerEventData(EventSystem.current),ExecuteEvents.pointerEnterHandler);
+                var attraction=WorkforceOps.Quote(em,root,farm);
+                Require(card.Sidebar.activeSelf&&card.SidebarText.text==$"基础吸引力：{attraction.Natural:0.#}\n\n补贴吸引力：{attraction.Planned-attraction.Natural:0.#}","Workforce hover shows base and subsidy attraction in the details sidebar");
+                ExecuteEvents.Execute(workforce.gameObject,new PointerEventData(EventSystem.current),ExecuteEvents.pointerExitHandler);
                 card.Upgrade.onClick.Invoke();Require(!view.Buildings.BuildingConfirmPanel.activeSelf&&!string.IsNullOrEmpty(view.Hud.Message.text),"Gray upgrade remains clickable and reports missing requirements");
                 state=em.GetComponentData<Building>(farm);state.Experience=100000;state.Workers=em.GetComponentData<BuildingStats>(farm).JobCapacity;state.Maintained=1;em.SetComponentData(farm,state);
                 var d=Sim.Definition(em,root,definition);BlueprintOps.Grant(em,root,definition,d.Level);

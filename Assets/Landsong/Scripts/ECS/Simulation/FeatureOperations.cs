@@ -20,7 +20,7 @@ namespace Landsong.ECS
             switch (kind)
             {
                 case CommandKind.Build: case CommandKind.BuildRoad: return "Building";
-                case CommandKind.MoveInventory: case CommandKind.SortInventory: case CommandKind.StorePendingSlot: case CommandKind.DiscardSlot: case CommandKind.DiscardPending: case CommandKind.StorePending: case CommandKind.Discard: return "Inventory";
+                case CommandKind.MoveInventoryToPending: case CommandKind.MoveInventory: case CommandKind.SortInventory: case CommandKind.StorePendingSlot: case CommandKind.DiscardSlot: case CommandKind.DiscardPending: case CommandKind.StorePending: case CommandKind.Discard: return "Inventory";
                 case CommandKind.StartExpedition: case CommandKind.ClaimExpedition: case CommandKind.AbandonExpedition: return "Expedition";
                 default: return null;
             }

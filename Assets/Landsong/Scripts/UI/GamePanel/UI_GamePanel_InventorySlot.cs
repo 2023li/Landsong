@@ -32,20 +32,26 @@ namespace Landsong.ECS.Presentation
         public Image Background;
         [Sirenix.OdinInspector.LabelText("选择")]
         public Button Select;
-        [Sirenix.OdinInspector.LabelText("交互所属条目")]
-        public UI_GamePanel_Row InteractionOwner;
-        public bool CanRebind => InteractionOwner != null && InteractionOwner.CanRebind;
+        [Sirenix.OdinInspector.LabelText("交互所属网格")]
+        public UI_GamePanel_InteractionLock InteractionOwner;
+        public bool CanRebind => InteractionOwner != null && !InteractionOwner.IsPinned;
+        public void ValidateConfiguration()
+        {
+            if (Label == null || Icon == null || Background == null || Select == null || InteractionOwner == null)
+                throw new System.InvalidOperationException("库存槽位引用不完整。");
+            InteractionOwner.ValidateConfiguration();
+        }
         public void OnBeginDrag(PointerEventData data)
         {
             if (!Locked && Count > 0)
                 Owner.BeginInventoryDrag(this);
         }
 
-        public void OnDrag(PointerEventData data) => Owner.UpdateInventoryDrag(data.position);
+        public void OnDrag(PointerEventData data) => Owner.UpdateInventoryDrag(data.position, data.pressEventCamera);
         public void OnEndDrag(PointerEventData data) => Owner.EndInventoryDrag();
         public void OnDrop(PointerEventData data)
         {
-            if (!Locked && !Pending)
+            if (!Locked)
                 Owner.DropInventory(this);
         }
     }

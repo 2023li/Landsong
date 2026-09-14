@@ -76,6 +76,31 @@ namespace Landsong.ECS.Editor
                 Reset(Slot(0, 0, 8), Slot(1)); var stale = InventoryOps.Fingerprint(em, root); InventoryOps.Remove(em, root, 0, 1); before = InventoryOps.Fingerprint(em, root);
                 Check(Move(0, 1, 0, 2, stale) != ResultCode.Success && before == InventoryOps.Fingerprint(em, root), "Stale drag cannot move a changed inventory");
                 var state = em.GetComponentData<Session>(root); state.Phase = Phase.Night; em.SetComponentData(root, state); Check(Move(0, 1, 0, 2) == ResultCode.WrongPhase, "Layout commands cannot mutate at night"); state.Phase = Phase.Day; em.SetComponentData(root, state);
+                Reset(Slot(0, 0, 8, .8f), Slot(1)); HistoryOps.Ensure(em, root);
+                ResultCode ToPending(int amount, string stamp = null) => InventoryOps.LayoutCommand(em, root,
+                    CommandRequests.MoveInventoryToPending(new InventorySelection(false, 7, 0, 0, amount, stamp ?? InventoryOps.Fingerprint(em, root))));
+                Check(ToPending(3) == ResultCode.Success && InventoryOps.Count(em, root, 0) == 5 && InventoryOps.PendingCount(em, root, 0) == 3, "Building stack can move a selected amount into pending pool");
+                Check(math.abs(em.GetBuffer<InventorySlot>(root)[0].LossRemainder - .5f) < .00001f && math.abs(em.GetBuffer<PendingItem>(root)[0].LossRemainder - .3f) < .00001f, "Moving out preserves proportional accrued loss");
+                var expired = InventoryOps.Fingerprint(em, root);
+                Check(ToPending(2) == ResultCode.Success && em.GetBuffer<PendingItem>(root).Length == 1, "Moving out merges same resource in pending");
+                before = InventoryOps.Fingerprint(em, root); Check(ToPending(1, expired) != ResultCode.Success && before == InventoryOps.Fingerprint(em, root), "Stale outbound transfer is atomic");
+                state.Phase = Phase.Night; em.SetComponentData(root, state);
+                Check(ToPending(1) == ResultCode.WrongPhase, "Outbound transfer is read-only at night"); state.Phase = Phase.Day; em.SetComponentData(root, state);
+                var target = em.GetBuffer<InventorySlot>(root)[1]; target.Provider = 9; var crossSlots = em.GetBuffer<InventorySlot>(root); crossSlots[1] = target;
+                var returnCommand = CommandRequests.TransferInventory(new InventorySelection(true, 0, -1, 0, 5, InventoryOps.Fingerprint(em, root)), 9, 1);
+                Check(InventoryOps.LayoutCommand(em, root, returnCommand) == ResultCode.Success && InventoryOps.Count(em, root, 0, 9) == 5, "Pending enters a different building by stable key");
+                Check(InventoryOps.Count(em, root, 0) == 8 && math.abs(Rows<InventorySlot>(em, root).Sum(x => x.LossRemainder) - .8f) < .00001f, "Cross-building round trip conserves stock and loss");
+                Reset(Slot(0, 0, 8, .8f)); em.GetBuffer<PendingItem>(root).Add(new PendingItem { Item = 0, Amount = int.MaxValue });
+                before = InventoryOps.Fingerprint(em, root); Check(ToPending(1) == ResultCode.NoCapacity && before == InventoryOps.Fingerprint(em, root), "Pending overflow rejects before any stock mutation");
+                Reset(Slot(0, 0, 8, .8f, locked: 1)); before = InventoryOps.Fingerprint(em, root);
+                Check(ToPending(1) == ResultCode.InvalidTarget && before == InventoryOps.Fingerprint(em, root), "Lost building stock cannot be rescued through pending");
+                Reset(Slot(0, 0, 8, .8f));
+                var outbound = CommandRequests.MoveInventoryToPending(new InventorySelection(false, 7, 0, 0, 8, InventoryOps.Fingerprint(em, root)));
+                using (HistoryOps.ForCommand(em, root, outbound)) Check(InventoryCommandHandler.TryExecute(em, root, outbound, out var outboundResult) && outboundResult == ResultCode.Success, "Outbound command routes through inventory domain");
+                var history = Rows<HistoryEntry>(em, root);
+                Check(history.Length >= 2 && history[history.Length - 1].Transfer == 1 && history[history.Length - 2].Transfer == 1
+                    && history[history.Length - 1].Delta + history[history.Length - 2].Delta == 0, "Outbound history records a balanced transfer, not production or discard");
+                Check(em.GetBuffer<InventorySlot>(root)[0].Item == -1 && em.GetBuffer<InventorySlot>(root)[0].LossRemainder == 0, "Full outbound transfer clears the empty source");
                 Reset(Slot(0, 0, 8, .8f), Slot(1, 0, 2, .2f), Slot(2, type: 5));
                 Check(InventoryOps.LayoutCommand(em, root, new Command { Kind = CommandKind.SortInventory, Text = InventoryOps.Fingerprint(em, root) }) == ResultCode.Success, "One-click sort commits");
                 Check(em.GetBuffer<InventorySlot>(root)[2].Count == 10 && math.abs(Rows<InventorySlot>(em, root).Sum(s => s.LossRemainder) - 1) < .00001f, "Sort consolidates into lowest-loss storage without erasing debt");

@@ -152,7 +152,7 @@ namespace Landsong.ECS
         MoveInventory, SortInventory, StorePendingSlot, DiscardSlot, DiscardPending, WorkforceTarget, PlanResearch, TrackQuest,
         GiftPerson, CompleteSocialTask, ProposeMarriage, DesignateHeir, ExecuteHeir, RoyalVisit, CancelPolicy, NightSpeed,
         RenameSoldier, DismissSoldier, FillGarrison, RecallGarrison, IntelligenceMode, ReadIntelligence, ResolveMarriage, PrepareMarriage, ArrangeMarriage, RefusePersonRequest, WorkforceBudget, CustomizePortrait, SetSoldierAttention,
-        RecruitWorkerAtQuotedCost
+        RecruitWorkerAtQuotedCost, MoveInventoryToPending
     }
     public enum ResultCode : byte { Success, WrongPhase, InvalidTarget, InvalidContent, InsufficientResources, InsufficientPopulation, NoCapacity, Unavailable, InvalidPlacement, Busy, MissingResearch, QuestOverflow, ConfirmationRequired, PreparationFailed }
     public enum OrderKind : byte { Automatic, Move, Focus, Rally, Recall, Capture }

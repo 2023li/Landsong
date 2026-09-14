@@ -1,350 +1,474 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using Sirenix.OdinInspector;
-using Unity.Collections;
+using TMPro;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.UI;
-using Text = TMPro.TextMeshProUGUI;
-using InputField = TMPro.TMP_InputField;
 
 namespace Landsong.ECS.Presentation
 {
-    public sealed class UI_GamePanel_Inventory : UI_GamePanel_List
+    public sealed class UI_GamePanel_Inventory : UI_GamePanel_View
     {
-        protected override bool UsesConfiguredPresenter => false;
+        [LabelText("按建筑显示按钮")] public Button BuildingsButton;
+        [LabelText("按资源显示按钮")] public Button ResourcesButton;
+        [LabelText("建筑滚动视图")] public ScrollRect BuildingsScroll;
+        [LabelText("资源滚动视图")] public ScrollRect ResourcesScroll;
+        [LabelText("建筑条目模板")] public UI_GamePanel_InventoryBuilding BuildingTemplate;
+        [LabelText("资源条目模板")] public UI_GamePanel_InventoryResource ResourceTemplate;
+        [LabelText("待存区")] public RectTransform PendingRoot;
+        [LabelText("待存条目容器")] public RectTransform PendingContent;
+        [LabelText("待存条目模板")] public UI_GamePanel_InventorySlot PendingTemplate;
+        [LabelText("待存区提示")] public TMP_Text PendingSummary;
+        [LabelText("一键入库按钮")] public Button StoreAllButton;
+        [LabelText("面板交互状态")] public UI_GamePanel_InteractionLock Interaction;
+        [LabelText("选中物品详情")] public TMP_Text SelectionDetails;
+        [LabelText("数量输入")] public TMP_InputField Quantity;
+        [LabelText("选择目标格按钮")] public Button MoveButton;
+        [LabelText("移到待存区按钮")] public Button PendingButton;
+        [LabelText("丢弃按钮")] public Button DiscardButton;
+        [LabelText("取消选择按钮")] public Button CancelButton;
+        [LabelText("整理库存按钮")] public Button SortButton;
+        [LabelText("账单按钮")] public Button EconomyButton;
+        [LabelText("资源详情子面板")] [UnityEngine.Serialization.FormerlySerializedAs("LedgerRoot")] public GameObject ResourceDetailsRoot;
+        [LabelText("资源详情标题")] [UnityEngine.Serialization.FormerlySerializedAs("LedgerTitle")] public TMP_Text ResourceDetailsTitle;
+        [LabelText("预计产出正文")] [UnityEngine.Serialization.FormerlySerializedAs("LedgerBody")] public TMP_Text IncomeBody;
+        [LabelText("预计产出滚动视图")] [UnityEngine.Serialization.FormerlySerializedAs("LedgerScroll")] public ScrollRect IncomeScroll;
+        [LabelText("资源详情关闭按钮")] [UnityEngine.Serialization.FormerlySerializedAs("LedgerClose")] public Button ResourceDetailsClose;
+        [LabelText("预计消耗正文")] public TMP_Text ExpenseBody;
+        [LabelText("预计消耗滚动视图")] public ScrollRect ExpenseScroll;
+        [LabelText("预测状态")] public TMP_Text ForecastStatus;
+        [LabelText("拖拽根对象")] public RectTransform DragRoot;
+        [LabelText("拖拽文字")] public TMP_Text DragLabel;
+        [LabelText("拖拽坐标空间")] public RectTransform DragSpace;
 
-        [Sirenix.OdinInspector.LabelText("网格模板")]
-        public UI_GamePanel_InventoryGridRow GridTemplate;
-        [Sirenix.OdinInspector.LabelText("数量模板")]
-        public UI_GamePanel_QuantityRow QuantityTemplate;
         internal IGameBuildingUi Buildings;
         internal IGameUiFeedback Feedback;
-        ulong inventoryProvider;
-        int inventoryIndex = -1, inventoryPending = -1;
-        InputField inventoryAmountInput;
-        string inventoryAmount = "1";
-        public bool IsDragging => inventoryDragging;
-        public bool IsEditing => inventoryAmountInput != null && inventoryAmountInput.isFocused;
+        readonly Dictionary<ulong, UI_GamePanel_InventoryBuilding> buildingViews = new Dictionary<ulong, UI_GamePanel_InventoryBuilding>();
+        readonly Dictionary<(ulong provider, int index), UI_GamePanel_InventorySlot> slotViews = new Dictionary<(ulong, int), UI_GamePanel_InventorySlot>();
+        readonly Dictionary<int, UI_GamePanel_InventorySlot> pendingViews = new Dictionary<int, UI_GamePanel_InventorySlot>();
+        readonly Dictionary<int, UI_GamePanel_InventoryResource> resourceViews = new Dictionary<int, UI_GamePanel_InventoryResource>();
+        readonly HashSet<ulong> pinned = new HashSet<ulong>();
+        InventorySelection? selection;
+        InventorySelection drag;
+        string displayedFingerprint;
+        bool showingBuildings, choosingTarget, dragging, restoreScrollPosition, buildingsRendered, resourcesRendered;
+        Vector2 buildingScrollPosition = new Vector2(0, 1), resourceScrollPosition = new Vector2(0, 1);
+        int detailsItem = -1;
+        float forecastCheckAt;
+        string forecastFingerprint, requestedForecast;
+        bool forecastReady;
+        readonly SortedDictionary<int, ResourceForecastReadModel.Resource> forecast = new SortedDictionary<int, ResourceForecastReadModel.Resource>();
+        public bool IsDragging => dragging;
+        public bool IsEditing => Quantity != null && Quantity.isFocused || Interaction != null && Interaction.IsPinned;
+        public bool ResourceDetailsOpen => ResourceDetailsRoot != null && ResourceDetailsRoot.activeInHierarchy;
+        public bool ShowingBuildings => showingBuildings;
+        public IEnumerable<UI_GamePanel_InventorySlot> StorageSlots => slotViews.Values;
+        public IEnumerable<UI_GamePanel_InventorySlot> PendingSlots => pendingViews.Values;
+        public IEnumerable<UI_GamePanel_InventoryBuilding> BuildingViews => buildingViews.Values;
+        public IEnumerable<UI_GamePanel_InventoryResource> ResourceViews => resourceViews.Values;
+        bool Day => Session != null && Session.IsBound && em.GetComponentData<Session>(root).Phase == Phase.Day;
+        bool CanOperate => Day && Navigation.InputPolicy.Capture().CanQueue(CommandKind.MoveInventory);
 
-        bool inventoryDragging;
-        bool inventoryChoosingTarget;
-        InventorySelection inventoryDrag;
-        [Sirenix.OdinInspector.LabelText("拖拽根对象")]
-        public RectTransform DragRoot;
-        [Sirenix.OdinInspector.LabelText("拖拽文字")]
-        public Text DragLabel;
-        [Sirenix.OdinInspector.LabelText("拖拽坐标空间")]
-        public RectTransform DragSpace;
-        GameObject inventoryDragLabel;
-        string inventoryDisplayedFingerprint;
-        readonly Dictionary<UI_GamePanel_Row, Dictionary<string, UI_GamePanel_InventorySlot>> gridSlots = new Dictionary<UI_GamePanel_Row, Dictionary<string, UI_GamePanel_InventorySlot>>();
-        internal void ResetSession()
+        public override void ValidateConfiguration()
         {
-            EndInventoryDrag();
-            gridSlots.Clear();
-            inventoryProvider = 0;
-            inventoryIndex = inventoryPending = -1;
-            inventoryAmountInput = null;
-            inventoryAmount = "1";
-            inventoryChoosingTarget = false;
-            inventoryDisplayedFingerprint = null;
+            base.ValidateConfiguration();
+            if (BuildingsButton == null || ResourcesButton == null || BuildingsScroll == null || ResourcesScroll == null
+                || BuildingsScroll == ResourcesScroll || BuildingsScroll.content == null || ResourcesScroll.content == null
+                || BuildingTemplate == null || ResourceTemplate == null || PendingRoot == null || PendingContent == null
+                || PendingTemplate == null || PendingSummary == null || StoreAllButton == null || Interaction == null
+                || SelectionDetails == null || Quantity == null || MoveButton == null || PendingButton == null || DiscardButton == null
+                || CancelButton == null || SortButton == null || EconomyButton == null || ResourceDetailsRoot == null || ResourceDetailsTitle == null
+                || IncomeBody == null || IncomeScroll == null || ExpenseBody == null || ExpenseScroll == null || ForecastStatus == null || ResourceDetailsClose == null || DragRoot == null || DragLabel == null || DragSpace == null)
+                throw new InvalidOperationException("库存面板的模式、模板、操作区或资源详情引用不完整。");
+            if (BuildingTemplate.transform.parent != BuildingsScroll.content || ResourceTemplate.transform.parent != ResourcesScroll.content
+                || PendingTemplate.transform.parent != PendingContent)
+                throw new InvalidOperationException("库存模板必须配置在各自的内容容器中。");
+            BuildingTemplate.ValidateConfiguration(); ResourceTemplate.ValidateConfiguration(); PendingTemplate.ValidateConfiguration();
+            Interaction.ValidateConfiguration();
+        }
+
+        public override void Bind(GameUiSession session, GameUiCommandWriter commands, IGameUiNavigation navigation)
+        {
+            base.Bind(session, commands, navigation);
+            ResetSession();
+            Click(BuildingsButton, () => SetMode(true)); Click(ResourcesButton, () => SetMode(false));
+            Click(StoreAllButton, () => { if (CanOperate) QueueInventory(CommandRequests.StorePending(displayedFingerprint)); });
+            Click(SortButton, () => { if (CanOperate) QueueInventory(CommandRequests.SortInventory(displayedFingerprint)); });
+            Click(MoveButton, ChooseTarget); Click(PendingButton, MoveSelectedToPending); Click(DiscardButton, DiscardSelected);
+            Click(CancelButton, ClearSelection); Click(EconomyButton, () => Navigation.OpenEconomy()); Click(ResourceDetailsClose, CloseResourceDetails);
+            Quantity.onValueChanged.RemoveAllListeners(); Quantity.onValueChanged.AddListener(_ => RefreshSelection());
+            BuildingTemplate.gameObject.SetActive(false); ResourceTemplate.gameObject.SetActive(false); PendingTemplate.gameObject.SetActive(false);
+            SetMode(false);
+        }
+
+        static void Click(Button button, UnityEngine.Events.UnityAction action)
+        { button.onClick.RemoveAllListeners(); button.onClick.AddListener(action); }
+
+        public void SetMode(bool buildings)
+        {
+            if (ResourceDetailsOpen || Session != null && !Navigation.InputPolicy.Capture().CanNavigate) return;
+            if (showingBuildings && buildingsRendered) buildingScrollPosition = BuildingsScroll.normalizedPosition;
+            if (!showingBuildings && resourcesRendered) resourceScrollPosition = ResourcesScroll.normalizedPosition;
+            EndInventoryDrag(); choosingTarget = false; showingBuildings = buildings; restoreScrollPosition = true;
+            BuildingsScroll.gameObject.SetActive(buildings); ResourcesScroll.gameObject.SetActive(!buildings);
+            BuildingsButton.interactable = !buildings; ResourcesButton.interactable = buildings;
+            if (Session != null) Session.NextRefresh = 0;
         }
 
         public override void Render()
         {
-            var day = em.GetComponentData<Session>(root).Phase == Phase.Day;
-            var currentFingerprint = InventoryOps.Fingerprint(em, root);
-            if (inventoryDisplayedFingerprint != null && currentFingerprint != inventoryDisplayedFingerprint)
+            if (dragging || IsEditing) return;
+            var fingerprint = InventoryOps.Fingerprint(em, root);
+            if (displayedFingerprint != fingerprint) ClearSelection();
+            displayedFingerprint = fingerprint;
+            if (!showingBuildings || ResourceDetailsOpen) RefreshForecast();
+            if (showingBuildings) RenderBuildings(); else RenderResources();
+            RenderPending(); RefreshSelection();
+            if (restoreScrollPosition)
             {
-                inventoryIndex = -1;
-                inventoryPending = -1;
-                inventoryChoosingTarget = false;
+                Canvas.ForceUpdateCanvases();
+                var scroll = showingBuildings ? BuildingsScroll : ResourcesScroll;
+                scroll.normalizedPosition = showingBuildings ? buildingScrollPosition : resourceScrollPosition;
+                restoreScrollPosition = false;
             }
+            if (showingBuildings) buildingsRendered = true; else resourcesRendered = true;
+            SortButton.interactable = CanOperate;
+            if (ResourceDetailsOpen) RenderResourceDetails();
+        }
 
-            inventoryDisplayedFingerprint = currentFingerprint;
-            Row("经济总览 · 最近账本 / 白天预测", () => Navigation.OpenEconomy());
-            Row("库存 · 点击查看，拖动整堆可移动、合并或交换。拆分请先选择物品和数量，再启用选择目标格。夜晚只读。");
-            if (inventoryChoosingTarget)
-                Row("正在选择目标格 · 点击空格或同类物品格，按填写数量转移。");
-            var stamp = inventoryDisplayedFingerprint;
-            Row("整理库存（合并同类，优先低损耗槽）", day ? () => QueueInventory(CommandRequests.SortInventory(stamp)) : null);
-            var slots = new List<InventorySlot>();
+        void RenderBuildings()
+        {
+            var groups = new SortedDictionary<ulong, List<InventorySlot>>();
             foreach (var slot in em.GetBuffer<InventorySlot>(root))
-                slots.Add(slot);
-            slots.Sort((a, b) =>
             {
-                var c = a.Provider.CompareTo(b.Provider);
-                return c != 0 ? c : a.Index.CompareTo(b.Index);
-            });
-            var storageKeys = new List<string>();
-            foreach (var slot in slots) storageKeys.Add("slot:" + slot.Provider + ":" + slot.Index);
-            var views = Grid("storage", storageKeys);
-            for (var i = 0; i < slots.Count; i++)
-            {
-                var s = slots[i];
-                var v = views[i];
-                if (v == null || !v.CanRebind) continue;
-                v.Provider = s.Provider;
-                v.Index = s.Index;
-                v.Item = s.Item;
-                v.Count = s.Count;
-                v.Pending = false;
-                v.Locked = !day || s.Unavailable != 0;
-                v.Fingerprint = stamp;
-                BindSlot(v, $"{Session.EntityName(s.Provider)} / {s.Index + 1}\n{(s.Count > 0 ? Session.Name(s.Item) + " × " + s.Count : "空格")}\n{Session.Name(s.SlotType)}" + (s.Unavailable != 0 ? " · 已损失" : ""), s.Provider == inventoryProvider && s.Index == inventoryIndex && inventoryPending < 0, s.Provider == Session.Selected);
+                if (!groups.TryGetValue(slot.Provider, out var list)) groups.Add(slot.Provider, list = new List<InventorySlot>());
+                list.Add(slot);
             }
-
-            Row("待存放池 · 本回合进入夜晚前清空；不用于普通生产、食谱或任务提交。");
-            var pending = em.GetBuffer<PendingItem>(root);
-            var pendingKeys = new List<string>();
-            foreach (var pendingItem in pending) pendingKeys.Add("pending:" + pendingItem.Item);
-            var pendingViews = Grid("pending", pendingKeys);
-            for (var i = 0; i < pending.Length; i++)
+            pinned.RemoveWhere(id => !groups.ContainsKey(id));
+            var providers = groups.Keys.OrderByDescending(id => pinned.Contains(id)).ThenBy(id => id).ToArray();
+            var seen = new HashSet<(ulong, int)>();
+            for (int n = 0; n < providers.Length; n++)
             {
-                var p = pending[i];
-                var v = pendingViews[i];
-                if (v == null || !v.CanRebind) continue;
-                v.Provider = 0;
-                v.Index = -1;
-                v.Item = p.Item;
-                v.Count = p.Amount;
-                v.Pending = true;
-                v.Locked = !day;
-                v.Fingerprint = stamp;
-                BindSlot(v, $"{Session.Name(p.Item)} × {p.Amount}\n待存放 · 余量 {p.LossRemainder:0.###}", inventoryPending == p.Item, false);
-            }
-
-            Row("尝试存入全部", day ? () => QueueInventory(CommandRequests.StorePending(stamp)) : null);
-            Row("数量：用于选中物品的移动、拆分、存入或丢弃；拖动默认整堆。");
-            QuantityRow();
-            var index = InventoryOps.SlotIndex(em, root, inventoryProvider, inventoryIndex);
-            var item = -1;
-            var count = 0;
-            var locked = false;
-            if (inventoryPending >= 0)
-            {
-                item = inventoryPending;
-                count = InventoryOps.PendingCount(em, root, item);
-                Row("已选待存放：" + Session.Name(item) + " × " + count);
-            }
-            else if (index >= 0)
-            {
-                var s = em.GetBuffer<InventorySlot>(root)[index];
-                item = s.Item;
-                count = s.Count;
-                locked = s.Unavailable != 0;
-                Row($"已选 {Session.EntityName(s.Provider)} / 格 {s.Index + 1} · {Session.Name(s.SlotType)}", () => Buildings.FocusBuilding(s.Provider));
-                Row("接纳规则：" + AcceptText(s.SlotType));
-                if (count > 0)
-                    Row($"本格损耗率 {InventoryOps.LossRate(em, root, s, item):P2} / 回合；累计余量 {s.LossRemainder:0.###}");
-            }
-
-            if (item >= 0 && count > 0)
-            {
-                var d = Sim.Definition(em, root, item);
-                Row($"{Session.Name(item)} · 数量 {count} · 单格上限 {d.Capacity}\n基础价值 {d.Value} · 基础损耗 {d.Loss:P2} / 回合");
-                var source = Buildings.BuildingSource(item);
-                if (!string.IsNullOrEmpty(source?.Description))
-                    Row(source.Description);
-                var room = 0L;
-                foreach (var at in InventoryOps.StorageOrder(em, root, item))
+                var id = providers[n];
+                if (!buildingViews.TryGetValue(id, out var view))
                 {
-                    var s = em.GetBuffer<InventorySlot>(root)[at];
-                    room += math.max(0, d.Capacity - s.Count);
+                    view = Instantiate(BuildingTemplate, BuildingsScroll.content); view.Provider = id;
+                    view.name = "库存建筑 " + id; view.Interaction.Parent = Interaction; view.SlotTemplate.gameObject.SetActive(false);
+                    Click(view.Locate, () => { if (Navigation.InputPolicy.Capture().CanNavigate) Buildings.FocusBuilding(id); });
+                    view.Pin.onValueChanged.RemoveAllListeners();
+                    view.Pin.onValueChanged.AddListener(value => { if (value) pinned.Add(id); else pinned.Remove(id); Session.NextRefresh = 0; });
+                    buildingViews.Add(id, view);
                 }
-
-                Row("当前可接纳该物品的剩余空间：" + room);
-                Row("移动/存入所选数量：选择目标格", day && !locked ? () =>
+                view.gameObject.SetActive(true); view.transform.SetSiblingIndex(n + 1);
+                var slots = groups[id]; slots.Sort((a, b) => a.Index.CompareTo(b.Index));
+                int columns = math.max(1, (int)((BuildingsScroll.viewport.rect.width - 36 + 6) / 62));
+                view.GridLayout.constraintCount = columns;
+                view.Layout.preferredHeight = view.Layout.minHeight = 56 + math.ceil((float)slots.Count / columns) * 62;
+                int occupied = slots.Count(s => s.Count > 0 && s.Unavailable == 0);
+                view.Information.text = $"{Session.EntityName(id)}\n已用 {occupied} / {slots.Count} 格";
+                view.Pin.SetIsOnWithoutNotify(pinned.Contains(id));
+                view.Locate.interactable = Sim.Find(em, id) != Entity.Null;
+                for (int i = 0; i < slots.Count; i++)
                 {
-                    if (SelectedAmount(count) <= 0)
+                    var slot = slots[i]; var key = (id, slot.Index); seen.Add(key);
+                    if (!slotViews.TryGetValue(key, out var child))
                     {
-                        Feedback.ShowMessage("请输入大于 0 的数量。");
-                        return;
+                        child = Instantiate(view.SlotTemplate, view.Slots); child.name = "库存格 " + id + ":" + slot.Index;
+                        child.InteractionOwner.Parent = view.Interaction; BindClick(child); slotViews.Add(key, child);
                     }
-
-                    inventoryChoosingTarget = true;
-                    Session.NextRefresh = 0;
-                } : null);
-                var discardSource = new InventorySelection(inventoryPending >= 0, inventoryProvider, inventoryIndex, item, count, stamp);
-                Row("丢弃所选数量…", day && !locked ? () =>
-                {
-                    var discard = CommandRequests.DiscardInventory(discardSource, SelectedAmount(count));
-                    if (discard.Amount <= 0)
-                    {
-                        Feedback.ShowMessage("请输入大于 0 的数量。");
-                        return;
-                    }
-
-                    Buildings.ShowBuildingConfirmation("确认丢弃", new List<string> { $"{Session.Name(discard.Definition)} × {discard.Amount} 将永久损失。", "库存变化后本次确认将失效，不会丢弃新出现的物资。" }, () => QueueInventory(discard));
-                } : null);
-            }
-
-            Row("取消物品选择", () =>
-            {
-                inventoryIndex = -1;
-                inventoryPending = -1;
-                inventoryChoosingTarget = false;
-                Session.NextRefresh = 0;
-            });
-        }
-
-        string AcceptText(int type)
-        {
-            if (type < 0)
-                return "所有物品";
-            var names = new List<string>();
-            var d = Sim.Definition(em, root, type);
-            for (var i = 0; i < d.RuleCount; i++)
-            {
-                var r = Sim.GetRule(em, root, d.RuleStart + i);
-                if (r.Kind == RuleKind.SlotAccept)
-                    names.Add(Session.Name(r.Target));
-            }
-
-            return names.Count == 0 ? "所有物品（槽型只影响损耗）" : string.Join(" / ", names);
-        }
-
-        int SelectedAmount(int maximum) => int.TryParse(inventoryAmount, out var value) && value > 0 ? math.min(maximum, value) : 0;
-        void QuantityRow()
-        {
-            var row = Rows.Item(QuantityTemplate, "", parent: PrimaryRows, key: "inventory:quantity");
-            if (row == null || !row.CanRebind) return;
-            inventoryAmountInput = row.Quantity;
-            if (inventoryAmountInput == null)
-                throw new System.InvalidOperationException("通用行模板缺少 InventoryQuantity 引用。");
-            inventoryAmountInput.gameObject.SetActive(true);
-            inventoryAmountInput.onValueChanged.RemoveAllListeners();
-            inventoryAmountInput.onValueChanged.AddListener(value => inventoryAmount = value);
-            inventoryAmountInput.SetTextWithoutNotify(inventoryAmount);
-        }
-
-        List<UI_GamePanel_InventorySlot> Grid(string group, IReadOnlyList<string> keys)
-        {
-            var count = keys.Count;
-            var row = Rows.Item(GridTemplate, "", parent: PrimaryRows, key: "inventory-grid:" + group);
-            var result = new List<UI_GamePanel_InventorySlot>(count);
-            if (row == null) { for (var i = 0; i < count; i++) result.Add(null); return result; }
-            if (!gridSlots.TryGetValue(row, out var slots))
-                gridSlots.Add(row, slots = new Dictionary<string, UI_GamePanel_InventorySlot>());
-            if (!row.CanRebind)
-            {
-                foreach (var key in keys) { slots.TryGetValue(key, out var existing); result.Add(existing); }
-                return result;
-            }
-            var child = row.Grid;
-            child.gameObject.SetActive(true);
-            var grid = row.GridLayout;
-            var width = math.max(140, PrimaryRows.rect.width - 8);
-            var columns = math.max(1, (int)(width / 150));
-            grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-            grid.constraintCount = columns;
-            grid.cellSize = new Vector2((width - 6 * (columns - 1)) / columns, 104);
-            grid.spacing = new Vector2(6, 6);
-            var layout = row.Layout;
-            layout.preferredHeight = layout.minHeight = math.max(1, (int)math.ceil((float)count / columns)) * 110;
-            var seen = new HashSet<string>();
-            for (var i = 0; i < count; i++)
-            {
-                var key = keys[i];
-                if (!seen.Add(key)) throw new System.InvalidOperationException("库存显示出现重复槽位身份：" + key);
-                if (!slots.TryGetValue(key, out var view))
-                {
-                    view = Instantiate(row.SlotTemplate, child);
-                    view.name = "库存格 " + key;
-                    var captured = view;
-                    view.Select.onClick.AddListener(() => SelectInventory(captured));
-                    slots.Add(key, view);
+                    child.Provider = id; child.Index = slot.Index; child.Item = slot.Item; child.Count = slot.Count;
+                    child.Pending = false; child.Locked = !Day || slot.Unavailable != 0; child.Fingerprint = displayedFingerprint;
+                    child.gameObject.SetActive(true); child.transform.SetSiblingIndex(i + 1); BindSlot(child);
                 }
-                view.Owner = this;
-                view.gameObject.SetActive(true); view.transform.SetSiblingIndex(i);
-                result.Add(view);
             }
-            foreach (var key in new List<string>(slots.Keys))
-                if (!seen.Contains(key)) { if (slots[key] != null) Destroy(slots[key].gameObject); slots.Remove(key); }
-            return result;
+            RemoveMissing(slotViews, seen);
+            RemoveMissing(buildingViews, new HashSet<ulong>(groups.Keys));
         }
 
-        void BindSlot(UI_GamePanel_InventorySlot view, string label, bool active, bool building)
+        void RenderResources()
         {
-            view.Label.text = label;
-            view.Background.color = view.Locked ? new Color(.25f, .2f, .2f) : active ? new Color(.2f, .45f, .65f) : building ? new Color(.22f, .37f, .32f) : new Color(.22f, .24f, .28f);
-            var source = view.Count > 0 ? Buildings.BuildingSource(view.Item) : null;
-            view.Icon.sprite = source?.Icon;
-            view.Icon.gameObject.SetActive(view.Icon.sprite != null);
+            var resources = InventoryReadModel.Resources(em, root); int index = 1;
+            if (forecastReady) foreach (var item in forecast.Keys) if (!resources.ContainsKey(item)) resources.Add(item, default);
+            foreach (var pair in resources)
+            {
+                int item = pair.Key;
+                if (!resourceViews.TryGetValue(item, out var view))
+                {
+                    view = Instantiate(ResourceTemplate, ResourcesScroll.content); view.Item = item;
+                    view.name = "库存资源 " + item; view.Interaction.Parent = Interaction;
+                    Click(view.Details, () => OpenResourceDetails(item)); resourceViews.Add(item, view);
+                }
+                view.gameObject.SetActive(true); view.transform.SetSiblingIndex(index++);
+                forecast.TryGetValue(item, out var predicted);
+                var delta = forecastReady ? UI_GamePanel_Economy.Signed((predicted?.Income ?? 0) - (predicted?.Expense ?? 0)) : ForecastUnavailable;
+                view.Information.text = $"{Session.Name(item)}  {pair.Value.Stored}（{delta}）";
+                SetIcon(view.Icon, item);
+            }
+            RemoveMissing(resourceViews, new HashSet<int>(resources.Keys));
         }
 
-        void QueueInventory(Command command)
+        void RenderPending()
         {
-            if (!Commands.TryQueue(command))
-                return;
-            inventoryIndex = -1;
-            inventoryPending = -1;
-            inventoryChoosingTarget = false;
-            Session.NextRefresh = 0;
+            var pending = em.GetBuffer<PendingItem>(root); var seen = new HashSet<int>(); long total = 0; int index = 1;
+            foreach (var item in pending)
+            {
+                if (item.Amount <= 0) continue;
+                seen.Add(item.Item); total += item.Amount;
+                if (!pendingViews.TryGetValue(item.Item, out var view))
+                {
+                    view = Instantiate(PendingTemplate, PendingContent); view.name = "待存物资 " + item.Item;
+                    view.InteractionOwner.Parent = Interaction; BindClick(view); pendingViews.Add(item.Item, view);
+                }
+                view.Provider = 0; view.Index = -1; view.Item = item.Item; view.Count = item.Amount;
+                view.Pending = true; view.Locked = !Day; view.Fingerprint = displayedFingerprint;
+                view.gameObject.SetActive(true); view.transform.SetSiblingIndex(index++); BindSlot(view);
+            }
+            RemoveMissing(pendingViews, seen);
+            PendingSummary.text = $"待存区 · {seen.Count} 种 / {total}\n可拖入物资；入夜前清空。";
+            StoreAllButton.interactable = CanOperate && total > 0;
+        }
+
+        void BindClick(UI_GamePanel_InventorySlot slot)
+        { slot.Owner = this; Click(slot.Select, () => SelectInventory(slot)); }
+
+        void BindSlot(UI_GamePanel_InventorySlot slot)
+        {
+            bool selected = selection.HasValue && (slot.Pending ? selection.Value.Pending && selection.Value.Item == slot.Item
+                : !selection.Value.Pending && selection.Value.Provider == slot.Provider && selection.Value.Slot == slot.Index);
+            slot.Label.text = slot.Pending ? $"{Session.Name(slot.Item)} × {slot.Count}" : slot.Locked && Day ? "不可用" : slot.Count > 0 ? slot.Count.ToString() : "空";
+            slot.Background.color = selected ? new Color(.25f, .5f, .65f) : slot.Locked ? new Color(.35f, .3f, .3f) : Color.white;
+            SetIcon(slot.Icon, slot.Count > 0 ? slot.Item : -1);
+        }
+
+        void SetIcon(Image image, int item)
+        { image.sprite = item >= 0 ? Buildings.BuildingSource(item)?.Icon : null; image.gameObject.SetActive(image.sprite != null); }
+
+        static void RemoveMissing<TKey, TView>(Dictionary<TKey, TView> views, HashSet<TKey> seen) where TView : Component
+        {
+            foreach (var key in views.Keys.Where(key => !seen.Contains(key)).ToArray())
+            { var view = views[key]; if (view != null) { view.gameObject.SetActive(false); Destroy(view.gameObject); } views.Remove(key); }
         }
 
         void SelectInventory(UI_GamePanel_InventorySlot slot)
         {
-            if (inventoryChoosingTarget && !slot.Pending && !slot.Locked && (inventoryPending >= 0 || inventoryIndex >= 0 && (slot.Provider != inventoryProvider || slot.Index != inventoryIndex)))
+            if (ResourceDetailsOpen || !Navigation.InputPolicy.Capture().CanNavigate) return;
+            if (choosingTarget && selection.HasValue && !slot.Pending && !slot.Locked)
             {
-                var from = InventoryOps.SlotIndex(em, root, inventoryProvider, inventoryIndex);
-                var item = inventoryPending >= 0 ? inventoryPending : from >= 0 ? em.GetBuffer<InventorySlot>(root)[from].Item : -1;
-                var count = inventoryPending >= 0 ? InventoryOps.PendingCount(em, root, item) : from >= 0 ? em.GetBuffer<InventorySlot>(root)[from].Count : 0;
-                if (count > 0)
+                if (!CurrentSelection(out var source)) return;
+                QueueInventory(CommandRequests.TransferInventory(WithAmount(source, Amount(source.Quantity)), slot.Provider, slot.Index)); return;
+            }
+            selection = new InventorySelection(slot.Pending, slot.Provider, slot.Index, slot.Item, slot.Count, slot.Fingerprint);
+            choosingTarget = false; RefreshSelection(); Session.NextRefresh = 0;
+        }
+
+        int Amount(int maximum) => int.TryParse(Quantity.text, out var value) && value > 0 ? math.min(maximum, value) : 0;
+        static InventorySelection WithAmount(InventorySelection source, int amount) => new InventorySelection(source.Pending, source.Provider, source.Slot, source.Item, amount, source.ExpectedInventory);
+
+        bool CurrentSelection(out InventorySelection source)
+        {
+            source = selection.GetValueOrDefault();
+            if (!selection.HasValue || source.Quantity <= 0 || source.Item < 0) return false;
+            if (source.ExpectedInventory != InventoryOps.Fingerprint(em, root))
+            { ClearSelection(); Feedback.ShowMessage("库存已变化，请重新选择物资。"); return false; }
+            if (!source.Pending)
+            { int at = InventoryOps.SlotIndex(em, root, source.Provider, source.Slot); if (at < 0 || em.GetBuffer<InventorySlot>(root)[at].Unavailable != 0) return false; }
+            return true;
+        }
+
+        void RefreshSelection()
+        {
+            bool valid = selection.HasValue && selection.Value.Item >= 0 && selection.Value.Quantity > 0;
+            bool available = valid;
+            if (valid && !selection.Value.Pending)
+            {
+                int index = InventoryOps.SlotIndex(em, root, selection.Value.Provider, selection.Value.Slot);
+                available = index >= 0 && em.GetBuffer<InventorySlot>(root)[index].Unavailable == 0;
+            }
+            bool editable = available && CanOperate && Amount(selection.Value.Quantity) > 0;
+            MoveButton.interactable = editable; PendingButton.interactable = editable && !selection.Value.Pending;
+            DiscardButton.interactable = editable; CancelButton.interactable = selection.HasValue;
+            Quantity.interactable = valid && CanOperate;
+            if (!selection.HasValue) { SelectionDetails.text = "点击物资查看详情。建筑模式可跨建筑拖拽，或与待存区互相转移；夜晚只读。"; return; }
+            var source = selection.Value;
+            string location = source.Pending ? "待存区" : Session.EntityName(source.Provider) + " / 格 " + (source.Slot + 1);
+            string details = location;
+            if (!source.Pending)
+            {
+                int at = InventoryOps.SlotIndex(em, root, source.Provider, source.Slot);
+                if (at >= 0)
                 {
-                    var selected = new InventorySelection(inventoryPending >= 0, inventoryProvider, inventoryIndex, item, SelectedAmount(count), slot.Fingerprint);
-                    QueueInventory(CommandRequests.TransferInventory(selected, slot.Provider, slot.Index));
-                    return;
+                    var slot = em.GetBuffer<InventorySlot>(root)[at];
+                    details += " · " + Session.Name(slot.SlotType) + "\n接纳：" + AcceptText(slot.SlotType);
+                    if (slot.Unavailable != 0) details += " · 不可用";
+                    if (valid) details += $" · 损耗 {InventoryOps.LossRate(em, root, slot, source.Item):P2}/回合 · 累计余量 {slot.LossRemainder:0.###}";
                 }
             }
-
-            inventoryPending = slot.Pending ? slot.Item : -1;
-            inventoryProvider = slot.Provider;
-            inventoryIndex = slot.Pending ? -1 : slot.Index;
-            inventoryChoosingTarget = false;
-            Session.NextRefresh = 0;
+            if (valid)
+            {
+                var definition = Sim.Definition(em, root, source.Item);
+                details += $"\n{Session.Name(source.Item)} × {source.Quantity} · 单格上限 {definition.Capacity} · 基础价值 {definition.Value}";
+            }
+            SelectionDetails.text = (choosingTarget ? "请选择目标建筑的空格或同类物品格。\n" : "") + details;
         }
+
+        string AcceptText(int type)
+        {
+            if (type < 0) return "所有物品";
+            var names = new List<string>(); var definition = Sim.Definition(em, root, type);
+            for (int i = 0; i < definition.RuleCount; i++)
+            { var rule = Sim.GetRule(em, root, definition.RuleStart + i); if (rule.Kind == RuleKind.SlotAccept) names.Add(Session.Name(rule.Target)); }
+            return names.Count == 0 ? "所有物品" : string.Join(" / ", names);
+        }
+
+        void ChooseTarget()
+        {
+            if (!CanOperate || !CurrentSelection(out var source) || Amount(source.Quantity) <= 0) return;
+            SetMode(true); choosingTarget = true; RefreshSelection(); Session.NextRefresh = 0;
+        }
+
+        void MoveSelectedToPending()
+        {
+            if (!CanOperate || !CurrentSelection(out var source) || source.Pending) return;
+            QueueInventory(CommandRequests.MoveInventoryToPending(WithAmount(source, Amount(source.Quantity))));
+        }
+
+        void DiscardSelected()
+        {
+            if (!CanOperate || !CurrentSelection(out var source)) return;
+            var command = CommandRequests.DiscardInventory(source, Amount(source.Quantity));
+            if (command.Amount <= 0) return;
+            Buildings.ShowBuildingConfirmation("确认丢弃", new List<string> { $"{Session.Name(source.Item)} × {command.Amount} 将永久损失。", "库存变化后本次确认将失效。" }, () => QueueInventory(command));
+        }
+
+        void ClearSelection()
+        { selection = null; choosingTarget = false; if (Session != null) Session.NextRefresh = 0; }
+
+        void QueueInventory(Command command)
+        { if (Commands.TryQueue(command)) { ClearSelection(); EndInventoryDrag(); } }
 
         public void BeginInventoryDrag(UI_GamePanel_InventorySlot slot)
         {
-            inventoryDrag = new InventorySelection(slot.Pending, slot.Provider, slot.Index, slot.Item, slot.Count, slot.Fingerprint);
-            inventoryDragging = true;
-            if (DragRoot == null || DragLabel == null || DragSpace == null)
-                throw new System.InvalidOperationException("库存面板拖动物检查器引用不完整。");
-            inventoryDragLabel = DragRoot.gameObject;
-            inventoryDragLabel.SetActive(true);
+            if (!CanOperate || slot.Owner != this || slot.Locked || slot.Count <= 0 || !showingBuildings) return;
+            drag = new InventorySelection(slot.Pending, slot.Provider, slot.Index, slot.Item, slot.Count, slot.Fingerprint);
+            dragging = true; choosingTarget = false; DragRoot.gameObject.SetActive(true); DragRoot.SetAsLastSibling();
             DragLabel.text = Session.Name(slot.Item) + " × " + slot.Count;
         }
 
-        public void UpdateInventoryDrag(Vector2 position)
+        public void UpdateInventoryDrag(Vector2 position, Camera camera = null)
         {
-            if (!inventoryDragging || inventoryDragLabel == null)
-                return;
-            if (RectTransformUtility.ScreenPointToLocalPointInRectangle(DragSpace, position, null, out var point))
-                DragRoot.anchoredPosition = point + new Vector2(80, 30);
+            if (!dragging) return;
+            if (RectTransformUtility.ScreenPointToLocalPointInRectangle(DragSpace, position, camera, out var point)) DragRoot.anchoredPosition = point + new Vector2(70, 25);
         }
 
         public void DropInventory(UI_GamePanel_InventorySlot target)
         {
-            if (!inventoryDragging)
-                return;
-            QueueInventory(CommandRequests.TransferInventory(inventoryDrag, target.Provider, target.Index));
+            if (!dragging || !CanOperate || target.Owner != this || target.Locked) return;
+            if (target.Pending) { DropInventoryToPending(); return; }
+            var source = drag; dragging = false;
+            QueueInventory(CommandRequests.TransferInventory(source, target.Provider, target.Index)); EndInventoryDrag();
         }
 
-        void OnDisable()
+        public void DropInventoryToPending()
         {
-            if (Session != null)
-                EndInventoryDrag();
+            if (!dragging || !CanOperate || drag.Pending) return;
+            var source = drag; dragging = false;
+            QueueInventory(CommandRequests.MoveInventoryToPending(source)); EndInventoryDrag();
         }
 
         public void EndInventoryDrag()
+        { dragging = false; if (DragRoot != null) DragRoot.gameObject.SetActive(false); if (Session != null) Session.NextRefresh = 0; }
+
+        public void OpenResourceDetails(int item)
         {
-            inventoryDragging = false;
-            if (inventoryDragLabel != null)
-                inventoryDragLabel.SetActive(false);
-            if (Session != null)
-                Session.NextRefresh = 0;
+            if (!Navigation.InputPolicy.Capture().CanOpenModal(GameUiInputOwner.InventoryDetails)) return;
+            EndInventoryDrag(); detailsItem = item; ResourceDetailsRoot.SetActive(true); ResourceDetailsRoot.transform.SetAsLastSibling();
+            forecastCheckAt = 0; RefreshForecast(); RenderResourceDetails();
+            Canvas.ForceUpdateCanvases(); IncomeScroll.verticalNormalizedPosition = ExpenseScroll.verticalNormalizedPosition = 1;
         }
+
+        public void CloseResourceDetails()
+        { if (ResourceDetailsRoot != null) ResourceDetailsRoot.SetActive(false); detailsItem = -1; if (Session != null) Session.NextRefresh = 0; }
+
+        string ForecastUnavailable => !Day || em.GetComponentData<Session>(root).LastSettledTurn == em.GetComponentData<Session>(root).Turn ? "已结算" : "计算中…";
+
+        void RefreshForecast()
+        {
+            var state = em.GetComponentData<Session>(root);
+            if (state.Phase != Phase.Day || state.LastSettledTurn == state.Turn)
+            { forecastReady = false; forecast.Clear(); return; }
+            if (Time.unscaledTime >= forecastCheckAt || forecastFingerprint == null)
+            {
+                forecastCheckAt = Time.unscaledTime + 1;
+                forecastFingerprint = EconomyForecastOps.Fingerprint(em, root);
+            }
+            forecastReady = em.HasComponent<EconomyForecastState>(root)
+                && em.GetComponentData<EconomyForecastState>(root).Turn == state.Turn
+                && em.GetComponentData<EconomyForecastState>(root).Fingerprint.ToString() == forecastFingerprint;
+            forecast.Clear();
+            if (forecastReady)
+            {
+                foreach (var pair in ResourceForecastReadModel.Read(em, root, state.Turn)) forecast.Add(pair.Key, pair.Value);
+                requestedForecast = null;
+            }
+            else if (state.CheckpointPending != 0 || state.Paused != 0 || state.IntelligenceMode != 0) requestedForecast = null;
+            else if (requestedForecast != forecastFingerprint && Commands.TryQueue(new Command { Kind = CommandKind.ForecastEconomy }))
+                requestedForecast = forecastFingerprint;
+        }
+
+        void Update()
+        {
+            if (Session == null || !Session.IsBound || !ContentRoot.activeInHierarchy || showingBuildings && !ResourceDetailsOpen || Time.unscaledTime < forecastCheckAt) return;
+            var previous = forecastFingerprint; bool wasReady = forecastReady;
+            RefreshForecast();
+            if (previous != forecastFingerprint || wasReady != forecastReady) Session.NextRefresh = 0;
+        }
+
+        void RenderResourceDetails()
+        {
+            var state = em.GetComponentData<Session>(root);
+            ResourceDetailsTitle.text = Session.Name(detailsItem) + $" · 第 {state.Turn} 回合资源详情";
+            ForecastStatus.text = forecastReady
+                ? "本回合预计收支 · 随当前条件更新；不含随机收益、手动操作与入夜待存区清空。"
+                : ForecastUnavailable == "已结算" ? "本回合已结算；进入下一白天后显示新的预计收支。" : "正在按当前库存、建筑和岗位计算…";
+            forecast.TryGetValue(detailsItem, out var item);
+            IncomeBody.text = ForecastText(item?.Incomes, item?.Income ?? 0, true);
+            ExpenseBody.text = ForecastText(item?.Expenses, item?.Expense ?? 0, false);
+        }
+
+        string ForecastText(List<EconomyEntry> entries, long total, bool income)
+        {
+            if (!forecastReady) return ForecastUnavailable == "已结算" ? "本回合已结算" : "正在计算…";
+            var text = new StringBuilder("合计 " + total + "\n\n");
+            if (entries == null || entries.Count == 0) return text.Append(income ? "本回合无预计产出。" : "本回合无预计消耗。").ToString();
+            foreach (var entry in entries)
+            {
+                string source = entry.Source == 0 || Sim.Find(em, entry.Source) == Entity.Null ? entry.SourceName.ToString() : Session.EntityName(entry.Source);
+                text.AppendLine($"{source} · {UI_GamePanel_Economy.EconomyReasonName(entry.Reason)}");
+                text.AppendLine($"{Session.Name(detailsItem)}  {UI_GamePanel_Economy.Signed(entry.Delta)}" + (entry.Pending != 0 ? " · 待存区" : ""));
+                if (!entry.Note.IsEmpty) text.AppendLine(entry.Note.ToString());
+                text.AppendLine();
+            }
+            return text.ToString();
+        }
+
+        void OnDisable() { EndInventoryDrag(); CloseResourceDetails(); ClearSelection(); }
+
+        internal void ResetSession()
+        {
+            EndInventoryDrag(); CloseResourceDetails(); ClearSelection();
+            RemoveMissing(slotViews, new HashSet<(ulong, int)>()); RemoveMissing(buildingViews, new HashSet<ulong>());
+            RemoveMissing(resourceViews, new HashSet<int>()); RemoveMissing(pendingViews, new HashSet<int>());
+            forecast.Clear(); forecastReady = false; forecastCheckAt = 0; forecastFingerprint = requestedForecast = null;
+            pinned.Clear(); displayedFingerprint = null; showingBuildings = false;
+            buildingsRendered = resourcesRendered = false; restoreScrollPosition = true;
+            buildingScrollPosition = resourceScrollPosition = new Vector2(0, 1);
+            if (Quantity != null) Quantity.SetTextWithoutNotify("1");
+        }
+
+        internal override void ClearAllRows() => ResetSession();
     }
 }

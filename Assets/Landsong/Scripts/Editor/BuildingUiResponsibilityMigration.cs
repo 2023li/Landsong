@@ -58,8 +58,6 @@ namespace Landsong.ECS.Editor
                 var confirmTitle = oldActionBar.BuildingConfirmTitle;
                 var confirmGroup = oldActionBar.BuildingConfirmGroup;
                 var placementPanel = oldActionBar.BuildingPlacementPanel;
-                var workerTemplate = game.GetComponentsInChildren<UI_GamePanel_WorkerInfoRow>(true).Single();
-                var workforceTemplate = game.GetComponentsInChildren<UI_GamePanel_WorkforceRow>(true).Single();
                 var childViews = root.ChildViews.ToArray();
 
                 var oldPreview = oldActionBar.GetComponent<UIPreviewOnly>();
@@ -81,9 +79,6 @@ namespace Landsong.ECS.Editor
                 detailRect.sizeDelta = sizeDelta;
                 detailRect.pivot = pivot;
                 oldDetails.name = "Building Details Panel";
-                oldDetails.WorkerInfoTemplate = workerTemplate;
-                oldDetails.WorkforceTemplate = workforceTemplate;
-
                 oldActionBar.transform.SetParent(root.BuildingRoot, false);
                 var actionRect = (RectTransform)oldActionBar.transform;
                 actionRect.anchorMin = Vector2.zero;
@@ -104,9 +99,6 @@ namespace Landsong.ECS.Editor
                 var details = detailsObject.GetComponent<UI_GamePanel_BuildingDetails>();
                 var actionBar = actionObject.GetComponent<UI_GamePanel_BuildingActionBar>();
 
-                details.WorkerInfoTemplate = workerTemplate;
-                details.WorkforceTemplate = workforceTemplate;
-                workerTemplate.WorkerHover.View = details;
                 actionBar.BuildingBar = buildingBar;
                 actionBar.BuildingCatalog = catalog;
                 actionBar.BuildingConfirmRows = confirmRows;
@@ -188,12 +180,35 @@ namespace Landsong.ECS.Editor
 
         static void BindRoot(UI_GamePanel root, UI_GamePanel_BuildingActionBar actionBar, UI_GamePanel_BuildingDetails details)
         {
+            // 操作条控制器必须随 GamePanel 打开；其内部 BuildingActionBar 节点仍由选中状态单独显隐。
+            // 如果这里保持默认 false，UIViewBase.CreateTreeAsync 会禁用整个操作条 Prefab 根对象，
+            // 后续即使把内部操作条设为 active，也不会在层级中实际显示。
+            actionBar.ConfigureChildren(Array.Empty<UIViewBase>(), true);
             var data = new SerializedObject(root);
             data.FindProperty("buildingController").objectReferenceValue = actionBar;
             data.FindProperty("buildingDetailsController").objectReferenceValue = details;
             data.ApplyModifiedPropertiesWithoutUndo();
+            var buildingButton = root.NavigationButtons?.SingleOrDefault(binding => binding.Target == GamePanelId.Building)?.Button;
+            if (buildingButton == null)
+                throw new InvalidOperationException("建筑导航按钮未配置。");
+            var buttonData = new SerializedObject(buildingButton);
+            var calls = buttonData.FindProperty("m_OnClick.m_PersistentCalls.m_Calls");
+            var rebound = false;
+            for (var index = 0; index < calls.arraySize; index++)
+            {
+                var call = calls.GetArrayElementAtIndex(index);
+                if (call.FindPropertyRelative("m_MethodName").stringValue != nameof(UI_GamePanel_BuildingActionBar.ToggleBuildingCatalog))
+                    continue;
+                call.FindPropertyRelative("m_Target").objectReferenceValue = actionBar;
+                call.FindPropertyRelative("m_TargetAssemblyTypeName").stringValue = typeof(UI_GamePanel_BuildingActionBar).FullName + ", " + typeof(UI_GamePanel_BuildingActionBar).Assembly.GetName().Name;
+                rebound = true;
+            }
+            if (!rebound)
+                throw new InvalidOperationException("建筑导航按钮缺少 ToggleBuildingCatalog 持久事件。");
+            buttonData.ApplyModifiedPropertiesWithoutUndo();
             actionBar.DetailsPanel = details;
             EditorUtility.SetDirty(root);
+            EditorUtility.SetDirty(buildingButton);
             EditorUtility.SetDirty(actionBar);
             EditorUtility.SetDirty(details);
         }

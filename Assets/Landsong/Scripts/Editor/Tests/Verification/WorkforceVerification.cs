@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Landsong.ECS.Persistence;
-using Landsong.ECS.Presentation;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -45,11 +44,6 @@ namespace Landsong.ECS.Editor
                         if (cost > 0) valid &= WorkforceOps.Stable(cap, attraction + (cost - 1) * (100f / cap)) < target;
                     }
                 Check(valid, "Minimal integer subsidy reaches exact worker target, capacity " + cap);
-            }
-            foreach (var cap in new[] { 1, 3, 10, 30, 100, 10000 })
-            {
-                var ticks = UI_GamePanel_WorkforceScale.TickValues(cap, cap / 3, cap / 2, cap - 1, 12);
-                Check(ticks.Count <= 12 && ticks.Distinct().Count() == ticks.Count && ticks.Contains(0) && ticks.Contains(cap) && ticks.Contains(cap / 3) && ticks.Contains(cap / 2) && ticks.Contains(cap - 1), "Bounded genuine tick values retain important points, capacity " + cap);
             }
             Check(WorkforceOps.Stable(0, 100) == 0 && WorkforceOps.SubsidyCost(0, 0, 3) == 0 && WorkforceOps.Stable(9, 20) == 2, "No jobs and integer threshold boundaries");
         }

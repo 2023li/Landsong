@@ -87,6 +87,27 @@ namespace Landsong.ECS
             var from = SlotIndex(em, root, c.Target, c.SourceSlot);
             if (from < 0 || slots[from].Unavailable != 0 || slots[from].Count < c.Amount || slots[from].Item != c.Definition) return ResultCode.InvalidTarget;
             var source = slots[from];
+            if (c.Kind == CommandKind.MoveInventoryToPending)
+            {
+                var pool = em.GetBuffer<PendingItem>(root);
+                int pendingIndex = -1;
+                for (int i = 0; i < pool.Length; i++) if (pool[i].Item == source.Item) { pendingIndex = i; break; }
+                var pending = pendingIndex < 0 ? new PendingItem { Item = source.Item } : pool[pendingIndex];
+                if ((long)pending.Amount + c.Amount > int.MaxValue) return ResultCode.NoCapacity;
+                float debt = source.LossRemainder * ((float)c.Amount / source.Count);
+                if (!math.isfinite(pending.LossRemainder + debt)) return ResultCode.InvalidContent;
+                pending.Amount += c.Amount; pending.LossRemainder += debt;
+                source.Count -= c.Amount; source.LossRemainder = math.max(0, source.LossRemainder - debt);
+                if (source.Count == 0) { source.Item = -1; source.LossRemainder = 0; }
+                if (pendingIndex < 0) pool.Add(pending); else pool[pendingIndex] = pending;
+                slots[from] = source;
+                using (EconomyJournalOps.For(em, root, Sim.Find(em, c.Target), EconomyReason.CapacityTransfer))
+                {
+                    EconomyJournalOps.Record(em, root, c.Definition, -c.Amount);
+                    EconomyJournalOps.Record(em, root, c.Definition, c.Amount, true);
+                }
+                return ResultCode.Success;
+            }
             if (c.Kind == CommandKind.DiscardSlot) { source.LossRemainder *= (float)(source.Count - c.Amount) / source.Count; source.Count -= c.Amount; if (source.Count == 0) source.Item = -1; slots[from] = source; EconomyJournalOps.Record(em,root,c.Definition,-c.Amount); return ResultCode.Success; }
             if (c.Kind != CommandKind.MoveInventory || to < 0 || from == to || slots[to].Unavailable != 0) return ResultCode.InvalidTarget;
             var dest = slots[to]; if (!Accepts(em, root, dest.SlotType, source.Item)) return ResultCode.InvalidContent;

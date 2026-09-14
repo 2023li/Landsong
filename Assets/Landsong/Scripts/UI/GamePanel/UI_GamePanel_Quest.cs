@@ -21,7 +21,7 @@ namespace Landsong.ECS.Presentation
 {
     public sealed class UI_GamePanel_Quest : Moyo.Unity.UIViewBase, IGameFeatureRenderer
     {
-        public void BindFeature(GameUiSession session, GameUiCommandWriter commands, IGameUiNavigation navigation, UI_GamePanel_RowRenderer rows)
+        public void BindFeature(GameUiSession session, GameUiCommandWriter commands, IGameUiNavigation navigation, UI_GamePanel_List rows)
         {
             if (session == null || commands == null || navigation == null || rows == null)
                 throw new System.ArgumentException("功能展示器缺少会话服务。");
@@ -38,7 +38,7 @@ namespace Landsong.ECS.Presentation
         internal GameUiCommandWriter commandsController;
         internal UI_GamePanel_Hud hudController;
         internal IGameUiNavigation navigation;
-        internal UI_GamePanel_RowRenderer rowsController;
+        internal UI_GamePanel_List rowsController;
         internal GameUiSession sessionController;
         internal void ConfirmAbandonQuest(Identity id)
         {
@@ -604,7 +604,7 @@ namespace Landsong.ECS.Presentation
 
                 commandsController.TryQueue(CommandRequests.SubmitQuest(id, quote.Item, quantity, key, quote.Stamp));
             });
-            var binding = rowsController.Item(QuantityTemplate, "", parent: buildingController.BuildingConfirmRows, key: "quest-submit:" + id + ":" + key);
+            var binding = buildingController.ConfirmationItem(QuantityTemplate, "", buildingController.BuildingConfirmRows, "quest-submit:" + id + ":" + key);
             if (binding == null) return;
             if (!binding.CanRebind) { amount = QuestAmountInput = binding.Quantity; return; }
             binding.transform.SetSiblingIndex(3);

@@ -133,7 +133,7 @@ namespace Landsong.ECS.Editor
             SnapshotCodec.Restore(em, root, initial);
             em.GetBuffer<PendingItem>(root).Add(new PendingItem { Item = gold, Amount = 1 });
             NightOps.Begin(em, root); token = em.GetComponentData<NightEntryReview>(root).Token;
-            GameLoopSystem.Execute(em, root, new Command { Kind = CommandKind.StorePending });
+            GameLoopSystem.Execute(em, root, CommandRequests.StorePending(InventoryOps.Fingerprint(em, root)));
             Check(NightOps.Begin(em, root) == ResultCode.Success, "Sorting pending inventory can remove need for confirmation entirely");
         }
         static void ImportFailure(World world, Entity root)

@@ -563,159 +563,6 @@ MonoBehaviour:
   Target: {fileID: 307727737360363296}
   ButtonLabel: 0
   Key: 
---- !u!1 &392389036451135433
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 9211883331958666524}
-  - component: {fileID: 7207491578667310873}
-  - component: {fileID: 2521095541777940063}
-  - component: {fileID: 7031960325191843028}
-  m_Layer: 0
-  m_Name: Label
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &9211883331958666524
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 392389036451135433}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 8606658002170813400}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
-  m_Pivot: {x: 0.5, y: 0.5}
---- !u!222 &7207491578667310873
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 392389036451135433}
-  m_CullTransparentMesh: 1
---- !u!114 &2521095541777940063
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 392389036451135433}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
-  m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 0
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  m_text: 
-  m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 3afb4c0418f3b1a4092eaa4734edf2de, type: 2}
-  m_sharedMaterial: {fileID: 2543768371350609851, guid: 3afb4c0418f3b1a4092eaa4734edf2de, type: 2}
-  m_fontSharedMaterials: []
-  m_fontMaterial: {fileID: 0}
-  m_fontMaterials: []
-  m_fontColor32:
-    serializedVersion: 2
-    rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
-  m_enableVertexGradient: 0
-  m_colorMode: 3
-  m_fontColorGradient:
-    topLeft: {r: 1, g: 1, b: 1, a: 1}
-    topRight: {r: 1, g: 1, b: 1, a: 1}
-    bottomLeft: {r: 1, g: 1, b: 1, a: 1}
-    bottomRight: {r: 1, g: 1, b: 1, a: 1}
-  m_fontColorGradientPreset: {fileID: 0}
-  m_spriteAsset: {fileID: 0}
-  m_tintAllSprites: 0
-  m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: -1183493901
-  m_overrideHtmlColors: 0
-  m_faceColor:
-    serializedVersion: 2
-    rgba: 4294967295
-  m_fontSize: 13
-  m_fontSizeBase: 13
-  m_fontWeight: 400
-  m_enableAutoSizing: 0
-  m_fontSizeMin: 0
-  m_fontSizeMax: 0
-  m_fontStyle: 0
-  m_HorizontalAlignment: 1
-  m_VerticalAlignment: 256
-  m_textAlignment: 65535
-  m_characterSpacing: 0
-  m_characterHorizontalScale: 1
-  m_wordSpacing: 0
-  m_lineSpacing: 0
-  m_lineSpacingMax: 0
-  m_paragraphSpacing: 0
-  m_charWidthMaxAdj: 0
-  m_TextWrappingMode: 1
-  m_wordWrappingRatios: 0.4
-  m_overflowMode: 0
-  m_linkedTextComponent: {fileID: 0}
-  parentLinkedComponent: {fileID: 0}
-  m_enableKerning: 0
-  m_ActiveFontFeatures: 
-  m_enableExtraPadding: 0
-  checkPaddingRequired: 0
-  m_isRichText: 1
-  m_EmojiFallbackSupport: 1
-  m_parseCtrlCharacters: 1
-  m_isOrthographic: 1
-  m_isCullingEnabled: 0
-  m_horizontalMapping: 0
-  m_verticalMapping: 0
-  m_uvLineOffset: 0
-  m_geometrySortingOrder: 0
-  m_IsTextObjectScaleStatic: 0
-  m_VertexBufferAutoSizeReduction: 0
-  m_useMaxVisibleDescender: 1
-  m_pageToDisplay: 1
-  m_margin: {x: 10, y: 4, z: 10, w: 4}
-  m_isUsingLegacyAnimationComponent: 0
-  m_isVolumetricText: 0
-  m_hasFontAssetChanged: 0
-  m_baseMaterial: {fileID: 0}
-  m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!114 &7031960325191843028
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 392389036451135433}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c66f3cc68b2317e4fac4da201724ddd9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_Common_TextBinding
-  Target: {fileID: 2521095541777940063}
-  ButtonLabel: 0
-  Key: 
 --- !u!1 &457982421304856718
 GameObject:
   m_ObjectHideFlags: 0
@@ -1054,7 +901,7 @@ GameObject:
   - component: {fileID: 4747587521242983199}
   - component: {fileID: 581246927431092001}
   m_Layer: 0
-  m_Name: Base output
+  m_Name: "Block_\u57FA\u7840\u4EA7\u51FA"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1147,9 +994,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 879547294226159250}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bb512f94e7a9d294fa57b2dc7bb7b8ff, type: 3}
+  m_Script: {fileID: 11500000, guid: 87fbcbdbf4554f84a5d6969b308e9f4a, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_BuildingWorkerHover
+  m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_BuildingDetails_SidebarTrigger
   View: {fileID: 3729718196166514561}
 --- !u!114 &581246927431092001
 MonoBehaviour:
@@ -1635,9 +1482,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 1495079264694222141}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bb512f94e7a9d294fa57b2dc7bb7b8ff, type: 3}
+  m_Script: {fileID: 11500000, guid: 87fbcbdbf4554f84a5d6969b308e9f4a, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_BuildingWorkerHover
+  m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_BuildingDetails_SidebarTrigger
   View: {fileID: 3729718196166514561}
 --- !u!1 &1554886398852709540
 GameObject:
@@ -2975,7 +2822,7 @@ GameObject:
   - component: {fileID: 3958173966403208557}
   - component: {fileID: 793468149653214223}
   m_Layer: 0
-  m_Name: Workforce
+  m_Name: "Block_\u5C97\u4F4D"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2996,7 +2843,6 @@ RectTransform:
   - {fileID: 5894455900664051152}
   - {fileID: 8264936448060274709}
   - {fileID: 1961648738279190865}
-  - {fileID: 8606658002170813400}
   - {fileID: 5622482239284182252}
   - {fileID: 987843194263465128}
   m_Father: {fileID: 8254007954490450115}
@@ -3073,9 +2919,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 2942440354488864621}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bb512f94e7a9d294fa57b2dc7bb7b8ff, type: 3}
+  m_Script: {fileID: 11500000, guid: 87fbcbdbf4554f84a5d6969b308e9f4a, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_BuildingWorkerHover
+  m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_BuildingDetails_SidebarTrigger
   View: {fileID: 3729718196166514561}
 --- !u!114 &793468149653214223
 MonoBehaviour:
@@ -3092,7 +2938,6 @@ MonoBehaviour:
   View: {fileID: 3729718196166514561}
   Jobs: {fileID: 307727737360363296}
   Budget: {fileID: 6501372615187961158}
-  Attraction: {fileID: 2521095541777940063}
   Increase: {fileID: 7206223482923560620}
   Decrease: {fileID: 6659411909402675569}
   RecruitWorker: {fileID: 7341789318607651105}
@@ -3769,8 +3614,7 @@ MonoBehaviour:
   TooltipText: {fileID: 6973131991523406175}
   Sidebar: {fileID: 133533700976152650}
   SidebarText: {fileID: 9185615387141199638}
-  WorkerInfoTemplate: {fileID: 0}
-  WorkforceTemplate: {fileID: 0}
+  RowTemplate: {fileID: 1573664279546181541, guid: a6505af27ca58fd479bd424bc2087351, type: 3}
 --- !u!114 &8000234006582578568
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4672,7 +4516,7 @@ MonoBehaviour:
   m_fontSizeMin: 10
   m_fontSizeMax: 40
   m_fontStyle: 0
-  m_HorizontalAlignment: 1
+  m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -4939,7 +4783,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1055021872310395797
 RectTransform:
   m_ObjectHideFlags: 0
@@ -5163,7 +5007,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4278190080
   m_fontColor: {r: 0, g: 0, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -5176,7 +5020,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -5204,13 +5048,13 @@ MonoBehaviour:
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 0
-  m_ActiveFontFeatures: 00000000
+  m_ActiveFontFeatures: 
   m_enableExtraPadding: 0
   checkPaddingRequired: 0
   m_isRichText: 1
   m_EmojiFallbackSupport: 1
   m_parseCtrlCharacters: 1
-  m_isOrthographic: 0
+  m_isOrthographic: 1
   m_isCullingEnabled: 0
   m_horizontalMapping: 0
   m_verticalMapping: 0
@@ -5563,7 +5407,7 @@ GameObject:
   - component: {fileID: 7247691816515739856}
   - component: {fileID: 836790361875436445}
   m_Layer: 0
-  m_Name: Other building modules
+  m_Name: "Block_\u5176\u4ED6"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7231,9 +7075,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 6212595132751798113}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bb512f94e7a9d294fa57b2dc7bb7b8ff, type: 3}
+  m_Script: {fileID: 11500000, guid: 87fbcbdbf4554f84a5d6969b308e9f4a, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_BuildingWorkerHover
+  m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_BuildingDetails_SidebarTrigger
   View: {fileID: 3729718196166514561}
 --- !u!1 &6237745524333770439
 GameObject:
@@ -7559,7 +7403,7 @@ GameObject:
   - component: {fileID: 2029531439139251209}
   - component: {fileID: 814579250764325334}
   m_Layer: 0
-  m_Name: Planting
+  m_Name: "Block_\u79CD\u690D"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7655,9 +7499,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 6359593546524950458}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bb512f94e7a9d294fa57b2dc7bb7b8ff, type: 3}
+  m_Script: {fileID: 11500000, guid: 87fbcbdbf4554f84a5d6969b308e9f4a, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_BuildingWorkerHover
+  m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_BuildingDetails_SidebarTrigger
   View: {fileID: 3729718196166514561}
 --- !u!114 &814579250764325334
 MonoBehaviour:
@@ -8330,42 +8174,6 @@ MonoBehaviour:
   Target: {fileID: 6239320012109399279}
   ButtonLabel: 1
   Key: 
---- !u!1 &7045347164195195700
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 8606658002170813400}
-  m_Layer: 0
-  m_Name: Attraction explanation
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &8606658002170813400
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7045347164195195700}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 9211883331958666524}
-  m_Father: {fileID: 8230681797347905351}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.01, y: 0}
-  m_AnchorMax: {x: 0.99, y: 0.4}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
-  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &7078798182552897681
 GameObject:
   m_ObjectHideFlags: 0
@@ -9216,7 +9024,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.44654083, g: 0.44654083, b: 0.44654083, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -9806,7 +9614,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -9834,13 +9642,13 @@ MonoBehaviour:
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 0
-  m_ActiveFontFeatures: 00000000
+  m_ActiveFontFeatures: 
   m_enableExtraPadding: 0
   checkPaddingRequired: 0
   m_isRichText: 1
   m_EmojiFallbackSupport: 1
   m_parseCtrlCharacters: 1
-  m_isOrthographic: 0
+  m_isOrthographic: 1
   m_isCullingEnabled: 0
   m_horizontalMapping: 0
   m_verticalMapping: 0
@@ -9960,7 +9768,7 @@ GameObject:
   - component: {fileID: 1261074359543074972}
   - component: {fileID: 682357038542103112}
   m_Layer: 0
-  m_Name: Garrison
+  m_Name: "Block_\u9A7B\u519B"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

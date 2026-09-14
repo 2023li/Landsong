@@ -18,6 +18,7 @@ namespace Landsong.ECS.Presentation
         string errors = "";
         readonly HashSet<string> expectedErrors = new HashSet<string>();
         bool finished;
+        public bool InventoryOnly;
         public bool InterfaceOnly;
         public bool HudPanelsOnly;
         public bool GarrisonOnly;
@@ -74,7 +75,7 @@ namespace Landsong.ECS.Presentation
             menu.MapSelection.Hide(); yield return new WaitForSecondsRealtime(.2f);
             RequireApplicationUiStable("Start after TMP map dropdown closes");
             menu.CloseManagement();
-            RequireNoLegacyManagers();
+            if (!InventoryOnly) RequireNoLegacyManagers();
             var ids = Array.ConvertAll(menu.Catalog.Maps, m => m.Id);
             Require(Array.IndexOf(ids, "Map_Test2") >= 0, "Workflow acceptance map Map_Test2 is registered");
             for (var map = 0; map < ids.Length; map++)
@@ -89,7 +90,7 @@ namespace Landsong.ECS.Presentation
                 var view = FindFirstObjectByType<UI_GamePanel>();
                 Require(view != null && view.WorldInteraction.Camera.isActiveAndEnabled && view.Buildings.BuildingBar != null && view.SecondaryRows != null, "Game camera, building catalog and native UI bindings");
                 ObserveGameLifetime(view, "new Game");
-                RequireNoLegacyManagers();
+                if (!InventoryOnly) RequireNoLegacyManagers();
                 using (var roots = Sim.Entities<Session>(em)) Require(roots.Length == 1, "Exactly one simulation root");
                 using (var owned = Sim.Entities<SimulationOwner>(em)) foreach (var e in owned) Require(em.GetComponentData<SimulationOwner>(e).Root == root, "Runtime owner belongs to current map", false);
                 var settings = em.GetComponentData<GameSettings>(root);
@@ -97,6 +98,12 @@ namespace Landsong.ECS.Presentation
                 em.GetBuffer<NightWave>(root).Clear();
                 yield return null;
                 if(GarrisonOnly){yield return BuildingDetailsUi(view,em,root);yield return GarrisonUi(view,em,root);Finish(errors.Length==0,errors.Length==0?"Building output, garrison recruitment/assignment and soldier detail UI":errors);yield break;}
+                if (InventoryOnly)
+                {
+                    foreach (var permission in new[] { "feature.Inventory", "feature.Building" }) FeatureOps.Unlock(em, root, Sim.FindDefinition(em, root, new Unity.Collections.FixedString128Bytes(permission)));
+                    yield return InventoryUi(view, em, root, settings.Gold, ids[map]);
+                    Finish(errors.Length == 0, errors.Length == 0 ? "Inventory dual views, transfers, live resource forecasts, historical bills and lifecycle" : errors); yield break;
+                }
                 if(HudPanelsOnly){yield return HudPanelsUi(view,em,root);Finish(errors.Length==0,errors.Length==0?"Research HUD, dismissible panels, royal family, requests and portrait customization UI":errors);yield break;}
                 if(InterfaceOnly){yield return PauseMenuUi(view,em,root);yield return InterfaceUi(view,em,root);Finish(errors.Length==0,errors.Length==0?"Pause and 14 targeted UI workflow only":errors);yield break;}
                 yield return BuildingCatalogUi(view, em, root);
@@ -124,15 +131,16 @@ namespace Landsong.ECS.Presentation
                 var beforeReview = SnapshotCodec.Capture(em, root);
                 yield return null; // Give the bound controllers one refresh before real UGUI button dispatch.
                 view.OpenPanel(GamePanelId.Inventory);
-                yield return WaitFor(() => view.PrimaryRows.GetComponentsInChildren<TMPro.TextMeshProUGUI>().Any(t => t.text.StartsWith("经济总览")), "economy entry in inventory UI");
-                ClickRow(view, "经济总览 · 最近账本 / 白天预测");
-                yield return WaitFor(() => view.PrimaryRows.GetComponentsInChildren<TMPro.TextMeshProUGUI>().Any(t => t.text.StartsWith("切换：白天参考预测")), "actual economy panel");
-                ClickRow(view, "切换：白天参考预测");
-                yield return WaitFor(() => view.PrimaryRows.GetComponentsInChildren<TMPro.TextMeshProUGUI>().Any(t => t.text.StartsWith("刷新预测")), "forecast panel");
-                ClickRow(view, "刷新预测（不扣资源，不推进回合）");
-                yield return WaitFor(() => em.HasComponent<EconomyForecastState>(root) && !em.GetComponentData<EconomyForecastState>(root).Fingerprint.IsEmpty, "forecast command execution");
+                view.InventoryWindow.ResourcesButton.onClick.Invoke();
+                yield return WaitFor(() => em.HasComponent<EconomyForecastState>(root)
+                    && em.GetComponentData<EconomyForecastState>(root).Fingerprint.ToString() == EconomyForecastOps.Fingerprint(em, root), "Inventory automatically computes the current-turn forecast");
                 Require(beforeReview.SequenceEqual(SnapshotCodec.Capture(em, root)), "Real UGUI forecast preserves day resources and RNG");
-                yield return WaitFor(() => view.PrimaryRows.GetComponentsInChildren<TMPro.TextMeshProUGUI>().Any(t => t.text.Contains("条件核对通过")), "forecast read model displayed");
+                yield return WaitFor(() => view.InventoryWindow.ResourceViews.Any(r => r.Item == settings.Gold), "Resource details entry available");
+                view.InventoryWindow.ResourceViews.First(r => r.Item == settings.Gold).Details.onClick.Invoke();
+                yield return WaitFor(() => view.InventoryWindow.ResourceDetailsOpen && view.InventoryWindow.ForecastStatus.text.Contains("本回合预计收支"), "Current-turn forecast shown in resource details");
+                view.InventoryWindow.ResourceDetailsClose.onClick.Invoke();
+                view.InventoryWindow.EconomyButton.onClick.Invoke();
+                yield return WaitFor(() => view.Panel == GamePanelId.Economy && view.EconomyWindow.Title.text == "账单", "Bill button opens historical bill panel");
                 view.Hud.Advance.onClick.Invoke();
                 yield return WaitFor(() => view.Panel == GamePanelId.NightConfirmation, "post-settlement confirmation UI");
                 Require(view.PrimaryRows.GetComponentsInChildren<TMPro.TextMeshProUGUI>().Any(t => t.text.Contains("尚未扣款")), "UGUI explains non-mutating settlement preview");
@@ -391,72 +399,8 @@ namespace Landsong.ECS.Presentation
             view.OpenPanel(GamePanelId.Building); SnapshotCodec.Restore(em, root, SnapshotCodec.Decode(em, root, original));
             Require(original.SequenceEqual(SnapshotCodec.Capture(em, root)), "Quest UI fixture restores complete original day");
         }
-        static IEnumerator InventoryUi(UI_GamePanel view, EntityManager em, Entity root, int item, string map)
-        {
-            var original = SnapshotCodec.Capture(em, root);
-            var slots = em.GetBuffer<InventorySlot>(root);
-            for (var i = 0; i < slots.Length; i++) { var s = slots[i]; s.Item = -1; s.Count = 0; s.LossRemainder = 0; slots[i] = s; }
-            em.GetBuffer<PendingItem>(root).Clear();
-            var keys = new List<InventorySlot>(); foreach (var s in slots) if (s.Unavailable == 0 && InventoryOps.Accepts(em, root, s.SlotType, item)) keys.Add(s);
-            Require(keys.Count >= 2, "Inventory UI fixture has two compatible real slots");
-            var first = keys[0]; var second = keys[1];
-            first.Item = item; first.Count = 8; first.LossRemainder = .8f;
-            slots[InventoryOps.SlotIndex(em, root, first.Provider, first.Index)] = first;
-            view.OpenPanel(GamePanelId.Inventory);
-            yield return WaitFor(() => SlotView(view, first)?.Count == 8, "inventory grid binds stable keys");
-            Require(SlotView(view, first).Label.text.Contains(em.GetComponentData<Identity>(Sim.Find(em, first.Provider)).Name.ToString()), "Inventory grid shows provider building name");
-            DragSlot(SlotView(view, first), SlotView(view, second));
-            yield return WaitFor(() => Slot(em, root, second).Count == 8 && SlotView(view, second)?.Count == 8, "real UGUI whole-stack drag command");
-            Require(Slot(em, root, first).Count == 0 && Mathf.Abs(Slot(em, root, second).LossRemainder - .8f) < .0001f, "Drag preserves source/destination quantity and accrued loss");
-            SlotView(view, second).GetComponent<UnityEngine.UI.Button>().onClick.Invoke();
-            yield return WaitFor(() => HasRow(view.PrimaryRows, "移动/存入所选数量：选择目标格"), "selected inventory actions");
-            view.PrimaryRows.GetComponentInChildren<TMPro.TMP_InputField>().text = "3";
-            ClickRow(view, "移动/存入所选数量：选择目标格");
-            SlotView(view, first).GetComponent<UnityEngine.UI.Button>().onClick.Invoke();
-            yield return WaitFor(() => Slot(em, root, first).Count == 3 && SlotView(view, first)?.Count == 3, "quantity input and target selection split stack");
-            Require(Slot(em, root, second).Count == 5 && Mathf.Abs(Slot(em, root, first).LossRemainder - .3f) < .0001f, "UGUI split applies selected amount with proportional loss");
-            em.GetBuffer<PendingItem>(root).Add(new PendingItem { Item = item, Amount = 4, LossRemainder = .4f });
-            view.Refresh(); // Direct fixture writes do not publish a presentation event.
-            yield return WaitFor(() => view.PrimaryRows.GetComponentsInChildren<UI_GamePanel_InventorySlot>().Any(s => s.Pending && s.Item == item), "pending pool grid");
-            DragSlot(view.PrimaryRows.GetComponentsInChildren<UI_GamePanel_InventorySlot>().Single(s => s.Pending && s.Item == item), SlotView(view, first));
-            yield return WaitFor(() => InventoryOps.PendingCount(em, root, item) == 0 && SlotView(view, first)?.Count == 7, "pending pool drag to explicit slot");
-            Require(Mathf.Abs(Slot(em, root, first).LossRemainder - .7f) < .0001f, "Pending drag retains accrued loss");
-            SlotView(view, first).GetComponent<UnityEngine.UI.Button>().onClick.Invoke();
-            yield return WaitFor(() => HasRow(view.PrimaryRows, "丢弃所选数量…"), "discard action");
-            var beforeDiscard = InventoryOps.Fingerprint(em, root);
-            view.PrimaryRows.GetComponentInChildren<TMPro.TMP_InputField>().text = "2";
-            ClickRow(view, "丢弃所选数量…");
-            Require(view.Buildings.BuildingConfirmPanel.activeSelf, "Discard requires visible confirmation");
-            Require(view.Buildings.BuildingConfirmRows.GetComponentsInChildren<TMPro.TextMeshProUGUI>().Any(t => t.text.Contains("× 2 将永久损失")), "Immediate discard reads newly entered quantity without waiting for UI refresh");
-            ClickIn(view.Buildings.BuildingConfirmRows, "取消");
-            Require(InventoryOps.Fingerprint(em, root) == beforeDiscard, "Discard cancellation is non-mutating");
-            view.PrimaryRows.GetComponentInChildren<TMPro.TMP_InputField>().text = "3";
-            ClickRow(view, "丢弃所选数量…");
-            var changed = Slot(em, root, first); changed.Count++; changed.LossRemainder += .1f;
-            var changedSlots = em.GetBuffer<InventorySlot>(root); changedSlots[InventoryOps.SlotIndex(em, root, first.Provider, first.Index)] = changed;
-            ClickIn(view.Buildings.BuildingConfirmRows, "确认");
-            yield return WaitFor(() => em.GetBuffer<Command>(root).Length == 0, "stale discard handled");
-            Require(Slot(em, root, first).Count == 8, "Changed inventory invalidates visible discard consent");
-            yield return WaitFor(() => SlotView(view, first)?.Count == 8, "fresh inventory selection");
-            SlotView(view, first).GetComponent<UnityEngine.UI.Button>().onClick.Invoke();
-            yield return WaitFor(() => HasRow(view.PrimaryRows, "丢弃所选数量…"), "fresh discard action");
-            ClickRow(view, "丢弃所选数量…"); ClickIn(view.Buildings.BuildingConfirmRows, "确认");
-            yield return WaitFor(() => Slot(em, root, first).Count == 5 && SlotView(view, first)?.Count == 5, "confirmed quantity discard");
-            Require(Mathf.Abs(Slot(em, root, first).LossRemainder - .5f) < .0001f, "Confirmed discard removes only selected quantity and debt");
-            ClickRow(view, "整理库存（合并同类，优先低损耗槽）");
-            yield return WaitFor(() => em.GetBuffer<Command>(root).Length == 0, "sort button command");
-            Require(InventoryOps.Count(em, root, item) == 10, "Real UGUI sort conserves stock");
-            if (Application.isEditor)
-            {
-                yield return new WaitForSecondsRealtime(.3f);
-                ScreenCapture.CaptureScreenshot("Library/LandsongEcs/inventory-inventory-" + map + ".png");
-                yield return new WaitForEndOfFrame();
-            }
-            SnapshotCodec.Restore(em, root, SnapshotCodec.Decode(em, root, original));
-            Require(original.SequenceEqual(SnapshotCodec.Capture(em, root)), "Inventory UI fixture restores complete original day");
-        }
         static InventorySlot Slot(EntityManager em, Entity root, InventorySlot key) => em.GetBuffer<InventorySlot>(root)[InventoryOps.SlotIndex(em, root, key.Provider, key.Index)];
-        static UI_GamePanel_InventorySlot SlotView(UI_GamePanel view, InventorySlot key) => view.PrimaryRows.GetComponentsInChildren<UI_GamePanel_InventorySlot>().FirstOrDefault(s => !s.Pending && s.Provider == key.Provider && s.Index == key.Index);
+        static UI_GamePanel_InventorySlot SlotView(UI_GamePanel view, InventorySlot key) => view.InventoryWindow.StorageSlots.FirstOrDefault(s => !s.Pending && s.Provider == key.Provider && s.Index == key.Index);
         static bool HasRow(RectTransform rows, string label) => rows != null && rows.gameObject.activeInHierarchy && rows.GetComponentsInChildren<UnityEngine.UI.Button>().Any(b => b.gameObject.activeInHierarchy && b.interactable && b.GetComponentInChildren<TMPro.TextMeshProUGUI>()?.text == label);
         static void ClickIn(RectTransform rows, string label)
         {
@@ -519,10 +463,10 @@ namespace Landsong.ECS.Presentation
         }
         void Finish(bool passed, string detail)
         {
-            if(passed&&!InterfaceOnly&&!HudPanelsOnly&&!GarrisonOnly)detail="15 shared audio buses/cue caps/pause/BGM/TMP language/input-name isolation/family/portrait/policy/model/FX ownership/unload + "+detail;
-            if (passed && !InterfaceOnly && !HudPanelsOnly && !GarrisonOnly) detail = "12 intelligence button / unread / mode isolation / running combat / pause / exit / manual knowledge + three identical font reload probes + " + detail;
-            if (passed && !InterfaceOnly && !HudPanelsOnly && !GarrisonOnly) detail = "13 peaceful TMP markers / actual DBP interception / pause / no combat XP / special auto-collection / complete report / committed history + " + detail;
-            if (passed && !InterfaceOnly && !HudPanelsOnly && !GarrisonOnly) detail = "14 camera/mouse/touch/modal/settings/slot management/history + Game pause Esc / input blocking / independent slots / quick save / settings / confirmations / prior pause / night freeze + 11C actual DBP target / ground projectile warning / pause / impact / participation + 11B hero HUD / temple quote / paid wake / portrait selection / actual DBP movement / retained anchor / peaceful zero combat XP + " + detail;
+            if(passed&&!InventoryOnly&&!InterfaceOnly&&!HudPanelsOnly&&!GarrisonOnly)detail="15 shared audio buses/cue caps/pause/BGM/TMP language/input-name isolation/family/portrait/policy/model/FX ownership/unload + "+detail;
+            if (passed && !InventoryOnly && !InterfaceOnly && !HudPanelsOnly && !GarrisonOnly) detail = "12 intelligence button / unread / mode isolation / running combat / pause / exit / manual knowledge + three identical font reload probes + " + detail;
+            if (passed && !InventoryOnly && !InterfaceOnly && !HudPanelsOnly && !GarrisonOnly) detail = "13 peaceful TMP markers / actual DBP interception / pause / no combat XP / special auto-collection / complete report / committed history + " + detail;
+            if (passed && !InventoryOnly && !InterfaceOnly && !HudPanelsOnly && !GarrisonOnly) detail = "14 camera/mouse/touch/modal/settings/slot management/history + Game pause Esc / input blocking / independent slots / quick save / settings / confirmations / prior pause / night freeze + 11C actual DBP target / ground projectile warning / pause / impact / participation + 11B hero HUD / temple quote / paid wake / portrait selection / actual DBP movement / retained anchor / peaceful zero combat XP + " + detail;
             finished = true; Debug.Log("[ECS PLAYER SMOKE] " + (passed ? "PASS " : "FAIL ") + detail);
             if (Completed != null) Completed(passed, detail);
             else if (!Application.isEditor) Application.Quit(passed ? 0 : 1);

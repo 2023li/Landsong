@@ -23,6 +23,7 @@ namespace Landsong.ECS
             em.SetComponentData(root, state);
             try { foreach (var item in em.GetBuffer<PendingItem>(root)) Record(em, root, item.Item, -item.Amount, true); em.GetBuffer<PendingItem>(root).Clear(); }
             finally { em.SetComponentData(root, prior); }
+            if (prior.Forecast == 0) EconomyBillOps.CaptureSettlement(em, root);
         }
         public static Scope For(EntityManager em, Entity root, Entity source, EconomyReason reason) => new Scope(em, root, source, reason);
         public readonly struct Scope : IDisposable

@@ -55,7 +55,7 @@ namespace Landsong.ECS.Editor
                 extracted += Extract(game, View<UI_GamePanel_Soldier>(root, "soldierController").SoldierDetailsPanel.gameObject, "SoldierDetails");
                 extracted += Extract(game, root.Buildings.BuildingConfirmPanel, "BuildingConfirm");
                 foreach (var id in root.FeaturePanels.Select(x => x.PanelId).Where(id => id != GamePanelId.Technology && id != GamePanelId.Quest).ToArray())
-                    extracted += Extract(game, root.GetListPanel(id).gameObject, FeatureAssetName(id));
+                    extracted += Extract(game, root.GetPanel(id).gameObject, FeatureAssetName(id));
                 extracted += Extract(game, root.PauseMenu.gameObject, "PauseMenu");
                 extracted += Extract(game, root.HudRoot.gameObject, "HUD");
                 ConfigurePresenters(root);
@@ -86,11 +86,6 @@ namespace Landsong.ECS.Editor
 
         static void RepairTypedRows(GameObject game, UI_GamePanel root)
         {
-            var host = game.transform.Find("强类型条目模板");
-            if (host == null) { var go = new GameObject("强类型条目模板", typeof(RectTransform)); host = go.transform; host.SetParent(game.transform, false); }
-            host.gameObject.SetActive(false);
-            var cache = game.GetComponent<PortraitCache>();
-            if (cache == null) throw new InvalidOperationException("游戏根缺少明确的肖像缓存组件。");
             var sanitized = new HashSet<string>();
             void Configure(Component owner, string field)
             {
@@ -109,36 +104,22 @@ namespace Landsong.ECS.Editor
                     {
                         var item = contents.GetComponent<UI_GamePanel_Row>();
                         if (item == null) throw new InvalidOperationException(path + " 缺少条目组件。");
-                        if (!(item is UI_GamePanel_WorkerInfoRow))
-                            foreach (var hover in contents.GetComponents<UI_GamePanel_BuildingWorkerHover>()) Object.DestroyImmediate(hover);
-                        if (item is UI_GamePanel_InventoryGridRow grid && grid.GridLayout != null) grid.Grid = (RectTransform)grid.GridLayout.transform;
+                        foreach (var hover in contents.GetComponents<UI_GamePanel_BuildingDetails_SidebarTrigger>())
+                            Object.DestroyImmediate(hover);
                         contents.SetActive(false);
                         PrefabUtility.SaveAsPrefabAsset(contents, path);
                     }
                     finally { PrefabUtility.UnloadPrefabContents(contents); }
                 }
-                UI_GamePanel_Row configured;
-                if (!EditorUtility.IsPersistent(current) && Belongs(current.transform, game.transform)) configured = current;
-                else
-                {
-                    var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
-                    var instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, host);
-                    configured = instance.GetComponent<UI_GamePanel_Row>();
-                    ownerData.Update(); ownerData.FindProperty(field).objectReferenceValue = configured;
-                    ownerData.ApplyModifiedPropertiesWithoutUndo(); Record(owner);
-                }
-                configured.gameObject.SetActive(false);
-                if (configured is UI_GamePanel_WorkerInfoRow worker)
-                { worker.WorkerHover.View = root.BuildingDetails; Record(worker.WorkerHover); }
-                foreach (var portrait in configured.GetComponentsInChildren<UI_Common_PortraitImageBinding>(true))
-                { portrait.Cache = cache; Record(portrait); }
-                configured.ValidateConfiguration();
+                if (!EditorUtility.IsPersistent(current))
+                    throw new InvalidOperationException(owner.name + "." + field + " 必须直接引用独立条目资产，不能引用游戏根下的模板对象。");
+                if (!(current is UI_GamePanel_SoldierRow))
+                    current.ValidateConfiguration();
             }
-            Configure(View<UI_GamePanel_RowRenderer>(root, "rowsController"), "RowTemplate");
-            Configure(root.BuildingDetails, "WorkerInfoTemplate"); Configure(root.BuildingDetails, "WorkforceTemplate");
-            Configure(root.InventoryWindow, "GridTemplate"); Configure(root.InventoryWindow, "QuantityTemplate");
+            foreach (var panel in root.FeaturePanels.OfType<UI_GamePanel_List>()) Configure(panel, "RowTemplate");
+            Configure(root.Buildings, "ConfirmRowTemplate"); Configure(root.BuildingDetails, "RowTemplate");
             Configure(root.GarrisonWindow, "GroupTemplate"); Configure(root.GarrisonWindow, "SoldierTemplate");
-            Configure(root.Quests, "QuantityTemplate"); Configure(View<UI_GamePanel_Portrait>(root, "portraitController"), "PortraitTemplate");
+            Configure(root.Quests, "QuantityTemplate");
         }
 
         static void EnsureSpecializedEntries(UI_GamePanel root)
@@ -176,7 +157,7 @@ namespace Landsong.ECS.Editor
             };
             foreach (var panel in root.FeaturePanels)
             {
-                if (presenters.TryGetValue(panel.PanelId, out var presenter)) panel.Presenter = presenter;
+                if (panel is UI_GamePanel_List list && presenters.TryGetValue(panel.PanelId, out var presenter)) list.Presenter = presenter;
                 panel.CloseAllowed = panel.PanelId != GamePanelId.DynastyEnd;
                 panel.CloseButton.interactable = panel.CloseAllowed;
                 panel.ValidateConfiguration(); Record(panel); Record(panel.CloseButton);
@@ -294,8 +275,8 @@ namespace Landsong.ECS.Editor
             foreach (var row in game.GetComponentsInChildren<UI_GamePanel_Row>(true)) row.ValidateConfiguration();
             foreach (var binding in game.GetComponentsInChildren<UI_Common_PortraitImageBinding>(true)) binding.ValidateConfiguration();
             foreach (var preview in game.GetComponentsInChildren<UIPreviewOnly>(true)) preview.ValidateConfiguration();
-            if (root.BuildingDetails.WorkerInfoTemplate.WorkerHover.View != root.BuildingDetails)
-                throw new InvalidOperationException("工人行模板没有绑定当前建筑详情。");
+            root.BuildingDetails.Block<UI_GamePanel_BuildingDetails_Block_基础产出>().ValidateConfiguration();
+            root.BuildingDetails.Block<UI_GamePanel_BuildingDetails_Block_种植>().ValidateConfiguration();
             if (root.InventoryWindow.DragSpace != root.InventoryWindow.DragRoot.parent || root.Hud.NightHud.RewardSpace != root.Hud.NightHud.transform)
                 throw new InvalidOperationException("库存拖拽或夜间奖励坐标空间不正确。");
             foreach (var component in game.GetComponentsInChildren<Component>(true))
@@ -349,7 +330,7 @@ namespace Landsong.ECS.Editor
 
         static string FeatureAssetName(GamePanelId id) => id switch
         {
-            GamePanelId.Economy => "Economy", GamePanelId.History => "HistoryList", GamePanelId.Inventory => "Inventory", GamePanelId.Garrison => "Garrison",
+            GamePanelId.Economy => "账单", GamePanelId.History => "HistoryList", GamePanelId.Inventory => "库存", GamePanelId.Garrison => "Garrison",
             GamePanelId.Technology => "TechnologyList", GamePanelId.Quest => "QuestList", GamePanelId.Expedition => "Expedition", GamePanelId.Talent => "TalentList", GamePanelId.Royal => "RoyalList", GamePanelId.Policy => "PolicyList",
             GamePanelId.Intelligence => "Intelligence", GamePanelId.BattleReport => "BattleReport", GamePanelId.DynastyEnd => "DynastyEnd", GamePanelId.NightConfirmation => "NightConfirmation",
             _ => throw new InvalidOperationException("尚未命名的功能资产：" + id)

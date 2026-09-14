@@ -109,7 +109,7 @@ namespace Landsong.ECS.Persistence
                 Component<NightPlanState>(manager, root); Buffer<NightEventHistory>(manager, root); Buffer<UnresolvedBoss>(manager, root); Buffer<NightPreparation>(manager, root);
                 Component<IntelProjection>(manager, root); Buffer<IntelGeometry>(manager, root);
                 Component<QuestCapacityReview>(manager, root);
-                Buffer<EconomyEntry>(manager, root); Buffer<EconomyForecastEntry>(manager, root);
+                Buffer<EconomyEntry>(manager, root); Buffer<EconomyForecastEntry>(manager, root); Buffer<EconomyBillEntry>(manager, root);
                 Buffer<Occupancy>(manager, root); Buffer<InventorySlot>(manager, root); Buffer<PendingItem>(manager, root);
                 Buffer<Entitlement>(manager, root); Buffer<ResearchEntry>(manager, root); Buffer<PolicyChoice>(manager, root);
                 Buffer<NightWave>(manager, root); Buffer<BattleReportEntry>(manager, root); Buffer<NightReward>(manager, root);

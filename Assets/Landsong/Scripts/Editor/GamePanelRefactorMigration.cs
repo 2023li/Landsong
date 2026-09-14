@@ -81,7 +81,6 @@ NightHud: {fileID: 6042121000687668643}
 PersonRequestsPanel: {fileID: 2730287796776184402}
 PortraitPanel: {fileID: 7297868468265775381}
 BeautyEventButton: {fileID: 1906377035831448809}
-BeautyEventLabel: {fileID: 7744521195154336291}
 QuestPanel: {fileID: 7567169049054468766}
 QuestTracking: {fileID: 1096202484840312181}
 ResearchHud: {fileID: 7081837540202655172}
@@ -89,23 +88,6 @@ RoyalDetails: {fileID: 5096057732768234242}
 SoldierDetailsPanel: {fileID: 5355856840064754900}
 TechnologyButton: {fileID: 3777332963140372884}
 TechnologyTree: {fileID: 999833085491177205}";
-        const string LegacyRow = @"Select: {fileID: 3400554105072621481}
-Label: {fileID: 4758791463895930967}
-Layout: {fileID: 3966500407983250628}
-Icon: {fileID: 556530786438550450}
-PersonPortrait: {fileID: 3018983990158504671}
-PersonPortraitBinding: {fileID: 7365608973842663496}
-WorkerHover: {fileID: 7087434080353177030}
-GarrisonGroup: {fileID: 6759112185640721190}
-SoldierItem: {fileID: 150255660531331230}
-InventoryGrid: {fileID: 7906646955978255130}
-InventoryGridLayout: {fileID: 8348893634030786268}
-InventorySlotTemplate: {fileID: 7419331413923649016}
-InventoryQuantity: {fileID: 897885888300956612}
-QuestQuantity: {fileID: 5878974577358182893}
-MilitaryName: {fileID: 0}
-WorkforceScale: {fileID: 8398850338613958617}";
-
         public static string Run()
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode) throw new InvalidOperationException("请退出运行模式后迁移游戏界面。");
@@ -123,7 +105,6 @@ WorkforceScale: {fileID: 8398850338613958617}";
             {
                 var idMap = LocalIds(asset, game);
                 var legacy = ReadReferences(LegacyRoot, idMap);
-                var rowFields = ReadReferences(LegacyRow, idMap);
                 foreach (var oldId in new long[] { 3319902776612355742, 2322720949406533739, 4015106073268150435, 3780886140288373332 })
                     if (idMap.TryGetValue(oldId, out var oldPage) && oldPage != null) Object.DestroyImmediate(GameObjectOf(oldPage));
                 var root = game.GetComponent<UI_GamePanel>() ?? throw new InvalidOperationException("旧游戏面板缺少组合根。");
@@ -150,10 +131,11 @@ WorkforceScale: {fileID: 8398850338613958617}";
                 Add<UI_GamePanel_PersonRequests>("requestsController", Host("PersonRequestsPanel"));
                 Add<UI_GamePanel_Soldier>("soldierController", Host("SoldierDetailsPanel"));
                 var hud = Add<UI_GamePanel_Hud>("hudController", Host("HudRoot"));
+                // 丽质塑容统一从人物请求进入，不再保留常驻 HUD 快捷按钮。
+                Object.DestroyImmediate(GameObjectOf(legacy["BeautyEventButton"]));
                 Add<UI_GamePanel_History>("historyController", Host("NavigationPanel"));
                 Add<UI_GamePanel_Expedition>("expeditionController", root.GetListPanel(GamePanelId.Expedition).gameObject);
                 Add<UI_GamePanel_Phase>("phaseController", Child(game.transform, "阶段与结算").gameObject);
-                var rows = Add<UI_GamePanel_RowRenderer>("rowsController", Child(game.transform, "公共条目渲染").gameObject);
                 var world = Add<UI_GamePanel_WorldInteraction>("worldController", Child(game.transform, "GameWorldInteraction").gameObject);
                 var talentGraph = Object.Instantiate(court.CourtGraph, root.FeatureRoot, false);
                 talentGraph.name = "人才展示";
@@ -167,7 +149,7 @@ WorkforceScale: {fileID: 8398850338613958617}";
                 var talent = Add<UI_GamePanel_Talent>("talentController", talentGraph.gameObject); talent.CourtGraph = talentGraph;
                 var policy = Add<UI_GamePanel_Policy>("policyController", policyGraph.gameObject); policy.CourtGraph = policyGraph;
                 ConfigureGraph(court.CourtGraph, true); ConfigureGraph(talentGraph, false); ConfigureGraph(policyGraph, false);
-                foreach (var panel in root.FeaturePanels)
+                foreach (var panel in root.FeaturePanels.OfType<UI_GamePanel_List>())
                 {
                     panel.ContentRoot = panel.PrimaryScroll.gameObject;
                     if (panel.PanelId == GamePanelId.DynastyEnd) panel.CloseButton.interactable = false;
@@ -177,17 +159,18 @@ WorkforceScale: {fileID: 8398850338613958617}";
                 court.RoyalOverviewRoot.SetParent(court.RoyalDetails.OverviewHost, false);
                 Stretch(court.RoyalOverviewRoot);
                 var sourceRow = (UI_GamePanel_Row)legacy["RowTemplate"];
-                var templateRoot = Child(game.transform, "强类型条目模板"); templateRoot.gameObject.SetActive(false);
-                rows.RowTemplate = MakeRow<UI_GamePanel_Row>(sourceRow, rowFields, templateRoot, "通用条目", "建筑维护 · 本回合产出 +12 木材");
-                root.InventoryWindow.GridTemplate = MakeRow<UI_GamePanel_InventoryGridRow>(sourceRow, rowFields, templateRoot, "库存网格", "库存", ("Grid", "InventoryGrid"), ("GridLayout", "InventoryGridLayout"), ("SlotTemplate", "InventorySlotTemplate"));
-                root.InventoryWindow.QuantityTemplate = MakeRow<UI_GamePanel_QuantityRow>(sourceRow, rowFields, templateRoot, "库存数量", "转移数量", ("Quantity", "InventoryQuantity"));
-                root.GarrisonWindow.GroupTemplate = MakeRow<UI_GamePanel_GarrisonRow>(sourceRow, rowFields, templateRoot, "驻军分组", "城堡守军", ("Group", "GarrisonGroup"));
-                root.GarrisonWindow.SoldierTemplate = MakeRow<UI_GamePanel_SoldierRow>(sourceRow, rowFields, templateRoot, "士兵条目", "守卫 · 等级 3", ("Soldier", "SoldierItem"));
-                buildingDetails.WorkerInfoTemplate = MakeRow<UI_GamePanel_WorkerInfoRow>(sourceRow, rowFields, templateRoot, "工人信息", "工人岗位 · 4 / 6", ("WorkerHover", "WorkerHover"));
-                buildingDetails.WorkforceTemplate = MakeRow<UI_GamePanel_WorkforceRow>(sourceRow, rowFields, templateRoot, "岗位预算", "招募预算 · 24 金币", ("Workforce", "WorkforceScale"));
-                quest.QuantityTemplate = MakeRow<UI_GamePanel_QuantityRow>(sourceRow, rowFields, templateRoot, "任务数量", "提交数量", ("Quantity", "QuestQuantity"));
-                portrait.PortraitTemplate = MakeRow<UI_GamePanel_PortraitRow>(sourceRow, rowFields, templateRoot, "人物肖像", "伊莲娜 · 王室成员", ("Portrait", "PersonPortrait"), ("PortraitBinding", "PersonPortraitBinding"));
+                var templateRoot = Child(game.transform, "强类型条目模板");
+                var genericTemplate = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Landsong/Objects/Prefabs/UI/GamePanel/Items/UI_GamePanel_Row.prefab").GetComponent<UI_GamePanel_Row>();
+                foreach (var panel in root.FeaturePanels.OfType<UI_GamePanel_List>())
+                    panel.RowTemplate = genericTemplate;
+                building.ConfirmRowTemplate = genericTemplate;
+                buildingDetails.RowTemplate = genericTemplate;
+                InventoryUiMigration.Configure(root.InventoryWindow);
+                root.GarrisonWindow.GroupTemplate = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Landsong/Objects/Prefabs/UI/GamePanel/Items/UI_GamePanel_GarrisonRow.prefab").GetComponent<UI_GamePanel_GarrisonRow>();
+                root.GarrisonWindow.SoldierTemplate = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Landsong/Objects/Prefabs/UI/GamePanel/Items/UI_GamePanel_SoldierRow.prefab").GetComponent<UI_GamePanel_SoldierRow>();
+                quest.QuantityTemplate = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Landsong/Objects/Prefabs/UI/GamePanel/Items/UI_GamePanel_QuantityRow_Quest.prefab").GetComponent<UI_GamePanel_QuantityRow>();
                 Object.DestroyImmediate(sourceRow.gameObject);
+                Object.DestroyImmediate(templateRoot.gameObject);
                 world.PreviewTemplates = ConfigureBuildingPreviews(building.BuildingCatalog);
                 if (childViews.Distinct().Count() != childViews.Count) throw new InvalidOperationException("子控制器引用重复。");
                 ApplicationUiMigration.StripCanvas(game);
@@ -237,62 +220,6 @@ WorkforceScale: {fileID: 8398850338613958617}";
             var serialized = new SerializedObject(target);
             var property = serialized.FindProperty(field) ?? throw new InvalidOperationException(target.name + " 未声明字段：" + field);
             property.objectReferenceValue = value; serialized.ApplyModifiedPropertiesWithoutUndo();
-        }
-        static T MakeRow<T>(UI_GamePanel_Row source, Dictionary<string, Object> legacy, Transform templateRoot, string name, string example, params (string field, string old)[] extra) where T : UI_GamePanel_Row
-        {
-            var clone = Object.Instantiate(source.gameObject);
-            clone.name = "UI_GamePanel_" + name;
-            try
-            {
-                var pairs = PairObjects(source.gameObject, clone);
-                Object.DestroyImmediate(clone.GetComponent<UI_GamePanel_Row>());
-                var row = clone.AddComponent<T>();
-                var refs = new Dictionary<string, Object>();
-                foreach (var key in new[] { "Select", "Label", "Layout", "Icon" }) refs[key] = Remap(legacy[key], pairs);
-                foreach (var entry in extra)
-                {
-                    var mapped = Remap(legacy[entry.old], pairs);
-                    refs[entry.field] = entry.field == "Grid" ? GameObjectOf(mapped).transform : mapped;
-                }
-                CopyReferences(row, refs);
-                var required = refs.Values.Where(x => x != null).Select(GameObjectOf).ToArray();
-                foreach (Transform child in clone.transform.Cast<Transform>().ToArray())
-                    if (!required.Any(x => x.transform == child || x.transform.IsChildOf(child))) Object.DestroyImmediate(child.gameObject);
-                foreach (var hover in clone.GetComponents<UI_GamePanel_BuildingWorkerHover>())
-                    if (!(row is UI_GamePanel_WorkerInfoRow)) Object.DestroyImmediate(hover);
-                row.Label.text = example;
-                foreach (var reference in refs.Values.OfType<TMP_InputField>()) reference.SetTextWithoutNotify("1");
-                clone.SetActive(false); row.ValidateConfiguration();
-                ApplicationUiMigration.BindPresentation(clone);
-                // Scene-owner references are authored as nested prefab overrides, never stored across prefab files.
-                var external = new List<(Component component, string path, Object value)>();
-                foreach (var component in clone.GetComponentsInChildren<Component>(true))
-                {
-                    var serialized = new SerializedObject(component); var property = serialized.GetIterator();
-                    while (property.Next(true))
-                    {
-                        if (property.propertyType != SerializedPropertyType.ObjectReference) continue;
-                        var value = property.objectReferenceValue;
-                        if (value == null || EditorUtility.IsPersistent(value) || !(value is Component || value is GameObject)) continue;
-                        var transform = GameObjectOf(value).transform;
-                        if (transform == clone.transform || transform.IsChildOf(clone.transform)) continue;
-                        external.Add((component, property.propertyPath, value)); property.objectReferenceValue = null;
-                    }
-                    serialized.ApplyModifiedPropertiesWithoutUndo();
-                }
-                var prefab = PrefabUtility.SaveAsPrefabAsset(clone, ItemPath + clone.name + ".prefab");
-                var nested = (GameObject)PrefabUtility.InstantiatePrefab(prefab, templateRoot);
-                var nestedPairs = PairObjects(clone, nested);
-                foreach (var entry in external)
-                {
-                    var serialized = new SerializedObject(nestedPairs[entry.component]);
-                    serialized.FindProperty(entry.path).objectReferenceValue = entry.value;
-                    serialized.ApplyModifiedPropertiesWithoutUndo();
-                    PrefabUtility.RecordPrefabInstancePropertyModifications(nestedPairs[entry.component]);
-                }
-                var configured = nested.GetComponent<T>(); configured.ValidateConfiguration(); return configured;
-            }
-            finally { Object.DestroyImmediate(clone); }
         }
         static Object Remap(Object value, Dictionary<Object, Object> pairs) => value != null && pairs.TryGetValue(value, out var clone) ? clone : value;
         static Dictionary<Object, Object> PairObjects(GameObject source, GameObject target)

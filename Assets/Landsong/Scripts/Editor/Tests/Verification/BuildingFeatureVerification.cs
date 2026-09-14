@@ -83,7 +83,10 @@ namespace Landsong.ECS.Editor
             Check(view != null && view.Buildings != null, "Game panel has configured building controller");
             var buildings = view.Buildings;
             var details = view.BuildingDetails;
-            Check(buildings.BuildingActionBar != null && buildings.BuildingDetailsButton != null && details != null && buildings.DetailsPanel == details && details.DetailsRows == details.Block<UI_GamePanel_BuildingDetails_Block_其他>().Rows && details.WorkerInfoTemplate != null && details.WorkforceTemplate != null && buildings.BuildingConfirmRows != null && buildings.BuildingCatalog == catalog && buildings.BuildingBar != null && buildings.BuildingBar.Cards != null && buildings.BuildingBar.Tabs != null, "Game panel serialized building UGUI wiring");
+            var productionBlock = details.Block<UI_GamePanel_BuildingDetails_Block_基础产出>();
+            var plantingBlock = details.Block<UI_GamePanel_BuildingDetails_Block_种植>();
+            Check(buildings.BuildingActionBar != null && buildings.BuildingDetailsButton != null && details != null && buildings.DetailsPanel == details && details.DetailsRows == details.Block<UI_GamePanel_BuildingDetails_Block_其他>().Rows && productionBlock.Hover != null && productionBlock.Hover.View == details && plantingBlock.Hover != null && plantingBlock.Hover.View == details && buildings.BuildingConfirmRows != null && buildings.BuildingCatalog == catalog && buildings.BuildingBar != null && buildings.BuildingBar.Cards != null && buildings.BuildingBar.Tabs != null, "Game panel serialized building UGUI wiring");
+            Check(new SerializedObject(buildings).FindProperty("openWithOwner").boolValue, "Building action bar controller opens with GamePanel owner");
         }
         static void VerifyMap(string path)
         {

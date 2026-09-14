@@ -2108,6 +2108,7 @@ MonoBehaviour:
   Presenter: {fileID: 1616967558953934129}
   CloseAllowed: 1
   ManageContentVisibility: 0
+  RowTemplate: {fileID: 1573664279546181541, guid: a6505af27ca58fd479bd424bc2087351, type: 3}
 --- !u!1 &2891216283314166623
 GameObject:
   m_ObjectHideFlags: 0

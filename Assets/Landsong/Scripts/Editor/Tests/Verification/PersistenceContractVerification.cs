@@ -92,7 +92,7 @@ namespace Landsong.ECS.Editor
                 EcsVerification.Bake(world, scene.GetRootGameObjects(), blobs); var em = world.EntityManager; var root = Sim.Root(em);
                 GameLoopSystem.Initialize(em, root); var map = em.GetComponentData<MapIdentity>(root).Id.ToString();
                 var baseline = SnapshotCodec.Capture(em, root);
-                Check(Format(baseline) == 24, "New snapshots use explicit v24: " + map);
+                Check(Format(baseline) == SnapshotCodec.CurrentVersion, "New snapshots use the current explicit format: " + map);
                 SnapshotCodec.Restore(em, root, SnapshotCodec.Decode(em, root, baseline));
                 Check(baseline.SequenceEqual(SnapshotCodec.Capture(em, root)), "Explicit protocol round trips state exactly: " + map);
                 SignatureCoverage(em, root, baseline);

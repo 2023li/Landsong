@@ -22,13 +22,12 @@ namespace Landsong.ECS.Presentation
                 for(int i=traits.Length-1;i>=0;i--)if(traits[i].Definition==beauty)traits.RemoveAt(i);
                 traits.Add(new TraitEntry{Definition=beauty,Revealed=1,Active=1});PortraitOps.Ensure(em,root,king);
                 var dna=em.GetComponentData<PortraitDNA>(king);dna.Customized=0;dna.InvitationAnnounced=0;em.SetComponentData(king,dna);PortraitOps.Announce(em,root);
-                yield return WaitFor(()=>view.portraitController.BeautyEventButton!=null&&view.portraitController.BeautyEventButton.gameObject.activeSelf,"Youth beauty exposes a postponable HUD event");
+                yield return WaitFor(()=>PersonRequestOps.Pending(em,root,king).Any(request=>request.Kind==PersonRequestKind.Portrait),"Youth beauty remains available through personal requests");
                 view.OpenPanel(GamePanelId.Royal);
                 var graph=view.Court.CourtGraph;
                 yield return WaitFor(()=>graph.gameObject.activeInHierarchy&&graph.Node(id)!=null,"Portrait family fixture is visible");
                 graph.Node(id).onClick.Invoke();
                 yield return WaitFor(()=>view.Court.RoyalDetails.Portrait.sprite!=null,"Burst composition publishes royal detail sprite");
-                Require(!view.portraitController.BeautyEventButton.gameObject.activeSelf,"Beauty HUD never covers family detail panel");
                 var face=graph.NodeView(id).Portrait;
                 yield return WaitFor(()=>face.sprite!=null&&face.sprite==view.Court.RoyalDetails.Portrait.sprite,"Family and detail share one cached sprite");
                 Require(face.sprite.texture.width==64&&face.sprite.texture.filterMode==FilterMode.Point,"Project resolution and pixel sampling reach actual UI");

@@ -21,7 +21,7 @@ namespace Landsong.ECS.Presentation
 {
     public sealed class UI_GamePanel_History : Moyo.Unity.UIViewBase, IGameFeatureRenderer
     {
-        public void BindFeature(GameUiSession session, GameUiCommandWriter commands, IGameUiNavigation navigation, UI_GamePanel_RowRenderer rows)
+        public void BindFeature(GameUiSession session, GameUiCommandWriter commands, IGameUiNavigation navigation, UI_GamePanel_List rows)
         {
             if (session == null || commands == null || navigation == null || rows == null)
                 throw new System.ArgumentException("功能展示器缺少会话服务。");
@@ -32,7 +32,7 @@ namespace Landsong.ECS.Presentation
 
         public void Render() => HistoryRows();
         internal IGameUiNavigation navigation;
-        internal UI_GamePanel_RowRenderer rowsController;
+        internal UI_GamePanel_List rowsController;
         internal GameUiSession sessionController;
         internal UI_GamePanel_WorldInteraction worldController;
         [Sirenix.OdinInspector.LabelText("导航面板")]

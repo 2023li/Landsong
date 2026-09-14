@@ -21,7 +21,7 @@ namespace Landsong.ECS.Presentation
 {
     public sealed class UI_GamePanel_Court : Moyo.Unity.UIViewBase, IGameFeatureRenderer, IGameCourtUi
     {
-        public void BindFeature(GameUiSession session, GameUiCommandWriter commands, IGameUiNavigation navigation, UI_GamePanel_RowRenderer rows)
+        public void BindFeature(GameUiSession session, GameUiCommandWriter commands, IGameUiNavigation navigation, UI_GamePanel_List rows)
         {
             if (session == null || commands == null || navigation == null || rows == null)
                 throw new System.ArgumentException("功能展示器缺少会话服务。");
@@ -37,7 +37,7 @@ namespace Landsong.ECS.Presentation
         internal UI_GamePanel_Marriage marriageController;
         internal UI_GamePanel_PersonRequests requestsController;
         internal IGameUiNavigation navigation;
-        internal UI_GamePanel_RowRenderer rowsController;
+        internal UI_GamePanel_List rowsController;
         internal GameUiSession sessionController;
         internal ulong courtPerson;
         internal bool CourtDay => sessionController.em.GetComponentData<Session>(sessionController.root).Phase == Phase.Day;

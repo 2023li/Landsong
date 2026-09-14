@@ -61,3 +61,4 @@ MonoBehaviour:
   Presenter: {fileID: 0}
   CloseAllowed: 1
   ManageContentVisibility: 1
+  RowTemplate: {fileID: 1573664279546181541, guid: a6505af27ca58fd479bd424bc2087351, type: 3}

@@ -480,6 +480,7 @@ MonoBehaviour:
   Presenter: {fileID: 149806859000633370}
   CloseAllowed: 1
   ManageContentVisibility: 1
+  RowTemplate: {fileID: 1573664279546181541, guid: a6505af27ca58fd479bd424bc2087351, type: 3}
 --- !u!114 &149806859000633370
 MonoBehaviour:
   m_ObjectHideFlags: 0
