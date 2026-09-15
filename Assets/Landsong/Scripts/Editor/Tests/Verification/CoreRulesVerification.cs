@@ -25,7 +25,7 @@ namespace Landsong.ECS.Editor
             log = new StringBuilder(); checks = 0;
             try
             {
-                foreach (var path in AssetDatabase.FindAssets("t:Scene", new[] { "Assets/Landsong/Scenes/EntityMaps" }).Select(AssetDatabase.GUIDToAssetPath).Where(p => p.EndsWith("_Entities.unity"))) VerifyMap(path);
+                foreach (var path in Landsong.EditorTools.GameMapPaths.BakedScenes()) VerifyMap(path);
                 log.AppendLine("Assertions: " + checks); return log.ToString();
             }
             catch (Exception error) { log.AppendLine(error.ToString()); throw; }

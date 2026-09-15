@@ -14,7 +14,7 @@ namespace Landsong.ECS.Editor
         public const string ReportPath = "Library/LandsongEcs/regressions.txt";
         static readonly Func<string>[] Suites =
         {
-            PresentationVerification.Run, InterfaceArchiveVerification.Run, PeacefulVerification.Run,
+            GameMapWorkflowVerification.Run, PresentationVerification.Run, InterfaceArchiveVerification.Run, PeacefulVerification.Run,
             IntelligenceVerification.Run, BuildingCatalogVerification.Run, PauseMenuVerification.Run,
             CombatVerification.Run, HeroVerification.Run, SoldierVerification.Run, NightPlanningVerification.Run,
             CourtVerification.Run, InvitationExpeditionVerification.Run, QuestVerification.Run,

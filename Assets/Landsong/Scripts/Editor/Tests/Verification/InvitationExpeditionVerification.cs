@@ -30,7 +30,7 @@ namespace Landsong.ECS.Editor
             {
                 Configuration();
                 // Map_Test01 is an intentionally incomplete test map, not an onboarding acceptance target.
-                Map("Assets/Landsong/Scenes/EntityMaps/Map_Test2_Entities.unity");
+                Map("Assets/Landsong/GameMaps/Map_Test2/Map_Test2Data/Generated/Map_Test2_Entities.unity");
                 log.AppendLine("Assertions: " + checks); return log.ToString();
             }
             catch (Exception e) { log.AppendLine(e.ToString()); throw; }

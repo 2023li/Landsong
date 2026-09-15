@@ -19,7 +19,7 @@ namespace Landsong.ECS.Editor
         public static string Run()
         {
             log = new StringBuilder(); checks = 0;
-            var scene = EditorSceneManager.OpenPreviewScene("Assets/Landsong/Scenes/EntityMaps/Map_Test2_Entities.unity"); using var store = new BlobAssetStore(128); using var world = new World("Hero verification", WorldFlags.Game);
+            var scene = EditorSceneManager.OpenPreviewScene("Assets/Landsong/GameMaps/Map_Test2/Map_Test2Data/Generated/Map_Test2_Entities.unity"); using var store = new BlobAssetStore(128); using var world = new World("Hero verification", WorldFlags.Game);
             try
             {
                 EcsVerification.Bake(world, scene.GetRootGameObjects(), store); var em = world.EntityManager; var root = Sim.Root(em); GameLoopSystem.Initialize(em, root);

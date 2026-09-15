@@ -102,7 +102,7 @@ namespace Landsong.ECS.Editor
         {
             var modified=CatalogFixture.Clone(catalog);
             var farm=modified.Definitions[modified.Find("b农田")];
-            var scene=EditorSceneManager.OpenPreviewScene("Assets/Landsong/Scenes/EntityMaps/Map_Test2_Entities.unity");
+            var scene=EditorSceneManager.OpenPreviewScene("Assets/Landsong/GameMaps/Map_Test2/Map_Test2Data/Generated/Map_Test2_Entities.unity");
             using var store=new BlobAssetStore(128);
             using var world=new World("Building module level execution",WorldFlags.Game);
             try

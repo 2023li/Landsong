@@ -30,8 +30,7 @@ namespace Landsong.ECS.Editor
                 Check(AssetDatabase.IsValidFolder(ecsScripts) && !Directory.Exists("Assets/Landsong/ECS") && !File.Exists("Assets/Landsong/ECS.meta"), "Single script root: ECS lives under Scripts");
                 VerifyAssemblyBoundaries(Check);
                 VerifySystemOrdering(Check);
-                foreach (var path in AssetDatabase.FindAssets("t:Scene", new[] { "Assets/Landsong/Scenes" }).Select(AssetDatabase.GUIDToAssetPath)
-                    .Where(path => path.StartsWith("Assets/Landsong/Scenes/EntityMaps/", StringComparison.Ordinal) || Path.GetDirectoryName(path)?.Replace('\\', '/') == "Assets/Landsong/Scenes"))
+                foreach (var path in Landsong.ECS.Presentation.EcsSceneFlow.BuildScenes.Concat(Landsong.EditorTools.GameMapPaths.BakedScenes()))
                 {
                     var scene = EditorSceneManager.OpenPreviewScene(path);
                     try { Check(scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<Transform>(true)).All(t => GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(t.gameObject) == 0), "Formal scene scripts intact: " + path); }
@@ -42,9 +41,9 @@ namespace Landsong.ECS.Editor
                     var path = AssetDatabase.GUIDToAssetPath(guid); var root = AssetDatabase.LoadAssetAtPath<GameObject>(path);
                     Check(root != null && root.GetComponentsInChildren<Transform>(true).All(t => GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(t.gameObject) == 0), "Prefab scripts intact: " + path);
                 }
-                foreach (var guid in AssetDatabase.FindAssets("t:MapAsset", new[] { "Assets/Landsong/ECSContent/Maps" }))
+                foreach (var mapPath in Landsong.EditorTools.GameMapPaths.BakedMapPaths())
                 {
-                    var map = AssetDatabase.LoadAssetAtPath<MapAsset>(AssetDatabase.GUIDToAssetPath(guid));
+                    var map = AssetDatabase.LoadAssetAtPath<MapAsset>(mapPath);
                     var source = EditorSceneManager.OpenPreviewScene(EcsMapIncrementalImport.SourceScene(map));
                     try
                     {

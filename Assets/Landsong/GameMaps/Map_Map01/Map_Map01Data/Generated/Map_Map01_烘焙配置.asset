@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 08b956c0934c60142bfe8e0991101f80, type: 3}
+  m_Name: "Map_Map01_\u70D8\u7119\u914D\u7F6E"
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.GridSystem.TileWorldCreatorMapBakeProfile
+  sourceConfiguration: {fileID: 11400000, guid: 48d51294d9f24a649be164fc8315cab5, type: 2}
+  sourceSceneGuid: fdff513aa53b1c54eb6cc7e51f0f9dbf
+  sourceScenePath: Assets/Landsong/GameMaps/Map_Map01/Map_Map01.unity
+  outputMap: {fileID: 11400000, guid: ed1c6b44878e56a428e11e7bd6e94319, type: 2}
+  baseLayerGuid: 
+  baseLayerName: Base
+  baseTerrainKey: "\u6C34\u57DF"
+  baseBuildable: 0
+  baseTraversable: 1
+  elevationWorldStep: 0.1
+  regenerateTileWorldBeforeBake: 0
+  requireDeterministicGlobalSeed: 1
+  layerBindings:
+  - layerGuid: 
+    layerName: land
+    terrainKey: "\u9646\u5730"
+    replacePrimaryTerrain: 1
+    buildable: 1
+    traversable: 1
+    useLayerHeight: 1
+    overrideSurfaceLayer: 0
+    surfaceLayer: 0

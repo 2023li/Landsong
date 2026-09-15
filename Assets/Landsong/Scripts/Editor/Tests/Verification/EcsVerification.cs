@@ -30,7 +30,7 @@ namespace Landsong.ECS.Editor
             {
                 var catalog = AssetDatabase.LoadAssetAtPath<GameCatalogAsset>("Assets/Landsong/ECSContent/GameCatalog.asset");
                 Check(catalog != null && catalog.Definitions.Length > 0, "Native catalog exists");
-                var scenes = AssetDatabase.FindAssets("t:Scene", new[] { Landsong.ECS.Presentation.EcsSceneFlow.MapSceneRoot.TrimEnd('/') }).Select(AssetDatabase.GUIDToAssetPath).Where(p => p.EndsWith("_Entities.unity")).ToArray();
+                var scenes = Landsong.EditorTools.GameMapPaths.BakedScenes().ToArray();
                 Check(scenes.Length >= 2, "Both maps have native SubScenes");
                 foreach (var path in scenes) VerifyScene(path);
                 report.AppendLine("Assertions: " + assertions);

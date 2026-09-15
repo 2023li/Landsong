@@ -34,8 +34,8 @@ namespace Landsong.ECS.Editor
                 Lifetime();
                 foreach (var path in new[]
                 {
-                    "Assets/Landsong/Scenes/EntityMaps/Map_Test2_Entities.unity",
-                    "Assets/Landsong/Scenes/EntityMaps/Map_Test01_Entities.unity"
+                    "Assets/Landsong/GameMaps/Map_Test2/Map_Test2Data/Generated/Map_Test2_Entities.unity",
+                    "Assets/Landsong/GameMaps/Map_Test01/Map_Test01Data/Generated/Map_Test01_Entities.unity"
                 }) QuestEntry(path);
                 log.AppendLine("Assertions: " + assertions);
                 return log.ToString();

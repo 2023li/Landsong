@@ -37,7 +37,7 @@ namespace Landsong.ECS.Editor
             {
                 SnapshotBinaryV24.ValidateFieldCoverage(); Check(true, "Explicit v24 schema covers every registered public field");
                 HarvestRollback(); HistoryCategories();
-                foreach (var path in AssetDatabase.FindAssets("t:Scene", new[] { "Assets/Landsong/Scenes/EntityMaps" }).Select(AssetDatabase.GUIDToAssetPath).Where(p => p.EndsWith("_Entities.unity"))) Map(path);
+                foreach (var path in Landsong.EditorTools.GameMapPaths.BakedScenes()) Map(path);
                 report.AppendLine("Completed: " + DateTimeOffset.Now.ToString("O")); report.AppendLine("Assertions: " + assertions);
                 return report.ToString();
             }

@@ -183,7 +183,7 @@ namespace Landsong.ECS.Editor
                 var inactive = Rect("InactivePanels", root.transform); FullScreen(inactive); inactive.SetActive(false);
                 var manager = root.AddComponent<UIManager>();
                 var app = root.AddComponent<ApplicationUiRoot>(); var flow = root.AddComponent<GameApplicationFlow>(); app.Manager = manager; app.Flow = flow; app.Presentation = runtime;
-                var configPath = "Assets/Landsong/Objects/SO/UIConfig.asset";
+                var configPath = "Assets/Landsong/Objects/Prefabs/UI/Bootstrap/UIConfig.asset";
                 var config = AssetDatabase.LoadAssetAtPath<UIConfig>(configPath);
                 if (config == null) { config = ScriptableObject.CreateInstance<UIConfig>(); AssetDatabase.CreateAsset(config, configPath); }
                 var configs = new List<UIPanelConfig>();

@@ -34,6 +34,27 @@ namespace GiantGrey.TileWorldCreator.Utilities {
 		static readonly List<Coroutine> coroutines = new List<Coroutine> ();
 		static readonly List<Coroutine> toAdd = new List<Coroutine>();
 		static bool isUpdating;
+
+		/// <summary>Editor baking must finish mesh generation and post-processing before saving.
+		/// Refuse an already running interactive job so this scope owns every coroutine it drains.</summary>
+		public static void RunToCompletion(System.Action start, double timeoutSeconds = 120)
+		{
+			if (isUpdating || coroutines.Count != 0 || toAdd.Count != 0)
+				throw new System.InvalidOperationException("TWC is still generating. Wait for the current operation before baking.");
+			var deadline = EditorApplication.timeSinceStartup + timeoutSeconds;
+			try
+			{
+				start();
+				while (coroutines.Count != 0 || toAdd.Count != 0)
+				{
+					if (EditorApplication.timeSinceStartup > deadline) throw new System.TimeoutException("TWC mesh generation timed out.");
+					Update();
+					UnityEngine.Physics.SyncTransforms();
+					if (coroutines.Count > 0 && coroutines.TrueForAll(c => c.waitTime > EditorApplication.timeSinceStartup)) System.Threading.Thread.Sleep(1);
+				}
+			}
+			finally { StopAll(); isUpdating = false; EditorUtility.ClearProgressBar(); }
+		}
  
 		public static void Execute (IEnumerator enumerator, System.Action<bool> OnUpdate = null) 
 		{

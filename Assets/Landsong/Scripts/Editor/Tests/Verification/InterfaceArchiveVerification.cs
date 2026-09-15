@@ -43,7 +43,7 @@ namespace Landsong.ECS.Editor
         }
         static void Simulation()
         {
-            var scene=EditorSceneManager.OpenPreviewScene("Assets/Landsong/Scenes/EntityMaps/Map_Test2_Entities.unity");using var blobs=new BlobAssetStore(128);using var world=new World("Wave fourteen isolated",WorldFlags.Game);
+            var scene=EditorSceneManager.OpenPreviewScene("Assets/Landsong/GameMaps/Map_Test2/Map_Test2Data/Generated/Map_Test2_Entities.unity");using var blobs=new BlobAssetStore(128);using var world=new World("Wave fourteen isolated",WorldFlags.Game);
             try
             {
                 EcsVerification.Bake(world,scene.GetRootGameObjects(),blobs);var em=world.EntityManager;var root=Sim.Root(em);GameLoopSystem.Initialize(em,root);

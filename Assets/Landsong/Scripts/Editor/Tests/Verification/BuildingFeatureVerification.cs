@@ -49,7 +49,7 @@ namespace Landsong.ECS.Editor
             try
             {
                 VerifyAssets();
-                foreach (var path in AssetDatabase.FindAssets("t:Scene", new[] { EcsSceneFlow.MapSceneRoot.TrimEnd('/') }).Select(AssetDatabase.GUIDToAssetPath).Where(p => p.EndsWith("_Entities.unity"))) VerifyMap(path);
+                foreach (var path in Landsong.EditorTools.GameMapPaths.BakedScenes()) VerifyMap(path);
                 report.AppendLine("Assertions: " + assertions); return report.ToString();
             }
             catch (Exception e) { report.AppendLine(e.ToString()); throw; }

@@ -23,18 +23,11 @@ namespace Landsong.ECS.Editor
             public float CellSize;
             public CellSource[] Cells;
         }
-        [MenuItem("Landsong/ECS/Update selected map terrain from TWC")]
-        public static void UpdateSelectedMapTerrain()
+        public static TerrainSnapshot ReadTerrain(MapContentAuthoring content, GridMapDefinition source = null)
         {
-            var map = Selection.activeObject as MapAsset;
-            if (map == null) throw new InvalidOperationException("Select the target ECS MapAsset first.");
-            if (!EditorUtility.DisplayDialog("更新 ECS 地形", "只更新逻辑地形和导入网格，保留初始建筑、刷怪区域、数值和 UI。请先烘焙并保存 TWC 源场景。", "更新", "取消")) return;
-            Import(map);
-        }
-        public static TerrainSnapshot ReadTerrain(MapContentAuthoring content)
-        {
-            if (!content.TryValidateConfiguration(out var error)) throw new InvalidOperationException(error);
-            var source = content.MapDefinition; var bounds = source.BakedCellBounds;
+            if (source == null) source = content.MapDefinition;
+            if (!content.TryValidateConfiguration(source, out var error)) throw new InvalidOperationException(error);
+            var bounds = source.BakedCellBounds;
             var data = new TerrainSnapshot { Min = new Vector2Int(bounds.xMin, bounds.zMin), Size = new Vector2Int(bounds.size.x, bounds.size.z),
                 Origin = new GridLayoutService(content.UnityGrid).GridToWorldPoint(0, 0), CellSize = source.CellSize };
             data.Cells = new CellSource[checked(data.Size.x * data.Size.y)];
@@ -63,60 +56,22 @@ namespace Landsong.ECS.Editor
         }
         public static string TargetScene(MapAsset map)
         {
-            var invalid = Path.GetInvalidFileNameChars();
-            var id = new string(map.MapId.Select(c => invalid.Contains(c) ? '_' : c).ToArray());
-            var path = Presentation.EcsSceneFlow.MapSceneRoot + id + "_Entities.unity";
-            if (!File.Exists(path)) throw new InvalidOperationException("Missing ECS map SubScene: " + path);
+            var path = AssetDatabase.GUIDToAssetPath(map.EntitySceneGuid);
+            if (string.IsNullOrEmpty(path) || !File.Exists(path)) throw new InvalidOperationException("Missing ECS map SubScene reference: " + map.MapId);
             return path;
         }
         public static void Import(MapAsset map)
         {
-            if (EditorApplication.isPlayingOrWillChangePlaymode) throw new InvalidOperationException("Exit Play Mode before importing.");
-            var sourcePath = SourceScene(map); var targetPath = TargetScene(map);
-            for (var i = 0; i < SceneManager.sceneCount; i++)
-            {
-                var scene = SceneManager.GetSceneAt(i);
-                if (scene.path == targetPath) throw new InvalidOperationException("Close the target SubScene before importing.");
-                if (scene.path == sourcePath && scene.isDirty) throw new InvalidOperationException("Save the TWC source scene first.");
-            }
-            var previous = SceneManager.GetActiveScene(); var preview = EditorSceneManager.OpenPreviewScene(sourcePath);
-            var target = default(Scene); var before = EditorJsonUtility.ToJson(map);
-            try
-            {
-                var content = preview.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<MapContentAuthoring>(true)).Single();
-                if (content.TargetMap != map) throw new InvalidOperationException("Source scene is bound to a different ECS MapAsset.");
-                var terrain = ReadTerrain(content);
-                ValidateInitialBuildings(map, terrain);
-                target = EditorSceneManager.OpenScene(targetPath, OpenSceneMode.Additive);
-                // Build all replacements before removing existing imported roots.
-                var oldRoots = target.GetRootGameObjects().Where(g => g.name.EndsWith(" · ECS Terrain", StringComparison.Ordinal)).ToArray();
-                foreach (var visual in content.MapVisualRoots) if (visual != null) CloneStaticMeshes(visual, target);
-                foreach (var root in oldRoots) UnityEngine.Object.DestroyImmediate(root);
-                Undo.RecordObject(map, "Update ECS terrain");
-                // Combat-only overrides belong to the ECS map. Preserve them by world cell, not array index.
-                for (int y = 0; y < terrain.Size.y; y++) for (int x = 0; x < terrain.Size.x; x++)
-                {
-                    var old = terrain.Min + new Vector2Int(x, y) - map.Min;
-                    if (old.x < 0 || old.y < 0 || old.x >= map.Size.x || old.y >= map.Size.y) continue;
-                    int at = old.y * map.Size.x + old.x; if (at >= map.Cells.Length) continue;
-                    var cell = terrain.Cells[y * terrain.Size.x + x]; cell.BlocksProjectile = map.Cells[at].BlocksProjectile; terrain.Cells[y * terrain.Size.x + x] = cell;
-                }
-                map.Min = terrain.Min; map.Size = terrain.Size; map.Cells = terrain.Cells; map.CellSize = terrain.CellSize; map.Origin = terrain.Origin;
-                EditorUtility.SetDirty(map);
-                if (!EditorSceneManager.SaveScene(target)) throw new IOException("Cannot save target SubScene.");
-                AssetDatabase.SaveAssets();
-            }
-            catch { EditorJsonUtility.FromJsonOverwrite(before, map); throw; }
-            finally
-            {
-                if (target.IsValid()) EditorSceneManager.CloseScene(target, true);
-                EditorSceneManager.ClosePreviewScene(preview);
-                if (previous.IsValid() && previous.isLoaded) SceneManager.SetActiveScene(previous);
-            }
+            var path = SourceScene(map);
+            var scene = SceneManager.GetSceneByPath(path); bool opened = !scene.IsValid() || !scene.isLoaded;
+            var active = SceneManager.GetActiveScene();
+            if (opened) scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Additive);
+            try { Landsong.EditorTools.GameMapWorkflow.Bake(scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<MapContentAuthoring>(true)).Single()); }
+            finally { if (opened) EditorSceneManager.CloseScene(scene, true); if (active.IsValid()) SceneManager.SetActiveScene(active); }
         }
-        public static void ValidateInitialBuildings(MapAsset map, TerrainSnapshot terrain)
+        public static void ValidateInitialBuildings(MapAsset map, TerrainSnapshot terrain, GameCatalogAsset catalog = null)
         {
-            var catalog=AssetDatabase.LoadAssetAtPath<GameCatalogAsset>("Assets/Landsong/ECSContent/GameCatalog.asset");
+            catalog ??= AssetDatabase.LoadAssetAtPath<GameCatalogAsset>("Assets/Landsong/ECSContent/GameCatalog.asset");
             var definitions=catalog.Content.ToDictionary(d=>d.Id);var compiled=new ContentCompilation(catalog);
             var occupied = new HashSet<Vector2Int>(); var cores = 0;
             foreach (var building in map.InitialBuildings)
@@ -145,7 +100,7 @@ namespace Landsong.ECS.Editor
             }
             if (cores != 1) throw new InvalidOperationException("An ECS map needs exactly one PlayerHome core.");
         }
-        static void CloneStaticMeshes(GameObject source, Scene target)
+        public static void CloneStaticMeshes(GameObject source, Scene target)
         {
             var root = new GameObject(source.name + " · ECS Terrain"); SceneManager.MoveGameObjectToScene(root, target);
             foreach (var renderer in source.GetComponentsInChildren<MeshRenderer>(false))

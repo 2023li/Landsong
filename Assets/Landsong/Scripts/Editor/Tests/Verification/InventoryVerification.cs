@@ -23,7 +23,7 @@ namespace Landsong.ECS.Editor
         public static string Run()
         {
             log = new StringBuilder(); assertions = 0;
-            try { Fixture(); foreach (var path in AssetDatabase.FindAssets("t:Scene", new[] { "Assets/Landsong/Scenes/EntityMaps" }).Select(AssetDatabase.GUIDToAssetPath).Where(p => p.EndsWith("_Entities.unity"))) Map(path); log.AppendLine("Assertions: " + assertions); return log.ToString(); }
+            try { Fixture(); foreach (var path in Landsong.EditorTools.GameMapPaths.BakedScenes()) Map(path); log.AppendLine("Assertions: " + assertions); return log.ToString(); }
             catch (Exception error) { log.AppendLine(error.ToString()); throw; }
             finally { Directory.CreateDirectory("Library/LandsongEcs"); File.WriteAllText("Library/LandsongEcs/inventory-verification.txt", log.ToString()); }
         }

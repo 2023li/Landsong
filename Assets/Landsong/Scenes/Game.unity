@@ -483,8 +483,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Landsong.Application::Landsong.ECS.Presentation.EcsGameHost
   Catalog: {fileID: 11400000, guid: a32c678444a714940aed613bd3eb69c2, type: 2}
   Maps:
-  - {fileID: 968852112}
   - {fileID: 155208961}
+  - {fileID: 968852112}
   Camera: {fileID: 516053161}
   Sun: {fileID: 1352714078}
 --- !u!4 &1869820108

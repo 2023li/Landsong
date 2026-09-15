@@ -17,7 +17,6 @@ namespace Landsong.EditorTools
     public static class TileWorldCreatorMapBaker
     {
         private const string RuntimeGridObjectName = "__Landsong_RuntimeGrid";
-        private const string SceneBakeFolderSuffix = "_烘焙数据";
         private const float PositionTolerance = 0.0001f;
         private const string ScenePathArgument = "-landsongScenePath";
 
@@ -35,7 +34,7 @@ namespace Landsong.EditorTools
             public bool HasSurfaceLayerOverride;
         }
 
-        [MenuItem("Landsong/地图/TWC/烘焙地图并吸附初始建筑")]
+        [MenuItem("Landsong/地图/烘焙当前地图")]
         private static void BakeSelectedMapContent()
         {
             var manager = ResolveSelectedManager(out var selectionError);
@@ -48,21 +47,10 @@ namespace Landsong.EditorTools
                 return;
             }
 
-            if (!BakeAndSnapMapContent(
-                    manager,
-                    out var map,
-                    out var error))
-            {
-                Debug.LogError($"Landsong 地图烘焙与初始建筑吸附失败：{error}", manager);
-                EditorUtility.DisplayDialog("地图烘焙与吸附未完成", error, "确定");
-                return;
-            }
-
-            Selection.activeObject = map;
-            EditorGUIUtility.PingObject(map);
-            Debug.Log(
-                $"地图烘焙与初始建筑吸附完成：{map.Cells.Count} 个 X/Z 逻辑格，Hash={map.SourceHash}。请保存当前场景。",
-                map);
+            var content = manager.GetComponent<MapContentAuthoring>();
+            if (content == null) content = Undo.AddComponent<MapContentAuthoring>(manager.gameObject);
+            try { GameMapWorkflow.Bake(content); Debug.Log("地图烘焙完成。", content); }
+            catch (Exception error) { Debug.LogException(error, content); EditorUtility.DisplayDialog("地图烘焙失败", error.Message, "确定"); }
         }
 
         public static bool BakeAndSnapMapContent(
@@ -246,12 +234,15 @@ namespace Landsong.EditorTools
                 return false;
             }
 
-            if (profile.RegenerateTileWorldBeforeBake)
+            if (profile.RegenerateTileWorldBeforeBake || manager.GetComponent<MapContentAuthoring>() != null)
             {
                 try
                 {
-                    manager.ExecuteBlueprintLayers();
-                    manager.ExecuteBuildLayers(ExecutionMode.FromScratch);
+                    GiantGrey.TileWorldCreator.Utilities.EditorCoroutines.RunToCompletion(() =>
+                    {
+                        manager.ExecuteBlueprintLayers();
+                        manager.ExecuteBuildLayers(ExecutionMode.FromScratch);
+                    });
                 }
                 catch (Exception exception)
                 {
@@ -690,147 +681,53 @@ namespace Landsong.EditorTools
         }
 
         private static bool TryFindOrCreateSceneProfile(
-            TileWorldCreatorManager manager,
-            out TileWorldCreatorMapBakeProfile profile,
-            out string error)
+            TileWorldCreatorManager manager, out TileWorldCreatorMapBakeProfile profile, out string error)
         {
-            profile = null;
-            error = string.Empty;
-            if (!TryGetSceneBakePaths(
-                    manager,
-                    out var scenePath,
-                    out var sceneName,
-                    out var bakeFolder,
-                    out error))
+            profile = null; error = string.Empty;
+            try
             {
-                return false;
-            }
-
-            if (!TryEnsureSceneOwnedConfiguration(
-                    manager,
-                    sceneName,
-                    bakeFolder,
-                    out var configuration,
-                    out error))
-            {
-                return false;
-            }
-
-            var preferredProfilePath = $"{bakeFolder}/{sceneName}_烘焙配置.asset";
-            var preferredMapPath = $"{bakeFolder}/{sceneName}_逻辑网格.asset";
-            profile = AssetDatabase.LoadAssetAtPath<TileWorldCreatorMapBakeProfile>(preferredProfilePath);
-            if (profile == null)
-            {
-                profile = ScriptableObject.CreateInstance<TileWorldCreatorMapBakeProfile>();
-                profile.name = $"{sceneName}_烘焙配置";
-                AssetDatabase.CreateAsset(profile, preferredProfilePath);
-            }
-
-            var map = AssetDatabase.LoadAssetAtPath<GridMapDefinition>(preferredMapPath);
-            if (map == null)
-            {
-                map = ScriptableObject.CreateInstance<GridMapDefinition>();
-                map.name = $"{sceneName}_逻辑网格";
-                AssetDatabase.CreateAsset(map, preferredMapPath);
-            }
-
-            profile.AssignSourceConfiguration(configuration);
-            profile.AssignSourceScene(AssetDatabase.AssetPathToGUID(scenePath), scenePath);
-            profile.AssignOutputMap(map);
-            EditorUtility.SetDirty(profile);
-            EditorUtility.SetDirty(map);
-            AssetDatabase.SaveAssets();
-            return true;
-        }
-
-        private static bool TryGetSceneBakePaths(
-            TileWorldCreatorManager manager,
-            out string scenePath,
-            out string sceneName,
-            out string bakeFolder,
-            out string error)
-        {
-            scenePath = string.Empty;
-            sceneName = string.Empty;
-            bakeFolder = string.Empty;
-            error = string.Empty;
-            if (manager == null || !manager.gameObject.scene.IsValid())
-            {
-                error = "TileWorldCreatorManager 不属于有效场景。";
-                return false;
-            }
-
-            scenePath = manager.gameObject.scene.path?.Replace('\\', '/') ?? string.Empty;
-            if (string.IsNullOrWhiteSpace(scenePath)
-                || !scenePath.StartsWith("Assets/", StringComparison.Ordinal)
-                || !scenePath.EndsWith(".unity", StringComparison.OrdinalIgnoreCase))
-            {
-                error = "请先保存地图场景，再创建该场景独立的烘焙数据。";
-                return false;
-            }
-
-            sceneName = Path.GetFileNameWithoutExtension(scenePath);
-            var sceneFolder = Path.GetDirectoryName(scenePath)?.Replace('\\', '/') ?? "Assets";
-            bakeFolder = string.Equals(
-                    Path.GetFileName(sceneFolder),
-                    $"{sceneName}{SceneBakeFolderSuffix}",
-                    StringComparison.Ordinal)
-                ? sceneFolder
-                : $"{sceneFolder}/{sceneName}{SceneBakeFolderSuffix}";
-            EnsureAssetFolder(bakeFolder);
-            return true;
-        }
-
-        private static bool TryEnsureSceneOwnedConfiguration(
-            TileWorldCreatorManager manager,
-            string sceneName,
-            string bakeFolder,
-            out Configuration configuration,
-            out string error)
-        {
-            configuration = null;
-            error = string.Empty;
-            if (manager == null || manager.configuration == null)
-            {
-                error = "TileWorldCreatorManager 没有绑定 TWC Configuration。";
-                return false;
-            }
-
-            var targetPath = $"{bakeFolder}/{sceneName}_TWC配置.asset";
-            var currentPath = AssetDatabase.GetAssetPath(manager.configuration)?.Replace('\\', '/');
-            if (string.Equals(currentPath, targetPath, StringComparison.Ordinal))
-            {
-                configuration = manager.configuration;
+                var content = manager.GetComponent<MapContentAuthoring>();
+                if (content == null) content = Undo.AddComponent<MapContentAuthoring>(manager.gameObject);
+                GameMapWorkflow.Initialize(content);
+                if (content.TerrainRules == null) throw new InvalidOperationException("请配置公共地形规则。");
+                var scenePath = manager.gameObject.scene.path;
+                var profilePath = GameMapPaths.Output(scenePath, "_烘焙配置.asset");
+                profile = content.BakeProfile;
+                if (profile == null) profile = AssetDatabase.LoadAssetAtPath<TileWorldCreatorMapBakeProfile>(profilePath);
+                if (profile == null) { profile = ScriptableObject.CreateInstance<TileWorldCreatorMapBakeProfile>(); AssetDatabase.CreateAsset(profile, profilePath); }
+                var mapPath = GameMapPaths.Output(scenePath, "_逻辑网格.asset");
+                var map = content.MapDefinition;
+                if (map == null) map = AssetDatabase.LoadAssetAtPath<GridMapDefinition>(mapPath);
+                if (map == null) { map = ScriptableObject.CreateInstance<GridMapDefinition>(); AssetDatabase.CreateAsset(map, mapPath); }
+                profile.ApplyRules(content.TerrainRules);
+                profile.AssignSourceConfiguration(manager.configuration);
+                profile.AssignSourceScene(AssetDatabase.AssetPathToGUID(scenePath), scenePath);
+                profile.AssignOutputMap(map); content.BakeProfile = profile;
+                EditorUtility.SetDirty(profile); EditorUtility.SetDirty(content);
                 return true;
             }
+            catch (Exception exception) { error = exception.Message; return false; }
+        }
 
-            configuration = AssetDatabase.LoadAssetAtPath<Configuration>(targetPath);
-            if (configuration == null)
+        public static GridMapDefinition CreateValidationGrid(MapContentAuthoring content)
+        {
+            var manager = content.GetComponent<TileWorldCreatorManager>();
+            if (manager == null || manager.configuration == null || content.TerrainRules == null)
+                throw new InvalidOperationException("请先初始化并配置地图。");
+            var profile = ScriptableObject.CreateInstance<TileWorldCreatorMapBakeProfile>();
+            GridMapDefinition map = null;
+            try
             {
-                if (string.IsNullOrWhiteSpace(currentPath)
-                    || !AssetDatabase.CopyAsset(currentPath, targetPath))
-                {
-                    error = $"无法把 TWC Configuration 复制到场景独立目录：{targetPath}";
-                    return false;
-                }
-
-                AssetDatabase.ImportAsset(targetPath, ImportAssetOptions.ForceSynchronousImport);
-                configuration = AssetDatabase.LoadAssetAtPath<Configuration>(targetPath);
+                profile.ApplyRules(content.TerrainRules);
+                if (!SyncLayerReferences(profile, manager.configuration, out var error) || !TryBakeCells(profile, manager.configuration, out var cells, out error))
+                    throw new InvalidOperationException(error);
+                map = ScriptableObject.CreateInstance<GridMapDefinition>();
+                var config = manager.configuration;
+                map.ReplaceBakedData(Vector2Int.zero, new Vector2Int(config.width, config.height), config.cellSize, profile.ElevationWorldStep, cells, "", config.name, "validation", "");
+                return map;
             }
-
-            if (configuration == null)
-            {
-                error = $"无法加载场景独立的 TWC Configuration：{targetPath}";
-                return false;
-            }
-
-            configuration.name = $"{sceneName}_TWC配置";
-            Undo.RecordObject(manager, "绑定场景独立 TWC 配置");
-            manager.configuration = configuration;
-            EditorUtility.SetDirty(configuration);
-            EditorUtility.SetDirty(manager);
-            EditorSceneManager.MarkSceneDirty(manager.gameObject.scene);
-            return true;
+            catch { if (map != null) UnityEngine.Object.DestroyImmediate(map); throw; }
+            finally { UnityEngine.Object.DestroyImmediate(profile); }
         }
 
         private static void EnsureAssetFolder(string folderPath)

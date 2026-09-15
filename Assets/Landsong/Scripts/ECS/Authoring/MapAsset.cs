@@ -26,6 +26,8 @@ namespace Landsong.ECS.Authoring
 #if UNITY_EDITOR
         [Tooltip("TWC 制图源场景 GUID；仅供编辑器地形导入，不是游戏运行场景。")]
         [LabelText("制图源场景标识")] public string TwcSourceSceneGuid;
+        [HideInInspector] public string EntitySceneGuid;
+        [HideInInspector] public bool IsBaked;
 #endif
         [LabelText("网格最小坐标")] public Vector2Int Min; [Sirenix.OdinInspector.LabelText("网格尺寸")] public Vector2Int Size;
         [LabelText("世界原点")] public Vector3 Origin;

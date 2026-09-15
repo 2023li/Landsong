@@ -20,7 +20,7 @@ namespace Landsong.ECS.Editor
         {
             var log = new StringBuilder(); int checks = 0;
             void Check(bool pass, string name) { if (!pass) throw new InvalidOperationException(name); checks++; log.AppendLine("PASS " + name); }
-            var scene = EditorSceneManager.OpenPreviewScene("Assets/Landsong/Scenes/EntityMaps/Map_Test01_Entities.unity");
+            var scene = EditorSceneManager.OpenPreviewScene("Assets/Landsong/GameMaps/Map_Test01/Map_Test01Data/Generated/Map_Test01_Entities.unity");
             using var store = new BlobAssetStore(128); using var world = new World("Historical bills", WorldFlags.Game);
             try
             {

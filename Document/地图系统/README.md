@@ -1,17 +1,52 @@
 # 地图制作
 
-继续使用 TileWorldCreator v4 制作地形。TWC 是编辑工具，运行时以 MapAsset / Entity SubScene 为准。
+所有地图资源集中在 `Assets/Landsong/GameMaps/`。日常从每张地图的外层 `.unity` 场景制作，TWC 用于编辑，正式游戏加载生成的 MapAsset / Entity SubScene。
 
-1. 在 Assets/Landsong/Scenes/MapScenes 打开制图源场景，编辑 TWC 生成配置与地形。
-2. 通过 TileWorldCreatorMapBaker 烘焙 GridMapDefinition，并绑定 MapContentAuthoring 的 Grid、逻辑网格、可视根和 TargetMap。
-3. 初始建筑用 InitialBuildingPreview 指向正式 GameDefinitionAsset，配置等级、位置、朝向；使用 Inspector 校验和吸附。
-4. 用 EcsMapIncrementalImport 的显式增量导入更新对应 MapAsset / EntityMaps SubScene。先预览/验证，失败不覆盖目标。
-5. 新地图另注册菜单和 EcsGameHost 引用，见 [场景工作流](../ECS/启动与场景工作流.md)。
+## 资源组织
 
-网格为等尺寸 XZ 平面；原点、格尺寸、高度和地形标签一致。建筑占地要存在、平整、可建且无重叠；不要靠场景模型位置猜运行格坐标。
+```text
+GameMaps/
+├── 模板_TWC配置.asset
+├── 公共地形规则.asset
+├── MapMenuCatalog.asset
+└── 地图名/
+    ├── 地图名.unity
+    └── 地图名Data/
+        ├── Source/
+        │   └── 地图名_TWC配置.asset
+        └── Generated/
+            ├── 地图名_烘焙配置.asset
+            ├── 地图名_逻辑网格.asset
+            ├── 地图名_Map.asset
+            └── 地图名_Entities.unity
+```
 
-增量导入按格坐标保留已有 ECS 配置，例如 BlocksProjectile；新格默认不拦截弹体。通行、建造、弹体阻挡各自独立。初始建筑和特殊配置先校验，不能用重新生成目录覆盖手动编辑内容。
+Source 中的 TWC 配置由工具首次复制，但会保存实际绘图成果，必须随场景保留并提交版本控制。Generated 为工具输出，日常不直接编辑；正常重复烘焙更新原资产并保留 GUID，避免通过删除重建破坏引用。每图烘焙配置只保存公共规则的解析结果和来源/输出引用，不是另一份人工配置入口。
 
-地图入口带与缓冲区禁建，出生、可达目标和情报共用同一空间规则。没有合法点取消该股入侵/出勤并提示，不强制跨区生成。
+公共 TWC 模板提供初始图层、生成参数和美术资源；公共地形规则按图层名称定义地形标识、建造、通行和高度换算。模板不会自动覆盖已有地图。地图根可显式选择独立地形规则；迁移后的 Map_Test01 在 Source 中保留原有陆地规则，保持旧地图语义。规则中的必要图层缺失、重名或重复映射会被拒绝。
 
-当前有两张逻辑地图。Map_Test2 用于完整流程验收；Map_Test01 可用于隔离数据/结构检查，不承担新手流程验收。源地图、美术试作场景和正式运行地图不要仅凭名称含 Test 就当作临时文件删除。
+## 创建新地图
+
+1. 在 `GameMaps/<地图名>/` 创建并保存 `<地图名>.unity`。
+2. 创建一个地图根对象，添加 `MapContentAuthoring`，点击 **初始化地图**。
+3. 工具补齐同对象上的 TWC Manager、独立 TWC 配置、Grid、初始建筑/出生区域/地图规则区域容器、运行地图、实体子场景和输出引用。初始化不要求已有核心建筑；重复点击只补齐内容，不重置地图。
+4. 在根检查器填写地图显示信息、开局参数，使用 **编辑 TWC 地形配置** 和 TWC 绘图工具制作地形。
+5. 在“初始建筑”下摆放 `InitialBuildingPreview`，绑定正式建筑定义，填写等级和朝向；必须恰好有一个合法玩家核心。
+6. 在“出生区域”下添加 `MapSpawnRegionAuthoring`，通过 Transform 编辑中心、组件编辑世界轴向尺寸和方向（10/20/30/40）。需要阻挡弹体时，在“地图规则区域”下添加 `MapProjectileRegionAuthoring`；后面的区域覆盖前面的区域。
+7. 点击 **校验地图** 检查当前 TWC 已生成的逻辑格、规则和建筑；修改生成器参数后，先在 TWC 中更新生成结果，或直接执行完整烘焙。
+8. 点击 **烘焙地图**：工具等待 TWC 网格生成完成，烘焙逻辑格、吸附建筑、收集建筑/出生区域/特殊规则，更新运行地图及实体子场景，保存源场景。失败保留上次有效运行输出。
+9. 勾选 **加入地图菜单** 后烘焙，自动同步菜单条目和 Game 的宿主引用；取消勾选后烘焙会移除该地图菜单项。初始化草稿不进入运行验收集合。
+
+地图 ID 首次初始化生成后保持稳定。复制已初始化源场景再点击初始化时，工具分配独立 ID 和输出引用，并默认不加入菜单，避免覆盖原图。菜单已有条目顺序保留，新条目追加；修改菜单排序后需烘焙一次以同步 Game 宿主顺序。
+
+## 编辑与验证
+
+网格为等尺寸世界 XZ 平面，原点、格尺寸、高度与地形标签必须一致。建筑占地必须存在、平整、可建、符合地形要求且无重叠。通行、建造与弹体阻挡彼此独立；规则以源场景为准，不再手改生成 MapAsset。
+
+烘焙前关闭目标生成子场景；Game 若有未保存修改，先保存。实体子场景按 GUID 引用，包含唯一 GameWorldAuthoring；Game 的地图 SubScene 关闭 AutoLoadScene，由会话流程选择加载。
+
+入口带及缓冲区的玩法规则不变。当前正式逻辑地图为 Map_Test2 和 Map_Test01；Map_Map01 保留用户创建的草稿，不自动补造玩法内容。Map_Test2 用于完整流程验收，Map_Test01 用于隔离数据和结构检查。
+
+运行 `Landsong/ECS/Verification/Map authoring workflow` 检查初始化、复制隔离、首次烘焙、地形网格生成、菜单注册及失败保护。完整验收使用 `Verification/Run all` 和 `Verify four-scene flow (Play)`，见 [验证工作流](../ECS/验证工作流.md)。
+
+地图目录迁移后的实测结果与既有 UI/音频限制见 [资源迁移验收](资源迁移验收.md)。地图加载定向 Play 入口为 `Landsong/ECS/Verify map loading (Play)`，验证两张菜单地图及重复进入后的释放。

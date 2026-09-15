@@ -42,8 +42,8 @@ namespace Landsong.ECS.Editor
             try
             {
                 Domain();
-                Archive("Assets/Landsong/Scenes/EntityMaps/Map_Test2_Entities.unity");
-                Archive("Assets/Landsong/Scenes/EntityMaps/Map_Test01_Entities.unity");
+                Archive("Assets/Landsong/GameMaps/Map_Test2/Map_Test2Data/Generated/Map_Test2_Entities.unity");
+                Archive("Assets/Landsong/GameMaps/Map_Test01/Map_Test01Data/Generated/Map_Test01_Entities.unity");
                 log.AppendLine("Assertions: " + assertions); return log.ToString();
             }
             catch (Exception error) { log.AppendLine(error.ToString()); throw; }

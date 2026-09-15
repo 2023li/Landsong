@@ -14,7 +14,6 @@ namespace Landsong.ECS.Presentation
         public const string Menu = SceneRoot + "Start.unity";
         public const string Loading = SceneRoot + "LoadingTransition.unity";
         public const string Game = SceneRoot + "Game.unity";
-        public const string MapSceneRoot = SceneRoot + "EntityMaps/";
         public static readonly string[] BuildScenes = { Boot, Menu, Loading, Game };
         public sealed class Request
         {

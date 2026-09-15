@@ -16,7 +16,23 @@ namespace Landsong.GridSystem
     [AddComponentMenu("Landsong/Map/Map Content Authoring")]
     public sealed class MapContentAuthoring : MonoBehaviour
     {
-        [LabelText("目标运行地图")] public MapAsset TargetMap;
+        [LabelText("地图标识"), ReadOnly] public string MapId;
+        [LabelText("显示名称")] public string DisplayName;
+        [LabelText("地图说明"), TextArea] public string Description;
+        [LabelText("缩略图")] public Sprite Thumbnail;
+        [LabelText("加入地图菜单")] public bool IncludeInMenu;
+        [LabelText("地形规则"), Required, InlineEditor, Tooltip("默认引用公共规则。修改公共规则会影响所有使用它的地图；特殊地图可显式选择独立规则。")] public MapTerrainRules TerrainRules;
+        [LabelText("游戏内容目录"), Required] public GameCatalogAsset Catalog;
+        [LabelText("初始王朝名称")] public string DynastyName = "新王朝";
+        [LabelText("初始基础人口"), MinValue(0)] public int BasePopulation;
+        [LabelText("初始随机种子")] public uint Seed = 13579;
+        [LabelText("目标运行地图"), ReadOnly] public MapAsset TargetMap;
+#if UNITY_EDITOR
+        [HideInInspector] public string OwnerSceneGuid;
+        [HideInInspector] public UnityEngine.Object EntityScene;
+        [HideInInspector] public UnityEngine.Object TwcConfiguration;
+        [HideInInspector] public TileWorldCreatorMapBakeProfile BakeProfile;
+#endif
         [SerializeField, Sirenix.OdinInspector.LabelText("世界网格")] UnityEngine.Grid unityGrid;
         [SerializeField, Sirenix.OdinInspector.LabelText("逻辑地形定义")] GridMapDefinition mapDefinition;
         [SerializeField, Sirenix.OdinInspector.LabelText("地图表现根对象")] List<GameObject> mapVisualRoots = new List<GameObject>();
@@ -33,15 +49,16 @@ namespace Landsong.GridSystem
         public UnityEngine.Grid UnityGrid => unityGrid;
         public GridMapDefinition MapDefinition => mapDefinition;
         public IReadOnlyList<GameObject> MapVisualRoots => mapVisualRoots;
-        public bool TryValidateConfiguration(out string error)
+        public bool TryValidateConfiguration(out string error) => TryValidateConfiguration(mapDefinition, out error);
+        public bool TryValidateConfiguration(GridMapDefinition sourceMap, out string error)
         {
-            if (unityGrid == null || mapDefinition == null) { error = "请先通过 TWC 烘焙绑定网格和逻辑地形。"; return false; }
-            if (!mapDefinition.TryValidate(out error)) return false;
+            if (unityGrid == null || sourceMap == null) { error = "请先通过 TWC 烘焙绑定网格和逻辑地形。"; return false; }
+            if (!sourceMap.TryValidate(out error)) return false;
             var layout = new GridLayoutService(unityGrid);
             var origin = layout.GridToWorldPoint(0, 0);
             if (layout.PlaneMode != GridPlaneMode.XZ ||
-                !Mathf.Approximately((layout.GridToWorldPoint(1, 0) - origin).magnitude, mapDefinition.CellSize) ||
-                !Mathf.Approximately((layout.GridToWorldPoint(0, 1) - origin).magnitude, mapDefinition.CellSize))
+                !Mathf.Approximately((layout.GridToWorldPoint(1, 0) - origin).magnitude, sourceMap.CellSize) ||
+                !Mathf.Approximately((layout.GridToWorldPoint(0, 1) - origin).magnitude, sourceMap.CellSize))
             { error = "TWC 网格必须为等尺寸 XZ 平面，且格子尺寸与烘焙数据一致。"; return false; }
             error = string.Empty; return true;
         }
@@ -55,10 +72,11 @@ namespace Landsong.GridSystem
         }
         public InitialBuildingPreview[] Previews => GetComponentsInChildren<InitialBuildingPreview>(true);
 
-        public bool TryCollectInitialBuildings(out InitialSource[] buildings, out string error)
+        public bool TryCollectInitialBuildings(out InitialSource[] buildings, out string error) => TryCollectInitialBuildings(mapDefinition, out buildings, out error);
+        public bool TryCollectInitialBuildings(GridMapDefinition sourceMap, out InitialSource[] buildings, out string error)
         {
             buildings = Array.Empty<InitialSource>();
-            if (!TryValidateConfiguration(out error)) return false;
+            if (!TryValidateConfiguration(sourceMap, out error)) return false;
             var layout = new GridLayoutService(unityGrid); var result = new List<InitialSource>(); var occupied = new HashSet<GridPosition>();
             foreach (var preview in Previews)
             {
@@ -68,8 +86,8 @@ namespace Landsong.GridSystem
                 var orientation = BuildingOrientationUtility.FromWorldRotation(preview.transform.rotation, layout.PlaneMode);
                 var size = orientation.GetEffectiveSize(data.Size); var point = layout.WorldToGridPoint(preview.transform.position);
                 var origin = new GridPosition(Mathf.RoundToInt(point.x - size.x * .5f), Mathf.RoundToInt(point.y - size.y * .5f));
-                if (!GridPlacementRuleEvaluator.TryResolveFlatFootprint(mapDefinition, origin, data.Size, orientation, out var footprint, out var failure, out var failedCell) ||
-                    !GridPlacementRuleEvaluator.TryValidateStaticPlacement(mapDefinition, footprint,
+                if (!GridPlacementRuleEvaluator.TryResolveFlatFootprint(sourceMap, origin, data.Size, orientation, out var footprint, out var failure, out var failedCell) ||
+                    !GridPlacementRuleEvaluator.TryValidateStaticPlacement(sourceMap, footprint,
                         data.Modules.Placement.Enabled ? data.Modules.Placement.RequiredTerrains.Select(r => r.Terrain).ToArray() : Array.Empty<string>(),
                         data.Modules.Placement.Enabled ? data.Modules.Placement.AlternativeTerrains.Select(r => r.Terrain).ToArray() : Array.Empty<string>(), out failure, out failedCell))
                 { error = preview.name + ": " + failure + " @ " + failedCell; return false; }

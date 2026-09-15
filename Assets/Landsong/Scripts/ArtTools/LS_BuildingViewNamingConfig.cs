@@ -22,7 +22,7 @@ namespace Landsong.VisualSystem
     public sealed class LS_BuildingViewNamingConfig : ScriptableObject
     {
         public const string DefaultAssetPath =
-            "Assets/Landsong/Objects/SO/Buildings/BuildingViewNamingConfig.asset";
+            "Assets/Landsong/Art/BuildingViewNamingConfig.asset";
         public const string DefaultViewOutputRoot =
             "Assets/Landsong/Objects/Generated/BuildingVisuals";
 

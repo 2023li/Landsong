@@ -156,6 +156,15 @@ namespace Landsong.GridSystem
         }
 
 #if UNITY_EDITOR
+        public void ApplyRules(MapTerrainRules rules)
+        {
+            JsonUtility.FromJsonOverwrite(JsonUtility.ToJson(rules), this);
+            baseLayerGuid = string.Empty;
+            foreach (var binding in layerBindings) binding?.SetResolvedLayer(string.Empty, binding.LayerName);
+            regenerateTileWorldBeforeBake = false;
+            requireDeterministicGlobalSeed = true;
+        }
+
         public void AssignSourceConfiguration(UnityEngine.Object configuration)
         {
             sourceConfiguration = configuration;

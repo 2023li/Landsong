@@ -19,7 +19,7 @@ UI 使用 TMP 与 UGUI。应用由一份跨场景保留的 `UI_Root.prefab` 承�
 | `BootPanel/UI_BootPanel.prefab` | 开幕展示 |
 | `GamePanel/UI_GamePanel.prefab` | 游戏会话 HUD 与其子视图 |
 
-根面板旁的同名 `.asset` 是 `UIPanelAsset`，显式引用强类型根组件及其已配置的 CanvasGroup。注册表位于 `Assets/Landsong/Objects/SO/UIConfig.asset`；每个 `panelId` 必须与根组件类名一致。当前正式项经 Addressables 加载描述资产，例如地址 `UI/UI_SettingPanel`；不能把描述地址误配成原始 GameObject 地址。描述、预制体、类型与注册项必须一一对应。Game 的独立子预制体与条目放在 `GamePanel/Views/`、`GamePanel/Items/`，仍归 Game 根拥有，不登记为全局面板。
+根面板旁的同名 `.asset` 是 `UIPanelAsset`，显式引用强类型根组件及其已配置的 CanvasGroup。注册表位于 `Assets/Landsong/Objects/Prefabs/UI/Bootstrap/UIConfig.asset`；每个 `panelId` 必须与根组件类名一致。当前正式项经 Addressables 加载描述资产，例如地址 `UI/UI_SettingPanel`；不能把描述地址误配成原始 GameObject 地址。描述、预制体、类型与注册项必须一一对应。Game 的独立子预制体与条目放在 `GamePanel/Views/`、`GamePanel/Items/`，仍归 Game 根拥有，不登记为全局面板。
 
 运行时按 Core、Authoring、AI、共享表现、UI、Application、Verification 分区，另有 ECS.Editor 编辑器程序集。UI 相关命名空间暂保留 `Landsong.ECS.Presentation` 以减少迁移风险：
 
