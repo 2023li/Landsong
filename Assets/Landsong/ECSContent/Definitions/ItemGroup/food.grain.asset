@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1990f5cdf85149c79ab1794a7a5e23a7, type: 3}
+  m_Name: food.grain
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.ItemGroupDefinitionAsset
+  Metadata:
+    Id: food.grain
+    Name: "\u8C37\u7269"
+    Description: "\u5C0F\u9EA6\u7B49\u8C37\u7269\u7269\u54C1\uFF0C\u53EF\u4F5C\u4E3A\u5C45\u6C11\u98DF\u7269\u4E0E\u519C\u7530\u79CD\u5B50\u3002"
+    Icon: {fileID: 0}
+  ParentGroup: {fileID: 11400000, guid: 8b3dcd181aaf55d4dacb32da6f2984d8, type: 2}

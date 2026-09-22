@@ -1,0 +1,16 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Name: HeroCatalog
+  m_Script: {fileID: 11500000, guid: edce58f39e044ecda2f65b67cdaf772c, type: 3}
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.HeroCatalogAsset
+  Definitions:
+  - {fileID: 11400000, guid: 765b9be32ab9b7e45b3917207bd14c82, type: 2}

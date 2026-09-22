@@ -1,0 +1,221 @@
+#if GRAPH_DESIGNER
+/// ---------------------------------------------
+/// Behavior Designer
+/// Copyright (c) Opsive. All Rights Reserved.
+/// https://www.opsive.com
+/// ---------------------------------------------
+namespace Opsive.BehaviorDesigner.Runtime.Systems
+{
+    using Opsive.BehaviorDesigner.Runtime;
+    using Opsive.BehaviorDesigner.Runtime.Components;
+    using Opsive.BehaviorDesigner.Runtime.Groups;
+    using Opsive.BehaviorDesigner.Runtime.Tasks;
+    using Unity.Burst;
+    using Unity.Burst.Intrinsics;
+    using Unity.Collections;
+    using Unity.Entities;
+
+    /// <summary>
+    /// Resets the evaluation status.
+    /// </summary>
+    [DisableAutoCreation]
+    [UpdateInGroup(typeof(BehaviorTreeSystemGroup), OrderLast = true)]
+    [BurstCompile]
+    public partial struct EvaluationCleanupSystem : ISystem
+    {
+        private EntityQuery m_EvaluateCleanupQuery;
+        private ComponentTypeHandle<EnabledFlag> m_EnabledComponentHandle;
+        private ComponentTypeHandle<EvaluateFlag> m_EvaluateComponentHandle;
+        private BufferTypeHandle<BranchComponent> m_BranchComponentHandle;
+
+        /// <summary>
+        /// Creates the required objects for use within the job system.
+        /// </summary>
+        /// <param name="state">The current SystemState.</param>
+        [BurstCompile]
+        private void OnCreate(ref SystemState state)
+        {
+            m_EvaluateCleanupQuery = new EntityQueryBuilder(Allocator.Temp)
+                .WithAll<EvaluateFlag>()
+                .WithAllRW<BranchComponent>()
+                .WithOptions(EntityQueryOptions.IgnoreComponentEnabledState)
+                .Build(ref state);
+            m_EnabledComponentHandle = state.GetComponentTypeHandle<EnabledFlag>();
+            m_EvaluateComponentHandle = state.GetComponentTypeHandle<EvaluateFlag>();
+            m_BranchComponentHandle = state.GetBufferTypeHandle<BranchComponent>();
+        }
+
+        /// <summary>
+        /// Updates the data object values for use within the job system.
+        /// </summary>
+        /// <param name="state">The current SystemState.</param>
+        [BurstCompile]
+        private void OnUpdate(ref SystemState state)
+        {
+            // Reset the evaluation status.
+            m_EnabledComponentHandle.Update(ref state);
+            m_EvaluateComponentHandle.Update(ref state);
+            m_BranchComponentHandle.Update(ref state);
+            var evaluationCleanupJob = new EvaluationCleanupJob()
+            {
+                EnabledComponentHandle = m_EnabledComponentHandle,
+                EvaluateComponentHandle = m_EvaluateComponentHandle,
+                BranchComponentHandle = m_BranchComponentHandle,
+            };
+            state.Dependency = evaluationCleanupJob.ScheduleParallel(m_EvaluateCleanupQuery, state.Dependency);
+        }
+
+        /// <summary>
+        /// Job that resets the EvaluationComponent component value.
+        /// </summary>
+        [BurstCompile(CompileSynchronously = true)]
+        public struct EvaluationCleanupJob : IJobChunk
+        {
+            [UnityEngine.Tooltip("A reference to the Enabled Component Handle.")]
+            public ComponentTypeHandle<EnabledFlag> EnabledComponentHandle;
+            [UnityEngine.Tooltip("A reference to the Evaluate Component Handle.")]
+            public ComponentTypeHandle<EvaluateFlag> EvaluateComponentHandle;
+            [UnityEngine.Tooltip("A reference to the Branch Component Handle.")]
+            public BufferTypeHandle<BranchComponent> BranchComponentHandle;
+
+            /// <summary>
+            /// Resets the EvaluationComponent component value.
+            /// </summary>
+            /// <param name="chunk">Block of memory that contains the entity and components.</param>
+            /// <param name="unfilteredChunkIndex">The index of the chunk.</param>
+            /// <param name="useEnabledMask">Should the enabled mask be used?</param>
+            /// <param name="chunkEnabledMask">The bitwise enabled mask.</param>
+            [BurstCompile]
+            public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask, in v128 chunkEnabledMask)
+            {
+                var branchAccessor = chunk.GetBufferAccessor(ref BranchComponentHandle);
+                for (int i = 0; i < chunk.Count; i++) {
+                    // If the chunk is enabled then it should be evaluated.
+                    if (chunk.IsComponentEnabled<EnabledFlag>(ref EnabledComponentHandle, i)) {
+                        chunk.SetComponentEnabled<EvaluateFlag>(ref EvaluateComponentHandle, i, true);
+                    }
+
+                    var branchComponents = branchAccessor[i];
+                    BehaviorTraversalCore.ResetBranchExecutionState(ref branchComponents);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Resets the InterruptedFlag enabled value.
+    /// </summary>
+    [DisableAutoCreation]
+    [UpdateInGroup(typeof(BehaviorTreeSystemGroup), OrderLast = true)]
+    [BurstCompile]
+    public partial struct InterruptedCleanupSystem : ISystem
+    {
+        private EntityQuery m_InterruptedCleanupQuery;
+        private ComponentTypeHandle<InterruptedFlag> m_InterruptedComponentHandle;
+
+        /// <summary>
+        /// Creates the required objects for use within the job system.
+        /// </summary>
+        /// <param name="state">The current SystemState.</param>
+        [BurstCompile]
+        private void OnCreate(ref SystemState state)
+        {
+            m_InterruptedCleanupQuery = new EntityQueryBuilder(Allocator.Temp)
+                .WithAll<InterruptedFlag>()
+                .Build(ref state);
+            m_InterruptedComponentHandle = state.GetComponentTypeHandle<InterruptedFlag>();
+        }
+
+        /// <summary>
+        /// Updates the data object values for use within the job system.
+        /// </summary>
+        /// <param name="state">The current SystemState.</param>
+        [BurstCompile]
+        private void OnUpdate(ref SystemState state)
+        {
+            // Clean up the interrupted tag.
+            m_InterruptedComponentHandle.Update(ref state);
+            var interruptedJob = new InterruptedCleanupJob()
+            {
+                InterruptedComponentHandle = m_InterruptedComponentHandle,
+            };
+            state.Dependency = interruptedJob.ScheduleParallel(m_InterruptedCleanupQuery, state.Dependency);
+        }
+
+        /// <summary>
+        /// Job that resets the InterruptedFlag value.
+        /// </summary>
+        [BurstCompile(CompileSynchronously = true)]
+        public partial struct InterruptedCleanupJob : IJobChunk
+        {
+            [UnityEngine.Tooltip("A reference to the Interrupted Component Handle.")]
+            public ComponentTypeHandle<InterruptedFlag> InterruptedComponentHandle;
+
+            /// <summary>
+            /// Resets the InterruptedFlag value.
+            /// </summary>
+            /// <param name="entity">The entity that is being acted upon.</param>
+            /// <param name="entityIndex">The index of the entity.</param>
+            [BurstCompile]
+            public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask, in v128 chunkEnabledMask)
+            {
+                for (int i = 0; i < chunk.Count; i++) {
+                    // Only chunks with the tag enabled will be returned so there's no need to check if the tag is enabled.
+                    chunk.SetComponentEnabled<InterruptedFlag>(ref InterruptedComponentHandle, i, false);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Completes behavior tree lifecycle transitions after their graph branches have ended.
+    /// </summary>
+    [DisableAutoCreation]
+    [UpdateInGroup(typeof(BehaviorTreeSystemGroup), OrderLast = true)]
+    [UpdateAfter(typeof(EvaluationCleanupSystem))]
+    public partial struct LifecycleTransitionSystem : ISystem
+    {
+        private EntityQuery m_TransitionQuery;
+
+        /// <summary>
+        /// Creates the lifecycle transition query.
+        /// </summary>
+        /// <param name="state">The current system state.</param>
+        private void OnCreate(ref SystemState state)
+        {
+            m_TransitionQuery = SystemAPI.QueryBuilder()
+                .WithAll<BehaviorTreeLifecycleTransitionComponent, TaskComponent>()
+                .Build();
+        }
+
+        /// <summary>
+        /// Completes any transition whose lifecycle branch has returned a terminal status.
+        /// </summary>
+        /// <param name="state">The current system state.</param>
+        private void OnUpdate(ref SystemState state)
+        {
+            // Lifecycle transitions are rare. Avoid the dependency sync and temporary allocation while none are active.
+            if (m_TransitionQuery.IsEmpty) {
+                return;
+            }
+
+            state.CompleteDependency();
+            using var entities = m_TransitionQuery.ToEntityArray(Allocator.Temp);
+            for (int i = 0; i < entities.Length; ++i) {
+                var entity = entities[i];
+                var transitionComponent = state.EntityManager.GetComponentData<BehaviorTreeLifecycleTransitionComponent>(entity);
+                var taskComponents = state.EntityManager.GetBuffer<TaskComponent>(entity);
+                if (transitionComponent.ConnectedIndex >= taskComponents.Length) {
+                    BehaviorTree.CompleteLifecycleTransition(state.World, entity, transitionComponent.Transition);
+                    continue;
+                }
+
+                var status = taskComponents[transitionComponent.ConnectedIndex].Status;
+                if (status == TaskStatus.Success || status == TaskStatus.Failure) {
+                    BehaviorTree.CompleteLifecycleTransition(state.World, entity, transitionComponent.Transition);
+                }
+            }
+        }
+    }
+}
+#endif

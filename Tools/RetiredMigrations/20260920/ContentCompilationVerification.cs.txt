@@ -1,0 +1,475 @@
+#if UNITY_EDITOR
+using System;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using Landsong.ECS.Authoring;
+using Landsong.ECS.Authoring.Definitions;
+using Landsong.ECS.Definitions;
+using UnityEditor;
+using UnityEngine;
+using Object = UnityEngine.Object;
+
+namespace Landsong.ECS.Editor
+{
+    public static class ContentCompilationVerification
+    {
+        [Serializable]
+        public sealed class Baseline
+        {
+            public string BaselineCommit;
+            public Entry[] Definitions;
+        }
+
+        [Serializable]
+        public sealed class Entry
+        {
+            public string Path, Guid, Domain, Id;
+            public int Index;
+            public Field[] Fields;
+        }
+
+        [Serializable]
+        public sealed class Field
+        {
+            public string Path, Kind, Value, Guid;
+            public long FileId;
+            public bool UnresolvedInBaseline;
+        }
+
+        public static Baseline LoadBaseline() => JsonUtility.FromJson<Baseline>(File.ReadAllText("Assets/Landsong/Scripts/Editor/Tests/Verification/DomainDefinitionBaseline.json"));
+        // Historical migration evidence retains its original Data.* paths. Only this
+        // test adapter maps that removed outer wrapper to the current concrete asset fields.
+        static string CurrentAssetFieldPath(string historicalPath)
+            => historicalPath.StartsWith("Data.", StringComparison.Ordinal) ? historicalPath.Substring(5) : historicalPath;
+
+        public static void VerifySerialized(Object asset, Entry expected)
+        {
+            using var serialized = new SerializedObject(asset);
+            foreach (var field in expected.Fields)
+            {
+                string currentPath = CurrentAssetFieldPath(field.Path);
+                var property = serialized.FindProperty(currentPath);
+                if (property == null)
+                    throw new InvalidOperationException(expected.Id + " missing serialized field: " + field.Path + " => " + currentPath);
+                bool valid;
+                if (field.Kind == "Array")
+                    valid = property.isArray && property.arraySize == int.Parse(field.Value, CultureInfo.InvariantCulture);
+                else if (field.Kind == "Reference")
+                {
+                    var reference = property.objectReferenceValue;
+                    valid = field.UnresolvedInBaseline ? reference == null && string.IsNullOrEmpty(AssetDatabase.GUIDToAssetPath(field.Guid)) && SavedMissingReferenceMatches(expected.Path, field) : field.FileId == 0 ? reference == null : reference != null && AssetDatabase.TryGetGUIDAndLocalFileIdentifier(reference, out string guid, out long fileId) && guid == field.Guid && fileId == field.FileId;
+                }
+                else if (property.propertyType == SerializedPropertyType.String)
+                    valid = property.stringValue == field.Value;
+                else if (property.propertyType == SerializedPropertyType.Boolean)
+                    valid = property.boolValue == (field.Value == "1" || field.Value == "True");
+                else if (property.propertyType == SerializedPropertyType.Float)
+                {
+                    double value = double.Parse(field.Value, CultureInfo.InvariantCulture);
+                    valid = Math.Abs(property.doubleValue - value) <= Math.Max(0.000001, Math.Abs(value) * 0.000001);
+                }
+                else
+                    valid = property.longValue == long.Parse(field.Value, CultureInfo.InvariantCulture);
+                if (!valid)
+                    throw new InvalidOperationException(expected.Id + " serialized migration mismatch: " + field.Path + " => " + currentPath);
+            }
+        }
+
+        // A missing sprite already existed in the immutable baseline. Keep its exact
+        // serialized PPtr while checking that import and clone retain the same missing state.
+        static bool SavedMissingReferenceMatches(string assetPath, Field expected)
+        {
+            string[] parts = CurrentAssetFieldPath(expected.Path).Split('.');
+            string[] lines = File.ReadAllLines(assetPath);
+            int cursor = 0, indent = 2;
+            for (int part = 0; part < parts.Length; part++, indent += 2)
+            {
+                string prefix = new string (' ', indent) + parts[part] + ":";
+                bool found = false;
+                for (; cursor < lines.Length; cursor++)
+                {
+                    string line = lines[cursor];
+                    if (!line.StartsWith(prefix, StringComparison.Ordinal))
+                        continue;
+                    found = true;
+                    cursor++;
+                    if (part == parts.Length - 1)
+                    {
+                        var pointer = Regex.Match(line, @"\{fileID: (-?\d+), guid: ([0-9a-f]+), type: \d+\}");
+                        return pointer.Success && pointer.Groups[2].Value == expected.Guid && long.Parse(pointer.Groups[1].Value, CultureInfo.InvariantCulture) == expected.FileId;
+                    }
+
+                    break;
+                }
+
+                if (!found)
+                    return false;
+            }
+
+            return false;
+        }
+
+        public static string Run()
+        {
+            var log = new StringBuilder();
+            int checks = 0;
+            void Check(bool value, string message)
+            {
+                if (!value)
+                    throw new InvalidOperationException(message);
+                checks++;
+                log.AppendLine("PASS " + message);
+            }
+
+            try
+            {
+                var baseline = LoadBaseline();
+                Check(baseline.BaselineCommit.StartsWith("27a9ed11c", StringComparison.Ordinal) && baseline.Definitions.Length == 185, "Reviewed immutable migration retains all 185 definitions");
+                Check((int)TerrainType.陆地 == 1 && (int)TerrainType.石地 == 4, "Terrain enum protocol remains stable");
+                foreach (var expected in baseline.Definitions)
+                {
+                    var asset = AssetDatabase.LoadAssetAtPath<ScriptableObject>(expected.Path);
+                    Check(asset != null && AssetDatabase.AssetPathToGUID(expected.Path) == expected.Guid && asset.GetType().Name == expected.Domain + "DefinitionAsset", "Concrete asset type and GUID retained: " + expected.Id);
+                    VerifySerialized(asset, expected);
+                    var copy = Object.Instantiate(asset);
+                    try
+                    {
+                        EditorJsonUtility.FromJsonOverwrite(EditorJsonUtility.ToJson(asset), copy);
+                        VerifySerialized(copy, expected);
+                    }
+                    finally
+                    {
+                        Object.DestroyImmediate(copy);
+                    }
+
+                    Check(true, "All authored values, references, array order and serialization retained: " + expected.Id);
+                }
+
+                var template = AssetDatabase.LoadAssetAtPath<GameObject>(Landsong.EditorTools.MapWorldComposition.TemplatePath);
+                Check(template != null, "Explicit world composition prefab exists");
+                var content = template.GetComponent<GameContentSetAuthoring>().Content;
+                int compiled = 0;
+                using (var item = ItemCatalogBaking.Compile(content))
+                {
+                    var expected = baseline.Definitions.Where(x => x.Domain == "Item").OrderBy(x => x.Index).ToArray();
+                    Check(item.Value.Definitions.Length == expected.Length, "Item catalog member count retained");
+                    for (int i = 0; i < expected.Length; i++)
+                    {
+                        Check(item.Value.Definitions[i].Metadata.Id.ToString() == expected[i].Id, "Item local registration order: " + expected[i].Id);
+                        if (!expected[i].Fields.Any(field => field.Path.StartsWith("Data.Theft.", StringComparison.Ordinal)))
+                        {
+                            var theft = item.Value.Definitions[i].Theft;
+                            Check((int)theft.Protection == 0 && theft.Weight == 100 && theft.Maximum == 5 && theft.UnitValue == 1, "Omitted item theft profile retains baseline effective defaults: " + expected[i].Id);
+                        }
+                    }
+
+                    compiled += expected.Length;
+                }
+
+                using (var itemGroup = ItemGroupCatalogBaking.Compile(content))
+                {
+                    var expected = baseline.Definitions.Where(x => x.Domain == "ItemGroup").OrderBy(x => x.Index).ToArray();
+                    Check(itemGroup.Value.Definitions.Length == expected.Length, "ItemGroup catalog member count retained");
+                    for (int i = 0; i < expected.Length; i++)
+                        Check(itemGroup.Value.Definitions[i].Metadata.Id.ToString() == expected[i].Id, "ItemGroup local registration order: " + expected[i].Id);
+                    compiled += expected.Length;
+                }
+
+                using (var storageSlot = StorageSlotCatalogBaking.Compile(content))
+                {
+                    var expected = baseline.Definitions.Where(x => x.Domain == "StorageSlot").OrderBy(x => x.Index).ToArray();
+                    Check(storageSlot.Value.Definitions.Length == expected.Length, "StorageSlot catalog member count retained");
+                    for (int i = 0; i < expected.Length; i++)
+                        Check(storageSlot.Value.Definitions[i].Metadata.Id.ToString() == expected[i].Id, "StorageSlot local registration order: " + expected[i].Id);
+                    compiled += expected.Length;
+                }
+
+                using (var buildingLimitGroup = BuildingLimitGroupCatalogBaking.Compile(content))
+                {
+                    var expected = baseline.Definitions.Where(x => x.Domain == "BuildingLimitGroup").OrderBy(x => x.Index).ToArray();
+                    Check(buildingLimitGroup.Value.Definitions.Length == expected.Length, "BuildingLimitGroup catalog member count retained");
+                    for (int i = 0; i < expected.Length; i++)
+                        Check(buildingLimitGroup.Value.Definitions[i].Metadata.Id.ToString() == expected[i].Id, "BuildingLimitGroup local registration order: " + expected[i].Id);
+                    compiled += expected.Length;
+                }
+
+                using (var policyGroup = PolicyGroupCatalogBaking.Compile(content))
+                {
+                    var expected = baseline.Definitions.Where(x => x.Domain == "PolicyGroup").OrderBy(x => x.Index).ToArray();
+                    Check(policyGroup.Value.Definitions.Length == expected.Length, "PolicyGroup catalog member count retained");
+                    for (int i = 0; i < expected.Length; i++)
+                        Check(policyGroup.Value.Definitions[i].Metadata.Id.ToString() == expected[i].Id, "PolicyGroup local registration order: " + expected[i].Id);
+                    compiled += expected.Length;
+                }
+
+                using (var technology = TechnologyCatalogBaking.Compile(content))
+                {
+                    var expected = baseline.Definitions.Where(x => x.Domain == "Technology").OrderBy(x => x.Index).ToArray();
+                    Check(technology.Value.Definitions.Length == expected.Length, "Technology catalog member count retained");
+                    for (int i = 0; i < expected.Length; i++)
+                        Check(technology.Value.Definitions[i].Metadata.Id.ToString() == expected[i].Id, "Technology local registration order: " + expected[i].Id);
+                    compiled += expected.Length;
+                }
+
+                using (var quest = QuestCatalogBaking.Compile(content))
+                {
+                    var expected = baseline.Definitions.Where(x => x.Domain == "Quest").OrderBy(x => x.Index).ToArray();
+                    Check(quest.Value.Definitions.Length == expected.Length, "Quest catalog member count retained");
+                    for (int i = 0; i < expected.Length; i++)
+                    {
+                        Check(quest.Value.Definitions[i].Metadata.Id.ToString() == expected[i].Id, "Quest local registration order: " + expected[i].Id);
+                        ref var definition = ref quest.Value.Definitions[i];
+                        if (!expected[i].Fields.Any(field => field.Path == "Data.Intensity"))
+                            Check(definition.Intensity == 0, "Omitted quest intensity retains zero: " + expected[i].Id);
+                        if (!expected[i].Fields.Any(field => field.Path == "Data.OfferWeight"))
+                            Check(definition.OfferWeight == 100, "Omitted quest weight retains 100: " + expected[i].Id);
+                        if (!expected[i].Fields.Any(field => field.Path == "Data.ItemQuantityScale"))
+                            Check(definition.ItemQuantityScale == 1, "Omitted quest quantity scale retains one: " + expected[i].Id);
+                    }
+
+                    compiled += expected.Length;
+                }
+
+                using (var expedition = ExpeditionCatalogBaking.Compile(content))
+                {
+                    var expected = baseline.Definitions.Where(x => x.Domain == "Expedition").OrderBy(x => x.Index).ToArray();
+                    Check(expedition.Value.Definitions.Length == expected.Length, "Expedition catalog member count retained");
+                    for (int i = 0; i < expected.Length; i++)
+                        Check(expedition.Value.Definitions[i].Metadata.Id.ToString() == expected[i].Id, "Expedition local registration order: " + expected[i].Id);
+                    compiled += expected.Length;
+                }
+
+                using (var soldier = SoldierCatalogBaking.Compile(content))
+                {
+                    var expected = baseline.Definitions.Where(x => x.Domain == "Soldier").OrderBy(x => x.Index).ToArray();
+                    Check(soldier.Value.Definitions.Length == expected.Length, "Soldier catalog member count retained");
+                    for (int i = 0; i < expected.Length; i++)
+                        Check(soldier.Value.Definitions[i].Metadata.Id.ToString() == expected[i].Id, "Soldier local registration order: " + expected[i].Id);
+                    compiled += expected.Length;
+                }
+
+                using (var hero = HeroCatalogBaking.Compile(content))
+                {
+                    var expected = baseline.Definitions.Where(x => x.Domain == "Hero").OrderBy(x => x.Index).ToArray();
+                    Check(hero.Value.Definitions.Length == expected.Length, "Hero catalog member count retained");
+                    for (int i = 0; i < expected.Length; i++)
+                    {
+                        Check(hero.Value.Definitions[i].Metadata.Id.ToString() == expected[i].Id, "Hero local registration order: " + expected[i].Id);
+                        if (!expected[i].Fields.Any(field => field.Path.StartsWith("Data.Growth.", StringComparison.Ordinal)))
+                        {
+                            var growth = hero.Value.Definitions[i].Growth;
+                            Check(growth.MaxLevel == 10 && growth.FirstLevelExperience == 20 && growth.ExperienceStep == 10 && growth.HealthPerLevel == .05f && growth.DamagePerLevel == .05f && growth.OfferingExperience == 1 && growth.ContactSeconds == 3 && growth.ExperiencePerSecond == 1 && growth.ThreatReference == 100 && growth.MaximumThreatMultiplier == 3, "Omitted hero growth retains baseline effective defaults");
+                        }
+                    }
+
+                    compiled += expected.Length;
+                }
+
+                using (var enemy = EnemyCatalogBaking.Compile(content))
+                {
+                    var expected = baseline.Definitions.Where(x => x.Domain == "Enemy").OrderBy(x => x.Index).ToArray();
+                    Check(enemy.Value.Definitions.Length == expected.Length, "Enemy catalog member count retained");
+                    for (int i = 0; i < expected.Length; i++)
+                    {
+                        Check(enemy.Value.Definitions[i].Metadata.Id.ToString() == expected[i].Id, "Enemy local registration order: " + expected[i].Id);
+                        if (!expected[i].Fields.Any(field => field.Path == "Data.PreferredTargetCategory"))
+                            Check((int)enemy.Value.Definitions[i].PreferredTargetCategory == 0, "Omitted enemy target category remains unrestricted");
+                    }
+
+                    compiled += expected.Length;
+                }
+
+                using (var buff = BuffCatalogBaking.Compile(content))
+                {
+                    var expected = baseline.Definitions.Where(x => x.Domain == "Buff").OrderBy(x => x.Index).ToArray();
+                    Check(buff.Value.Definitions.Length == expected.Length, "Buff catalog member count retained");
+                    for (int i = 0; i < expected.Length; i++)
+                        Check(buff.Value.Definitions[i].Metadata.Id.ToString() == expected[i].Id, "Buff local registration order: " + expected[i].Id);
+                    compiled += expected.Length;
+                }
+
+                using (var policy = PolicyCatalogBaking.Compile(content))
+                {
+                    var expected = baseline.Definitions.Where(x => x.Domain == "Policy").OrderBy(x => x.Index).ToArray();
+                    Check(policy.Value.Definitions.Length == expected.Length, "Policy catalog member count retained");
+                    for (int i = 0; i < expected.Length; i++)
+                        Check(policy.Value.Definitions[i].Metadata.Id.ToString() == expected[i].Id, "Policy local registration order: " + expected[i].Id);
+                    compiled += expected.Length;
+                }
+
+                using (var talent = TalentCatalogBaking.Compile(content))
+                {
+                    var expected = baseline.Definitions.Where(x => x.Domain == "Talent").OrderBy(x => x.Index).ToArray();
+                    Check(talent.Value.Definitions.Length == expected.Length, "Talent catalog member count retained");
+                    for (int i = 0; i < expected.Length; i++)
+                        Check(talent.Value.Definitions[i].Metadata.Id.ToString() == expected[i].Id, "Talent local registration order: " + expected[i].Id);
+                    compiled += expected.Length;
+                }
+
+                using (var talentSlot = TalentSlotCatalogBaking.Compile(content))
+                {
+                    var expected = baseline.Definitions.Where(x => x.Domain == "TalentSlot").OrderBy(x => x.Index).ToArray();
+                    Check(talentSlot.Value.Definitions.Length == expected.Length, "TalentSlot catalog member count retained");
+                    for (int i = 0; i < expected.Length; i++)
+                    {
+                        Check(talentSlot.Value.Definitions[i].Metadata.Id.ToString() == expected[i].Id, "TalentSlot local registration order: " + expected[i].Id);
+                        if (!expected[i].Fields.Any(field => field.Path.StartsWith("Data.RequiredTraits", StringComparison.Ordinal)))
+                            Check(talentSlot.Value.Definitions[i].RequiredTraits.Length == 0, "Omitted talent-slot trait constraints remain empty");
+                    }
+
+                    compiled += expected.Length;
+                }
+
+                using (var royalTrait = RoyalTraitCatalogBaking.Compile(content))
+                {
+                    var expected = baseline.Definitions.Where(x => x.Domain == "RoyalTrait").OrderBy(x => x.Index).ToArray();
+                    Check(royalTrait.Value.Definitions.Length == expected.Length, "RoyalTrait catalog member count retained");
+                    for (int i = 0; i < expected.Length; i++)
+                        Check(royalTrait.Value.Definitions[i].Metadata.Id.ToString() == expected[i].Id, "RoyalTrait local registration order: " + expected[i].Id);
+                    compiled += expected.Length;
+                }
+
+                using (var feature = FeatureCatalogBaking.Compile(content))
+                {
+                    var expected = baseline.Definitions.Where(x => x.Domain == "Feature").OrderBy(x => x.Index).ToArray();
+                    Check(feature.Value.Definitions.Length == expected.Length, "Feature catalog member count retained");
+                    for (int i = 0; i < expected.Length; i++)
+                        Check(feature.Value.Definitions[i].Metadata.Id.ToString() == expected[i].Id, "Feature local registration order: " + expected[i].Id);
+                    compiled += expected.Length;
+                }
+
+                using (var crop = CropCatalogBaking.Compile(content))
+                {
+                    var expected = baseline.Definitions.Where(x => x.Domain == "Crop").OrderBy(x => x.Index).ToArray();
+                    Check(crop.Value.Definitions.Length == expected.Length, "Crop catalog member count retained");
+                    for (int i = 0; i < expected.Length; i++)
+                        Check(crop.Value.Definitions[i].Metadata.Id.ToString() == expected[i].Id, "Crop local registration order: " + expected[i].Id);
+                    compiled += expected.Length;
+                }
+
+                using (var projectile = ProjectileCatalogBaking.Compile(content))
+                {
+                    var expected = baseline.Definitions.Where(x => x.Domain == "Projectile").OrderBy(x => x.Index).ToArray();
+                    Check(projectile.Value.Definitions.Length == expected.Length, "Projectile catalog member count retained");
+                    for (int i = 0; i < expected.Length; i++)
+                        Check(projectile.Value.Definitions[i].Metadata.Id.ToString() == expected[i].Id, "Projectile local registration order: " + expected[i].Id);
+                    compiled += expected.Length;
+                }
+
+                using (var opportunity = OpportunityCatalogBaking.Compile(content))
+                {
+                    var expected = baseline.Definitions.Where(x => x.Domain == "Opportunity").OrderBy(x => x.Index).ToArray();
+                    Check(opportunity.Value.Definitions.Length == expected.Length, "Opportunity catalog member count retained");
+                    for (int i = 0; i < expected.Length; i++)
+                        Check(opportunity.Value.Definitions[i].Metadata.Id.ToString() == expected[i].Id, "Opportunity local registration order: " + expected[i].Id);
+                    compiled += expected.Length;
+                }
+
+                using (var loot = LootCatalogBaking.Compile(content))
+                {
+                    var expected = baseline.Definitions.Where(x => x.Domain == "Loot").OrderBy(x => x.Index).ToArray();
+                    Check(loot.Value.Definitions.Length == expected.Length, "Loot catalog member count retained");
+                    for (int i = 0; i < expected.Length; i++)
+                        Check(loot.Value.Definitions[i].Metadata.Id.ToString() == expected[i].Id, "Loot local registration order: " + expected[i].Id);
+                    compiled += expected.Length;
+                }
+
+                using (var building = BuildingCatalogBaking.Compile(content))
+                {
+                    var expected = baseline.Definitions.Where(x => x.Domain == "Building").OrderBy(x => x.Index).ToArray();
+                    Check(building.Value.Definitions.Length == expected.Length, "Building catalog member count retained");
+                    for (int i = 0; i < expected.Length; i++)
+                        Check(building.Value.Definitions[i].Metadata.Id.ToString() == expected[i].Id, "Building local registration order: " + expected[i].Id);
+                    compiled += expected.Length;
+                }
+
+                Check(compiled == 185, "Independent compilers cover all former catalog members exactly once");
+                Check(!default(ItemId).IsValid && ItemId.FromIndex(0).Index == 0 && ItemId.FromIndex(0).CompareTo(ItemId.FromIndex(1)) < 0, "Typed IDs distinguish missing references and retain local ordering");
+                using (var scope = new CatalogFixture.Scope())
+                {
+                    var originalItems = content.Items;
+                    var originalGroups = content.ItemGroups;
+                    var items = scope.Clone(originalItems);
+                    var groups = scope.Clone(originalGroups);
+                    var itemIndex = new ItemCatalogIndex(items);
+                    var groupIndex = new ItemGroupCatalogIndex(groups);
+                    for (int i = 0; i < items.Definitions.Length; i++)
+                    {
+                        Check(items.Definitions[i] != originalItems.Definitions[i], "Fixture clones definition identity");
+                        if (items.Definitions[i].PrimaryGroup != null)
+                            Check(groupIndex.Resolve(items.Definitions[i].PrimaryGroup).IsValid, "Fixture remaps cross-domain references");
+                    }
+
+                    var impostor = Object.Instantiate(items.Definitions[0]);
+                    try
+                    {
+                        bool rejected = false;
+                        try
+                        {
+                            itemIndex.Resolve(impostor);
+                        }
+                        catch (InvalidOperationException)
+                        {
+                            rejected = true;
+                        }
+
+                        Check(rejected, "Unregistered asset cannot impersonate a registered stable ID");
+                    }
+                    finally
+                    {
+                        Object.DestroyImmediate(impostor);
+                    }
+
+                    groups.Definitions[0].ParentGroup = groups.Definitions[0];
+                    bool cycle = false;
+                    try
+                    {
+                        using var invalid = ItemGroupCatalogCompiler.Build(groups);
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        cycle = true;
+                    }
+
+                    Check(cycle, "Item group cycle is rejected before baking");
+                }
+
+                VerifyQuestScaling(template, Check);
+                log.AppendLine("Assertions: " + checks);
+                return log.ToString();
+            }
+            finally
+            {
+                Directory.CreateDirectory("Library/LandsongEcs");
+                File.WriteAllText("Library/LandsongEcs/content-compilation-verification.txt", log.ToString());
+            }
+        }
+
+        static void VerifyQuestScaling(GameObject template, Action<bool, string> check)
+        {
+            var content = template.GetComponent<GameContentSetAuthoring>().Content;
+            using var blob = QuestCatalogBaking.Compile(content);
+            for (int i = 0; i < content.Quests.Definitions.Length; i++)
+            {
+                var source = content.Quests.Definitions[i];
+                ref var runtime = ref blob.Value.Definitions[i];
+                var owned = source.Objectives.OwnedItemObjectives.OrderBy(x => x.Order).ToArray();
+                var submitted = source.Objectives.SubmittedItemObjectives.OrderBy(x => x.Order).ToArray();
+                var rewards = source.Rewards.Items.OrderBy(x => x.Order).ToArray();
+                var failures = source.FailurePenalties.OrderBy(x => x.Order).ToArray();
+                for (int n = 0; n < owned.Length; n++)
+                    check(runtime.Objectives.OwnedItemObjectives[n].Quantity == (int)Unity.Mathematics.math.round(owned[n].Quantity * source.ItemQuantityScale), "Quest owned-item quantity scales once");
+                for (int n = 0; n < submitted.Length; n++)
+                    check(runtime.Objectives.SubmittedItemObjectives[n].Quantity == (int)Unity.Mathematics.math.round(submitted[n].Quantity * source.ItemQuantityScale), "Quest submitted-item quantity scales once");
+                for (int n = 0; n < rewards.Length; n++)
+                    check(runtime.Rewards.Items[n].Quantity == (int)Unity.Mathematics.math.round(rewards[n].Quantity * source.ItemQuantityScale), "Quest item reward quantity scales once");
+                for (int n = 0; n < failures.Length; n++)
+                    check(runtime.FailurePenalties[n].Quantity == (int)Unity.Mathematics.math.round(failures[n].Quantity * source.ItemQuantityScale), "Quest item penalty quantity scales once");
+            }
+        }
+    }
+}
+#endif

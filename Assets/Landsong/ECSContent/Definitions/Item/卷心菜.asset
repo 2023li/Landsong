@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26cc5e56f77942f2a708ca02becf931d, type: 3}
+  m_Name: "\u5377\u5FC3\u83DC"
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.ItemDefinitionAsset
+  Metadata:
+    Id: "\u5377\u5FC3\u83DC"
+    Name: "\u5377\u5FC3\u83DC"
+    Description: "\u4E00\u7EA7\u852C\u83DC\u3002"
+    Icon: {fileID: 21300000, guid: b81ab9a5d80ac384691309cd721d1408, type: 3}
+  PrimaryGroup: {fileID: 0}
+  MaximumStack: 200
+  TradeValue: 1
+  NaturalLossRate: 0.06
+  AdditionalGroups:
+  - {fileID: 11400000, guid: 6b2682928fd25ee4d89bf546c38e8524, type: 2}

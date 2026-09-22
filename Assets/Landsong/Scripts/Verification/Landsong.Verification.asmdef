@@ -1,0 +1,22 @@
+{
+  "name": "Landsong.Verification",
+  "rootNamespace": "Landsong.ECS.Presentation",
+  "references": [
+    "Landsong.ECS", "Landsong.Content.Runtime",
+    "Landsong.Animation", "Rukhanka.Runtime",
+    "Landsong.ECS.Authoring",
+    "Landsong.ECS.Presentation",
+    "Landsong.UI",
+    "Moyo.Runtime",
+    "Unity.Entities",
+    "Unity.Transforms",
+    "Unity.Mathematics",
+    "Unity.Collections",
+    "Unity.Scenes",
+    "Unity.ugui",
+    "Unity.InputSystem",
+    "Unity.TextMeshPro",
+    "Landsong.Application"
+  ],
+  "autoReferenced": true, "defineConstraints": ["UNITY_EDITOR || DEVELOPMENT_BUILD"]
+}

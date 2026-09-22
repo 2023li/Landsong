@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: e3e261183bb71a44191c4ea091ba1de8
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 9100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 368344
+  packageName: Behavior Designer Pro 3 - DOTS Powered Behavior Trees
+  packageVersion: 3.3.2
+  assetPath: Packages/com.opsive.behaviordesigner/Samples~/Extras/SamplesAnimator.controller
+  uploadId: 985370

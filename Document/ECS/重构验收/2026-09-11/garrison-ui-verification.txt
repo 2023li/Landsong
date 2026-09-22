@@ -1,0 +1,2 @@
+PASS 2026-09-11T23:20:29.8768503+08:00
+Building output, garrison recruitment/assignment and soldier detail UI

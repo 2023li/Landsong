@@ -1,0 +1,78 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9dad11d8bc358e1469715148b91cdabb, type: 3}
+  m_Name: UIConfig
+  m_EditorClassIdentifier: Moyo.Runtime::Moyo.Unity.UIConfig
+  panels:
+  - panelId: UI_BootPanel
+    asset: {fileID: 0}
+    assetAddress: UI/UI_BootPanel
+    layer: 2
+    cachePolicy: 1
+    scopePolicy: 0
+    canCloseByBack: 0
+    takesFocus: 1
+    hideSameLayerPanels: 0
+  - panelId: UI_StartPanel
+    asset: {fileID: 0}
+    assetAddress: UI/UI_StartPanel
+    layer: 2
+    cachePolicy: 1
+    scopePolicy: 0
+    canCloseByBack: 0
+    takesFocus: 1
+    hideSameLayerPanels: 0
+  - panelId: UI_LoadingPanel
+    asset: {fileID: 0}
+    assetAddress: UI/UI_LoadingPanel
+    layer: 6
+    cachePolicy: 1
+    scopePolicy: 0
+    canCloseByBack: 0
+    takesFocus: 1
+    hideSameLayerPanels: 0
+  - panelId: UI_SettingPanel
+    asset: {fileID: 0}
+    assetAddress: UI/UI_SettingPanel
+    layer: 3
+    cachePolicy: 1
+    scopePolicy: 0
+    canCloseByBack: 1
+    takesFocus: 1
+    hideSameLayerPanels: 0
+  - panelId: UI_SavePanel
+    asset: {fileID: 0}
+    assetAddress: UI/UI_SavePanel
+    layer: 3
+    cachePolicy: 1
+    scopePolicy: 0
+    canCloseByBack: 1
+    takesFocus: 1
+    hideSameLayerPanels: 0
+  - panelId: UI_ConfirmPanel
+    asset: {fileID: 0}
+    assetAddress: UI/UI_ConfirmPanel
+    layer: 3
+    cachePolicy: 1
+    scopePolicy: 0
+    canCloseByBack: 1
+    takesFocus: 1
+    hideSameLayerPanels: 0
+  - panelId: UI_GamePanel
+    asset: {fileID: 0}
+    assetAddress: UI/UI_GamePanel
+    layer: 1
+    cachePolicy: 0
+    scopePolicy: 1
+    canCloseByBack: 0
+    takesFocus: 1
+    hideSameLayerPanels: 0

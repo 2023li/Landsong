@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e493df89b1d4f3394a96d6e5d3619fb, type: 3}
+  m_Name: random_supply_wood
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.QuestDefinitionAsset
+  Metadata:
+    Id: random_supply_wood
+    Name: "\u6728\u6750\u91C7\u8D2D\u59D4\u6258"
+    Description: "\u5546\u961F\u9700\u8981\u4E00\u6279\u539F\u6728\u7528\u4E8E\u4FEE\u7F2E\u8F66\u8F86\uFF0C\u613F\u610F\u652F\u4ED8\u91D1\u5E01\u6536\u8D2D\u3002"
+    Icon: {fileID: 0}
+  DeadlineTurns: 5
+  Behavior: 0
+  OfferType: 0
+  Intensity: 0
+  OfferWeight: 100
+  ItemQuantityScale: 1
+  Prerequisites:
+    BuildingRequirements: []
+    TechnologyRequirements: []
+    BuffRequirements: []
+    FeatureRequirements: []
+    QuestRequirements: []
+    ExpeditionRequirements: []
+  Rewards:
+    Items:
+    - Order: 0
+      Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+      Quantity: 15
+    Blueprints: []
+    Buffs: []
+    Features: []
+  FailurePenalties:
+  - Order: 2
+    Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+    Quantity: 3
+  Objectives:
+    BuildingObjectives: []
+    PlantedBuildingObjectives: []
+    OwnedItemObjectives: []
+    SubmittedItemObjectives:
+    - Order: 1
+      Key: 952451b765a24f1296945ba5458801b7
+      Item: {fileID: 11400000, guid: a761334fe1641a74f9948313fb5ff413, type: 2}
+      Quantity: 10
+    TechnologyObjectives: []
+    CameraMoveObjectives: []
+    CameraZoomObjectives: []
+    TurnObjectives: []

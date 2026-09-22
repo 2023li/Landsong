@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 46d099eed2d44856afac4958bba24a39, type: 3}
+  m_Name: buff.building.quarry.stone_flat_bonus.masonry
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.BuffDefinitionAsset
+  Metadata:
+    Id: buff.building.quarry.stone_flat_bonus.masonry
+    Name: "\u77F3\u5DE5\u589E\u4EA7"
+    Description: "\u6240\u6709\u91C7\u77F3\u573A\u6BCF\u6B21\u751F\u4EA7\u989D\u5916\u83B7\u5F97 1 \u77F3\u5934\u3002"
+    Icon: {fileID: 21300000, guid: cfdcfaaf30eb3b647afb4ea2414cef08, type: 3}
+  Effects:
+    Items: []
+    Buildings: []
+    Soldiers: []
+    Heroes: []
+    Talents: []
+    Kingdom: []
+    Intelligence: []
+    FlatProduction:
+    - Order: 0
+      Item: {fileID: 11400000, guid: a927377c37e532b49af819fa89b72369, type: 2}
+      Building: {fileID: 11400000, guid: 645b7484bf3c5b64e87f384e493cfc1f, type: 2}
+      Quantity: 1

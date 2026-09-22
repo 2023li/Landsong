@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf305ec79e81461a85b03ff7dbd3fcd9, type: 3}
+  m_Name: "TN_5_2_\u72E9\u730E"
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.TechnologyDefinitionAsset
+  Metadata:
+    Id: "TN_5_2_\u72E9\u730E"
+    Name: "\u72E9\u730E"
+    Description: "\u603B\u7ED3\u8FFD\u8E2A\u3001\u8BBE\u4F0F\u4E0E\u5904\u7406\u730E\u7269\u7684\u65B9\u6CD5\uFF0C\u6269\u5927\u805A\u843D\u5BF9\u91CE\u5916\u8D44\u6E90\u7684\u5229\u7528\u3002"
+    Icon: {fileID: 0}
+  ResearchPointCost: 8
+  HasTreePosition: 1
+  TreePosition: {x: 220, y: 600}
+  Repeatable: 0
+  Prerequisites:
+    BuildingRequirements: []
+    TechnologyRequirements:
+    - Order: 0
+      Technology: {fileID: 11400000, guid: a3f3abdb09f48de42875125403ab1e9d, type: 2}
+      Required: 1
+    BuffRequirements: []
+    FeatureRequirements: []
+    QuestRequirements: []
+    ExpeditionRequirements: []
+  Rewards:
+    Items: []
+    Blueprints: []
+    Buffs: []
+    Features: []
+  Effects:
+    Items: []
+    Buildings: []
+    Soldiers: []
+    Heroes: []
+    Talents: []
+    Kingdom: []
+    Intelligence: []
+    FlatProduction: []

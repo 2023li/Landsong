@@ -1,0 +1,95 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using GiantGrey.TileWorldCreator;
+using Landsong.GridSystem;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+namespace Landsong.EditorTools
+{
+    public static class MapBoundaryMigration
+    {
+        public const string ObsoleteRules="Assets/Landsong/GameMaps/公共地形规则.asset";
+        const string Record="Library/LandsongEcs/map-boundary-migration.txt";
+        public static string Run()
+        {
+            if(File.Exists(Record))return File.ReadAllText(Record);
+            string backup="Temp/MapBoundaryBefore_"+DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            var copied=new HashSet<string>();
+            void Backup(string path)
+            {
+                if(string.IsNullOrEmpty(path)||!File.Exists(path)||!copied.Add(path))return;
+                string dest=backup+"/"+path;Directory.CreateDirectory(Path.GetDirectoryName(dest));File.Copy(path,dest);
+                if(File.Exists(path+".meta"))File.Copy(path+".meta",dest+".meta");
+            }
+            Backup(ObsoleteRules);
+            var paths=AssetDatabase.FindAssets("t:Scene",new[]{GameMapPaths.Root}).Select(AssetDatabase.GUIDToAssetPath)
+                .Where(p=>!p.Contains("/Generated/")&&!p.Contains("/_Verification_")).ToArray();
+            foreach(var path in paths)Backup(path);
+            foreach(var type in new[]{"Configuration","TileWorldCreatorMapBakeProfile","MapTerrainRules"})
+                foreach(var guid in AssetDatabase.FindAssets("t:"+type,new[]{GameMapPaths.Root}))Backup(AssetDatabase.GUIDToAssetPath(guid));
+            var active=SceneManager.GetActiveScene();var log=new System.Text.StringBuilder();
+            foreach(var path in paths)
+            {
+                var scene=SceneManager.GetSceneByPath(path);bool opened=!scene.IsValid()||!scene.isLoaded;
+                if(opened)scene=EditorSceneManager.OpenScene(path,OpenSceneMode.Additive);
+                bool wasDirty=scene.isDirty;
+                try
+                {
+                    foreach(var content in scene.GetRootGameObjects().SelectMany(g=>g.GetComponentsInChildren<MapContentAuthoring>(true)))
+                    {
+                        File.WriteAllText(backup+"/"+path+".content.json",EditorJsonUtility.ToJson(content,true));
+                        var old=content.TerrainRules;
+                        if(old!=null&&!old.useLayerBlueprintRules)
+                        {
+                            content.LegacyTerrainInput=JsonUtility.FromJson<LegacyMapTerrainInput>(JsonUtility.ToJson(old));
+                            content.UsesLegacyTerrainInput=true;content.LegacyBaseLayerName=old.baseLayerName;content.TerrainRules=null;
+                            var config=content.GetComponent<TileWorldCreatorManager>().configuration;
+                            var painted=config.blueprintLayerFolders.SelectMany(f=>f.blueprintLayers).Where(b=>b!=null&&b.layerName==old.edgeLayerName).ToArray();
+                            if(painted.Length!=1)throw new InvalidOperationException("旧地图需要唯一边缘区用于迁移校验："+scene.name);
+                            var cells=painted[0].allPositions.Select(p=>new Vector2Int((int)p.x,(int)p.y)).ToHashSet();
+                            int matching=-1;
+                            for(int width=0;width<=Math.Max(config.width,config.height);width++)
+                                if(new MapBoundaryCompiler(config,width).Edge.SetEquals(cells)){matching=width;break;}
+                            if(matching<0)throw new InvalidOperationException("旧地图手绘边缘不是等宽外边界，无法无损迁移："+scene.name);
+                            content.EdgeWidth=matching;
+                        }
+                        else {content.EdgeWidth=5;}
+                        if(content.BakeProfile!=null){content.BakeProfile.ApplyContent(content);EditorUtility.SetDirty(content.BakeProfile);AssetDatabase.SaveAssetIfDirty(content.BakeProfile);}
+                        EditorUtility.SetDirty(content);EditorSceneManager.MarkSceneDirty(scene);
+                        log.AppendLine(scene.name+": edge="+content.EdgeWidth+", legacy="+content.UsesLegacyTerrainInput);
+                    }
+                    if(!wasDirty && !EditorSceneManager.SaveScene(scene))throw new IOException("保存地图配置失败："+path);
+                }
+                finally{if(opened)EditorSceneManager.CloseScene(scene,true);}
+            }
+            int removed=0;
+            foreach(var guid in AssetDatabase.FindAssets("t:Configuration",new[]{GameMapPaths.Root}))
+            {
+                var config=AssetDatabase.LoadAssetAtPath<Configuration>(AssetDatabase.GUIDToAssetPath(guid));
+                if(config==null)continue;
+                File.WriteAllText(backup+"/"+AssetDatabase.GetAssetPath(config)+".editor.json",EditorJsonUtility.ToJson(config,true));
+                removed+=MapEdgeLayerUtility.RemoveObsolete(config);AssetDatabase.SaveAssetIfDirty(config);
+            }
+            if(active.IsValid()&&active.isLoaded)SceneManager.SetActiveScene(active);
+            log.AppendLine("Removed obsolete painted edge layers: "+removed);log.AppendLine("Backup: "+backup);
+            Directory.CreateDirectory("Library/LandsongEcs");File.WriteAllText(Record,log.ToString());return log.ToString();
+        }
+        public static string RemoveObsoleteAsset()
+        {
+            if(!File.Exists(Record))throw new InvalidOperationException("请先完成地图边界迁移。");
+            if(!File.Exists(ObsoleteRules))return "Obsolete public terrain rules already removed.";
+            foreach(var guid in AssetDatabase.FindAssets("t:Scene",new[]{GameMapPaths.Root}))
+            {
+                var path=AssetDatabase.GUIDToAssetPath(guid);
+                if(AssetDatabase.GetDependencies(path).Contains(ObsoleteRules))throw new InvalidOperationException("仍有引用："+path);
+            }
+            if(!AssetDatabase.DeleteAsset(ObsoleteRules))throw new IOException("移除旧公共规则失败。");
+            return "Removed "+ObsoleteRules;
+        }
+    }
+}

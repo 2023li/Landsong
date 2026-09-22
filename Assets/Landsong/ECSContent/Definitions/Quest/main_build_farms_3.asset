@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e493df89b1d4f3394a96d6e5d3619fb, type: 3}
+  m_Name: main_build_farms_3
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.QuestDefinitionAsset
+  Metadata:
+    Id: main_build_farms_3
+    Name: "\u5F00\u57A6\u826F\u7530"
+    Description: "\u7CAE\u98DF\u662F\u805A\u843D\u5EF6\u7EED\u7684\u6839\u57FA\u3002\u5EFA\u9020 3 \u5EA7\u519C\u7530\uFF0C\u8BA9\u8352\u5730\u62E5\u6709\u5B55\u80B2\u6536\u83B7\u7684\u53EF\u80FD\u3002"
+    Icon: {fileID: 0}
+  DeadlineTurns: 0
+  Behavior: 1
+  OfferType: 0
+  Prerequisites:
+    BuildingRequirements: []
+    TechnologyRequirements: []
+    BuffRequirements: []
+    FeatureRequirements: []
+    QuestRequirements:
+    - Order: 0
+      Quest: {fileID: 11400000, guid: 5bde982401f1498469d54bb796fb7f40, type: 2}
+      Required: 1
+    ExpeditionRequirements: []
+  Rewards:
+    Items:
+    - Order: 1
+      Item: {fileID: 11400000, guid: ae86caa71825ab54d829b6dc712d65a7, type: 2}
+      Quantity: 20
+    - Order: 2
+      Item: {fileID: 11400000, guid: 03e6eefa9ddbcaa4ca3552ff906f195b, type: 2}
+      Quantity: 10
+    Blueprints: []
+    Buffs: []
+    Features: []
+  FailurePenalties: []
+  Objectives:
+    BuildingObjectives:
+    - Order: 3
+      Key: a8923dae584549938d7ae922c3200c0d
+      Building: {fileID: 11400000, guid: 7df6157a6643e9c41951b0403decdba0, type: 2}
+      Count: 3
+      MinimumLevel: 0
+      CompletedOnly: 0
+    PlantedBuildingObjectives: []
+    OwnedItemObjectives: []
+    SubmittedItemObjectives: []
+    TechnologyObjectives: []
+    CameraMoveObjectives: []
+    CameraZoomObjectives: []
+    TurnObjectives:
+    - Order: 4
+      Key: b5df5c73ad0a4d17a4ba9172ee5adb71
+      Turns: 1
+      SinceAccepted: 1

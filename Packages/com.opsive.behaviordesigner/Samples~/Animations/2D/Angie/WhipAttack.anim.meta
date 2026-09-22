@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 23d1818f1567b7e40a15fb2ae4c78e28
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 7400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 368344
+  packageName: Behavior Designer Pro 3 - DOTS Powered Behavior Trees
+  packageVersion: 3.3.2
+  assetPath: Packages/com.opsive.behaviordesigner/Samples~/Animations/2D/Angie/WhipAttack.anim
+  uploadId: 985370

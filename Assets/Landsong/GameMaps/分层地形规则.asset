@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16fd81118facdaf42b3821fcd530cf65, type: 3}
+  m_Name: "\u5206\u5C42\u5730\u5F62\u89C4\u5219"
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.GridSystem.MapTerrainRules
+  useLayerBlueprintRules: 1
+  blueprintRules:
+  - BlueprintLayerName: "\u9646\u5730"
+    Kind: 0
+    Terrain: 1
+    Buildable: 1
+    Traversable: 1
+  - BlueprintLayerName: "\u6C34\u57DF"
+    Kind: 0
+    Terrain: 2
+    Buildable: 0
+    Traversable: 0
+  - BlueprintLayerName: "\u659C\u5761"
+    Kind: 3
+    Terrain: 0
+    Buildable: 0
+    Traversable: 1
+  - BlueprintLayerName: "\u77F3\u5730"
+    Kind: 0
+    Terrain: 4
+    Buildable: 1
+    Traversable: 1
+  - BlueprintLayerName: "\u6CE5\u5730"
+    Kind: 0
+    Terrain: 8
+    Buildable: 1
+    Traversable: 1
+  overlapRules: {fileID: 11400000, guid: 6c25fcd5d089e4443b5dad7d1f2b8cf4, type: 2}
+  edgeLayerName: "\u8FB9\u7F18\u533A"
+  baseLayerName: Base
+  baseTerrainKey: "\u6C34\u57DF"
+  baseBuildable: 0
+  baseTraversable: 1
+  elevationWorldStep: 1
+  layerBindings: []

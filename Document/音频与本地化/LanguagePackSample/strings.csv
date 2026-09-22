@@ -1,0 +1,5 @@
+Table,Key,Text
+Gameplay,gameplay.common.turn_heading,Turno {0}
+Gameplay,gameplay.common.none,Ninguno
+Gameplay,gameplay.expedition.ui.depart,Partir
+Gameplay,gameplay.expedition.ui.success,Probabilidad estimada {0:0.#}%

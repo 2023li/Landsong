@@ -1,0 +1,283 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: UI_en
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.StringTable
+  m_LocaleId:
+    m_Code: en
+  m_SharedData: {fileID: 11400000, guid: 0134bcefa9685fb4ebe82890d57433ad, type: 2}
+  m_Metadata:
+    m_Items: []
+  m_TableData:
+  - m_Id: 15044534734938112
+    m_Localized: Gameplay Debug
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044534743326720
+    m_Localized: Selected Resource
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044534743326721
+    m_Localized: Amount
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044534747521024
+    m_Localized: Add Selected Resource
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044534747521025
+    m_Localized: Get a Random Quest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044534747521026
+    m_Localized: Complete Quest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044534747521027
+    m_Localized: Complete Technology
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044534747521028
+    m_Localized: Creative Mode
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044536202944512
+    m_Localized: Build
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044536202944513
+    m_Localized: Warehouse
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044536202944514
+    m_Localized: Overview
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044536202944515
+    m_Localized: Quests
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044536202944516
+    m_Localized: Expeditions
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044536202944517
+    m_Localized: Council
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044536202944518
+    m_Localized: Succession
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044536202944519
+    m_Localized: Turn
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044536202944520
+    m_Localized: Demolish
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044536211333120
+    m_Localized: Technology
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044536211333121
+    m_Localized: Population
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044536211333122
+    m_Localized: Talent System
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044536211333123
+    m_Localized: Close
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044536211333124
+    m_Localized: Candidates
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044536211333125
+    m_Localized: Talent Pool
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044536211333126
+    m_Localized: Positions
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044536211333127
+    m_Localized: Royal Succession
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044536211333128
+    m_Localized: Heir
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044536211333129
+    m_Localized: Royal Lineage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044536383299584
+    m_Localized: Available Quests
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044536383299585
+    m_Localized: Manually Submit Resources
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044536383299586
+    m_Localized: Cancel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044536383299587
+    m_Localized: Confirm Submission
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044536622374912
+    m_Localized: Bonus
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044536664317952
+    m_Localized: MANUAL SAVE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044536760786944
+    m_Localized: PERMADEATH MODE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044536760786945
+    m_Localized: Save_Game_Location
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044536760786946
+    m_Localized: New Game
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044536760786947
+    m_Localized: Load Game
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044536806924288
+    m_Localized: Create New Save
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044536806924289
+    m_Localized: 'Enter a name for your Save '
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044537163440128
+    m_Localized: Continue
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044537163440129
+    m_Localized: Settings
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044537163440130
+    m_Localized: Credits
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044537163440131
+    m_Localized: Quit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044537163440132
+    m_Localized: Quit Game
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044537163440133
+    m_Localized: Are you sure you want to quit?
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044537163440134
+    m_Localized: Begin the Chronicle
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044537163440135
+    m_Localized: Name your civilization
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044537163440136
+    m_Localized: An error has occurred and the game will restart.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044545023565824
+    m_Localized: Turn Cost
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044545023565825
+    m_Localized: 'Subsidy:'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044545023565826
+    m_Localized: Automatically calculate subsidies to maintain full staffing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044545023565827
+    m_Localized: Select Seed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044545023565828
+    m_Localized: Remove
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044545023565829
+    m_Localized: Harvest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044545023565830
+    m_Localized: Cancel Expedition
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044545023565831
+    m_Localized: 'Output:'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044545023565832
+    m_Localized: Auto Upgrade
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044545023565833
+    m_Localized: Back
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044545023565834
+    m_Localized: Confirm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044545044537344
+    m_Localized: '  Produces one apple per turn'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044545048731648
+    m_Localized: Position
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044556801171456
+    m_Localized: No Languages Available
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044556801171457
+    m_Localized: Invalid Map
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044556801171458
+    m_Localized: Invalid Save
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15044556801171459
+    m_Localized: Press Any Key to Continue
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds: []

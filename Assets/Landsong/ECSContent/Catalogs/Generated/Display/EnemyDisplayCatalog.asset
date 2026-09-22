@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8856962f29fd42cdbaed11ed4b25aefe, type: 3}
+  m_Name: EnemyDisplayCatalog
+  m_EditorClassIdentifier: Landsong.Content.Runtime::Landsong.Content.EnemyDisplayCatalog
+  Entries:
+  - Id: boss
+    Description: 
+    Icon: {fileID: 0}
+  - Id: raider
+    Description: 
+    Icon: {fileID: 0}
+  - Id: invader
+    Description: 
+    Icon: {fileID: 0}
+  - Id: wolf
+    Description: "\u5FEB\u901F\u8FD1\u6218\u654C\u4EBA\uFF0C\u6301\u7EED\u8FFD\u51FB\u6700\u8FD1\u7684\u5B58\u6D3B\u51FA\u6218\u58EB\u5175\u3002"
+    Icon: {fileID: 0}

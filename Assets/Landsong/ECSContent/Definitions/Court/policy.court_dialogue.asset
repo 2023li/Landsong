@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b420075e48c94f268ac8d446b8f9824d, type: 3}
+  m_Name: policy.court_dialogue
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.PolicyDefinitionAsset
+  Metadata:
+    Id: policy.court_dialogue
+    Name: "\u5B97\u5BA4\u8BAE\u4E8B"
+    Description: "\u5360\u4F4D\u653F\u7B56\uFF1A\u5B97\u5BA4\u534F\u5546\uFF0C\u5F11\u541B\u98CE\u9669 -30%\u3002\u4E0E\u5BAB\u5EF7\u5BBF\u536B\u540C\u5C42\u4E92\u65A5\u3002"
+    Icon: {fileID: 0}
+  PolicyGroup: {fileID: 0}
+  PolicyTier: 1
+  RequiredPublicOpinion: 10
+  Prerequisites:
+    BuildingRequirements: []
+    TechnologyRequirements: []
+    BuffRequirements: []
+    FeatureRequirements: []
+    QuestRequirements: []
+    ExpeditionRequirements: []
+  Effects:
+    Items: []
+    Buildings: []
+    Soldiers: []
+    Heroes: []
+    Talents: []
+    Kingdom:
+    - Order: 0
+      Level: 0
+      Effect: 1
+      Magnitude: -0.3
+    Intelligence: []
+    FlatProduction: []

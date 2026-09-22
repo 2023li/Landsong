@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e88fece4b9449b592ce8a83542c7904, type: 3}
+  m_Name: GameContentSet
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.GameContentSetAsset
+  Night:
+    NightSeconds: 300
+    DeployInterval: 0.4
+    NightPreparationSeconds: 3
+    NightClosureSeconds: 10
+    RetreatDelaySeconds: 2
+    VictoryCaptionDelaySeconds: 2
+    CelebrationDelaySeconds: 2
+    VictoryAdvanceDelaySeconds: 3
+    WaveIntervalSeconds: 15
+    DawnSeconds: 3
+    InvasionChance: 0.55
+    StrengthRatio: 0.65
+    RetryStep: 0.05
+    RetryCap: 0.3
+    FirstInvasion: 3
+    FirstBoss: 20
+    BossInterval: 10
+    ThreatPerTurn: 12
+  DayReturn:
+    MinimumSeconds: 15
+    MaximumSeconds: 30
+  Items: {fileID: 11400000, guid: 67dd6ce82b6b59588b08a46b97613283, type: 2}
+  ItemGroups: {fileID: 11400000, guid: 611116edd90050edab5982fd50dce1e0, type: 2}
+  StorageSlots: {fileID: 11400000, guid: 34b91243188e5a0197453732f9e386b6, type: 2}
+  BuildingLimitGroups: {fileID: 11400000, guid: ace29b8148cc5f28a743dc30b27b5386, type: 2}
+  PolicyGroups: {fileID: 11400000, guid: fadd507a96555d9b93153155c77a6a29, type: 2}
+  Technologies: {fileID: 11400000, guid: b70684d112635635a054f598e60a7cad, type: 2}
+  Quests: {fileID: 11400000, guid: 4ec1e4edeb385a31acac92c8c3004dfe, type: 2}
+  Expeditions: {fileID: 11400000, guid: 8730ddc6e6285298b59a1ebdef7418fb, type: 2}
+  Soldiers: {fileID: 11400000, guid: e0bad450dce157dfbfeac772d2acc8fb, type: 2}
+  Heroes: {fileID: 11400000, guid: 77726f6ee0875988872bb9c9c7e1be56, type: 2}
+  Enemies: {fileID: 11400000, guid: cb8a5c8291125d82bbe2024e472e8ab6, type: 2}
+  Buffs: {fileID: 11400000, guid: c4dd515451395f1c8b6f7dbc58d78260, type: 2}
+  Policies: {fileID: 11400000, guid: 7483c143e1c95d26a9893e23d618ee9a, type: 2}
+  Talents: {fileID: 11400000, guid: d411c683fc2151e1b55b3ae10ae9ce19, type: 2}
+  TalentSlots: {fileID: 11400000, guid: e6dd08713e675bfca114d4b6c440e42f, type: 2}
+  RoyalTraits: {fileID: 11400000, guid: 79d310160c6c5e88a91aa3b2ad1a1013, type: 2}
+  Features: {fileID: 11400000, guid: c83600240e815b8aa75c56821c37aa1c, type: 2}
+  Crops: {fileID: 11400000, guid: 3ebf00d372c755a180b5e5e55323e265, type: 2}
+  Projectiles: {fileID: 11400000, guid: 891a275ef1325ae2bd47c868152e9079, type: 2}
+  Opportunities: {fileID: 11400000, guid: 25a47d02fd895ef49501a274e795ef62, type: 2}
+  Loot: {fileID: 11400000, guid: c42c79888b9652f6b50a4c83402c6a7f, type: 2}
+  Buildings: {fileID: 11400000, guid: 6edd5a83fea950a2a8165c6cf7554b54, type: 2}
+  NightEvents: {fileID: 11400000, guid: c5a263302d0752899d88193e379379ff, type: 2}

@@ -1,0 +1,2829 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!29 &1
+OcclusionCullingSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_OcclusionBakeSettings:
+    smallestOccluder: 5
+    smallestHole: 0.25
+    backfaceThreshold: 100
+  m_SceneGUID: 00000000000000000000000000000000
+  m_OcclusionCullingData: {fileID: 0}
+--- !u!104 &2
+RenderSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 9
+  m_Fog: 0
+  m_FogColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  m_FogMode: 3
+  m_FogDensity: 0.01
+  m_LinearFogStart: 0
+  m_LinearFogEnd: 300
+  m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
+  m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
+  m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
+  m_AmbientIntensity: 1
+  m_AmbientMode: 0
+  m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
+  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
+  m_HaloStrength: 0.5
+  m_FlareStrength: 1
+  m_FlareFadeSpeed: 3
+  m_HaloTexture: {fileID: 0}
+  m_SpotCookie: {fileID: 10001, guid: 0000000000000000e000000000000000, type: 0}
+  m_DefaultReflectionMode: 0
+  m_DefaultReflectionResolution: 128
+  m_ReflectionBounces: 1
+  m_ReflectionIntensity: 1
+  m_CustomReflection: {fileID: 0}
+  m_Sun: {fileID: 0}
+  m_UseRadianceAmbientProbe: 0
+--- !u!157 &3
+LightmapSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 12
+  m_GIWorkflowMode: 1
+  m_GISettings:
+    serializedVersion: 2
+    m_BounceScale: 1
+    m_IndirectOutputScale: 1
+    m_AlbedoBoost: 1
+    m_EnvironmentLightingMode: 0
+    m_EnableBakedLightmaps: 1
+    m_EnableRealtimeLightmaps: 0
+  m_LightmapEditorSettings:
+    serializedVersion: 12
+    m_Resolution: 2
+    m_BakeResolution: 40
+    m_AtlasSize: 1024
+    m_AO: 0
+    m_AOMaxDistance: 1
+    m_CompAOExponent: 1
+    m_CompAOExponentDirect: 0
+    m_ExtractAmbientOcclusion: 0
+    m_Padding: 2
+    m_LightmapParameters: {fileID: 0}
+    m_LightmapsBakeMode: 1
+    m_TextureCompression: 1
+    m_FinalGather: 0
+    m_FinalGatherFiltering: 1
+    m_FinalGatherRayCount: 256
+    m_ReflectionCompression: 2
+    m_MixedBakeMode: 2
+    m_BakeBackend: 1
+    m_PVRSampling: 1
+    m_PVRDirectSampleCount: 32
+    m_PVRSampleCount: 512
+    m_PVRBounces: 2
+    m_PVREnvironmentSampleCount: 256
+    m_PVREnvironmentReferencePointCount: 2048
+    m_PVRFilteringMode: 1
+    m_PVRDenoiserTypeDirect: 1
+    m_PVRDenoiserTypeIndirect: 1
+    m_PVRDenoiserTypeAO: 1
+    m_PVRFilterTypeDirect: 0
+    m_PVRFilterTypeIndirect: 0
+    m_PVRFilterTypeAO: 0
+    m_PVREnvironmentMIS: 1
+    m_PVRCulling: 1
+    m_PVRFilteringGaussRadiusDirect: 1
+    m_PVRFilteringGaussRadiusIndirect: 5
+    m_PVRFilteringGaussRadiusAO: 2
+    m_PVRFilteringAtrousPositionSigmaDirect: 0.5
+    m_PVRFilteringAtrousPositionSigmaIndirect: 2
+    m_PVRFilteringAtrousPositionSigmaAO: 1
+    m_ExportTrainingData: 0
+    m_TrainingDataDestination: TrainingData
+    m_LightProbeSampleCountMultiplier: 4
+  m_LightingDataAsset: {fileID: 0}
+  m_LightingSettings: {fileID: 0}
+--- !u!196 &4
+NavMeshSettings:
+  serializedVersion: 2
+  m_ObjectHideFlags: 0
+  m_BuildSettings:
+    serializedVersion: 3
+    agentTypeID: 0
+    agentRadius: 0.5
+    agentHeight: 2
+    agentSlope: 45
+    agentClimb: 0.4
+    ledgeDropHeight: 0
+    maxJumpAcrossDistance: 0
+    minRegionArea: 2
+    manualCellSize: 0
+    cellSize: 0.16666667
+    manualTileSize: 0
+    tileSize: 256
+    buildHeightMesh: 0
+    maxJobWorkers: 0
+    preserveTilesOutsideBounds: 0
+    debug:
+      m_Flags: 0
+  m_NavMeshData: {fileID: 0}
+--- !u!1 &27261965
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 27261966}
+  m_Layer: 0
+  m_Name: DestinationC
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &27261966
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 27261965}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -1.59, y: 0, z: -13.35}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 184838579}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &34912479
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 34912483}
+  - component: {fileID: 34912482}
+  - component: {fileID: 34912481}
+  - component: {fileID: 34912480}
+  m_Layer: 5
+  m_Name: Canvas
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &34912480
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 34912479}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc42784cf147c0c48a680349fa168899, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_IgnoreReversedGraphics: 1
+  m_BlockingObjects: 0
+  m_BlockingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+--- !u!114 &34912481
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 34912479}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_UiScaleMode: 0
+  m_ReferencePixelsPerUnit: 100
+  m_ScaleFactor: 1
+  m_ReferenceResolution: {x: 800, y: 600}
+  m_ScreenMatchMode: 0
+  m_MatchWidthOrHeight: 0
+  m_PhysicalUnit: 3
+  m_FallbackScreenDPI: 96
+  m_DefaultSpriteDPI: 96
+  m_DynamicPixelsPerUnit: 1
+  m_PresetInfoIsWorld: 0
+--- !u!223 &34912482
+Canvas:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 34912479}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_RenderMode: 0
+  m_Camera: {fileID: 0}
+  m_PlaneDistance: 100
+  m_PixelPerfect: 0
+  m_ReceivesEvents: 1
+  m_OverrideSorting: 0
+  m_OverridePixelPerfect: 0
+  m_SortingBucketNormalizedSize: 0
+  m_VertexColorAlwaysGammaSpace: 0
+  m_AdditionalShaderChannelsFlag: 0
+  m_UpdateRectTransformForStandalone: 0
+  m_SortingLayerID: 0
+  m_SortingOrder: 0
+  m_TargetDisplay: 0
+--- !u!224 &34912483
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 34912479}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0, y: 0, z: 0}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1754866390}
+  - {fileID: 540895065}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0, y: 0}
+--- !u!1 &184838578
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 184838579}
+  m_Layer: 0
+  m_Name: Waypoints
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &184838579
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 184838578}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1500849495}
+  - {fileID: 1218089712}
+  - {fileID: 1064318516}
+  - {fileID: 2012157460}
+  - {fileID: 27261966}
+  - {fileID: 2033394110}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &243258936
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 87799623217879824, guid: b96187f13ba78f145863956029fdf79b, type: 3}
+      propertyPath: m_Radius
+      value: 0.01
+      objectReference: {fileID: 0}
+    - target: {fileID: 87799623217879824, guid: b96187f13ba78f145863956029fdf79b, type: 3}
+      propertyPath: m_StoppingDistance
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 87799623217879824, guid: b96187f13ba78f145863956029fdf79b, type: 3}
+      propertyPath: m_ObstacleAvoidanceType
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2562795323251489762, guid: b96187f13ba78f145863956029fdf79b, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 4.01
+      objectReference: {fileID: 0}
+    - target: {fileID: 2562795323251489762, guid: b96187f13ba78f145863956029fdf79b, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2562795323251489762, guid: b96187f13ba78f145863956029fdf79b, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2562795323251489762, guid: b96187f13ba78f145863956029fdf79b, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: -0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 2562795323251489762, guid: b96187f13ba78f145863956029fdf79b, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2562795323251489762, guid: b96187f13ba78f145863956029fdf79b, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 2562795323251489762, guid: b96187f13ba78f145863956029fdf79b, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2562795323251489762, guid: b96187f13ba78f145863956029fdf79b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2562795323251489762, guid: b96187f13ba78f145863956029fdf79b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2562795323251489762, guid: b96187f13ba78f145863956029fdf79b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2774400823790503461, guid: b96187f13ba78f145863956029fdf79b, type: 3}
+      propertyPath: m_UseRootMotion
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2774400823790503461, guid: b96187f13ba78f145863956029fdf79b, type: 3}
+      propertyPath: m_StoppingDistance
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2944000005471445336, guid: b96187f13ba78f145863956029fdf79b, type: 3}
+      propertyPath: m_Name
+      value: Medic
+      objectReference: {fileID: 0}
+    - target: {fileID: 2944000005471445336, guid: b96187f13ba78f145863956029fdf79b, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3655769350715228507, guid: b96187f13ba78f145863956029fdf79b, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: dcaf294eff98e8643ba3cfe7feff6df3, type: 2}
+    - target: {fileID: 7413387345977645638, guid: b96187f13ba78f145863956029fdf79b, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 8e4e0cadfb3ed72429c060f721874afb, type: 2}
+    - target: {fileID: 8389691352177541535, guid: b96187f13ba78f145863956029fdf79b, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: dcaf294eff98e8643ba3cfe7feff6df3, type: 2}
+    - target: {fileID: 8389691352177541535, guid: b96187f13ba78f145863956029fdf79b, type: 3}
+      propertyPath: m_Materials.Array.data[1]
+      value: 
+      objectReference: {fileID: 2100000, guid: 9c7e452a02d036b458a8ffdd046e0454, type: 2}
+    - target: {fileID: 8392345702719956766, guid: b96187f13ba78f145863956029fdf79b, type: 3}
+      propertyPath: m_AuthoringLayer
+      value: 
+      objectReference: {fileID: 2037878336}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2944000005471445336, guid: b96187f13ba78f145863956029fdf79b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2037878336}
+  m_SourcePrefab: {fileID: 100100000, guid: b96187f13ba78f145863956029fdf79b, type: 3}
+--- !u!1 &316591946
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 316591948}
+  - component: {fileID: 316591947}
+  - component: {fileID: 316591949}
+  m_Layer: 0
+  m_Name: Directional Light
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!108 &316591947
+Light:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 316591946}
+  m_Enabled: 1
+  serializedVersion: 10
+  m_Type: 1
+  m_Shape: 0
+  m_Color: {r: 1, g: 0.95686275, b: 0.8392157, a: 1}
+  m_Intensity: 1
+  m_Range: 10
+  m_SpotAngle: 30
+  m_InnerSpotAngle: 21.80208
+  m_CookieSize: 10
+  m_Shadows:
+    m_Type: 2
+    m_Resolution: -1
+    m_CustomResolution: -1
+    m_Strength: 1
+    m_Bias: 0.05
+    m_NormalBias: 0.4
+    m_NearPlane: 0.2
+    m_CullingMatrixOverride:
+      e00: 1
+      e01: 0
+      e02: 0
+      e03: 0
+      e10: 0
+      e11: 1
+      e12: 0
+      e13: 0
+      e20: 0
+      e21: 0
+      e22: 1
+      e23: 0
+      e30: 0
+      e31: 0
+      e32: 0
+      e33: 1
+    m_UseCullingMatrixOverride: 0
+  m_Cookie: {fileID: 0}
+  m_DrawHalo: 0
+  m_Flare: {fileID: 0}
+  m_RenderMode: 0
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RenderingLayerMask: 1
+  m_Lightmapping: 4
+  m_LightShadowCasterMode: 0
+  m_AreaSize: {x: 1, y: 1}
+  m_BounceIntensity: 1
+  m_ColorTemperature: 6570
+  m_UseColorTemperature: 0
+  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_UseBoundingSphereOverride: 0
+  m_UseViewFrustumForShadowCasterCull: 1
+  m_ShadowRadius: 0
+  m_ShadowAngle: 0
+--- !u!4 &316591948
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 316591946}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.40821788, y: -0.23456968, z: 0.10938163, w: 0.8754261}
+  m_LocalPosition: {x: 0, y: 3, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+--- !u!114 &316591949
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 316591946}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Version: 3
+  m_UsePipelineSettings: 1
+  m_AdditionalLightsShadowResolutionTier: 2
+  m_LightLayerMask: 1
+  m_RenderingLayers: 1
+  m_CustomShadowLayers: 0
+  m_ShadowLayerMask: 1
+  m_ShadowRenderingLayers: 1
+  m_LightCookieSize: {x: 1, y: 1}
+  m_LightCookieOffset: {x: 0, y: 0}
+  m_SoftShadowQuality: 0
+--- !u!1001 &540895064
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 34912483}
+    m_Modifications:
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_Pivot.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_Pivot.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 800
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 400
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5905881967701677635, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_Text
+      value: This scene requires the AI navigation package
+      objectReference: {fileID: 0}
+    - target: {fileID: 5905881967701677635, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_Color.b
+      value: 0.19607843
+      objectReference: {fileID: 0}
+    - target: {fileID: 5905881967701677635, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_Color.g
+      value: 0.19607843
+      objectReference: {fileID: 0}
+    - target: {fileID: 5905881967701677635, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_Color.r
+      value: 0.19607843
+      objectReference: {fileID: 0}
+    - target: {fileID: 5905881967701677635, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_Maskable
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5905881967701677635, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_RaycastTarget
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5905881967701677635, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_FontData.m_MinSize
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5905881967701677635, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_FontData.m_FontSize
+      value: 36
+      objectReference: {fileID: 0}
+    - target: {fileID: 5905881967701677635, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_FontData.m_Alignment
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 6942002350094307514, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_Color.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6942002350094307514, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_Color.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6942002350094307514, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_Color.r
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7375728009792949370, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7375728009792949370, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7375728009792949370, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7375728009792949370, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7375728009792949370, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: -6
+      objectReference: {fileID: 0}
+    - target: {fileID: 7375728009792949370, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: -3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7375728009792949370, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7722742870279193141, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_Name
+      value: RequirementsPanel
+      objectReference: {fileID: 0}
+    - target: {fileID: 7722742870279193141, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects:
+    - {fileID: 6108508497916388330, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7722742870279193141, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 540895067}
+  m_SourcePrefab: {fileID: 100100000, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+--- !u!224 &540895065 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+  m_PrefabInstance: {fileID: 540895064}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &540895066 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7722742870279193141, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+  m_PrefabInstance: {fileID: 540895064}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &540895067
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 540895066}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 731414f18ed0e154da2761865b4b96ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!1 &583270700
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 583270701}
+  m_Layer: 0
+  m_Name: FireLocation
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &583270701
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 583270700}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.000000021855694, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 3.7636256, z: 13.220003}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1329280557}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1064318515
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1064318516}
+  m_Layer: 0
+  m_Name: DestinationA
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1064318516
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1064318515}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -1.14, y: 0, z: -13.35}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 184838579}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1125639400
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1125639404}
+  - component: {fileID: 1125639403}
+  - component: {fileID: 1125639402}
+  - component: {fileID: 1125639401}
+  - component: {fileID: 1125639405}
+  m_Layer: 0
+  m_Name: Plane
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!64 &1125639401
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1125639400}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &1125639402
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1125639400}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 7ec939e92594e6744914fb1ee2393a93, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &1125639403
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1125639400}
+  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!4 &1125639404
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1125639400}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 10, y: 1, z: 10}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1125639405
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1125639400}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a5ac11cc976e418e8d13136b07e1f52, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_AgentTypeID: 0
+  m_CollectObjects: 0
+  m_Size: {x: 10, y: 10, z: 10}
+  m_Center: {x: 0, y: 2, z: 0}
+  m_LayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_UseGeometry: 0
+  m_DefaultArea: 0
+  m_GenerateLinks: 0
+  m_IgnoreNavMeshAgent: 1
+  m_IgnoreNavMeshObstacle: 1
+  m_OverrideTileSize: 0
+  m_TileSize: 256
+  m_OverrideVoxelSize: 0
+  m_VoxelSize: 0.083333336
+  m_MinRegionArea: 2
+  m_NavMeshData: {fileID: 23800000, guid: 017170b42d2eff244b10594dfd69a31d, type: 2}
+  m_BuildHeightMesh: 0
+--- !u!1 &1161679107
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1161679110}
+  - component: {fileID: 1161679109}
+  - component: {fileID: 1161679108}
+  - component: {fileID: 1161679111}
+  m_Layer: 0
+  m_Name: Main Camera
+  m_TagString: MainCamera
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!81 &1161679108
+AudioListener:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1161679107}
+  m_Enabled: 1
+--- !u!20 &1161679109
+Camera:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1161679107}
+  m_Enabled: 1
+  serializedVersion: 2
+  m_ClearFlags: 1
+  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_projectionMatrixMode: 1
+  m_GateFitMode: 2
+  m_FOVAxisMode: 0
+  m_Iso: 200
+  m_ShutterSpeed: 0.005
+  m_Aperture: 16
+  m_FocusDistance: 10
+  m_FocalLength: 50
+  m_BladeCount: 5
+  m_Curvature: {x: 2, y: 11}
+  m_BarrelClipping: 0.25
+  m_Anamorphism: 0
+  m_SensorSize: {x: 36, y: 24}
+  m_LensShift: {x: 0, y: 0}
+  m_NormalizedViewPortRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
+  near clip plane: 0.3
+  far clip plane: 1000
+  field of view: 60
+  orthographic: 0
+  orthographic size: 5
+  m_Depth: -1
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RenderingPath: -1
+  m_TargetTexture: {fileID: 0}
+  m_TargetDisplay: 0
+  m_TargetEye: 3
+  m_HDR: 1
+  m_AllowMSAA: 1
+  m_AllowDynamicResolution: 0
+  m_ForceIntoRT: 0
+  m_OcclusionCulling: 1
+  m_StereoConvergence: 10
+  m_StereoSeparation: 0.022
+--- !u!4 &1161679110
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1161679107}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.27059805, y: 0.6532815, z: -0.27059805, w: 0.6532815}
+  m_LocalPosition: {x: -6.5, y: 7, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 45, y: 90, z: 0}
+--- !u!114 &1161679111
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1161679107}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_RenderShadows: 1
+  m_RequiresDepthTextureOption: 2
+  m_RequiresOpaqueTextureOption: 2
+  m_CameraType: 0
+  m_Cameras: []
+  m_RendererIndex: -1
+  m_VolumeLayerMask:
+    serializedVersion: 2
+    m_Bits: 1
+  m_VolumeTrigger: {fileID: 0}
+  m_VolumeFrameworkUpdateModeOption: 2
+  m_RenderPostProcessing: 0
+  m_Antialiasing: 0
+  m_AntialiasingQuality: 2
+  m_StopNaN: 0
+  m_Dithering: 0
+  m_ClearDepth: 1
+  m_AllowXRRendering: 1
+  m_AllowHDROutput: 1
+  m_UseScreenCoordOverride: 0
+  m_ScreenSizeOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_ScreenCoordScaleBias: {x: 0, y: 0, z: 0, w: 0}
+  m_RequiresDepthTexture: 0
+  m_RequiresColorTexture: 0
+  m_Version: 2
+  m_TaaSettings:
+    m_Quality: 3
+    m_FrameInfluence: 0.1
+    m_JitterScale: 1
+    m_MipBias: 0
+    m_VarianceClampScale: 0.9
+    m_ContrastAdaptiveSharpening: 0
+--- !u!1 &1218089711
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1218089712}
+  m_Layer: 0
+  m_Name: Medic Wait Point
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1218089712
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1218089711}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0.7071068, z: -0, w: -0.7071068}
+  m_LocalPosition: {x: 4.01, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 184838579}
+  m_LocalEulerAnglesHint: {x: 0, y: 270, z: 0}
+--- !u!1001 &1329280555
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 3ca3ff8d960615e4e983c8c789542171, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 3ca3ff8d960615e4e983c8c789542171, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 3ca3ff8d960615e4e983c8c789542171, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 3ca3ff8d960615e4e983c8c789542171, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 3ca3ff8d960615e4e983c8c789542171, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 3ca3ff8d960615e4e983c8c789542171, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 3ca3ff8d960615e4e983c8c789542171, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 3ca3ff8d960615e4e983c8c789542171, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 3ca3ff8d960615e4e983c8c789542171, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 3ca3ff8d960615e4e983c8c789542171, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 3ca3ff8d960615e4e983c8c789542171, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 3ca3ff8d960615e4e983c8c789542171, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 3ca3ff8d960615e4e983c8c789542171, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8392678315808143354, guid: 3ca3ff8d960615e4e983c8c789542171, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: ac5578ddb92659542a237679f9a4c5de, type: 2}
+    - target: {fileID: -6026043976391038724, guid: 3ca3ff8d960615e4e983c8c789542171, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: ac5578ddb92659542a237679f9a4c5de, type: 2}
+    - target: {fileID: 919132149155446097, guid: 3ca3ff8d960615e4e983c8c789542171, type: 3}
+      propertyPath: m_Name
+      value: Turret
+      objectReference: {fileID: 0}
+    - target: {fileID: 6637314691880762198, guid: 3ca3ff8d960615e4e983c8c789542171, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: ac5578ddb92659542a237679f9a4c5de, type: 2}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 8529101147114866482, guid: 3ca3ff8d960615e4e983c8c789542171, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 583270701}
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 3ca3ff8d960615e4e983c8c789542171, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1329280559}
+  m_SourcePrefab: {fileID: 100100000, guid: 3ca3ff8d960615e4e983c8c789542171, type: 3}
+--- !u!1 &1329280556 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 3ca3ff8d960615e4e983c8c789542171, type: 3}
+  m_PrefabInstance: {fileID: 1329280555}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1329280557 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8529101147114866482, guid: 3ca3ff8d960615e4e983c8c789542171, type: 3}
+  m_PrefabInstance: {fileID: 1329280555}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1329280558 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -2401449567260650415, guid: 3ca3ff8d960615e4e983c8c789542171, type: 3}
+  m_PrefabInstance: {fileID: 1329280555}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1329280559
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1329280556}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c07bc237b8420074ca6d5074cdbc505c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Targets: []
+  m_AllowMultipleHits: 0
+  m_MaxDistance: 10
+  m_Rotator: {fileID: 1329280558}
+  m_RotationSpeed: 150
+  m_FireInterval: 1
+  m_Projectile: {fileID: 7526360693839077774, guid: a59d2282a95ee6a418f19c1367c44ceb, type: 3}
+  m_ProjectileSpawnLocation: {fileID: 583270701}
+  m_PullbackTransform: {fileID: 1329280557}
+  m_PullbackPosition: -2
+  m_PullbackSpeed: 30
+  m_MuzzleFlashPrefab: {fileID: 4510373434450259741, guid: 785eefafb37279c40aea917c0e5f3dd6, type: 3}
+  m_MuzzleFlashSpawnRotationOffset: {x: 0, y: 180, z: 0}
+--- !u!1 &1500849494
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1500849495}
+  m_Layer: 0
+  m_Name: Spawn Location
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1500849495
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1500849494}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 1, z: -0, w: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 17.56}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 184838579}
+  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
+--- !u!1001 &1754866389
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 34912483}
+    m_Modifications:
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_Pivot.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_Pivot.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 700
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 258
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5905881967701677635, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_Text
+      value: 'This scene gives an example of sending events within the behavior tree.
+        A global event is sent when the turret projectile hits the agent in order
+        to summon the medic for aid. A local event is then sent from the medic to
+        the agent after aid has been given.
+
+
+        See this page for more information
+        on events:
+
+        https://opsive.com/support/documentation/behavior-designer-pro/events
+
+'
+      objectReference: {fileID: 0}
+    - target: {fileID: 7722742870279193141, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+      propertyPath: m_Name
+      value: DescriptionPanel
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+--- !u!224 &1754866390 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 1676779906743078852, guid: 3938ed1ae5c23814f8817ead1ed0d3bf, type: 3}
+  m_PrefabInstance: {fileID: 1754866389}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &2012157459
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2012157460}
+  m_Layer: 0
+  m_Name: DestinationB
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2012157460
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2012157459}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 1.38, y: 0, z: -13.35}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 184838579}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2033394109
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2033394110}
+  m_Layer: 0
+  m_Name: DestinationD
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2033394110
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2033394109}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -3.3, y: 0, z: -13.35}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 184838579}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2037878329 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2944000005471445336, guid: b96187f13ba78f145863956029fdf79b, type: 3}
+  m_PrefabInstance: {fileID: 243258936}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2037878330 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8505441761887069850, guid: b96187f13ba78f145863956029fdf79b, type: 3}
+  m_PrefabInstance: {fileID: 243258936}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2037878329}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c08814195b584721947ac0899da41712, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &2037878331 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8392345702719956766, guid: b96187f13ba78f145863956029fdf79b, type: 3}
+  m_PrefabInstance: {fileID: 243258936}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2037878329}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0cdaa3305fa954c45a80c9662aa6f425, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &2037878336
+MonoBehaviour:
+  m_ObjectHideFlags: 2
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2037878329}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c08814195b584721947ac0899da41712, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Owner: {fileID: 2037878331}
+  m_ParentLayer: {fileID: 2037878330}
+  m_LayerID:
+    m_Low: 5147415099236967556
+    m_High: 10741413395361058213
+  m_SchemaVersion: 1
+  m_Overrides:
+  - m_Operation: 1
+    m_ElementKind: 1
+    m_TargetID:
+      m_Low: 5316795959888825933
+      m_High: 16679724188545839800
+    m_ScopeID:
+      m_Low: 0
+      m_High: 0
+    m_ParentID:
+      m_Low: 0
+      m_High: 0
+    m_AnchorID:
+      m_Low: 0
+      m_High: 0
+    m_FieldKey: 0
+    m_Value:
+      m_IsNull: 0
+      m_Data:
+        m_ObjectType: Opsive.GraphDesigner.Runtime.Serialization.GraphSerializedValueBox`1[[Opsive.GraphDesigner.Runtime.Serialization.GraphElementPayload,
+          Opsive.GraphDesigner.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+        m_ValueHashes: 
+        m_LongValueHashes: 6e8283ce0462a8df6c939f7f2d0c3ef14c290bc27a6f23341a554b1302a9e179fc6827f9bdd4027b24e841c7797960e759d5d04cbdf0c852b9c997e77f0b8d2df6b779127e5874f4880a423864d88648b853ce3c0a4e2a052abfdcfdc85883484a5d46d6893e9146ab78663188802562a847cddec41595e413e1f9ac7a74434238e3592bd9671b146bb033868b3e88cdecb74ea0d293bc25fa62bba76c487c5da5ef1ddd25146d7450a5420aa5c5fc73683bd51f3ca8d4ecbee00b290280fb9dfbcb20255aafa824e652a975617f4b65d5d3c975617f4b65ac3bae0e2e9a863203bdd778c77a509eacb1c1b21fead5ab2c6f624019ead5ab
+        m_ValuePositions: 00000000000000000000000002000000040000000600000007000000070000002b0000003300000037000000370000003700000047000000480000004c0000005000000054000000580000005c0000006000000064000000640000006600000068000000690000006d0000007100000075000000750000007d000000
+        m_Values: 0000ffffffff0138343637636534642d306463312d343963392d623866322d63336339633634383761653700007c420080d9430000dc42000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffff0100000000000000000000000000000000000000000000000000000000
+        m_UnityObjects: []
+        m_Version: 3.4
+  - m_Operation: 0
+    m_ElementKind: 1
+    m_TargetID:
+      m_Low: 5316795959888825933
+      m_High: 16679724188545839800
+    m_ScopeID:
+      m_Low: 0
+      m_High: 0
+    m_ParentID:
+      m_Low: 0
+      m_High: 0
+    m_AnchorID:
+      m_Low: 0
+      m_High: 0
+    m_FieldKey: 27880922366941519
+    m_Value:
+      m_IsNull: 0
+      m_Data:
+        m_ObjectType: Opsive.GraphDesigner.Runtime.Serialization.GraphSerializedValueBox`1[[Opsive.GraphDesigner.Runtime.Serialization.SerializableGuid,
+          Opsive.GraphDesigner.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+        m_ValueHashes: 
+        m_LongValueHashes: 6a698940d1fff0e669d549c1c83aa70ae90bea33ce3aa70a
+        m_ValuePositions: 000000000000000008000000
+        m_Values: 00000000000000000000000000000000
+        m_UnityObjects: []
+        m_Version: 3.4
+  - m_Operation: 1
+    m_ElementKind: 1
+    m_TargetID:
+      m_Low: 5028562074119254116
+      m_High: 6375577317429604007
+    m_ScopeID:
+      m_Low: 0
+      m_High: 0
+    m_ParentID:
+      m_Low: 0
+      m_High: 0
+    m_AnchorID:
+      m_Low: 5316795959888825933
+      m_High: 16679724188545839800
+    m_FieldKey: 0
+    m_Value:
+      m_IsNull: 0
+      m_Data:
+        m_ObjectType: Opsive.GraphDesigner.Runtime.Serialization.GraphSerializedValueBox`1[[Opsive.GraphDesigner.Runtime.Serialization.GraphElementPayload,
+          Opsive.GraphDesigner.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+        m_ValueHashes: 
+        m_LongValueHashes: 6e8283ce0462a8df6c939f7f2d0c3ef14c290bc27a6f23341a554b1302a9e179fc6827f9bdd4027b24e841c7797960e79e9deb93832a41b50b6e88414363153fbcc843c47b77db5f57532b6526d041ae2057dbdb2a11fef0abb077273f121b932b6ed4d539121b9316b0118c41f5450b4ee8896f9ef258ec9813e4e1e5eee215b562596b30f7f7d902c492ee08e339b9c1efacc1108edc379e5b0af159851c160db84119334121638d66e2eb35412163a8bcc0a63261a7ed163ce6c11dd0f5eae47ea299abd4089b99c715655243aa452e61dee06a5764258dace980770a82f5b2fe46ff3b31418a0156493543d7024e8188eac745d7024e84198ca850d5fa71dc41144b8fd2e79659d5d04cbdf0c852b9c997e77f0b8d2df6b779127e5874f4880a423864d88648b853ce3c0a4e2a052abfdcfdc85883484a5d46d6893e9146ab78663188802562a847cddec41595e413e1f9ac7a74434238e3592bd9671b146bb033868b3e88cdecb74ea0d293bc25fa62bba76c487c5da5ef1ddd25146d7450a5420aa5c5fc73683bd51f3ca8d4ecbee00b290280fb9dfbcb20255aafa824e652a975617f4b65d5d3c975617f4b65ac3bae0e2e9a863203bdd778c77a509eacb1c1b21fead5ab2c6f624019ead5ab
+        m_ValuePositions: 0000000000000000000000000200000004000000060000000700000007000000070000000700000008000000080000001000000018000000190000001a0000001a0000001a0000001a0000001b0000001b000000230000002b0000002c0000003000000030000000300000003000000031000000310000003900000041000000420000004300000043000000670000006f0000007300000073000000730000008300000084000000880000008c0000009000000094000000980000009c000000a0000000a0000000a2000000a4000000a5000000a9000000ad000000b1000000b1000000b9000000
+        m_Values: 0100000007000100000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000035656531333036342d306139302d343563392d613765652d3664376263613939376135385138a2c383e60f440000dc42000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007000100000000000000000000000000000000000000000000000000000000
+        m_UnityObjects: []
+        m_Version: 3.4
+  - m_Operation: 0
+    m_ElementKind: 1
+    m_TargetID:
+      m_Low: 5028562074119254116
+      m_High: 6375577317429604007
+    m_ScopeID:
+      m_Low: 0
+      m_High: 0
+    m_ParentID:
+      m_Low: 0
+      m_High: 0
+    m_AnchorID:
+      m_Low: 0
+      m_High: 0
+    m_FieldKey: 27880922366941519
+    m_Value:
+      m_IsNull: 0
+      m_Data:
+        m_ObjectType: Opsive.GraphDesigner.Runtime.Serialization.GraphSerializedValueBox`1[[Opsive.GraphDesigner.Runtime.Serialization.SerializableGuid,
+          Opsive.GraphDesigner.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+        m_ValueHashes: 
+        m_LongValueHashes: 6a698940d1fff0e669d549c1c83aa70ae90bea33ce3aa70a
+        m_ValuePositions: 000000000000000008000000
+        m_Values: 4dce6784c10dc949b8f2c3c9c6487ae7
+        m_UnityObjects: []
+        m_Version: 3.4
+  - m_Operation: 1
+    m_ElementKind: 1
+    m_TargetID:
+      m_Low: 5089604216396814393
+      m_High: 2699363034134384014
+    m_ScopeID:
+      m_Low: 0
+      m_High: 0
+    m_ParentID:
+      m_Low: 0
+      m_High: 0
+    m_AnchorID:
+      m_Low: 5028562074119254116
+      m_High: 6375577317429604007
+    m_FieldKey: 0
+    m_Value:
+      m_IsNull: 0
+      m_Data:
+        m_ObjectType: Opsive.GraphDesigner.Runtime.Serialization.GraphSerializedValueBox`1[[Opsive.GraphDesigner.Runtime.Serialization.GraphElementPayload,
+          Opsive.GraphDesigner.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+        m_ValueHashes: 
+        m_LongValueHashes: 6e8283ce0462a8df6c939f7f2d0c3ef14c290bc27a6f23341a554b1302a9e179fc6827f9bdd4027b24e841c7797960e727b0a67e8301fe16ea6958fe840994b559d5d04cbdf0c852b9c997e77f0b8d2df6b779127e5874f4880a423864d88648b853ce3c0a4e2a052abfdcfdc85883484a5d46d6893e9146ab78663188802562a847cddec41595e413e1f9ac7a74434238e3592bd9671b146bb033868b3e88cdecb74ea0d293bc25fa62bba76c487c5da5ef1ddd25146d7450a5420aa5c5fc73683bd51f3ca8d4ecbee00b290280fb9dfbcb20255aafa824e652a975617f4b65d5d3c975617f4b65ac3bae0e2e9a863203bdd778c77a509eacb1c1b21fead5ab2c6f624019ead5ab
+        m_ValuePositions: 000000000000000000000000020000000400000006000000070000000700000008000000080000002c0000003400000038000000380000005600000066000000670000006b0000006f00000073000000770000007b0000007f00000083000000830000008500000087000000880000008c0000009000000094000000940000009c000000
+        m_Values: 02000100ffff010061356139393833392d653831312d343661312d386538642d3636623136303130373632350080a2c300402a440000dc425761697420756e74696c20616e206167656e74206e65656473206169642e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100ffff0100000000000000000000000000000000000000000000000000000000
+        m_UnityObjects: []
+        m_Version: 3.4
+  - m_Operation: 0
+    m_ElementKind: 1
+    m_TargetID:
+      m_Low: 5089604216396814393
+      m_High: 2699363034134384014
+    m_ScopeID:
+      m_Low: 0
+      m_High: 0
+    m_ParentID:
+      m_Low: 0
+      m_High: 0
+    m_AnchorID:
+      m_Low: 0
+      m_High: 0
+    m_FieldKey: 27880922366941519
+    m_Value:
+      m_IsNull: 0
+      m_Data:
+        m_ObjectType: Opsive.GraphDesigner.Runtime.Serialization.GraphSerializedValueBox`1[[Opsive.GraphDesigner.Runtime.Serialization.SerializableGuid,
+          Opsive.GraphDesigner.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+        m_ValueHashes: 
+        m_LongValueHashes: 6a698940d1fff0e669d549c1c83aa70ae90bea33ce3aa70a
+        m_ValuePositions: 000000000000000008000000
+        m_Values: 6430e15e900ac945a7ee6d7bca997a58
+        m_UnityObjects: []
+        m_Version: 3.4
+  - m_Operation: 1
+    m_ElementKind: 1
+    m_TargetID:
+      m_Low: 4962399427747535768
+      m_High: 15140856911055903933
+    m_ScopeID:
+      m_Low: 0
+      m_High: 0
+    m_ParentID:
+      m_Low: 0
+      m_High: 0
+    m_AnchorID:
+      m_Low: 5089604216396814393
+      m_High: 2699363034134384014
+    m_FieldKey: 0
+    m_Value:
+      m_IsNull: 0
+      m_Data:
+        m_ObjectType: Opsive.GraphDesigner.Runtime.Serialization.GraphSerializedValueBox`1[[Opsive.GraphDesigner.Runtime.Serialization.GraphElementPayload,
+          Opsive.GraphDesigner.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+        m_ValueHashes: 
+        m_LongValueHashes: 6e8283ce0462a8df6c939f7f2d0c3ef14c290bc27a6f23341a554b1302a9e179fc6827f9bdd4027b24e841c7797960e727b0a67e8301fe16ea6958fe840994b559d5d04cbdf0c852b9c997e77f0b8d2df6b779127e5874f4880a423864d88648b853ce3c0a4e2a052abfdcfdc85883484a5d46d6893e9146ab78663188802562a847cddec41595e413e1f9ac7a74434238e3592bd9671b146bb033868b3e88cdecb74ea0d293bc25fa62bba76c487c5da5ef1ddd25146d7450a5420aa5c5fc73683bd51f3ca8d4ecbee00b290280fb9dfbcb20255aafa824e652a975617f4b65d5d3c975617f4b65ac3bae0e2e9a863203bdd778c77a509eacb1c1b21fead5ab2c6f624019ead5ab
+        m_ValuePositions: 000000000000000000000000020000000400000006000000070000000700000008000000080000002c0000003400000038000000380000003800000048000000490000004d0000005100000055000000590000005d00000061000000650000006500000067000000690000006a0000006e0000007200000076000000760000007e000000
+        m_Values: 030002000600010164343765356239382d666266632d343464642d626435632d3831313232343231316664325547ddc35c6b4b440000dc42000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020006000100000000000000000000000000000000000000000000000000000000
+        m_UnityObjects: []
+        m_Version: 3.4
+  - m_Operation: 0
+    m_ElementKind: 1
+    m_TargetID:
+      m_Low: 4962399427747535768
+      m_High: 15140856911055903933
+    m_ScopeID:
+      m_Low: 0
+      m_High: 0
+    m_ParentID:
+      m_Low: 0
+      m_High: 0
+    m_AnchorID:
+      m_Low: 0
+      m_High: 0
+    m_FieldKey: 27880922366941519
+    m_Value:
+      m_IsNull: 0
+      m_Data:
+        m_ObjectType: Opsive.GraphDesigner.Runtime.Serialization.GraphSerializedValueBox`1[[Opsive.GraphDesigner.Runtime.Serialization.SerializableGuid,
+          Opsive.GraphDesigner.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+        m_ValueHashes: 
+        m_LongValueHashes: 6a698940d1fff0e669d549c1c83aa70ae90bea33ce3aa70a
+        m_ValuePositions: 000000000000000008000000
+        m_Values: 3998a9a511e8a1468e8d66b160107625
+        m_UnityObjects: []
+        m_Version: 3.4
+  - m_Operation: 1
+    m_ElementKind: 1
+    m_TargetID:
+      m_Low: 4989620332837144702
+      m_High: 14859311259279131282
+    m_ScopeID:
+      m_Low: 0
+      m_High: 0
+    m_ParentID:
+      m_Low: 0
+      m_High: 0
+    m_AnchorID:
+      m_Low: 4962399427747535768
+      m_High: 15140856911055903933
+    m_FieldKey: 0
+    m_Value:
+      m_IsNull: 0
+      m_Data:
+        m_ObjectType: Opsive.GraphDesigner.Runtime.Serialization.GraphSerializedValueBox`1[[Opsive.GraphDesigner.Runtime.Serialization.GraphElementPayload,
+          Opsive.GraphDesigner.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+        m_ValueHashes: 
+        m_LongValueHashes: 6e8283ce0462a8df6c939f7f2d0c3ef124e841c7797960e74c290bc27a6f23341a554b1302a9e179fc6827f9bdd4027b1eb43a4d6bbab345d38dddea783f030d6f86a21473f551d4d9d970f79d98ed1f88d5ea9fb7216eaa3f73211a8f35a0ca68a0eabd22946a33a3ecb905de538565cc5402350782d8464c8aa1c70182d846950b7352b5b73e9ea20fff162a227e83736307f5908d71f85a399ed984040361ed9f555cbc10cd01521afc08d26e1bc27100cd43ed76e8ae3603b8f0bbe09b17b6dd1b02bde09b1747e7071486925355f9672173a923015229abd03f7cc74064986e72d3e1d66e512fc8b956d9c2a03138682e46c2b157ffb357214988a4859e9cace4bc10aa5bfc1c72474e16aa5bfc85b0eb1ee3403e65947fbdde5ad66e513a93c9af60599ea7ff5072bebf178bd948f6b93b870345b973f557a77ee21f59d4692124d6656016cfb180d35f60669a4f6f23215960669ae28eeb73bd81dbedbad673906286c60a77417e453d6c146d868520e14b56b0013123eb6473427e61268a90b83a96d439adbc737b22245bce42342aa630844c2ac2ea895436844c2a9b5bb92c49c0e035ac5f3568d655a02876417e453d6c146d75417e453d6c146d983e1c5fdab4a5946a6fd4258fa1132559d5d04cbdf0c852b9c997e77f0b8d2df6b779127e5874f4880a423864d88648b853ce3c0a4e2a052abfdcfdc85883484a5d46d6893e9146ab78663188802562a847cddec41595e413e1f9ac7a74434238e3592bd9671b146bb033868b3e88cdecb74ea0d293bc25fa62bba76c487c5da5ef1ddd25146d7450a5420aa5c5fc73683bd51f3ca8d4ecbee00b290280fb9dfbcb20255aafa824e652a975617f4b65d5d3c975617f4b65ac3bae0e2e9a863293e081b7f95006befcef3840081ed0867c319bb20e1ed08603bdd778c77a509eacb1c1b21fead5ab2c6f624019ead5ab
+        m_ValuePositions: 000000000000000000000000010000000300000005000000070000000b0000004e0000004f0000004f0000004f0000004f00000050000000500000005800000060000000610000006500000065000000650000006500000066000000660000006e00000076000000770000007b0000007b0000007b0000007b0000007c0000007c000000840000008c0000008d0000009b0000009b0000009b0000009b0000009c0000009c000000a4000000ac000000ad000000ae0000004e0100005e0100005e0100005f0100005f010000670100006f010000700100007401000074010000740100007401000078010000780100009c010000a4010000a8010000a8010000a8010000b8010000b9010000bd010000c1010000c5010000c9010000cd010000d1010000d5010000d5010000d7010000d9010000da010000de010000e2010000e6010000e6010000ee010000f6010000f6010000fe010000
+        m_Values: 01040003000500010000004f70736976652e4265686176696f7244657369676e65722e52756e74696d652e5461736b732e436f6e646974696f6e616c732e48617352656365697665644576656e7401000000000000000000000000000000000000ffffffff000000000000000000000000000000000000000000000000000000000000000000000000000000004e656564417373697374616e6365000000000000000000000000000000000000014f70736976652e477261706844657369676e65722e52756e74696d652e5661726961626c65732e5368617265645661726961626c6560315b5b556e697479456e67696e652e47616d654f626a6563742c20556e697479456e67696e652e436f72654d6f64756c652c2056657273696f6e3d302e302e302e302c2043756c747572653d6e65757472616c2c205075626c69634b6579546f6b656e3d6e756c6c5d5d446f776e656447616d654f626a656374021bc90c92e569a44db1de81639e3fdb5800ffffffff0000000061656433303837652d623134312d343533652d393238322d34626330646365303336636556d506c400c06e44aaaa0e4300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003000500000000000000000000010000005f1635e973032e4ea43db5c20d0da74300000000000000000000000000000000
+        m_UnityObjects: []
+        m_Version: 3.4
+  - m_Operation: 0
+    m_ElementKind: 1
+    m_TargetID:
+      m_Low: 4989620332837144702
+      m_High: 14859311259279131282
+    m_ScopeID:
+      m_Low: 0
+      m_High: 0
+    m_ParentID:
+      m_Low: 0
+      m_High: 0
+    m_AnchorID:
+      m_Low: 0
+      m_High: 0
+    m_FieldKey: 27880922366941519
+    m_Value:
+      m_IsNull: 0
+      m_Data:
+        m_ObjectType: Opsive.GraphDesigner.Runtime.Serialization.GraphSerializedValueBox`1[[Opsive.GraphDesigner.Runtime.Serialization.SerializableGuid,
+          Opsive.GraphDesigner.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+        m_ValueHashes: 
+        m_LongValueHashes: 6a698940d1fff0e669d549c1c83aa70ae90bea33ce3aa70a
+        m_ValuePositions: 000000000000000008000000
+        m_Values: 985b7ed4fcfbdd44bd5c811224211fd2
+        m_UnityObjects: []
+        m_Version: 3.4
+  - m_Operation: 1
+    m_ElementKind: 1
+    m_TargetID:
+      m_Low: 4938363194592919415
+      m_High: 6285246242988415107
+    m_ScopeID:
+      m_Low: 0
+      m_High: 0
+    m_ParentID:
+      m_Low: 0
+      m_High: 0
+    m_AnchorID:
+      m_Low: 4989620332837144702
+      m_High: 14859311259279131282
+    m_FieldKey: 0
+    m_Value:
+      m_IsNull: 0
+      m_Data:
+        m_ObjectType: Opsive.GraphDesigner.Runtime.Serialization.GraphSerializedValueBox`1[[Opsive.GraphDesigner.Runtime.Serialization.GraphElementPayload,
+          Opsive.GraphDesigner.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+        m_ValueHashes: 
+        m_LongValueHashes: 6e8283ce0462a8df6c939f7f2d0c3ef124e841c7797960e74c290bc27a6f23341a554b1302a9e179fc6827f9bdd4027b1eb43a4d6bbab345d38dddea783f030d6f86a21473f551d4d9d970f79d98ed1f88d5ea9fb7216eaa3f73211a8f35a0ca68a0eabd22946a33a3ecb905de538565cc5402350782d8464c8aa1c70182d846950b7352b5b73e9ea20fff162a227e83646a52760f7cbdeb19fd2558b5eec2bdae5beedd8dfa0cdd0d349112c81439c432c476c2dc9c297281ed7f4610cf93230133dcb416cf93230423bc95b77892899d449bde67b515a9f0ef01eb99e633853d17ea57fe1167b88ab121d2c605a9d8d94b75e69a6f04f7162eb9cd97638c7715d47ddc23ffad4d950ade2e25ffad4d20c9739afc87378c7891eb7923802a6b983e1c5fdab4a5946a6fd4258fa1132559d5d04cbdf0c852b9c997e77f0b8d2df6b779127e5874f4880a423864d88648b853ce3c0a4e2a052abfdcfdc85883484a5d46d6893e9146ab78663188802562a847cddec41595e413e1f9ac7a74434238e3592bd9671b146bb033868b3e88cdecb74ea0d293bc25fa62bba76c487c5da5ef1ddd25146d7450a5420aa5c5fc73683bd51f3ca8d4ecbee00b290280fb9dfbcb20255aafa824e652a975617f4b65d5d3c975617f4b65ac3bae0e2e9a863293e081b7f95006befcef3840081ed0867c319bb20e1ed08603bdd778c77a509eacb1c1b21fead5ab2c6f624019ead5ab
+        m_ValuePositions: 000000000000000000000000010000000300000005000000070000000b000000590000005a0000005a0000006a0000006a0000006b0000006b000000730000007b0000007c0000008000000080000000910000009100000092000000920000009a000000a2000000a3000000a7000000a7000000a7000000a7000000a8000000a8000000b0000000b8000000b9000000ba000000ba000000be000000be000000e2000000ea000000ee000000ee000000ee000000fe000000ff00000003010000070100000b0100000f01000013010000170100001b0100001b0100001d0100001f0100002001000024010000280100002c0100002c010000340100003c0100003c01000044010000
+        m_Values: 0105000300ffff010000004f70736976652e4265686176696f7244657369676e65722e52756e74696d652e5461736b732e416374696f6e732e556e6974794f626a656374732e41646447616d654f626a656374546f4c69737401446f776e656447616d654f626a656374021bc90c92e569a44db1de81639e3fdb5800ffffffff446f776e656447616d654f626a6563747302c30cc8f3f596174c92a71f3d800c698f0000000000000000000000000000000000000000000000010000000033313932666637372d393732392d343438382d383364382d3265343732386165333935370000a8c300007144aaaa10430000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000300ffff0000000000000000000100000092518de060112945aa91199cd6666d9d00000000000000000000000000000000
+        m_UnityObjects: []
+        m_Version: 3.4
+  - m_Operation: 0
+    m_ElementKind: 1
+    m_TargetID:
+      m_Low: 4938363194592919415
+      m_High: 6285246242988415107
+    m_ScopeID:
+      m_Low: 0
+      m_High: 0
+    m_ParentID:
+      m_Low: 0
+      m_High: 0
+    m_AnchorID:
+      m_Low: 0
+      m_High: 0
+    m_FieldKey: 27880922366941519
+    m_Value:
+      m_IsNull: 0
+      m_Data:
+        m_ObjectType: Opsive.GraphDesigner.Runtime.Serialization.GraphSerializedValueBox`1[[Opsive.GraphDesigner.Runtime.Serialization.SerializableGuid,
+          Opsive.GraphDesigner.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+        m_ValueHashes: 
+        m_LongValueHashes: 6a698940d1fff0e669d549c1c83aa70ae90bea33ce3aa70a
+        m_ValuePositions: 000000000000000008000000
+        m_Values: 985b7ed4fcfbdd44bd5c811224211fd2
+        m_UnityObjects: []
+        m_Version: 3.4
+  - m_Operation: 1
+    m_ElementKind: 1
+    m_TargetID:
+      m_Low: 5195484929791464014
+      m_High: 15948135375134699929
+    m_ScopeID:
+      m_Low: 0
+      m_High: 0
+    m_ParentID:
+      m_Low: 0
+      m_High: 0
+    m_AnchorID:
+      m_Low: 4938363194592919415
+      m_High: 6285246242988415107
+    m_FieldKey: 0
+    m_Value:
+      m_IsNull: 0
+      m_Data:
+        m_ObjectType: Opsive.GraphDesigner.Runtime.Serialization.GraphSerializedValueBox`1[[Opsive.GraphDesigner.Runtime.Serialization.GraphElementPayload,
+          Opsive.GraphDesigner.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+        m_ValueHashes: 
+        m_LongValueHashes: 6e8283ce0462a8df6c939f7f2d0c3ef14c290bc27a6f23341a554b1302a9e179fc6827f9bdd4027b24e841c7797960e759d5d04cbdf0c852b9c997e77f0b8d2df6b779127e5874f4880a423864d88648b853ce3c0a4e2a052abfdcfdc85883484a5d46d6893e9146ab78663188802562a847cddec41595e413e1f9ac7a74434238e3592bd9671b146bb033868b3e88cdecb74ea0d293bc25fa62bba76c487c5da5ef1ddd25146d7450a5420aa5c5fc73683bd51f3ca8d4ecbee00b290280fb9dfbcb20255aafa824e652a975617f4b65d5d3c975617f4b65ac3bae0e2e9a863203bdd778c77a509eacb1c1b21fead5ab2c6f624019ead5ab
+        m_ValuePositions: 00000000000000000000000002000000040000000600000007000000070000002b0000003300000037000000370000003700000047000000480000004c0000005000000054000000580000005c0000006000000064000000640000006600000068000000690000006d0000007100000075000000750000007d000000
+        m_Values: 06000200ffff0134633164393234652d313230342d343831612d393962312d6265373861303238353364649ef05fc348294b440000dc420000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000200ffff0000000000000000000000000000000000000000000000000000000000
+        m_UnityObjects: []
+        m_Version: 3.4
+  - m_Operation: 0
+    m_ElementKind: 1
+    m_TargetID:
+      m_Low: 5195484929791464014
+      m_High: 15948135375134699929
+    m_ScopeID:
+      m_Low: 0
+      m_High: 0
+    m_ParentID:
+      m_Low: 0
+      m_High: 0
+    m_AnchorID:
+      m_Low: 0
+      m_High: 0
+    m_FieldKey: 27880922366941519
+    m_Value:
+      m_IsNull: 0
+      m_Data:
+        m_ObjectType: Opsive.GraphDesigner.Runtime.Serialization.GraphSerializedValueBox`1[[Opsive.GraphDesigner.Runtime.Serialization.SerializableGuid,
+          Opsive.GraphDesigner.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+        m_ValueHashes: 
+        m_LongValueHashes: 6a698940d1fff0e669d549c1c83aa70ae90bea33ce3aa70a
+        m_ValuePositions: 000000000000000008000000
+        m_Values: 3998a9a511e8a1468e8d66b160107625
+        m_UnityObjects: []
+        m_Version: 3.4
+  - m_Operation: 1
+    m_ElementKind: 1
+    m_TargetID:
+      m_Low: 5391899967398768774
+      m_High: 11745536909314092418
+    m_ScopeID:
+      m_Low: 0
+      m_High: 0
+    m_ParentID:
+      m_Low: 0
+      m_High: 0
+    m_AnchorID:
+      m_Low: 5195484929791464014
+      m_High: 15948135375134699929
+    m_FieldKey: 0
+    m_Value:
+      m_IsNull: 0
+      m_Data:
+        m_ObjectType: Opsive.GraphDesigner.Runtime.Serialization.GraphSerializedValueBox`1[[Opsive.GraphDesigner.Runtime.Serialization.GraphElementPayload,
+          Opsive.GraphDesigner.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+        m_ValueHashes: 
+        m_LongValueHashes: 6e8283ce0462a8df6c939f7f2d0c3ef14c290bc27a6f23341a554b1302a9e179fc6827f9bdd4027b24e841c7797960e79e9deb93832a41b50b6e88414363153fbcc843c47b77db5f57532b6526d041ae2057dbdb2a11fef0abb077273f121b932b6ed4d539121b9316b0118c41f5450b4ee8896f9ef258ec9813e4e1e5eee215b562596b30f7f7d902c492ee08e339b9c1efacc1108edc379e5b0af159851c160db84119334121638d66e2eb35412163a8bcc0a63261a7ed163ce6c11dd0f5eae47ea299abd4089b99c715655243aa452e61dee06a5764258dace980770a82f5b2fe46ff3b31418a0156493543d7024e8188eac745d7024e84198ca850d5fa71dc41144b8fd2e79659d5d04cbdf0c852b9c997e77f0b8d2df6b779127e5874f4880a423864d88648b853ce3c0a4e2a052abfdcfdc85883484a5d46d6893e9146ab78663188802562a847cddec41595e413e1f9ac7a74434238e3592bd9671b146bb033868b3e88cdecb74ea0d293bc25fa62bba76c487c5da5ef1ddd25146d7450a5420aa5c5fc73683bd51f3ca8d4ecbee00b290280fb9dfbcb20255aafa824e652a975617f4b65d5d3c975617f4b65ac3bae0e2e9a863203bdd778c77a509eacb1c1b21fead5ab2c6f624019ead5ab
+        m_ValuePositions: 0000000000000000000000000200000004000000060000000700000007000000070000000700000008000000080000001000000018000000190000001a0000001a0000001a0000001a0000001b0000001b000000230000002b0000002c0000003000000030000000300000003000000031000000310000003900000041000000420000004300000043000000670000006f0000007300000073000000730000008300000084000000880000008c0000009000000094000000980000009c000000a0000000a0000000a2000000a4000000a5000000a9000000ad000000b1000000b1000000b9000000
+        m_Values: 07000000ffff0100000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000065643365373038362d653037332d346164332d383265642d653761373936383730306133cc58fd43b55106440000dc420000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffff0100000000000000000000000000000000000000000000000000000000
+        m_UnityObjects: []
+        m_Version: 3.4
+  - m_Operation: 0
+    m_ElementKind: 1
+    m_TargetID:
+      m_Low: 5391899967398768774
+      m_High: 11745536909314092418
+    m_ScopeID:
+      m_Low: 0
+      m_High: 0
+    m_ParentID:
+      m_Low: 0
+      m_High: 0
+    m_AnchorID:
+      m_Low: 0
+      m_High: 0
+    m_FieldKey: 27880922366941519
+    m_Value:
+      m_IsNull: 0
+      m_Data:
+        m_ObjectType: Opsive.GraphDesigner.Runtime.Serialization.GraphSerializedValueBox`1[[Opsive.GraphDesigner.Runtime.Serialization.SerializableGuid,
+          Opsive.GraphDesigner.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+        m_ValueHashes: 
+        m_LongValueHashes: 6a698940d1fff0e669d549c1c83aa70ae90bea33ce3aa70a
+        m_ValuePositions: 000000000000000008000000
+        m_Values: 4dce6784c10dc949b8f2c3c9c6487ae7
+        m_UnityObjects: []
+        m_Version: 3.4
+  - m_Operation: 1
+    m_ElementKind: 1
+    m_TargetID:
+      m_Low: 4643292212236277561
+      m_High: 4486405929759646122
+    m_ScopeID:
+      m_Low: 0
+      m_High: 0
+    m_ParentID:
+      m_Low: 0
+      m_High: 0
+    m_AnchorID:
+      m_Low: 5391899967398768774
+      m_High: 11745536909314092418
+    m_FieldKey: 0
+    m_Value:
+      m_IsNull: 0
+      m_Data:
+        m_ObjectType: Opsive.GraphDesigner.Runtime.Serialization.GraphSerializedValueBox`1[[Opsive.GraphDesigner.Runtime.Serialization.GraphElementPayload,
+          Opsive.GraphDesigner.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+        m_ValueHashes: 
+        m_LongValueHashes: 6e8283ce0462a8df6c939f7f2d0c3ef14c290bc27a6f23341a554b1302a9e179fc6827f9bdd4027b24e841c7797960e727b0a67e8301fe16ea6958fe840994b559d5d04cbdf0c852b9c997e77f0b8d2df6b779127e5874f4880a423864d88648b853ce3c0a4e2a052abfdcfdc85883484a5d46d6893e9146ab78663188802562a847cddec41595e413e1f9ac7a74434238e3592bd9671b146bb033868b3e88cdecb74ea0d293bc25fa62bba76c487c5da5ef1ddd25146d7450a5420aa5c5fc73683bd51f3ca8d4ecbee00b290280fb9dfbcb20255aafa824e652a975617f4b65d5d3c975617f4b65ac3bae0e2e9a863203bdd778c77a509eacb1c1b21fead5ab2c6f624019ead5ab
+        m_ValuePositions: 000000000000000000000000020000000400000006000000070000000700000008000000080000002c0000003400000038000000380000003800000048000000490000004d0000005100000055000000590000005d00000061000000650000006500000067000000690000006a0000006e0000007200000076000000760000007e000000
+        m_Values: 08000700ffff010037326165353733392d343961612d343037302d616161312d3837353136636561343233650000fc4300c01f440000dc420000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000700ffff0100000000000000000000000000000000000000000000000000000000
+        m_UnityObjects: []
+        m_Version: 3.4
+  - m_Operation: 0
+    m_ElementKind: 1
+    m_TargetID:
+      m_Low: 4643292212236277561
+      m_High: 4486405929759646122
+    m_ScopeID:
+      m_Low: 0
+      m_High: 0
+    m_ParentID:
+      m_Low: 0
+      m_High: 0
+    m_AnchorID:
+      m_Low: 0
+      m_High: 0
+    m_FieldKey: 27880922366941519
+    m_Value:
+      m_IsNull: 0
+      m_Data:
+        m_ObjectType: Opsive.GraphDesigner.Runtime.Serialization.GraphSerializedValueBox`1[[Opsive.GraphDesigner.Runtime.Serialization.SerializableGuid,
+          Opsive.GraphDesigner.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+        m_ValueHashes: 
+        m_LongValueHashes: 6a698940d1fff0e669d549c1c83aa70ae90bea33ce3aa70a
+        m_ValuePositions: 000000000000000008000000
+        m_Values: 86703eed73e0d34a82ede7a7968700a3
+        m_UnityObjects: []
+        m_Version: 3.4
+  - m_Operation: 1
+    m_ElementKind: 1
+    m_TargetID:
+      m_Low: 5308574906863720531
+      m_High: 7110094483525856672
+    m_ScopeID:
+      m_Low: 0
+      m_High: 0
+    m_ParentID:
+      m_Low: 0
+      m_High: 0
+    m_AnchorID:
+      m_Low: 4643292212236277561
+      m_High: 4486405929759646122
+    m_FieldKey: 0
+    m_Value:
+      m_IsNull: 0
+      m_Data:
+        m_ObjectType: Opsive.GraphDesigner.Runtime.Serialization.GraphSerializedValueBox`1[[Opsive.GraphDesigner.Runtime.Serialization.GraphElementPayload,
+          Opsive.GraphDesigner.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+        m_ValueHashes: 
+        m_LongValueHashes: 6e8283ce0462a8df6c939f7f2d0c3ef14c290bc27a6f23341a554b1302a9e179fc6827f9bdd4027b24e841c7797960e727b0a67e8301fe16ea6958fe840994b559d5d04cbdf0c852b9c997e77f0b8d2df6b779127e5874f4880a423864d88648b853ce3c0a4e2a052abfdcfdc85883484a5d46d6893e9146ab78663188802562a847cddec41595e413e1f9ac7a74434238e3592bd9671b146bb033868b3e88cdecb74ea0d293bc25fa62bba76c487c5da5ef1ddd25146d7450a5420aa5c5fc73683bd51f3ca8d4ecbee00b290280fb9dfbcb20255aafa824e652a975617f4b65d5d3c975617f4b65ac3bae0e2e9a863203bdd778c77a509eacb1c1b21fead5ab2c6f624019ead5ab
+        m_ValuePositions: 000000000000000000000000020000000400000006000000070000000700000008000000080000002c0000003400000038000000380000007700000087000000880000008c0000009000000094000000980000009c000000a0000000a4000000a4000000a6000000a8000000a9000000ad000000b1000000b5000000b5000000bd000000
+        m_Values: 090008000e00010137333261313835332d643863302d343961622d613065642d30353061343332316163363260be7f43fedb43440000dc42476976652061696420746f20746865206669727374206f626a6563742077697468696e2074686520446f776e656447616d654f626a65637473206c6973742e00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008000e000100000000000000000000000000000000000000000000000000000000
+        m_UnityObjects: []
+        m_Version: 3.4
+  - m_Operation: 0
+    m_ElementKind: 1
+    m_TargetID:
+      m_Low: 5308574906863720531
+      m_High: 7110094483525856672
+    m_ScopeID:
+      m_Low: 0
+      m_High: 0
+    m_ParentID:
+      m_Low: 0
+      m_High: 0
+    m_AnchorID:
+      m_Low: 0
+      m_High: 0
+    m_FieldKey: 27880922366941519
+    m_Value:
+      m_IsNull: 0
+      m_Data:
+        m_ObjectType: Opsive.GraphDesigner.Runtime.Serialization.GraphSerializedValueBox`1[[Opsive.GraphDesigner.Runtime.Serialization.SerializableGuid,
+          Opsive.GraphDesigner.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+        m_ValueHashes: 
+        m_LongValueHashes: 6a698940d1fff0e669d549c1c83aa70ae90bea33ce3aa70a
+        m_ValuePositions: 000000000000000008000000
+        m_Values: 3957ae72aa497040aaa187516cea423e
+        m_UnityObjects: []
+        m_Version: 3.4
+  - m_Operation: 1
+    m_ElementKind: 1
+    m_TargetID:
+      m_Low: 5648902173680702195
+      m_High: 6275628908427152030
+    m_ScopeID:
+      m_Low: 0
+      m_High: 0
+    m_ParentID:
+      m_Low: 0
+      m_High: 0
+    m_AnchorID:
+      m_Low: 5308574906863720531
+      m_High: 7110094483525856672
+    m_FieldKey: 0
+    m_Value:
+      m_IsNull: 0
+      m_Data:
+        m_ObjectType: Opsive.GraphDesigner.Runtime.Serialization.GraphSerializedValueBox`1[[Opsive.GraphDesigner.Runtime.Serialization.GraphElementPayload,
+          Opsive.GraphDesigner.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+        m_ValueHashes: 
+        m_LongValueHashes: 6e8283ce0462a8df6c939f7f2d0c3ef124e841c7797960e74c290bc27a6f23341a554b1302a9e179fc6827f9bdd4027b1eb43a4d6bbab345d38dddea783f030d6f86a21473f551d4eef9b4818ff923281b964c00c38ed116ac308785fb9a1f766762932ac7c21a2630af1f9aaafc3ad97b0173d7d85962c9fbdfd025de5962c90648d5cdc11881229f2ff28611d50602983e1c5fdab4a5946a6fd4258fa1132559d5d04cbdf0c852b9c997e77f0b8d2df6b779127e5874f4880a423864d88648b853ce3c0a4e2a052abfdcfdc85883484a5d46d6893e9146ab78663188802562a847cddec41595e413e1f9ac7a74434238e3592bd9671b146bb033868b3e88cdecb74ea0d293bc25fa62bba76c487c5da5ef1ddd25146d7450a5420aa5c5fc73683bd51f3ca8d4ecbee00b290280fb9dfbcb20255aafa824e652a975617f4b65d5d3c975617f4b65ac3bae0e2e9a863293e081b7f95006befcef3840081ed0867c319bb20e1ed08603bdd778c77a509eacb1c1b21fead5ab2c6f624019ead5ab
+        m_ValuePositions: 000000000000000000000000010000000300000005000000070000000b0000004600000047000000590100006a0100006a0100006b0100006b010000730100007b0100007c01000080010000800100008401000084010000a8010000b0010000b4010000b4010000b4010000c4010000c5010000c9010000cd010000d1010000d5010000d9010000dd010000e1010000e1010000e3010000e5010000e6010000ea010000ee010000f2010000f2010000fa01000002020000020200000a020000
+        m_Values: 010a0009000b00010000004f70736976652e4265686176696f7244657369676e65722e52756e74696d652e5461736b732e436f6e646974696f6e616c732e48617356616c7565014f70736976652e477261706844657369676e65722e52756e74696d652e5661726961626c65732e5368617265645661726961626c6560315b5b53797374656d2e436f6c6c656374696f6e732e47656e657269632e4c69737460315b5b556e697479456e67696e652e47616d654f626a6563742c20556e697479456e67696e652e436f72654d6f64756c652c2056657273696f6e3d302e302e302e302c2043756c747572653d6e65757472616c2c205075626c69634b6579546f6b656e3d6e756c6c5d5d2c206d73636f726c69622c2056657273696f6e3d342e302e302e302c2043756c747572653d6e65757472616c2c205075626c69634b6579546f6b656e3d623737613563353631393334653038395d5d446f776e656447616d654f626a6563747302c30cc8f3f596174c92a71f3d800c698f00000000000000000030393262393266332d656539392d346536342d396530612d6639313433653833313735370000b8c100806544aaaa0e4300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000009000b00000000000000000000010000008cf517a28a168e41bd0bc59506cc2fce00000000000000000000000000000000
+        m_UnityObjects: []
+        m_Version: 3.4
+  - m_Operation: 0
+    m_ElementKind: 1
+    m_TargetID:
+      m_Low: 5648902173680702195
+      m_High: 6275628908427152030
+    m_ScopeID:
+      m_Low: 0
+      m_High: 0
+    m_ParentID:
+      m_Low: 0
+      m_High: 0
+    m_AnchorID:
+      m_Low: 0
+      m_High: 0
+    m_FieldKey: 27880922366941519
+    m_Value:
+      m_IsNull: 0
+      m_Data:
+        m_ObjectType: Opsive.GraphDesigner.Runtime.Serialization.GraphSerializedValueBox`1[[Opsive.GraphDesigner.Runtime.Serialization.SerializableGuid,
+          Opsive.GraphDesigner.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+        m_ValueHashes: 
+        m_LongValueHashes: 6a698940d1fff0e669d549c1c83aa70ae90bea33ce3aa70a
+        m_ValuePositions: 000000000000000008000000
+        m_Values: 53182a73c0d8ab49a0ed050a4321ac62
+        m_UnityObjects: []
+        m_Version: 3.4
+  - m_Operation: 1
+    m_ElementKind: 1
+    m_TargetID:
+      m_Low: 5216403604913591685
+      m_High: 18243783753061533574
+    m_ScopeID:
+      m_Low: 0
+      m_High: 0
+    m_ParentID:
+      m_Low: 0
+      m_High: 0
+    m_AnchorID:
+      m_Low: 5648902173680702195
+      m_High: 6275628908427152030
+    m_FieldKey: 0
+    m_Value:
+      m_IsNull: 0
+      m_Data:
+        m_ObjectType: Opsive.GraphDesigner.Runtime.Serialization.GraphSerializedValueBox`1[[Opsive.GraphDesigner.Runtime.Serialization.GraphElementPayload,
+          Opsive.GraphDesigner.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+        m_ValueHashes: 
+        m_LongValueHashes: 6e8283ce0462a8df6c939f7f2d0c3ef124e841c7797960e74c290bc27a6f23341a554b1302a9e179fc6827f9bdd4027b1eb43a4d6bbab345d38dddea783f030d6f86a21473f551d48006f26de03886eb8d14bfa545b93d163ab274207dadf376297bcd6cc291fd7ea62dec3f2ccbd6d9656613f5d69e02fbe5b8b007d09e02fb90ca2668472f6d2209ad012397e2ea022f939c07f068472bee3f3be87431a6345999f06d4c256854ded728464f4d98ecc50668721d434dfb8ad303bfe399ca9f0a0da04de599ca9ff3e1a22576a7f6004d6184425916a4076fc2cb931d9a34cb2e861717917289099920dc92a96647699e956b8731aea34a05bf448df80062c6ca96cdc73a0ce08c4a486e353c0ce08c33588eda93e4d93d045c029e0c719920608cddea783f030db8c6a41473f551d4e80635fdd38f19cbc5b5d08ef086bfdf72131b0bc89271bf113fc800f03a39eaee8c831499f454101d2150042ddca47a9dfff3f62bdca47ad86b4943f210efebef6fc5076d85aff6983e1c5fdab4a5946a6fd4258fa1132559d5d04cbdf0c852b9c997e77f0b8d2df6b779127e5874f4880a423864d88648b853ce3c0a4e2a052abfdcfdc85883484a5d46d6893e9146ab78663188802562a847cddec41595e413e1f9ac7a74434238e3592bd9671b146bb033868b3e88cdecb74ea0d293bc25fa62bba76c487c5da5ef1ddd25146d7450a5420aa5c5fc73683bd51f3ca8d4ecbee00b290280fb9dfbcb20255aafa824e652a975617f4b65d5d3c975617f4b65ac3bae0e2e9a863293e081b7f95006befcef3840081ed0867c319bb20e1ed0860ce781b7f95006be97e12240081ed086173f81b20e1ed08603bdd778c77a509eacb1c1b21fead5ab2c6f624019ead5ab
+        m_ValuePositions: 000000000000000000000000010000000300000005000000070000000b0000005e0000005f0000005f000000700000007000000071000000710000007900000081000000820000008600000086000000860000008600000087000000870000008f00000097000000980000009c0000009c000000aa000000aa000000ab000000ab000000b3000000bb000000bc000000c0000000e4000000e5000000e5000000f3000000f3000000f4000000f4000000fc000000040100000501000009010000090100000d0100000d01000031010000390100003d0100003d0100003d0100004d0100004e01000052010000560100005a0100005e01000062010000660100006a0100006a0100006c0100006e0100006f01000073010000770100007b0100007b010000830100008b0100008b010000930100009b0100009b010000a3010000
+        m_Values: 010b0009000c00020000004f70736976652e4265686176696f7244657369676e65722e52756e74696d652e5461736b732e416374696f6e732e556e6974794f626a656374732e53656c65637447616d654f626a65637446726f6d4c69737401446f776e656447616d654f626a6563747302c30cc8f3f596174c92a71f3d800c698f0000000000000000000000000000000000000000000000000000005365656b47616d654f626a65637402566ccb660f393446b1460e76dac1494200ffffffff4f70736976652e4265686176696f7244657369676e65722e53616d706c65732e5365656b015365656b47616d654f626a65637402566ccb660f393446b1460e76dac1494200ffffffff0000000065336631313538352d363337302d343836342d383638372d34366538613966303265666400001d430040624456552b4300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000009000c00000000000000000000020000007af07513fbddce489f13a51570d7ddcb1a584fd6b9391b46b48d160ead52191c00000000000000000000000000000000
+        m_UnityObjects: []
+        m_Version: 3.4
+  - m_Operation: 0
+    m_ElementKind: 1
+    m_TargetID:
+      m_Low: 5216403604913591685
+      m_High: 18243783753061533574
+    m_ScopeID:
+      m_Low: 0
+      m_High: 0
+    m_ParentID:
+      m_Low: 0
+      m_High: 0
+    m_AnchorID:
+      m_Low: 0
+      m_High: 0
+    m_FieldKey: 27880922366941519
+    m_Value:
+      m_IsNull: 0
+      m_Data:
+        m_ObjectType: Opsive.GraphDesigner.Runtime.Serialization.GraphSerializedValueBox`1[[Opsive.GraphDesigner.Runtime.Serialization.SerializableGuid,
+          Opsive.GraphDesigner.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+        m_ValueHashes: 
+        m_LongValueHashes: 6a698940d1fff0e669d549c1c83aa70ae90bea33ce3aa70a
+        m_ValuePositions: 000000000000000008000000
+        m_Values: 53182a73c0d8ab49a0ed050a4321ac62
+        m_UnityObjects: []
+        m_Version: 3.4
+  - m_Operation: 1
+    m_ElementKind: 1
+    m_TargetID:
+      m_Low: 5467759052863100848
+      m_High: 94673092988288438
+    m_ScopeID:
+      m_Low: 0
+      m_High: 0
+    m_ParentID:
+      m_Low: 0
+      m_High: 0
+    m_AnchorID:
+      m_Low: 5216403604913591685
+      m_High: 18243783753061533574
+    m_FieldKey: 0
+    m_Value:
+      m_IsNull: 0
+      m_Data:
+        m_ObjectType: Opsive.GraphDesigner.Runtime.Serialization.GraphSerializedValueBox`1[[Opsive.GraphDesigner.Runtime.Serialization.GraphElementPayload,
+          Opsive.GraphDesigner.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+        m_ValueHashes: 
+        m_LongValueHashes: 6e8283ce0462a8df6c939f7f2d0c3ef124e841c7797960e74c290bc27a6f23341a554b1302a9e179fc6827f9bdd4027b1eb43a4d6bbab345d38dddea783f030d6f86a21473f551d4d9d970f79d98ed1f88d5ea9fb7216eaa3f73211a8f35a0ca68a0eabd22946a33a3ecb905de538565cc5402350782d8464c8aa1c70182d846950b7352b5b73e9ea20fff162a227e833146d71ddd578fad83858371dfdb085826091447ae1813cbd30b1447ae1813cbf9914edf918d196204475b6f52e7d54d392166959937ac9d8e87ad10a12362fded2f2ee50fda28f81218350ff0454752e1ff07410ef89cb16121a4b308f89cb124ffff589ba1fca93530a9982237ac9dfcebd827eed902dec1f58eee1c7b70637653456b246fbe032575b762b3c14bc7eaccdd7475099bace96aa7ef6f26768569b4041d69267685dc2b17231eed205762ab3144315c7250608cddea783f030db8c6a41473f551d4a8901d0c6f279849855432ec7aaaee0932f2f96942be2069518fa9603796de0eae6d617613d805c6ddba4641679b0b3e5d64e5b3619b0b3e988aab21783cbe3db0615eeec1aaee0940118fb439c710345f45b719e49ad6395e94ddc4f4bed598e9321641ccaa1bf88eeb59d70944fecb75ad8e5e9dcc3e577a52137742dd7865fa8cb08544dd7865434a4409f62885ac1b12dcea292f984b8d1110288c3eb8f9a43700051572a36b1391cb802d666d0bace29a8359eebeb18f0e539f7c0048a4c83f9cc70a4cb3ea48e13f350c4cb3eab9e999c817e4f35f3679900c2e66e13c556841d920f89040437741d920f89040cfe1fb89c7bea4f20e2e76de3f566060b988bd5b0742ae003e1ed87ca0ff25072517254456248baf6a48d5798ed4dc13ea96768b88d4dc1313f0ef133dc030543b1b1adc84566060ed8eddea783f030dd1d3a01473f551d4678c72f79d98ed1fb6bb4899b7216eaa011d831c8f35a0ca56e2660f26946a339d821b03de5385657221f8050382d846f2ff5bf70582d846ab65d154b5b73e9e9c615d102a227e83c8110021c9731fe32593f008a703dd1e92353b8d9f17137eb10be73ca738828a0eaaa392ce7136d1bd1b9fb310f075583dc53c4116f07558384d69c5a5958d2a86cd4fa28a24df2d7a81ddea783f030d6abcb71473f551d4dce365f79d98ed1f215ce98cb7216eaa96fa22098f35a0ca45820b1318946a330a65ba16de538565891c5feb2082d84609c2fc192682d8463c827041b5b73e9e0b86fc052a227e83615047760f7cbdeb60a67c49b5eec2bdd700b7cc8dfa0cddb055f94f2f1739c44b9f2fd3dc9c297244ab8b543acf9323c47528a63ccf93237d78e584b7789289e41fc2cf67b515a98783ddea783f030d038eb21473f551d4b5d160f79d98ed1fbc35ce84b7216eaa0b9305018f35a0cad41090ad0d946a33970c9d1ede538565202addad3c82d846a0f47e5f3a82d846a1eb5749b5b73e9e96efdb0d2a227e835d4ec71ddd578fadef8d9371dfdb0858a219316eae1813cb2f1a316eae1813cb95995edf918d1962684f4b6f52e7d54d452421b29937ac9df282ea37a12362fd9109988ecadb28f86e1d7228f04547529d0fa66c27f89cb11dd1059e21f89cb158fab87f9ba1fca94935eebf2237ac9d90e3c827eed902de5de663971c7b7063ea40a812246fbe0339b2d9d639c04bc776df300d75099bacf5259ba0cc27768575fb3852ca2776854038fa5a1eed2057feb8dc3d315c7250983e1c5fdab4a5946a6fd4258fa1132559d5d04cbdf0c852b9c997e77f0b8d2df6b779127e5874f4880a423864d88648b853ce3c0a4e2a052abfdcfdc85883484a5d46d6893e9146ab78663188802562a847cddec41595e413e1f9ac7a74434238e3592bd9671b146bb033868b3e88cdecb74ea0d293bc25fa62bba76c487c5da5ef1ddd25146d7450a5420aa5c5fc73683bd51f3ca8d4ecbee00b290280fb9dfbcb20255aafa824e652a975617f4b65d5d3c975617f4b65ac3bae0e2e9a863293e081b7f95006befcef3840081ed0867c319bb20e1ed0860ce781b7f95006be97e12240081ed086173f81b20e1ed086b9e581b7f95006beee932040081ed0866e4d83b20e1ed0862ae481b7f95006be29793f40081ed086a9a79cb20e1ed086a7fa81b7f95006bef018c040081ed08670c663b20e1ed08603bdd778c77a509eacb1c1b21fead5ab2c6f624019ead5ab
+        m_ValuePositions: 000000000000000000000000010000000300000005000000070000000b000000f9000000fa000000fa000000fa000000fa000000fb000000fb000000030100000b0100000c01000010010000240100002801000035010000410100004b0100004b0100004b0100004b0100004c0100004c010000540100005c0100005d0100006201000062010000620100006201000063010000630100006b010000730100007401000078010000b5010000b6010000b6010000b6010000b6010000b7010000b7010000bf010000c7010000c8010000cc010000d0010000d0010000d0010000d0010000d1010000d1010000d9010000e1010000e2010000e3010000e3010000e3010000e3010000e4010000e4010000ec010000f4010000f5010000f5010000f9010000fd010000fd010000fd010000fd010000fe010000fe010000060200000e0200000f02000013020000620200006302000063020000630200006302000064020000640200006c0200007402000075020000790200007902000079020000790200007a0200007a020000820200008a0200008b0200008f020000e2020000e3020000e3020000f1020000f1020000f2020000f2020000fa020000020300000303000007030000070300001803000018030000190300001903000021030000290300002a0300002e0300001c0400001d0400001d0400001d0400001d0400001e0400001e040000260400002e0400002f04000033040000470400004b04000058040000640400006e0400006e0400006e0400006e0400006f0400006f040000770400007f040000800400008504000085040000850400008504000086040000860400008e04000096040000970400009b0400009b0400009f0400009f040000c3040000cb040000cf040000cf040000cf040000df040000e0040000e4040000e8040000ec040000f0040000f4040000f8040000fc040000fc040000fe040000000500000105000005050000090500000d0500000d050000150500001d0500001d050000250500002d0500002d050000350500003d0500003d050000450500004d0500004d050000550500005d0500005d05000065050000
+        m_Values: 010c0009000d00050000004f70736976652e4265686176696f7244657369676e65722e52756e74696d652e5461736b732e5461736b44656c656761746560325b5b53797374656d2e537472696e672c206d73636f726c69622c2056657273696f6e3d342e302e302e302c2043756c747572653d6e65757472616c2c205075626c69634b6579546f6b656e3d623737613563353631393334653038395d2c5b53797374656d2e496e7433322c206d73636f726c69622c2056657273696f6e3d342e302e302e302c2043756c747572653d6e65757472616c2c205075626c69634b6579546f6b656e3d623737613563353631393334653038395d5d01000000000000000000000000000000000000ffffffff556e697479456e67696e652e416e696d61746f720200000053797374656d2e537472696e6753797374656d2e496e743332536574496e74656765720000000000000000000000000000000000005374617465000000000000000000000000000000000000200000004f70736976652e4265686176696f7244657369676e65722e52756e74696d652e5461736b732e416374696f6e732e54696d652e53686172656457616974010000000000000000000000000000000000000000003f00000000000000000000000000000000000000000000000000000000000000000000000000000000000000803f0000803f0000000000000000000000000000000000000000803f4f70736976652e4265686176696f7244657369676e65722e52756e74696d652e5461736b732e416374696f6e732e556e6974794f626a656374732e57616974466f72416e696d61746f72537461746501000000000000000000000000000000000000ffffffff000000000000000000000000000000000000000000004f70736976652e4265686176696f7244657369676e65722e52756e74696d652e5461736b732e416374696f6e732e556e6974794f626a656374732e52656d6f766547616d654f626a65637446726f6d4c697374015365656b47616d654f626a65637402566ccb660f393446b1460e76dac1494200ffffffff446f776e656447616d654f626a6563747302c30cc8f3f596174c92a71f3d800c698f00000000004f70736976652e4265686176696f7244657369676e65722e52756e74696d652e5461736b732e5461736b44656c656761746560325b5b53797374656d2e537472696e672c206d73636f726c69622c2056657273696f6e3d342e302e302e302c2043756c747572653d6e65757472616c2c205075626c69634b6579546f6b656e3d623737613563353631393334653038395d2c5b53797374656d2e496e7433322c206d73636f726c69622c2056657273696f6e3d342e302e302e302c2043756c747572653d6e65757472616c2c205075626c69634b6579546f6b656e3d623737613563353631393334653038395d5d01000000000000000000000000000000000000ffffffff556e697479456e67696e652e416e696d61746f720200000053797374656d2e537472696e6753797374656d2e496e743332536574496e74656765720000000000000000000000000000000000005374617465000000000000000000000000000000000000000000000000000039663534643762302d363165332d346265312d623662642d3561326461643538353030310000ab43004062445655354300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000009000d000000000000000000000500000033eafef69c80464588edbc900dc3595274f0426bff20f048af75e9b5e3c133e734440f937008c24fb22da60cd5506bb147ce61edbecd6141a9a647b1791eef2d46f3121cbf3f3641bad6d622e487d39400000000000000000000000000000000
+        m_UnityObjects: []
+        m_Version: 3.4
+  - m_Operation: 0
+    m_ElementKind: 1
+    m_TargetID:
+      m_Low: 5467759052863100848
+      m_High: 94673092988288438
+    m_ScopeID:
+      m_Low: 0
+      m_High: 0
+    m_ParentID:
+      m_Low: 0
+      m_High: 0
+    m_AnchorID:
+      m_Low: 0
+      m_High: 0
+    m_FieldKey: 27880922366941519
+    m_Value:
+      m_IsNull: 0
+      m_Data:
+        m_ObjectType: Opsive.GraphDesigner.Runtime.Serialization.GraphSerializedValueBox`1[[Opsive.GraphDesigner.Runtime.Serialization.SerializableGuid,
+          Opsive.GraphDesigner.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+        m_ValueHashes: 
+        m_LongValueHashes: 6a698940d1fff0e669d549c1c83aa70ae90bea33ce3aa70a
+        m_ValuePositions: 000000000000000008000000
+        m_Values: 53182a73c0d8ab49a0ed050a4321ac62
+        m_UnityObjects: []
+        m_Version: 3.4
+  - m_Operation: 1
+    m_ElementKind: 1
+    m_TargetID:
+      m_Low: 4758167141142827014
+      m_High: 8740279524573583805
+    m_ScopeID:
+      m_Low: 0
+      m_High: 0
+    m_ParentID:
+      m_Low: 0
+      m_High: 0
+    m_AnchorID:
+      m_Low: 5467759052863100848
+      m_High: 94673092988288438
+    m_FieldKey: 0
+    m_Value:
+      m_IsNull: 0
+      m_Data:
+        m_ObjectType: Opsive.GraphDesigner.Runtime.Serialization.GraphSerializedValueBox`1[[Opsive.GraphDesigner.Runtime.Serialization.GraphElementPayload,
+          Opsive.GraphDesigner.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+        m_ValueHashes: 
+        m_LongValueHashes: 6e8283ce0462a8df6c939f7f2d0c3ef124e841c7797960e74c290bc27a6f23341a554b1302a9e179fc6827f9bdd4027b1eb43a4d6bbab345d38dddea783f030d6f86a21473f551d4d9d970f79d98ed1f88d5ea9fb7216eaa3f73211a8f35a0ca68a0eabd22946a33a3ecb905de538565cc5402350782d8464c8aa1c70182d846950b7352b5b73e9ea20fff162a227e83736307f5908d71f85a399ed984040361ed9f555cbc10cd01521afc08d26e1bc27100cd43ed76e8ae3603b8f0bbe09b17b6dd1b02bde09b1747e7071486925355f9672173a923015229abd03f7cc74064986e72d3e1d66e512fc8b956d9c2a03138682e46c2b157ffb357214988a4859e9cace4bc10aa5bfc1c72474e16aa5bfc85b0eb1ee3403e65947fbdde5ad66e513a93c9af60599ea7ff5072bebf178bd948f6b93b870345b973f557a77ee21f59d4692124d6656016cfb180d35f60669a4f6f23215960669ae28eeb73bd81dbedbad673906286c60a4803ab68f6a23621b703ab68f6a23621b603ab68f6a23621983e1c5fdab4a5946a6fd4258fa1132559d5d04cbdf0c852b9c997e77f0b8d2df6b779127e5874f4880a423864d88648b853ce3c0a4e2a052abfdcfdc85883484a5d46d6893e9146ab78663188802562a847cddec41595e413e1f9ac7a74434238e3592bd9671b146bb033868b3e88cdecb74ea0d293bc25fa62bba76c487c5da5ef1ddd25146d7450a5420aa5c5fc73683bd51f3ca8d4ecbee00b290280fb9dfbcb20255aafa824e652a975617f4b65d5d3c975617f4b65ac3bae0e2e9a863293e081b7f95006befcef3840081ed0867c319bb20e1ed08603bdd778c77a509eacb1c1b21fead5ab2c6f624019ead5ab
+        m_ValuePositions: 000000000000000000000000010000000300000005000000070000000b000000420000004300000043000000510000005100000052000000520000005a00000062000000630000006700000067000000670000006700000068000000680000007000000078000000790000007d0000007d0000007d0000007d0000007e0000007e000000860000008e0000008f0000009300000093000000930000009300000094000000940000009c000000a4000000a5000000a6000000a6000000a6000000a6000000a6000000aa000000aa000000ce000000d6000000da000000da000000da000000ea000000eb000000ef000000f3000000f7000000fb000000ff000000030100000701000007010000090100000b0100000c0100001001000014010000180100001801000020010000280100002801000030010000
+        m_Values: 010d000900ffff010000004f70736976652e4265686176696f7244657369676e65722e52756e74696d652e5461736b732e416374696f6e732e53656e644576656e74015365656b47616d654f626a65637402566ccb660f393446b1460e76dac1494200ffffffff000000000000000000000000000000000000000000000000000000000000000000000000000000004865616c000000000000000000000000000000000000000000000031356331313030362d363763652d343230382d626431392d6434366265626235346237390080fb4300c061440000dc420000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000900ffff00000000000000000001000000fbfec70e49672c4988a7213065d49b5400000000000000000000000000000000
+        m_UnityObjects: []
+        m_Version: 3.4
+  - m_Operation: 0
+    m_ElementKind: 1
+    m_TargetID:
+      m_Low: 4758167141142827014
+      m_High: 8740279524573583805
+    m_ScopeID:
+      m_Low: 0
+      m_High: 0
+    m_ParentID:
+      m_Low: 0
+      m_High: 0
+    m_AnchorID:
+      m_Low: 0
+      m_High: 0
+    m_FieldKey: 27880922366941519
+    m_Value:
+      m_IsNull: 0
+      m_Data:
+        m_ObjectType: Opsive.GraphDesigner.Runtime.Serialization.GraphSerializedValueBox`1[[Opsive.GraphDesigner.Runtime.Serialization.SerializableGuid,
+          Opsive.GraphDesigner.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+        m_ValueHashes: 
+        m_LongValueHashes: 6a698940d1fff0e669d549c1c83aa70ae90bea33ce3aa70a
+        m_ValuePositions: 000000000000000008000000
+        m_Values: 53182a73c0d8ab49a0ed050a4321ac62
+        m_UnityObjects: []
+        m_Version: 3.4
+  - m_Operation: 1
+    m_ElementKind: 1
+    m_TargetID:
+      m_Low: 5729886876824904386
+      m_High: 1338311626215188917
+    m_ScopeID:
+      m_Low: 0
+      m_High: 0
+    m_ParentID:
+      m_Low: 0
+      m_High: 0
+    m_AnchorID:
+      m_Low: 4758167141142827014
+      m_High: 8740279524573583805
+    m_FieldKey: 0
+    m_Value:
+      m_IsNull: 0
+      m_Data:
+        m_ObjectType: Opsive.GraphDesigner.Runtime.Serialization.GraphSerializedValueBox`1[[Opsive.GraphDesigner.Runtime.Serialization.GraphElementPayload,
+          Opsive.GraphDesigner.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+        m_ValueHashes: 
+        m_LongValueHashes: 6e8283ce0462a8df6c939f7f2d0c3ef14c290bc27a6f23341a554b1302a9e179fc6827f9bdd4027b24e841c7797960e727b0a67e8301fe16ea6958fe840994b559d5d04cbdf0c852b9c997e77f0b8d2df6b779127e5874f4880a423864d88648b853ce3c0a4e2a052abfdcfdc85883484a5d46d6893e9146ab78663188802562a847cddec41595e413e1f9ac7a74434238e3592bd9671b146bb033868b3e88cdecb74ea0d293bc25fa62bba76c487c5da5ef1ddd25146d7450a5420aa5c5fc73683bd51f3ca8d4ecbee00b290280fb9dfbcb20255aafa824e652a975617f4b65d5d3c975617f4b65ac3bae0e2e9a863203bdd778c77a509eacb1c1b21fead5ab2c6f624019ead5ab
+        m_ValuePositions: 000000000000000000000000020000000400000006000000070000000700000008000000080000002c000000340000003800000038000000620000007200000073000000770000007b0000007f00000083000000870000008b0000008f0000008f000000910000009300000094000000980000009c000000a0000000a0000000a8000000
+        m_Values: 0e000800ffff010039383532323263322d613563312d346638342d623565392d35343537353561333932313239df3b44085045440000dc424e6f7468696e6720746f20646f202d2077616974206174207468652077616974696e6720706f696e742e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000800ffff0100000000000000000000000000000000000000000000000000000000
+        m_UnityObjects: []
+        m_Version: 3.4
+  - m_Operation: 0
+    m_ElementKind: 1
+    m_TargetID:
+      m_Low: 5729886876824904386
+      m_High: 1338311626215188917
+    m_ScopeID:
+      m_Low: 0
+      m_High: 0
+    m_ParentID:
+      m_Low: 0
+      m_High: 0
+    m_AnchorID:
+      m_Low: 0
+      m_High: 0
+    m_FieldKey: 27880922366941519
+    m_Value:
+      m_IsNull: 0
+      m_Data:
+        m_ObjectType: Opsive.GraphDesigner.Runtime.Serialization.GraphSerializedValueBox`1[[Opsive.GraphDesigner.Runtime.Serialization.SerializableGuid,
+          Opsive.GraphDesigner.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+        m_ValueHashes: 
+        m_LongValueHashes: 6a698940d1fff0e669d549c1c83aa70ae90bea33ce3aa70a
+        m_ValuePositions: 000000000000000008000000
+        m_Values: 3957ae72aa497040aaa187516cea423e
+        m_UnityObjects: []
+        m_Version: 3.4
+  - m_Operation: 1
+    m_ElementKind: 1
+    m_TargetID:
+      m_Low: 5413111506059417237
+      m_High: 6562482655365620132
+    m_ScopeID:
+      m_Low: 0
+      m_High: 0
+    m_ParentID:
+      m_Low: 0
+      m_High: 0
+    m_AnchorID:
+      m_Low: 5729886876824904386
+      m_High: 1338311626215188917
+    m_FieldKey: 0
+    m_Value:
+      m_IsNull: 0
+      m_Data:
+        m_ObjectType: Opsive.GraphDesigner.Runtime.Serialization.GraphSerializedValueBox`1[[Opsive.GraphDesigner.Runtime.Serialization.GraphElementPayload,
+          Opsive.GraphDesigner.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+        m_ValueHashes: 
+        m_LongValueHashes: 6e8283ce0462a8df6c939f7f2d0c3ef124e841c7797960e74c290bc27a6f23341a554b1302a9e179fc6827f9bdd4027b1eb43a4d6bbab345d38dddea783f030d6f86a21473f551d43f4633fdd38f19cbbeef688df086bfdf0949a308c89271bf2e5a0d5dfc3a39ea95d63b1799f454101a699ad320dca47a9ab7392126dca47aa331f140f210efeb94357d046d85aff6983e1c5fdab4a5946a6fd4258fa1132559d5d04cbdf0c852b9c997e77f0b8d2df6b779127e5874f4880a423864d88648b853ce3c0a4e2a052abfdcfdc85883484a5d46d6893e9146ab78663188802562a847cddec41595e413e1f9ac7a74434238e3592bd9671b146bb033868b3e88cdecb74ea0d293bc25fa62bba76c487c5da5ef1ddd25146d7450a5420aa5c5fc73683bd51f3ca8d4ecbee00b290280fb9dfbcb20255aafa824e652a975617f4b65d5d3c975617f4b65ac3bae0e2e9a863293e081b7f95006befcef3840081ed0867c319bb20e1ed08603bdd778c77a509eacb1c1b21fead5ab2c6f624019ead5ab
+        m_ValuePositions: 000000000000000000000000010000000300000005000000070000000b0000002f00000030000000300000003000000030000000310000003100000039000000410000004200000046000000460000004a0000004a0000006e000000760000007a0000007a0000007a0000008a0000008b0000008f00000093000000970000009b0000009f000000a3000000a7000000a7000000a9000000ab000000ac000000b0000000b4000000b8000000b8000000c0000000c8000000c8000000d0000000
+        m_Values: 010f000e001000010000004f70736976652e4265686176696f7244657369676e65722e53616d706c65732e5365656b01000000000000000000000000000000000000000000000000000032303430353639352d336333632d346231662d613465312d62613964333439663132356200c02a4400c062440000dc420000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e001000000000000000000000010000001f2bc734d27ebf4dbf6369efe6f3749b00000000000000000000000000000000
+        m_UnityObjects:
+        - {fileID: 1218089711}
+        m_Version: 3.4
+  - m_Operation: 0
+    m_ElementKind: 1
+    m_TargetID:
+      m_Low: 5413111506059417237
+      m_High: 6562482655365620132
+    m_ScopeID:
+      m_Low: 0
+      m_High: 0
+    m_ParentID:
+      m_Low: 0
+      m_High: 0
+    m_AnchorID:
+      m_Low: 0
+      m_High: 0
+    m_FieldKey: 27880922366941519
+    m_Value:
+      m_IsNull: 0
+      m_Data:
+        m_ObjectType: Opsive.GraphDesigner.Runtime.Serialization.GraphSerializedValueBox`1[[Opsive.GraphDesigner.Runtime.Serialization.SerializableGuid,
+          Opsive.GraphDesigner.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+        m_ValueHashes: 
+        m_LongValueHashes: 6a698940d1fff0e669d549c1c83aa70ae90bea33ce3aa70a
+        m_ValuePositions: 000000000000000008000000
+        m_Values: c2225298c1a5844fb5e9545755a39212
+        m_UnityObjects: []
+        m_Version: 3.4
+  - m_Operation: 1
+    m_ElementKind: 1
+    m_TargetID:
+      m_Low: 5304143775210389074
+      m_High: 16933592483612471707
+    m_ScopeID:
+      m_Low: 0
+      m_High: 0
+    m_ParentID:
+      m_Low: 0
+      m_High: 0
+    m_AnchorID:
+      m_Low: 5413111506059417237
+      m_High: 6562482655365620132
+    m_FieldKey: 0
+    m_Value:
+      m_IsNull: 0
+      m_Data:
+        m_ObjectType: Opsive.GraphDesigner.Runtime.Serialization.GraphSerializedValueBox`1[[Opsive.GraphDesigner.Runtime.Serialization.GraphElementPayload,
+          Opsive.GraphDesigner.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+        m_ValueHashes: 
+        m_LongValueHashes: 6e8283ce0462a8df6c939f7f2d0c3ef14c290bc27a6f23341a554b1302a9e179fc6827f9bdd4027b24e841c7797960e759d5d04cbdf0c852b9c997e77f0b8d2df6b779127e5874f4880a423864d88648b853ce3c0a4e2a052abfdcfdc85883484a5d46d6893e9146ab78663188802562a847cddec41595e413e1f9ac7a74434238e3592bd9671b146bb033868b3e88cdecb74ea0d293bc25fa62bba76c487c5da5ef1ddd25146d7450a5420aa5c5fc73683bd51f3ca8d4ecbee00b290280fb9dfbcb20255aafa824e652a975617f4b65d5d3c975617f4b65ac3bae0e2e9a863203bdd778c77a509eacb1c1b21fead5ab2c6f624019ead5ab
+        m_ValuePositions: 00000000000000000000000002000000040000000600000007000000070000002b0000003300000037000000370000003700000047000000480000004c0000005000000054000000580000005c0000006000000064000000640000006600000068000000690000006d0000007100000075000000750000007d000000
+        m_Values: 10000e00ffff0133373033626535322d316161392d343939632d396233312d66323534613533343030656255954b44287563440000dc420000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e00ffff0000000000000000000000000000000000000000000000000000000000
+        m_UnityObjects: []
+        m_Version: 3.4
+  - m_Operation: 0
+    m_ElementKind: 1
+    m_TargetID:
+      m_Low: 5304143775210389074
+      m_High: 16933592483612471707
+    m_ScopeID:
+      m_Low: 0
+      m_High: 0
+    m_ParentID:
+      m_Low: 0
+      m_High: 0
+    m_AnchorID:
+      m_Low: 0
+      m_High: 0
+    m_FieldKey: 27880922366941519
+    m_Value:
+      m_IsNull: 0
+      m_Data:
+        m_ObjectType: Opsive.GraphDesigner.Runtime.Serialization.GraphSerializedValueBox`1[[Opsive.GraphDesigner.Runtime.Serialization.SerializableGuid,
+          Opsive.GraphDesigner.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+        m_ValueHashes: 
+        m_LongValueHashes: 6a698940d1fff0e669d549c1c83aa70ae90bea33ce3aa70a
+        m_ValuePositions: 000000000000000008000000
+        m_Values: c2225298c1a5844fb5e9545755a39212
+        m_UnityObjects: []
+        m_Version: 3.4
+  - m_Operation: 1
+    m_ElementKind: 3
+    m_TargetID:
+      m_Low: 5534375587016428841
+      m_High: 16018644248767635895
+    m_ScopeID:
+      m_Low: 0
+      m_High: 0
+    m_ParentID:
+      m_Low: 0
+      m_High: 0
+    m_AnchorID:
+      m_Low: 0
+      m_High: 0
+    m_FieldKey: 0
+    m_Value:
+      m_IsNull: 0
+      m_Data:
+        m_ObjectType: Opsive.GraphDesigner.Runtime.Serialization.GraphSerializedValueBox`1[[Opsive.GraphDesigner.Runtime.Serialization.GraphElementPayload,
+          Opsive.GraphDesigner.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+        m_ValueHashes: 
+        m_LongValueHashes: 6e8283ce0462a8df6c939f7f2d0c3ef124e841c7797960e725de269b096379ac59d5d04cbdf0c852b9c997e77f0b8d2df6b779127e5874f4880a423864d88648b853ce3c0a4e2a052abfdcfdc85883484a5d46d6893e9146ab78663188802562a847cddec41595e413e1f9ac7a74434238e3592bd9671b146bb033868b3e88cdecb74ea0d293bc25fa62bba76c487c5d03bdd778c77a509eacb1c1b21fead5ab2c6f624019ead5ab
+        m_ValuePositions: 000000000000000000000000010000000300000003000000270000002f0000003300000033000000330000004300000044000000480000004c0000005000000054000000580000005c0000005c00000064000000
+        m_Values: 01000032356235346432392d306434362d346363652d623732312d323665373132613834646465000070425dc0b3430000dc42000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+        m_UnityObjects: []
+        m_Version: 3.4
+  - m_Operation: 1
+    m_ElementKind: 8
+    m_TargetID:
+      m_Low: 5594713071819737371
+      m_High: 6402781244744130225
+    m_ScopeID:
+      m_Low: 0
+      m_High: 0
+    m_ParentID:
+      m_Low: 0
+      m_High: 0
+    m_AnchorID:
+      m_Low: 0
+      m_High: 0
+    m_FieldKey: 0
+    m_Value:
+      m_IsNull: 0
+      m_Data:
+        m_ObjectType: Opsive.GraphDesigner.Runtime.Serialization.GraphSerializedValueBox`1[[Opsive.GraphDesigner.Runtime.Serialization.GraphElementPayload,
+          Opsive.GraphDesigner.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+        m_ValueHashes: 
+        m_LongValueHashes: 6e8283ce0462a8df6c939f7f2d0c3ef1719e9ccfc16f2334c638574af97bed54d513767151db50bd5aa7cf55a81dc8fb992a57c744734e5c19f4f43542734e5c6c400502c3f973005b4489465c6c331d59d5d04cbdf0c85203bdd778c77a509eacb1c1b21fead5ab2c6f624019ead5ab
+        m_ValuePositions: 000000000000000000000000100000001000000011000000110000001900000021000000220000002600000026000000260000002e000000
+        m_Values: 446f776e656447616d654f626a656374021bc90c92e569a44db1de81639e3fdb5800ffffffff00000000000000000000000000000000
+        m_UnityObjects: []
+        m_Version: 3.4
+  - m_Operation: 1
+    m_ElementKind: 8
+    m_TargetID:
+      m_Low: 5483017054447996099
+      m_High: 10333804564899145618
+    m_ScopeID:
+      m_Low: 0
+      m_High: 0
+    m_ParentID:
+      m_Low: 0
+      m_High: 0
+    m_AnchorID:
+      m_Low: 5594713071819737371
+      m_High: 6402781244744130225
+    m_FieldKey: 0
+    m_Value:
+      m_IsNull: 0
+      m_Data:
+        m_ObjectType: Opsive.GraphDesigner.Runtime.Serialization.GraphSerializedValueBox`1[[Opsive.GraphDesigner.Runtime.Serialization.GraphElementPayload,
+          Opsive.GraphDesigner.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+        m_ValueHashes: 
+        m_LongValueHashes: 6e8283ce0462a8df6c939f7f2d0c3ef1719e9ccfc16f2334c638574af97bed54d513767151db50bd5aa7cf55a81dc8fb992a57c744734e5c19f4f43542734e5c6c400502c3f97300f52722491334f42059d5d04cbdf0c85203bdd778c77a509eacb1c1b21fead5ab2c6f624019ead5ab
+        m_ValuePositions: 000000000000000000000000110000001100000012000000120000001a00000022000000230000002700000027000000270000002f000000
+        m_Values: 446f776e656447616d654f626a6563747302c30cc8f3f596174c92a71f3d800c698f000000000000000000000000000000000000000000
+        m_UnityObjects: []
+        m_Version: 3.4
+  - m_Operation: 1
+    m_ElementKind: 8
+    m_TargetID:
+      m_Low: 5058731019755809878
+      m_High: 4776562023830800049
+    m_ScopeID:
+      m_Low: 0
+      m_High: 0
+    m_ParentID:
+      m_Low: 0
+      m_High: 0
+    m_AnchorID:
+      m_Low: 5483017054447996099
+      m_High: 10333804564899145618
+    m_FieldKey: 0
+    m_Value:
+      m_IsNull: 0
+      m_Data:
+        m_ObjectType: Opsive.GraphDesigner.Runtime.Serialization.GraphSerializedValueBox`1[[Opsive.GraphDesigner.Runtime.Serialization.GraphElementPayload,
+          Opsive.GraphDesigner.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+        m_ValueHashes: 
+        m_LongValueHashes: 6e8283ce0462a8df6c939f7f2d0c3ef1719e9ccfc16f2334c638574af97bed54d513767151db50bd5aa7cf55a81dc8fb992a57c744734e5c19f4f43542734e5c6c400502c3f973005b4489465c6c331d59d5d04cbdf0c85203bdd778c77a509eacb1c1b21fead5ab2c6f624019ead5ab
+        m_ValuePositions: 0000000000000000000000000e0000000e0000000f0000000f000000170000001f000000200000002400000024000000240000002c000000
+        m_Values: 5365656b47616d654f626a65637402566ccb660f393446b1460e76dac1494200ffffffff00000000000000000000000000000000
+        m_UnityObjects: []
+        m_Version: 3.4
+  m_SourceFingerprint: 14808497348308320876
+  m_EffectiveFingerprint: 4751653504766353650
+  m_Data:
+    m_TaskData:
+    - m_ObjectType: Opsive.BehaviorDesigner.Runtime.Tasks.Composites.Parallel
+      m_ValueHashes: 
+      m_LongValueHashes: 30b77c28f48d1b2966cb3cf98c4bd96480f6501333363a665876362df79b58fa
+      m_ValuePositions: 00000000020000000400000006000000
+      m_Values: 0000ffffffff01
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Opsive.BehaviorDesigner.Runtime.Tasks.Decorators.Repeater
+      m_ValueHashes: 
+      m_LongValueHashes: 30b77c28f48d1b2966cb3cf98c4bd96480f6501333363a665876362df79b58fae2039c790dc879a8770519b3aab1c06dc0a3d23692a50e0d1be8923c7659af365c3c4a29c3c32ba2a7364edcee18c55427e8ed2ee818c5546adb807ea82790593283189d77208dbee48d930b6b0cda08990a38d64fcf3e932eacf35377dbf0f38d1bd708c4c29d45b2336b4c26bdd55c01876e562dd96dde8159cda42bd96dde84d4a11b4d596ea73a54877c62e83ca098e0d57325363086b54b46875b75d83102ed8d0263611651c1942dce439cacb69e72151d320733fe0d1313cefea5391c8dcdb03cf8a5391ca895df4a59e38805f0cd47a986e495e2
+      m_ValuePositions: 000000000200000004000000060000000700000007000000070000000700000008000000080000001000000018000000190000001a0000001a0000001a0000001a0000001b0000001b000000230000002b0000002c000000300000003000000030000000300000003100000031000000390000004100000042000000
+      m_Values: 01000000070001000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Opsive.BehaviorDesigner.Runtime.Tasks.Composites.Selector
+      m_ValueHashes: 
+      m_LongValueHashes: 30b77c28f48d1b2966cb3cf98c4bd96480f6501333363a665876362df79b58fa5b2ed1940de3c60b8ea6435e604d1251
+      m_ValuePositions: 000000000200000004000000060000000700000007000000
+      m_Values: 02000100ffff0100
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Opsive.BehaviorDesigner.Runtime.Tasks.Composites.Sequence
+      m_ValueHashes: 
+      m_LongValueHashes: 30b77c28f48d1b2966cb3cf98c4bd96480f6501333363a665876362df79b58fa5b2ed1940de3c60b8ea6435e604d1251
+      m_ValuePositions: 000000000200000004000000060000000700000007000000
+      m_Values: 0300020006000101
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Opsive.BehaviorDesigner.Runtime.Tasks.Conditionals.StackedConditional
+      m_ValueHashes: 
+      m_LongValueHashes: 5876362df79b58fa30b77c28f48d1b2966cb3cf98c4bd96480f6501333363a66622a4da7e5588b5847627e5c3afba34a431ec8427602143af5411aa1986fa8f1fc4853f0fe822eeb4bee9875c696e08b94921c660d4b50e2d771006a97f0c5246026e1b68697ed2fe0f842448097ed2fe196ca3dfc147edfd692467963813ec25ffb6da3957a34165ed2655441977946e974aed17983b7268e55be1323798f0375eb36ce28e592897a887a1f0eedd671fa56d9ed08edd671430cfc9943012972fd8cdafe6cb07b750533ba697930058acc1e2ad007a117237bb8e1553fb5d943640e3e17f1898731e727794a6ed3fcec304db3a9406f08adb093105b466f08add1c0b31d05374717c00fe5ddbca11723160ba3f965aedb49133133046bf9b6a0a497f88153ed78c08f31b6b6499091723808609e028b5d6fd312bd4e461e0b9d53cc1ebc401e0b9d0eefaac9696fe69456b7322ab668fb735bd91413389b51831212beb2ba38968ca5b47537822c58ec3a3bbc39399fa48d392bed28d34a7d436eab9da33f845680ee753e51398456800fcc277fb8aec6b838c8ab3b273b86a55ad91413389b518359d91413389b5183e4a06bb554569d8946fff10c773614c9
+      m_ValuePositions: 00000000010000000300000005000000070000000b0000004e0000004f0000004f0000004f0000004f00000050000000500000005800000060000000610000006500000065000000650000006500000066000000660000006e00000076000000770000007b0000007b0000007b0000007b0000007c0000007c000000840000008c0000008d0000009b0000009b0000009b0000009b0000009c0000009c000000a4000000ac000000ad000000ae0000004e0100005e0100005e0100005f0100005f010000670100006f0100007001000074010000740100007401000074010000
+      m_Values: 01040003000500010000004f70736976652e4265686176696f7244657369676e65722e52756e74696d652e5461736b732e436f6e646974696f6e616c732e48617352656365697665644576656e7401000000000000000000000000000000000000ffffffff000000000000000000000000000000000000000000000000000000000000000000000000000000004e656564417373697374616e6365000000000000000000000000000000000000014f70736976652e477261706844657369676e65722e52756e74696d652e5661726961626c65732e5368617265645661726961626c6560315b5b556e697479456e67696e652e47616d654f626a6563742c20556e697479456e67696e652e436f72654d6f64756c652c2056657273696f6e3d302e302e302e302c2043756c747572653d6e65757472616c2c205075626c69634b6579546f6b656e3d6e756c6c5d5d446f776e656447616d654f626a656374020000000000000000000000000000000000ffffffff00000000
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Opsive.BehaviorDesigner.Runtime.Tasks.Actions.StackedAction
+      m_ValueHashes: 
+      m_LongValueHashes: 5876362df79b58fa30b77c28f48d1b2966cb3cf98c4bd96480f6501333363a66622a4da7e5588b5847627e5c3afba34a431ec8427602143af5411aa1986fa8f1fc4853f0fe822eeb4bee9875c696e08b94921c660d4b50e2d771006a97f0c5246026e1b68697ed2fe0f842448097ed2fe196ca3dfc147edfd692467963813ec248f238200a8bf805a5b9a4ddfc13746b121f6f58c407ba0b3136661cb49167268e80f74795619fa43df0834ec9d93162bd2e20bccfd93162b8673d10fe85245f21001a5b2e48a37fdc776bbd9c11766b21e0439a5edd028f9646881f66c9ccef456e60de97c98de90ad9100037afe940893871ce02357f8309e6d23c04357f833c3eda575c4b52bb646642b4834c4f5ce4a06bb554569d8946fff10c773614c9
+      m_ValuePositions: 00000000010000000300000005000000070000000b000000590000005a0000005a0000006a0000006a0000006b0000006b000000730000007b0000007c0000008000000080000000910000009100000092000000920000009a000000a2000000a3000000a7000000a7000000a7000000a7000000a8000000a8000000b0000000b8000000b9000000ba000000ba000000
+      m_Values: 0105000300ffff010000004f70736976652e4265686176696f7244657369676e65722e52756e74696d652e5461736b732e416374696f6e732e556e6974794f626a656374732e41646447616d654f626a656374546f4c69737401446f776e656447616d654f626a656374020000000000000000000000000000000000ffffffff446f776e656447616d654f626a65637473020000000000000000000000000000000000000000000000000000000000000000000000000000000100000000
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Opsive.BehaviorDesigner.Runtime.Tasks.Actions.Utility.Idle
+      m_ValueHashes: 
+      m_LongValueHashes: 30b77c28f48d1b2966cb3cf98c4bd96480f6501333363a665876362df79b58fa
+      m_ValuePositions: 00000000020000000400000006000000
+      m_Values: 06000200ffff01
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Opsive.BehaviorDesigner.Runtime.Tasks.Decorators.Repeater
+      m_ValueHashes: 
+      m_LongValueHashes: 30b77c28f48d1b2966cb3cf98c4bd96480f6501333363a665876362df79b58fae2039c790dc879a8770519b3aab1c06dc0a3d23692a50e0d1be8923c7659af365c3c4a29c3c32ba2a7364edcee18c55427e8ed2ee818c5546adb807ea82790593283189d77208dbee48d930b6b0cda08990a38d64fcf3e932eacf35377dbf0f38d1bd708c4c29d45b2336b4c26bdd55c01876e562dd96dde8159cda42bd96dde84d4a11b4d596ea73a54877c62e83ca098e0d57325363086b54b46875b75d83102ed8d0263611651c1942dce439cacb69e72151d320733fe0d1313cefea5391c8dcdb03cf8a5391ca895df4a59e38805f0cd47a986e495e2
+      m_ValuePositions: 000000000200000004000000060000000700000007000000070000000700000008000000080000001000000018000000190000001a0000001a0000001a0000001a0000001b0000001b000000230000002b0000002c000000300000003000000030000000300000003100000031000000390000004100000042000000
+      m_Values: 07000000ffff01000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Opsive.BehaviorDesigner.Runtime.Tasks.Composites.Selector
+      m_ValueHashes: 
+      m_LongValueHashes: 30b77c28f48d1b2966cb3cf98c4bd96480f6501333363a665876362df79b58fa5b2ed1940de3c60b8ea6435e604d1251
+      m_ValuePositions: 000000000200000004000000060000000700000007000000
+      m_Values: 08000700ffff0100
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Opsive.BehaviorDesigner.Runtime.Tasks.Composites.Sequence
+      m_ValueHashes: 
+      m_LongValueHashes: 30b77c28f48d1b2966cb3cf98c4bd96480f6501333363a665876362df79b58fa5b2ed1940de3c60b8ea6435e604d1251
+      m_ValuePositions: 000000000200000004000000060000000700000007000000
+      m_Values: 090008000e000101
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Opsive.BehaviorDesigner.Runtime.Tasks.Conditionals.StackedConditional
+      m_ValueHashes: 
+      m_LongValueHashes: 5876362df79b58fa30b77c28f48d1b2966cb3cf98c4bd96480f6501333363a66622a4da7e5588b5847627e5c3afba34a431ec8427602143ac261ded78a0e66c6d79936e61f005f85603ffd63271491e53b5f8e37dfdbe508fca0657c7672b44ac70acb3df70ccef047d468cff10ccef0ca47af2b1d960fb153208860cd5b8891e4a06bb554569d8946fff10c773614c9
+      m_ValuePositions: 00000000010000000300000005000000070000000b0000004600000047000000590100006a0100006a0100006b0100006b010000730100007b0100007c0100008001000080010000
+      m_Values: 010a0009000b00010000004f70736976652e4265686176696f7244657369676e65722e52756e74696d652e5461736b732e436f6e646974696f6e616c732e48617356616c7565014f70736976652e477261706844657369676e65722e52756e74696d652e5661726961626c65732e5368617265645661726961626c6560315b5b53797374656d2e436f6c6c656374696f6e732e47656e657269632e4c69737460315b5b556e697479456e67696e652e47616d654f626a6563742c20556e697479456e67696e652e436f72654d6f64756c652c2056657273696f6e3d302e302e302e302c2043756c747572653d6e65757472616c2c205075626c69634b6579546f6b656e3d6e756c6c5d5d2c206d73636f726c69622c2056657273696f6e3d342e302e302e302c2043756c747572653d6e65757472616c2c205075626c69634b6579546f6b656e3d623737613563353631393334653038395d5d446f776e656447616d654f626a656374730200000000000000000000000000000000000000000000000000
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Opsive.BehaviorDesigner.Runtime.Tasks.Actions.StackedAction
+      m_ValueHashes: 
+      m_LongValueHashes: 5876362df79b58fa30b77c28f48d1b2966cb3cf98c4bd96480f6501333363a66622a4da7e5588b5847627e5c3afba34a431ec8427602143aac9e983be5cfc305b110454e32ebb2d906b68ecb0aff7cb9955f65947419ceaf9a2916d45b995916d92f0f322e5ee98159f1acc0285ee981accedc83307de2ed35a9fbc8e0b065cd030bf651f59f02c5aa13643f3f8209ac1db5afba0796c7cc22c54eba35339a98812a37a556f0e2630646dde2173bf5cf86987e10113bf5cfb7cdfdf23d145998094ddb9512a50b9f435aa1c5186d7125eaf9d35e25a2fd395d5f18db1db63359e2fbfefc85f6285cc1c080c44cd016f64647fb6f458a7a88c699589d438a7a88f7274a932734ad0dc023c6d7b8a1ed10d4647e5c3afba34a9c2a345d7602143acceaa5b4d6785c25511ea600b9e97cd9e6b86d8581fdb2b975a412d312bb8af37a27f59ad09b971639947f9ac92f0720b94adc68cf2f07204cc03fcdbb7f2ced7bc4b38924ea6cf0e4a06bb554569d8946fff10c773614c9
+      m_ValuePositions: 00000000010000000300000005000000070000000b0000005e0000005f0000005f000000700000007000000071000000710000007900000081000000820000008600000086000000860000008600000087000000870000008f00000097000000980000009c0000009c000000aa000000aa000000ab000000ab000000b3000000bb000000bc000000c0000000e4000000e5000000e5000000f3000000f3000000f4000000f4000000fc00000004010000050100000901000009010000
+      m_Values: 010b0009000c00020000004f70736976652e4265686176696f7244657369676e65722e52756e74696d652e5461736b732e416374696f6e732e556e6974794f626a656374732e53656c65637447616d654f626a65637446726f6d4c69737401446f776e656447616d654f626a6563747302000000000000000000000000000000000000000000000000000000000000000000000000000000000000005365656b47616d654f626a656374020000000000000000000000000000000000ffffffff4f70736976652e4265686176696f7244657369676e65722e53616d706c65732e5365656b015365656b47616d654f626a656374020000000000000000000000000000000000ffffffff00000000
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Opsive.BehaviorDesigner.Runtime.Tasks.Actions.StackedAction
+      m_ValueHashes: 
+      m_LongValueHashes: 5876362df79b58fa30b77c28f48d1b2966cb3cf98c4bd96480f6501333363a66622a4da7e5588b5847627e5c3afba34a431ec8427602143af5411aa1986fa8f11ddebd4bd8a0ca43af1de927da2c4db6620d61ab626f01fbef0f61ab626f01fbd5092489947a5c8c28df3139571090a30511bc970cda728fb2b7771234cebcefd1c7929b095cd2ce2e28ef0d65a899405de3b04fffa95107dd3d13bdf9a9510718cf255a0e4c22bb0900739ab7da728fd073b271eb2e47309d995674504e78f72a3f9df1685ab697f9ecef8877aed34cb6a005ee393c93383596ebca9fe84f95b548483899e84f958047cfb952d828c33ec7e9de7d697ac4d4647e5c3afba34a9c2a345d7602143a8c7c8d456ad0dda7112581f982b9e77ba6834a7cbaad291bb530bb87fbf0bb163a1cd263ebcb0cb4f969841840b1c31e79b727ea46b1c31e0cfb1834802fb74f2410edfb39b9e77b64fd1ffd3c3055da7ba92750e16d93d7b2d36a6826ebba660575a1ed1eff74061a6057bb3f38760a99ea39f24f9951a94e638177b34d91bacebd2285b54d91baaf0df3a5247dea52f7556b46fb7af7b5a9fd806189c9fd17185fe21043078a1daff929957b13447db82c2d6a6fac8b4b3366b18a2a7561d21cd14ac1b03f39689c0fe933b63f396805817bdd4191da298a1172197813c84ae9a3afd076bc5dd1ffbcafd076bc5dd1eb0d6bc0c249e11c6295ef434bee44e0d53324c673fa8a808a79117e43ff9f5e49acbcd9229caf2f3e81c67d42af4edabe5f658f44af4eda7f4b768e497814d457a08341f0ee44e061677e5c3afba34a3527305d7602143a8378e2be986fa8f12ae3df20af822eeb9d4514a59796e08ba2ec5a38e21350e201da8cbac6f0c52486bf3f9866e9ed2f06619c6a60e9ed2f373d46edad147edf0039caa932813ec22ce59068cc845a0d3165580db17d449c86c3938889698afc152e13f58130bcab1a5c0b97d80faf535978cce8ab1f60efd9a66f1aad1f60ef2cbbc1c0b3eb14a8923be7a79c5a46afee197e5c3afba34a4e40b8427602143af81f6aa1986fa8f195937874fd822eeb2235b3f1c596e08b617ddcea3e4a50e2beaa2bee94f0c524ad64e68dbc9bed2f2dba457fba9bed2f884de1b9ff147edfbf496dfd60813ec245ac48200a8bf8050c275835fb13746bbb8193b0c307ba0b2436f5ecb1906726271e0baf92619fa4706e6ca030dd3162f0b0cf5236dd316211f9c1f8f985245f889ee6b32948a37f7b187e5c3afba34ae780bd427602143a51df6fa1986fa8f1b940c84bd8a0ca430b839c27da2c4db60e3d5522626f01fbbb3f5522626f01fb71975189947a5c8c8c414439571090a311a632eb0cda728fa600f96e34cebcefb5191320995dd2ce3a9f617165a89940f940320019a85107799e91f21fa851070c78ab260e4c22bb1db7fde6b7da728f74edc771eb2e4730e93ce056504e78f75e9a2bd3685ab6971d7bab4246aed34cc205b3cc393c9338d141cea5ebe84f95519f6d57ede84f95f4e2799b52d828c34a625ffc7d697ac4e4a06bb554569d8946fff10c773614c9
+      m_ValuePositions: 00000000010000000300000005000000070000000b000000f9000000fa000000fa0000000e010000120100001f0100002b0100003501000035010000350100003501000036010000360100003e01000046010000470100004c0100004c0100004c0100004c0100004d0100004d010000550100005d0100005e010000620100009f010000a0010000a0010000a0010000a0010000a1010000a1010000a9010000b1010000b2010000b6010000ba010000ba010000ba010000ba010000bb010000bb010000c3010000cb010000cc010000cd010000cd010000cd010000cd010000ce010000ce010000d6010000de010000df010000df010000e3010000e7010000e7010000e7010000e7010000e8010000e8010000f0010000f8010000f9010000fd0100004c0200004d0200004d0200004d0200004d0200004e0200004e020000560200005e0200005f0200006302000063020000630200006302000064020000640200006c020000740200007502000079020000cc020000cd020000cd020000db020000db020000dc020000dc020000e4020000ec020000ed020000f1020000f1020000020300000203000003030000030300000b0300001303000014030000180300000604000007040000070400001b0400001f0400002c040000380400004204000042040000420400004204000043040000430400004b0400005304000054040000590400005904000059040000590400005a0400005a040000620400006a0400006b0400006f0400006f040000
+      m_Values: 010c0009000d00050000004f70736976652e4265686176696f7244657369676e65722e52756e74696d652e5461736b732e5461736b44656c656761746560325b5b53797374656d2e537472696e672c206d73636f726c69622c2056657273696f6e3d342e302e302e302c2043756c747572653d6e65757472616c2c205075626c69634b6579546f6b656e3d623737613563353631393334653038395d2c5b53797374656d2e496e7433322c206d73636f726c69622c2056657273696f6e3d342e302e302e302c2043756c747572653d6e65757472616c2c205075626c69634b6579546f6b656e3d623737613563353631393334653038395d5d01556e697479456e67696e652e416e696d61746f720200000053797374656d2e537472696e6753797374656d2e496e743332536574496e74656765720000000000000000000000000000000000005374617465000000000000000000000000000000000000200000004f70736976652e4265686176696f7244657369676e65722e52756e74696d652e5461736b732e416374696f6e732e54696d652e53686172656457616974010000000000000000000000000000000000000000003f00000000000000000000000000000000000000000000000000000000000000000000000000000000000000803f0000803f0000000000000000000000000000000000000000803f4f70736976652e4265686176696f7244657369676e65722e52756e74696d652e5461736b732e416374696f6e732e556e6974794f626a656374732e57616974466f72416e696d61746f72537461746501000000000000000000000000000000000000ffffffff000000000000000000000000000000000000000000004f70736976652e4265686176696f7244657369676e65722e52756e74696d652e5461736b732e416374696f6e732e556e6974794f626a656374732e52656d6f766547616d654f626a65637446726f6d4c697374015365656b47616d654f626a656374020000000000000000000000000000000000ffffffff446f776e656447616d654f626a65637473020000000000000000000000000000000000000000004f70736976652e4265686176696f7244657369676e65722e52756e74696d652e5461736b732e5461736b44656c656761746560325b5b53797374656d2e537472696e672c206d73636f726c69622c2056657273696f6e3d342e302e302e302c2043756c747572653d6e65757472616c2c205075626c69634b6579546f6b656e3d623737613563353631393334653038395d2c5b53797374656d2e496e7433322c206d73636f726c69622c2056657273696f6e3d342e302e302e302c2043756c747572653d6e65757472616c2c205075626c69634b6579546f6b656e3d623737613563353631393334653038395d5d01556e697479456e67696e652e416e696d61746f720200000053797374656d2e537472696e6753797374656d2e496e743332536574496e746567657200000000000000000000000000000000000053746174650000000000000000000000000000000000000000000000000000
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Opsive.BehaviorDesigner.Runtime.Tasks.Actions.StackedAction
+      m_ValueHashes: 
+      m_LongValueHashes: 5876362df79b58fa30b77c28f48d1b2966cb3cf98c4bd96480f6501333363a66622a4da7e5588b5847627e5c3afba34a431ec8427602143af5411aa1986fa8f1fc4853f0fe822eeb4bee9875c696e08b94921c660d4b50e2d771006a97f0c5246026e1b68697ed2fe0f842448097ed2fe196ca3dfc147edfd692467963813ec25ffb6da3957a34165ed2655441977946e974aed17983b7268e55be1323798f0375eb36ce28e592897a887a1f0eedd671fa56d9ed08edd671430cfc9943012972fd8cdafe6cb07b750533ba697930058acc1e2ad007a117237bb8e1553fb5d943640e3e17f1898731e727794a6ed3fcec304db3a9406f08adb093105b466f08add1c0b31d05374717c00fe5ddbca11723160ba3f965aedb49133133046bf9b6a0a497f88153ed78c08f31b6b6499091723808609e028b5d6fd312bd4e461e0b9d53cc1ebc401e0b9d0eefaac9696fe69456b7322ab668fb73649bc13ef35573cf9b9bc13ef35573cf9a9bc13ef35573cfe4a06bb554569d8946fff10c773614c9
+      m_ValuePositions: 00000000010000000300000005000000070000000b000000420000004300000043000000510000005100000052000000520000005a00000062000000630000006700000067000000670000006700000068000000680000007000000078000000790000007d0000007d0000007d0000007d0000007e0000007e000000860000008e0000008f0000009300000093000000930000009300000094000000940000009c000000a4000000a5000000a6000000a6000000a6000000a6000000a6000000
+      m_Values: 010d000900ffff010000004f70736976652e4265686176696f7244657369676e65722e52756e74696d652e5461736b732e416374696f6e732e53656e644576656e74015365656b47616d654f626a656374020000000000000000000000000000000000ffffffff000000000000000000000000000000000000000000000000000000000000000000000000000000004865616c0000000000000000000000000000000000000000000000
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Opsive.BehaviorDesigner.Runtime.Tasks.Composites.Sequence
+      m_ValueHashes: 
+      m_LongValueHashes: 30b77c28f48d1b2966cb3cf98c4bd96480f6501333363a665876362df79b58fa5b2ed1940de3c60b8ea6435e604d1251
+      m_ValuePositions: 000000000200000004000000060000000700000007000000
+      m_Values: 0e000800ffff0100
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Opsive.BehaviorDesigner.Runtime.Tasks.Actions.StackedAction
+      m_ValueHashes: 
+      m_LongValueHashes: 5876362df79b58fa30b77c28f48d1b2966cb3cf98c4bd96480f6501333363a66622a4da7e5588b5847627e5c3afba34a431ec8427602143a13de59abd6785c257a63b69fa8e97cd9cdc57d1a90fdb2b932a63e2db0a28af3515ae505c19b971696a3fcf01f070720167d5f021907072067bd2f52aa7f2ced50b9a31635ea6cf0e4a06bb554569d8946fff10c773614c9
+      m_ValuePositions: 00000000010000000300000005000000070000000b0000002f0000003000000030000000300000003000000031000000310000003900000041000000420000004600000046000000
+      m_Values: 010f000e001000010000004f70736976652e4265686176696f7244657369676e65722e53616d706c65732e5365656b010000000000000000000000000000000000000000000000000000
+      m_UnityObjects:
+      - {fileID: 1218089711}
+      m_Version: 3.4
+    - m_ObjectType: Opsive.BehaviorDesigner.Runtime.Tasks.Actions.Utility.Idle
+      m_ValueHashes: 
+      m_LongValueHashes: 30b77c28f48d1b2966cb3cf98c4bd96480f6501333363a665876362df79b58fa
+      m_ValuePositions: 00000000020000000400000006000000
+      m_Values: 10000e00ffff01
+      m_UnityObjects: []
+      m_Version: 3.4
+    m_EventTaskData:
+    - m_ObjectType: Opsive.BehaviorDesigner.Runtime.Tasks.Events.Start
+      m_ValueHashes: 
+      m_LongValueHashes: 5876362df79b58fa59405171878141b1
+      m_ValuePositions: 0000000001000000
+      m_Values: 010000
+      m_UnityObjects: []
+      m_Version: 3.4
+    m_SharedVariableData:
+    - m_ObjectType: Opsive.GraphDesigner.Runtime.Variables.SharedVariable`1[[UnityEngine.GameObject,
+        UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+      m_ValueHashes: 
+      m_LongValueHashes: 0d00eb254f8d1b29baa620a07799d549a996976a4a6427892639b8bf26fff0e6e533e1845e22a00a65ed42765822a00a10de72e84d1b4b1d27dafeacd28e0b00
+      m_ValuePositions: 0000000010000000100000001100000011000000190000002100000022000000
+      m_Values: 446f776e656447616d654f626a656374021bc90c92e569a44db1de81639e3fdb5800ffffffff
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Opsive.GraphDesigner.Runtime.Variables.SharedVariable`1[[System.Collections.Generic.List`1[[UnityEngine.GameObject,
+        UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]],
+        mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]
+      m_ValueHashes: 
+      m_LongValueHashes: 0d00eb254f8d1b29baa620a07799d549a996976a4a6427892639b8bf26fff0e6e533e1845e22a00a65ed42765822a00a10de72e84d1b4b1d89b955a39dd6cc3d
+      m_ValuePositions: 00000000110000001100000012000000120000001a0000002200000023000000
+      m_Values: 446f776e656447616d654f626a6563747302c30cc8f3f596174c92a71f3d800c698f0000000000
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Opsive.GraphDesigner.Runtime.Variables.SharedVariable`1[[UnityEngine.GameObject,
+        UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]
+      m_ValueHashes: 
+      m_LongValueHashes: 0d00eb254f8d1b29baa620a07799d549a996976a4a6427892639b8bf26fff0e6e533e1845e22a00a65ed42765822a00a10de72e84d1b4b1d27dafeacd28e0b00
+      m_ValuePositions: 000000000e0000000e0000000f0000000f000000170000001f00000020000000
+      m_Values: 5365656b47616d654f626a65637402566ccb660f393446b1460e76dac1494200ffffffff
+      m_UnityObjects: []
+      m_Version: 3.4
+    m_DisabledEventNodesData: []
+    m_DisabledLogicNodesData: []
+    m_UniqueID: 1911460207
+    m_LogicNodePropertiesData:
+    - m_ObjectType: Opsive.GraphDesigner.Runtime.LogicNodeProperties
+      m_ValueHashes: 
+      m_LongValueHashes: bc124df8ef5e104cf36ca30dee0de9958dd19827f48d1b29bd8814239a1bb7642f6406e2580d1e294f869cc9196b0c27aea3bc2e18d5b803ad9c17c154400885163a23b3ea21de233d388334493286756e6be9991b6b15ace96c94bf42c62144ffb961b8fc1de13ca034c7c2b541f015557e981535906112a98ff48b9e8a66b37f542abda0a249c23a7f01b1f88d1a7b27e688e1c35df93a1467e8e1c35df93a6d8f8f9a8cb8346d
+      m_ValuePositions: 00000000240000002c000000300000003000000030000000400000004100000045000000490000004d0000005100000055000000590000005d0000005d0000005f0000006100000062000000660000006a000000
+      m_Values: 38343637636534642d306463312d343963392d623866322d63336339633634383761653700007c420080d9430000dc42000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffff01000000000000000000000000
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Opsive.GraphDesigner.Runtime.LogicNodeProperties
+      m_ValueHashes: 
+      m_LongValueHashes: bc124df8ef5e104cf36ca30dee0de9958dd19827f48d1b29bd8814239a1bb7642f6406e2580d1e294f869cc9196b0c27aea3bc2e18d5b803ad9c17c154400885163a23b3ea21de233d388334493286756e6be9991b6b15ace96c94bf42c62144ffb961b8fc1de13ca034c7c2b541f015557e981535906112a98ff48b9e8a66b37f542abda0a249c23a7f01b1f88d1a7b27e688e1c35df93a1467e8e1c35df93a6d8f8f9a8cb8346d
+      m_ValuePositions: 00000000240000002c000000300000003000000030000000400000004100000045000000490000004d0000005100000055000000590000005d0000005d0000005f0000006100000062000000660000006a000000
+      m_Values: 35656531333036342d306139302d343563392d613765652d3664376263613939376135385138a2c383e60f440000dc420000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000070001000000000000000000000000
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Opsive.GraphDesigner.Runtime.LogicNodeProperties
+      m_ValueHashes: 
+      m_LongValueHashes: bc124df8ef5e104cf36ca30dee0de9958dd19827f48d1b29bd8814239a1bb7642f6406e2580d1e294f869cc9196b0c27aea3bc2e18d5b803ad9c17c154400885163a23b3ea21de233d388334493286756e6be9991b6b15ace96c94bf42c62144ffb961b8fc1de13ca034c7c2b541f015557e981535906112a98ff48b9e8a66b37f542abda0a249c23a7f01b1f88d1a7b27e688e1c35df93a1467e8e1c35df93a6d8f8f9a8cb8346d
+      m_ValuePositions: 00000000240000002c00000030000000300000004e0000005e0000005f00000063000000670000006b0000006f00000073000000770000007b0000007b0000007d0000007f000000800000008400000088000000
+      m_Values: 61356139393833392d653831312d343661312d386538642d3636623136303130373632350080a2c300402a440000dc425761697420756e74696c20616e206167656e74206e65656473206169642e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100ffff01000000000000000000000000
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Opsive.GraphDesigner.Runtime.LogicNodeProperties
+      m_ValueHashes: 
+      m_LongValueHashes: bc124df8ef5e104cf36ca30dee0de9958dd19827f48d1b29bd8814239a1bb7642f6406e2580d1e294f869cc9196b0c27aea3bc2e18d5b803ad9c17c154400885163a23b3ea21de233d388334493286756e6be9991b6b15ace96c94bf42c62144ffb961b8fc1de13ca034c7c2b541f015557e981535906112a98ff48b9e8a66b37f542abda0a249c23a7f01b1f88d1a7b27e688e1c35df93a1467e8e1c35df93a6d8f8f9a8cb8346d
+      m_ValuePositions: 00000000240000002c000000300000003000000030000000400000004100000045000000490000004d0000005100000055000000590000005d0000005d0000005f0000006100000062000000660000006a000000
+      m_Values: 64343765356239382d666266632d343464642d626435632d3831313232343231316664325547ddc35c6b4b440000dc420000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000200060001000000000000000000000000
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Opsive.GraphDesigner.Runtime.LogicNodeProperties
+      m_ValueHashes: 
+      m_LongValueHashes: bc124df8ef5e104cf36ca30dee0de9958dd19827f48d1b29bd8814239a1bb7642f6406e2580d1e294f869cc9196b0c27aea3bc2e18d5b803ad9c17c154400885163a23b3ea21de233d388334493286756e6be9991b6b15ace96c94bf42c62144ffb961b8fc1de13ca034c7c2b541f015557e981535906112a98ff48b9e8a66b37f542abda0a249c23a7f01b1f88d1a7b27e688e1c35df93a1467e8e1c35df93a6d8f8f9a8cb8346d4c0612c39e7b79bed76fa2567d387f4b57b101a47b387f4b
+      m_ValuePositions: 00000000240000002c000000300000003000000030000000400000004100000045000000490000004d0000005100000055000000590000005d0000005d0000005f0000006100000062000000660000006a0000006e0000006e00000076000000
+      m_Values: 61656433303837652d623134312d343533652d393238322d34626330646365303336636556d506c400c06e44aaaa0e4300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003000500000000000000000000010000005f1635e973032e4ea43db5c20d0da743
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Opsive.GraphDesigner.Runtime.LogicNodeProperties
+      m_ValueHashes: 
+      m_LongValueHashes: bc124df8ef5e104cf36ca30dee0de9958dd19827f48d1b29bd8814239a1bb7642f6406e2580d1e294f869cc9196b0c27aea3bc2e18d5b803ad9c17c154400885163a23b3ea21de233d388334493286756e6be9991b6b15ace96c94bf42c62144ffb961b8fc1de13ca034c7c2b541f015557e981535906112a98ff48b9e8a66b37f542abda0a249c23a7f01b1f88d1a7b27e688e1c35df93a1467e8e1c35df93a6d8f8f9a8cb8346d4c0612c39e7b79bed76fa2567d387f4b57b101a47b387f4b
+      m_ValuePositions: 00000000240000002c000000300000003000000030000000400000004100000045000000490000004d0000005100000055000000590000005d0000005d0000005f0000006100000062000000660000006a0000006e0000006e00000076000000
+      m_Values: 33313932666637372d393732392d343438382d383364382d3265343732386165333935370000a8c300007144aaaa10430000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000300ffff0000000000000000000100000092518de060112945aa91199cd6666d9d
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Opsive.GraphDesigner.Runtime.LogicNodeProperties
+      m_ValueHashes: 
+      m_LongValueHashes: bc124df8ef5e104cf36ca30dee0de9958dd19827f48d1b29bd8814239a1bb7642f6406e2580d1e294f869cc9196b0c27aea3bc2e18d5b803ad9c17c154400885163a23b3ea21de233d388334493286756e6be9991b6b15ace96c94bf42c62144ffb961b8fc1de13ca034c7c2b541f015557e981535906112a98ff48b9e8a66b37f542abda0a249c23a7f01b1f88d1a7b27e688e1c35df93a1467e8e1c35df93a6d8f8f9a8cb8346d
+      m_ValuePositions: 00000000240000002c000000300000003000000030000000400000004100000045000000490000004d0000005100000055000000590000005d0000005d0000005f0000006100000062000000660000006a000000
+      m_Values: 34633164393234652d313230342d343831612d393962312d6265373861303238353364649ef05fc348294b440000dc420000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000200ffff00000000000000000000000000
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Opsive.GraphDesigner.Runtime.LogicNodeProperties
+      m_ValueHashes: 
+      m_LongValueHashes: bc124df8ef5e104cf36ca30dee0de9958dd19827f48d1b29bd8814239a1bb7642f6406e2580d1e294f869cc9196b0c27aea3bc2e18d5b803ad9c17c154400885163a23b3ea21de233d388334493286756e6be9991b6b15ace96c94bf42c62144ffb961b8fc1de13ca034c7c2b541f015557e981535906112a98ff48b9e8a66b37f542abda0a249c23a7f01b1f88d1a7b27e688e1c35df93a1467e8e1c35df93a6d8f8f9a8cb8346d
+      m_ValuePositions: 00000000240000002c000000300000003000000030000000400000004100000045000000490000004d0000005100000055000000590000005d0000005d0000005f0000006100000062000000660000006a000000
+      m_Values: 65643365373038362d653037332d346164332d383265642d653761373936383730306133cc58fd43b55106440000dc420000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffff01000000000000000000000000
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Opsive.GraphDesigner.Runtime.LogicNodeProperties
+      m_ValueHashes: 
+      m_LongValueHashes: bc124df8ef5e104cf36ca30dee0de9958dd19827f48d1b29bd8814239a1bb7642f6406e2580d1e294f869cc9196b0c27aea3bc2e18d5b803ad9c17c154400885163a23b3ea21de233d388334493286756e6be9991b6b15ace96c94bf42c62144ffb961b8fc1de13ca034c7c2b541f015557e981535906112a98ff48b9e8a66b37f542abda0a249c23a7f01b1f88d1a7b27e688e1c35df93a1467e8e1c35df93a6d8f8f9a8cb8346d
+      m_ValuePositions: 00000000240000002c000000300000003000000030000000400000004100000045000000490000004d0000005100000055000000590000005d0000005d0000005f0000006100000062000000660000006a000000
+      m_Values: 37326165353733392d343961612d343037302d616161312d3837353136636561343233650000fc4300c01f440000dc420000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000700ffff01000000000000000000000000
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Opsive.GraphDesigner.Runtime.LogicNodeProperties
+      m_ValueHashes: 
+      m_LongValueHashes: bc124df8ef5e104cf36ca30dee0de9958dd19827f48d1b29bd8814239a1bb7642f6406e2580d1e294f869cc9196b0c27aea3bc2e18d5b803ad9c17c154400885163a23b3ea21de233d388334493286756e6be9991b6b15ace96c94bf42c62144ffb961b8fc1de13ca034c7c2b541f015557e981535906112a98ff48b9e8a66b37f542abda0a249c23a7f01b1f88d1a7b27e688e1c35df93a1467e8e1c35df93a6d8f8f9a8cb8346d
+      m_ValuePositions: 00000000240000002c00000030000000300000006f0000007f0000008000000084000000880000008c0000009000000094000000980000009c0000009c0000009e000000a0000000a1000000a5000000a9000000
+      m_Values: 37333261313835332d643863302d343961622d613065642d30353061343332316163363260be7f43fedb43440000dc42476976652061696420746f20746865206669727374206f626a6563742077697468696e2074686520446f776e656447616d654f626a65637473206c6973742e00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008000e0001000000000000000000000000
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Opsive.GraphDesigner.Runtime.LogicNodeProperties
+      m_ValueHashes: 
+      m_LongValueHashes: bc124df8ef5e104cf36ca30dee0de9958dd19827f48d1b29bd8814239a1bb7642f6406e2580d1e294f869cc9196b0c27aea3bc2e18d5b803ad9c17c154400885163a23b3ea21de233d388334493286756e6be9991b6b15ace96c94bf42c62144ffb961b8fc1de13ca034c7c2b541f015557e981535906112a98ff48b9e8a66b37f542abda0a249c23a7f01b1f88d1a7b27e688e1c35df93a1467e8e1c35df93a6d8f8f9a8cb8346d4c0612c39e7b79bed76fa2567d387f4b57b101a47b387f4b
+      m_ValuePositions: 00000000240000002c000000300000003000000030000000400000004100000045000000490000004d0000005100000055000000590000005d0000005d0000005f0000006100000062000000660000006a0000006e0000006e00000076000000
+      m_Values: 30393262393266332d656539392d346536342d396530612d6639313433653833313735370000b8c100806544aaaa0e4300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000009000b00000000000000000000010000008cf517a28a168e41bd0bc59506cc2fce
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Opsive.GraphDesigner.Runtime.LogicNodeProperties
+      m_ValueHashes: 
+      m_LongValueHashes: bc124df8ef5e104cf36ca30dee0de9958dd19827f48d1b29bd8814239a1bb7642f6406e2580d1e294f869cc9196b0c27aea3bc2e18d5b803ad9c17c154400885163a23b3ea21de233d388334493286756e6be9991b6b15ace96c94bf42c62144ffb961b8fc1de13ca034c7c2b541f015557e981535906112a98ff48b9e8a66b37f542abda0a249c23a7f01b1f88d1a7b27e688e1c35df93a1467e8e1c35df93a6d8f8f9a8cb8346d4c0612c39e7b79bed76fa2567d387f4b57b101a47b387f4bf90412c39e7b79be2e1aa0567d387f4baec403a47b387f4b
+      m_ValuePositions: 00000000240000002c000000300000003000000030000000400000004100000045000000490000004d0000005100000055000000590000005d0000005d0000005f0000006100000062000000660000006a0000006e0000006e000000760000007e0000007e00000086000000
+      m_Values: 65336631313538352d363337302d343836342d383638372d34366538613966303265666400001d430040624456552b4300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000009000c00000000000000000000020000007af07513fbddce489f13a51570d7ddcb1a584fd6b9391b46b48d160ead52191c
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Opsive.GraphDesigner.Runtime.LogicNodeProperties
+      m_ValueHashes: 
+      m_LongValueHashes: bc124df8ef5e104cf36ca30dee0de9958dd19827f48d1b29bd8814239a1bb7642f6406e2580d1e294f869cc9196b0c27aea3bc2e18d5b803ad9c17c154400885163a23b3ea21de233d388334493286756e6be9991b6b15ace96c94bf42c62144ffb961b8fc1de13ca034c7c2b541f015557e981535906112a98ff48b9e8a66b37f542abda0a249c23a7f01b1f88d1a7b27e688e1c35df93a1467e8e1c35df93a6d8f8f9a8cb8346d4c0612c39e7b79bed76fa2567d387f4b57b101a47b387f4bf90412c39e7b79be2e1aa0567d387f4baec403a47b387f4b6a1b12c39e7b79be692f45577d387f4be9f1e6a57b387f4be71912c39e7b79be308743577d387f4bb059e0a57b387f4b101812c39e7b79bedbfc5e577d387f4b5b22fda57b387f4b
+      m_ValuePositions: 00000000240000002c000000300000003000000030000000400000004100000045000000490000004d0000005100000055000000590000005d0000005d0000005f0000006100000062000000660000006a0000006e0000006e000000760000007e0000007e000000860000008e0000008e000000960000009e0000009e000000a6000000ae000000ae000000b6000000
+      m_Values: 39663534643762302d363165332d346265312d623662642d3561326461643538353030310000ab43004062445655354300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000009000d000000000000000000000500000033eafef69c80464588edbc900dc3595274f0426bff20f048af75e9b5e3c133e734440f937008c24fb22da60cd5506bb147ce61edbecd6141a9a647b1791eef2d46f3121cbf3f3641bad6d622e487d394
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Opsive.GraphDesigner.Runtime.LogicNodeProperties
+      m_ValueHashes: 
+      m_LongValueHashes: bc124df8ef5e104cf36ca30dee0de9958dd19827f48d1b29bd8814239a1bb7642f6406e2580d1e294f869cc9196b0c27aea3bc2e18d5b803ad9c17c154400885163a23b3ea21de233d388334493286756e6be9991b6b15ace96c94bf42c62144ffb961b8fc1de13ca034c7c2b541f015557e981535906112a98ff48b9e8a66b37f542abda0a249c23a7f01b1f88d1a7b27e688e1c35df93a1467e8e1c35df93a6d8f8f9a8cb8346d4c0612c39e7b79bed76fa2567d387f4b57b101a47b387f4b
+      m_ValuePositions: 00000000240000002c000000300000003000000030000000400000004100000045000000490000004d0000005100000055000000590000005d0000005d0000005f0000006100000062000000660000006a0000006e0000006e00000076000000
+      m_Values: 31356331313030362d363763652d343230382d626431392d6434366265626235346237390080fb4300c061440000dc420000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000900ffff00000000000000000001000000fbfec70e49672c4988a7213065d49b54
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Opsive.GraphDesigner.Runtime.LogicNodeProperties
+      m_ValueHashes: 
+      m_LongValueHashes: bc124df8ef5e104cf36ca30dee0de9958dd19827f48d1b29bd8814239a1bb7642f6406e2580d1e294f869cc9196b0c27aea3bc2e18d5b803ad9c17c154400885163a23b3ea21de233d388334493286756e6be9991b6b15ace96c94bf42c62144ffb961b8fc1de13ca034c7c2b541f015557e981535906112a98ff48b9e8a66b37f542abda0a249c23a7f01b1f88d1a7b27e688e1c35df93a1467e8e1c35df93a6d8f8f9a8cb8346d
+      m_ValuePositions: 00000000240000002c00000030000000300000005a0000006a0000006b0000006f00000073000000770000007b0000007f000000830000008700000087000000890000008b0000008c0000009000000094000000
+      m_Values: 39383532323263322d613563312d346638342d623565392d35343537353561333932313239df3b44085045440000dc424e6f7468696e6720746f20646f202d2077616974206174207468652077616974696e6720706f696e742e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000800ffff01000000000000000000000000
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Opsive.GraphDesigner.Runtime.LogicNodeProperties
+      m_ValueHashes: 
+      m_LongValueHashes: bc124df8ef5e104cf36ca30dee0de9958dd19827f48d1b29bd8814239a1bb7642f6406e2580d1e294f869cc9196b0c27aea3bc2e18d5b803ad9c17c154400885163a23b3ea21de233d388334493286756e6be9991b6b15ace96c94bf42c62144ffb961b8fc1de13ca034c7c2b541f015557e981535906112a98ff48b9e8a66b37f542abda0a249c23a7f01b1f88d1a7b27e688e1c35df93a1467e8e1c35df93a6d8f8f9a8cb8346d4c0612c39e7b79bed76fa2567d387f4b57b101a47b387f4b
+      m_ValuePositions: 00000000240000002c000000300000003000000030000000400000004100000045000000490000004d0000005100000055000000590000005d0000005d0000005f0000006100000062000000660000006a0000006e0000006e00000076000000
+      m_Values: 32303430353639352d336333632d346231662d613465312d62613964333439663132356200c02a4400c062440000dc420000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e001000000000000000000000010000001f2bc734d27ebf4dbf6369efe6f3749b
+      m_UnityObjects: []
+      m_Version: 3.4
+    - m_ObjectType: Opsive.GraphDesigner.Runtime.LogicNodeProperties
+      m_ValueHashes: 
+      m_LongValueHashes: bc124df8ef5e104cf36ca30dee0de9958dd19827f48d1b29bd8814239a1bb7642f6406e2580d1e294f869cc9196b0c27aea3bc2e18d5b803ad9c17c154400885163a23b3ea21de233d388334493286756e6be9991b6b15ace96c94bf42c62144ffb961b8fc1de13ca034c7c2b541f015557e981535906112a98ff48b9e8a66b37f542abda0a249c23a7f01b1f88d1a7b27e688e1c35df93a1467e8e1c35df93a6d8f8f9a8cb8346d
+      m_ValuePositions: 00000000240000002c000000300000003000000030000000400000004100000045000000490000004d0000005100000055000000590000005d0000005d0000005f0000006100000062000000660000006a000000
+      m_Values: 33373033626535322d316161392d343939632d396233312d66323534613533343030656255954b44287563440000dc420000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e00ffff00000000000000000000000000
+      m_UnityObjects: []
+      m_Version: 3.4
+    m_EventNodePropertiesData:
+    - m_ObjectType: Opsive.GraphDesigner.Runtime.NodeProperties
+      m_ValueHashes: 
+      m_LongValueHashes: bc124df8ef5e104cf36ca30dee0de9958dd19827f48d1b29bd8814239a1bb7642f6406e2580d1e294f869cc9196b0c27aea3bc2e18d5b803ad9c17c154400885163a23b3ea21de233d388334493286756e6be9991b6b15ace96c94bf42c62144ffb961b8fc1de13c
+      m_ValuePositions: 00000000240000002c000000300000003000000030000000400000004100000045000000490000004d0000005100000055000000
+      m_Values: 32356235346432392d306434362d346363652d623732312d323665373132613834646465000070425dc0b3430000dc420000000000000000000000000000000000000000000000000000000000000000000000000000000000
+      m_UnityObjects: []
+      m_Version: 3.4
+    m_GroupPropertiesData: []
+    m_SharedVariableGroupsData: []
+--- !u!1 &2074011551
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2074011553}
+  - component: {fileID: 2074011552}
+  m_Layer: 0
+  m_Name: SceneManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2074011552
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2074011551}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 448076947215b3b41b197c0774afc9ce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_AgentPrefab: {fileID: 8163383618899059333, guid: 0699f13658fdf6740b3b6e04706b728c, type: 3}
+  m_SpawnCount: 40
+  m_SpawnCenter: {fileID: 1500849494}
+  m_SpawnSize: {x: 10, y: 5}
+  m_Destinations:
+  - {fileID: 1064318515}
+  - {fileID: 2012157459}
+  - {fileID: 27261965}
+  - {fileID: 2033394109}
+  m_Turret: {fileID: 1329280559}
+--- !u!4 &2074011553
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2074011551}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.12838173, y: -1.0072861, z: 1.5874124}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1660057539 &9223372036854775807
+SceneRoots:
+  m_ObjectHideFlags: 0
+  m_Roots:
+  - {fileID: 1161679110}
+  - {fileID: 316591948}
+  - {fileID: 1125639404}
+  - {fileID: 1329280555}
+  - {fileID: 243258936}
+  - {fileID: 2074011553}
+  - {fileID: 184838579}
+  - {fileID: 34912483}

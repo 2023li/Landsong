@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1458000753, guid: 84bf46673498d8d4698d465c26c572a2, type: 3}
+  m_Name: BehaviorDesignerSettings
+  m_EditorClassIdentifier: Opsive.BehaviorDesigner.Editor.dll::Opsive.BehaviorDesigner.Editor.BehaviorDesignerSettings
+  m_ShowHierarchyIcon: 1
+  m_CheckForErrors: 1
+  m_AutoSavePrefab: 0
+  m_KeepGraphSelected: 1
+  m_MouseWheelScrollsGraph: 0
+  m_KeepSelectionOnGraphClick: 0
+  m_FilterWindowRecentEntryCount: 20
+  m_GridLineSpacing: 10
+  m_GridLineTransparency: 1
+  m_ShowNodeIcon: 1
+  m_ShowNodeDescription: 1
+  m_SnapToGrid: 1
+  m_FlattenInjectedNodes: 0
+  m_ShowNodeDebugInfo: 0
+  m_DefaultGizmosColor: {r: 0, g: 1, b: 0, a: 0.6}

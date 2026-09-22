@@ -1,0 +1,16 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Name: ProjectileCatalog
+  m_Script: {fileID: 11500000, guid: f1056e24041f425e8d4b65a86335d01e, type: 3}
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.ProjectileCatalogAsset
+  Definitions:
+  - {fileID: 11400000, guid: fccac6cffc4d12540ab36395cbf31c70, type: 2}

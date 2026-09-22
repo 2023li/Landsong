@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: cb51b84bf5a700b43a87507880638d70
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 12385, guid: 0000000000000000e000000000000000, type: 0}
+AssetOrigin:
+  serializedVersion: 1
+  productId: 368344
+  packageName: Behavior Designer Pro 3 - DOTS Powered Behavior Trees
+  packageVersion: 3.3.2
+  assetPath: Packages/com.opsive.graphdesigner/Editor/Styles/SlotStyles.uss
+  uploadId: 985370

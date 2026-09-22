@@ -1,0 +1,169 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf797179052a4f4da6a1fd75e73c6289, type: 3}
+  m_Name: "b\u6811\u67285"
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.BuildingDefinitionAsset
+  Metadata:
+    Id: "b\u6811\u67285"
+    Name: "\u6811\u6728 5"
+    Description: "\u8FD0\u8425\u540E\u4E3A\u6B63\u4EA4\u76F8\u90BB\u683C\u63D0\u4F9B\u7F8E\u5316\uFF0C\u53CC\u51FB\u53EF\u91C7\u96C6\uFF0C\u751F\u547D\u8017\u5C3D\u6216\u62C6\u9664\u65F6\u53D1\u653E\u8D44\u6E90\u3002"
+    Icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
+  LimitGroup: {fileID: 11400000, guid: ba0058e9e83b8c04b9c3a84542bdd972, type: 2}
+  MaximumLevel: 1
+  ConstructionTurns: 1
+  ResourceConnectionActionPower: 100
+  MaximumCount: 0
+  Footprint: {x: 1, y: 1}
+  MaximumDurability: 100
+  MovementCost: 0
+  PlacementAndVisuals:
+    Category: 256
+    SpawnExclusionPadding: 6
+    MenuOrder: 0
+    ProviderPriority: 0
+    CanMove: 1
+    CanRotate: 1
+    MoveMaterialRatio: 0.3
+    MoveExperienceRatio: 0.3
+    RuinMovementCost: 4
+    DefaultSkin:
+  Capabilities:
+    Construction:
+      Enabled: 1
+      PlacementCosts:
+      - Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+        Quantity: 10
+      - Item: {fileID: 11400000, guid: bcf108fee9cd3d64bb8483fd44f93440, type: 2}
+        Quantity: 1
+      StageCosts: []
+      StageOutputs: []
+    Upgrade:
+      Enabled: 0
+      Costs: []
+      Workers: []
+      Residents: []
+      MaintenanceRequirements: []
+      Experience: []
+    Maintenance:
+      Enabled: 0
+      RepairTurns: 0
+      Costs: []
+      Repairs: []
+    Production:
+      Enabled: 0
+      Inputs: []
+      Cycles: []
+      ProcessingTiers: []
+      Outputs: []
+      RareOutputs: []
+    Quests:
+      Enabled: 0
+      InvitationCosts: []
+      Capacity: []
+      Invitations: []
+    Placement:
+      AllowedTerrains: 1
+      ExcludedTerrains: 0
+    Connection:
+      Enabled: 0
+      Rise: 0
+      Bidirectional: 1
+      Clearance: 1.5
+      DamagedCost: 2
+    Storage:
+      Enabled: 0
+      Providers: []
+      Warehouses: []
+      Conditions: []
+    Workforce:
+      Enabled: 0
+      Levels: []
+      EfficiencyTiers: []
+      Attraction: []
+    Housing:
+      Enabled: 0
+      Population: []
+      Residences: []
+      Food: []
+      Taxes: []
+      Environment: []
+    Research:
+      Enabled: 0
+      Levels: []
+    Farming:
+      Enabled: 0
+      Crops: []
+    Gathering:
+      Enabled: 1
+      Levels:
+      - Level: 1
+        Item: {fileID: 0}
+        Uses: 1
+        AmountPerUse: 0
+      Rewards:
+      - Level: 1
+        Item: {fileID: 11400000, guid: a761334fe1641a74f9948313fb5ff413, type: 2}
+        Quantity: 10
+      - Level: 1
+        Item: {fileID: 11400000, guid: bcf108fee9cd3d64bb8483fd44f93440, type: 2}
+        Quantity: 3
+    Garrison:
+      Enabled: 0
+      RecruitmentLimitPerTurn: 0
+      Levels: []
+      InitialUnits: []
+    Sanctum:
+      Enabled: 0
+      Levels: []
+    Market:
+      Enabled: 0
+      Levels: []
+    Effects:
+      Enabled: 1
+      Spatial:
+      - Level: 1
+        Building: {fileID: 0}
+        Magnitude: 1
+        Type: 20
+        RequiredWorkers: 0
+        Radius: 1
+        Stacking: 20
+        Group: beauty.tree
+    Defence:
+      Enabled: 0
+      Intelligence: []
+      Bells: []
+    Expeditions:
+      Enabled: 0
+      Levels: []
+  Prefab: {fileID: 1357315986765487466, guid: 189ae9c7fc9807540b12dc890cb93162, type: 3}
+  DefenseStats:
+    MaximumHealth: 100
+    Damage: 10
+    AttackRange: 1.4
+    AttackIntervalSeconds: 1
+    MovementSpeed: 0
+    ProjectileSpeed: 10
+    Profile:
+      DetectionRadius: 24
+      ChaseRadius: 12
+      ChaseSeconds: 8
+      BodyRadius: 0.35
+      Armor: 0
+      Reduction: 0
+      Penetration: 0
+      BlastRadius: 0
+      WarningSeconds: 0
+      ProjectileLifetime: 10
+      ProjectileMode: 0
+      Traits: 0
+      BlocksProjectile: 0

@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Name: PolicyCatalog
+  m_Script: {fileID: 11500000, guid: ea563b9bf8084df09577d1aabbbf8fff, type: 3}
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.PolicyCatalogAsset
+  Definitions:
+  - {fileID: 11400000, guid: d130657d7fbc84e47aa08dd5a944a106, type: 2}
+  - {fileID: 11400000, guid: f96cbe6e95ada074b908b053f9c52e81, type: 2}

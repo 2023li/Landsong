@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: a59d2282a95ee6a418f19c1367c44ceb
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 368344
+  packageName: Behavior Designer Pro 3 - DOTS Powered Behavior Trees
+  packageVersion: 3.3.2
+  assetPath: Packages/com.opsive.behaviordesigner/Samples~/Prefabs/SphereProjectile.prefab
+  uploadId: 985370

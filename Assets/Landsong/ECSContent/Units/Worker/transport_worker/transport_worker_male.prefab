@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &6014836599797353312
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6473956270556812020}
+  - component: {fileID: 7057073105205788239}
+  m_Layer: 0
+  m_Name: transport_worker_male
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6473956270556812020
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6014836599797353312}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7057073105205788239
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6014836599797353312}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 71c7617ff3f9fa74cb52ec4b09b53acf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Landsong.Animation::Landsong.Animation.SoldierAnimationAuthoring
+  Profile: 3
+  VisualPrefab: {fileID: 7651748401574171757, guid: b5f11c87d28335943bf405ba4eca6841, type: 3}
+  DeathSeconds: 2
+  AttackSeconds: 1
+  HitSeconds: 0.6333334
+  DrawSeconds: 1
+  SheatheSeconds: 1
+  DrawDistancePadding: 1.5
+  AlertReleaseSeconds: 2
+  WeaponReleaseSeconds: 2

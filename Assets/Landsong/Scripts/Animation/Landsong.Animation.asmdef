@@ -1,0 +1,11 @@
+{
+  "name": "Landsong.Animation",
+  "rootNamespace": "Landsong.Animation",
+  "references": [
+    "Landsong.ECS", "Landsong.ECS.Presentation",
+    "Unity.Entities", "Unity.Entities.Hybrid", "Unity.Entities.Graphics",
+    "Unity.Transforms", "Unity.Mathematics", "Unity.Collections",
+    "Rukhanka.Runtime", "Rukhanka.Hybrid"
+  ],
+  "autoReferenced": true
+}

@@ -1,0 +1,54 @@
+Started: 2026-09-11T23:17:51.4973557+08:00
+PASS Load mode reads valid automatic and manual nodes without gameplay save permission
+PASS Load mode cannot create gameplay snapshots
+PASS Load mode cannot overwrite gameplay snapshots
+PASS Load mode routes the explicit run, slot and backup choice
+PASS Automatic nodes cannot be renamed
+PASS Automatic nodes cannot be deleted as slots
+PASS Load browser metadata management invalidates the prior slot confirmation
+PASS Stale slot metadata cannot authorize deletion
+PASS Deleting one explicit slot preserves the dynasty and its other slots
+PASS Live save mode has explicit save capability
+PASS Save service delegates create and overwrite using named slot and expected stamp
+PASS Save service delegates rename/delete/load to current gameplay authority
+PASS Save service does not bypass the supplied gameplay management callback
+PASS Automatic node cannot be reinterpreted as a create-slot overwrite
+PASS Save scope cannot browse another dynasty as its current run
+PASS Save scope cannot enumerate another dynasty's slots
+PASS Save scope cannot dispatch another dynasty's load
+PASS Save scope cannot overwrite another dynasty's slot
+PASS Save scope cannot rename another dynasty's slot
+PASS Save scope cannot delete another dynasty's slot
+PASS A foreign confirmation target returns false instead of escaping the confirmation predicate
+PASS Phase change immediately revokes save permission
+PASS Locked phase rejects create
+PASS Locked phase rejects overwrite
+PASS Locked phase rejects rename
+PASS Locked phase rejects delete
+PASS Locked phase rejects load
+PASS Rejected cross-run and phase changes never invoke authority callbacks
+PASS Save mode rejects missing capability configuration
+PASS Stale-content fixture retains file length and timestamp: state.lsrun
+PASS Content digest detects stale primary, backup or slot: state.lsrun
+PASS Stale file confirmation cannot dispatch load: state.lsrun
+PASS Explicit refresh obtains the new content stamp: state.lsrun
+PASS Stale-content fixture retains file length and timestamp: state.lsrun.bak
+PASS Content digest detects stale primary, backup or slot: state.lsrun.bak
+PASS Stale file confirmation cannot dispatch load: state.lsrun.bak
+PASS Explicit refresh obtains the new content stamp: state.lsrun.bak
+PASS Stale-content fixture retains file length and timestamp: fe325f694482461db5422da5b7dd1cd7.lsrun
+PASS Content digest detects stale primary, backup or slot: fe325f694482461db5422da5b7dd1cd7.lsrun
+PASS Stale file confirmation cannot dispatch load: fe325f694482461db5422da5b7dd1cd7.lsrun
+PASS Explicit refresh obtains the new content stamp: fe325f694482461db5422da5b7dd1cd7.lsrun
+PASS Every stale-file rejection happens before the application load callback
+PASS Ended gameplay session invalidates permissions and outstanding confirmations
+PASS Expired session cannot enumerate run metadata
+PASS Expired session cannot reopen a slot
+PASS Expired session cannot create a slot
+PASS Expired session cannot overwrite a slot
+PASS Expired session cannot rename a slot
+PASS Expired session cannot delete a slot
+PASS Expired session cannot dispatch load
+PASS Expired service retains no usable mutation callback
+Completed: 2026-09-11T23:17:51.5828870+08:00
+Assertions: 51

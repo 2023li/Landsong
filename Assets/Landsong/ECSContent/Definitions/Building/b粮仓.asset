@@ -1,0 +1,270 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf797179052a4f4da6a1fd75e73c6289, type: 3}
+  m_Name: "b\u7CAE\u4ED3"
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.BuildingDefinitionAsset
+  Metadata:
+    Id: "b\u7CAE\u4ED3"
+    Name: "\u7CAE\u4ED3"
+    Description: "\u7CAE\u4ED3\u63D0\u4F9B\u4F4E\u635F\u8017\u7684\u7CAE\u5E93\u69FD\u4F4D\uFF1B\u5347\u7EA7\u3001\u8DB3\u591F\u5DE5\u4EBA\u548C\u7EF4\u62A4\u53EF\u6269\u5927\u5BB9\u91CF\u5E76\u79EF\u7D2F\u7ECF\u9A8C\uFF0C\u6EE1\u5458\u540E\u8FD8\u80FD\u89E3\u9501\u5956\u52B1\u69FD\u4F4D\u3002"
+    Icon: {fileID: 0}
+  LimitGroup: {fileID: 11400000, guid: 115e452c249d11c469536d09d7f07d0e, type: 2}
+  MaximumLevel: 3
+  ConstructionTurns: 3
+  ResourceConnectionActionPower: 100
+  MaximumCount: 0
+  Footprint: {x: 2, y: 2}
+  MaximumDurability: 100
+  MovementCost: 0
+  PlacementAndVisuals:
+    Category: 2
+    SpawnExclusionPadding: 6
+    MenuOrder: 30
+    ProviderPriority: 0
+    CanMove: 1
+    CanRotate: 1
+    MoveMaterialRatio: 0.3
+    MoveExperienceRatio: 0.3
+    RuinMovementCost: 4
+    DefaultSkin:
+  Capabilities:
+    Construction:
+      Enabled: 1
+      PlacementCosts:
+      - Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+        Quantity: 30
+      StageCosts:
+      - Stage: 1
+        Item: {fileID: 11400000, guid: 000df9efbc381134e832f667a32c9572, type: 2}
+        Quantity: 10
+      - Stage: 2
+        Item: {fileID: 11400000, guid: a761334fe1641a74f9948313fb5ff413, type: 2}
+        Quantity: 10
+      - Stage: 3
+        Item: {fileID: 11400000, guid: a927377c37e532b49af819fa89b72369, type: 2}
+        Quantity: 10
+      StageOutputs: []
+    Upgrade:
+      Enabled: 1
+      Costs: []
+      Workers: []
+      Residents: []
+      MaintenanceRequirements: []
+      Experience:
+      - Level: 1
+        ExperiencePerTurn: 1
+        UpgradeExperience: 30
+        RequiredWorkers: 2
+      - Level: 2
+        ExperiencePerTurn: 1
+        UpgradeExperience: 50
+        RequiredWorkers: 2
+      - Level: 3
+        ExperiencePerTurn: 0
+        UpgradeExperience: 0
+        RequiredWorkers: 0
+    Maintenance:
+      Enabled: 1
+      RepairTurns: 0
+      Costs:
+      - Level: 1
+        Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+        Quantity: 1
+      - Level: 2
+        Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+        Quantity: 2
+      - Level: 3
+        Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+        Quantity: 3
+      Repairs: []
+    Production:
+      Enabled: 0
+      Inputs: []
+      Cycles: []
+      ProcessingTiers: []
+      Outputs: []
+      RareOutputs: []
+    Quests:
+      Enabled: 0
+      InvitationCosts: []
+      Capacity: []
+      Invitations: []
+    Placement:
+      AllowedTerrains: 1
+      ExcludedTerrains: 0
+    Connection:
+      Enabled: 0
+      Rise: 0
+      Bidirectional: 1
+      Clearance: 1.5
+      DamagedCost: 2
+    Storage:
+      Enabled: 1
+      Providers: []
+      Warehouses:
+      - Level: 1
+        SlotType: {fileID: 11400000, guid: f8bc714073dbac241a5a875a1921efae, type: 2}
+        Slots: 2
+        RequiredWorkers: 0
+      - Level: 2
+        SlotType: {fileID: 11400000, guid: f8bc714073dbac241a5a875a1921efae, type: 2}
+        Slots: 4
+        RequiredWorkers: 0
+      - Level: 3
+        SlotType: {fileID: 11400000, guid: f8bc714073dbac241a5a875a1921efae, type: 2}
+        Slots: 6
+        RequiredWorkers: 0
+      - Level: 3
+        SlotType: {fileID: 11400000, guid: f8bc714073dbac241a5a875a1921efae, type: 2}
+        Slots: 1
+        RequiredWorkers: 5
+      Conditions:
+      - Level: 1
+        RequiredWorkers: 2
+        MaintenanceLossPercent: 150
+        AttractionPenalty: 10
+        UnderstaffedLossMultiplier: 1.25
+      - Level: 2
+        RequiredWorkers: 3
+        MaintenanceLossPercent: 150
+        AttractionPenalty: 10
+        UnderstaffedLossMultiplier: 1.25
+      - Level: 3
+        RequiredWorkers: 4
+        MaintenanceLossPercent: 150
+        AttractionPenalty: 10
+        UnderstaffedLossMultiplier: 1.25
+    Workforce:
+      Enabled: 1
+      Levels:
+      - Level: 1
+        Currency: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+        Capacity: 2
+        InitialWorkers: 0
+        InitialSubsidy: 0
+        BaseAttraction: 55
+        RecruitmentCost: 10
+      - Level: 2
+        Currency: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+        Capacity: 3
+        InitialWorkers: 0
+        InitialSubsidy: 0
+        BaseAttraction: 55
+        RecruitmentCost: 10
+      - Level: 3
+        Currency: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+        Capacity: 5
+        InitialWorkers: 0
+        InitialSubsidy: 0
+        BaseAttraction: 55
+        RecruitmentCost: 10
+      EfficiencyTiers:
+      - Level: 1
+        MinimumWorkers: 0
+        MaximumWorkers: 0
+      - Level: 1
+        MinimumWorkers: 1
+        MaximumWorkers: 1
+      - Level: 1
+        MinimumWorkers: 2
+        MaximumWorkers: 2
+      - Level: 2
+        MinimumWorkers: 0
+        MaximumWorkers: 0
+      - Level: 2
+        MinimumWorkers: 1
+        MaximumWorkers: 1
+      - Level: 2
+        MinimumWorkers: 2
+        MaximumWorkers: 2
+      - Level: 2
+        MinimumWorkers: 3
+        MaximumWorkers: 3
+      - Level: 3
+        MinimumWorkers: 0
+        MaximumWorkers: 0
+      - Level: 3
+        MinimumWorkers: 1
+        MaximumWorkers: 1
+      - Level: 3
+        MinimumWorkers: 2
+        MaximumWorkers: 2
+      - Level: 3
+        MinimumWorkers: 3
+        MaximumWorkers: 3
+      - Level: 3
+        MinimumWorkers: 4
+        MaximumWorkers: 4
+      - Level: 3
+        MinimumWorkers: 5
+        MaximumWorkers: 5
+      Attraction: []
+    Housing:
+      Enabled: 0
+      Population: []
+      Residences: []
+      Food: []
+      Taxes: []
+      Environment: []
+    Research:
+      Enabled: 0
+      Levels: []
+    Farming:
+      Enabled: 0
+      Crops: []
+    Gathering:
+      Enabled: 0
+      Levels: []
+      Rewards: []
+    Garrison:
+      Enabled: 0
+      RecruitmentLimitPerTurn: 0
+      Levels: []
+      InitialUnits: []
+    Sanctum:
+      Enabled: 0
+      Levels: []
+    Market:
+      Enabled: 0
+      Levels: []
+    Effects:
+      Enabled: 0
+      Spatial: []
+    Defence:
+      Enabled: 0
+      Intelligence: []
+      Bells: []
+    Expeditions:
+      Enabled: 0
+      Levels: []
+  Prefab: {fileID: 4287943405103869813, guid: 4203de873cc118048bbb6d51f1496fc9, type: 3}
+  DefenseStats:
+    MaximumHealth: 100
+    Damage: 10
+    AttackRange: 1.4
+    AttackIntervalSeconds: 1
+    MovementSpeed: 0
+    ProjectileSpeed: 10
+    Profile:
+      DetectionRadius: 24
+      ChaseRadius: 12
+      ChaseSeconds: 8
+      BodyRadius: 0.35
+      Armor: 0
+      Reduction: 0
+      Penetration: 0
+      BlastRadius: 0
+      WarningSeconds: 0
+      ProjectileLifetime: 10
+      ProjectileMode: 0
+      Traits: 0
+      BlocksProjectile: 0

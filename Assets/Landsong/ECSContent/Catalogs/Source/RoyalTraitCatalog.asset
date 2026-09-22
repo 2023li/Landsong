@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Name: RoyalTraitCatalog
+  m_Script: {fileID: 11500000, guid: 869eea9cfddc4fa5bab8ad350c297b97, type: 3}
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.RoyalTraitCatalogAsset
+  Definitions:
+  - {fileID: 11400000, guid: c235625b77497b1408fca541bf3aa5d0, type: 2}
+  - {fileID: 11400000, guid: 36b07cc2684d61344a92416ee005a6e6, type: 2}
+  - {fileID: 11400000, guid: 5c02cf82aefb4b0458802dfe15f91823, type: 2}
+  - {fileID: 11400000, guid: d22c86ab55141f942b0788067fe2e66f, type: 2}
+  - {fileID: 11400000, guid: 84b98ff3143d5bf499580e3f83100137, type: 2}
+  - {fileID: 11400000, guid: 3238681f138c4cbd86680513f1ee65ad, type: 2}

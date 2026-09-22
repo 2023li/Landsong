@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f69a7583c0a8434783c5ce228bbbd70b, type: 3}
+  m_Name: RoyalDetailsRecipe
+  m_EditorClassIdentifier: Assembly-CSharp-Editor::Landsong.Editor.UI.UIPreviewRecipe
+  targetView: {fileID: 2623389945763936102, guid: 55a4e1fe1861e4044977b87e57686cca, type: 3}
+  profile: {fileID: 11400000, guid: c5bdd09638d2a354a8ca6abde0049d7d, type: 2}
+  texts:
+  - key: identity
+    target: {fileID: 6682428849577232503, guid: 55a4e1fe1861e4044977b87e57686cca, type: 3}
+    runtimeText: 
+  - key: description
+    target: {fileID: 3310262834968070626, guid: 55a4e1fe1861e4044977b87e57686cca, type: 3}
+    runtimeText: 
+  lists:
+  - key: people
+    container: {fileID: 631682990153272290, guid: 55a4e1fe1861e4044977b87e57686cca, type: 3}
+    template: {fileID: 58231084256884545, guid: 55a4e1fe1861e4044977b87e57686cca, type: 3}
+    textTargets:
+    - {fileID: 7265782517784761390, guid: 55a4e1fe1861e4044977b87e57686cca, type: 3}
+    - {fileID: 6678698862394785396, guid: 55a4e1fe1861e4044977b87e57686cca, type: 3}
+    - {fileID: 3258992243811456673, guid: 55a4e1fe1861e4044977b87e57686cca, type: 3}
+    columns: 000000000100000002000000
+    layout:
+      mode: 1
+      columnCount: 2
+      cellSize: {x: 200, y: 210}
+      spacing: {x: 20, y: 20}
+      padding: {x: 24, y: 24}
+    textFormats: []
+    textKeys: []

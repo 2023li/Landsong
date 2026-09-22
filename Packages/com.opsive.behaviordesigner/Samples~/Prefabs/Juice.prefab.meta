@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 196665934f3ab1b4a9f92b8159b0e11c
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 368344
+  packageName: Behavior Designer Pro 3 - DOTS Powered Behavior Trees
+  packageVersion: 3.3.2
+  assetPath: Packages/com.opsive.behaviordesigner/Samples~/Prefabs/Juice.prefab
+  uploadId: 985370

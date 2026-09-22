@@ -1,0 +1,486 @@
+#if UNITY_EDITOR
+using System;
+using System.IO;
+using System.Linq;
+using Landsong.Animation;
+using Landsong.ECS.Authoring;
+using Landsong.ECS.Authoring.Definitions;
+using Rukhanka.Hybrid;
+using UnityEditor;
+using UnityEditor.Animations;
+using UnityEngine;
+using Object = UnityEngine.Object;
+
+namespace Landsong.EditorTools
+{
+    public static partial class SoldierAnimationSetup
+    {
+        public const string PrefabPath = Output + "/RomanSoldier.prefab";
+        public const string ViewPrefabPath = Output + "/RomanSoldierView.prefab";
+        public const string ControllerPath = Output + "/RomanSoldier.controller";
+        public const string LeftHandMaskPath = Output + "/LeftHand.mask";
+        public const string RightHandMaskPath = Output + "/RightHand.mask";
+        public const string DefinitionPath = "Assets/Landsong/ECSContent/Definitions/Soldier/militia.asset";
+        static readonly string[] ClipNames =
+        {
+            "Idle",
+            "Walk",
+            "Run",
+            "MeleeAttack",
+            "Hit",
+            "Death",
+            "TorchWalk",
+            "DrawSword",
+            "SheatheSword"
+        };
+        [MenuItem("Landsong/动画/配置罗马士兵")]
+        public static string Configure()
+        {
+            if (EditorApplication.isPlayingOrWillChangePlaymode)
+                throw new InvalidOperationException("请先退出运行模式。");
+            Directory.CreateDirectory(Output + "/Clips");
+            Directory.CreateDirectory(Output + "/Materials");
+            AssetDatabase.Refresh();
+            var clips = new AnimationClip[ClipPaths.Length];
+            for (var i = 0; i < clips.Length; i++)
+            {
+                var source = AssetDatabase.LoadAllAssetsAtPath(ClipPaths[i]).OfType<AnimationClip>().First(c => !c.name.StartsWith("__preview__"));
+                if (!source.isHumanMotion)
+                    throw new InvalidOperationException("动作不是 Humanoid：" + ClipPaths[i]);
+                var path = Output + "/Clips/" + ClipNames[i] + ".anim";
+                clips[i] = AssetDatabase.LoadAssetAtPath<AnimationClip>(path);
+                if (clips[i] == null)
+                {
+                    clips[i] = Object.Instantiate(source);
+                    clips[i].name = ClipNames[i];
+                    AssetDatabase.CreateAsset(clips[i], path);
+                }
+
+                var settings = AnimationUtility.GetAnimationClipSettings(clips[i]);
+                var loop = i < 3 || i == 6;
+                var dirty = false;
+                if (settings.loopTime != loop || settings.loopBlend != loop)
+                {
+                    settings.loopTime = loop;
+                    settings.loopBlend = loop;
+                    AnimationUtility.SetAnimationClipSettings(clips[i], settings);
+                    dirty = true;
+                }
+                // These clips only drive presentation; no imported event may call gameplay scripts.
+                if (AnimationUtility.GetAnimationEvents(clips[i]).Length > 0)
+                {
+                    AnimationUtility.SetAnimationEvents(clips[i], Array.Empty<AnimationEvent>());
+                    dirty = true;
+                }
+                if (dirty)
+                {
+                    EditorUtility.SetDirty(clips[i]);
+                    AssetDatabase.SaveAssetIfDirty(clips[i]);
+                }
+            }
+
+            var controller = CreateController(clips);
+            var shaderPath = Output + "/SoldierAnimatedLit.shadergraph";
+            if (!File.Exists(shaderPath))
+                File.Copy("Packages/com.rukhanka.animation/Samples~/Samples/Shaders/AnimatedLitShader.shadergraph", shaderPath);
+            AssetDatabase.ImportAsset(shaderPath, ImportAssetOptions.ForceSynchronousImport);
+            var shader = AssetDatabase.LoadAssetAtPath<Shader>(shaderPath);
+            if (shader == null)
+                throw new InvalidOperationException("Rukhanka 动画着色器导入失败。");
+            var original = AssetDatabase.LoadAssetAtPath<GameObject>(SourceModel);
+            var sourceAnimator = original.GetComponentInChildren<Animator>(true);
+            if (sourceAnimator == null || sourceAnimator.avatar == null || !sourceAnimator.avatar.isValid || !sourceAnimator.avatar.isHuman)
+                throw new InvalidOperationException("士兵缺少有效 Humanoid Avatar。");
+            var importer = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(sourceAnimator.avatar)) as ModelImporter;
+            if (importer != null && importer.optimizeGameObjects)
+            {
+                importer.optimizeGameObjects = false;
+                importer.SaveAndReimport();
+            }
+
+            // Keep the existing baked DBP tree and content identity; replace the view only.
+            var root = PrefabUtility.LoadPrefabContents("Assets/Landsong/ECSContent/Prefabs/militia.prefab");
+            try
+            {
+                var oldVisual = root.transform.Find("Visual");
+                if (oldVisual != null)
+                    Object.DestroyImmediate(oldVisual.gameObject);
+                root.name = "RomanSoldier";
+                var model = Object.Instantiate(original, root.transform);
+                model.name = "RomanSoldierModel";
+                model.transform.localPosition = new Vector3(0, -.5f, 0);
+                model.transform.localRotation = Quaternion.identity;
+                model.transform.localScale = Vector3.one;
+                var animator = model.GetComponentInChildren<Animator>(true);
+                animator.runtimeAnimatorController = controller;
+                animator.applyRootMotion = false;
+                animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+                var rig = animator.gameObject.AddComponent<RigDefinitionAuthoring>();
+                rig.rigConfigSource = RigDefinitionAuthoring.RigConfigSource.FromAnimator;
+                rig.applyRootMotion = false;
+                rig.animationEngine = RigDefinitionAuthoring.AnimationEngine.CPU;
+                rig.boneEntityStrippingMode = RigDefinitionAuthoring.BoneEntityStrippingMode.None;
+                // Establish correct animation first; tune CPU/GPU engine and culling after profiling.
+                rig.animationCulling = false;
+                rig.hasAnimationEvents = false;
+                foreach (var renderer in model.GetComponentsInChildren<Renderer>(true))
+                {
+                    renderer.sharedMaterials = renderer.sharedMaterials.Select(source => CreateMaterial(source, shader)).ToArray();
+                    if (renderer is SkinnedMeshRenderer skin)
+                    {
+                        // Enclose both standing and fallen poses; verify with the real rig in Play Mode.
+                        skin.localBounds = new Bounds(new Vector3(0, .65f, 0), new Vector3(4, 4, 4));
+                    }
+                }
+
+                var equipment = AttachEquipment(animator);
+                var binding = root.AddComponent<SoldierAnimationAuthoring>();
+                binding.AttackSeconds = clips[3].length;
+                binding.HitSeconds = clips[4].length;
+                binding.DeathSeconds = Mathf.Max(1.5f, clips[5].length + .5f);
+                binding.DrawSeconds = clips[7].length;
+                binding.SheatheSeconds = clips[8].length;
+                binding.DrawDistancePadding = 1.5f;
+                binding.AlertReleaseSeconds = 2;
+                binding.WeaponReleaseSeconds = 2;
+                ExtractVisual(root, binding, equipment);
+                PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(root);
+            }
+
+            var definition = AssetDatabase.LoadAssetAtPath<SoldierDefinitionAsset>(DefinitionPath);
+            definition.Prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
+            EditorUtility.SetDirty(definition);
+            AssetDatabase.SaveAssetIfDirty(definition);
+            return Inspect() + "\nConfigured: " + PrefabPath + "\nController: " + ControllerPath + "\nmilitia uses the new baked prefab; combat stats unchanged.";
+        }
+
+        [MenuItem("Landsong/动画/拆分士兵逻辑与表现")]
+        public static string Split()
+        {
+            if (EditorApplication.isPlayingOrWillChangePlaymode)
+                throw new InvalidOperationException("请先退出运行模式。");
+            var root = PrefabUtility.LoadPrefabContents(PrefabPath);
+            try
+            {
+                var binding = root.GetComponent<SoldierAnimationAuthoring>();
+                if (binding == null)
+                    throw new InvalidOperationException("士兵缺少动画配置。");
+                if (binding.VisualPrefab == null)
+                {
+                    // Move the existing model intact, preserving hand/socket/material edits.
+                    var animator = root.GetComponentInChildren<Animator>(true);
+                    var handSocket = animator?.GetBoneTransform(HumanBodyBones.RightHand)?.Find("RightHandWeaponSocket");
+                    ExtractVisual(root, binding, (
+                        handSocket?.Find("SwordMount"),
+                        handSocket,
+                        root.transform.Find("RomanSoldierModel/TorchMount")));
+                    PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
+                }
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(root);
+            }
+
+            SoldierAnimationPreview.Create();
+            return "Logic: " + PrefabPath + "\nView: " + ViewPrefabPath + "\nExisting model, materials, controller and socket transforms preserved.";
+        }
+
+        static void ExtractVisual(GameObject root, SoldierAnimationAuthoring binding,
+            (Transform SwordMount, Transform HandSocket, Transform TorchMount) equipment)
+        {
+            var model = root.transform.Find("RomanSoldierModel");
+            if (model == null)
+                throw new InvalidOperationException("缺少 RomanSoldierModel，无法拆分。");
+            var view = new GameObject("RomanSoldierView");
+            try
+            {
+                model.SetParent(view.transform, false);
+                var visual = view.AddComponent<SoldierAnimationVisualAuthoring>();
+                visual.Animator = model.GetComponentInChildren<Animator>(true);
+                visual.SwordMount = equipment.SwordMount;
+                visual.SwordHandSocket = equipment.HandSocket;
+                visual.TorchMount = equipment.TorchMount;
+                visual.TorchLayer = 1;
+                binding.VisualPrefab = PrefabUtility.SaveAsPrefabAsset(view, ViewPrefabPath);
+            }
+            finally
+            {
+                Object.DestroyImmediate(view);
+            }
+        }
+
+        static (Transform SwordMount, Transform HandSocket, Transform TorchMount) AttachEquipment(Animator animator)
+        {
+            const string swordPath = "Assets/polyperfect/Low Poly Ultimate Pack/_M/Prefabs_M/Empire_M/Sword_Roman_Empire.prefab";
+            var hand = animator.GetBoneTransform(HumanBodyBones.RightHand);
+            var torchHand = animator.GetBoneTransform(HumanBodyBones.LeftHand);
+            if (hand == null || torchHand == null)
+                throw new InvalidOperationException("士兵缺少右手或左手骨骼。");
+            var handSocket = new GameObject("RightHandWeaponSocket").transform;
+            handSocket.SetParent(hand, false);
+            handSocket.localPosition = new Vector3(0, .075f, 0);
+            var swordMount = new GameObject("SwordMount").transform;
+            swordMount.SetParent(handSocket, false);
+            swordMount.localScale = Vector3.zero;
+            var sword = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(swordPath), swordMount);
+            sword.name = "RomanSword";
+            foreach (var collider in sword.GetComponentsInChildren<Collider>(true))
+                Object.DestroyImmediate(collider);
+            var bounds = sword.GetComponent<MeshFilter>().sharedMesh.bounds;
+            var axis = bounds.size.x > bounds.size.y ? 0 : 1;
+            if (bounds.size.z > bounds.size[axis])
+                axis = 2;
+            var blade = Vector3.zero;
+            blade[axis] = 1;
+            var grip = bounds.center;
+            grip[axis] = bounds.min[axis] + bounds.size[axis] * .12f;
+            sword.transform.localRotation = Quaternion.FromToRotation(blade, Vector3.forward);
+            sword.transform.localPosition = -(sword.transform.localRotation * grip);
+            foreach (var renderer in sword.GetComponentsInChildren<Renderer>(true))
+                renderer.sharedMaterials = renderer.sharedMaterials.Select(source =>
+                {
+                    var path = Output + "/Materials/" + source.name + "_Weapon.mat";
+                    var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+                    if (material == null)
+                    {
+                        material = new Material(source);
+                        AssetDatabase.CreateAsset(material, path);
+                    }
+
+                    material.enableInstancing = true;
+                    EditorUtility.SetDirty(material);
+                    AssetDatabase.SaveAssetIfDirty(material);
+                    return material;
+                }).ToArray();
+            Debug.Log($"Roman sword bounds={bounds}; bladeAxis={axis}; hand={hand.name}; grip={grip}");
+            var torchMount = new GameObject("TorchMount").transform;
+            torchMount.SetParent(torchHand, false);
+            torchMount.localPosition = new Vector3(0, .05f, 0);
+            // This rig's hand Y axis points across the palm. Rotate the prop so its
+            // local Y (the graybox shaft axis) follows the hand's upward -Z axis.
+            torchMount.localRotation = Quaternion.Euler(-90, 0, 0);
+            var shaft = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            shaft.name = "TorchGrayboxShaft";
+            shaft.transform.SetParent(torchMount, false);
+            shaft.transform.localPosition = new Vector3(0, .22f, 0);
+            shaft.transform.localScale = new Vector3(.025f, .22f, .025f);
+            Object.DestroyImmediate(shaft.GetComponent<Collider>());
+            shaft.GetComponent<Renderer>().sharedMaterial = CreateEquipmentMaterial("TorchGrayboxShaft", new Color(.18f, .08f, .025f), Color.black);
+            var head = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            head.name = "TorchGrayboxHead";
+            head.transform.SetParent(torchMount, false);
+            head.transform.localPosition = new Vector3(0, .48f, 0);
+            head.transform.localScale = new Vector3(.075f, .1f, .075f);
+            Object.DestroyImmediate(head.GetComponent<Collider>());
+            head.GetComponent<Renderer>().sharedMaterial = CreateEquipmentMaterial("TorchGrayboxHead", new Color(1, .25f, .025f), new Color(2.5f, .45f, .04f));
+            return (swordMount, handSocket, torchMount);
+        }
+
+        static Material CreateEquipmentMaterial(string name, Color color, Color emission)
+        {
+            var path = Output + "/Materials/" + name + ".mat";
+            var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (material == null)
+            {
+                material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                AssetDatabase.CreateAsset(material, path);
+            }
+            material.SetColor("_BaseColor", color);
+            material.SetColor("_EmissionColor", emission);
+            if (emission.maxColorComponent > 0) material.EnableKeyword("_EMISSION");
+            else material.DisableKeyword("_EMISSION");
+            material.enableInstancing = true;
+            EditorUtility.SetDirty(material);
+            AssetDatabase.SaveAssetIfDirty(material);
+            return material;
+        }
+
+        static Material CreateMaterial(Material source, Shader shader)
+        {
+            var path = Output + "/Materials/" + source.name + "_Animated.mat";
+            var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (material == null)
+            {
+                material = new Material(shader);
+                AssetDatabase.CreateAsset(material, path);
+            }
+
+            material.shader = shader;
+            material.SetColor("_BaseColor", source.HasProperty("_BaseColor") ? source.GetColor("_BaseColor") : source.color);
+            material.SetTexture("_BaseColorMap", source.mainTexture != null ? source.mainTexture : Texture2D.whiteTexture);
+            material.SetFloat("_Metallic", source.HasProperty("_Metallic") ? source.GetFloat("_Metallic") : 0);
+            material.SetFloat("_Smoothness", source.HasProperty("_Smoothness") ? source.GetFloat("_Smoothness") : 0);
+            material.enableInstancing = true;
+            EditorUtility.SetDirty(material);
+            AssetDatabase.SaveAssetIfDirty(material);
+            return material;
+        }
+
+        static AnimatorController CreateController(AnimationClip[] clips)
+        {
+            var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(ControllerPath);
+            if (controller == null)
+                controller = AnimatorController.CreateAnimatorControllerAtPath(ControllerPath);
+            foreach (var parameter in controller.parameters.ToArray())
+                controller.RemoveParameter(parameter);
+            controller.AddParameter("Speed", AnimatorControllerParameterType.Float);
+            controller.AddParameter(new AnimatorControllerParameter { name = "LocomotionRate", type = AnimatorControllerParameterType.Float, defaultFloat = 1 });
+            controller.AddParameter("Alerted", AnimatorControllerParameterType.Bool);
+            controller.AddParameter("Equipment", AnimatorControllerParameterType.Int);
+            controller.AddParameter("Dead", AnimatorControllerParameterType.Bool);
+            controller.AddParameter("DrawWeapon", AnimatorControllerParameterType.Trigger);
+            controller.AddParameter("SheatheWeapon", AnimatorControllerParameterType.Trigger);
+            controller.AddParameter("Attack", AnimatorControllerParameterType.Trigger);
+            controller.AddParameter("Hit", AnimatorControllerParameterType.Trigger);
+            controller.AddParameter(new AnimatorControllerParameter { name = "AttackSpeed", type = AnimatorControllerParameterType.Float, defaultFloat = 1 });
+
+            var oldLayers = controller.layers;
+            var baseMachine = oldLayers.Length > 0 ? oldLayers[0].stateMachine : null;
+            if (baseMachine == null)
+            {
+                baseMachine = new AnimatorStateMachine { name = "Base" };
+                AssetDatabase.AddObjectToAsset(baseMachine, controller);
+            }
+            Clear(baseMachine);
+            baseMachine.name = "Base";
+            var leftMachine = ExistingMachine(oldLayers, "Left Hand") ?? NewMachine(controller, "Left Hand");
+            var rightMachine = ExistingMachine(oldLayers, "Right Hand") ?? NewMachine(controller, "Right Hand");
+            Clear(leftMachine);
+            Clear(rightMachine);
+            var leftMask = CreateHandMask(LeftHandMaskPath, true);
+            var rightMask = CreateHandMask(RightHandMaskPath, false);
+            controller.layers = new[] {
+                new AnimatorControllerLayer { name = "Base", defaultWeight = 1, stateMachine = baseMachine },
+                new AnimatorControllerLayer { name = "Left Hand", defaultWeight = 1, avatarMask = leftMask, blendingMode = AnimatorLayerBlendingMode.Override, stateMachine = leftMachine },
+                new AnimatorControllerLayer { name = "Right Hand", defaultWeight = 0, avatarMask = rightMask, blendingMode = AnimatorLayerBlendingMode.Override, stateMachine = rightMachine }
+            };
+
+            var idle = baseMachine.AddState("Idle", new Vector3(240, 50));
+            idle.motion = clips[0];
+            var walk = baseMachine.AddState("Patrol Walk", new Vector3(470, 15));
+            walk.motion = clips[1];
+            walk.speedParameter = "LocomotionRate";
+            walk.speedParameterActive = true;
+            var run = baseMachine.AddState("Alert Run", new Vector3(470, 95));
+            run.motion = clips[2];
+            run.speedParameter = "LocomotionRate";
+            run.speedParameterActive = true;
+            baseMachine.defaultState = idle;
+            Conditional(idle, walk, (AnimatorConditionMode.Greater, .15f, "Speed"), (AnimatorConditionMode.IfNot, 0, "Alerted"));
+            Conditional(idle, run, (AnimatorConditionMode.Greater, .15f, "Speed"), (AnimatorConditionMode.If, 0, "Alerted"));
+            Conditional(walk, idle, (AnimatorConditionMode.Less, .15f, "Speed"));
+            Conditional(walk, run, (AnimatorConditionMode.If, 0, "Alerted"));
+            Conditional(run, idle, (AnimatorConditionMode.Less, .15f, "Speed"));
+            Conditional(run, walk, (AnimatorConditionMode.IfNot, 0, "Alerted"));
+
+            var draw = baseMachine.AddState("Draw Sword", new Vector3(700, 20));
+            draw.motion = clips[7];
+            var sheathe = baseMachine.AddState("Sheathe Sword", new Vector3(700, 90));
+            sheathe.motion = clips[8];
+            Trigger(baseMachine, draw, "DrawWeapon");
+            Trigger(baseMachine, sheathe, "SheatheWeapon");
+            Exit(draw, idle);
+            Exit(sheathe, idle);
+            var attack = baseMachine.AddState("MeleeAttack", new Vector3(700, 160));
+            attack.motion = clips[3];
+            attack.speedParameter = "AttackSpeed";
+            attack.speedParameterActive = true;
+            var hit = baseMachine.AddState("Hit", new Vector3(700, 230));
+            hit.motion = clips[4];
+            var death = baseMachine.AddState("Death", new Vector3(470, 300));
+            death.motion = clips[5];
+            var die = baseMachine.AddAnyStateTransition(death);
+            die.AddCondition(AnimatorConditionMode.If, 0, "Dead");
+            die.duration = .04f;
+            die.canTransitionToSelf = false;
+            die.hasExitTime = false;
+            Trigger(baseMachine, attack, "Attack");
+            Trigger(baseMachine, hit, "Hit");
+            Exit(attack, idle);
+            Exit(hit, idle);
+
+            var torchPose = leftMachine.AddState("Torch Pose", new Vector3(300, 80));
+            torchPose.motion = clips[6];
+            leftMachine.defaultState = torchPose;
+            var reservedRight = rightMachine.AddState("Reserved Right Hand", new Vector3(300, 80));
+            reservedRight.motion = clips[0];
+            rightMachine.defaultState = reservedRight;
+
+            EditorUtility.SetDirty(controller);
+            AssetDatabase.SaveAssetIfDirty(controller);
+            ConfigureCelebrationLayer(controller);
+            return controller;
+        }
+
+        static AnimatorStateMachine ExistingMachine(AnimatorControllerLayer[] layers, string name)
+            => layers.FirstOrDefault(layer => layer.name == name)?.stateMachine;
+
+        static AnimatorStateMachine NewMachine(AnimatorController controller, string name)
+        {
+            var machine = new AnimatorStateMachine { name = name };
+            AssetDatabase.AddObjectToAsset(machine, controller);
+            return machine;
+        }
+
+        static void Clear(AnimatorStateMachine machine)
+        {
+            foreach (var transition in machine.anyStateTransitions.ToArray()) machine.RemoveAnyStateTransition(transition);
+            foreach (var transition in machine.entryTransitions.ToArray()) machine.RemoveEntryTransition(transition);
+            foreach (var state in machine.states.ToArray()) machine.RemoveState(state.state);
+            foreach (var child in machine.stateMachines.ToArray()) machine.RemoveStateMachine(child.stateMachine);
+        }
+
+        static AnimatorStateTransition Conditional(AnimatorState from, AnimatorState to,
+            params (AnimatorConditionMode Mode, float Threshold, string Parameter)[] conditions)
+        {
+            var transition = from.AddTransition(to);
+            transition.hasExitTime = false;
+            transition.duration = .08f;
+            foreach (var condition in conditions)
+                transition.AddCondition(condition.Mode, condition.Threshold, condition.Parameter);
+            return transition;
+        }
+
+        static void Trigger(AnimatorStateMachine machine, AnimatorState target, string parameter)
+        {
+            var transition = machine.AddAnyStateTransition(target);
+            transition.AddCondition(AnimatorConditionMode.IfNot, 0, "Dead");
+            transition.AddCondition(AnimatorConditionMode.If, 0, parameter);
+            transition.hasExitTime = false;
+            transition.duration = .04f;
+            transition.canTransitionToSelf = false;
+        }
+
+        static void Exit(AnimatorState state, AnimatorState idle)
+        {
+            var transition = state.AddTransition(idle);
+            transition.hasExitTime = true;
+            transition.exitTime = 1;
+            transition.duration = .05f;
+            transition.AddCondition(AnimatorConditionMode.IfNot, 0, "Dead");
+        }
+
+        static AvatarMask CreateHandMask(string path, bool left)
+        {
+            var mask = AssetDatabase.LoadAssetAtPath<AvatarMask>(path);
+            if (mask == null)
+            {
+                mask = new AvatarMask { name = left ? "Left Hand" : "Right Hand" };
+                AssetDatabase.CreateAsset(mask, path);
+            }
+            for (var i = 0; i < (int)AvatarMaskBodyPart.LastBodyPart; i++)
+                mask.SetHumanoidBodyPartActive((AvatarMaskBodyPart)i, false);
+            mask.SetHumanoidBodyPartActive(left ? AvatarMaskBodyPart.LeftArm : AvatarMaskBodyPart.RightArm, true);
+            mask.SetHumanoidBodyPartActive(left ? AvatarMaskBodyPart.LeftFingers : AvatarMaskBodyPart.RightFingers, true);
+            EditorUtility.SetDirty(mask);
+            AssetDatabase.SaveAssetIfDirty(mask);
+            return mask;
+        }
+    }
+}
+#endif

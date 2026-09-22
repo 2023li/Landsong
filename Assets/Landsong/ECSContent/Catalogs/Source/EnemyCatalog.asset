@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 91090b9aff6c4dafa574e55264f6601b, type: 3}
+  m_Name: EnemyCatalog
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.EnemyCatalogAsset
+  Definitions:
+  - {fileID: 11400000, guid: e3fb84521f4c1da43af7c0d4a46f1f27, type: 2}
+  - {fileID: 11400000, guid: 513a727933addac4ebc4a38fcbea11bb, type: 2}
+  - {fileID: 11400000, guid: 4418dcca54a356049be1a915d4275c1b, type: 2}
+  - {fileID: 11400000, guid: 93edf1cdb8af93643a896b73ed774ba3, type: 2}

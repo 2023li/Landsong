@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5a5cc35154a4979b46c2019bdcf0cc7, type: 3}
+  m_Name: expedition.abandoned_fort
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.ExpeditionDefinitionAsset
+  Metadata:
+    Id: expedition.abandoned_fort
+    Name: "\u5E9F\u5F03\u8981\u585E"
+    Description: "\u6DF1\u5165\u66F4\u5371\u9669\u7684\u65E7\u8981\u585E\uFF0C\u641C\u5BFB\u5927\u6279\u5EFA\u6750\u548C\u6B8B\u7559\u519B\u9700\u3002"
+    Icon: {fileID: 0}
+  MinimumSiteLevel: 2
+  MinimumCrew: 10
+  MaximumCrew: 15
+  TravelTurns: 5
+  BaseSuccessChance: 0.25
+  SuccessChancePerCrew: 0.035
+  MaximumSuccessChance: 0.9
+  FailureCasualtyRatio: 0.35
+  BaseCompensation: 10
+  CompensationPerCrew: 2
+  Repeatable: 1
+  Prerequisites:
+    BuildingRequirements: []
+    TechnologyRequirements: []
+    BuffRequirements: []
+    FeatureRequirements: []
+    QuestRequirements: []
+    ExpeditionRequirements: []
+  Visibility:
+    BuildingRequirements: []
+    TechnologyRequirements: []
+    BuffRequirements: []
+    FeatureRequirements: []
+    QuestRequirements: []
+    ExpeditionRequirements: []
+  Supplies: []
+  Rewards:
+    Items:
+    - Order: 0
+      Item: {fileID: 11400000, guid: a761334fe1641a74f9948313fb5ff413, type: 2}
+      Quantity: 25
+    - Order: 1
+      Item: {fileID: 11400000, guid: a927377c37e532b49af819fa89b72369, type: 2}
+      Quantity: 20
+    - Order: 2
+      Item: {fileID: 11400000, guid: 000df9efbc381134e832f667a32c9572, type: 2}
+      Quantity: 15
+    Blueprints: []
+    Buffs: []
+    Features: []
+  FailurePenalties: []

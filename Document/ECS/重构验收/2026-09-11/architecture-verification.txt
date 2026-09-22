@@ -1,0 +1,169 @@
+PASS Single script root: ECS lives under Scripts
+PASS Assembly definition present: Landsong.ECS.Editor
+PASS Scripts compile in their declared partition: Landsong.ECS.Editor
+PASS Assembly identity matches its partition: Landsong.ECS.Editor
+PASS No reverse application/UI dependency: Landsong.ECS.Editor
+PASS Assembly definition present: Landsong.ECS.Authoring
+PASS Scripts compile in their declared partition: Landsong.ECS.Authoring
+PASS Assembly identity matches its partition: Landsong.ECS.Authoring
+PASS No reverse application/UI dependency: Landsong.ECS.Authoring
+PASS Assembly definition present: Landsong.ECS.AI
+PASS Scripts compile in their declared partition: Landsong.ECS.AI
+PASS Assembly identity matches its partition: Landsong.ECS.AI
+PASS No reverse application/UI dependency: Landsong.ECS.AI
+PASS Assembly definition present: Landsong.ECS
+PASS Scripts compile in their declared partition: Landsong.ECS
+PASS Assembly identity matches its partition: Landsong.ECS
+PASS No reverse application/UI dependency: Landsong.ECS
+PASS Core has no behavior-tree assembly dependency
+PASS Assembly definition present: Landsong.ECS.Presentation
+PASS Scripts compile in their declared partition: Landsong.ECS.Presentation
+PASS Assembly identity matches its partition: Landsong.ECS.Presentation
+PASS No reverse application/UI dependency: Landsong.ECS.Presentation
+PASS Assembly definition present: Landsong.UI
+PASS Scripts compile in their declared partition: Landsong.UI
+PASS Assembly identity matches its partition: Landsong.UI
+PASS No reverse application/UI dependency: Landsong.UI
+PASS Assembly definition present: Landsong.Application
+PASS Scripts compile in their declared partition: Landsong.Application
+PASS Assembly identity matches its partition: Landsong.Application
+PASS No reverse application/UI dependency: Landsong.Application
+PASS Assembly definition present: Landsong.Verification
+PASS Scripts compile in their declared partition: Landsong.Verification
+PASS Assembly identity matches its partition: Landsong.Verification
+PASS No reverse application/UI dependency: Landsong.Verification
+PASS Compiled Core independently owns simulation and persistence
+PASS Building visual data contracts belong to Core
+PASS Baked building purpose values preserved
+PASS Behavior-tree task resolves from the AI adapter assembly
+PASS Authoring and baking live outside Core
+PASS Behavior-tree task has no stale assembly-qualified identity: Assets/Landsong/ECSContent/Prefabs\boss.prefab
+PASS Behavior-tree task has no stale assembly-qualified identity: Assets/Landsong/ECSContent/Prefabs\militia.prefab
+PASS Behavior-tree task has no stale assembly-qualified identity: Assets/Landsong/ECSContent/Prefabs\raider.prefab
+PASS Behavior-tree task has no stale assembly-qualified identity: Assets/Landsong/ECSContent/Prefabs\titan.prefab
+PASS Runtime, authoring, AI and editor assembly graph is acyclic
+PASS UI and shared presentation no longer live inside the simulation tree
+PASS Project authoring and verification keep their default editor assembly boundary
+PASS Sorted frame order: game loop, perception, behavior, adapter boundary, combat group
+PASS Combat subgroup preserves attack-before-movement and attack-projectile-damage partial order
+PASS Formal scene scripts intact: Assets/Landsong/Scenes/Boot.unity
+PASS Formal scene scripts intact: Assets/Landsong/Scenes/EntityMaps/Map_Test01_Entities.unity
+PASS Formal scene scripts intact: Assets/Landsong/Scenes/EntityMaps/Map_Test2_Entities.unity
+PASS Formal scene scripts intact: Assets/Landsong/Scenes/Game.unity
+PASS Formal scene scripts intact: Assets/Landsong/Scenes/LoadingTransition.unity
+PASS Formal scene scripts intact: Assets/Landsong/Scenes/Start.unity
+PASS Prefab scripts intact: Assets/Landsong/Art/Greybox/Building_2x3_TechnicalGreybox.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Prefabs/boss.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Prefabs/b仓库.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Prefabs/b伐木小屋.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Prefabs/b农田.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Prefabs/b医院.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Prefabs/b小土堆.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Prefabs/b小石堆.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Prefabs/b居民房.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Prefabs/b市场.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Prefabs/b捕鱼小屋.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Prefabs/b木材加工厂.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Prefabs/b树木1.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Prefabs/b树木2.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Prefabs/b树木3.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Prefabs/b树木4.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Prefabs/b树木5.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Prefabs/b树木6.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Prefabs/b树木7.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Prefabs/b树木8.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Prefabs/b泥路.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Prefabs/b泰坦神殿.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Prefabs/b王宫.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Prefabs/b瞭望塔.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Prefabs/b粮仓.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Prefabs/b警局.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Prefabs/b警钟.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Prefabs/b采石场.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Prefabs/b陆上远征所.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Prefabs/b雕塑.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Prefabs/b驻军营地.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Prefabs/militia.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Prefabs/night.visitor.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Prefabs/presentation.loot.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Prefabs/presentation.projectile.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Prefabs/raider.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Prefabs/titan.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Presentation/boss_View.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Presentation/CueBurst.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Presentation/invader_View.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Presentation/militia_View.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Presentation/raider_View.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Presentation/titan_View.prefab
+PASS Prefab scripts intact: Assets/Landsong/ECSContent/Presentation/WorldPresentationRoot.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/CropVisuals/CabbagePlantVisual.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/CropVisuals/WheatPlantVisual.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/Night/BuildingViews/MilitaryGarrison_CubeView.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/Night/BuildingViews/TitanTemple_CubeView.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/Night/BuildingViews/WarningBell_CubeView.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/Night/BuildingViews/Watchtower_CubeView.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/BootPanel/UI_BootPanel.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/Bootstrap/UI_Root.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/ConfirmPanel/UI_ConfirmPanel.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/GamePanel/Items/UI_GamePanel_GarrisonRow.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/GamePanel/Items/UI_GamePanel_InventoryGridRow.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/GamePanel/Items/UI_GamePanel_PortraitRow.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/GamePanel/Items/UI_GamePanel_QuantityRow_Inventory.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/GamePanel/Items/UI_GamePanel_QuantityRow_Quest.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/GamePanel/Items/UI_GamePanel_Row.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/GamePanel/Items/UI_GamePanel_SoldierRow.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/GamePanel/Items/UI_GamePanel_WorkerInfoRow.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/GamePanel/Items/UI_GamePanel_WorkforceRow.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/GamePanel/UI_GamePanel.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/GamePanel/Views/UI_GamePanel_BattleReport.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/GamePanel/Views/UI_GamePanel_Building.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/GamePanel/Views/UI_GamePanel_BuildingCatalogBar.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/GamePanel/Views/UI_GamePanel_BuildingConfirm.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/GamePanel/Views/UI_GamePanel_Court.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/GamePanel/Views/UI_GamePanel_Economy.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/GamePanel/Views/UI_GamePanel_Expedition.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/GamePanel/Views/UI_GamePanel_Garrison.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/GamePanel/Views/UI_GamePanel_Hud.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/GamePanel/Views/UI_GamePanel_Intelligence.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/GamePanel/Views/UI_GamePanel_Inventory.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/GamePanel/Views/UI_GamePanel_List_Building.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/GamePanel/Views/UI_GamePanel_List_DynastyEnd.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/GamePanel/Views/UI_GamePanel_List_History.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/GamePanel/Views/UI_GamePanel_List_NightConfirmation.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/GamePanel/Views/UI_GamePanel_List_Policy.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/GamePanel/Views/UI_GamePanel_List_Royal.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/GamePanel/Views/UI_GamePanel_List_Talent.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/GamePanel/Views/UI_GamePanel_Marriage.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/GamePanel/Views/UI_GamePanel_PausePop.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/GamePanel/Views/UI_GamePanel_PersonRequests.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/GamePanel/Views/UI_GamePanel_Policy.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/GamePanel/Views/UI_GamePanel_Portrait.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/GamePanel/Views/UI_GamePanel_Quest.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/GamePanel/Views/UI_GamePanel_Soldier.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/GamePanel/Views/UI_GamePanel_Talent.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/GamePanel/Views/UI_GamePanel_Technology.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/LoadingPanel/UI_LoadingPanel.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/SavePanel/UI_SavePanel.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/SavePanel/UI_SavePanel_ArchiveRow.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/SettingPanel/UI_SettingPanel.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/StartPanel/UI_StartPanel.prefab
+PASS Prefab scripts intact: Assets/Landsong/Objects/Prefabs/UI/StartPanel/UI_StartPanel_GameStartPop.prefab
+PASS TWC source scripts intact: Map_Test01
+PASS TWC source binds native map: Map_Test01
+PASS TWC coordinate contract unchanged: Map_Test01
+PASS All TWC terrain cells preserved: Map_Test01
+PASS Native initial previews valid: Map_Test01 
+PASS Initial definitions/positions/rotations/levels preserved: Map_Test01
+PASS Invalid terrain rejected without changing native map: Map_Test01
+PASS TWC source scripts intact: Map_Test2
+PASS TWC source binds native map: Map_Test2
+PASS TWC coordinate contract unchanged: Map_Test2
+PASS All TWC terrain cells preserved: Map_Test2
+PASS Native initial previews valid: Map_Test2 
+PASS Initial definitions/positions/rotations/levels preserved: Map_Test2
+PASS Invalid terrain rejected without changing native map: Map_Test2
+PASS Art naming bindings use native definitions
+PASS Art naming validation: 
+PASS Art scene scripts intact: Assets/_a资源整理/建筑制作预览.unity
+PASS Art scene scripts intact: Assets/_a资源整理/建筑拍照.unity
+Assertions: 168

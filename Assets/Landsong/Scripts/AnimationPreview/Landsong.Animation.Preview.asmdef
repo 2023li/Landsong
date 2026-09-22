@@ -1,0 +1,6 @@
+{
+  "name": "Landsong.Animation.Preview",
+  "references": ["Landsong.Animation", "Unity.Entities", "Unity.Entities.Hybrid", "Unity.Transforms", "Unity.Mathematics", "Unity.Collections", "Rukhanka.Runtime"],
+  "autoReferenced": true,
+  "defineConstraints": ["UNITY_EDITOR || DEVELOPMENT_BUILD"]
+}

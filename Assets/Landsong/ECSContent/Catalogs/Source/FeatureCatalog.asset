@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Name: FeatureCatalog
+  m_Script: {fileID: 11500000, guid: 18322aba21e44fadbe73ce3127757811, type: 3}
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.FeatureCatalogAsset
+  Definitions:
+  - {fileID: 11400000, guid: ca273f9a5d8160f48a6d4ef15c85daf5, type: 2}
+  - {fileID: 11400000, guid: 58948c6a976d3744d98460f4ffae9c02, type: 2}
+  - {fileID: 11400000, guid: e448288e7ab049a47b5446d5550c8d49, type: 2}
+  - {fileID: 11400000, guid: fb67ce474f025b54d91ccdcdf4c3db64, type: 2}

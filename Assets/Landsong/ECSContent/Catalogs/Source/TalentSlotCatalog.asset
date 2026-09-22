@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Name: TalentSlotCatalog
+  m_Script: {fileID: 11500000, guid: ed70261daa104758bb1d375aa0f3f192, type: 3}
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.TalentSlotCatalogAsset
+  Definitions:
+  - {fileID: 11400000, guid: c64fd6c529ea98e4d98ce667663c96b8, type: 2}
+  - {fileID: 11400000, guid: ee2a452d22a3a844daa599a8304d821f, type: 2}
+  - {fileID: 11400000, guid: 6edda134ee99e1341b4aea4d795fb5b7, type: 2}

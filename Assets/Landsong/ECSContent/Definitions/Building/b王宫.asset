@@ -1,0 +1,170 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf797179052a4f4da6a1fd75e73c6289, type: 3}
+  m_Name: "b\u738B\u5BAB"
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.BuildingDefinitionAsset
+  Metadata:
+    Id: "b\u738B\u5BAB"
+    Name: "\u738B\u5BAB"
+    Description: "\u738B\u5BAB\u662F\u805A\u843D\u7684\u6838\u5FC3\u5EFA\u7B51\uFF0C\u4E3A\u73A9\u5BB6\u63D0\u4F9B\u56FA\u5B9A\u4EBA\u53E3\u3001\u5E93\u5B58\u69FD\u4F4D\u548C\u79D1\u6280\u70B9\uFF0C\u4E5F\u662F\u91CD\u8981\u7684\u8D44\u6E90\u63D0\u4F9B\u8282\u70B9\u3002"
+    Icon: {fileID: 0}
+  LimitGroup: {fileID: 11400000, guid: da0c12365c5050749861324dfd6406cd, type: 2}
+  MaximumLevel: 1
+  ConstructionTurns: 1
+  ResourceConnectionActionPower: 20
+  MaximumCount: 1
+  Footprint: {x: 10, y: 10}
+  MaximumDurability: 100
+  MovementCost: 0
+  DefenseStats:
+    MaximumHealth: 100
+    Damage: 10
+    AttackRange: 1.4
+    AttackIntervalSeconds: 1
+    MovementSpeed: 0
+    ProjectileSpeed: 10
+    Profile:
+      DetectionRadius: 24
+      ChaseRadius: 12
+      ChaseSeconds: 8
+      BodyRadius: 0.35
+      Armor: 0
+      Reduction: 0
+      Penetration: 0
+      BlastRadius: 0
+      WarningSeconds: 0
+      ProjectileLifetime: 10
+      ProjectileMode: 0
+      Traits: 0
+      BlocksProjectile: 0
+  PlacementAndVisuals:
+    Category: 32
+    SpawnExclusionPadding: 30
+    MenuOrder: 0
+    ProviderPriority: 0
+    CanMove: 1
+    CanRotate: 1
+    MoveMaterialRatio: 0.3
+    MoveExperienceRatio: 0.3
+    RuinMovementCost: 4
+    DefaultSkin: 
+  Capabilities:
+    Construction:
+      Enabled: 0
+      PlacementCosts: []
+      StageCosts: []
+      StageOutputs: []
+    Upgrade:
+      Enabled: 0
+      Costs: []
+      Workers: []
+      Residents: []
+      MaintenanceRequirements: []
+      Experience: []
+    Maintenance:
+      Enabled: 0
+      RepairTurns: 0
+      Costs: []
+      Repairs: []
+    Production:
+      Enabled: 0
+      Inputs: []
+      Cycles: []
+      ProcessingTiers: []
+      Outputs: []
+      RareOutputs: []
+    Quests:
+      Enabled: 1
+      InvitationCosts: []
+      Capacity:
+      - Level: 1
+        Slots: 4
+      Invitations:
+      - Level: 1
+        Slots: 1
+        Type: 0
+        MinimumRefreshTurns: 5
+        MaximumRefreshTurns: 10
+    Placement:
+      AllowedTerrains: 1
+      ExcludedTerrains: 0
+    Connection:
+      Enabled: 0
+      Rise: 0
+      Bidirectional: 1
+      Clearance: 1.5
+      DamagedCost: 2
+    Storage:
+      Enabled: 1
+      Providers:
+      - Level: 0
+      Warehouses:
+      - Level: 1
+        SlotType: {fileID: 11400000, guid: 1f9a9c9bb078fce4ca49c9b5809c20af, type: 2}
+        Slots: 15
+        RequiredWorkers: 0
+      Conditions: []
+    Workforce:
+      Enabled: 0
+      Levels: []
+      EfficiencyTiers: []
+      Attraction: []
+    Housing:
+      Enabled: 1
+      Population:
+      - Level: 1
+        Population: 10
+        IsCore: 1
+      Residences: []
+      Food: []
+      Taxes: []
+      Environment: []
+    Research:
+      Enabled: 1
+      Levels:
+      - Level: 1
+        PointsPerTurn: 1
+    Farming:
+      Enabled: 0
+      Crops: []
+    Gathering:
+      Enabled: 0
+      Levels: []
+      Rewards: []
+    Garrison:
+      Enabled: 1
+      RecruitmentLimitPerTurn: 0
+      Levels:
+      - Level: 1
+        Capacity: 3
+        DeploymentBatchSize: 1
+      InitialUnits:
+      - Level: 1
+        Soldier: {fileID: 11400000, guid: 64f87f79126d02d4e83d00dda39c89e9, type: 2}
+        Count: 2
+    Sanctum:
+      Enabled: 0
+      Levels: []
+    Market:
+      Enabled: 0
+      Levels: []
+    Effects:
+      Enabled: 0
+      Spatial: []
+    Defence:
+      Enabled: 0
+      Intelligence: []
+      Bells: []
+    Expeditions:
+      Enabled: 0
+      Levels: []
+  Prefab: {fileID: 312945332374858301, guid: ec4a6c1ef16c40e49b40604ba227fd40, type: 3}

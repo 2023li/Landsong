@@ -1,0 +1,74 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e493df89b1d4f3394a96d6e5d3619fb, type: 3}
+  m_Name: main_collect_building_materials
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.QuestDefinitionAsset
+  Metadata:
+    Id: main_collect_building_materials
+    Name: "\u5907\u9F50\u57FA\u77F3"
+    Description: "\u805A\u843D\u7684\u5EFA\u8BBE\u79BB\u4E0D\u5F00\u6700\u57FA\u7840\u7684\u6750\u6599\u3002\u6536\u96C6\u6CE5\u571F\u3001\u539F\u6728\u4E0E\u77F3\u5934\uFF0C\u4E3A\u7B2C\u4E00\u6279\u519C\u7530\u5907\u9F50\u7269\u8D44\u3002"
+    Icon: {fileID: 0}
+  DeadlineTurns: 0
+  Behavior: 1
+  OfferType: 0
+  Prerequisites:
+    BuildingRequirements: []
+    TechnologyRequirements: []
+    BuffRequirements: []
+    FeatureRequirements: []
+    QuestRequirements:
+    - Order: 0
+      Quest: {fileID: 11400000, guid: 0dd27ad6898b992439c98b1aadb9d068, type: 2}
+      Required: 1
+    ExpeditionRequirements: []
+  Rewards:
+    Items:
+    - Order: 1
+      Item: {fileID: 11400000, guid: 000df9efbc381134e832f667a32c9572, type: 2}
+      Quantity: 100
+    - Order: 2
+      Item: {fileID: 11400000, guid: a761334fe1641a74f9948313fb5ff413, type: 2}
+      Quantity: 100
+    - Order: 3
+      Item: {fileID: 11400000, guid: a927377c37e532b49af819fa89b72369, type: 2}
+      Quantity: 100
+    Blueprints:
+    - Order: 4
+      Building: {fileID: 11400000, guid: 7df6157a6643e9c41951b0403decdba0, type: 2}
+      GrantedLevel: 1
+    Buffs: []
+    Features:
+    - Order: 5
+      Feature: {fileID: 11400000, guid: ca273f9a5d8160f48a6d4ef15c85daf5, type: 2}
+      GrantedLevel: 1
+  FailurePenalties: []
+  Objectives:
+    BuildingObjectives: []
+    PlantedBuildingObjectives: []
+    OwnedItemObjectives:
+    - Order: 6
+      Key: 1547c5584b474c32b1dd7b5f0f552b15.0
+      Item: {fileID: 11400000, guid: 000df9efbc381134e832f667a32c9572, type: 2}
+      Quantity: 10
+    - Order: 7
+      Key: 1547c5584b474c32b1dd7b5f0f552b15.1
+      Item: {fileID: 11400000, guid: a761334fe1641a74f9948313fb5ff413, type: 2}
+      Quantity: 10
+    - Order: 8
+      Key: 1547c5584b474c32b1dd7b5f0f552b15.2
+      Item: {fileID: 11400000, guid: a927377c37e532b49af819fa89b72369, type: 2}
+      Quantity: 10
+    SubmittedItemObjectives: []
+    TechnologyObjectives: []
+    CameraMoveObjectives: []
+    CameraZoomObjectives: []
+    TurnObjectives: []

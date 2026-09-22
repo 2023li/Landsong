@@ -1,0 +1,6 @@
+{
+  "name": "Moyo.Runtime",
+  "rootNamespace": "Moyo.Unity",
+  "references": ["Unity.Addressables", "Unity.ResourceManager", "Unity.ugui", "Unity.TextMeshPro"],
+  "autoReferenced": true
+}

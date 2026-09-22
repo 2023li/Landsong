@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f2b742d2920f40b589bc1a16625ed921, type: 3}
+  m_Name: talent.slot1
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.TalentSlotDefinitionAsset
+  Metadata:
+    Id: talent.slot1
+    Name: "\u519B\u4E8B\u987E\u95EE"
+    Description: "Value \u4E3A\u804C\u4E1A\u63A5\u7EB3\uFF1B\u53EF\u7528 GeneRequired \u89C4\u5219\u8981\u6C42\u5DF2\u63ED\u9732\u7279\u6027\u3002"
+    Icon: {fileID: 0}
+  AcceptedSpecialty: 1
+  Effects:
+    Items: []
+    Buildings: []
+    Soldiers: []
+    Heroes: []
+    Talents: []
+    Kingdom: []
+    Intelligence: []
+    FlatProduction: []
+  JobEffects:
+    Items: []
+    Soldiers: []
+    Heroes: []
+    Kingdom: []

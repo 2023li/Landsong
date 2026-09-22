@@ -1,0 +1,65 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using Landsong.GridSystem;
+using UnityEditor;
+using UnityEngine;
+
+namespace Landsong.EditorTools
+{
+    public static class SharedBlueprintRulesMigration
+    {
+        [Serializable] public sealed class Payload { public List<BlueprintTerrainRule> blueprintRules; }
+        public static List<BlueprintTerrainRule> Collapse(IEnumerable<BlueprintTerrainRule> source)
+        {
+            var result=new List<BlueprintTerrainRule>();
+            foreach(var rule in source)
+            {
+                if(rule==null)throw new InvalidOperationException("地形规则存在空条目。");
+                string key=BlueprintRuleNames.Key(rule.BlueprintLayerName);
+                var existing=result.SingleOrDefault(r=>r.BlueprintLayerName==key);
+                if(existing!=null)
+                {
+                    if(existing.Kind!=rule.Kind || existing.Terrain!=rule.Terrain || existing.Buildable!=rule.Buildable || existing.Traversable!=rule.Traversable)
+                        throw new InvalidOperationException("同名地形在不同 Layer 有冲突配置，无法合并："+key);
+                    continue;
+                }
+                result.Add(new BlueprintTerrainRule{BlueprintLayerName=key,Kind=rule.Kind,Terrain=rule.Terrain,Buildable=rule.Buildable,Traversable=rule.Traversable});
+            }
+            return result;
+        }
+        [MenuItem("Landsong/地图/迁移为跨 Layer 共用规则")]
+        static void Menu()=>Debug.Log(Run());
+        public static string Run()
+        {
+            var plans=new List<(UnityEngine.Object asset,string path,List<BlueprintTerrainRule> rules)>();
+            foreach(string type in new[]{"MapTerrainRules","TileWorldCreatorMapBakeProfile"})
+                foreach(string guid in AssetDatabase.FindAssets("t:"+type,new[]{"Assets/Landsong"}))
+                {
+                    string path=AssetDatabase.GUIDToAssetPath(guid);var asset=AssetDatabase.LoadMainAssetAtPath(path);
+                    IReadOnlyList<BlueprintTerrainRule> rules=null;
+                    if(asset is MapTerrainRules shared && shared.useLayerBlueprintRules)rules=shared.blueprintRules;
+                    if(asset is TileWorldCreatorMapBakeProfile profile && profile.UseLayerBlueprintRules)rules=profile.BlueprintRules;
+                    if(rules==null)continue;
+                    var converted=Collapse(rules);
+                    if(rules.Count==converted.Count && rules.Select(r=>r.BlueprintLayerName).SequenceEqual(converted.Select(r=>r.BlueprintLayerName)))continue;
+                    plans.Add((asset,path,converted));
+                }
+            string backup="Temp/SharedBlueprintRulesBefore_"+DateTime.Now.ToString("yyyyMMdd_HHmmss_fff");
+            // All conflicts have been checked. Preserve both saved bytes and loaded editor state.
+            foreach(var plan in plans)
+            {
+                string file=backup+"/"+plan.path;Directory.CreateDirectory(Path.GetDirectoryName(file));
+                File.Copy(plan.path,file);File.Copy(plan.path+".meta",file+".meta");
+                File.WriteAllText(file+".editor.json",EditorJsonUtility.ToJson(plan.asset,true));
+            }
+            foreach(var plan in plans)
+            {
+                JsonUtility.FromJsonOverwrite(JsonUtility.ToJson(new Payload{blueprintRules=plan.rules}),plan.asset);
+                EditorUtility.SetDirty(plan.asset);AssetDatabase.SaveAssetIfDirty(plan.asset);
+            }
+            return "Migrated "+plans.Count+" rule assets/profiles; shared keys contain no Layer prefix. Backup: "+backup;
+        }
+    }
+}

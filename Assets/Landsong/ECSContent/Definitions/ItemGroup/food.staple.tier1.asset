@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1990f5cdf85149c79ab1794a7a5e23a7, type: 3}
+  m_Name: food.staple.tier1
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.ItemGroupDefinitionAsset
+  Metadata:
+    Id: food.staple.tier1
+    Name: "\u4E00\u7EA7\u4E3B\u98DF"
+    Description: "\u57FA\u7840\u4E3B\u98DF\u7B49\u7EA7\u3002"
+    Icon: {fileID: 0}
+  ParentGroup: {fileID: 11400000, guid: 07c32e8ed89b3b14fa714364b882d541, type: 2}

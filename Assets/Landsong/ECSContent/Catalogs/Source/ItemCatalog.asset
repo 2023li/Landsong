@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Name: ItemCatalog
+  m_Script: {fileID: 11500000, guid: daad9b0e5f5a4111aa21c3860242a8d5, type: 3}
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.ItemCatalogAsset
+  Definitions:
+  - {fileID: 11400000, guid: 03e6eefa9ddbcaa4ca3552ff906f195b, type: 2}
+  - {fileID: 11400000, guid: a761334fe1641a74f9948313fb5ff413, type: 2}
+  - {fileID: 11400000, guid: ae86caa71825ab54d829b6dc712d65a7, type: 2}
+  - {fileID: 11400000, guid: 068cd4cc6c016594ea75645e4d037f1d, type: 2}
+  - {fileID: 11400000, guid: bcf108fee9cd3d64bb8483fd44f93440, type: 2}
+  - {fileID: 11400000, guid: ff9d86a6cce5f15499f84bba139ec383, type: 2}
+  - {fileID: 11400000, guid: 000df9efbc381134e832f667a32c9572, type: 2}
+  - {fileID: 11400000, guid: a927377c37e532b49af819fa89b72369, type: 2}
+  - {fileID: 11400000, guid: 07844fa1b99f3a846b79b9679b314b3d, type: 2}
+  - {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+  - {fileID: 11400000, guid: 68bca505db4b4a9418e39cb2d0aac711, type: 2}

@@ -1,0 +1,20 @@
+using System;
+using UnityEngine;
+using Sirenix.OdinInspector;
+using Landsong.ECS.Definitions;
+
+namespace Landsong.ECS.Authoring.Definitions
+{
+    [Serializable]
+    public sealed class SpecialItemDropSource
+    {
+        [LabelText("执行顺序")]
+        public int Order;
+        [LabelText("物品")]
+        public ItemDefinitionAsset Item;
+        [LabelText("数量")]
+        public int Quantity = 1;
+        [LabelText("稀有度")]
+        public SpecialDropRarity Rarity;
+    }
+}

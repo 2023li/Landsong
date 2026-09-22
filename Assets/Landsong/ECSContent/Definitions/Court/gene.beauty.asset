@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 49533e30915b44e592b7b9ab55501e32, type: 3}
+  m_Name: gene.beauty
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.RoyalTraitDefinitionAsset
+  Metadata:
+    Id: gene.beauty
+    Name: "\u4E3D\u8D28"
+    Description: "\u9752\u5E74\u540E\u53EF\u5728\u5DF2\u6709\u90E8\u4EF6\u4E2D\u5851\u9020\u4E00\u6B21\u5BB9\u8C8C\uFF0C\u4FEE\u6539\u540E\u7684\u57FA\u7840\u989C\u8272\u53C2\u4E0E\u9057\u4F20\u3002"
+    Icon: {fileID: 0}
+  RevealAge: 0
+  MinimumActivationAge: 0
+  InheritanceChance: 0.5
+  Heritable: 1
+  Prerequisites:
+    BuildingRequirements: []
+    TechnologyRequirements: []
+    BuffRequirements: []
+    FeatureRequirements: []
+    QuestRequirements: []
+    ExpeditionRequirements: []
+  Effects:
+    Items: []
+    Buildings: []
+    Soldiers: []
+    Heroes: []
+    Talents: []
+    Kingdom: []
+    Intelligence: []
+    FlatProduction: []
+  GrantedTraits: []
+  ConflictingTraits: []
+  RequiredTraits: []

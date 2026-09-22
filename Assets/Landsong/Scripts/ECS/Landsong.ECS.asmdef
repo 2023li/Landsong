@@ -1,0 +1,17 @@
+{
+  "name": "Landsong.ECS",
+  "rootNamespace": "Landsong.ECS",
+  "references": [
+    "Unity.Entities",
+    "Unity.Transforms",
+    "Unity.Mathematics",
+    "Unity.Collections",
+    "Unity.Burst",
+    "AstarPathfindingProject",
+    "PackageTools",
+    "Drawing",
+    "EasySave3"
+  ],
+  "allowUnsafeCode": true,
+  "autoReferenced": true
+}

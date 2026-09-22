@@ -1,0 +1,147 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf797179052a4f4da6a1fd75e73c6289, type: 3}
+  m_Name: "b\u6CE5\u8DEF"
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.BuildingDefinitionAsset
+  Metadata:
+    Id: "b\u6CE5\u8DEF"
+    Name: "\u6CE5\u8DEF"
+    Description: "\u6CE5\u8DEF\u5141\u8BB8\u5355\u4F4D\u4EE5\u8F83\u4F4E\u884C\u52A8\u529B\u901A\u8FC7\u6240\u5728\u683C\uFF0C\u7528\u4E8E\u6539\u5584\u805A\u843D\u5185\u7684\u8FDE\u63A5\u548C\u8FD0\u8F93\u6548\u7387\u3002"
+    Icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
+  LimitGroup: {fileID: 11400000, guid: e893db609b1670b479bd94cde8c8e903, type: 2}
+  MaximumLevel: 1
+  ConstructionTurns: 1
+  ResourceConnectionActionPower: 100
+  MaximumCount: 0
+  Footprint: {x: 1, y: 1}
+  MaximumDurability: 100
+  MovementCost: 5
+  PlacementAndVisuals:
+    Category: 128
+    SpawnExclusionPadding: 6
+    MenuOrder: 0
+    ProviderPriority: 0
+    CanMove: 1
+    CanRotate: 1
+    MoveMaterialRatio: 0.3
+    MoveExperienceRatio: 0.3
+    RuinMovementCost: 4
+    DefaultSkin:
+  Capabilities:
+    Construction:
+      Enabled: 0
+      PlacementCosts: []
+      StageCosts: []
+      StageOutputs: []
+    Upgrade:
+      Enabled: 0
+      Costs: []
+      Workers: []
+      Residents: []
+      MaintenanceRequirements: []
+      Experience: []
+    Maintenance:
+      Enabled: 0
+      RepairTurns: 0
+      Costs: []
+      Repairs: []
+    Production:
+      Enabled: 0
+      Inputs: []
+      Cycles: []
+      ProcessingTiers: []
+      Outputs: []
+      RareOutputs: []
+    Quests:
+      Enabled: 0
+      InvitationCosts: []
+      Capacity: []
+      Invitations: []
+    Placement:
+      AllowedTerrains: 1
+      ExcludedTerrains: 0
+    Connection:
+      Enabled: 0
+      Rise: 0
+      Bidirectional: 1
+      Clearance: 1.5
+      DamagedCost: 2
+    Storage:
+      Enabled: 0
+      Providers: []
+      Warehouses: []
+      Conditions: []
+    Workforce:
+      Enabled: 0
+      Levels: []
+      EfficiencyTiers: []
+      Attraction: []
+    Housing:
+      Enabled: 0
+      Population: []
+      Residences: []
+      Food: []
+      Taxes: []
+      Environment: []
+    Research:
+      Enabled: 0
+      Levels: []
+    Farming:
+      Enabled: 0
+      Crops: []
+    Gathering:
+      Enabled: 0
+      Levels: []
+      Rewards: []
+    Garrison:
+      Enabled: 0
+      RecruitmentLimitPerTurn: 0
+      Levels: []
+      InitialUnits: []
+    Sanctum:
+      Enabled: 0
+      Levels: []
+    Market:
+      Enabled: 0
+      Levels: []
+    Effects:
+      Enabled: 0
+      Spatial: []
+    Defence:
+      Enabled: 0
+      Intelligence: []
+      Bells: []
+    Expeditions:
+      Enabled: 0
+      Levels: []
+  Prefab: {fileID: 8449408324485368562, guid: 1b5e8ab3215f1294884d09bacf09f9db, type: 3}
+  DefenseStats:
+    MaximumHealth: 100
+    Damage: 10
+    AttackRange: 1.4
+    AttackIntervalSeconds: 1
+    MovementSpeed: 5
+    ProjectileSpeed: 10
+    Profile:
+      DetectionRadius: 24
+      ChaseRadius: 12
+      ChaseSeconds: 8
+      BodyRadius: 0.35
+      Armor: 0
+      Reduction: 0
+      Penetration: 0
+      BlastRadius: 0
+      WarningSeconds: 0
+      ProjectileLifetime: 10
+      ProjectileMode: 0
+      Traits: 0
+      BlocksProjectile: 0

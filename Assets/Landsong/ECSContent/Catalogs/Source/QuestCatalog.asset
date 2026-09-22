@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Name: QuestCatalog
+  m_Script: {fileID: 11500000, guid: 652540b3d6824a0d8838216542c3f220, type: 3}
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.QuestCatalogAsset
+  Definitions:
+  - {fileID: 11400000, guid: 237657b1c680c4748837a2921b221bd1, type: 2}
+  - {fileID: 11400000, guid: bb356302abf8f6d41884f1e9ee9aba95, type: 2}
+  - {fileID: 11400000, guid: 3c2b1d9dddb017f479aa1083eb96fffc, type: 2}
+  - {fileID: 11400000, guid: 0dd27ad6898b992439c98b1aadb9d068, type: 2}
+  - {fileID: 11400000, guid: 5bde982401f1498469d54bb796fb7f40, type: 2}
+  - {fileID: 11400000, guid: eee360f2d9be45040a65503709947737, type: 2}
+  - {fileID: 11400000, guid: 25816e0b32ee22a4b8899d3d8530efa5, type: 2}
+  - {fileID: 11400000, guid: 62bb42b5aa583984582ed2a15ad4a498, type: 2}
+  - {fileID: 11400000, guid: 3a23b2b947dab6e4f85e6027896a8173, type: 2}
+  - {fileID: 11400000, guid: 60821559487f2d04eae1722d269814e5, type: 2}
+  - {fileID: 11400000, guid: 17deb386bb99f964bad92697ee0205d8, type: 2}

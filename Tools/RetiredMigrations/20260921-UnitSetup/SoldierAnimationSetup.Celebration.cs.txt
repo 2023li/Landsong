@@ -1,0 +1,81 @@
+#if UNITY_EDITOR
+using System;
+using System.Linq;
+using Landsong.Animation;
+using UnityEditor;
+using UnityEditor.Animations;
+using UnityEngine;
+
+namespace Landsong.EditorTools
+{
+    public static partial class SoldierAnimationSetup
+    {
+        public const string VictorySource = "Assets/Landsong/Art/Animations/庆祝Victory.fbx";
+        public const string VictoryClipPath = Output + "/Clips/Victory.anim";
+        public const string CelebrationMaskPath = Output + "/CelebrationArms.mask";
+
+        [MenuItem("Landsong/动画/配置士兵双臂庆祝")]
+        public static string ConfigureCelebration()
+        {
+            if (EditorApplication.isPlayingOrWillChangePlaymode)
+                throw new InvalidOperationException("请先退出运行模式。");
+            var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(ControllerPath);
+            if (controller == null) throw new InvalidOperationException("先配置士兵基础动画器。");
+            ConfigureCelebrationLayer(controller);
+            var view = PrefabUtility.LoadPrefabContents(ViewPrefabPath);
+            try
+            {
+                var authoring = view.GetComponent<SoldierAnimationVisualAuthoring>();
+                authoring.CelebrationLayer = Array.FindIndex(controller.layers, layer => layer.name == "Celebration Arms");
+                PrefabUtility.SaveAsPrefabAsset(view, ViewPrefabPath);
+            }
+            finally { PrefabUtility.UnloadPrefabContents(view); }
+            return "Victory uses a looping, arms-only override layer; root, body, head and legs remain on the base animation.";
+        }
+
+        static void ConfigureCelebrationLayer(AnimatorController controller)
+        {
+            var source = AssetDatabase.LoadAllAssetsAtPath(VictorySource).OfType<AnimationClip>().FirstOrDefault(c => !c.name.StartsWith("__preview__"));
+            if (source == null || !source.isHumanMotion)
+                throw new InvalidOperationException("庆祝动作必须为有效 Humanoid 动画：" + VictorySource);
+            var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(VictoryClipPath);
+            if (clip == null)
+            {
+                clip = UnityEngine.Object.Instantiate(source);
+                clip.name = "Victory";
+                AssetDatabase.CreateAsset(clip, VictoryClipPath);
+            }
+            var settings = AnimationUtility.GetAnimationClipSettings(clip);
+            settings.loopTime = settings.loopBlend = true;
+            AnimationUtility.SetAnimationClipSettings(clip, settings);
+            AnimationUtility.SetAnimationEvents(clip, Array.Empty<AnimationEvent>());
+            EditorUtility.SetDirty(clip);
+            AssetDatabase.SaveAssetIfDirty(clip);
+            var mask = AssetDatabase.LoadAssetAtPath<AvatarMask>(CelebrationMaskPath);
+            if (mask == null)
+            {
+                mask = new AvatarMask { name = "Celebration Arms" };
+                AssetDatabase.CreateAsset(mask, CelebrationMaskPath);
+            }
+            for (int i = 0; i < (int)AvatarMaskBodyPart.LastBodyPart; i++)
+                mask.SetHumanoidBodyPartActive((AvatarMaskBodyPart)i, i == (int)AvatarMaskBodyPart.LeftArm || i == (int)AvatarMaskBodyPart.RightArm || i == (int)AvatarMaskBodyPart.LeftFingers || i == (int)AvatarMaskBodyPart.RightFingers);
+            EditorUtility.SetDirty(mask);
+            AssetDatabase.SaveAssetIfDirty(mask);
+            if (!controller.parameters.Any(p => p.name == "Celebrate"))
+                controller.AddParameter("Celebrate", AnimatorControllerParameterType.Bool);
+            var machine = ExistingMachine(controller.layers, "Celebration Arms") ?? NewMachine(controller, "Celebration Arms");
+            Clear(machine);
+            var idle = machine.AddState("Inactive");
+            var victory = machine.AddState("Victory");
+            victory.motion = clip;
+            machine.defaultState = idle;
+            Conditional(idle, victory, (AnimatorConditionMode.If, 0, "Celebrate"));
+            Conditional(victory, idle, (AnimatorConditionMode.IfNot, 0, "Celebrate"));
+            var layer = new AnimatorControllerLayer { name = "Celebration Arms", defaultWeight = 0, avatarMask = mask, blendingMode = AnimatorLayerBlendingMode.Override, stateMachine = machine };
+            controller.layers = controller.layers.Where(l => l.name != layer.name).Concat(new[] { layer }).ToArray();
+            EditorUtility.SetDirty(controller);
+            AssetDatabase.SaveAssetIfDirty(controller);
+        }
+    }
+}
+#endif

@@ -1,0 +1,175 @@
+#if UNITY_EDITOR
+using System;
+using System.IO;
+using System.Linq;
+using Landsong.ECS.Persistence;
+using Landsong.ECS.Definitions;
+using Landsong.ECS.Authoring.Definitions;
+using Unity.Collections;
+using Unity.Entities;
+using Unity.Mathematics;
+
+namespace Landsong.ECS.Editor
+{
+    public static partial class CourtVerification
+    {
+        static void PersonRequests(EntityManager em, Entity root)
+        {
+            ulong Id(Entity e) => em.GetComponentData<Identity>(e).Id;
+            void Turn(int turn)
+            {
+                var s = em.GetComponentData<Session>(root);
+                GameClock sClock = em.GetComponentData<GameClock>(root);
+                SimulationControl sControl = em.GetComponentData<SimulationControl>(root);
+                PopulationState sPopulation = em.GetComponentData<PopulationState>(root);
+                PersistenceGate sPersistence = em.GetComponentData<PersistenceGate>(root);
+                sClock.Turn = turn;
+                s.Phase = Phase.Day;
+                sControl.Paused = 0;
+                sPersistence.CheckpointPending = 0;
+                sPopulation.BasePopulation = 100;
+                {
+                    em.SetComponentData(root, s);
+                    em.SetComponentData(root, sClock);
+                    em.SetComponentData(root, sControl);
+                    em.SetComponentData(root, sPopulation);
+                    em.SetComponentData(root, sPersistence);
+                }
+            }
+
+            Turn(2);
+            var child = DynastyOps.CreateRoyal(em, root, "请求测试", 2, 24, Id(CourtOps.Monarch(em)));
+            ulong childId = Id(child);
+            Check(!PersonRequestOps.OfferExpedition(em, root, child), "Expedition wish waits for feature unlock");
+            InvitationExpeditionVerification.FixturePermissions(em, root);
+            var def = BuildingDefinitions.Find(em, root, "b陆上远征所");
+            var grid = em.GetComponentData<GridData>(root);
+            Entity post = Entity.Null;
+            for (int i = 0; i < grid.Value.Value.Cells.Length; i++)
+            {
+                var cell = grid.Value.Value.Min + new int2(i % grid.Value.Value.Size.x, i / grid.Value.Value.Size.x);
+                if (!GridOps.CanPlace(em, root, def, cell, 0))
+                    continue;
+                post = BuildingCreation.Create(em, root, def, cell, 0, 2, true);
+                break;
+            }
+
+            Check(post != Entity.Null, "Request fixture has expedition site");
+            BuildingWorkforceState buildingWorkforce = em.GetComponentData<BuildingWorkforceState>(post);
+            buildingWorkforce.Workers = buildingWorkforce.StableWorkers = 15;
+            {
+                em.SetComponentData(post, buildingWorkforce);
+            }
+
+            ulong postId = Id(post);
+            InventoryOps.Add(em, root, em.GetComponentData<CurrencySettings>(root).Gold, 100);
+            var mate = DynastyOps.CreateRoyal(em, root, "请求配偶", 4, 23);
+            var p = em.GetComponentData<Royal>(mate);
+            p.Gender = em.GetComponentData<Royal>(child).Gender == PersonGender.Male ? PersonGender.Female : PersonGender.Male;
+            em.SetComponentData(mate, p);
+            Check(RoyalFamilyOps.Request(em, root, child, mate) && PersonRequestOps.OfferExpedition(em, root, child), "One person can hold marriage and expedition requests together");
+            var before = SnapshotCodec.Capture(em, root);
+            Check(PersonRequestOps.Pending(em, root, child).Count == 2 && before.SequenceEqual(SnapshotCodec.Capture(em, root)), "Request projection lists all pending kinds without mutation");
+            Check(!PersonRequestOps.OfferExpedition(em, root, child), "No duplicate expedition wish");
+            Check(GameRequestExecution.Execute(em, root, new RefusePersonRequest { Person = childId, ExpectedRequestTurn = 1 }) == ResultCode.Unavailable, "Stale refusal cannot resolve a later request");
+            SnapshotCodec.Restore(em, root, SnapshotCodec.Decode(em, root, before));
+            child = WorldQueries.Find(em, childId);
+            post = WorldQueries.Find(em, postId);
+            Check(before.SequenceEqual(SnapshotCodec.Capture(em, root)) && PersonRequestOps.Pending(em, root, child).Count == 2, "Pending personal requests survive snapshot roundtrip");
+            bool rolledBack = false;
+            try
+            {
+                SnapshotCodec.Restore(em, root, SnapshotCodec.Decode(em, root, before), probe: step =>
+                {
+                    if (step == "record-created")
+                        throw new IOException("Request rollback fixture");
+                });
+            }
+            catch (IOException)
+            {
+                rolledBack = true;
+            }
+
+            Check(rolledBack && before.SequenceEqual(SnapshotCodec.Capture(em, root)), "Failed restore preserves original request buffer");
+            void Invalid(Action<SnapshotCodec.Snapshot> change, string label)
+            {
+                var data = SnapshotCodec.Decode(em, root, before);
+                change(data);
+                bool rejected = false;
+                try
+                {
+                    SnapshotCodec.Restore(em, root, data);
+                }
+                catch (InvalidDataException)
+                {
+                    rejected = true;
+                }
+
+                Check(rejected && before.SequenceEqual(SnapshotCodec.Capture(em, root)), label);
+            }
+
+            Invalid(s => s.Records.OfType<PersonSnapshot>().Single(r => r.Identity.Id == childId).PersonRequests[0].Status = (PersonRequestStatus)99, "Unknown request status rejected atomically");
+            Invalid(s => s.Records.OfType<PersonSnapshot>().Single(r => r.Identity.Id == childId).PersonRequests[0].Journey = childId, "Pending request cannot contain a journey link");
+            Invalid(s =>
+            {
+                var r = s.Records.OfType<PersonSnapshot>().Single(x => x.Identity.Id == childId);
+                r.PersonRequests = new[]
+                {
+                    r.PersonRequests[0],
+                    r.PersonRequests[0]
+                };
+            }, "Duplicate request token rejected atomically");
+            var destination = ExpeditionDefinitions.Find(em, root, "expedition.nearby_recon");
+            Entity Depart()
+            {
+                post = WorldQueries.Find(em, postId);
+                var quote = ExpeditionOps.Quote(em, root, post, destination, 10);
+                Check(quote.Code == ResultCode.Success, "Request expedition quote available");
+                Check(GameRequestExecution.Execute(em, root, InvitationExpeditionVerification.Departure(postId, childId, destination, 10, quote)) == ResultCode.Success, "Requested captain departs through command");
+                using var all = WorldQueries.OrderedEntities<Expedition>(em);
+                return all[all.Length - 1];
+            }
+
+            PersonRequestEntry Request() => em.GetBuffer<PersonRequestEntry>(WorldQueries.Find(em, childId))[0];
+            var journey = Depart();
+            ulong journeyId = Id(journey);
+            Check(Request().Status == PersonRequestStatus.Travelling && Request().Journey == journeyId && PersonRequestOps.Pending(em, root, WorldQueries.Find(em, childId)).Count == 2, "Departure keeps wish pending with matched journey");
+            var travelling = SnapshotCodec.Capture(em, root);
+            SnapshotCodec.Restore(em, root, SnapshotCodec.Decode(em, root, travelling));
+            journey = WorldQueries.Find(em, journeyId);
+            Check(travelling.SequenceEqual(SnapshotCodec.Capture(em, root)), "Travelling request survives save and load");
+            Check(GameRequestExecution.Execute(em, root, new AbandonExpeditionRequest { Expedition = journeyId }) == ResultCode.Success && Request().Status == PersonRequestStatus.Pending, "Abandon returns wish to pending without completing");
+            journey = Depart();
+            ExpeditionOps.WithdrawFromSite(em, root, postId);
+            Check(Request().Status == PersonRequestStatus.Pending && Request().Journey == 0, "Site withdrawal restores pending wish");
+            journey = Depart();
+            var state = em.GetComponentData<Expedition>(journey);
+            state.SuccessChance = 1;
+            em.SetComponentData(journey, state);
+            Turn(state.Arrival - 1);
+            ExpeditionOps.Settle(em, root);
+            Check(Request().Status == PersonRequestStatus.Completed && PersonRequestOps.Pending(em, root, WorldQueries.Find(em, childId)).Count == 1, "Return completes wish before claiming rewards and retains marriage request");
+            var returned = SnapshotCodec.Capture(em, root);
+            ExpeditionOps.Settle(em, root);
+            Check(returned.SequenceEqual(SnapshotCodec.Capture(em, root)), "Return request completion is one-shot");
+            SnapshotCodec.Restore(em, root, SnapshotCodec.Decode(em, root, travelling));
+            journey = WorldQueries.Find(em, journeyId);
+            state = em.GetComponentData<Expedition>(journey);
+            state.SuccessChance = 0;
+            em.SetComponentData(journey, state);
+            Turn(state.Arrival - 1);
+            ExpeditionOps.Settle(em, root);
+            Check(Request().Status == PersonRequestStatus.Completed, "Failed expedition still fulfils wish when captain returns alive");
+            SnapshotCodec.Restore(em, root, SnapshotCodec.Decode(em, root, travelling));
+            CourtOps.Die(em, root, WorldQueries.Find(em, childId), 0);
+            Check(Request().Status == PersonRequestStatus.Cancelled && PersonRequestOps.Pending(em, root, WorldQueries.Find(em, childId)).Count == 0, "Dead requester has no outstanding request or badge");
+            SnapshotCodec.Restore(em, root, SnapshotCodec.Decode(em, root, before));
+            child = WorldQueries.Find(em, childId);
+            Check(GameRequestExecution.Execute(em, root, new RefusePersonRequest { Person = childId, ExpectedRequestTurn = 2 }) == ResultCode.Success && Request().Status == PersonRequestStatus.Refused, "Current expedition request can be refused through command");
+            Check(!PersonRequestOps.OfferExpedition(em, root, child), "Refused wish respects configured cooldown");
+            Turn(2 + CourtOps.Rules(em, root).ExpeditionRequestCooldown);
+            Check(PersonRequestOps.OfferExpedition(em, root, child), "New wish allowed after cooldown");
+        }
+    }
+}
+#endif

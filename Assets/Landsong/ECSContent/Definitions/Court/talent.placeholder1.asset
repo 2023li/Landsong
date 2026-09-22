@@ -1,0 +1,69 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e45e0635a02e457db90a69886f1c1fa8, type: 3}
+  m_Name: talent.placeholder1
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.TalentDefinitionAsset
+  Metadata:
+    Id: talent.placeholder1
+    Name: "\u4EBA\u624D1 \xB7 \u519B\u4E8B\u987E\u95EE"
+    Description: "\u53EF\u8D60\u793C\u3001\u5B8C\u6210\u4E2A\u4EBA\u59D4\u6258\u3001\u6C42\u5A5A\u6216\u62DB\u52DF\u3002\u540C\u4E00\u4E2A\u6301\u4E45\u4EBA\u7269\uFF0C\u4E0D\u662F\u82F1\u96C4\u3002"
+    Icon: {fileID: 0}
+  InitialLevel: 1
+  MaximumLevel: 5
+  BaseLevelExperience: 30
+  LevelExperienceIncrement: 20
+  Specialty: 1
+  Prerequisites:
+    BuildingRequirements: []
+    TechnologyRequirements: []
+    BuffRequirements: []
+    FeatureRequirements: []
+    QuestRequirements: []
+    ExpeditionRequirements: []
+  Effects:
+    Items: []
+    Buildings: []
+    Soldiers:
+    - Order: 0
+      Level: 0
+      Target: {fileID: 0}
+      Effect: 4
+      Magnitude: 0.1
+    Heroes: []
+    Talents: []
+    Kingdom: []
+    Intelligence: []
+    FlatProduction: []
+  InitialTraits:
+  - {fileID: 11400000, guid: 5c02cf82aefb4b0458802dfe15f91823, type: 2}
+  ConflictingTraits: []
+  RequiredTraits: []
+  Wage:
+    BaseAmount: 2
+    PerLevel: 1
+  SocialTasks:
+  - Order: 3
+    Item: {fileID: 11400000, guid: a761334fe1641a74f9948313fb5ff413, type: 2}
+    Quantity: 10
+    AffectionReward: 30
+  PeriodicIncome:
+    Items: []
+    ScaledItems: []
+    ResearchPoints: []
+    Blueprints: []
+    Buffs: []
+    Features: []
+  JobEffects:
+    Items: []
+    Soldiers: []
+    Heroes: []
+    Kingdom: []

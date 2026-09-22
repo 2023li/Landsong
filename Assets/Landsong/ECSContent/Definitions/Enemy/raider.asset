@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03c0ae3b0a3b47698492f6ce29c88b0d, type: 3}
+  m_Name: raider
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.EnemyDefinitionAsset
+  Metadata:
+    Id: raider
+    Name: "\u88AD\u51FB\u8005"
+    Description: ''
+    Icon: {fileID: 0}
+  ThreatValue: 10
+  Behavior: 4
+  Prefab: {fileID: 8897883104741734442, guid: 824655bfbf8f9e34b992d53c4f3a04e0, type: 3}
+  CombatStats:
+    MaximumHealth: 70
+    Damage: 8
+    AttackRange: 4
+    AttackIntervalSeconds: 1
+    MovementSpeed: 1.8
+    ProjectileSpeed: 9
+  KillRewards:
+    Items:
+    - Order: 0
+      Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+      Quantity: 2
+    Blueprints: []
+    Buffs: []
+    Features: []
+  SpecialDrops: []

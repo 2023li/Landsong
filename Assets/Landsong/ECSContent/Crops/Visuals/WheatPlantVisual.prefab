@@ -1,0 +1,202 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &100000
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 400000}
+  - component: {fileID: 11400000}
+  m_Layer: 0
+  m_Name: WheatPlantVisual
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &400000
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 100000}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 400001}
+  - {fileID: 400002}
+  - {fileID: 400003}
+  - {fileID: 400004}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 100000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0d7ea04e46647ebad2fb100296506c3, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Landsong.BuildingSystem.BuildingCropPlantVisual
+  cropId: crop.wheat
+  growthStages:
+  - startGrowthPercent: 0
+    stageRoot: {fileID: 100001}
+  - startGrowthPercent: 33
+    stageRoot: {fileID: 100002}
+  - startGrowthPercent: 66
+    stageRoot: {fileID: 100003}
+  - startGrowthPercent: 100
+    stageRoot: {fileID: 100004}
+  maximumPlantCount: 35
+  spawnDensityPercent: 100
+--- !u!1001 &100100001
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 400000}
+    m_Modifications:
+    - target: {fileID: 1101390173687332, guid: ca7f16bf3be62a243b83d706562c9a6d, type: 3}
+      propertyPath: m_Name
+      value: Stage_01_Seedling
+      objectReference: {fileID: 0}
+    - target: {fileID: 1101390173687332, guid: ca7f16bf3be62a243b83d706562c9a6d, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4069626525717530, guid: ca7f16bf3be62a243b83d706562c9a6d, type: 3}
+      propertyPath: m_RootOrder
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: ca7f16bf3be62a243b83d706562c9a6d, type: 3}
+--- !u!1 &100001 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1101390173687332, guid: ca7f16bf3be62a243b83d706562c9a6d, type: 3}
+  m_PrefabInstance: {fileID: 100100001}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &400001 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4069626525717530, guid: ca7f16bf3be62a243b83d706562c9a6d, type: 3}
+  m_PrefabInstance: {fileID: 100100001}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &100100002
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 400000}
+    m_Modifications:
+    - target: {fileID: 1014563891101678, guid: 6a2f9d9b8ff20ed45ae53639b8045a04, type: 3}
+      propertyPath: m_Name
+      value: Stage_02_Growing
+      objectReference: {fileID: 0}
+    - target: {fileID: 1014563891101678, guid: 6a2f9d9b8ff20ed45ae53639b8045a04, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4949174365350628, guid: 6a2f9d9b8ff20ed45ae53639b8045a04, type: 3}
+      propertyPath: m_RootOrder
+      value: 1
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 6a2f9d9b8ff20ed45ae53639b8045a04, type: 3}
+--- !u!1 &100002 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1014563891101678, guid: 6a2f9d9b8ff20ed45ae53639b8045a04, type: 3}
+  m_PrefabInstance: {fileID: 100100002}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &400002 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4949174365350628, guid: 6a2f9d9b8ff20ed45ae53639b8045a04, type: 3}
+  m_PrefabInstance: {fileID: 100100002}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &100100003
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 400000}
+    m_Modifications:
+    - target: {fileID: 1341026542079228, guid: 2d8eb1033f0d5f046aa26d05b000f025, type: 3}
+      propertyPath: m_Name
+      value: Stage_03_Heading
+      objectReference: {fileID: 0}
+    - target: {fileID: 1341026542079228, guid: 2d8eb1033f0d5f046aa26d05b000f025, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4494391111039636, guid: 2d8eb1033f0d5f046aa26d05b000f025, type: 3}
+      propertyPath: m_RootOrder
+      value: 2
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 2d8eb1033f0d5f046aa26d05b000f025, type: 3}
+--- !u!1 &100003 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1341026542079228, guid: 2d8eb1033f0d5f046aa26d05b000f025, type: 3}
+  m_PrefabInstance: {fileID: 100100003}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &400003 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4494391111039636, guid: 2d8eb1033f0d5f046aa26d05b000f025, type: 3}
+  m_PrefabInstance: {fileID: 100100003}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &100100004
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 400000}
+    m_Modifications:
+    - target: {fileID: 1678985673880670, guid: 6348e51cddb9c4b4a9b0a5787f6651e4, type: 3}
+      propertyPath: m_Name
+      value: Stage_04_Mature
+      objectReference: {fileID: 0}
+    - target: {fileID: 1678985673880670, guid: 6348e51cddb9c4b4a9b0a5787f6651e4, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4908828511953154, guid: 6348e51cddb9c4b4a9b0a5787f6651e4, type: 3}
+      propertyPath: m_RootOrder
+      value: 3
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 6348e51cddb9c4b4a9b0a5787f6651e4, type: 3}
+--- !u!1 &100004 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1678985673880670, guid: 6348e51cddb9c4b4a9b0a5787f6651e4, type: 3}
+  m_PrefabInstance: {fileID: 100100004}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &400004 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4908828511953154, guid: 6348e51cddb9c4b4a9b0a5787f6651e4, type: 3}
+  m_PrefabInstance: {fileID: 100100004}
+  m_PrefabAsset: {fileID: 0}

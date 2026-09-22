@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03c0ae3b0a3b47698492f6ce29c88b0d, type: 3}
+  m_Name: boss
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.EnemyDefinitionAsset
+  Metadata:
+    Id: boss
+    Name: "\u591C\u5E55\u5DE8\u517D"
+    Description: ''
+    Icon: {fileID: 0}
+  ThreatValue: 160
+  Behavior: 1
+  PreferredTargetCategory: 0
+  Prefab: {fileID: 5481179863400179032, guid: d03e1bc3e237e0f469a6dae612b426df, type: 3}
+  CombatStats:
+    MaximumHealth: 1400
+    Damage: 45
+    AttackRange: 6
+    AttackIntervalSeconds: 1.3
+    MovementSpeed: 1.15
+    ProjectileSpeed: 8
+    Profile:
+      DetectionRadius: 24
+      ChaseRadius: 12
+      ChaseSeconds: 8
+      BodyRadius: 0.8
+      Armor: 5
+      Reduction: 0
+      Penetration: 0
+      BlastRadius: 2.5
+      WarningSeconds: 1.2
+      ProjectileLifetime: 10
+      ProjectileMode: 1
+      Traits: 0
+      BlocksProjectile: 0
+  KillRewards:
+    Items:
+    - Order: 0
+      Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+      Quantity: 100
+    Blueprints: []
+    Buffs: []
+    Features: []
+  SpecialDrops:
+  - Order: 1
+    Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+    Quantity: 20
+    Rarity: 3

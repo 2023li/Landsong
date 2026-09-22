@@ -1,0 +1,11 @@
+{
+  "unit": "meter",
+  "width": 1,
+  "depth": 1,
+  "rise": 1,
+  "upper_local_y": 0.5,
+  "lower_local_y": -0.5,
+  "anchor": "Layer n",
+  "minimum_modules": 3,
+  "minimum_edge_cells": 6
+}

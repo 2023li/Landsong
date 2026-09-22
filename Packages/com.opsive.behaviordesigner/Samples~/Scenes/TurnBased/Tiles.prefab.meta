@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 1e2e7305e466514449e74186e311f43f
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 368344
+  packageName: Behavior Designer Pro 3 - DOTS Powered Behavior Trees
+  packageVersion: 3.3.2
+  assetPath: Packages/com.opsive.behaviordesigner/Samples~/Scenes/TurnBased/Tiles.prefab
+  uploadId: 985370

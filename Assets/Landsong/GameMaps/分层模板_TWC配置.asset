@@ -1,0 +1,263 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-6532358963664325866
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa6d10c4aac2a4440a141c607b715097, type: 3}
+  m_Name: "L0_\u6C34\u57DF"
+  m_EditorClassIdentifier: GiantGrey.TileWorldCreator::GiantGrey.TileWorldCreator.BlueprintLayer
+  random:
+    state: 0
+  guid: b574d2a9-82a0-437c-87ce-f1f74651e99e
+  layerName: "L0_\u6C34\u57DF"
+  icon: {fileID: 0}
+  isEnabled: 1
+  layerColor: {r: 1, g: 1, b: 1, a: 1}
+  previewTexture: {fileID: 0}
+  randomSeedOverride: 0
+  customRandomSeed: 0
+  customSeed: 0
+  defaultLayerHeight: 0
+  lockFromPaint: 0
+  foldoutState: 0
+  tileMapModifiers: []
+  showDebugGrid: 0
+  configuration: {fileID: 11400000}
+  serializedPaintPositions: []
+  serializedWorldPositions: []
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a4266a1de7520464db226ba74040127b, type: 3}
+  m_Name: "\u5206\u5C42\u6A21\u677F_TWC\u914D\u7F6E"
+  m_EditorClassIdentifier: GiantGrey.TileWorldCreator::GiantGrey.TileWorldCreator.Configuration
+  useParallel: 0
+  width: 128
+  height: 128
+  cellSizeOld: 0
+  cellSize: 1
+  lastCellSize: 1
+  mergePreviewTextures: 0
+  clusterCellSize: 5
+  useGlobalRandomSeed: 1
+  globalRandomSeed: 1
+  currentRandomSeed: 0
+  layerChanged: 0
+  showGizmos: 0
+  showPaintGrid: 0
+  gizmoLayer: {fileID: 0}
+  paintLayer: {fileID: 0}
+  brushSize: 0
+  selectedPaintLayerGuid: 
+  tileMapLayers: []
+  blueprintLayerFolders:
+  - folderName: Layer0
+    guid: 329bd761-9798-45b3-b322-b0e608a5699a
+    foldoutState: 0
+    assignedBlueprintLayers:
+    - c22f79f1-1538-4f94-a099-1fbd4a03efec
+    - b574d2a9-82a0-437c-87ce-f1f74651e99e
+    blueprintLayers:
+    - {fileID: 2914391309235639305}
+    - {fileID: -6532358963664325866}
+  buildLayerFolders:
+  - folderName: LayerView_0
+    guid: 3c001011-28c5-4a97-a478-80d719f65042
+    foldoutState: 0
+    buildLayers:
+    - {fileID: 8499169231487333990}
+    - {fileID: 1864526426219163742}
+  selectedTileMapLayerGuid: 
+  random:
+    state: 0
+  mergeTiles: 1
+  shadowCastingMode: 1
+  objectLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  renderingLayer:
+    serializedVersion: 0
+    m_Bits: 4294967295
+  colliderType: 1
+  tileColliderHeight: 0
+  tileColliderExtrusionHeight: 0
+  invertCollisionWalls: 0
+--- !u!114 &1864526426219163742
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf349aeb98a48044286534ac213409e1, type: 3}
+  m_Name: "LV0_\u6C34\u57DF"
+  m_EditorClassIdentifier: GiantGrey.TileWorldCreator::GiantGrey.TileWorldCreator.TilesBuildLayer
+  asset: {fileID: 11400000}
+  random:
+    state: 0
+  isEnabled: 1
+  layerName: "LV0_\u6C34\u57DF"
+  guid: 716347e9-10c6-451b-a114-c183b93eb966
+  assignedBlueprintLayerGuid: b574d2a9-82a0-437c-87ce-f1f74651e99e
+  currentBlueprintLayer: {fileID: 0}
+  foldoutState: 0
+  useMultiLayers: 0
+  masks: []
+  hierarchyLayerID: 
+  lastHierarchyLayerID: 
+  isExecuting: 0
+  configuration: {fileID: 11400000}
+  useDualGrid: 1
+  meshGenerationOverride: 0
+  mergeTiles: 0
+  shadowCastingMode: 0
+  objectLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  renderingLayer:
+    serializedVersion: 0
+    m_Bits: 0
+  colliderType: 0
+  tileColliderHeight: 0
+  tileColliderExtrusionHeight: 0
+  invertCollisionWalls: 0
+  placeOnTop: 0
+  useLowest: 0
+  topOffset: 0
+  placeOnTopExcludedLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  tilePresetsTop:
+  - preset: {fileID: 11400000, guid: 23adbd2b2e1cbad49946e3fc84172549, type: 2}
+    tileHeight: 0
+    weight: 1
+  tilePresetsMiddle: []
+  tilePresetsBottom: []
+  scaleTileToCellSize: 1
+  layerYOffset: 0
+  scaleOffset: {x: 1, y: 1, z: 1}
+  tileLayers:
+  - name: 
+    heightOffset: 0
+    ignoreFillTiles: 0
+    layerOverrides: []
+  - name: 
+    heightOffset: 0
+    ignoreFillTiles: 0
+    layerOverrides: []
+  serializedWorldPositions: []
+  serializedTiles: []
+  allPositions: []
+--- !u!114 &2914391309235639305
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa6d10c4aac2a4440a141c607b715097, type: 3}
+  m_Name: "L0_\u9646\u5730"
+  m_EditorClassIdentifier: GiantGrey.TileWorldCreator::GiantGrey.TileWorldCreator.BlueprintLayer
+  random:
+    state: 0
+  guid: c22f79f1-1538-4f94-a099-1fbd4a03efec
+  layerName: "L0_\u9646\u5730"
+  icon: {fileID: 0}
+  isEnabled: 1
+  layerColor: {r: 1, g: 1, b: 1, a: 1}
+  previewTexture: {fileID: 0}
+  randomSeedOverride: 0
+  customRandomSeed: 0
+  customSeed: 0
+  defaultLayerHeight: 0
+  lockFromPaint: 0
+  foldoutState: 0
+  tileMapModifiers: []
+  showDebugGrid: 0
+  configuration: {fileID: 11400000}
+  serializedPaintPositions: []
+  serializedWorldPositions: []
+--- !u!114 &8499169231487333990
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf349aeb98a48044286534ac213409e1, type: 3}
+  m_Name: "LV0_\u9646\u5730"
+  m_EditorClassIdentifier: GiantGrey.TileWorldCreator::GiantGrey.TileWorldCreator.TilesBuildLayer
+  asset: {fileID: 11400000}
+  random:
+    state: 0
+  isEnabled: 1
+  layerName: "LV0_\u9646\u5730"
+  guid: 8eea63c0-1b2f-47f0-afab-f083c7591f4e
+  assignedBlueprintLayerGuid: c22f79f1-1538-4f94-a099-1fbd4a03efec
+  currentBlueprintLayer: {fileID: 0}
+  foldoutState: 0
+  useMultiLayers: 0
+  masks: []
+  hierarchyLayerID: 
+  lastHierarchyLayerID: 
+  isExecuting: 0
+  configuration: {fileID: 11400000}
+  useDualGrid: 1
+  meshGenerationOverride: 0
+  mergeTiles: 0
+  shadowCastingMode: 0
+  objectLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  renderingLayer:
+    serializedVersion: 0
+    m_Bits: 0
+  colliderType: 0
+  tileColliderHeight: 0
+  tileColliderExtrusionHeight: 0
+  invertCollisionWalls: 0
+  placeOnTop: 0
+  useLowest: 0
+  topOffset: 0
+  placeOnTopExcludedLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  tilePresetsTop:
+  - preset: {fileID: 11400000, guid: 2d25b456cd556424c98c3d434bf61c3f, type: 2}
+    tileHeight: 0
+    weight: 1
+  tilePresetsMiddle: []
+  tilePresetsBottom: []
+  scaleTileToCellSize: 1
+  layerYOffset: 0
+  scaleOffset: {x: 1, y: 1, z: 1}
+  tileLayers:
+  - name: 
+    heightOffset: 0
+    ignoreFillTiles: 0
+    layerOverrides: []
+  - name: 
+    heightOffset: 0
+    ignoreFillTiles: 0
+    layerOverrides: []
+  serializedWorldPositions: []
+  serializedTiles: []
+  allPositions: []

@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7682f86e9fae405ca86d7a66f60f850b, type: 3}
+  m_Name: RoyalTraitDisplayCatalog
+  m_EditorClassIdentifier: Landsong.Content.Runtime::Landsong.Content.RoyalTraitDisplayCatalog
+  Entries:
+  - Id: gene.fate
+    Description: "\u7B2C\u4E5D\u6279\u5360\u4F4D\u57FA\u56E0\uFF0C\u53EF\u8C03\u6574\u3002Flags=1
+      \u53EF\u9057\u4F20\uFF1BChance=\u5355\u4EB2\u9057\u4F20\u7387\uFF1BLevel=\u63ED\u9732\u5E74\u9F84\uFF1BDuration=\u6FC0\u6D3B\u5E74\u9F84\u3002"
+    Icon: {fileID: 0}
+  - Id: gene.long_life
+    Description: "\u7B2C\u4E5D\u6279\u5360\u4F4D\u57FA\u56E0\uFF0C\u53EF\u8C03\u6574\u3002Flags=1
+      \u53EF\u9057\u4F20\uFF1BChance=\u5355\u4EB2\u9057\u4F20\u7387\uFF1BLevel=\u63ED\u9732\u5E74\u9F84\uFF1BDuration=\u6FC0\u6D3B\u5E74\u9F84\u3002"
+    Icon: {fileID: 0}
+  - Id: gene.military
+    Description: "\u5728\u4F4D\u541B\u738B\uFF1A\u5168\u4F53\u58EB\u5175\u653B\u51FB/\u79FB\u52A8\u901F\u5EA6
+      +10%\uFF0C\u4E0D\u5F71\u54CD\u82F1\u96C4\u3002"
+    Icon: {fileID: 0}
+  - Id: gene.agriculture
+    Description: "\u7B2C\u4E5D\u6279\u5360\u4F4D\u57FA\u56E0\uFF0C\u53EF\u8C03\u6574\u3002Flags=1
+      \u53EF\u9057\u4F20\uFF1BChance=\u5355\u4EB2\u9057\u4F20\u7387\uFF1BLevel=\u63ED\u9732\u5E74\u9F84\uFF1BDuration=\u6FC0\u6D3B\u5E74\u9F84\u3002"
+    Icon: {fileID: 0}
+  - Id: gene.scholar
+    Description: "\u7B2C\u4E5D\u6279\u5360\u4F4D\u57FA\u56E0\uFF0C\u53EF\u8C03\u6574\u3002Flags=1
+      \u53EF\u9057\u4F20\uFF1BChance=\u5355\u4EB2\u9057\u4F20\u7387\uFF1BLevel=\u63ED\u9732\u5E74\u9F84\uFF1BDuration=\u6FC0\u6D3B\u5E74\u9F84\u3002"
+    Icon: {fileID: 0}
+  - Id: gene.beauty
+    Description: "\u9752\u5E74\u540E\u53EF\u5728\u5DF2\u6709\u90E8\u4EF6\u4E2D\u5851\u9020\u4E00\u6B21\u5BB9\u8C8C\uFF0C\u4FEE\u6539\u540E\u7684\u57FA\u7840\u989C\u8272\u53C2\u4E0E\u9057\u4F20\u3002"
+    Icon: {fileID: 0}

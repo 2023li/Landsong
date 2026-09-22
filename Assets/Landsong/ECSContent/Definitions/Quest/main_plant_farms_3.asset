@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e493df89b1d4f3394a96d6e5d3619fb, type: 3}
+  m_Name: main_plant_farms_3
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.QuestDefinitionAsset
+  Metadata:
+    Id: main_plant_farms_3
+    Name: "\u64AD\u4E0B\u5E0C\u671B"
+    Description: "\u7A7A\u7F6E\u7684\u7530\u5730\u4E0D\u4F1A\u81EA\u884C\u5E26\u6765\u6536\u6210\u3002\u6253\u5F00\u519C\u7530\u8BE6\u60C5\uFF0C\u4E3A 3 \u5EA7\u519C\u7530\u9009\u62E9\u4F5C\u7269\u5E76\u5B8C\u6210\u64AD\u79CD\u3002"
+    Icon: {fileID: 0}
+  DeadlineTurns: 0
+  Behavior: 1
+  OfferType: 0
+  Prerequisites:
+    BuildingRequirements: []
+    TechnologyRequirements: []
+    BuffRequirements: []
+    FeatureRequirements: []
+    QuestRequirements:
+    - Order: 0
+      Quest: {fileID: 11400000, guid: bb356302abf8f6d41884f1e9ee9aba95, type: 2}
+      Required: 1
+    ExpeditionRequirements: []
+  Rewards:
+    Items:
+    - Order: 1
+      Item: {fileID: 11400000, guid: ae86caa71825ab54d829b6dc712d65a7, type: 2}
+      Quantity: 200
+    - Order: 2
+      Item: {fileID: 11400000, guid: 03e6eefa9ddbcaa4ca3552ff906f195b, type: 2}
+      Quantity: 100
+    Blueprints:
+    - Order: 3
+      Building: {fileID: 11400000, guid: c18eee413b97cad42baa968736fccae8, type: 2}
+      GrantedLevel: 1
+    Buffs: []
+    Features: []
+  FailurePenalties: []
+  Objectives:
+    BuildingObjectives: []
+    PlantedBuildingObjectives:
+    - Order: 4
+      Key: 69dd2ae38a9d40a6b96b1ab09c56fae4
+      Building: {fileID: 11400000, guid: 7df6157a6643e9c41951b0403decdba0, type: 2}
+      Count: 3
+    OwnedItemObjectives: []
+    SubmittedItemObjectives: []
+    TechnologyObjectives: []
+    CameraMoveObjectives: []
+    CameraZoomObjectives: []
+    TurnObjectives: []

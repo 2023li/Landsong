@@ -1,0 +1,104 @@
+{
+  "Reports": [
+    {
+      "File": "regressions.txt",
+      "Source": "D:\\UnityProject\\Landsong\\Library\\LandsongEcs\\regressions.txt",
+      "SHA256": "C967806B03451F44B4FCA05DCF09987FBA9130DF8F834A124846B2FBBE68E6CB",
+      "LastWriteTime": "2026-09-11T23:18:03.6177106+08:00"
+    },
+    {
+      "File": "ui-configuration-verification.txt",
+      "Source": "D:\\UnityProject\\Landsong\\Library\\LandsongEcs\\ui-configuration-verification.txt",
+      "SHA256": "C6C4783762C5CB58BD93D7E09E6409AFED5782B976651799EDDE6FF9C4EFFF72",
+      "LastWriteTime": "2026-09-11T23:17:53.5628085+08:00"
+    },
+    {
+      "File": "architecture-verification.txt",
+      "Source": "D:\\UnityProject\\Landsong\\Library\\LandsongEcs\\architecture-verification.txt",
+      "SHA256": "961E656047811C59FE6B5CEA450B11206034DEA494C663EC8C16881F75E7A943",
+      "LastWriteTime": "2026-09-11T23:18:03.4923175+08:00"
+    },
+    {
+      "File": "persistence-contract-verification.txt",
+      "Source": "D:\\UnityProject\\Landsong\\Library\\LandsongEcs\\persistence-contract-verification.txt",
+      "SHA256": "55829668B27C35987C3211F8679F09AFB4CC609B7286E24B56DC4C2A8335B33B",
+      "LastWriteTime": "2026-09-11T23:17:51.4973557+08:00"
+    },
+    {
+      "File": "archive-application-service-verification.txt",
+      "Source": "D:\\UnityProject\\Landsong\\Library\\LandsongEcs\\archive-application-service-verification.txt",
+      "SHA256": "26B6C7ED56C11290C1AF06AF4B847D161727B6656111346848A2EB1DCF5E7FC5",
+      "LastWriteTime": "2026-09-11T23:17:51.5835055+08:00"
+    },
+    {
+      "File": "ui-framework-verification.txt",
+      "Source": "D:\\UnityProject\\Landsong\\Library\\LandsongEcs\\ui-framework-verification.txt",
+      "SHA256": "27AD8D8A0F8C342C8531FBD5231EDAC178CD190C839ECAEC3B5271AF4E662C33",
+      "LastWriteTime": "2026-09-11T21:16:05.9592394+08:00"
+    },
+    {
+      "File": "content-inspector-gui.txt",
+      "Source": "D:\\UnityProject\\Landsong\\Library\\LandsongEcs\\content-inspector-gui.txt",
+      "SHA256": "2A985DF51649BE64FE96EE0F8845C11F797CEF51863A3731FA6953BE0CAFFC3D",
+      "LastWriteTime": "2026-09-11T21:55:15.0117982+08:00"
+    },
+    {
+      "File": "scene-flow-verification.txt",
+      "Source": "D:\\UnityProject\\Landsong\\Library\\LandsongEcs\\scene-flow-verification.txt",
+      "SHA256": "D4FB5CA5947D533531773EE0034B31B70D91855C77C7079C50257C897F77FA03",
+      "LastWriteTime": "2026-09-11T23:22:50.6049268+08:00"
+    },
+    {
+      "File": "interface-ui-verification.txt",
+      "Source": "D:\\UnityProject\\Landsong\\Library\\LandsongEcs\\interface-ui-verification.txt",
+      "SHA256": "FE82218726447B58553DA2227328B305935D513C426A145A14E56508F4B8E1FA",
+      "LastWriteTime": "2026-09-11T22:42:08.2675012+08:00"
+    },
+    {
+      "File": "hud-panels-verification.txt",
+      "Source": "D:\\UnityProject\\Landsong\\Library\\LandsongEcs\\hud-panels-verification.txt",
+      "SHA256": "C2E3F5E7F80494CAB428040AF32122694BAA8F1316C109A38A535E768A1CDB63",
+      "LastWriteTime": "2026-09-11T23:19:20.4402119+08:00"
+    },
+    {
+      "File": "garrison-ui-verification.txt",
+      "Source": "D:\\UnityProject\\Landsong\\Library\\LandsongEcs\\garrison-ui-verification.txt",
+      "SHA256": "B0B806F5E047138C5FDD6FDCE8A4898D0B10398BA1C4D768048EBCAE9351697B",
+      "LastWriteTime": "2026-09-11T23:20:29.8783583+08:00"
+    }
+  ],
+  "FinalEditorAssemblies": [
+    {
+      "SHA256": "A6C3E8243419FF6BD445175A66D791C6CCAFEA3A13E282B0AEEFA5C549C8B122",
+      "Assembly": "Landsong.ECS.dll",
+      "LastWriteTime": "2026-09-11T21:44:11.6853641+08:00"
+    },
+    {
+      "SHA256": "5A0C4F1054A6466F59D0FFEDAB0C6A254BCC2664F577832C1940ECBD499EE0E3",
+      "Assembly": "Landsong.UI.dll",
+      "LastWriteTime": "2026-09-11T23:13:01.2567866+08:00"
+    },
+    {
+      "SHA256": "A58F72139AC4AF1EEE0368ACE383D22ECEDD5CD628C6FAB797E4EC54114936C5",
+      "Assembly": "Landsong.Application.dll",
+      "LastWriteTime": "2026-09-11T23:13:01.2871812+08:00"
+    },
+    {
+      "SHA256": "EF7299DF866E8B0862A973176B1DCE7F155E7B36E3F8ED54B8F4DDA5EF50D574",
+      "Assembly": "Landsong.ECS.Presentation.dll",
+      "LastWriteTime": "2026-09-11T21:44:11.9024983+08:00"
+    },
+    {
+      "SHA256": "9704977D522A3785621BD76A72734A78D3E4E8A11C22DB13A7E02B9766C68994",
+      "Assembly": "Landsong.Verification.dll",
+      "LastWriteTime": "2026-09-11T23:13:01.6464347+08:00"
+    },
+    {
+      "SHA256": "45E477380360DE2837BBC9FEE022F39C5AE52E6CFD53D21F659BFEA67B142E3A",
+      "Assembly": "Assembly-CSharp-Editor.dll",
+      "LastWriteTime": "2026-09-11T23:16:37.4729488+08:00"
+    }
+  ],
+  "Scope": "Editor verification only; builds and standalone Player excluded by user request.",
+  "Archived": "2026-09-11T23:24:09.3710115+08:00"
+}

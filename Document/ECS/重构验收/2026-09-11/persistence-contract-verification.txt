@@ -1,0 +1,108 @@
+Started: 2026-09-11T23:17:50.5559078+08:00
+PASS Explicit v24 schema covers every registered public field
+PASS Partial harvest rejected through real command context 0
+PASS Rejected partial output leaves no phantom stock, history or journal 0
+PASS Rejected harvest retains all uses 0
+PASS Partial harvest rejected through real command context 1
+PASS Rejected partial output leaves no phantom stock, history or journal 1
+PASS Rejected harvest retains all uses 1
+PASS History category comes from event data, independent of words and deduplication
+PASS Realtime and durable history share producer category
+PASS New snapshots use explicit v24: Map_Test01
+PASS Explicit protocol round trips state exactly: Map_Test01
+PASS Gameplay setting participates in signature: PeacefulSeconds
+PASS Changed gameplay setting rejects v24 before restore: PeacefulSeconds
+PASS Gameplay setting participates in signature: BattleSeconds
+PASS Changed gameplay setting rejects v24 before restore: BattleSeconds
+PASS Gameplay setting participates in signature: DeployInterval
+PASS Changed gameplay setting rejects v24 before restore: DeployInterval
+PASS Gameplay setting participates in signature: RetreatSeconds
+PASS Changed gameplay setting rejects v24 before restore: RetreatSeconds
+PASS Gameplay setting participates in signature: InvasionChance
+PASS Changed gameplay setting rejects v24 before restore: InvasionChance
+PASS Gameplay setting participates in signature: StrengthRatio
+PASS Changed gameplay setting rejects v24 before restore: StrengthRatio
+PASS Gameplay setting participates in signature: RetryStep
+PASS Changed gameplay setting rejects v24 before restore: RetryStep
+PASS Gameplay setting participates in signature: RetryCap
+PASS Changed gameplay setting rejects v24 before restore: RetryCap
+PASS Gameplay setting participates in signature: FirstInvasion
+PASS Changed gameplay setting rejects v24 before restore: FirstInvasion
+PASS Gameplay setting participates in signature: FirstBoss
+PASS Changed gameplay setting rejects v24 before restore: FirstBoss
+PASS Gameplay setting participates in signature: BossInterval
+PASS Changed gameplay setting rejects v24 before restore: BossInterval
+PASS Gameplay setting participates in signature: ThreatPerTurn
+PASS Changed gameplay setting rejects v24 before restore: ThreatPerTurn
+PASS Gameplay setting participates in signature: Gold
+PASS Changed gameplay setting rejects v24 before restore: Gold
+PASS Gameplay setting participates in signature: LowIntel
+PASS Changed gameplay setting rejects v24 before restore: LowIntel
+PASS Gameplay setting participates in signature: MediumIntel
+PASS Changed gameplay setting rejects v24 before restore: MediumIntel
+PASS Gameplay setting participates in signature: HighIntel
+PASS Changed gameplay setting rejects v24 before restore: HighIntel
+PASS Gameplay setting participates in signature: MediumIntelLead
+PASS Changed gameplay setting rejects v24 before restore: MediumIntelLead
+PASS Gameplay setting participates in signature: HighIntelLead
+PASS Changed gameplay setting rejects v24 before restore: HighIntelLead
+PASS Grid scale participates in signature
+PASS Grid origin participates in signature
+PASS Rejected configuration changes leave the live state intact
+PASS Unregistered mutable root field fails before staging or hiding any entity
+PASS Frozen archive bytes retain original pre-refactor checksum: Map_Test01
+PASS Original v23/v3 golden envelope reads without rewriting: Map_Test01
+PASS Original golden restores session and ownership: Map_Test01
+PASS Frozen legacy field mapper preserves original v23 bytes: Map_Test01
+PASS Old golden upgrades to v24 and restores without state loss: Map_Test01
+PASS Explicit v22 branch remains supported: Map_Test01
+PASS New snapshots use explicit v24: Map_Test2
+PASS Explicit protocol round trips state exactly: Map_Test2
+PASS Gameplay setting participates in signature: PeacefulSeconds
+PASS Changed gameplay setting rejects v24 before restore: PeacefulSeconds
+PASS Gameplay setting participates in signature: BattleSeconds
+PASS Changed gameplay setting rejects v24 before restore: BattleSeconds
+PASS Gameplay setting participates in signature: DeployInterval
+PASS Changed gameplay setting rejects v24 before restore: DeployInterval
+PASS Gameplay setting participates in signature: RetreatSeconds
+PASS Changed gameplay setting rejects v24 before restore: RetreatSeconds
+PASS Gameplay setting participates in signature: InvasionChance
+PASS Changed gameplay setting rejects v24 before restore: InvasionChance
+PASS Gameplay setting participates in signature: StrengthRatio
+PASS Changed gameplay setting rejects v24 before restore: StrengthRatio
+PASS Gameplay setting participates in signature: RetryStep
+PASS Changed gameplay setting rejects v24 before restore: RetryStep
+PASS Gameplay setting participates in signature: RetryCap
+PASS Changed gameplay setting rejects v24 before restore: RetryCap
+PASS Gameplay setting participates in signature: FirstInvasion
+PASS Changed gameplay setting rejects v24 before restore: FirstInvasion
+PASS Gameplay setting participates in signature: FirstBoss
+PASS Changed gameplay setting rejects v24 before restore: FirstBoss
+PASS Gameplay setting participates in signature: BossInterval
+PASS Changed gameplay setting rejects v24 before restore: BossInterval
+PASS Gameplay setting participates in signature: ThreatPerTurn
+PASS Changed gameplay setting rejects v24 before restore: ThreatPerTurn
+PASS Gameplay setting participates in signature: Gold
+PASS Changed gameplay setting rejects v24 before restore: Gold
+PASS Gameplay setting participates in signature: LowIntel
+PASS Changed gameplay setting rejects v24 before restore: LowIntel
+PASS Gameplay setting participates in signature: MediumIntel
+PASS Changed gameplay setting rejects v24 before restore: MediumIntel
+PASS Gameplay setting participates in signature: HighIntel
+PASS Changed gameplay setting rejects v24 before restore: HighIntel
+PASS Gameplay setting participates in signature: MediumIntelLead
+PASS Changed gameplay setting rejects v24 before restore: MediumIntelLead
+PASS Gameplay setting participates in signature: HighIntelLead
+PASS Changed gameplay setting rejects v24 before restore: HighIntelLead
+PASS Grid scale participates in signature
+PASS Grid origin participates in signature
+PASS Rejected configuration changes leave the live state intact
+PASS Unregistered mutable root field fails before staging or hiding any entity
+PASS Frozen archive bytes retain original pre-refactor checksum: Map_Test2
+PASS Original v23/v3 golden envelope reads without rewriting: Map_Test2
+PASS Original golden restores session and ownership: Map_Test2
+PASS Frozen legacy field mapper preserves original v23 bytes: Map_Test2
+PASS Old golden upgrades to v24 and restores without state loss: Map_Test2
+PASS Explicit v22 branch remains supported: Map_Test2
+Completed: 2026-09-11T23:17:51.4973557+08:00
+Assertions: 105

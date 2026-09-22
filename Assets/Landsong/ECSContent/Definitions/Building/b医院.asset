@@ -1,0 +1,344 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf797179052a4f4da6a1fd75e73c6289, type: 3}
+  m_Name: "b\u533B\u9662"
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.BuildingDefinitionAsset
+  Metadata:
+    Id: "b\u533B\u9662"
+    Name: "\u533B\u9662"
+    Description: "\u533B\u9662\u6309\u7B49\u7EA7\u548C\u5F53\u524D\u5DE5\u4EBA\u6570\u6269\u5927\u533B\u7597\u8303\u56F4\u4E0E\u5F3A\u5EA6\uFF1B\u6B63\u5E38\u7EF4\u62A4\u548C\u8DB3\u591F\u5DE5\u4EBA\u8FD8\u80FD\u79EF\u7D2F\u8FD0\u8425\u7ECF\u9A8C\u7528\u4E8E\u5347\u7EA7\u3002"
+    Icon: {fileID: 0}
+  LimitGroup: {fileID: 11400000, guid: 07cf061d2f41e7d418e00690641a4e4c, type: 2}
+  MaximumLevel: 3
+  ConstructionTurns: 2
+  ResourceConnectionActionPower: 100
+  MaximumCount: 0
+  Footprint: {x: 2, y: 2}
+  MaximumDurability: 100
+  MovementCost: 0
+  PlacementAndVisuals:
+    Category: 33
+    SpawnExclusionPadding: 6
+    MenuOrder: 35
+    ProviderPriority: 0
+    CanMove: 1
+    CanRotate: 1
+    MoveMaterialRatio: 0.3
+    MoveExperienceRatio: 0.3
+    RuinMovementCost: 4
+    DefaultSkin:
+  Capabilities:
+    Construction:
+      Enabled: 1
+      PlacementCosts:
+      - Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+        Quantity: 20
+      StageCosts:
+      - Stage: 1
+        Item: {fileID: 11400000, guid: a761334fe1641a74f9948313fb5ff413, type: 2}
+        Quantity: 10
+      - Stage: 2
+        Item: {fileID: 11400000, guid: a927377c37e532b49af819fa89b72369, type: 2}
+        Quantity: 10
+      StageOutputs: []
+    Upgrade:
+      Enabled: 1
+      Costs:
+      - TargetLevel: 2
+        Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+        Quantity: 300
+      - TargetLevel: 3
+        Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+        Quantity: 1000
+      Workers: []
+      Residents: []
+      MaintenanceRequirements: []
+      Experience:
+      - Level: 1
+        ExperiencePerTurn: 1
+        UpgradeExperience: 30
+        RequiredWorkers: 3
+      - Level: 2
+        ExperiencePerTurn: 1
+        UpgradeExperience: 100
+        RequiredWorkers: 8
+      - Level: 3
+        ExperiencePerTurn: 0
+        UpgradeExperience: 0
+        RequiredWorkers: 0
+    Maintenance:
+      Enabled: 1
+      RepairTurns: 0
+      Costs:
+      - Level: 1
+        Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+        Quantity: 1
+      - Level: 2
+        Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+        Quantity: 3
+      - Level: 3
+        Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+        Quantity: 6
+      Repairs: []
+    Production:
+      Enabled: 0
+      Inputs: []
+      Cycles: []
+      ProcessingTiers: []
+      Outputs: []
+      RareOutputs: []
+    Quests:
+      Enabled: 0
+      InvitationCosts: []
+      Capacity: []
+      Invitations: []
+    Placement:
+      AllowedTerrains: 1
+      ExcludedTerrains: 0
+    Connection:
+      Enabled: 0
+      Rise: 0
+      Bidirectional: 1
+      Clearance: 1.5
+      DamagedCost: 2
+    Storage:
+      Enabled: 0
+      Providers: []
+      Warehouses: []
+      Conditions: []
+    Workforce:
+      Enabled: 1
+      Levels:
+      - Level: 1
+        Currency: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+        Capacity: 4
+        InitialWorkers: 0
+        InitialSubsidy: 0
+        BaseAttraction: 55
+        RecruitmentCost: 10
+      - Level: 2
+        Currency: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+        Capacity: 8
+        InitialWorkers: 0
+        InitialSubsidy: 0
+        BaseAttraction: 55
+        RecruitmentCost: 10
+      - Level: 3
+        Currency: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+        Capacity: 16
+        InitialWorkers: 0
+        InitialSubsidy: 0
+        BaseAttraction: 55
+        RecruitmentCost: 10
+      EfficiencyTiers:
+      - Level: 1
+        MinimumWorkers: 0
+        MaximumWorkers: 0
+      - Level: 1
+        MinimumWorkers: 1
+        MaximumWorkers: 1
+      - Level: 1
+        MinimumWorkers: 2
+        MaximumWorkers: 2
+      - Level: 1
+        MinimumWorkers: 3
+        MaximumWorkers: 3
+      - Level: 1
+        MinimumWorkers: 4
+        MaximumWorkers: 4
+      - Level: 2
+        MinimumWorkers: 0
+        MaximumWorkers: 0
+      - Level: 2
+        MinimumWorkers: 1
+        MaximumWorkers: 1
+      - Level: 2
+        MinimumWorkers: 2
+        MaximumWorkers: 2
+      - Level: 2
+        MinimumWorkers: 3
+        MaximumWorkers: 3
+      - Level: 2
+        MinimumWorkers: 4
+        MaximumWorkers: 4
+      - Level: 2
+        MinimumWorkers: 5
+        MaximumWorkers: 5
+      - Level: 2
+        MinimumWorkers: 6
+        MaximumWorkers: 6
+      - Level: 2
+        MinimumWorkers: 7
+        MaximumWorkers: 7
+      - Level: 2
+        MinimumWorkers: 8
+        MaximumWorkers: 8
+      - Level: 3
+        MinimumWorkers: 0
+        MaximumWorkers: 0
+      - Level: 3
+        MinimumWorkers: 1
+        MaximumWorkers: 1
+      - Level: 3
+        MinimumWorkers: 2
+        MaximumWorkers: 2
+      - Level: 3
+        MinimumWorkers: 3
+        MaximumWorkers: 3
+      - Level: 3
+        MinimumWorkers: 4
+        MaximumWorkers: 4
+      - Level: 3
+        MinimumWorkers: 5
+        MaximumWorkers: 5
+      - Level: 3
+        MinimumWorkers: 6
+        MaximumWorkers: 6
+      - Level: 3
+        MinimumWorkers: 7
+        MaximumWorkers: 7
+      - Level: 3
+        MinimumWorkers: 8
+        MaximumWorkers: 8
+      - Level: 3
+        MinimumWorkers: 9
+        MaximumWorkers: 9
+      - Level: 3
+        MinimumWorkers: 10
+        MaximumWorkers: 10
+      - Level: 3
+        MinimumWorkers: 11
+        MaximumWorkers: 11
+      - Level: 3
+        MinimumWorkers: 12
+        MaximumWorkers: 12
+      - Level: 3
+        MinimumWorkers: 13
+        MaximumWorkers: 13
+      - Level: 3
+        MinimumWorkers: 14
+        MaximumWorkers: 14
+      - Level: 3
+        MinimumWorkers: 15
+        MaximumWorkers: 15
+      - Level: 3
+        MinimumWorkers: 16
+        MaximumWorkers: 16
+      Attraction: []
+    Housing:
+      Enabled: 0
+      Population: []
+      Residences: []
+      Food: []
+      Taxes: []
+      Environment: []
+    Research:
+      Enabled: 0
+      Levels: []
+    Farming:
+      Enabled: 0
+      Crops: []
+    Gathering:
+      Enabled: 0
+      Levels: []
+      Rewards: []
+    Garrison:
+      Enabled: 0
+      RecruitmentLimitPerTurn: 0
+      Levels: []
+      InitialUnits: []
+    Sanctum:
+      Enabled: 0
+      Levels: []
+    Market:
+      Enabled: 0
+      Levels: []
+    Effects:
+      Enabled: 1
+      Spatial:
+      - Level: 1
+        Building: {fileID: 0}
+        Magnitude: 1
+        Type: 30
+        RequiredWorkers: 2
+        Radius: 5
+        Stacking: 20
+        Group: medical.hospital.lv1.2_workers
+      - Level: 1
+        Building: {fileID: 0}
+        Magnitude: 1
+        Type: 30
+        RequiredWorkers: 4
+        Radius: 8
+        Stacking: 20
+        Group: medical.hospital.lv1.4_workers
+      - Level: 2
+        Building: {fileID: 0}
+        Magnitude: 2
+        Type: 30
+        RequiredWorkers: 4
+        Radius: 8
+        Stacking: 20
+        Group: medical.hospital.lv2.4_workers
+      - Level: 2
+        Building: {fileID: 0}
+        Magnitude: 2
+        Type: 30
+        RequiredWorkers: 8
+        Radius: 12
+        Stacking: 20
+        Group: medical.hospital.lv2.8_workers
+      - Level: 3
+        Building: {fileID: 0}
+        Magnitude: 3
+        Type: 30
+        RequiredWorkers: 8
+        Radius: 12
+        Stacking: 20
+        Group: medical.hospital.lv3.8_workers
+      - Level: 3
+        Building: {fileID: 0}
+        Magnitude: 3
+        Type: 30
+        RequiredWorkers: 16
+        Radius: 18
+        Stacking: 20
+        Group: medical.hospital.lv3.16_workers
+    Defence:
+      Enabled: 0
+      Intelligence: []
+      Bells: []
+    Expeditions:
+      Enabled: 0
+      Levels: []
+  Prefab: {fileID: 6855816879826162412, guid: 48362477d46c74f43b4dff5a772c8384, type: 3}
+  DefenseStats:
+    MaximumHealth: 100
+    Damage: 10
+    AttackRange: 1.4
+    AttackIntervalSeconds: 1
+    MovementSpeed: 0
+    ProjectileSpeed: 10
+    Profile:
+      DetectionRadius: 24
+      ChaseRadius: 12
+      ChaseSeconds: 8
+      BodyRadius: 0.35
+      Armor: 0
+      Reduction: 0
+      Penetration: 0
+      BlastRadius: 0
+      WarningSeconds: 0
+      ProjectileLifetime: 10
+      ProjectileMode: 0
+      Traits: 0
+      BlocksProjectile: 0

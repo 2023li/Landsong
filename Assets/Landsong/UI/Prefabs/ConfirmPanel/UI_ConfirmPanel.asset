@@ -1,0 +1,15 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ca1182e53916ce46b3f34aff73de40c, type: 3}
+  m_Name: UI_ConfirmPanel
+  m_EditorClassIdentifier: Moyo.Runtime::Moyo.Unity.UIPanelAsset
+  prefabRoot: {fileID: 5445523407726652399, guid: 605134dbb3e470740904d950a2b7bc7f, type: 3}

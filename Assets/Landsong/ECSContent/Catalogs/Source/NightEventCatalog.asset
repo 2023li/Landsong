@@ -1,0 +1,149 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f7ea847e6a0e421ab3d40c98be2dee1b, type: 3}
+  m_Name: NightEventCatalog
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.NightEventCatalogAsset
+  Events:
+  - Id: night.patrol
+    FollowUp: 
+    Kind: 0
+    Priority: 0
+    MinTurn: 1
+    MaxTurn: 0
+    Interval: 0
+    Cooldown: 0
+    WaveCount: 3
+    ReturnDelay: 5
+    Weight: 1
+    BudgetScale: 1
+    Once: 0
+    ReturnOnly: 0
+    Forced: 0
+    WaveTimes: []
+    Enemies: []
+    Conditions:
+      MinimumTurn: 0
+      Buildings: []
+      Items: []
+      Technologies: []
+      Completions:
+        BuildingRequirements: []
+        TechnologyRequirements: []
+        BuffRequirements: []
+        FeatureRequirements: []
+        QuestRequirements: []
+        ExpeditionRequirements: []
+  - Id: night.raid
+    FollowUp: 
+    Kind: 1
+    Priority: 0
+    MinTurn: 1
+    MaxTurn: 0
+    Interval: 0
+    Cooldown: 0
+    WaveCount: 3
+    ReturnDelay: 5
+    Weight: 1
+    BudgetScale: 1
+    Once: 0
+    ReturnOnly: 0
+    Forced: 0
+    WaveTimes: []
+    Enemies:
+    - Enemy: {fileID: 11400000, guid: 513a727933addac4ebc4a38fcbea11bb, type: 2}
+      Weight: 1
+    - Enemy: {fileID: 11400000, guid: 4418dcca54a356049be1a915d4275c1b, type: 2}
+      Weight: 1
+    - Enemy: {fileID: 11400000, guid: 93edf1cdb8af93643a896b73ed774ba3, type: 2}
+      Weight: 1
+    Conditions:
+      MinimumTurn: 0
+      Buildings: []
+      Items: []
+      Technologies: []
+      Completions:
+        BuildingRequirements: []
+        TechnologyRequirements: []
+        BuffRequirements: []
+        FeatureRequirements: []
+        QuestRequirements: []
+        ExpeditionRequirements: []
+  - Id: night.boss
+    FollowUp: night.boss.return
+    Kind: 2
+    Priority: 10
+    MinTurn: 1
+    MaxTurn: 0
+    Interval: 0
+    Cooldown: 0
+    WaveCount: 3
+    ReturnDelay: 5
+    Weight: 1
+    BudgetScale: 1
+    Once: 0
+    ReturnOnly: 0
+    Forced: 0
+    WaveTimes: []
+    Enemies:
+    - Enemy: {fileID: 11400000, guid: 513a727933addac4ebc4a38fcbea11bb, type: 2}
+      Weight: 1
+    - Enemy: {fileID: 11400000, guid: e3fb84521f4c1da43af7c0d4a46f1f27, type: 2}
+      Weight: 1
+    - Enemy: {fileID: 11400000, guid: 4418dcca54a356049be1a915d4275c1b, type: 2}
+      Weight: 1
+    Conditions:
+      MinimumTurn: 0
+      Buildings: []
+      Items: []
+      Technologies: []
+      Completions:
+        BuildingRequirements: []
+        TechnologyRequirements: []
+        BuffRequirements: []
+        FeatureRequirements: []
+        QuestRequirements: []
+        ExpeditionRequirements: []
+  - Id: night.boss.return
+    FollowUp: night.boss.return
+    Kind: 2
+    Priority: 20
+    MinTurn: 1
+    MaxTurn: 0
+    Interval: 0
+    Cooldown: 0
+    WaveCount: 3
+    ReturnDelay: 5
+    Weight: 1
+    BudgetScale: 1
+    Once: 0
+    ReturnOnly: 1
+    Forced: 0
+    WaveTimes: []
+    Enemies:
+    - Enemy: {fileID: 11400000, guid: 513a727933addac4ebc4a38fcbea11bb, type: 2}
+      Weight: 1
+    - Enemy: {fileID: 11400000, guid: e3fb84521f4c1da43af7c0d4a46f1f27, type: 2}
+      Weight: 1
+    - Enemy: {fileID: 11400000, guid: 4418dcca54a356049be1a915d4275c1b, type: 2}
+      Weight: 1
+    Conditions:
+      MinimumTurn: 0
+      Buildings: []
+      Items: []
+      Technologies: []
+      Completions:
+        BuildingRequirements: []
+        TechnologyRequirements: []
+        BuffRequirements: []
+        FeatureRequirements: []
+        QuestRequirements: []
+        ExpeditionRequirements: []

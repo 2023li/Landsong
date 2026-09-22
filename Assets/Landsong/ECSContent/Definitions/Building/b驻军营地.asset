@@ -1,0 +1,156 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf797179052a4f4da6a1fd75e73c6289, type: 3}
+  m_Name: "b\u9A7B\u519B\u8425\u5730"
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.BuildingDefinitionAsset
+  Metadata:
+    Id: "b\u9A7B\u519B\u8425\u5730"
+    Name: "\u9A7B\u519B\u8425\u5730"
+    Description: "\u62DB\u52DF\u5E76\u9A7B\u624E\u58EB\u5175\uFF1B\u6BCF\u4E2A\u591C\u665A\u5206\u6279\u81EA\u52A8\u51FA\u52E4\u3002"
+    Icon: {fileID: 0}
+  LimitGroup: {fileID: 11400000, guid: 509c9fa73a1eab846a67009953637a45, type: 2}
+  MaximumLevel: 1
+  ConstructionTurns: 2
+  ResourceConnectionActionPower: 100
+  MaximumCount: 0
+  Footprint: {x: 3, y: 3}
+  MaximumDurability: 450
+  MovementCost: 0
+  PlacementAndVisuals:
+    Category: 64
+    SpawnExclusionPadding: 6
+    MenuOrder: 500
+    ProviderPriority: 0
+    CanMove: 1
+    CanRotate: 1
+    MoveMaterialRatio: 0.3
+    MoveExperienceRatio: 0.3
+    RuinMovementCost: 4
+    DefaultSkin:
+  Capabilities:
+    Construction:
+      Enabled: 1
+      PlacementCosts: []
+      StageCosts:
+      - Stage: 1
+        Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+        Quantity: 75
+      - Stage: 2
+        Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+        Quantity: 75
+      StageOutputs: []
+    Upgrade:
+      Enabled: 0
+      Costs: []
+      Workers: []
+      Residents: []
+      MaintenanceRequirements: []
+      Experience: []
+    Maintenance:
+      Enabled: 0
+      RepairTurns: 0
+      Costs: []
+      Repairs: []
+    Production:
+      Enabled: 0
+      Inputs: []
+      Cycles: []
+      ProcessingTiers: []
+      Outputs: []
+      RareOutputs: []
+    Quests:
+      Enabled: 0
+      InvitationCosts: []
+      Capacity: []
+      Invitations: []
+    Placement:
+      AllowedTerrains: 1
+      ExcludedTerrains: 0
+    Connection:
+      Enabled: 0
+      Rise: 0
+      Bidirectional: 1
+      Clearance: 1.5
+      DamagedCost: 2
+    Storage:
+      Enabled: 0
+      Providers: []
+      Warehouses: []
+      Conditions: []
+    Workforce:
+      Enabled: 0
+      Levels: []
+      EfficiencyTiers: []
+      Attraction: []
+    Housing:
+      Enabled: 0
+      Population: []
+      Residences: []
+      Food: []
+      Taxes: []
+      Environment: []
+    Research:
+      Enabled: 0
+      Levels: []
+    Farming:
+      Enabled: 0
+      Crops: []
+    Gathering:
+      Enabled: 0
+      Levels: []
+      Rewards: []
+    Garrison:
+      Enabled: 1
+      RecruitmentLimitPerTurn: 0
+      Levels:
+      - Level: 1
+        Capacity: 8
+        DeploymentBatchSize: 2
+      InitialUnits: []
+    Sanctum:
+      Enabled: 0
+      Levels: []
+    Market:
+      Enabled: 0
+      Levels: []
+    Effects:
+      Enabled: 0
+      Spatial: []
+    Defence:
+      Enabled: 0
+      Intelligence: []
+      Bells: []
+    Expeditions:
+      Enabled: 0
+      Levels: []
+  Prefab: {fileID: 4374973691801598120, guid: cb65f13e7bcbc8d4d951e38fc4c2892f, type: 3}
+  DefenseStats:
+    MaximumHealth: 450
+    Damage: 10
+    AttackRange: 1.4
+    AttackIntervalSeconds: 1
+    MovementSpeed: 0
+    ProjectileSpeed: 10
+    Profile:
+      DetectionRadius: 24
+      ChaseRadius: 12
+      ChaseSeconds: 8
+      BodyRadius: 0.35
+      Armor: 0
+      Reduction: 0
+      Penetration: 0
+      BlastRadius: 0
+      WarningSeconds: 0
+      ProjectileLifetime: 10
+      ProjectileMode: 0
+      Traits: 0
+      BlocksProjectile: 0

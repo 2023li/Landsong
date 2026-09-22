@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Name: ExpeditionCatalog
+  m_Script: {fileID: 11500000, guid: 6b6dc082fcaa47ceab5b3c000faa828e, type: 3}
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.ExpeditionCatalogAsset
+  Definitions:
+  - {fileID: 11400000, guid: 0dce060d1d3dc8b42bf3d56e7d769f06, type: 2}
+  - {fileID: 11400000, guid: 8fdf929882f60ec4b9b269d49ec75651, type: 2}

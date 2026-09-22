@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: ab691bb08e1509a48a13742462ca06bd
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 368344
+  packageName: Behavior Designer Pro 3 - DOTS Powered Behavior Trees
+  packageVersion: 3.3.2
+  assetPath: Packages/com.opsive.behaviordesigner/Samples~/Scenes/PersistentScenesA.unity
+  uploadId: 985370

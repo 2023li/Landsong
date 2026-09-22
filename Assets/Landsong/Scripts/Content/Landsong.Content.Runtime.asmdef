@@ -1,0 +1,6 @@
+{
+  "name": "Landsong.Content.Runtime",
+  "rootNamespace": "Landsong.Content",
+  "references": ["Landsong.ECS", "Unity.Entities", "Unity.Collections", "Unity.Mathematics"],
+  "autoReferenced": true
+}

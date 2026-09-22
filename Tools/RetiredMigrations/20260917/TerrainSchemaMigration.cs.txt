@@ -1,0 +1,127 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using Landsong.ECS.Authoring;
+using Landsong.GridSystem;
+using UnityEditor;
+using UnityEngine;
+using Landsong.ECS;
+
+namespace Landsong.EditorTools
+{
+    public static class TerrainSchemaMigration
+    {
+        public const string SnapshotPath="Library/LandsongEcs/terrain-enum-before.json";
+        [Serializable] public sealed class Entry { public string Kind,Path,Json; }
+        [Serializable] public sealed class Snapshot { public string Backup;public List<Entry> Entries=new List<Entry>(); }
+        [Serializable] public sealed class Envelope { public OldData MonoBehaviour; }
+        [Serializable] public sealed class OldData
+        {
+            public bool useLayerBlueprintRules;
+            public List<OldRule> blueprintRules;
+            public List<OldCell> cells;
+            public CellSource[] Cells;
+            public OldDefinition Data;
+        }
+        [Serializable] public sealed class OldRule { public string BlueprintLayerName,Terrain; public BlueprintLogicKind Kind;public bool Buildable,Traversable; }
+        [Serializable] public sealed class OldCell { public GridPosition position;public bool buildable,traversable,edgeZone; public int elevationLevel,surfaceLayer;public string primaryTerrainKey;public string[] overlayTerrainKeys; }
+        [Serializable] public sealed class OldDefinition { public OldModules Modules; }
+        [Serializable] public sealed class OldModules { public OldPlacement Placement; }
+        [Serializable] public sealed class OldPlacement { public bool Enabled;public OldTerrain[] RequiredTerrains,AlternativeTerrains; }
+        [Serializable] public sealed class OldTerrain { public string Terrain; }
+        [Serializable] public sealed class RulePayload { public List<BlueprintTerrainRule> blueprintRules;public TerrainOverlapRules overlapRules; }
+        [Serializable] public sealed class CellPayload { public List<GridMapCellRecord> cells; }
+        const string CompletedPath="Library/LandsongEcs/terrain-enum-migrated.txt";
+        [MenuItem("Landsong/地图/迁移旧地形到枚举（一次性）")]
+        static void Menu()=>Debug.Log(Run());
+        public static string Run()
+        {
+            if(File.Exists(CompletedPath))return File.ReadAllText(CompletedPath);
+            var snapshot=JsonUtility.FromJson<Snapshot>(File.ReadAllText(SnapshotPath));
+            var order=LayerTerrainSetup.EnsureOverlapDefaults();order.Compile();
+            // Validate the complete snapshot before modifying any asset.
+            foreach(var entry in snapshot.Entries)
+            {
+                var old=JsonUtility.FromJson<Envelope>(entry.Json).MonoBehaviour;
+                if(entry.Kind=="GameDefinitionAsset")Allowed(old.Data.Modules.Placement);
+                if(entry.Kind=="MapAsset")foreach(var cell in old.Cells??Array.Empty<CellSource>())ConvertMask(cell.Terrain);
+                if(entry.Kind=="GridMapDefinition")foreach(var cell in old.cells)TerrainTypes.ResolveLegacy(cell.primaryTerrainKey,cell.overlayTerrainKeys);
+                foreach(var rule in old.blueprintRules??new List<OldRule>())if(rule.Kind==BlueprintLogicKind.Terrain)TerrainTypes.ParseLegacy(rule.Terrain);
+                if(AssetDatabase.LoadMainAssetAtPath(entry.Path)==null)throw new InvalidOperationException("迁移资产丢失："+entry.Path);
+            }
+            int buildings=0,cells=0;
+            foreach(var entry in snapshot.Entries)
+            {
+                var old=JsonUtility.FromJson<Envelope>(entry.Json).MonoBehaviour;
+                var asset=AssetDatabase.LoadMainAssetAtPath(entry.Path);
+                if(asset is GameDefinitionAsset definition)
+                {
+                    definition.Data.Modules.Placement.AllowedTerrains=Allowed(old.Data.Modules.Placement);
+                    definition.Data.Modules.Placement.ExcludedTerrains=TerrainType.None;
+                    if(definition.Data.Id=="b采石场")definition.Data.Description=definition.Data.Description.Replace("陆地石矿","石地");
+                    buildings++;
+                }
+                else if(asset is MapTerrainRules || asset is TileWorldCreatorMapBakeProfile)
+                {
+                    var payload=new RulePayload{overlapRules=order,blueprintRules=(old.blueprintRules??new List<OldRule>()).Select(r=>new BlueprintTerrainRule{
+                        BlueprintLayerName=r.BlueprintLayerName,Kind=r.Kind,Buildable=r.Buildable,Traversable=r.Traversable,
+                        Terrain=r.Kind==BlueprintLogicKind.Terrain?TerrainTypes.ParseLegacy(r.Terrain):TerrainType.None}).ToList()};
+                    if(old.useLayerBlueprintRules)
+                        foreach(var terrain in new[]{TerrainType.石地,TerrainType.泥地})
+                            if(!payload.blueprintRules.Any(r=>r.BlueprintLayerName=="L0_"+terrain))
+                                payload.blueprintRules.Add(new BlueprintTerrainRule{BlueprintLayerName="L0_"+terrain,Terrain=terrain});
+                    if(old.useLayerBlueprintRules)payload.blueprintRules=SharedBlueprintRulesMigration.Collapse(payload.blueprintRules);
+                    JsonUtility.FromJsonOverwrite(JsonUtility.ToJson(payload),asset);
+                }
+                else if(asset is GridMapDefinition grid)
+                {
+                    var payload=new CellPayload{cells=old.cells.Select(c=>new GridMapCellRecord(c.position,c.buildable,c.traversable,c.elevationLevel,c.surfaceLayer,
+                        TerrainTypes.ResolveLegacy(c.primaryTerrainKey,c.overlayTerrainKeys),c.edgeZone)).ToList()};
+                    JsonUtility.FromJsonOverwrite(JsonUtility.ToJson(payload),grid);cells+=payload.cells.Count;
+                }
+                else if(asset is MapAsset map)
+                {
+                    map.Cells=old.Cells;
+                    for(int i=0;i<map.Cells.Length;i++)map.Cells[i].Terrain=ConvertMask(map.Cells[i].Terrain);
+                }
+                EditorUtility.SetDirty(asset);AssetDatabase.SaveAssetIfDirty(asset);
+            }
+            var message=$"Migrated {buildings} buildings, {cells} logical cells, {snapshot.Entries.Count} assets. Backup: {snapshot.Backup}";
+            File.WriteAllText(CompletedPath,message);return message;
+        }
+        static TerrainType Allowed(OldPlacement old)
+        {
+            if(old==null || !old.Enabled)return TerrainType.All;
+            if(old.AlternativeTerrains!=null && old.AlternativeTerrains.Length>0)throw new InvalidOperationException("旧任意格标签条件需要人工映射，未修改资产。");
+            var types=(old.RequiredTerrains??Array.Empty<OldTerrain>()).Select(t=>TerrainTypes.ParseLegacy(t.Terrain)).Distinct().ToArray();
+            if(types.Length==0)return TerrainType.All;
+            if(types.Length==1)return types[0];
+            if(types.Length==2 && types.Contains(TerrainType.陆地) && types.Contains(TerrainType.石地))return TerrainType.石地;
+            throw new InvalidOperationException("旧叠加标签不能直接映射单一地形。");
+        }
+        static ulong ConvertMask(ulong old)
+        {
+            // Exact hashes audited in the exported map snapshot; never guess unknown terrain.
+            if(old==0)return 0;
+            if(old==1073741824UL)return (ulong)TerrainType.陆地;
+            if(old==70368744177664UL)return (ulong)TerrainType.水域;
+            throw new InvalidOperationException("未知旧地图地形位："+old);
+        }
+        public static string Export()
+        {
+            if(File.Exists(SnapshotPath))throw new InvalidOperationException("地形迁移快照已经存在，请勿覆盖。");
+            var snapshot=new Snapshot{Backup="Temp/TerrainEnumBefore_"+DateTime.Now.ToString("yyyyMMdd_HHmmss")};
+            foreach(var kind in new[]{"MapTerrainRules","TileWorldCreatorMapBakeProfile","GridMapDefinition","MapAsset","GameDefinitionAsset"})
+                foreach(string guid in AssetDatabase.FindAssets("t:"+kind,new[]{"Assets/Landsong"}))
+                {
+                    string path=AssetDatabase.GUIDToAssetPath(guid);var asset=AssetDatabase.LoadMainAssetAtPath(path);
+                    if(asset is GameDefinitionAsset definition && definition.Data.Kind!=Landsong.ECS.ContentKind.Building)continue;
+                    snapshot.Entries.Add(new Entry{Kind=kind,Path=path,Json=EditorJsonUtility.ToJson(asset)});
+                    string copy=snapshot.Backup+"/"+path;Directory.CreateDirectory(System.IO.Path.GetDirectoryName(copy));File.Copy(path,copy);File.Copy(path+".meta",copy+".meta");
+                }
+            Directory.CreateDirectory("Library/LandsongEcs");File.WriteAllText(SnapshotPath,JsonUtility.ToJson(snapshot,true));
+            return "Backed up "+snapshot.Entries.Count+" assets to "+snapshot.Backup;
+        }
+    }
+}

@@ -1,0 +1,409 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1285735760
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 920000000000100022}
+  - component: {fileID: 920000000000100023}
+  - component: {fileID: 920000000000100024}
+  - component: {fileID: 920000000000100025}
+  - component: {fileID: 920000000000100026}
+  - component: {fileID: 920000000000100027}
+  - component: {fileID: 920000000000100028}
+  - component: {fileID: 920000000000100029}
+  - component: {fileID: 920000000000100030}
+  - component: {fileID: 920000000000100031}
+  - component: {fileID: 920000000000100032}
+  - component: {fileID: 920000000000100033}
+  - component: {fileID: 920000000000100034}
+  - component: {fileID: 920000000000100036}
+  - component: {fileID: 1285735762}
+  - component: {fileID: 1285735761}
+  - component: {fileID: 335903471901785243}
+  m_Layer: 0
+  m_Name: GameWorld
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1285735761
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1285735760}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42bc49d1353a48a1b15912d5c7cb714f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.GameWorldTemplateAuthoring
+--- !u!4 &1285735762
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1285735760}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &920000000000100022
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1285735760}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9f3a02ccf5741de819bb00344dffc66, type: 3}
+  m_Name: ''
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.NightSettingsAuthoring
+--- !u!114 &920000000000100023
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1285735760}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b06332c4b22046019817e7a9ebb830bb, type: 3}
+  m_Name: ''
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.IntelligenceSettingsAuthoring
+  Settings:
+    LowIntel: 1
+    MediumIntel: 40
+    HighIntel: 75
+    MediumIntelLead: 12
+    HighIntelLead: 24
+--- !u!114 &920000000000100024
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1285735760}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f5ecd980a9a84a8dbca66aec55989183, type: 3}
+  m_Name: ''
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.RoyalFamilySettingsAuthoring
+  Settings:
+    MaxChildren: 8
+    BirthChance: 0.08
+    MutationChance: 0.03
+--- !u!114 &920000000000100025
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1285735760}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d282d23629f74f819bc34dc7582c267a, type: 3}
+  m_Name: ''
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.TalentSettingsAuthoring
+  Settings:
+    TalentCapacity: 8
+    TalentRecruitCost: 0
+    TalentExperience: 10
+--- !u!114 &920000000000100026
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1285735760}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f36189ba45d04595877849534676305f, type: 3}
+  m_Name: ''
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.QuestGenerationSettingsAuthoring
+  Settings:
+    StrengthStep: 10
+    MarketValuePerStrength: 100
+    Low: {x: 100, y: 35, z: 8, w: 1}
+    Medium: {x: 45, y: 100, z: 35, w: 8}
+    High: {x: 12, y: 45, z: 100, w: 35}
+    Maximum: {x: 4, y: 15, z: 55, w: 100}
+--- !u!114 &920000000000100027
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1285735760}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9ac1737689494dfca0dfaf47b2c94939, type: 3}
+  m_Name: ''
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.ExpeditionSettingsAuthoring
+  Settings:
+    PenaltyTurns: 5
+    AttractionPerStack: 5
+--- !u!114 &920000000000100028
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1285735760}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b329857cbe84a07808eac805077dfaf, type: 3}
+  m_Name: ''
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.CourtSettingsAuthoring
+  Settings:
+    ExpeditionRequestCooldown: 8
+    ExpeditionRequestChance: 0.08
+    MarriageRequestCooldown: 5
+    MarriageRequestChance: 0.12
+    MarriageRefusalGrievanceChance: 0.5
+    MarriageRefusalGrievance: 0.2
+    MarriageAge: 18
+    CaptainAge: 16
+    GiftCost: 10
+    GiftAffection: 10
+    RecruitAffection: 30
+    MarriageAffection: 60
+    StableDesignationTurns: 3
+    MinimumReign: 5
+    TemporaryTurns: 5
+    ElectionTurns: 8
+    DisorderTurns: 5
+    VisitInterval: 5
+    VisitDuration: 3
+    VisitCost: 20
+    InitialOpinion: 50
+    OpinionRecovery: 1
+    DisorderOpinionCost: 5
+    PrinceGrowth: 1.5
+    StrongInfluence: 40
+    UsurpGap: 25
+    UsurpChance: 0.35
+    RegicideGap: 10
+    RegicideChance: 0.08
+    PrinceRisk: 0.25
+    StableProduction: 0.05
+    StableAttack: 0.05
+    WeakProduction: -0.1
+    WeakAttack: -0.05
+    ElectionProduction: -0.15
+    ElectionAttack: -0.1
+    UsurpProduction: -0.25
+    UsurpAttack: -0.2
+    RegicideProduction: -0.35
+    RegicideAttack: -0.3
+    DisorderPerStack: 0.05
+    DisorderCap: 0.25
+    DeathYoung: 0.001
+    DeathAdult: 0.003
+    DeathMature: 0.015
+    DeathOld: 0.05
+    DeathAncient: 0.12
+--- !u!114 &920000000000100029
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1285735760}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b8c7a98805b4d28bebab799ff0e627d, type: 3}
+  m_Name: ''
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.NightRulesAuthoring
+  Settings:
+    WarningSeconds: 1
+    ProtectionSeconds: 1
+    MinSpawnRegions: 2
+    MaxSpawnRegions: 4
+    SpawnRegionSize: 5
+    SpawnRegionGap: 4
+    HeroWeight: 0.35
+    FacilityWeight: 1
+    TargetRadius: 24
+    ThreatFloor: 36
+    ThreatPerStrengthCap: 1.5
+--- !u!114 &920000000000100030
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1285735760}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e4abb1c7fdd4cff9614eb69f2359065, type: 3}
+  m_Name: ''
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.PeacefulRulesAuthoring
+  Settings:
+    MaximumPerNight: 3
+    MaximumConcurrent: 2
+    TheftValueBudget: 15
+    FirstOpportunity: 2.5
+    Interval: 2.5
+--- !u!114 &920000000000100031
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1285735760}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a756ab97a644337b5a9cbff27b641bc, type: 3}
+  m_Name: ''
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.CurrencyAuthoring
+  Gold: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+--- !u!114 &920000000000100032
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1285735760}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6ca9650333174ea49897f8abfb7a9d62, type: 3}
+  m_Name: ''
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.PortraitLibraryAuthoring
+  Portraits: {fileID: 11400000, guid: c6ce5a3c11f94d3aab8e0bcb7d4c40c6, type: 2}
+--- !u!114 &920000000000100033
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1285735760}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f7fbe968fe824f8e97e3e695233cfe30, type: 3}
+  m_Name: ''
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.InitialRoyalFamilyAuthoring
+  Family:
+  - Name: "\u5F00\u56FD\u541B\u4E3B"
+    Age: 20
+    Role: 0
+    Traits:
+    - {fileID: 11400000, guid: c235625b77497b1408fca541bf3aa5d0, type: 2}
+  - Name: "\u5F00\u56FD\u914D\u5076"
+    Age: 20
+    Role: 1
+    Traits: []
+--- !u!114 &920000000000100034
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1285735760}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 628b687cd99946d2aaa2c1239e30c794, type: 3}
+  m_Name: ''
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.StartingRewardsAuthoring
+  Rewards:
+    Items: []
+    Blueprints:
+    - Order: 0
+      Building: {fileID: 11400000, guid: 7df6157a6643e9c41951b0403decdba0, type: 2}
+      GrantedLevel: 1
+    - Order: 1
+      Building: {fileID: 11400000, guid: 6f6af578252db9b4fb3f09dcdccc0ce6, type: 2}
+      GrantedLevel: 1
+    - Order: 2
+      Building: {fileID: 11400000, guid: c18eee413b97cad42baa968736fccae8, type: 2}
+      GrantedLevel: 1
+    - Order: 3
+      Building: {fileID: 11400000, guid: 9fa3a2806db9e344f9eb32f738607cbb, type: 2}
+      GrantedLevel: 1
+    - Order: 4
+      Building: {fileID: 11400000, guid: 155cb2591269a5247b04d2c23ffbe330, type: 2}
+      GrantedLevel: 1
+    - Order: 5
+      Building: {fileID: 11400000, guid: a2182b384ef4c1d4e8686eb47baf6d8e, type: 2}
+      GrantedLevel: 1
+    - Order: 6
+      Building: {fileID: 11400000, guid: 7cc15ec393fa4e04a8888b7c175a5fee, type: 2}
+      GrantedLevel: 1
+    - Order: 7
+      Building: {fileID: 11400000, guid: 0936fea0a9d82d749b434926dbdc0e73, type: 2}
+      GrantedLevel: 1
+    - Order: 8
+      Building: {fileID: 11400000, guid: 55927e016d7fc4943b8a04c4b4b5519f, type: 2}
+      GrantedLevel: 1
+    - Order: 9
+      Building: {fileID: 11400000, guid: 20e887997f2c61b48b80e05180f2d6d6, type: 2}
+      GrantedLevel: 1
+    - Order: 10
+      Building: {fileID: 11400000, guid: ad9295df8f9551f4083a8ab0cee9e5f5, type: 2}
+      GrantedLevel: 1
+    - Order: 11
+      Building: {fileID: 11400000, guid: 28f0ec903d18e88448189df9c4c15a9c, type: 2}
+      GrantedLevel: 1
+    - Order: 12
+      Building: {fileID: 11400000, guid: 89366b61e9faf50419826d977cbe0d92, type: 2}
+      GrantedLevel: 1
+    - Order: 13
+      Building: {fileID: 11400000, guid: c87696cdc5ebee34995c59e1426cc85b, type: 2}
+      GrantedLevel: 1
+    - Order: 14
+      Building: {fileID: 11400000, guid: 62bf30afa734e93469bee29a9de8623f, type: 2}
+      GrantedLevel: 1
+    - Order: 15
+      Building: {fileID: 11400000, guid: 38ed7581ff011bf4fbf01e6d551e20de, type: 2}
+      GrantedLevel: 1
+    - Order: 16
+      Building: {fileID: 11400000, guid: f8e8aa19bbff9174782c5da9388a4bfd, type: 2}
+      GrantedLevel: 1
+    - Order: 17
+      Building: {fileID: 11400000, guid: 303e5797fd454ea4eae3dce83db41730, type: 2}
+      GrantedLevel: 1
+    Buffs: []
+    Features: []
+--- !u!114 &920000000000100036
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1285735760}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62b9696a6e854dda8fb6d84c967706be, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.GameContentSetAuthoring
+  Content: {fileID: 11400000, guid: 3d3de3a616ae42fd93e3bfd46e3660b7, type: 2}
+--- !u!114 &335903471901785243
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1285735760}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3b70c0d1026808c4b90bc87d828ff8c2, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.TransportWorkerSettingsAuthoring
+  Male: {fileID: 6014836599797353312, guid: 066593d18d5787341ad4da13060fecd8, type: 3}
+  Female: {fileID: 462659231305028172, guid: 483fe0edaa223bf4b9e565fead7a0adc, type: 3}
+  Health: 30
+  Speed: 1.6
+  LoadSeconds: 1.133333
+  UnloadSeconds: 1.333333
