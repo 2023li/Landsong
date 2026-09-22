@@ -135,7 +135,8 @@ namespace Landsong.ECS.Presentation
                 worldController.EndBuildingPlacement();
                 if (buildingController.BuildingConfirmPanel != null)
                     buildingController.BuildingConfirmPanel.SetActive(false);
-                worldController.rangeRevision = -1;
+                if (buildingController.showBuildingRange)
+                    worldController.RebuildBuildingRange();
             }
 
             observedPhase = s.Phase;

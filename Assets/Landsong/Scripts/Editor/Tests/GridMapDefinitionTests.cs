@@ -7,6 +7,7 @@ using UnityEngine;
 
 namespace Landsong.Editor.Tests
 {
+    [Category("Landsong")]
     public sealed class GridMapDefinitionTests
     {
         [Test]

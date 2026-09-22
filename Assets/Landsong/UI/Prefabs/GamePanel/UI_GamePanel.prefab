@@ -1404,6 +1404,8 @@ MonoBehaviour:
   WorldRootTemplate: {fileID: 4248868255051707716, guid: 102363528e2b20d4c8543db8d4469a6e, type: 3}
   Visuals: {fileID: 11400000, guid: b6d92d012b7840dea1f0359332a017d1, type: 2}
   Effects: {fileID: 11400000, guid: 23e486be306d4c16ad691f63c8262a20, type: 2}
+  OverlayMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+  OverlayMaterial: {fileID: 2100000, guid: 7d5eef082278b23499439adace9c7286, type: 2}
 --- !u!114 &1550434418422488060
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1523,8 +1525,6 @@ MonoBehaviour:
     Template: {fileID: 8744924883924541490, guid: 964194836a81fdb42a83974d59463a54, type: 3}
   - DefinitionId: "b\u9A7B\u519B\u8425\u5730"
     Template: {fileID: 1360992024125628422, guid: cb65f13e7bcbc8d4d951e38fc4c2892f, type: 3}
-  OverlayMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
-  OverlayMaterial: {fileID: 2100000, guid: 7d5eef082278b23499439adace9c7286, type: 2}
   WorldPresentation: {fileID: 3850785804220592472}
 --- !u!1 &8872635936415775578
 GameObject:

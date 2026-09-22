@@ -140,7 +140,6 @@ namespace Landsong.ECS.Editor
                 var world = view.WorldInteraction;
                 var selection = Field<WorldSelectionState>(view, "worldSelection");
                 var intelligence = Field<IntelligenceViewState>(view, "intelligence");
-                var overlays = Field<List<(Vector3 position, Vector3 size, Color color)>>(world, "buildingOverlays");
                 var heroes = Field<Dictionary<ulong, UI_GamePanel_英雄选择Item>>(view.Hud, "heroSelectionItems");
                 var catalogs = (view.Buildings.BuildingCatalog, view.Technology.Technologies, view.Hud.Heroes);
                 GameObject ghost = null;
@@ -156,12 +155,8 @@ namespace Landsong.ECS.Editor
                     Set(expedition, "expeditionAmounts", new[] { 7, 9 });
                     view.IntelligenceWindow.View = new IntelView { SelectedWave = 4, CompletedGroups = 5 };
                     Set(view.IntelligenceWindow, "intelligenceWave", 4);
-                    Set(world, "rangeBuilding", id);
-                    Set(world, "rangeRevision", 19);
-                    Set(world, "nextRangeRefresh", float.PositiveInfinity);
                     Set(world, "buildDefinition", BuildingId.FromIndex(0));
                     Set(world, "roadStart", (int2?)new int2(2, 3));
-                    overlays.Add((Vector3.one, Vector3.one, Color.red));
                     ghost = new GameObject("Owned placement ghost " + id);
                     ghost.transform.SetParent(game.transform);
                     Set(world, "buildingGhost", ghost);
@@ -182,10 +177,9 @@ namespace Landsong.ECS.Editor
                         label + " clears world and expedition identities, crew and supply choices");
                     Check(view.IntelligenceWindow.View == null && Field<int>(view.IntelligenceWindow, "intelligenceWave") == 0,
                         label + " clears cached intelligence and selected wave");
-                    Check(overlays.Count == 0 && Field<ulong>(world, "rangeBuilding") == 0
-                        && Field<int>(world, "rangeRevision") == -1 && Field<float>(world, "nextRangeRefresh") == 0
+                    Check(view.WorldInteraction.WorldPresentation.BuildingRangeSourceId == 0
                         && !world.HasBuildingPlacement && Field<int2?>(world, "roadStart") == null && ghost == null,
-                        label + " destroys the placement object and invalidates all range geometry");
+                        label + " destroys the placement object and releases presentation-owned range geometry");
                     Check(heroes.Count == 0 && hero == null && !view.Hud.HeroSelection.gameObject.activeSelf,
                         label + " releases and destroys hero selection objects rather than retaining old world bindings");
                 }

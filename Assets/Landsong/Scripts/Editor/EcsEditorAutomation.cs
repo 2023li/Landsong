@@ -2,7 +2,9 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 using UnityEditor;
+using UnityEditor.TestTools.TestRunner.Api;
 using UnityEngine;
 
 // Local developer automation. Requests are explicit and one-shot; migration is an explicit action only.
@@ -377,6 +379,9 @@ public static class EcsEditorAutomation
                 case "VerifyAll":
                     response.Details = Landsong.ECS.Editor.ProjectVerification.RunAll();
                     break;
+                case "RunLandsongEditModeTests":
+                    response.Details = RunLandsongEditModeTests();
+                    break;
                 case "VerifyIntelligence":
                     response.Details = Landsong.ECS.Editor.IntelligenceVerification.Run();
                     break;
@@ -480,6 +485,52 @@ public static class EcsEditorAutomation
 
         Directory.CreateDirectory(DirectoryPath);
         File.WriteAllText(DirectoryPath + "/response.json", JsonUtility.ToJson(response, true));
+    }
+
+    static string RunLandsongEditModeTests()
+    {
+        var api = ScriptableObject.CreateInstance<TestRunnerApi>();
+        var callbacks = new LandsongTestCallbacks();
+        api.RegisterCallbacks(callbacks);
+        try
+        {
+            api.Execute(new ExecutionSettings(new Filter
+            {
+                testMode = TestMode.EditMode,
+                categoryNames = new[] { "Landsong" }
+            }) { runSynchronously = true });
+            if (callbacks.Result == null)
+                throw new InvalidOperationException("Unity Test Runner did not return a result.");
+            Directory.CreateDirectory(DirectoryPath);
+            TestRunnerApi.SaveResultToFile(callbacks.Result, DirectoryPath + "/landsong-editmode-results.xml");
+            var report = callbacks.Report();
+            File.WriteAllText(DirectoryPath + "/landsong-editmode-results.txt", report);
+            if (callbacks.Result.FailCount > 0)
+                throw new InvalidOperationException(report);
+            return report;
+        }
+        finally
+        {
+            api.UnregisterCallbacks(callbacks);
+            UnityEngine.Object.DestroyImmediate(api);
+        }
+    }
+
+    sealed class LandsongTestCallbacks : ICallbacks
+    {
+        readonly StringBuilder failures = new StringBuilder();
+        public ITestResultAdaptor Result { get; private set; }
+        public void RunStarted(ITestAdaptor testsToRun) { }
+        public void RunFinished(ITestResultAdaptor result) => Result = result;
+        public void TestStarted(ITestAdaptor test) { }
+        public void TestFinished(ITestResultAdaptor result)
+        {
+            if (!result.HasChildren && result.FailCount > 0)
+                failures.AppendLine(result.FullName).AppendLine(result.Message).AppendLine(result.StackTrace);
+        }
+        public string Report() =>
+            $"Landsong EditMode: {Result.PassCount} passed, {Result.FailCount} failed, {Result.SkipCount} skipped, {Result.Duration:F2}s"
+            + (failures.Length == 0 ? string.Empty : Environment.NewLine + failures);
     }
 
     static async void RunFramework(Request request)

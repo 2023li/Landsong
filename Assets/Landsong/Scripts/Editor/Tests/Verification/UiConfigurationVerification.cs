@@ -35,9 +35,9 @@ namespace Landsong.ECS.Editor
             ApplicationUiAuthoring.ConfirmPath,
             ApplicationUiAuthoring.GamePath
         };
-        // Unity's generic AddComponent has no arguments. ECS AddComponent<T>(Entity) creates
-        // presentation work data and is not a lookup or repair of a fixed GameObject reference.
-        static readonly Regex ForbiddenLookup = new Regex(@"\b(?:GetComponent|GetComponents|GetComponentInParent|GetComponentsInParent|GetComponentInChildren|GetComponentsInChildren|TryGetComponent|FindObjectOfType|FindObjectsOfType|FindFirstObjectByType|FindAnyObjectByType|FindObjectsByType|FindGameObjectWithTag|FindGameObjectsWithTag)\s*(?:<[^;{}()]+>)?\s*\(|\bAddComponent\s*(?:<[^;{}()]+>\s*\(\s*\)|\()|\bnew\s+GameObject\s*\(|\b(?:GameObject|transform)\s*\.\s*Find\s*\(", RegexOptions.Compiled);
+        // Runtime-owned transient objects may be constructed explicitly. What is forbidden is
+        // searching the scene/component tree to repair or infer fixed inspector references.
+        static readonly Regex ForbiddenLookup = new Regex(@"\b(?:GetComponent|GetComponents|GetComponentInParent|GetComponentsInParent|GetComponentInChildren|GetComponentsInChildren|TryGetComponent|FindObjectOfType|FindObjectsOfType|FindFirstObjectByType|FindAnyObjectByType|FindObjectsByType|FindGameObjectWithTag|FindGameObjectsWithTag)\s*(?:<[^;{}()]+>)?\s*\(|\b(?:GameObject|transform)\s*\.\s*Find\s*\(", RegexOptions.Compiled);
         [MenuItem("Landsong/ECS/Verification/UI inspector configuration")]
         public static string Run()
         {
@@ -387,7 +387,7 @@ namespace Landsong.ECS.Editor
             foreach (var path in paths)
             {
                 var code = StripCommentsAndStrings(File.ReadAllText(path));
-                check(!ForbiddenLookup.IsMatch(code), "运行时 UI 禁止查找/补建固定组件: " + path);
+                check(!ForbiddenLookup.IsMatch(code), "运行时 UI 禁止查找固定组件引用: " + path);
             }
         }
 

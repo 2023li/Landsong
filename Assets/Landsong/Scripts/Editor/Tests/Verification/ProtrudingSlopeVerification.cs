@@ -296,15 +296,24 @@ namespace Landsong.EditorTools
                 {
                     new Vector3(4, 1.5f, 3),
                     new Vector3(5, 1.5f, 3),
-                    new Vector3(4, 1.5f, 3.5f)
+                    new Vector3(4, 1.5f, 3.5f),
+                    new Vector3(5, 1.5f, 3.5f),
+                    new Vector3(4, 1.4f, 3),
+                    new Vector3(5, 1.4f, 3),
+                    new Vector3(4, 1.4f, 3.5f),
+                    new Vector3(5, 1.4f, 3.5f)
                 };
                 testMesh.triangles = new[]
                 {
-                    0,
-                    2,
-                    1
+                    0, 2, 1, 1, 2, 3,
+                    4, 5, 6, 5, 7, 6,
+                    4, 0, 5, 5, 0, 1,
+                    6, 7, 2, 7, 3, 2,
+                    4, 6, 0, 6, 2, 0,
+                    5, 1, 7, 7, 1, 3
                 };
                 testMesh.RecalculateNormals();
+                var originalTestVertices = testMesh.vertices.ToArray();
                 var mouth = new GameObject("Generated cliff", typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider));
                 mouth.transform.SetParent(owner.transform, false);
                 var filter = mouth.GetComponent<MeshFilter>();
@@ -312,7 +321,7 @@ namespace Landsong.EditorTools
                 filter.sharedMesh = collider.sharedMesh = testMesh;
                 result = Compile();
                 SlopeVisualCut.Apply(owner.transform, result.Slopes);
-                Check(filter.sharedMesh != testMesh && testMesh.vertices[0].y == 1.5f, "Visual mouth uses a copy and preserves source mesh");
+                Check(filter.sharedMesh != testMesh && testMesh.vertices.SequenceEqual(originalTestVertices), "Visual mouth uses a copy and preserves source mesh");
                 var modified = filter.sharedMesh.vertices;
                 SlopeVisualCut.Apply(owner.transform, result.Slopes);
                 Check(filter.sharedMesh.vertices.SequenceEqual(modified), "Repeated mouth builds do not accumulate deformation");
@@ -330,6 +339,15 @@ namespace Landsong.EditorTools
                 mouth.GetComponent<MeshRenderer>().sharedMaterial = grass;
                 SlopeVisualCut.Apply(owner.transform, result.Slopes, grass, visualOffsets: offsets);
                 Check(filter.sharedMesh.vertices.All(v => Mathf.Abs(mouth.transform.TransformPoint(v).y - .5f) < .0001f), "Grass landing height follows negative slope offset");
+                var collisionVertices = collider.sharedMesh.vertices;
+                var collisionTriangles = collider.sharedMesh.triangles;
+                Check(collider.sharedMesh != filter.sharedMesh && collisionTriangles.Length > 0 && Enumerable.Range(0, collisionTriangles.Length / 3).All(i =>
+                {
+                    var a = collisionVertices[collisionTriangles[i * 3]];
+                    var b = collisionVertices[collisionTriangles[i * 3 + 1]];
+                    var c = collisionVertices[collisionTriangles[i * 3 + 2]];
+                    return Vector3.Cross(b - a, c - a).sqrMagnitude > .000000000001f;
+                }), "Collision mouth removes degenerate triangles or keeps the authored collision fallback");
                 mouth.transform.localPosition = Vector3.zero;
                 offsets[ramp.guid] = 0;
                 SlopeVisualCut.Apply(owner.transform, result.Slopes, grass, visualOffsets: offsets);

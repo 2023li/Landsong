@@ -3,8 +3,10 @@ using System;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using Sirenix.OdinInspector;
 
@@ -49,8 +51,16 @@ namespace Landsong.ECS.Presentation
         public WorldVisualCatalog Visuals;
         [LabelText("空间特效目录"), Required]
         public EffectCatalog Effects;
+        [LabelText("世界叠加层网格"), Required]
+        public Mesh OverlayMesh;
+        [LabelText("世界叠加层材质"), Required]
+        public Material OverlayMaterial;
         [LabelText("世界表现根模板"), Required]
         public Transform WorldRootTemplate;
+        MaterialPropertyBlock overlayProperties;
+        MaterialPropertyBlock OverlayProperties => overlayProperties ??= new MaterialPropertyBlock();
+        BuildingRangeOverlayView buildingRangeOverlay;
+        BuildingRangeOverlayView BuildingRangeOverlay => buildingRangeOverlay ??= new BuildingRangeOverlayView();
         AudioRuntime runtime;
         Scene ownerScene;
         Transform worldRoot;
@@ -75,8 +85,8 @@ namespace Landsong.ECS.Presentation
 
         public void BindSession(EntityManager manager, Entity simulation, AudioRuntime presentation, Scene scene)
         {
-            if (WorldRootTemplate == null || presentation == null || Visuals == null || Effects == null || !scene.IsValid() || !scene.isLoaded)
-                throw new InvalidOperationException("世界表现缺少根模板、模型/特效目录、音频服务或所属场景配置。");
+            if (WorldRootTemplate == null || presentation == null || Visuals == null || Effects == null || OverlayMesh == null || OverlayMaterial == null || !scene.IsValid() || !scene.isLoaded)
+                throw new InvalidOperationException("世界表现缺少根模板、模型/特效/叠加层配置、音频服务或所属场景配置。");
             if (manager.World == null || !manager.World.IsCreated || simulation == Entity.Null || !manager.Exists(simulation) || !manager.HasComponent<SimulationReady>(simulation))
                 throw new InvalidOperationException("世界表现没有有效的游戏会话。");
             if (Visuals.Models == null || Effects.Cues == null)
@@ -121,6 +131,7 @@ namespace Landsong.ECS.Presentation
 
         public void ClearViews()
         {
+            buildingRangeOverlay?.Clear();
             foreach (var pair in views)
             {
                 if (pair.Value.Object != null)
@@ -144,6 +155,45 @@ namespace Landsong.ECS.Presentation
             if (worldRoot != null)
                 Destroy(worldRoot.gameObject);
             worldRoot = null;
+        }
+
+        public ulong BuildingRangeSourceId => buildingRangeOverlay?.SourceId ?? 0;
+
+        public int ShowBuildingRange(Entity building, bool highContrast)
+        {
+            if (!IsBound)
+                return 0;
+            return BuildingRangeOverlay.Rebuild(em, root, building, PresentationRoot, OverlayMaterial, highContrast);
+        }
+
+        public void SetBuildingRangeVisible(bool visible, bool highContrast)
+        {
+            if (visible && buildingRangeOverlay != null && buildingRangeOverlay.SourceId != 0 && buildingRangeOverlay.HighContrast != highContrast)
+            {
+                var building = WorldQueries.Find(em, buildingRangeOverlay.SourceId);
+                if (building != Entity.Null)
+                    ShowBuildingRange(building, highContrast);
+            }
+
+            buildingRangeOverlay?.SetVisible(visible);
+        }
+
+        public void ClearBuildingRange() => buildingRangeOverlay?.Clear();
+
+        public void DrawOverlay(Camera camera, float3 position, Vector3 size, Color color)
+        {
+            if (camera == null || OverlayMesh == null || OverlayMaterial == null)
+                return;
+            if (InterfaceSettings.Current.HighContrast)
+            {
+                color.a = Mathf.Max(.8f, color.a);
+                size.x = Mathf.Max(.16f, size.x);
+                size.z = Mathf.Max(.16f, size.z);
+            }
+
+            OverlayProperties.Clear();
+            OverlayProperties.SetColor("_BaseColor", color);
+            Graphics.DrawMesh(OverlayMesh, Matrix4x4.TRS((Vector3)position + Vector3.up * .07f, Quaternion.identity, size), OverlayMaterial, 0, camera, 0, OverlayProperties, ShadowCastingMode.Off, false);
         }
 
         void OnDisable() => UnbindSession();

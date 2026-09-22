@@ -119,7 +119,7 @@ namespace Landsong.ECS.Presentation
             showBuildingActionBar = true;
             DetailsPanel.Hide();
             showBuildingRange = true;
-            worldController.rangeRevision = -1;
+            worldController.RebuildBuildingRange();
             refresh.NextPanel = 0;
         }
 
@@ -181,7 +181,10 @@ namespace Landsong.ECS.Presentation
             BuildingRangeButton.onClick.AddListener(() =>
             {
                 showBuildingRange = !showBuildingRange;
-                worldController.rangeRevision = -1;
+                if (showBuildingRange)
+                    worldController.RebuildBuildingRange();
+                else
+                    worldController.ClearBuildingRange();
                 refresh.NextPanel = 0;
             });
             BuildingUpgradeButton.onClick.AddListener(() => ConfirmBuildingCommand(CommandKind.Upgrade));
@@ -210,7 +213,7 @@ namespace Landsong.ECS.Presentation
             if (showBuildingRange)
             {
                 showBuildingRange = false;
-                worldController.buildingOverlays.Clear();
+                worldController.ClearBuildingRange();
                 return true;
             }
 
@@ -221,7 +224,7 @@ namespace Landsong.ECS.Presentation
                 showBuildingActionBar = false;
                 showBuildingRange = false;
                 BuildingActionBar.gameObject.SetActive(false);
-                worldController.buildingOverlays.Clear();
+                worldController.ClearBuildingRange();
                 return true;
             }
 
@@ -458,6 +461,7 @@ namespace Landsong.ECS.Presentation
             if (entity == Entity.Null)
                 return;
             worldController.LocateHistory(id, EntityState.Position(sessionController.em, entity));
+            worldController.ClearBuildingRange();
             worldSelection.SelectedEntityId = id;
             refresh.NextPanel = 0;
         }
@@ -466,6 +470,7 @@ namespace Landsong.ECS.Presentation
         {
             buildingBarOpen = showBuildingActionBar = showBuildingRange = false;
             ResourcePathCellCount = 0;
+            worldController.ClearBuildingRange();
             BuildingConfirmPanel.SetActive(false);
             DetailsPanel.ResetSession();
             BuildingActionBar.gameObject.SetActive(false);

@@ -71,6 +71,7 @@ namespace Landsong.ECS.Editor
                     }
 
                 Marsh.allPositions.Add(new Vector2(2, 1));
+                Marsh.allPositions.Add(new Vector2(2, 2));
                 Upper.allPositions.Add(new Vector2(1, 1));
                 Upper.allPositions.Add(new Vector2(1, 5));
                 Upper.allPositions.Add(new Vector2(2, 1));
@@ -154,7 +155,15 @@ namespace Landsong.ECS.Editor
             {
                 using var f = new Fixture();
                 var r = f.Compile();
-                Check(r.Primary.Count == 15 && r.Primary.Single(c => c.Position.X == 2 && c.Position.Z == 1).Terrain == TerrainType.沼泽, "SO priority selects swamp over land and water");
+                var sameLayerOverlap = r.Primary.Single(c => c.Position.X == 2 && c.Position.Z == 2);
+                var crossLayerOverlap = r.Primary.Single(c => c.Position.X == 2 && c.Position.Z == 1);
+                Check(
+                    r.Primary.Count == 15 &&
+                    sameLayerOverlap.Terrain == TerrainType.沼泽 &&
+                    sameLayerOverlap.ElevationLevel == 0 &&
+                    crossLayerOverlap.Terrain == TerrainType.陆地 &&
+                    crossLayerOverlap.ElevationLevel == 3,
+                    "SO priority selects swamp within one Layer while the higher Layer remains the primary surface");
                 Check(r.Primary.All(c => TerrainTypes.Single(c.Terrain)), "Overridden terrain tags do not survive");
                 Check(r.Additional.Count == 6 && r.Additional.All(s => s.Elevation == 0), "Lower walkable surfaces survive under the upper layer");
                 Check(r.Primary.Where(c => c.SurfaceLayer == 4).All(c => c.ElevationLevel == 3), "Layer is the sole logical height source");
@@ -219,7 +228,7 @@ namespace Landsong.ECS.Editor
                 Reject(() => f.Compile(), "Dual Grid half coordinates cannot enter logical Blueprint cells");
                 f.Lower.allPositions.Remove(new Vector2(.5f, 2));
                 f.Marsh.isEnabled = false;
-                Check(f.Compile().Primary.Single(c => c.Position.X == 2 && c.Position.Z == 1).Terrain == TerrainType.陆地, "Blueprint disabling removes its logical terrain");
+                Check(f.Compile().Primary.Single(c => c.Position.X == 2 && c.Position.Z == 2).Terrain == TerrainType.陆地, "Blueprint disabling removes its logical terrain");
                 f.Marsh.isEnabled = true;
                 var duplicate = new BlueprintLayerFolder("Layer0");
                 f.Config.blueprintLayerFolders.Add(duplicate);
@@ -248,7 +257,13 @@ namespace Landsong.ECS.Editor
                     }
 
                     MapNavigationBaker.Bake(content, map);
-                    Check(map.NavigationSurfaces.Length == 2 && map.NavigationSurfaces.All(s => s.Surface == 1), "Actual navigation baker preserves lower surfaces automatically");
+                    Check(
+                        map.NavigationSurfaces.Length == r.Additional.Count &&
+                        r.Additional.All(expected => map.NavigationSurfaces.Count(actual =>
+                            actual.Cell.Equals(expected.Cell) &&
+                            actual.Surface == expected.Surface &&
+                            actual.Elevation == expected.Elevation) == 1),
+                        "Actual navigation baker preserves every compiled lower surface automatically");
                     navigation.Surfaces = new[]
                     {
                         new TwcNavigationLayer
@@ -355,13 +370,13 @@ namespace Landsong.ECS.Editor
                     em.AddComponentData(root, new BuildingCatalog { Value = catalog });
                     em.AddComponentData(root, new GridData { Value = grid, CellSize = 1 });
                     em.AddBuffer<Occupancy>(root).Resize(64, NativeArrayOptions.ClearMemory);
-                    Check(GridOps.CanPlace(em, root, BuildingId.FromIndex(0), new int2(2, 1), 0, 0) && !GridOps.CanPlace(em, root, BuildingId.FromIndex(0), new int2(3, 1), 0, 0), "Actual building placement accepts swamp and rejects ordinary land");
+                    Check(GridOps.CanPlace(em, root, BuildingId.FromIndex(0), new int2(2, 2), 0, 0) && !GridOps.CanPlace(em, root, BuildingId.FromIndex(0), new int2(3, 1), 0, 0), "Actual building placement accepts swamp and rejects ordinary land");
                     var occupancy = em.GetBuffer<Occupancy>(root);
-                    occupancy[10] = new Occupancy
+                    occupancy[18] = new Occupancy
                     {
                         Owner = 12
                     };
-                    Check(!GridOps.CanPlace(em, root, BuildingId.FromIndex(0), new int2(2, 1), 0, 0), "Buildings still share a single XZ occupancy reservation");
+                    Check(!GridOps.CanPlace(em, root, BuildingId.FromIndex(0), new int2(2, 2), 0, 0), "Buildings still share a single XZ occupancy reservation");
                 }
 
                 var profile = f.Asset<TileWorldCreatorMapBakeProfile>();

@@ -152,8 +152,8 @@ namespace Landsong.ECS.Editor
                 Check(large.TargetMap.Cells.Length == original2.Cells.Length && large.TargetMap.Cells.Zip(original2.Cells, (a, b) => JsonUtility.ToJson(a) == JsonUtility.ToJson(b)).All(v => v), "Regenerating the full gameplay map preserves every runtime terrain cell");
                 var emptyPath = folder + "/Empty.unity";
                 EditorSceneManager.CloseScene(scene2, true);
-                var empty = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
-                EditorSceneManager.SaveScene(empty, emptyPath);
+                Check(GameMapWorkflow.CreateEmptySceneAsset(source2, emptyPath) != null, "Create an empty source scene without replacing the Test Runner host scene");
+                var empty = EditorSceneManager.OpenScene(emptyPath, OpenSceneMode.Additive);
                 UnityEngine.SceneManagement.SceneManager.SetActiveScene(empty);
                 var root = new GameObject("地图根");
                 var fresh = root.AddComponent<MapContentAuthoring>();

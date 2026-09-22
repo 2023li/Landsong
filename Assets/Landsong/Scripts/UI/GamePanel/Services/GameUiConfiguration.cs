@@ -57,6 +57,8 @@ namespace Landsong.ECS.Presentation
             Need(view.hudController.NightHud, nameof(view.hudController.NightHud));
             Need(view.historyController.NavigationPanel, nameof(view.historyController.NavigationPanel));
             Need(view.worldController.WorldPresentation, nameof(view.worldController.WorldPresentation));
+            Need(view.worldController.WorldPresentation.OverlayMesh, nameof(view.worldController.WorldPresentation.OverlayMesh));
+            Need(view.worldController.WorldPresentation.OverlayMaterial, nameof(view.worldController.WorldPresentation.OverlayMaterial));
             Need(view.historyController.HistoryTools, nameof(view.historyController.HistoryTools));
             Need(view.historyController.HistoryFilter, nameof(view.historyController.HistoryFilter));
             Need(view.hudController.AdvanceLabel, nameof(view.hudController.AdvanceLabel));

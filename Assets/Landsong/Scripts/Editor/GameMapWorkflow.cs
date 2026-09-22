@@ -111,21 +111,7 @@ namespace Landsong.EditorTools
                 content.EntityScene = AssetDatabase.LoadAssetAtPath<SceneAsset>(entityPath);
             if (content.EntityScene == null)
             {
-                var active = SceneManager.GetActiveScene();
-                var empty = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
-                try
-                {
-                    if (!EditorSceneManager.SaveScene(empty, entityPath))
-                        throw new IOException("无法创建实体子场景。");
-                }
-                finally
-                {
-                    EditorSceneManager.CloseScene(empty, true);
-                    if (active.IsValid())
-                        SceneManager.SetActiveScene(active);
-                }
-
-                content.EntityScene = AssetDatabase.LoadAssetAtPath<SceneAsset>(entityPath);
+                content.EntityScene = CreateEmptySceneAsset(scene.path, entityPath);
             }
 
             content.TargetMap.EntitySceneGuid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(content.EntityScene));
@@ -173,6 +159,31 @@ namespace Landsong.EditorTools
             EditorUtility.SetDirty(content.TargetMap);
             EditorSceneManager.MarkSceneDirty(scene);
             AssetDatabase.SaveAssets();
+        }
+
+        internal static SceneAsset CreateEmptySceneAsset(string seedPath, string targetPath)
+        {
+            // EditorSceneManager cannot create an additive scene while Test Runner owns an
+            // unsaved host scene. An imported scene can still be opened additively, so use
+            // the saved authoring scene as a seed and remove all of its roots before saving.
+            if (string.IsNullOrEmpty(seedPath) || AssetDatabase.LoadAssetAtPath<SceneAsset>(seedPath) == null)
+                throw new InvalidOperationException("创建空场景需要一个已保存的场景作为种子。");
+            if (!AssetDatabase.CopyAsset(seedPath, targetPath))
+                throw new IOException("无法创建场景资产：" + targetPath);
+            AssetDatabase.ImportAsset(targetPath, ImportAssetOptions.ForceSynchronousImport);
+            var empty = EditorSceneManager.OpenScene(targetPath, OpenSceneMode.Additive);
+            try
+            {
+                foreach (var root in empty.GetRootGameObjects())
+                    Object.DestroyImmediate(root);
+                if (!EditorSceneManager.SaveScene(empty))
+                    throw new IOException("无法保存空场景资产：" + targetPath);
+            }
+            finally
+            {
+                EditorSceneManager.CloseScene(empty, true);
+            }
+            return AssetDatabase.LoadAssetAtPath<SceneAsset>(targetPath);
         }
 
         public static GameObject Child(MapContentAuthoring content, string name)
@@ -366,9 +377,11 @@ namespace Landsong.EditorTools
         static void WriteEntityScene(MapContentAuthoring content, MapAsset candidate)
         {
             var active = SceneManager.GetActiveScene();
-            var stage = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
+            var stage = EditorSceneManager.OpenScene(AssetDatabase.GetAssetPath(content.EntityScene), OpenSceneMode.Additive);
             try
             {
+                foreach (var existing in stage.GetRootGameObjects())
+                    Object.DestroyImmediate(existing);
                 MapWorldComposition.Content(content);
                 var root = Object.Instantiate(MapWorldComposition.Template());
                 root.name = "GameWorld";

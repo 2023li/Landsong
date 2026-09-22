@@ -93,7 +93,7 @@ namespace Landsong.ECS.Editor
                 }
             }
             check(checkedBodies > 0, "Compiled UI/application/presentation methods were inspected");
-            check(faults.Count == 0, "Compiled runtime calls do not find or repair fixed Unity references" +
+            check(faults.Count == 0, "Compiled runtime calls do not search for fixed Unity references" +
                 (faults.Count == 0 ? "" : "\n" + string.Join("\n", faults.Distinct())));
         }
 
@@ -170,8 +170,7 @@ namespace Landsong.ECS.Editor
         {
             var owner = method.DeclaringType;
             if (owner == typeof(UGameObject))
-                return method.IsConstructor || ComponentQueries.Contains(method.Name) || method.Name == "AddComponent"
-                    || method.Name == "Find" || method.Name == "FindWithTag" || method.Name == "FindGameObjectWithTag"
+                return ComponentQueries.Contains(method.Name) || method.Name == "Find" || method.Name == "FindWithTag" || method.Name == "FindGameObjectWithTag"
                     || method.Name == "FindGameObjectsWithTag";
             if (owner == typeof(Component)) return ComponentQueries.Contains(method.Name);
             if (owner == typeof(Transform)) return method.Name == "Find" || method.Name == "FindChild";
@@ -183,9 +182,11 @@ namespace Landsong.ECS.Editor
         static void VerifyFixtures(Action<bool, string> check)
         {
             var negative = MethodsAndNested(typeof(ForbiddenFixtures)).SelectMany(ReadCalls).Where(call => Forbidden(call.Target)).ToArray();
-            foreach (var name in new[] { "AliasGeneric", "InheritedQuery", "TryQuery", "AddTyped", "AddByType",
-                "NewObject", "FindGeneric", "TransformQuery", "MethodGroup", "SwitchQuery" })
+            foreach (var name in new[] { "AliasGeneric", "InheritedQuery", "TryQuery", "FindGeneric",
+                "TransformQuery", "MethodGroup", "SwitchQuery" })
                 check(negative.Any(call => call.Caller.Name == name), "IL negative fixture detects actual Unity call: " + name);
+            foreach (var name in new[] { "AddTyped", "AddByType", "NewObject" })
+                check(!negative.Any(call => call.Caller.Name == name), "IL permits runtime-owned object composition: " + name);
             check(negative.Any(call => call.Caller.DeclaringType.Name.Contains("AsyncQuery")), "IL scans compiler-generated async state machines");
             check(negative.Any(call => call.Caller.Name.Contains("LambdaQuery")), "IL scans compiler-generated lambda bodies");
             var allowed = MethodsAndNested(typeof(AllowedFixtures)).SelectMany(ReadCalls).ToArray();

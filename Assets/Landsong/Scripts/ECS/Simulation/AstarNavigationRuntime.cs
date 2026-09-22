@@ -63,7 +63,10 @@ namespace Landsong.ECS
                 {
                     hideFlags = HideFlags.DontSave
                 };
-                UnityEngine.Object.DontDestroyOnLoad(runtime);
+                // Edit-mode verification owns and destroys this temporary host itself.
+                // DontDestroyOnLoad is only valid while the player is running.
+                if (Application.isPlaying)
+                    UnityEngine.Object.DontDestroyOnLoad(runtime);
                 var pathfinding = runtime.AddComponent<AstarPath>();
                 // Runtime services must not cover the Game view when its Gizmos toggle is on.
                 pathfinding.showNavGraphs = false;

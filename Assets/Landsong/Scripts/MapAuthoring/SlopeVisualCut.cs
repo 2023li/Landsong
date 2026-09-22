@@ -9,6 +9,8 @@ namespace Landsong.GridSystem
     {
         [SerializeField, Sirenix.OdinInspector.LabelText("原始网格")] Mesh original;
         [SerializeField, Sirenix.OdinInspector.LabelText("修整网格")] Mesh cut;
+        [SerializeField, Sirenix.OdinInspector.LabelText("原始碰撞网格")] Mesh originalCollider;
+        [SerializeField, Sirenix.OdinInspector.LabelText("修整碰撞网格")] Mesh colliderCut;
         public static void Apply(Transform root,IReadOnlyList<ProtrudingSlopeCompiler.Strip> strips,Material grassMaterial=null,Transform terrainRoot=null,IReadOnlyDictionary<string,float> visualOffsets=null)
         {
             foreach(var filter in (terrainRoot!=null?terrainRoot:root).GetComponentsInChildren<MeshFilter>())
@@ -60,12 +62,16 @@ namespace Landsong.GridSystem
                     if(state!=null && filter.sharedMesh==state.cut)
                     {
                         filter.sharedMesh=source;
-                        var oldCollider=filter.GetComponent<MeshCollider>();if(oldCollider!=null)oldCollider.sharedMesh=source;
+                        var oldCollider=filter.GetComponent<MeshCollider>();if(oldCollider!=null)oldCollider.sharedMesh=state.originalCollider!=null?state.originalCollider:source;
                         state.ReleaseCut();
                     }
                     continue;
                 }
                 if(state==null) state=filter.gameObject.AddComponent<SlopeVisualCut>();
+                var collider=filter.GetComponent<MeshCollider>();
+                var colliderSource=collider!=null && state!=null && (collider.sharedMesh==state.colliderCut || collider.sharedMesh==state.cut)
+                    ? (state.originalCollider!=null?state.originalCollider:source)
+                    : collider!=null?collider.sharedMesh:null;
                 var mesh=Instantiate(source);mesh.name=source.name+"_SlopeMouth";mesh.vertices=vertices;mesh.RecalculateNormals();mesh.RecalculateBounds();
                 var originalNormals=source.normals;var normals=mesh.normals;
                 if(originalNormals.Length==normals.Length)
@@ -75,18 +81,47 @@ namespace Landsong.GridSystem
                         if(landing[i])normals[i]=up;else if(!modified[i])normals[i]=originalNormals[i];
                     mesh.normals=normals;
                 }
-                state.ReleaseCut();state.original=source;state.cut=mesh;filter.sharedMesh=mesh;
-                var collider=filter.GetComponent<MeshCollider>();if(collider!=null)collider.sharedMesh=mesh;
+                state.ReleaseCut();state.original=source;state.originalCollider=colliderSource;state.cut=mesh;filter.sharedMesh=mesh;
+                if(collider!=null)
+                {
+                    state.colliderCut=CreateColliderMesh(mesh);
+                    collider.sharedMesh=null;
+                    // A decorative lip can collapse completely after it is unfolded.
+                    // Keep the authored collider when no usable cut triangles remain.
+                    collider.sharedMesh=state.colliderCut!=null?state.colliderCut:colliderSource;
+                }
             }
+        }
+        static Mesh CreateColliderMesh(Mesh visual)
+        {
+            var vertices=visual.vertices;var source=visual.triangles;var triangles=new List<int>(source.Length);
+            for(int i=0;i+2<source.Length;i+=3)
+            {
+                int a=source[i],b=source[i+1],c=source[i+2];
+                if(a==b || b==c || c==a || a<0 || b<0 || c<0 || a>=vertices.Length || b>=vertices.Length || c>=vertices.Length)continue;
+                if(Vector3.Cross(vertices[b]-vertices[a],vertices[c]-vertices[a]).sqrMagnitude<=.000000000001f)continue;
+                triangles.Add(a);triangles.Add(b);triangles.Add(c);
+            }
+            if(triangles.Count==0)return null;
+            var mesh=new Mesh{name=visual.name+"_Collider",indexFormat=visual.indexFormat};
+            mesh.vertices=vertices;mesh.triangles=triangles.ToArray();mesh.RecalculateBounds();
+            return mesh;
         }
         void ReleaseCut()
         {
-            if(cut==null)return;
+            var collider=GetComponent<MeshCollider>();
+            if(collider!=null && (collider.sharedMesh==colliderCut || collider.sharedMesh==cut))collider.sharedMesh=null;
+            Release(ref colliderCut);
+            Release(ref cut);
+        }
+        static void Release(ref Mesh mesh)
+        {
+            if(mesh==null)return;
 #if UNITY_EDITOR
-            if(UnityEditor.AssetDatabase.Contains(cut)){cut=null;return;}
+            if(UnityEditor.AssetDatabase.Contains(mesh)){mesh=null;return;}
 #endif
-            if(Application.isPlaying)Destroy(cut);else DestroyImmediate(cut);
-            cut=null;
+            if(Application.isPlaying)Destroy(mesh);else DestroyImmediate(mesh);
+            mesh=null;
         }
         void OnDestroy()=>ReleaseCut();
     }

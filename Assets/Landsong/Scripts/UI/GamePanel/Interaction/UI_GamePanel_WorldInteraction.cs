@@ -49,10 +49,6 @@ namespace Landsong.ECS.Presentation
         internal GameObject buildingGhost;
         BuildingPlacementPreviewBinding buildingGhostBinding;
         Vector3 buildingGhostBaseScale;
-        internal readonly List<(Vector3 position, Vector3 size, Color color)> buildingOverlays = new List<(Vector3, Vector3, Color)>();
-        internal int rangeRevision = -1;
-        internal ulong rangeBuilding;
-        internal float nextRangeRefresh;
         public bool HasBuildingPlacement => buildDefinition.IsValid || movingBuilding != 0;
 
         internal void EndBuildingPlacement()
@@ -269,67 +265,12 @@ namespace Landsong.ECS.Presentation
         internal void SubmitBuilding<T>(T command)
             where T : unmanaged, IGameRequest
         {
-            if (!commandsController.TryQueue(command))
-                return;
-            rangeRevision = -1;
+            commandsController.TryQueue(command);
         }
 
-        internal void DrawBuildingInteraction(Action<float3, Vector3, Color> draw)
+        internal void DrawBuildingPlacement(Action<float3, Vector3, Color> draw)
         {
-            var entity = WorldQueries.Find(sessionController.em, worldSelection.SelectedEntityId);
             var grid = sessionController.em.GetComponentData<GridData>(sessionController.root);
-            if (buildingController.showBuildingRange && !HasBuildingPlacement && (navigation.Panel == GamePanelId.Building || buildingController.showBuildingActionBar) && entity != Entity.Null && sessionController.em.HasComponent<Building>(entity) && !intelligence.IsOpen)
-            {
-                if (rangeBuilding != worldSelection.SelectedEntityId || rangeRevision != grid.Revision || Time.unscaledTime >= nextRangeRefresh)
-                {
-                    rangeBuilding = worldSelection.SelectedEntityId;
-                    rangeRevision = grid.Revision;
-                    nextRangeRefresh = Time.unscaledTime + 1;
-                    buildingOverlays.Clear();
-                    using var distances = BuildingRangeOps.Reach(sessionController.em, sessionController.root, entity, Allocator.Temp);
-                    for (var i = 0; i < distances.Length; i++)
-                        if (math.isfinite(distances[i]))
-                        {
-                            var cell = grid.Value.Value.Min + new int2(i % grid.Value.Value.Size.x, i / grid.Value.Value.Size.x);
-                            buildingOverlays.Add((GridOps.Position(grid, cell, new int2(1)), new Vector3(grid.CellSize, .035f, grid.CellSize), new Color(.1f, .65f, 1, .22f)));
-                        }
-
-                    var b = sessionController.em.GetComponentData<Building>(entity);
-                    BuildingPlacementState bPlacement = sessionController.em.GetComponentData<BuildingPlacementState>(entity);
-                    var def = sessionController.em.GetComponentData<BuildingDefinitionRef>(entity).Definition;
-                    ref var d = ref BuildingDefinitions.Get(sessionController.em, sessionController.root, def);
-                    for (var i = 0; i < d.Capabilities.Effects.Spatial.Length; i++)
-                    {
-                        var r = d.Capabilities.Effects.Spatial[i];
-                        if (r.Level != 0 && r.Level != b.Level)
-                            continue;
-                        var radius = (int)math.ceil(r.Radius);
-                        for (var y = -radius; y < bPlacement.Size.y + radius; y++)
-                            for (var x = -radius; x < bPlacement.Size.x + radius; x++)
-                            {
-                                var gap = math.max(0, -x) + math.max(0, x - bPlacement.Size.x + 1) + math.max(0, -y) + math.max(0, y - bPlacement.Size.y + 1);
-                                if (gap > r.Radius || GridOps.Index(grid, bPlacement.Cell + new int2(x, y)) < 0)
-                                    continue;
-                                buildingOverlays.Add((GridOps.Position(grid, bPlacement.Cell + new int2(x, y), new int2(1)), new Vector3(grid.CellSize * .7f, .05f, grid.CellSize * .7f), new Color(.8f, .3f, 1, .35f)));
-                            }
-                    }
-
-                    var provider = ResourceNetworkOps.Provider(sessionController.em, sessionController.root, entity);
-                    var path = BuildingRangeOps.ProviderPath(sessionController.em, sessionController.root, provider, distances);
-                    buildingController.ResourcePathCellCount = path.Count;
-                    foreach (var pathCell in path)
-                        buildingOverlays.Add((GridOps.Position(grid, pathCell, new int2(1)), new Vector3(grid.CellSize * .28f, .085f, grid.CellSize * .28f), new Color(.15f, 1, .3f, .9f)));
-                    if (provider != Entity.Null)
-                    {
-                        BuildingPlacementState pPlacement = sessionController.em.GetComponentData<BuildingPlacementState>(provider);
-                        buildingOverlays.Add((EntityState.Position(sessionController.em, provider), new Vector3(pPlacement.Size.x * grid.CellSize, .1f, pPlacement.Size.y * grid.CellSize), new Color(.2f, 1, .3f, .65f)));
-                    }
-                }
-
-                foreach (var overlay in buildingOverlays)
-                    draw(overlay.position, overlay.size, overlay.color);
-            }
-
             if (!HasBuildingPlacement || Mouse.current == null)
                 return;
             if (!GroundPoint(Camera.ScreenPointToRay(Mouse.current.position.ReadValue()), out var point))
@@ -370,11 +311,27 @@ namespace Landsong.ECS.Presentation
 
         [NonSerialized]
         public Camera Camera;
-        [Sirenix.OdinInspector.LabelText("叠加层网格")]
-        public Mesh OverlayMesh;
-        [Sirenix.OdinInspector.LabelText("叠加层材质")]
-        public Material OverlayMaterial;
         internal float clickTime;
+
+        internal void RebuildBuildingRange()
+        {
+            if (!sessionController.IsBound || WorldPresentation == null)
+                return;
+            var building = WorldQueries.Find(sessionController.em, worldSelection.SelectedEntityId);
+            if (building == Entity.Null || !sessionController.em.HasComponent<Building>(building))
+            {
+                ClearBuildingRange();
+                return;
+            }
+
+            buildingController.ResourcePathCellCount = WorldPresentation.ShowBuildingRange(building, InterfaceSettings.Current.HighContrast);
+        }
+
+        internal void ClearBuildingRange()
+        {
+            buildingController.ResourcePathCellCount = 0;
+            WorldPresentation?.ClearBuildingRange();
+        }
         internal void Input()
         {
             var input = inputContext.Policy.Capture();
@@ -504,10 +461,7 @@ namespace Landsong.ECS.Presentation
             EndBuildingPlacement();
             buildRotation = 0;
             buildingGhostBaseScale = default;
-            buildingOverlays.Clear();
-            rangeBuilding = 0;
-            rangeRevision = -1;
-            nextRangeRefresh = 0;
+            ClearBuildingRange();
             cameraDragging = pointerClaimed = touchBlocked = touchMoved = false;
             dragLast = touchStart = default;
             touchStarted = pinchDistance = pinchAngle = clickTime = 0;
@@ -793,26 +747,19 @@ namespace Landsong.ECS.Presentation
             buildingController.RefreshPlacementHint();
             hudController.RefreshFeedbackVisibility();
             hudController.RefreshInterfaceBarrier();
-            if (sessionController.root == Entity.Null || !sessionController.em.Exists(sessionController.root) || OverlayMesh == null || OverlayMaterial == null)
+            if (sessionController.root == Entity.Null || !sessionController.em.Exists(sessionController.root) || WorldPresentation == null)
                 return;
             var grid = sessionController.em.GetComponentData<GridData>(sessionController.root);
-            void Draw(float3 position, Vector3 size, Color color)
-            {
-                if (InterfaceSettings.Current.HighContrast)
-                {
-                    color.a = Mathf.Max(.8f, color.a);
-                    size.x = Mathf.Max(.16f, size.x);
-                    size.z = Mathf.Max(.16f, size.z);
-                }
-
-                var properties = new MaterialPropertyBlock();
-                properties.SetColor("_BaseColor", color);
-                Graphics.DrawMesh(OverlayMesh, Matrix4x4.TRS((Vector3)position + Vector3.up * .07f, Quaternion.identity, size), OverlayMaterial, 0, Camera, 0, properties, UnityEngine.Rendering.ShadowCastingMode.Off, false);
-            }
+            void Draw(float3 position, Vector3 size, Color color) => WorldPresentation.DrawOverlay(Camera, position, size, color);
 
             var selectedEntity = WorldQueries.Find(sessionController.em, worldSelection.SelectedEntityId);
+            bool rangeVisible = buildingController.showBuildingRange && !HasBuildingPlacement
+                && (navigation.Panel == GamePanelId.Building || buildingController.showBuildingActionBar)
+                && selectedEntity != Entity.Null && sessionController.em.HasComponent<Building>(selectedEntity)
+                && WorldPresentation.BuildingRangeSourceId == worldSelection.SelectedEntityId && !intelligence.IsOpen;
+            WorldPresentation.SetBuildingRangeVisible(rangeVisible, InterfaceSettings.Current.HighContrast);
             if (!intelligence.IsOpen)
-                DrawBuildingInteraction(Draw);
+                DrawBuildingPlacement(Draw);
             if (!intelligence.IsOpen && sessionController.em.GetComponentData<Session>(sessionController.root).Phase == Phase.Night)
                 foreach (var wave in sessionController.em.GetBuffer<NightWave>(sessionController.root))
                     if (wave.Warned != 0 && wave.Spawned == 0 && wave.Region >= 0 && wave.Region < sessionController.em.GetBuffer<SpawnRegion>(sessionController.root).Length)

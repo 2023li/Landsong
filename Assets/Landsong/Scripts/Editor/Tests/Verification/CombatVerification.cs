@@ -87,8 +87,15 @@ namespace Landsong.ECS.Editor
             var scene = EditorSceneManager.OpenPreviewScene(VerificationMap.EntityScene);
             using var store = new BlobAssetStore(128);
             using var world = new World("11C combat", WorldFlags.Game);
+            UnityEngine.GameObject navigationHost = null;
             try
             {
+                // This suite asserts official RVO enrollment, so it needs the same
+                // A* services as Play mode rather than the service-free fixture fallback.
+                bool ownsNavigationHost = AstarPath.active == null;
+                AstarNavigationRuntime.EnsureServices(true);
+                if (ownsNavigationHost)
+                    navigationHost = AstarPath.active.gameObject;
                 EcsVerification.Bake(world, scene.GetRootGameObjects(), store);
                 var em = world.EntityManager;
                 var root = WorldQueries.Root(em);
@@ -332,6 +339,13 @@ namespace Landsong.ECS.Editor
                 world.GetOrCreateSystem<AstarNavigationMoveSystem>().Update(world.Unmanaged);
                 em.CompleteAllTrackedJobs();
                 Check(em.HasComponent<AstarNavigationAgent>(a) && em.HasComponent<Pathfinding.ECS.RVO.RVOAgent>(a), "Combatants are enrolled in A* Pro ECS local avoidance");
+                Check(em.HasComponent<Pathfinding.ECS.RVO.RVOAgent>(ally), "Allied combatants are enrolled in A* Pro ECS local avoidance");
+                var inactive = em.GetComponentData<Combatant>(ally);
+                inactive.Deployed = 0;
+                em.SetComponentData(ally, inactive);
+                world.GetOrCreateSystem<NavigationSystem>().Update(world.Unmanaged);
+                em.CompleteAllTrackedJobs();
+                Check(!em.HasComponent<Pathfinding.ECS.RVO.RVOAgent>(ally), "Undeployed combatants leave A* Pro ECS local avoidance");
                 SnapshotCodec.Restore(em, root, SnapshotCodec.Decode(em, root, original));
                 NightPlanOps.Prepare(em, root);
                 var prepared = Prepared(em, root);
@@ -402,6 +416,9 @@ namespace Landsong.ECS.Editor
             }
             finally
             {
+                world.EntityManager.CompleteAllTrackedJobs();
+                if (navigationHost != null)
+                    UnityEngine.Object.DestroyImmediate(navigationHost);
                 EditorSceneManager.ClosePreviewScene(scene);
             }
         }
