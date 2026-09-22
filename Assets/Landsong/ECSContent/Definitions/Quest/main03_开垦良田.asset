@@ -10,12 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3e493df89b1d4f3394a96d6e5d3619fb, type: 3}
-  m_Name: main_build_farms_3
+  m_Name: "main03_\u5F00\u57A6\u826F\u7530"
   m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.QuestDefinitionAsset
   Metadata:
     Id: main_build_farms_3
     Name: "\u5F00\u57A6\u826F\u7530"
-    Description: "\u7CAE\u98DF\u662F\u805A\u843D\u5EF6\u7EED\u7684\u6839\u57FA\u3002\u5EFA\u9020 3 \u5EA7\u519C\u7530\uFF0C\u8BA9\u8352\u5730\u62E5\u6709\u5B55\u80B2\u6536\u83B7\u7684\u53EF\u80FD\u3002"
+    Description: "\u7CAE\u98DF\u662F\u805A\u843D\u5EF6\u7EED\u7684\u6839\u57FA\u3002\u5EFA\u9020
+      3 \u5EA7\u519C\u7530\uFF0C\u8BA9\u8352\u5730\u62E5\u6709\u5B55\u80B2\u6536\u83B7\u7684\u53EF\u80FD\u3002"
     Icon: {fileID: 0}
   DeadlineTurns: 0
   Behavior: 1

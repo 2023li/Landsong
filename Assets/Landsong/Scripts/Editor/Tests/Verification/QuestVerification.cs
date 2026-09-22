@@ -68,7 +68,7 @@ namespace Landsong.ECS.Editor
 
             Expected("main_build_farms_3", 0, 0, "Quest:main_collect_building_materials:1:0:0;Item:小麦:20:0:0;Item:卷心菜:10:0:0;Building:b农田:3:0:0;Turn::1:1:0");
             Expected("main_build_residential_houses_3", 0, 0, "Quest:main_plant_farms_3:1:0:0;Feature:feature.Technology:1:0:0;Item:金币:100:0:0;Building:b居民房:3:0:1");
-            Expected("main_camera_survey", 0, 0, "Item:金币:500:0:0;Feature:feature.Inventory:1:0:0;CameraMove::1:0:0;CameraZoom::1:0:0");
+            Expected("main_camera_survey", 0, 0, "Feature:feature.Inventory:1:0:0;Item:金币:500:0:0;CameraMove::1:0:0;CameraZoom::1:0:0");
             Expected("main_collect_building_materials", 0, 0, "Quest:main_camera_survey:1:0:0;Item:泥土:100:0:0;Item:原木:100:0:0;Item:石头:100:0:0;Blueprint:b农田:1:0:0;Feature:feature.Building:1:0:0;Owned:泥土:10:0:0;Owned:原木:10:0:0;Owned:石头:10:0:0");
             Expected("main_plant_farms_3", 0, 0, "Quest:main_build_farms_3:1:0:0;Item:小麦:200:0:0;Item:卷心菜:100:0:0;Blueprint:b居民房:1:0:0;Planted:b农田:3:0:0");
             Expected("main_select_technology", 0, 0, "Quest:main_build_residential_houses_3:1:0:0;Technology::1:0:0");
@@ -184,6 +184,9 @@ namespace Landsong.ECS.Editor
                 var root = WorldQueries.Root(em);
                 WorldInitialization.Initialize(em, root);
                 var catalog = AssetDatabase.LoadAssetAtPath<QuestCatalogAsset>("Assets/Landsong/ECSContent/Catalogs/Source/QuestCatalog.asset");
+                var farmDefinition = BuildingDefinitions.Find(em, root, "b农田");
+                var residentialDefinition = BuildingDefinitions.Find(em, root, "b居民房");
+                Check(em.GetBuffer<BlueprintUnlock>(root).Length == 0, "New game has no building blueprints before tutorial rewards");
                 Entity Quest(string name)
                 {
                     using var all = WorldQueries.OrderedEntities<Quest>(em);
@@ -363,7 +366,9 @@ namespace Landsong.ECS.Editor
                 materials = Quest("main_collect_building_materials");
                 foreach (var requirement in materialDefinition.Objectives.OwnedItemObjectives.ToArray())
                     Stock(requirement.Item, requirement.Quantity);
+                Check(!BuildingBlueprints.Has(em, root, farmDefinition) && !BuildingBlueprints.Has(em, root, residentialDefinition), "Tutorial blueprints remain locked before their reward claims");
                 Check(GameRequestExecution.Execute(em, root, new ClaimQuestRequest { Quest = Id(materials) }) == ResultCode.Success, "Material mainline reward unlocks farm task");
+                Check(BuildingBlueprints.Has(em, root, farmDefinition) && !BuildingBlueprints.Has(em, root, residentialDefinition), "Building feature initially exposes only the rewarded farm blueprint");
                 Entity MakeBuilding(string name, bool operational)
                 {
                     var def = BuildingDefinitions.Find(em, root, name);
@@ -419,6 +424,7 @@ namespace Landsong.ECS.Editor
                 var cropQuest = Quest("main_plant_farms_3");
                 Check(em.GetComponentData<Quest>(cropQuest).Status == QuestStatus.Completed, "Three planted farms meet crop objective");
                 Check(GameRequestExecution.Execute(em, root, new ClaimQuestRequest { Quest = Id(cropQuest) }) == ResultCode.Success, "Planting reward unlocks residential blueprint and task");
+                Check(BuildingBlueprints.Has(em, root, residentialDefinition), "Planting reward claim grants the residential blueprint");
                 var houses = new[]
                 {
                     MakeBuilding("b居民房", false),

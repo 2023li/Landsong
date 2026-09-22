@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3e493df89b1d4f3394a96d6e5d3619fb, type: 3}
-  m_Name: main_collect_building_materials
+  m_Name: "main02_\u5907\u9F50\u57FA\u77F3"
   m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.QuestDefinitionAsset
   Metadata:
     Id: main_collect_building_materials
