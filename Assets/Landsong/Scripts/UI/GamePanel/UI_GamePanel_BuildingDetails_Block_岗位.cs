@@ -1,7 +1,8 @@
-using System;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using TMPro;
+using Landsong.ECS.Definitions;
+using Unity.Entities;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -23,8 +24,6 @@ namespace Landsong.ECS.Presentation
         public TMP_Text RecruitWorkerCost;
         [LabelText("释放工人"), Required]
         public Button ReleaseWorker;
-        [LabelText("侧栏触发器"), Required]
-        public UI_GamePanel_BuildingDetails_SidebarTrigger Hover;
         [LabelText("自然填充"), Required]
         public Image NaturalFill;
         [LabelText("补贴填充"), Required]
@@ -32,14 +31,18 @@ namespace Landsong.ECS.Presentation
         [LabelText("岗位刻度"), Required]
         public List<Image> JobTicks = new List<Image>();
 
-        public void Refresh(WorkforceQuote quote, string item, bool editable, Action<int> changeBudget,
-            Action recruitWorker, Action releaseWorker, Func<WorkforceQuote> sidebarQuote)
+        public void Refresh(Entity entity, bool editable)
         {
+            var session = View.sessionController;
+            var quote = WorkforceOps.Quote(session.em, session.root, entity);
+            var id = session.em.GetComponentData<Identity>(entity).Id;
             bool visible = quote.Capacity > 0;
             gameObject.SetActive(visible);
-            BindSidebar(Hover, visible && sidebarQuote != null ? () => AttractionDetails(sidebarQuote()) : null);
+            BindSidebar(visible ? () => AttractionDetails(WorkforceOps.Quote(session.em, session.root, entity)) : null);
             if (!visible)
             {
+                Bind(Increase, null);
+                Bind(Decrease, null);
                 Bind(RecruitWorker, null);
                 Bind(ReleaseWorker, null);
                 return;
@@ -47,11 +50,12 @@ namespace Landsong.ECS.Presentation
 
             Jobs.text = $"岗位：{quote.Workers}/{quote.Capacity}";
             Budget.text = $"补贴 {quote.SubsidyCost}";
+            string item = quote.Gold.IsValid ? ItemDefinitions.Get(session.em, session.root, quote.Gold).Metadata.Name.ToString() : "—";
             RecruitWorkerCost.text = $"{quote.RecruitCost} {item}";
-            Bind(Increase, editable && !quote.Locked && quote.SubsidyCost < quote.Capacity ? () => changeBudget(quote.SubsidyCost + 1) : null);
-            Bind(Decrease, editable && !quote.Locked && quote.SubsidyCost > 0 ? () => changeBudget(quote.SubsidyCost - 1) : null);
-            Bind(RecruitWorker, recruitWorker);
-            Bind(ReleaseWorker, releaseWorker);
+            Bind(Increase, editable && !quote.Locked && quote.SubsidyCost < quote.Capacity ? () => View.commandsController.TryQueue(new SetWorkforceBudgetRequest { Building = id, Budget = 1, Relative = 1 }) : null);
+            Bind(Decrease, editable && !quote.Locked && quote.SubsidyCost > 0 ? () => View.commandsController.TryQueue(new SetWorkforceBudgetRequest { Building = id, Budget = -1, Relative = 1 }) : null);
+            Bind(RecruitWorker, editable && WorkforceOps.CanChange(quote, 1) == ResultCode.Success ? () => View.commandsController.TryQueue(new RecruitWorkersRequest { Building = id, Count = 1, ExpectedGoldCostPerWorker = quote.RecruitCost }) : null);
+            Bind(ReleaseWorker, editable && WorkforceOps.CanChange(quote, -1) == ResultCode.Success ? () => View.commandsController.TryQueue(new ChangeWorkersRequest { Building = id, Delta = -1 }) : null);
             Span(NaturalFill, 0, quote.Natural / 100);
             Span(SubsidyFill, quote.Natural / 100, quote.Planned / 100);
             int count = Mathf.Min(JobTicks.Count, quote.Capacity);

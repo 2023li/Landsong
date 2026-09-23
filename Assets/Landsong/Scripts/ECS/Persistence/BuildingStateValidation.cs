@@ -38,6 +38,10 @@ namespace Landsong.ECS.Persistence
                 throw new InvalidDataException("Invalid building state");
             if (record.BuildingFarming.Crop.IsValid && !CropDefinitions.IsValid(em, root, record.BuildingFarming.Crop))
                 throw new InvalidDataException("Invalid crop definition");
+            var fire = record.BuildingFire;
+            if (fire.Burning > 1 || fire.Burning != 0 && (record.Building.Stage != LifeStage.Operational || fire.StartedTurn < 1
+                || fire.StartedTurn > data.Clock.Turn || fire.DeadlinePhase < fire.StartedTurn * 2 + 1))
+                throw new InvalidDataException("Invalid building fire state");
             if (record.Food == null || record.Offers == null || record.ExpeditionHistory == null || record.Investment == null || record.RepairMaterials == null)
                 throw new InvalidDataException("Missing building buffers");
             foreach (var food in record.Food)

@@ -50,30 +50,23 @@ namespace Landsong.ECS
             var rows = new List<string>
             {
                 $"{identity.Name} · {module}工人档位",
-                $"当前 {workersState.Workers}/{capacity} 人口（在岗工人）",
+                $"当前 {workersState.Workers}/{capacity} 工人",
                 "按当前等级的基础配置说明；实际结算还需满足运营、维护、原料、连接及库存条件，加成另计。"
             };
             foreach (var tier in tiers)
             {
                 int workers = tier.MinimumWorkers, end = tier.MaximumWorkers;
                 var effects = new List<string>();
-                if (Includes("种植"))
-                    foreach (var cropId in crops)
-                    {
-                        if (!CropDefinitions.IsValid(em, root, cropId))
-                            continue;
-                        ref var crop = ref CropDefinitions.Get(em, root, cropId);
-                        string growth = workers >= crop.RequiredWorkers ? $"每次白天结算生长 1/{crop.GrowthTurns} 周期" : "生长暂停";
-                        string bonus = workers >= crop.FullStaffBonusWorkers ? $"全生长期保持此人数，收获 +{crop.FullStaffYieldBonus:0.#}%" : "不能保持全周期人数奖励";
-                        var rewards = new List<string>();
-                        for (int i = 0; i < crop.HarvestOutputs.Length; i++)
-                        {
-                            var output = crop.HarvestOutputs[i];
-                            rewards.Add($"{ItemName(output.Item)} {output.MinimumQuantity}～{math.max(output.MinimumQuantity, output.MaximumQuantity)}");
-                        }
-
-                        effects.Add($"{crop.Metadata.Name}：{growth}；{bonus}。基础收获 {string.Join("、", rewards)}");
-                    }
+                if (Includes("种植") && capabilities.Farming.Enabled && crops.Length > 0)
+                {
+                    ref var rules = ref capabilities.Farming;
+                    if (workers < rules.RequiredWorkers)
+                        effects.Add($"作物生长暂停（至少需要 {rules.RequiredWorkers} 工人）");
+                    else if (rules.FullCycleYieldBonusPercent > 0 && workers >= rules.FullCycleBonusWorkers)
+                        effects.Add($"作物产量 +{rules.FullCycleYieldBonusPercent}%（全生长期保持至少 {rules.FullCycleBonusWorkers} 工人）");
+                    else
+                        effects.Add("作物正常生长");
+                }
 
                 if (Includes("生产"))
                 {
@@ -125,13 +118,29 @@ namespace Landsong.ECS
                     effects.Add(capacity == 0 || workers > 0 ? "满足资源提供点的工人数要求（还需运营和维护正常）" : "资源提供点缺工失效");
                 if (effects.Count == 0)
                     effects.Add("此模块无工人数加成");
-                rows.Add((end == workers ? $"{workers}人口" : $"{workers}～{end}人口") + (workersState.Workers >= workers && workersState.Workers <= end ? "（当前）" : "") + "：\n" + string.Join("\n", effects));
+                string unit = module == "种植" ? "工人" : "人口";
+                rows.Add((end == workers ? $"{workers}{unit}" : $"{workers}～{end}{unit}") + (workersState.Workers >= workers && workersState.Workers <= end ? "（当前）" : "") + "：\n" + string.Join("\n", effects));
             }
 
-            if (Includes("种植") && farming.Crop.IsValid && farming.FullCycle == 0)
+            if (Includes("种植"))
+                foreach (var cropId in crops)
+                {
+                    if (!CropDefinitions.IsValid(em, root, cropId))
+                        continue;
+                    ref var crop = ref CropDefinitions.Get(em, root, cropId);
+                    var rewards = new List<string>();
+                    for (int i = 0; i < crop.HarvestOutputs.Length; i++)
+                    {
+                        var output = crop.HarvestOutputs[i];
+                        rewards.Add($"{ItemName(output.Item)} {output.MinimumQuantity}～{math.max(output.MinimumQuantity, output.MaximumQuantity)}");
+                    }
+
+                    rows.Add($"{crop.Metadata.Name}：成熟 {crop.GrowthTurns} 回合；基础收获 {string.Join("、", rewards)}");
+                }
+            if (Includes("种植") && farming.Crop.IsValid && farming.FullCycle == 0 && capabilities.Farming.FullCycleYieldBonusPercent > 0)
                 rows.Add("本季曾缺少奖励所需工人，全周期奖励已失效；现在补人不会补回本季奖励。");
             if (Includes("种植") && !farming.Crop.IsValid && crops.Length > 0)
-                rows.Add("尚未种植，以上列出本等级可选作物的工人要求。");
+                rows.Add("尚未种植，以上为农田工人规则和本等级可选作物。");
             return string.Join("\n\n", rows);
         }
 

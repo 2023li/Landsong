@@ -43,6 +43,7 @@ namespace Landsong.ECS.Presentation
             }
 
             showBuildingActionBar = false;
+            CropSelectionPanel?.Hide();
             if (BuildingActionBar != null)
                 BuildingActionBar.gameObject.SetActive(false);
             DetailsPanel.Hide();
@@ -115,6 +116,7 @@ namespace Landsong.ECS.Presentation
             if (entity == Entity.Null || !sessionController.em.HasComponent<Building>(entity))
                 return;
             navigation.ClosePanel();
+            CropSelectionPanel?.Hide();
             worldSelection.SelectedEntityId = id;
             showBuildingActionBar = true;
             DetailsPanel.Hide();
@@ -135,6 +137,8 @@ namespace Landsong.ECS.Presentation
         public UI_GamePanel_BuildingDetails DetailsPanel;
         [Sirenix.OdinInspector.LabelText("建筑确认面板")]
         public GameObject BuildingConfirmPanel;
+        [Sirenix.OdinInspector.LabelText("作物选择面板")]
+        public UI_GamePanel_CropSelection CropSelectionPanel;
         [Sirenix.OdinInspector.LabelText("建筑移动按钮")]
         public Button BuildingMoveButton;
         [Sirenix.OdinInspector.LabelText("建筑范围按钮")]
@@ -170,6 +174,7 @@ namespace Landsong.ECS.Presentation
             if (DetailsPanel == null)
                 throw new InvalidOperationException("建筑操作条未绑定独立的建筑详情面板。");
             DetailsPanel.Initialize();
+            CropSelectionPanel.ValidateConfiguration();
             BuildingDetailsButton.onClick.AddListener(() =>
             {
                 var selected = WorldQueries.Find(sessionController.em, worldSelection.SelectedEntityId);
@@ -194,10 +199,16 @@ namespace Landsong.ECS.Presentation
             BuildingActionBar.gameObject.SetActive(false);
             DetailsPanel.gameObject.SetActive(false);
             BuildingConfirmPanel.SetActive(false);
+            CropSelectionPanel.Hide();
         }
 
         public bool CancelBuildingInteraction()
         {
+            if (CropSelectionPanel != null && CropSelectionPanel.IsOpen)
+            {
+                CropSelectionPanel.Hide();
+                return true;
+            }
             if (BuildingConfirmPanel != null && BuildingConfirmPanel.activeSelf)
             {
                 BuildingConfirmPanel.SetActive(false);
@@ -233,6 +244,7 @@ namespace Landsong.ECS.Presentation
 
         internal void LifecycleOnDisable()
         {
+            CropSelectionPanel?.Hide();
             worldController.EndBuildingPlacement();
             inventory.EndInventoryDrag();
         }
@@ -285,6 +297,7 @@ namespace Landsong.ECS.Presentation
                 throw new ArgumentNullException(nameof(populate));
             if (BuildingConfirmPanel == null || BuildingConfirmTitle == null || BuildingConfirmGroup == null || BuildingConfirmRows == null)
                 throw new InvalidOperationException("建筑确认面板检查器引用不完整。");
+            CropSelectionPanel?.Hide();
             BuildingConfirmTitle.text = "确认操作";
             BuildingConfirmPanel.SetActive(true);
             BuildingConfirmPanel.transform.SetAsLastSibling();
@@ -299,6 +312,12 @@ namespace Landsong.ECS.Presentation
             {
                 rowsController.End();
             }
+        }
+
+        public void ShowCropSelection(IReadOnlyList<CropSelectionEntry> entries, Action<CropId> choose, string hint = null)
+        {
+            BuildingConfirmPanel.SetActive(false);
+            CropSelectionPanel.Show(entries, choose, hint);
         }
 
         internal T ConfirmationItem<T>(T template, string label, RectTransform parent, string key)
@@ -472,6 +491,7 @@ namespace Landsong.ECS.Presentation
             ResourcePathCellCount = 0;
             worldController.ClearBuildingRange();
             BuildingConfirmPanel.SetActive(false);
+            CropSelectionPanel.Hide();
             DetailsPanel.ResetSession();
             BuildingActionBar.gameObject.SetActive(false);
             BuildingBar.gameObject.SetActive(false);

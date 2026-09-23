@@ -1,18 +1,36 @@
 using System;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Landsong.ECS.Presentation
 {
-    public abstract class UI_GamePanel_BuildingDetails_Block : MonoBehaviour
+    public abstract class UI_GamePanel_BuildingDetails_Block : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
         [LabelText("所属建筑详情"), Required]
         public UI_GamePanel_BuildingDetails View;
 
-        protected void BindSidebar(UI_GamePanel_BuildingDetails_SidebarTrigger trigger, Func<string> content)
+        Func<string> sidebarContent;
+
+        protected void BindSidebar(Func<string> content)
         {
-            View.ConfigureSidebar(trigger, content);
+            sidebarContent = content;
+            View.SetSidebarContent(this, content);
+        }
+
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            if (sidebarContent != null)
+                View.ShowSidebar(this, sidebarContent);
+        }
+
+        public void OnPointerExit(PointerEventData eventData) => View.LeaveSidebar(this);
+
+        protected virtual void OnDisable()
+        {
+            if (View != null)
+                View.HideSidebar(this);
         }
 
         protected static void Span(Image image, float start, float end)

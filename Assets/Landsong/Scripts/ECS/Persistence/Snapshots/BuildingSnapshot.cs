@@ -23,6 +23,7 @@ namespace Landsong.ECS.Persistence
         public BuildingHousingState BuildingHousing;
         public BuildingProductionState BuildingProduction;
         public BuildingFarmingState BuildingFarming;
+        public BuildingFireState BuildingFire;
         public BuildingSanctumState BuildingSanctum;
         public BuildingGatheringState BuildingGathering;
         public BuildingRecruitmentState BuildingRecruitment;
@@ -54,6 +55,7 @@ namespace Landsong.ECS.Persistence
                 BuildingHousing = em.GetComponentData<BuildingHousingState>(entity),
                 BuildingProduction = em.GetComponentData<BuildingProductionState>(entity),
                 BuildingFarming = em.GetComponentData<BuildingFarmingState>(entity),
+                BuildingFire = em.GetComponentData<BuildingFireState>(entity),
                 BuildingSanctum = em.GetComponentData<BuildingSanctumState>(entity),
                 BuildingGathering = em.GetComponentData<BuildingGatheringState>(entity),
                 BuildingRecruitment = em.GetComponentData<BuildingRecruitmentState>(entity),
@@ -93,11 +95,16 @@ namespace Landsong.ECS.Persistence
             SnapshotBuffers.Write(writer, record.ExpeditionHistory);
             SnapshotBuffers.Write(writer, record.Investment);
             SnapshotBuffers.Write(writer, record.RepairMaterials);
+            writer.Write(record.BuildingFire.Burning);
+            writer.Write(record.BuildingFire.StartStrike);
+            writer.Write(record.BuildingFire.StartedTurn);
+            writer.Write(record.BuildingFire.DeadlinePhase);
+            writer.Write(record.BuildingFire.FailedStation);
         }
 
-        internal static BuildingSnapshot Read(BinaryReader reader)
+        internal static BuildingSnapshot Read(BinaryReader reader, int version)
         {
-            return new BuildingSnapshot
+            var record = new BuildingSnapshot
             {
                 Identity = SnapshotBinary.Read<Identity>(reader),
                 Transform = SnapshotBinary.Read<LocalTransform>(reader),
@@ -123,6 +130,16 @@ namespace Landsong.ECS.Persistence
                 Investment = SnapshotBuffers.Read<BuildingInvestment>(reader),
                 RepairMaterials = SnapshotBuffers.Read<RepairMaterial>(reader),
             };
+            if (version >= 35)
+                record.BuildingFire = new BuildingFireState
+                {
+                    Burning = reader.ReadByte(),
+                    StartStrike = reader.ReadByte(),
+                    StartedTurn = reader.ReadInt32(),
+                    DeadlinePhase = reader.ReadInt32(),
+                    FailedStation = reader.ReadUInt64(),
+                };
+            return record;
         }
 
         internal static Entity Restore(EntityManager em, Entity root, BuildingSnapshot record)
@@ -139,6 +156,7 @@ namespace Landsong.ECS.Persistence
             EntityState.Set(em, entity, record.BuildingHousing);
             EntityState.Set(em, entity, record.BuildingProduction);
             EntityState.Set(em, entity, record.BuildingFarming);
+            EntityState.Set(em, entity, record.BuildingFire);
             EntityState.Set(em, entity, record.BuildingSanctum);
             EntityState.Set(em, entity, record.BuildingGathering);
             EntityState.Set(em, entity, record.BuildingRecruitment);

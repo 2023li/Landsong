@@ -58,6 +58,11 @@ namespace Landsong.ECS.Editor
             QuestCatalogValidation.Validate(c);
             var quests = c.Definitions.Select(asset => asset).ToArray();
             Check(quests.Length == 11 && quests.Count(x => x.Behavior == QuestBehaviorFlags.Mainline) == 6 && quests.Count(x => x.Behavior == QuestBehaviorFlags.None) == 4 && quests.Single(x => x.Metadata.Id == "QM007").Behavior == (QuestBehaviorFlags.Mainline | QuestBehaviorFlags.Draft), "11 definitions: six mainline, four random, one disabled original placeholder");
+            foreach (var quest in quests)
+            {
+                var requirements = new SerializedObject(quest).FindProperty("Objectives.Requirements");
+                Check(requirements != null && requirements.arraySize == quest.Objectives.Requirements.Count && Enumerable.Range(0, requirements.arraySize).All(i => !string.IsNullOrEmpty(requirements.GetArrayElementAtIndex(i).managedReferenceFullTypename)), "Serialized requirement list loads for " + quest.Metadata.Id);
+            }
             foreach (var d in quests.Where(x => (x.Behavior & QuestBehaviorFlags.Draft) == 0))
                 Check(Keys(d.Objectives).All(key => key.Length >= 32), "Authored stable requirement IDs: " + d.Metadata.Id);
             void Expected(string id, int duration, int type, string rules)
@@ -247,7 +252,8 @@ namespace Landsong.ECS.Editor
                 Check(em.GetComponentData<Quest>(offer).StartTurn == 0 && em.GetComponentData<Quest>(offer).Deadline == 0 && QuestLifecycle.QuestCount(em) == 1, "Offered task has no timer or capacity consumption");
                 Check(GameRequestExecution.Execute(em, root, new TrackQuestRequest { Quest = Id(offer), Mode = (QuestTrackingMode)1 }) == ResultCode.InvalidTarget, "Offered task cannot be pinned");
                 Check(GameRequestExecution.Execute(em, root, new AcceptQuestRequest { Quest = Id(offer) }) == ResultCode.Success && QuestLifecycle.QuestCount(em) == 2, "Accept starts active task and consumes one capacity");
-                Check(GameRequestExecution.Execute(em, root, new TrackQuestRequest { Quest = Id(offer), Mode = (QuestTrackingMode)1 }) == ResultCode.Success && QuestOps.Tracking(em, root).Target == offerId, "Manual tracking overrides automatic mainline");
+                var initialTracked = QuestOps.Tracking(em, root).Target;
+                Check(GameRequestExecution.Execute(em, root, new TrackQuestRequest { Quest = Id(offer), Mode = (QuestTrackingMode)1 }) == ResultCode.Success && QuestOps.TrackedIds(em, root).SequenceEqual(new[] { initialTracked, offerId }), "Manual tracking keeps automatic task and adds second task");
                 using var copy = em.GetBuffer<QuestProgress>(offer).ToNativeArray(Allocator.Temp);
                 var requirements = copy.ToArray();
                 Check(requirements.Length == 2 && requirements[0].Key != requirements[1].Key, "Grouped submit produces two stable individual requirements");
@@ -272,13 +278,14 @@ namespace Landsong.ECS.Editor
                 var original = SnapshotCodec.Capture(em, root);
                 SnapshotCodec.Restore(em, root, SnapshotCodec.Decode(em, root, original));
                 offer = WorldQueries.Find(em, offerId);
-                Check(original.SequenceEqual(SnapshotCodec.Capture(em, root)) && QuestOps.Tracking(em, root).Target == offerId && em.GetBuffer<QuestProgress>(offer)[0].Amount == 1, "Current schema roundtrip preserves partial submit and tracking");
+                Check(original.SequenceEqual(SnapshotCodec.Capture(em, root)) && QuestOps.TrackedIds(em, root).SequenceEqual(new[] { initialTracked, offerId }) && em.GetBuffer<QuestProgress>(offer)[0].Amount == 1, "Current schema roundtrip preserves partial submit and multiple tracked tasks");
                 Check(EconomyForecastOps.Create(em, root) == ResultCode.Success && original.SequenceEqual(SnapshotCodec.Capture(em, root)), "Forecast preserves quests, tracking, inventory and RNG");
                 var rollback = SnapshotCodec.Decode(em, root, original);
                 rollback.Tracking = new QuestTracking
                 {
                     Mode = 2
                 };
+                rollback.TrackedQuests = Array.Empty<TrackedQuest>();
                 var rollbackFailed = false;
                 try
                 {
@@ -354,7 +361,7 @@ namespace Landsong.ECS.Editor
                     slots.Add(s);
                 Check(GameRequestExecution.Execute(em, root, new ClaimQuestRequest { Quest = Id(offer) }) == ResultCode.Success && !em.Exists(offer), "Random reward claim consumes task once");
                 Check(QuestLifecycle.QuestCount(em) == 1, "Claim releases ordinary slot while mainline retains its shared slot");
-                Check(QuestOps.Tracking(em, root).Mode == 0 && QuestOps.Tracking(em, root).Target == Id(Quest("main_collect_building_materials")), "Claimed manual task falls back to highest-value accepted task");
+                Check(QuestOps.TrackedIds(em, root).Contains(initialTracked) && !QuestOps.TrackedIds(em, root).Contains(offerId), "Claim removes completed tracked task and keeps other tracked task");
                 GameRequestExecution.Execute(em, root, new TrackQuestRequest { Quest = 0, Mode = (QuestTrackingMode)2 });
                 var unpinned = SnapshotCodec.Capture(em, root);
                 SnapshotCodec.Restore(em, root, SnapshotCodec.Decode(em, root, unpinned));
@@ -491,10 +498,12 @@ namespace Landsong.ECS.Editor
                         foreach (var e in tasks)
                             if (em.GetComponentData<QuestDefinitionRef>(e).Definition == QuestDefinitions.Find(em, root, names[i]))
                                 extra[i] = e;
+                GameRequestExecution.Execute(em, root, new TrackQuestRequest { Quest = 0, Mode = (QuestTrackingMode)2 });
                 GameRequestExecution.Execute(em, root, new TrackQuestRequest { Quest = Id(extra[0]), Mode = (QuestTrackingMode)1 });
                 GameRequestExecution.Execute(em, root, new TrackQuestRequest { Quest = Id(extra[2]), Mode = (QuestTrackingMode)1 });
+                Check(QuestOps.TrackedIds(em, root).SequenceEqual(new[] { Id(extra[0]), Id(extra[2]) }), "Two accepted tasks can be tracked together");
                 GameRequestExecution.Execute(em, root, new TrackQuestRequest { Quest = Id(extra[0]), Mode = (QuestTrackingMode)2 });
-                Check(QuestOps.Tracking(em, root).Target == Id(extra[2]), "Late uncheck of another card does not clear new tracked target");
+                Check(QuestOps.TrackedIds(em, root).SequenceEqual(new[] { Id(extra[2]) }), "Unchecking one task keeps the other tracked");
                 GameRequestExecution.Execute(em, root, new TrackQuestRequest { Quest = Id(extra[2]), Mode = (QuestTrackingMode)2 });
                 Check(QuestOps.Tracking(em, root).Mode == 2 && QuestOps.Tracking(em, root).Target == 0, "Targeted uncheck clears matching tracking");
                 GameRequestExecution.Execute(em, root, new TrackQuestRequest { Quest = Id(extra[0]), Mode = (QuestTrackingMode)1 });

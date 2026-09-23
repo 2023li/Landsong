@@ -55,6 +55,7 @@ namespace Landsong.ECS.Editor
             new VerificationSuite(nameof(Landsong.EditorTools.SoldierAnimationVerification), "士兵动画配置", "动画", Landsong.EditorTools.SoldierAnimationVerification.Run),
             new VerificationSuite(nameof(NightPlanningVerification), "夜间规划", "玩法", NightPlanningVerification.Run),
             new VerificationSuite(nameof(NightLightingVerification), "昼夜光照逻辑", "表现", NightLightingVerification.Run),
+            new VerificationSuite(nameof(SeasonWeatherVerification), "季节与天气系统", "天气", SeasonWeatherVerification.Run),
             new VerificationSuite(nameof(DynamicSpawnVerification), "动态出生区域", "地图", DynamicSpawnVerification.Run),
             new VerificationSuite(nameof(CourtVerification), "宫廷系统", "宫廷", CourtVerification.Run),
             new VerificationSuite(nameof(InvitationExpeditionVerification), "邀请与远征", "宫廷", InvitationExpeditionVerification.Run),

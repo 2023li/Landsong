@@ -898,7 +898,6 @@ GameObject:
   - component: {fileID: 26510877561986079}
   - component: {fileID: 5390411978463505820}
   - component: {fileID: 8106743323712765682}
-  - component: {fileID: 4747587521242983199}
   - component: {fileID: 581246927431092001}
   m_Layer: 0
   m_Name: "Block_\u57FA\u7840\u4EA7\u51FA"
@@ -985,19 +984,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &4747587521242983199
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 879547294226159250}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 87fbcbdbf4554f84a5d6969b308e9f4a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_BuildingDetails_SidebarTrigger
-  View: {fileID: 3729718196166514561}
 --- !u!114 &581246927431092001
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1013,7 +999,6 @@ MonoBehaviour:
   View: {fileID: 3729718196166514561}
   Label: {fileID: 1617074762326442388}
   Layout: {fileID: 26510877561986079}
-  Hover: {fileID: 4747587521242983199}
 --- !u!1 &930431363877126033
 GameObject:
   m_ObjectHideFlags: 0
@@ -1406,7 +1391,6 @@ GameObject:
   - component: {fileID: 3043950098381497445}
   - component: {fileID: 4641439908862375780}
   - component: {fileID: 3365856272467271053}
-  - component: {fileID: 5774435628640783595}
   m_Layer: 0
   m_Name: hp
   m_TagString: Untagged
@@ -1473,19 +1457,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &5774435628640783595
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1495079264694222141}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 87fbcbdbf4554f84a5d6969b308e9f4a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_BuildingDetails_SidebarTrigger
-  View: {fileID: 3729718196166514561}
 --- !u!1 &1554886398852709540
 GameObject:
   m_ObjectHideFlags: 0
@@ -2819,7 +2790,6 @@ GameObject:
   - component: {fileID: 1390779426797470118}
   - component: {fileID: 2820891218713225738}
   - component: {fileID: 6487881116254391574}
-  - component: {fileID: 3958173966403208557}
   - component: {fileID: 793468149653214223}
   m_Layer: 0
   m_Name: "Block_\u5C97\u4F4D"
@@ -2910,19 +2880,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &3958173966403208557
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2942440354488864621}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 87fbcbdbf4554f84a5d6969b308e9f4a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_BuildingDetails_SidebarTrigger
-  View: {fileID: 3729718196166514561}
 --- !u!114 &793468149653214223
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2943,7 +2900,6 @@ MonoBehaviour:
   RecruitWorker: {fileID: 7341789318607651105}
   RecruitWorkerCost: {fileID: 1514542039023181976}
   ReleaseWorker: {fileID: 6586981605855445586}
-  Hover: {fileID: 3958173966403208557}
   NaturalFill: {fileID: 2048717280164283707}
   SubsidyFill: {fileID: 6855786426969214891}
   JobTicks:
@@ -3599,7 +3555,6 @@ MonoBehaviour:
   Style: {fileID: 4023322470748260964}
   Upgrade: {fileID: 1911410095626851868}
   Warning: {fileID: 6657278380307001840}
-  ExperienceTrack: {fileID: 6212595132751798113}
   ExperienceHover: {fileID: 2335016749882259976}
   ModulesScroll: {fileID: 358052313347747607}
   Blocks:
@@ -3614,7 +3569,6 @@ MonoBehaviour:
   TooltipText: {fileID: 6973131991523406175}
   Sidebar: {fileID: 133533700976152650}
   SidebarText: {fileID: 9185615387141199638}
-  RowTemplate: {fileID: 1573664279546181541, guid: a6505af27ca58fd479bd424bc2087351, type: 3}
   Items: {fileID: 11400000, guid: 319f79e63ed641ad95eee7374998bf9b, type: 2}
   Crops: {fileID: 11400000, guid: bcd6cb7d6ad04d46a9627e766ac58056, type: 2}
 --- !u!114 &8000234006582578568
@@ -5488,6 +5442,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: "Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_BuildingDetails_Block_\u5176\u4ED6"
   View: {fileID: 3729718196166514561}
+  RowTemplate: {fileID: 1573664279546181541, guid: a6505af27ca58fd479bd424bc2087351, type: 3}
 --- !u!1 &5423248044997788644
 GameObject:
   m_ObjectHideFlags: 0
@@ -7078,9 +7033,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 6212595132751798113}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 87fbcbdbf4554f84a5d6969b308e9f4a, type: 3}
+  m_Script: {fileID: 11500000, guid: d93bde6e29a54c6ca074745ea02e5eb4, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_BuildingDetails_SidebarTrigger
+  m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_BuildingDetails_ExperienceHover
   View: {fileID: 3729718196166514561}
 --- !u!1 &6237745524333770439
 GameObject:
@@ -7403,7 +7358,6 @@ GameObject:
   - component: {fileID: 406979520497180438}
   - component: {fileID: 6443046055562734137}
   - component: {fileID: 2255913630395076334}
-  - component: {fileID: 2029531439139251209}
   - component: {fileID: 814579250764325334}
   m_Layer: 0
   m_Name: "Block_\u79CD\u690D"
@@ -7493,19 +7447,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &2029531439139251209
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6359593546524950458}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 87fbcbdbf4554f84a5d6969b308e9f4a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_BuildingDetails_SidebarTrigger
-  View: {fileID: 3729718196166514561}
 --- !u!114 &814579250764325334
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7524,7 +7465,6 @@ MonoBehaviour:
   Label: {fileID: 5093724010604760465}
   Select: {fileID: 4117024707432862022}
   Clear: {fileID: 420302887104686787}
-  Hover: {fileID: 2029531439139251209}
 --- !u!1 &6365266859901906581
 GameObject:
   m_ObjectHideFlags: 0

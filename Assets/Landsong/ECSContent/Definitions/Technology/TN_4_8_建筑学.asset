@@ -36,7 +36,10 @@ MonoBehaviour:
     ExpeditionRequirements: []
   Rewards:
     Items: []
-    Blueprints: []
+    Blueprints:
+    - Order: 1
+      Building: {fileID: 11400000, guid: 9b7d6dda6fe745aeac312a135bdc202b, type: 2}
+      GrantedLevel: 1
     Buffs: []
     Features: []
   Effects:

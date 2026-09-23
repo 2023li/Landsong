@@ -6841,6 +6841,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c6648e479d15e24394c7cb9d45e47f1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_QuestTracking
+  Scroll: {fileID: 4539653422551635229}
   Rows: {fileID: 3256966927949307767}
 --- !u!1 &5561754433006909961
 GameObject:

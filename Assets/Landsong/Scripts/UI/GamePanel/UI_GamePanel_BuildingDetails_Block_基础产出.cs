@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using Landsong.ECS.Definitions;
 using Sirenix.OdinInspector;
 using TMPro;
+using Unity.Entities;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,21 +15,51 @@ namespace Landsong.ECS.Presentation
         public TMP_Text Label;
         [LabelText("布局"), Required]
         public LayoutElement Layout;
-        [LabelText("侧栏触发器"), Required]
-        public UI_GamePanel_BuildingDetails_SidebarTrigger Hover;
         public void ValidateConfiguration()
         {
-            if (View == null || Hover == null)
-                throw new InvalidOperationException("基础产出模块缺少建筑详情或侧栏触发器。");
-            if (Hover.View != View)
-                throw new InvalidOperationException("基础产出模块侧栏触发器没有绑定所属建筑详情。");
+            if (View == null)
+                throw new InvalidOperationException("基础产出模块缺少所属建筑详情。");
         }
 
-        public void Refresh(IReadOnlyList<string> outputs, Func<string> sidebarContent)
+        public void Refresh(Entity entity)
         {
-            bool visible = outputs != null && outputs.Count > 0;
+            var session = View.sessionController;
+            var building = session.em.GetComponentData<Building>(entity);
+            var stats = session.em.GetComponentData<BuildingHousingStats>(entity);
+            var garrison = session.em.GetComponentData<BuildingGarrisonStats>(entity);
+            var quests = session.em.GetComponentData<BuildingQuestStats>(entity);
+            ref var definition = ref BuildingDefinitions.Get(session.em, session.root, session.em.GetComponentData<BuildingDefinitionRef>(entity).Definition);
+            var outputs = new List<string>();
+            if (stats.MaxPopulation + stats.BasePopulation > 0)
+                outputs.Add("人口 +" + (stats.MaxPopulation + stats.BasePopulation));
+            int research = 0;
+            for (int i = 0; i < definition.Capabilities.Research.Levels.Length; i++)
+            {
+                var level = definition.Capabilities.Research.Levels[i];
+                if (level.Level == 0 || level.Level == building.Level)
+                    research += level.PointsPerTurn;
+            }
+
+            if (research > 0)
+                outputs.Add("科研值 +" + research);
+            if (garrison.Capacity > 0)
+                outputs.Add("士兵槽 " + garrison.Capacity);
+            for (int i = 0; i < definition.Capabilities.Storage.Warehouses.Length; i++)
+            {
+                var warehouse = definition.Capabilities.Storage.Warehouses[i];
+                if ((warehouse.Level == 0 || warehouse.Level == building.Level) && warehouse.Slots > 0)
+                    outputs.Add("库存 " + StorageSlotDefinitions.Get(session.em, session.root, warehouse.SlotType).Metadata.Name + " ×" + warehouse.Slots + "（工人≥" + warehouse.RequiredWorkers + "）");
+            }
+
+            int invitations = session.em.HasBuffer<QuestOfferSlot>(entity) ? session.em.GetBuffer<QuestOfferSlot>(entity).Length : 0;
+            if (invitations > 0)
+                outputs.Add("邀约槽 " + invitations);
+            if (quests.Capacity > 0)
+                outputs.Add("任务槽位 " + quests.Capacity);
+            bool visible = outputs.Count > 0;
             gameObject.SetActive(visible);
-            BindSidebar(Hover, visible ? sidebarContent : null);
+            bool hasWorkforce = session.em.GetComponentData<BuildingWorkforceStats>(entity).Capacity > 0;
+            BindSidebar(visible && hasWorkforce ? () => WorkerEfficiencyOps.Describe(session.em, session.root, entity, "全部") : null);
             if (!visible)
                 return;
 

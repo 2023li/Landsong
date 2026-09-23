@@ -51,6 +51,7 @@ namespace Landsong.ECS.Authoring.Definitions
                 var entity = GetEntity(TransformUsageFlags.None);
                 AddComponent(entity, new QuestCatalog { Value = blob });
                 AddBuffer<ClaimedQuest>(entity);
+                AddBuffer<TrackedQuest>(entity);
             }
         }
     }

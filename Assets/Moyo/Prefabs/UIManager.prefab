@@ -1,5 +1,40 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &8424827900730561436
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7709362119396669949}
+  m_Layer: 0
+  m_Name: GameObject
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &7709362119396669949
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8424827900730561436}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3465801690225804167}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1001 &258662038050985473
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8,6 +43,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2426357730166515698, guid: 26e77fa793c244a4eb8e949d0295355b, type: 3}
+      propertyPath: m_BlockingMask.m_Bits
+      value: 55
+      objectReference: {fileID: 0}
     - target: {fileID: 8018902200005646101, guid: 26e77fa793c244a4eb8e949d0295355b, type: 3}
       propertyPath: m_Pivot.x
       value: 0
@@ -94,6 +133,14 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 3715455976622773638, guid: 26e77fa793c244a4eb8e949d0295355b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7709362119396669949}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 26e77fa793c244a4eb8e949d0295355b, type: 3}
+--- !u!224 &3465801690225804167 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 3715455976622773638, guid: 26e77fa793c244a4eb8e949d0295355b, type: 3}
+  m_PrefabInstance: {fileID: 258662038050985473}
+  m_PrefabAsset: {fileID: 0}

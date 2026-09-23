@@ -34,11 +34,7 @@ MonoBehaviour:
     Features: []
   FailurePenalties: []
   Objectives:
-    BuildingObjectives: []
-    PlantedBuildingObjectives: []
-    OwnedItemObjectives: []
-    SubmittedItemObjectives: []
-    TechnologyObjectives: []
-    CameraMoveObjectives: []
-    CameraZoomObjectives: []
-    TurnObjectives: []
+    Requirements: []
+  references:
+    version: 2
+    RefIds: []

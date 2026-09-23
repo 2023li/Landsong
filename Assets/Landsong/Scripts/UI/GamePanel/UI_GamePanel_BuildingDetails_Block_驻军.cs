@@ -36,12 +36,41 @@ namespace Landsong.ECS.Presentation
         readonly List<(UI_Common_PortraitImageBinding Binding, ulong Id)> portraits = new List<(UI_Common_PortraitImageBinding, ulong)>();
         string signature;
 
-        public void Refresh(ulong buildingId, IReadOnlyList<SlotModel> models, EntityManager manager, Entity simulation,
-            Action adjust, Action<ulong> select)
+        public void AppendDetails(Entity site, Action<string, Action, string> detail)
         {
-            int capacity = models?.Count ?? 0;
+            var session = View.sessionController;
+            if (session.em.GetComponentData<BuildingGarrisonStats>(site).Capacity <= 0 || !BuildingStatus.Operational(session.em, site))
+                return;
+            var phase = session.em.GetComponentData<Session>(session.root).Phase;
+            if (phase != Phase.Night && phase != Phase.Retreat)
+                return;
+            ulong id = session.em.GetComponentData<Identity>(site).Id;
+            detail("召回所属士兵", () => View.commandsController.TryQueue(new RecallGarrisonRequest { Garrison = id, Cancel = false }), null);
+            detail("取消途中召回", () => View.commandsController.TryQueue(new RecallGarrisonRequest { Garrison = id, Cancel = true }), null);
+        }
+
+        public void Refresh(Entity site)
+        {
+            var session = View.sessionController;
+            var manager = session.em;
+            var simulation = session.root;
+            int capacity = manager.GetComponentData<BuildingGarrisonStats>(site).Capacity;
+            ulong buildingId = manager.GetComponentData<Identity>(site).Id;
+            var models = new List<SlotModel>(capacity);
+            for (int slot = 1; slot <= capacity; slot++)
+            {
+                var unit = GarrisonOps.AtSlot(manager, buildingId, slot);
+                if (unit == Entity.Null)
+                    models.Add(new SlotModel(0, "", false));
+                else
+                {
+                    var identity = manager.GetComponentData<Identity>(unit);
+                    models.Add(new SlotModel(identity.Id, identity.Name.ToString(), EntityState.Alive(manager, unit)));
+                }
+            }
+
             gameObject.SetActive(capacity > 0);
-            Bind(Adjust, capacity > 0 ? adjust : null);
+            Bind(Adjust, capacity > 0 ? () => View.navigation.OpenPanel(GamePanelId.Garrison) : null);
             if (capacity <= 0)
             {
                 signature = null;
@@ -87,7 +116,13 @@ namespace Landsong.ECS.Presentation
                 area.anchoredPosition = new Vector2(4 + i * 90, 0);
                 slot.gameObject.SetActive(true);
                 slot.Select.onClick.RemoveAllListeners();
-                slot.Select.onClick.AddListener(() => select(model.Id));
+                slot.Select.onClick.AddListener(() =>
+                {
+                    if (model.Id == 0)
+                        View.navigation.OpenPanel(GamePanelId.Garrison);
+                    else
+                        View.soldierController.OpenSoldierDetails(model.Id);
+                });
                 slot.EmptyLabel.gameObject.SetActive(model.Id == 0);
                 slot.NameLabel.gameObject.SetActive(model.Id != 0);
                 slot.Portrait.gameObject.SetActive(model.Id != 0);

@@ -35,6 +35,30 @@ namespace Landsong.ECS.Presentation
             var phaseName = s.Phase == Phase.Day && sClock.DawnRemaining > 0 ? "黎明（日出，可建设）" : GameUiText.PhaseName(s.Phase);
             var population = PopulationOps.Population(sessionController.em, sessionController.root);
             Status.text = PresentationText.Get("Gameplay/gameplay.ecs.turn_status", "{0}　白天 {1} / 夜晚 {1}　{2}　人口 {3}（空闲 {4}）", sDynasty.Name.ToString(), sClock.Turn, PresentationText.Source(phaseName), population, math.max(0, population - PopulationOps.Employed(sessionController.em)));
+            var em = sessionController.em;
+            var root = sessionController.root;
+            var weather = em.GetComponentData<SeasonWeatherState>(root);
+            var seasonName = weather.Season == SeasonKind.Spring ? "春" : weather.Season == SeasonKind.Summer ? "夏" : weather.Season == SeasonKind.Autumn ? "秋" : "冬";
+            var seasonLength = weather.Season == SeasonKind.Spring || weather.Season == SeasonKind.Autumn ? 30 : 20;
+            var weatherName = weather.Weather == WeatherKind.Rain ? "雨" : weather.Weather == WeatherKind.Snow ? "雪" : "晴";
+            var windName = weather.Wind == WindKind.Calm ? "无风" : weather.Wind == WindKind.Light ? "微风" : weather.Wind == WindKind.Moderate ? "中风" : "强风";
+            Status.text += $"　{seasonName}{SeasonWeatherOps.DayOfSeason(sClock.Turn)}/{seasonLength}　{weatherName} {weather.Temperature}°C　{windName}";
+            var fires = 0;
+            var closestDeadline = int.MaxValue;
+            var hasResponder = false;
+            using (var buildings = WorldQueries.Entities<Building>(em))
+                foreach (var building in buildings)
+                    if (em.HasComponent<BuildingFireState>(building))
+                    {
+                        var fire = em.GetComponentData<BuildingFireState>(building);
+                        if (fire.Burning == 0)
+                            continue;
+                        fires++;
+                        closestDeadline = math.min(closestDeadline, math.max(0, fire.DeadlinePhase - BuildingFireOps.CurrentPhase(em, root)));
+                        hasResponder |= BuildingFireOps.HasOutboundResponder(em, root, em.GetComponentData<Identity>(building).Id);
+                    }
+            if (fires > 0)
+                Status.text += $"　<color=#FF6B36>火情 {fires} 处｜{(hasResponder ? "消防在途" : $"剩余 {closestDeadline} 阶段")}</color>";
             AdvanceLabel.text = s.Phase == Phase.Report ? "今晚战报" : "下一阶段";
             var timing = sessionController.em.GetComponentData<NightSettings>(sessionController.root);
             var nightElapsed = sClock.PhaseTime - timing.NightPreparationSeconds;
@@ -210,7 +234,7 @@ namespace Landsong.ECS.Presentation
             HeroSelection sHeroSelection = sessionController.em.GetComponentData<HeroSelection>(sessionController.root);
             BellState sBell = sessionController.em.GetComponentData<BellState>(sessionController.root);
             bool visible = s.Phase == Phase.Deployment || s.Phase == Phase.Night || s.Phase == Phase.Retreat || s.Phase == Phase.Celebration;
-            visible &= !intelligence.IsOpen && navigation.Panel != GamePanelId.Technology && navigation.Panel != GamePanelId.Quest && (buildingController.BuildingConfirmPanel == null || !buildingController.BuildingConfirmPanel.activeSelf);
+            visible &= !intelligence.IsOpen && navigation.Panel != GamePanelId.Technology && navigation.Panel != GamePanelId.Quest && (buildingController.BuildingConfirmPanel == null || !buildingController.BuildingConfirmPanel.activeSelf) && (buildingController.CropSelectionPanel == null || !buildingController.CropSelectionPanel.IsOpen);
             heroHud.gameObject.SetActive(visible);
             RefreshHeroSelection(s, sControl, sHeroSelection, visible);
             if (!visible)
@@ -563,7 +587,7 @@ namespace Landsong.ECS.Presentation
                 throw new InvalidOperationException("夜间 HUD 检查器引用缺失。");
             NightHud.ValidateConfiguration();
             nightMarkers = NightHud.MarkerRoot;
-            bool visible = !intelligence.IsOpen && (s.Phase == Phase.Deployment || s.Phase == Phase.Night || s.Phase == Phase.Retreat || s.Phase == Phase.Celebration) && (inputContext.PauseMenu == null || !inputContext.PauseMenu.IsOpen) && (buildingController.BuildingConfirmPanel == null || !buildingController.BuildingConfirmPanel.activeSelf);
+            bool visible = !intelligence.IsOpen && (s.Phase == Phase.Deployment || s.Phase == Phase.Night || s.Phase == Phase.Retreat || s.Phase == Phase.Celebration) && (inputContext.PauseMenu == null || !inputContext.PauseMenu.IsOpen) && (buildingController.BuildingConfirmPanel == null || !buildingController.BuildingConfirmPanel.activeSelf) && (buildingController.CropSelectionPanel == null || !buildingController.CropSelectionPanel.IsOpen);
             nightMarkers.gameObject.SetActive(visible);
             if (!visible)
                 return;

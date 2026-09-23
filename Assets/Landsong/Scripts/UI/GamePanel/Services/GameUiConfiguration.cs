@@ -46,8 +46,9 @@ namespace Landsong.ECS.Presentation
             Need(view.technologyController.TechnologyTree, nameof(view.technologyController.TechnologyTree));
             Need(view.courtController.CourtGraph, nameof(view.courtController.CourtGraph));
             Need(view.courtController.RoyalDetails, nameof(view.courtController.RoyalDetails));
-            Need(view.questController.QuestPanel, nameof(view.questController.QuestPanel));
+            Need(view.questController, nameof(view.questController));
             Need(view.questController.QuestTracking, nameof(view.questController.QuestTracking));
+            view.questController.QuestTracking.ValidateConfiguration();
             Need(view.soldierController.SoldierDetailsPanel, nameof(view.soldierController.SoldierDetailsPanel));
             Need(view.marriageController.MarriagePanel, nameof(view.marriageController.MarriagePanel));
             Need(view.requestsController.PersonRequestsPanel, nameof(view.requestsController.PersonRequestsPanel));
@@ -71,13 +72,15 @@ namespace Landsong.ECS.Presentation
             Need(view.marriageController.MarriageEventLabel, nameof(view.marriageController.MarriageEventLabel));
             Need(view.buildingController.BuildingConfirmTitle, nameof(view.buildingController.BuildingConfirmTitle));
             Need(view.buildingController.BuildingConfirmGroup, nameof(view.buildingController.BuildingConfirmGroup));
+            Need(view.buildingController.CropSelectionPanel, nameof(view.buildingController.CropSelectionPanel));
+            view.buildingController.CropSelectionPanel.ValidateConfiguration();
             view.buildingController.BuildingBar.ValidateConfiguration();
             view.technologyController.TechnologyTree.ValidateConfiguration();
             view.courtController.CourtGraph.ValidateConfiguration();
             view.talentController.CourtGraph.ValidateConfiguration();
             view.policyController.CourtGraph.ValidateConfiguration();
             view.courtController.RoyalDetails.ValidateConfiguration();
-            view.questController.QuestPanel.ValidateConfiguration();
+            view.questController.ValidateConfiguration();
             view.soldierController.SoldierDetailsPanel.ValidateConfiguration();
             view.marriageController.MarriagePanel.ValidateConfiguration();
             view.requestsController.PersonRequestsPanel.ValidateConfiguration();
@@ -105,10 +108,9 @@ namespace Landsong.ECS.Presentation
                 view.soldierController.SoldierDetailsPanel,
                 view.marriageController.MarriagePanel,
                 view.requestsController.PersonRequestsPanel,
-                view.portraitController.PortraitPanel
-            }
-
-            )
+                view.portraitController.PortraitPanel,
+                view.buildingController.CropSelectionPanel
+            })
                 if (!modal.transform.IsChildOf(view.ModalRoot))
                     throw new InvalidOperationException(modal.name + " 必须位于模态面板根对象下。");
         }

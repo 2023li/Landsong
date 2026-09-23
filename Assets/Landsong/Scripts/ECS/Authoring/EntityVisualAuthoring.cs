@@ -80,7 +80,7 @@ namespace Landsong.ECS.Authoring
                         else
                         {
                             ref var crop = ref CropDefinitions.Get(em, simulation, bFarming.Crop);
-                            var progress = math.saturate(bFarming.Progress / (float)math.max(1, crop.GrowthTurns));
+                            var progress = math.saturate(bFarming.Progress / (float)CropGrowthOps.Threshold(crop.GrowthTurns));
                             visible &= crop.Metadata.Id == visual.CropId && progress >= visual.GrowthFrom && (visual.GrowthTo >= 1 ? progress <= 1 : progress < visual.GrowthTo);
                         }
                     }

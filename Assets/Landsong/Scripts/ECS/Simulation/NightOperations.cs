@@ -217,6 +217,8 @@ namespace Landsong.ECS
             using var actors = WorldQueries.Entities<Combatant>(em);
             foreach (var e in actors)
             {
+                if (em.HasComponent<Firefighter>(e))
+                    continue;
                 var actor = em.GetComponentData<Combatant>(e);
                 actor.Target = Entity.Null;
                 em.SetComponentData(e, actor);
@@ -235,6 +237,8 @@ namespace Landsong.ECS
             using var actors = WorldQueries.Entities<Combatant>(em);
             foreach (var e in actors)
             {
+                if (em.HasComponent<Firefighter>(e))
+                    continue;
                 var actor = em.GetComponentData<Combatant>(e);
                 if (!EntityState.Alive(em, e)) continue;
                 if (actor.Faction != 0)
@@ -255,6 +259,8 @@ namespace Landsong.ECS
             using var actors = WorldQueries.Entities<Combatant>(em);
             foreach (var e in actors)
             {
+                if (em.HasComponent<Firefighter>(e))
+                    continue;
                 var actor = em.GetComponentData<Combatant>(e);
                 if (actor.Faction != 0 || !EntityState.Alive(em, e))
                     continue;
@@ -446,6 +452,8 @@ namespace Landsong.ECS
             using var all = WorldQueries.Entities<Combatant>(em);
             foreach (var e in all)
             {
+                if (em.HasComponent<Firefighter>(e))
+                    continue;
                 var a = em.GetComponentData<Combatant>(e);
                 if (a.Faction != 0)
                     continue;
@@ -520,6 +528,7 @@ namespace Landsong.ECS
             NightReportOps.HeroTimes(em, root);
             NightPlanOps.Commit(em, root);
             BattleLifecycle.Dawn(em, root);
+            BuildingFireOps.EnterDay(em, root);
             BuildingLifecycle.DawnBuildings(em, root);
             CollectAll(em, root);
             NightResultOps.Commit(em, root);
@@ -531,7 +540,7 @@ namespace Landsong.ECS
             using (var all = WorldQueries.Entities<Combatant>(em))
                 foreach (var e in all)
                 {
-                    if (em.HasComponent<DayReturnState>(e))
+                    if (em.HasComponent<DayReturnState>(e) || em.HasComponent<Firefighter>(e))
                         continue;
                     var a = em.GetComponentData<Combatant>(e);
                     a.Deployed = 0;
@@ -563,6 +572,7 @@ namespace Landsong.ECS
                 em.SetComponentData(root, sBell);
             }
 
+            SeasonWeatherOps.Dawn(em, root);
             Plan(em, root, false);
             QuestLifecycle.DiscoverQuests(em, root);
             QuestLifecycle.EvaluateQuests(em, root);

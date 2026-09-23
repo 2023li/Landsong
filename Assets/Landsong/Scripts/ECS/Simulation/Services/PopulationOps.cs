@@ -18,7 +18,8 @@ namespace Landsong.ECS
             {
                 if (amount <= 0)
                     break;
-                if (!BuildingStatus.Operational(em, e) && em.GetComponentData<Building>(e).RuinPending == 0)
+                var burning = em.HasComponent<BuildingFireState>(e) && em.GetComponentData<BuildingFireState>(e).Burning != 0;
+                if (!BuildingStatus.Operational(em, e) && !burning && em.GetComponentData<Building>(e).RuinPending == 0)
                     continue;
                 BuildingHousingState bHousing = em.GetComponentData<BuildingHousingState>(e);
                 var remove = math.min(amount, bHousing.Population);
@@ -49,7 +50,8 @@ namespace Landsong.ECS
             {
                 var b = em.GetComponentData<Building>(e);
                 BuildingHousingState bHousing = em.GetComponentData<BuildingHousingState>(e);
-                if (BuildingStatus.Operational(em, e) || b.RuinPending != 0)
+                var burning = em.HasComponent<BuildingFireState>(e) && em.GetComponentData<BuildingFireState>(e).Burning != 0;
+                if (BuildingStatus.Operational(em, e) || burning || b.RuinPending != 0)
                     count += bHousing.Population + em.GetComponentData<BuildingHousingStats>(e).BasePopulation;
             }
 

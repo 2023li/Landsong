@@ -53,6 +53,8 @@ namespace Landsong.ECS.Presentation
         [LabelText("预警")]
         Warning,
         [LabelText("战报")]
-        Report
+        Report,
+        [LabelText("雷声")]
+        Thunder
     }
 }

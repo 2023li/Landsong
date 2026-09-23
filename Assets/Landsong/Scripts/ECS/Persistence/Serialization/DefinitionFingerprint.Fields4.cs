@@ -71,9 +71,6 @@ namespace Landsong.ECS.Persistence
         {
             Write(writer, ref value.Metadata);
             SnapshotBinary.Write(writer, value.GrowthTurns);
-            SnapshotBinary.Write(writer, value.RequiredWorkers);
-            SnapshotBinary.Write(writer, value.FullStaffBonusWorkers);
-            SnapshotBinary.Write(writer, value.FullStaffYieldBonus);
             writer.Write(value.PlantingCosts.Length);
             for (int i = 0; i < value.PlantingCosts.Length; i++)
             {

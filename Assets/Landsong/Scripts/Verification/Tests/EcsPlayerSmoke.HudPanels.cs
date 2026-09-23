@@ -85,8 +85,8 @@ namespace Landsong.ECS.Presentation
 
                 view.OpenPanel(GamePanelId.Quest);
                 yield return WaitFor(() => view.Quests.QuestWindow != null && view.Quests.QuestWindow.activeSelf, "Quest window opens");
-                Require(view.Quests.QuestPanel.Close == view.GetListPanel(GamePanelId.Quest).CloseButton, "Quest header uses the close button bound by its feature owner before first render");
-                view.Quests.QuestPanel.Close.onClick.Invoke();
+                Require(view.Quests.CloseButton != null && view.GetPanel(GamePanelId.Quest) == view.Quests, "Quest header uses the close button bound by its own panel before first render");
+                view.Quests.CloseButton.onClick.Invoke();
                 yield return new WaitForSecondsRealtime(.3f);
                 Require(!view.Quests.QuestWindow.activeSelf && !primary.activeInHierarchy && !view.IsPanelOpen, "Quest header closes to unobstructed gameplay");
                 view.Buildings.ToggleBuildingCatalog();

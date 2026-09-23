@@ -134,6 +134,7 @@ namespace Landsong.ECS.Presentation
                 IntelligenceWindow.ResetView();
                 if (buildingController.BuildingConfirmPanel != null)
                     buildingController.BuildingConfirmPanel.SetActive(false);
+                buildingController.CropSelectionPanel?.Hide();
             }
 
             if (remember && IsPanelOpen && Panel != panel)

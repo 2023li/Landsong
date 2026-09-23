@@ -14,7 +14,7 @@ namespace Landsong.ECS
             if (!stateFarming.Crop.IsValid)
                 return ResultCode.Unavailable;
             ref var crop = ref CropDefinitions.Get(em, root, stateFarming.Crop);
-            if (stateFarming.Progress < crop.GrowthTurns)
+            if (stateFarming.Progress < CropGrowthOps.Threshold(crop.GrowthTurns))
                 return ResultCode.Unavailable;
             if (EconomyJournalOps.Forecast(em, root))
             {
@@ -44,7 +44,8 @@ namespace Landsong.ECS
             }
 
             var rng = new Random(math.max(1u, stateFarming.Seed));
-            float bonus = (stateFarming.FullCycle != 0 ? crop.FullStaffYieldBonus : 0) + BuildingEnvironment.Value(em, root, e, BuildingEnvironmentKind.Production);
+            ref var farming = ref BuildingDefinitions.Get(em, root, em.GetComponentData<BuildingDefinitionRef>(e).Definition).Capabilities.Farming;
+            float bonus = (stateFarming.FullCycle != 0 ? farming.FullCycleYieldBonusPercent : 0) + BuildingEnvironment.Value(em, root, e, BuildingEnvironmentKind.Production);
             for (int i = 0; i < crop.HarvestOutputs.Length; i++)
             {
                 var output = crop.HarvestOutputs[i];

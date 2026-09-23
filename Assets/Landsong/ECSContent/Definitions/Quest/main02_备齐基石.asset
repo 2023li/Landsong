@@ -52,23 +52,31 @@ MonoBehaviour:
       GrantedLevel: 1
   FailurePenalties: []
   Objectives:
-    BuildingObjectives: []
-    PlantedBuildingObjectives: []
-    OwnedItemObjectives:
-    - Order: 6
-      Key: 1547c5584b474c32b1dd7b5f0f552b15.0
-      Item: {fileID: 11400000, guid: 000df9efbc381134e832f667a32c9572, type: 2}
-      Quantity: 10
-    - Order: 7
-      Key: 1547c5584b474c32b1dd7b5f0f552b15.1
-      Item: {fileID: 11400000, guid: a761334fe1641a74f9948313fb5ff413, type: 2}
-      Quantity: 10
-    - Order: 8
-      Key: 1547c5584b474c32b1dd7b5f0f552b15.2
-      Item: {fileID: 11400000, guid: a927377c37e532b49af819fa89b72369, type: 2}
-      Quantity: 10
-    SubmittedItemObjectives: []
-    TechnologyObjectives: []
-    CameraMoveObjectives: []
-    CameraZoomObjectives: []
-    TurnObjectives: []
+    Requirements:
+    - rid: 1000000000000000001
+    - rid: 1000000000000000002
+    - rid: 1000000000000000003
+  references:
+    version: 2
+    RefIds:
+    - rid: 1000000000000000001
+      type: {class: QuestOwnedItemObjectiveSource, ns: Landsong.ECS.Authoring.Definitions, asm: Landsong.ECS.Authoring}
+      data:
+        Order: 6
+        Key: 1547c5584b474c32b1dd7b5f0f552b15.0
+        Item: {fileID: 11400000, guid: 000df9efbc381134e832f667a32c9572, type: 2}
+        Quantity: 10
+    - rid: 1000000000000000002
+      type: {class: QuestOwnedItemObjectiveSource, ns: Landsong.ECS.Authoring.Definitions, asm: Landsong.ECS.Authoring}
+      data:
+        Order: 7
+        Key: 1547c5584b474c32b1dd7b5f0f552b15.1
+        Item: {fileID: 11400000, guid: a761334fe1641a74f9948313fb5ff413, type: 2}
+        Quantity: 10
+    - rid: 1000000000000000003
+      type: {class: QuestOwnedItemObjectiveSource, ns: Landsong.ECS.Authoring.Definitions, asm: Landsong.ECS.Authoring}
+      data:
+        Order: 8
+        Key: 1547c5584b474c32b1dd7b5f0f552b15.2
+        Item: {fileID: 11400000, guid: a927377c37e532b49af819fa89b72369, type: 2}
+        Quantity: 10

@@ -1,5 +1,4 @@
 using Landsong.ECS.Definitions;
-using System.Collections.Generic;
 using Unity.Entities;
 using System;
 using System.Linq;
@@ -41,34 +40,6 @@ namespace Landsong.ECS.Presentation
         internal TMP_Text soldierDetailsStats;
         internal TMP_Text soldierDetailsAbilities;
         internal ulong detailsSoldier;
-        internal void RefreshBuildingGarrison(Entity site)
-        {
-            var card = buildingController.DetailsPanel;
-            var block = card.Block<UI_GamePanel_BuildingDetails_Block_驻军>();
-            int capacity = sessionController.em.GetComponentData<BuildingGarrisonStats>(site).Capacity;
-            ulong home = sessionController.em.GetComponentData<Identity>(site).Id;
-            var slots = new List<UI_GamePanel_BuildingDetails_Block_驻军.SlotModel>(capacity);
-            for (int slot = 1; slot <= capacity; slot++)
-            {
-                var unit = GarrisonOps.AtSlot(sessionController.em, home, slot);
-                if (unit == Entity.Null)
-                    slots.Add(new UI_GamePanel_BuildingDetails_Block_驻军.SlotModel(0, "", false));
-                else
-                {
-                    var identity = sessionController.em.GetComponentData<Identity>(unit);
-                    slots.Add(new UI_GamePanel_BuildingDetails_Block_驻军.SlotModel(identity.Id, identity.Name.ToString(), EntityState.Alive(sessionController.em, unit)));
-                }
-            }
-
-            block.Refresh(home, slots, sessionController.em, sessionController.root, () => navigation.OpenPanel(GamePanelId.Garrison), id =>
-            {
-                if (id == 0)
-                    navigation.OpenPanel(GamePanelId.Garrison);
-                else
-                    OpenSoldierDetails(id);
-            });
-        }
-
         public void OpenSoldierDetails(ulong id)
         {
             if (!inputContext.Policy.Capture().CanOpenModal(GameUiInputOwner.SoldierDetails, allowReopen: true))

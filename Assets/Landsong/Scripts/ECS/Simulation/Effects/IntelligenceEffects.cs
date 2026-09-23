@@ -24,7 +24,7 @@ namespace Landsong.ECS
                 for (int i = 0; i < definition.Capabilities.Defence.Intelligence.Length; i++)
                 {
                     var effect = definition.Capabilities.Defence.Intelligence[i];
-                    string reason = building.Stage != LifeStage.Operational ? "建筑未运营" : buildingMaintenance.Maintained == 0 ? "维护未满足" : buildingWorkforce.Workers < effect.RequiredWorkers ? "工人不足（需要 " + effect.RequiredWorkers + "）" : RequiredTechnology(em, root, effect.Technology);
+                    string reason = !BuildingStatus.Operational(em, entity) ? "建筑未运营或起火" : buildingMaintenance.Maintained == 0 ? "维护未满足" : buildingWorkforce.Workers < effect.RequiredWorkers ? "工人不足（需要 " + effect.RequiredWorkers + "）" : RequiredTechnology(em, root, effect.Technology);
                     quote.Value += new EffectOrigin(EffectSourceKind.Building, building.Level, identity.Name + " / " + definition.Metadata.Name, reason, identity.Id).Apply(effect.Points, EffectContributions.LevelMatches(effect.Level, building.Level, EffectDomain.Intelligence), true, quote.Sources);
                 }
             }

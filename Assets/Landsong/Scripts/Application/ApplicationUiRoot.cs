@@ -67,7 +67,8 @@ namespace Landsong.ECS.Presentation
             }
 
             var top = Manager.TopFocusedPanel;
-            UiInputState.GlobalModalOpen = top is UI_SettingPanel || top is UI_SavePanel || top is UI_ConfirmPanel || top is UI_LoadingPanel;
+            UiInputState.GlobalModalOpen = top is UI_SettingPanel || top is UI_SavePanel || top is UI_ConfirmPanel
+                || top is UI_LoadingPanel || top is UI_DebugPanel;
             if (!handlingBack && Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
                 HandleBack();
         }

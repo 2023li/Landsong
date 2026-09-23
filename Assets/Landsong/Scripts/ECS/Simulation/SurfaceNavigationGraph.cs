@@ -50,6 +50,7 @@ namespace Landsong.ECS
                     return;
             }
 
+            var roadCost = new RoadWeatherCostOps.Context(em, root);
             var nodes = new List<SurfaceNavNode>();
             var edges = new List<SurfaceNavEdge>();
             var byCell = new Dictionary<int2, List<int>>();
@@ -79,7 +80,7 @@ namespace Landsong.ECS
             {
                 var c = grid.Value.Value.Cells[i];
                 var cell = grid.Value.Value.Min + new int2(i % grid.Value.Value.Size.x, i / grid.Value.Value.Size.x);
-                Add(new SurfaceNavNode { Cell = cell, Position = GridOps.Position(grid, cell, new int2(1)) + new float3(0, .5f, 0), Surface = c.Surface, Elevation = c.Elevation, Cost = occupied[i].Owner == 0 ? 1 : math.max(1, occupied[i].MovementCost), SideClearance = float.MaxValue, Open = (byte)(c.Exists != 0 && c.Traversable != 0 && !SlopeOps.TryGet(grid, cell, out _) && (occupied[i].Owner == 0 || occupied[i].MovementCost > 0) ? 1 : 0) });
+                Add(new SurfaceNavNode { Cell = cell, Position = GridOps.Position(grid, cell, new int2(1)) + new float3(0, .5f, 0), Surface = c.Surface, Elevation = c.Elevation, Cost = roadCost.Effective(occupied[i]), SideClearance = float.MaxValue, Open = (byte)(c.Exists != 0 && c.Traversable != 0 && !SlopeOps.TryGet(grid, cell, out _) && (occupied[i].Owner == 0 || occupied[i].MovementCost > 0) ? 1 : 0) });
             }
 
             for (int i = 0; i < grid.Value.Value.NavigationSurfaces.Length; i++)
@@ -116,7 +117,7 @@ namespace Landsong.ECS
                 return -1;
             }
 
-            void Corridor(int2 cell, int2 size, int rotation, int entrySurface, int exitSurface, int elevation, int rise, bool bidirectional, ulong owner, int surface, float cost, float clearance, bool slope = false)
+            void Corridor(int2 cell, int2 size, int rotation, int entrySurface, int exitSurface, int elevation, int rise, bool bidirectional, ulong owner, int surface, float cost, float clearance, bool slope = false, bool road = false)
             {
                 var indices = new int[size.x, size.y];
                 for (int x = 0; x < size.x; x++)
@@ -137,7 +138,7 @@ namespace Landsong.ECS
                         var p = grid.Origin + new float3((at.x + .5f) * grid.CellSize, 0, (at.y + .5f) * grid.CellSize);
                         p.y = height + rise * TerrainConnectionOps.HeightStep(grid) * z / (size.y - 1f);
                         var reservation = occupied[GridOps.Index(grid, at)];
-                        indices[x, z] = Add(new SurfaceNavNode { Cell = at, Position = p, Gradient = gradient, Lateral = new float2(direction.y, -direction.x), Surface = surface, Elevation = elevation, Owner = owner, Corridor = (byte)(rise == 0 && !slope ? 0 : 1), Open = (byte)(!slope || reservation.Owner == 0 || reservation.MovementCost > 0 ? 1 : 0), Cost = slope && reservation.Owner != 0 ? math.max(1, reservation.MovementCost) : cost, Width = size.x * grid.CellSize, SideClearance = math.min(x + .5f, size.x - x - .5f) * grid.CellSize });
+                        indices[x, z] = Add(new SurfaceNavNode { Cell = at, Position = p, Gradient = gradient, Lateral = new float2(direction.y, -direction.x), Surface = surface, Elevation = elevation, Owner = owner, Corridor = (byte)(rise == 0 && !slope ? 0 : 1), Open = (byte)(!slope || reservation.Owner == 0 || reservation.MovementCost > 0 ? 1 : 0), Cost = slope && reservation.Owner != 0 ? roadCost.Effective(reservation) : road && roadCost.Snowing ? cost * RoadWeatherCostOps.SnowMultiplier : cost, Width = size.x * grid.CellSize, SideClearance = math.min(x + .5f, size.x - x - .5f) * grid.CellSize });
                         if (byCell.TryGetValue(at, out var below))
                             foreach (int j in below)
                             {
@@ -192,7 +193,8 @@ namespace Landsong.ECS
                         continue;
                     var entry = grid.Value.Value.Cells[a];
                     var exit = grid.Value.Value.Cells[z];
-                    Corridor(bPlacement.Cell, size, bPlacement.Rotation, entry.Surface, exit.Surface, entry.Elevation, rule.Rise, rule.Bidirectional, id.Id, 0, b.Stage == LifeStage.Ruined || b.Stage == LifeStage.Repairing ? rule.DamagedCost : 1, rule.Clearance);
+                    var road = (Definitions.BuildingDefinitions.Get(em, root, definition).PlacementAndVisuals.Category & BuildingCategory.Road) != 0;
+                    Corridor(bPlacement.Cell, size, bPlacement.Rotation, entry.Surface, exit.Surface, entry.Elevation, rule.Rise, rule.Bidirectional, id.Id, 0, b.Stage == LifeStage.Ruined || b.Stage == LifeStage.Repairing ? rule.DamagedCost : 1, rule.Clearance, road: road);
                 }
 
             EntityState.Buffer<SurfaceNavNode>(em, root);

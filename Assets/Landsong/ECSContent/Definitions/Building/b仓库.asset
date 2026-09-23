@@ -22,9 +22,30 @@ MonoBehaviour:
   ConstructionTurns: 3
   ResourceConnectionActionPower: 100
   MaximumCount: 0
-  Footprint: {x: 2, y: 2}
+  Footprint: {x: 4, y: 4}
   MaximumDurability: 100
   MovementCost: 0
+  DefenseStats:
+    MaximumHealth: 100
+    Damage: 10
+    AttackRange: 1.4
+    AttackIntervalSeconds: 1
+    MovementSpeed: 0
+    ProjectileSpeed: 10
+    Profile:
+      DetectionRadius: 24
+      ChaseRadius: 12
+      ChaseSeconds: 8
+      BodyRadius: 0.35
+      Armor: 0
+      Reduction: 0
+      Penetration: 0
+      BlastRadius: 0
+      WarningSeconds: 0
+      ProjectileLifetime: 10
+      ProjectileMode: 0
+      Traits: 0
+      BlocksProjectile: 0
   PlacementAndVisuals:
     Category: 13
     SpawnExclusionPadding: 6
@@ -35,7 +56,7 @@ MonoBehaviour:
     MoveMaterialRatio: 0.3
     MoveExperienceRatio: 0.3
     RuinMovementCost: 4
-    DefaultSkin:
+    DefaultSkin: 
   Capabilities:
     Construction:
       Enabled: 1
@@ -248,24 +269,3 @@ MonoBehaviour:
       Enabled: 0
       Levels: []
   Prefab: {fileID: 8319449153065925575, guid: 9228f164efa9da74cbeb91ab8f2e3132, type: 3}
-  DefenseStats:
-    MaximumHealth: 100
-    Damage: 10
-    AttackRange: 1.4
-    AttackIntervalSeconds: 1
-    MovementSpeed: 0
-    ProjectileSpeed: 10
-    Profile:
-      DetectionRadius: 24
-      ChaseRadius: 12
-      ChaseSeconds: 8
-      BodyRadius: 0.35
-      Armor: 0
-      Reduction: 0
-      Penetration: 0
-      BlastRadius: 0
-      WarningSeconds: 0
-      ProjectileLifetime: 10
-      ProjectileMode: 0
-      Traits: 0
-      BlocksProjectile: 0

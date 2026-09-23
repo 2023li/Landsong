@@ -28,6 +28,7 @@ namespace Landsong.ECS.Presentation
         Phase previous;
         bool initialized;
         float phaseStartIntensity;
+        float weatherRatio = 1;
         Quaternion phaseStartRotation;
         const float EdgeBlendSeconds = .25f;
 
@@ -55,7 +56,7 @@ namespace Landsong.ECS.Presentation
             if (initialized)
             {
                 // Phase boundaries always start from the value displayed in the previous frame.
-                phaseStartIntensity = sun.intensity;
+                phaseStartIntensity = sun.intensity / Mathf.Max(.001f, weatherRatio);
                 phaseStartRotation = sun.transform.rotation;
                 return;
             }
@@ -85,13 +86,14 @@ namespace Landsong.ECS.Presentation
             }
         }
 
-        public void Tick(Phase phase, GameClock clock, NightSettings timing, NightRuntimeState night, bool paused, float delta)
+        public void Tick(Phase phase, GameClock clock, NightSettings timing, NightRuntimeState night, bool paused, float delta, float nextWeatherRatio = 1)
         {
             if (sun == null)
                 return;
             bool changed = !initialized || Stage(previous) != Stage(phase);
             if (changed)
                 BeginStage(phase, clock, timing);
+            weatherRatio = Mathf.Clamp01(nextWeatherRatio);
             previous = phase;
             initialized = true;
             if (phase == Phase.GameOver || phase == Phase.Ended)
@@ -129,14 +131,17 @@ namespace Landsong.ECS.Presentation
 
         void Apply(float intensity, Quaternion rotation)
         {
-            sun.intensity = intensity;
+            sun.intensity = intensity * weatherRatio;
             sun.transform.rotation = rotation;
         }
 
         public void Dispose()
         {
             if (sun != null)
+            {
+                weatherRatio = 1;
                 Apply(dayIntensity, dayRotation);
+            }
         }
     }
 }

@@ -35,7 +35,7 @@ namespace Landsong.ECS
                         continue;
                     }
 
-                    if (b.Stage != LifeStage.Operational)
+                    if (!BuildingStatus.Operational(em, e))
                         continue;
                     BuildingMaintenanceSettlement.Settle(em, root, e);
                     WorkforceSettlement.Settle(em, root, e);

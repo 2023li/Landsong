@@ -126,6 +126,8 @@ namespace Landsong.ECS.Persistence
             static readonly HashSet<Type> StaticRootTypes = new HashSet<Type>
             {
                 typeof(MapIdentity),
+                typeof(SeasonWeatherSettings),
+                typeof(FireSettings),
                 typeof(NightSettings),
                 typeof(DayReturnSettings),
                 typeof(TransportWorkerSettings),
@@ -178,6 +180,8 @@ namespace Landsong.ECS.Persistence
             {
                 Component<Session>(manager, root);
                 Component<GameClock>(manager, root);
+                Component<SeasonWeatherState>(manager, root);
+                Component<LightningViewport>(manager, root);
                 Component<SimulationControl>(manager, root);
                 Component<PopulationState>(manager, root);
                 Component<PublicOpinionState>(manager, root);
@@ -231,6 +235,7 @@ namespace Landsong.ECS.Persistence
                 Buffer<OwnedBuff>(manager, root);
                 Buffer<UnlockedFeature>(manager, root);
                 Buffer<ClaimedQuest>(manager, root);
+                Buffer<TrackedQuest>(manager, root);
                 Buffer<CompletedExpedition>(manager, root);
                 Buffer<TechnologyProgress>(manager, root);
                 Buffer<PolicyChoice>(manager, root);
@@ -245,6 +250,7 @@ namespace Landsong.ECS.Persistence
                 Buffer<ItemPickupEvent>(manager, root);
                 Buffer<GameEvent>(manager, root);
                 Buffer<DamageRequest>(manager, root);
+                Buffer<LightningVisualEvent>(manager, root);
                 Buffer<NightEntryLoss>(manager, root);
                 using var types = manager.GetComponentTypes(root, Allocator.Temp);
                 foreach (var component in types)

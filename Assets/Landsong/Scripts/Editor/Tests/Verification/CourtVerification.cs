@@ -195,6 +195,14 @@ namespace Landsong.ECS.Editor
                 Check(snap.SequenceEqual(SnapshotCodec.Capture(em, root)), "Current schema roundtrip keeps wages affection task and traits");
                 Check(GameRequestExecution.Execute(em, root, new DismissTalentRequest { Person = pid }) == ResultCode.Success && em.Exists(person) && em.GetComponentData<Royal>(person).Affection == 40, "Dismiss retains persistent contact and affection");
                 Reset();
+                var noTrait = DynastyOps.CreateRoyal(em, root, "无特性成员", 2, 5);
+                var noTraitId = Id(noTrait);
+                Check(em.GetBuffer<TraitEntry>(noTrait).Length == 0, "Royal with no traits starts with an empty trait buffer");
+                var noTraitSnapshot = SnapshotCodec.Capture(em, root);
+                SnapshotCodec.Restore(em, root, SnapshotCodec.Decode(em, root, noTraitSnapshot));
+                noTrait = WorldQueries.Find(em, noTraitId);
+                Check(noTrait != Entity.Null && em.HasBuffer<TraitEntry>(noTrait) && em.GetBuffer<TraitEntry>(noTrait).Length == 0, "Royal with no traits retains its buffer after save/load");
+                Reset();
                 var king = CourtOps.Monarch(em);
                 var kingId = Id(king);
                 var child = DynastyOps.CreateRoyal(em, root, "幼年继承人", 2, 5, kingId);

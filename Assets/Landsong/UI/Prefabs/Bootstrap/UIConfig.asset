@@ -76,3 +76,12 @@ MonoBehaviour:
     canCloseByBack: 0
     takesFocus: 1
     hideSameLayerPanels: 0
+  - panelId: UI_DebugPanel
+    asset: {fileID: 0}
+    assetAddress: UI/UI_DebugPanel
+    layer: 7
+    cachePolicy: 1
+    scopePolicy: 0
+    canCloseByBack: 1
+    takesFocus: 1
+    hideSameLayerPanels: 0

@@ -265,7 +265,7 @@ namespace Landsong.ECS
                 q = em.GetComponentData<Quest>(e);
                 if (q.Status != QuestStatus.Completed)
                     return ResultCode.Unavailable;
-                var follow = QuestOps.Tracking(em, root).Target == questId;
+                var follow = QuestOps.IsTracked(em, root, questId);
                 ref var source = ref QuestDefinitions.Get(em, root, definition);
                 if (!RewardDelivery.Apply(em, root, ref source.Rewards, source.Metadata.Name, 1, false, () => QuestCompletions.RecordClaim(em, root, definition)))
                     return ResultCode.NoCapacity;

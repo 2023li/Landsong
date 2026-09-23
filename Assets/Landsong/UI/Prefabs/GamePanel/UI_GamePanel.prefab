@@ -1317,7 +1317,6 @@ MonoBehaviour:
   childViews:
   - {fileID: 432086753708933227}
   - {fileID: 4798416282395076494}
-  - {fileID: 2884942007159763701}
   - {fileID: 5417274034487287806}
   - {fileID: 5431623528250126896}
   - {fileID: 4969611470113299698}
@@ -1363,7 +1362,7 @@ MonoBehaviour:
   - {fileID: 7400358852437582467}
   - {fileID: 5292937874672190340}
   - {fileID: 5321578767447470287}
-  - {fileID: 5884893528945018735}
+  - {fileID: 2884942007159763701}
   PauseMenu: {fileID: 2868993063155076787}
   InterfaceGroup: {fileID: 2008140643595598257}
   NavigationButtons:
@@ -6226,17 +6225,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f09bb9469fcb8fd48bd12c60b962e553, type: 3}
   m_Name:
   m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_Quest
---- !u!114 &5884893528945018735 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2143949996557046373, guid: bd9ef839a0530ac4a96298fe955dfdbe, type: 3}
-  m_PrefabInstance: {fileID: 5506636074186233098}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7179d21ac73668a4f875bc4ffd6ab46e, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_List
 --- !u!224 &6270166331180633465 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 1976969577415448691, guid: bd9ef839a0530ac4a96298fe955dfdbe, type: 3}
@@ -6755,6 +6743,10 @@ PrefabInstance:
       propertyPath: BuildingConfirmPanel
       value:
       objectReference: {fileID: 6512198901276485577}
+    - target: {fileID: 6426259715720646955, guid: eb4b846db36bd5a43a08e49b149babb2, type: 3}
+      propertyPath: CropSelectionPanel
+      value:
+      objectReference: {fileID: 1830468423065961842}
     - target: {fileID: 6426259715720646955, guid: eb4b846db36bd5a43a08e49b149babb2, type: 3}
       propertyPath: BuildingConfirmTitle
       value:
@@ -7507,3 +7499,31 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 4647242409290463708, guid: 187c15f1a5d57c647b30a94d681ba619, type: 3}
   m_PrefabInstance: {fileID: 8633549006337560952}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1830468423065961841
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 7390864769500847270}
+    m_Modifications:
+    - target: {fileID: 5400537662372520362, guid: 91fe717ac9274789bd472256f50412ac, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 91fe717ac9274789bd472256f50412ac, type: 3}
+--- !u!114 &1830468423065961842 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8290545662723997841, guid: 91fe717ac9274789bd472256f50412ac, type: 3}
+  m_PrefabInstance: {fileID: 1830468423065961841}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d85dd433c26e414ea512013309628fd4, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_CropSelection

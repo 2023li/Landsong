@@ -218,6 +218,11 @@ namespace Landsong.ECS
 
         public static void Death(EntityManager em, Entity root, Entity e, Entity source)
         {
+            if (em.HasComponent<Firefighter>(e))
+            {
+                FirefighterOps.Kill(em, root, e);
+                return;
+            }
             if (em.HasComponent<TransportWorker>(e))
             {
                 TransportWorkerOps.Kill(em, root, e);

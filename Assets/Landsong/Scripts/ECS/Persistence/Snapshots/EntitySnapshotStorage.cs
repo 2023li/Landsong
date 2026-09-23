@@ -16,6 +16,12 @@ namespace Landsong.ECS.Persistence
         // Stable disk tags only. Domain identity never uses these tags in gameplay.
         internal static void Capture(BinaryWriter writer, EntityManager em, Entity entity)
         {
+            if (em.HasComponent<Firefighter>(entity))
+            {
+                writer.Write((byte)8);
+                FirefighterSnapshotStorage.Capture(writer, em, entity);
+                return;
+            }
             if (em.HasComponent<TransportWorker>(entity))
             {
                 writer.Write((byte)7);
@@ -67,12 +73,12 @@ namespace Landsong.ECS.Persistence
             throw new InvalidDataException("Persistent entity has no supported domain: " + entity);
         }
 
-        internal static EntitySnapshot Read(BinaryReader reader)
+        internal static EntitySnapshot Read(BinaryReader reader, int version)
         {
             switch (reader.ReadByte())
             {
                 case 1:
-                    return BuildingSnapshotStorage.Read(reader);
+                    return BuildingSnapshotStorage.Read(reader, version);
                 case 2:
                     return SoldierSnapshotStorage.Read(reader);
                 case 3:
@@ -85,6 +91,8 @@ namespace Landsong.ECS.Persistence
                     return PersonSnapshotStorage.Read(reader);
                 case 7:
                     return TransportWorkerSnapshotStorage.Read(reader);
+                case 8:
+                    return FirefighterSnapshotStorage.Read(reader);
                 default:
                     throw new InvalidDataException("Unknown persistent entity domain");
             }
@@ -94,6 +102,8 @@ namespace Landsong.ECS.Persistence
         {
             switch (record)
             {
+                case FirefighterSnapshot value:
+                    return FirefighterSnapshotStorage.Restore(em, root, value);
                 case TransportWorkerSnapshot value:
                     return TransportWorkerSnapshotStorage.Restore(em, root, value);
                 case BuildingSnapshot value:

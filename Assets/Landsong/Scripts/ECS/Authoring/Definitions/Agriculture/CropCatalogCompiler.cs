@@ -65,16 +65,13 @@ namespace Landsong.ECS.Authoring.Definitions
         {
             if (source == null)
                 throw new InvalidOperationException("缺少 Crop 定义配置。");
-            if (source.GrowthTurns < 1 || source.RequiredWorkers < 0 || source.FullStaffBonusWorkers < source.RequiredWorkers)
-                throw new InvalidOperationException("作物成长或工人要求无效。");
+            if (source.GrowthTurns < 1)
+                throw new InvalidOperationException("作物成熟回合必须大于零。");
             if (source.Metadata == null || string.IsNullOrWhiteSpace(source.Metadata.Id))
                 throw new InvalidOperationException("缺少稳定定义标识。");
             target.Metadata.Id = new FixedString128Bytes(source.Metadata.Id);
             target.Metadata.Name = new FixedString128Bytes(source.Metadata.Name ?? "");
             target.GrowthTurns = source.GrowthTurns;
-            target.RequiredWorkers = source.RequiredWorkers;
-            target.FullStaffBonusWorkers = source.FullStaffBonusWorkers;
-            target.FullStaffYieldBonus = source.FullStaffYieldBonus;
             if (source.PlantingCosts == null)
                 throw new InvalidOperationException("种植费用列表不能为空引用。");
             var orderedPlantingCosts = source.PlantingCosts.OrderBy(entry => entry == null ? throw new InvalidOperationException("列表中存在空条目。") : entry.Order).ToArray();

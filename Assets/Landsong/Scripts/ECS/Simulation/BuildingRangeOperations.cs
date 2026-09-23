@@ -15,6 +15,7 @@ namespace Landsong.ECS
             var occupancy = em.GetBuffer<Occupancy>(root);
             BuildingPlacementState bPlacement = em.GetComponentData<BuildingPlacementState>(building);
             var budget = ActionPower(em, root, building);
+            var roadCost = new RoadWeatherCostOps.Context(em, root);
             var distance = new NativeArray<float>(occupancy.Length, allocator);
             for (var i = 0; i < distance.Length; i++)
                 distance[i] = float.PositiveInfinity;
@@ -57,7 +58,7 @@ namespace Landsong.ECS
                         continue;
                     if (!endpoints.Contains(next) && !GridOps.Traversable(grid, occupancy, nextCell))
                         continue;
-                    var cost = distance[current] + (occupancy[next].MovementCost > 0 ? occupancy[next].MovementCost : 1);
+                    var cost = distance[current] + roadCost.Effective(occupancy[next]);
                     if (cost <= budget && cost < distance[next])
                     {
                         distance[next] = cost;
@@ -88,6 +89,7 @@ namespace Landsong.ECS
                 return result;
             var grid = em.GetComponentData<GridData>(root);
             var occupancy = em.GetBuffer<Occupancy>(root);
+            var roadCost = new RoadWeatherCostOps.Context(em, root);
             BuildingPlacementState bPlacement = em.GetComponentData<BuildingPlacementState>(provider);
             int current = -1;
             float best = float.PositiveInfinity;
@@ -109,7 +111,7 @@ namespace Landsong.ECS
                 if (distances[current] <= 0)
                     break;
                 int previous = -1;
-                float cost = occupancy[current].MovementCost > 0 ? occupancy[current].MovementCost : 1;
+                float cost = roadCost.Effective(occupancy[current]);
                 for (int side = 0; side < 4; side++)
                 {
                     var adjacent = cell + (side == 0 ? new int2(1, 0) : side == 1 ? new int2(-1, 0) : side == 2 ? new int2(0, 1) : new int2(0, -1));

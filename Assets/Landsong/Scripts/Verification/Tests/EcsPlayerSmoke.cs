@@ -649,9 +649,13 @@ namespace Landsong.ECS.Presentation
             var id = em.GetComponentData<Identity>(task).Id;
             view.Quests.SelectQuest(id);
             yield return WaitFor(() => view.Quests.QuestDetailRows != null && HasRow(view.Quests.QuestDetailRows, "签约"), "two-column task offer and detail UI");
-            var questOwner = view.GetListPanel(GamePanelId.Quest);
+            var requirements = view.Quests.QuestDetailRows.Find("任务要求");
+            var rewards = view.Quests.QuestDetailRows.Find("任务奖励");
+            Require(requirements != null && rewards != null && requirements.GetComponentsInChildren<UI_GamePanel_Row>().Any(row => row.Label.text == "任务要求") && rewards.GetComponentsInChildren<UI_GamePanel_Row>().Any(row => row.Label.text == "任务奖励"), "Task requirements and rewards each have their own parent frame");
+            Require(!view.Quests.QuestDetailRows.GetComponentsInChildren<TMPro.TextMeshProUGUI>().Any(label => label.text.Contains("全部满足后完成") || label.text.Contains("物品总价值") || label.text.StartsWith("主线来源：") || label.text.StartsWith("邀约来源：") || label.text.StartsWith("后续：")), "Task detail omits source, prerequisite chain, and explanatory suffixes");
+            var questOwner = view.Quests;
             Require(view.Quests.QuestWindow.activeInHierarchy && questOwner.gameObject == view.Quests.QuestWindow && view.FeaturePanels.All(panel => panel.gameObject.activeSelf == (panel.PanelId == GamePanelId.Quest)), "Quest window is the only active registered feature root without overlapping other panels");
-            Require(!questOwner.ManageContentVisibility && questOwner.PrimaryRows == view.Quests.QuestListRows && questOwner.ContentRoot == view.Quests.QuestListRows.gameObject, "Quest registration uses the actual accepted-task content instead of a separate generic list overlay");
+            Require(!questOwner.ManageContentVisibility && questOwner.AcceptedRows == view.Quests.QuestListRows && questOwner.ContentRoot == view.Quests.QuestListRows.gameObject, "Quest registration uses the actual accepted-task content without a generic list overlay");
             ClickIn(view.Quests.QuestDetailRows, "签约");
             Require(view.Buildings.BuildingConfirmPanel.activeSelf, "Accept displays confirmation and deadline warning");
             ClickIn(view.Buildings.BuildingConfirmRows, "取消");
@@ -688,6 +692,14 @@ namespace Landsong.ECS.Presentation
             Require(QuestOps.Tracking(em, root).Mode == 2 && !view.Quests.FindQuestCard(id).Tracking.isOn, "Rapid check then uncheck retains final player intent");
             view.Quests.FindQuestCard(id).Tracking.isOn = true;
             yield return WaitFor(() => QuestOps.Tracking(em, root).Target == id, "Actual UGUI manually tracks task");
+            Require(QuestOps.TrackedIds(em, root).Contains(mainId) && QuestOps.TrackedIds(em, root).Contains(id), "Manual tracking keeps mainline alongside second task");
+            view.ClosePanel();
+            yield return WaitFor(() => view.Quests.QuestHudRows.GetComponentsInChildren<UnityEngine.UI.VerticalLayoutGroup>().Count(group => group.gameObject.name.StartsWith("追踪任务 ")) == 2, "HUD renders one parent for each tracked task");
+            Require(view.Quests.QuestTracking.Scroll.content == view.Quests.QuestHudRows, "Tracking list uses its scroll view content");
+            Require(!view.Quests.QuestHudRows.GetComponentsInChildren<TMPro.TextMeshProUGUI>().Any(label => label.text == "查看任务详情"), "HUD has no separate details button");
+            var trackedTitle = view.Quests.QuestHudRows.GetComponentsInChildren<UnityEngine.UI.Button>().First(button => button.GetComponentInChildren<TMPro.TextMeshProUGUI>()?.text.Contains(em.GetComponentData<Identity>(task).Name.ToString()) == true);
+            trackedTitle.onClick.Invoke();
+            yield return WaitFor(() => view.IsPanelOpen && view.Quests.FindQuestCard(id) != null, "Clicking tracked task title opens quest panel");
             var slots = em.GetBuffer<InventorySlot>(root);
             for (var i = 0; i < slots.Length; i++)
             {
@@ -758,6 +770,8 @@ namespace Landsong.ECS.Presentation
             Require(em.Exists(task), "Cancelled reward leaves completed task");
             view.ClosePanel();
             yield return WaitFor(() => HasRow(view.Quests.QuestHudRows, "领取奖励"), "Completed tracked task offers direct HUD reward claim");
+            var completedTrackingCard = view.Quests.QuestHudRows.Find("追踪任务 " + id);
+            Require(completedTrackingCard != null && completedTrackingCard.GetComponentsInChildren<TMPro.TextMeshProUGUI>().Any(label => label.text == "任务奖励") && !completedTrackingCard.GetComponentsInChildren<TMPro.TextMeshProUGUI>().Any(label => label.text == "任务条件"), "Completed tracked task displays rewards instead of conditions");
             Require(!HasRow(view.Quests.QuestHudRows, "查看并领取奖励"), "HUD no longer routes rewards through task panel");
             if (Application.isEditor)
             {

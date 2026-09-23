@@ -135,6 +135,7 @@ namespace Landsong.ECS.Presentation
                 worldController.EndBuildingPlacement();
                 if (buildingController.BuildingConfirmPanel != null)
                     buildingController.BuildingConfirmPanel.SetActive(false);
+                buildingController.CropSelectionPanel?.Hide();
                 if (buildingController.showBuildingRange)
                     worldController.RebuildBuildingRange();
             }
@@ -166,7 +167,7 @@ namespace Landsong.ECS.Presentation
             buildingController.RefreshBuildingSelection();
             if (intelligence.IsOpen)
                 hudController.Selection.text = "情报模式：WASD / 滚轮调整镜头；退出后恢复操作。";
-            questController.RefreshQuestTracking();
+            questController.QuestTracking.Refresh();
             if (listPanel != null && !intelligence.IsOpen && s.Phase == Phase.Night && sNight.Kind == NightKind.Peaceful)
                 listPanel.Row(sNight.Speed == 2 ? "平安夜速度 2×（切回 1×）" : "平安夜速度 1×（切换 2×）", sControl.Paused == 0 ? () => commandsController.TryQueue(new SetNightSpeedRequest { Speed = sNight.Speed == 2 ? 1 : 2 }) : null);
             if (listPanel != null && s.Phase == Phase.Day && sessionController.em.GetBuffer<BattleReportEntry>(sessionController.root).Length > 0 && navigator.Panel != GamePanelId.BattleReport)

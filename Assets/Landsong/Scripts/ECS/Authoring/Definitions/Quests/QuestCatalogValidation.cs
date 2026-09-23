@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Landsong.ECS.Definitions;
 using Unity.Mathematics;
@@ -25,6 +26,10 @@ namespace Landsong.ECS.Authoring.Definitions
                     Fail("缺少任务前置或目标配置。");
                 if (prerequisites.BuildingRequirements.Length != 0 || prerequisites.BuffRequirements.Length != 0 || prerequisites.FeatureRequirements.Length != 0 || prerequisites.ExpeditionRequirements.Length != 0)
                     Fail("任务前置只支持已领取任务或已完成科技。");
+                if (source.Objectives.Requirements == null || source.Objectives.Requirements.Any(objective => objective == null))
+                    Fail("任务要求列表不能包含空元素。");
+                if (source.Objectives.BuildingObjectives.Length + source.Objectives.PlantedBuildingObjectives.Length + source.Objectives.OwnedItemObjectives.Length + source.Objectives.SubmittedItemObjectives.Length + source.Objectives.TechnologyObjectives.Length + source.Objectives.CameraMoveObjectives.Length + source.Objectives.CameraZoomObjectives.Length + source.Objectives.TurnObjectives.Length != source.Objectives.Requirements.Count)
+                    Fail("任务要求列表包含不支持的目标类型。");
                 var parents = new HashSet<QuestDefinitionAsset>();
                 foreach (var requirement in prerequisites.QuestRequirements)
                     if (requirement == null || requirement.Quest == null || requirement.Required != 1 || requirement.Quest == asset || !members.Contains(requirement.Quest) || !parents.Add(requirement.Quest) || (requirement.Quest.Behavior & QuestBehaviorFlags.Draft) != 0)

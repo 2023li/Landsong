@@ -234,6 +234,9 @@ namespace Landsong.ECS.Persistence
         internal static void Write(BinaryWriter writer, ref Landsong.ECS.Definitions.BuildingFarming value)
         {
             SnapshotBinary.Write(writer, value.Enabled);
+            SnapshotBinary.Write(writer, value.RequiredWorkers);
+            SnapshotBinary.Write(writer, value.FullCycleBonusWorkers);
+            SnapshotBinary.Write(writer, value.FullCycleYieldBonusPercent);
             writer.Write(value.Crops.Length);
             for (int i = 0; i < value.Crops.Length; i++)
             {

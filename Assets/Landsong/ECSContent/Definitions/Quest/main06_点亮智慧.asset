@@ -37,15 +37,15 @@ MonoBehaviour:
     Features: []
   FailurePenalties: []
   Objectives:
-    BuildingObjectives: []
-    PlantedBuildingObjectives: []
-    OwnedItemObjectives: []
-    SubmittedItemObjectives: []
-    TechnologyObjectives:
-    - Order: 1
-      Key: f6d296731d514f02878821cbc6708f4b
-      Technology: {fileID: 0}
-      Count: 1
-    CameraMoveObjectives: []
-    CameraZoomObjectives: []
-    TurnObjectives: []
+    Requirements:
+    - rid: 1000000000000000001
+  references:
+    version: 2
+    RefIds:
+    - rid: 1000000000000000001
+      type: {class: QuestTechnologyObjectiveSource, ns: Landsong.ECS.Authoring.Definitions, asm: Landsong.ECS.Authoring}
+      data:
+        Order: 1
+        Key: f6d296731d514f02878821cbc6708f4b
+        Technology: {fileID: 0}
+        Count: 1

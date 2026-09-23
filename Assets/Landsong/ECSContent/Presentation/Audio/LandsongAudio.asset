@@ -128,3 +128,9 @@ MonoBehaviour:
     Volume: 0.45
     Cooldown: 0.08
     Concurrency: 2
+  - Id: 18
+    Clip: {fileID: 8300000, guid: 1a7e3a4dd0bc7ea46a112435bc55652e, type: 3}
+    Bus: 2
+    Volume: 0.55
+    Cooldown: 0.1
+    Concurrency: 1

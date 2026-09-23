@@ -151,6 +151,23 @@ namespace Landsong.ECS.Editor
             try
             {
                 var workforce = farm.Capabilities.Workforce;
+                var farming = farm.Capabilities.Farming;
+                check(farming.RequiredWorkers == 2 && farming.FullCycleBonusWorkers == 3 && farming.FullCycleYieldBonusPercent == 50, "Farm owns the shared crop workforce and full-cycle yield rules");
+                farming.FullCycleBonusWorkers = workforce.Levels[0].Capacity + 1;
+                bool rejectedFarming = false;
+                try
+                {
+                    BuildingCatalogValidation.Validate(farm);
+                }
+                catch (InvalidOperationException)
+                {
+                    rejectedFarming = true;
+                }
+                finally
+                {
+                    farming.FullCycleBonusWorkers = 3;
+                }
+                check(rejectedFarming, "Farm yield threshold cannot exceed its workforce capacity");
                 var original = workforce.EfficiencyTiers;
                 var attraction = workforce.Levels[0].BaseAttraction;
                 bool rejectedAttraction = false;
@@ -213,6 +230,7 @@ namespace Landsong.ECS.Editor
                 {
                     EditorJsonUtility.FromJsonOverwrite(EditorJsonUtility.ToJson(farm), copy);
                     check(copy.Capabilities.Workforce.EfficiencyTiers.Select(t => t.Level + ":" + t.MinimumWorkers + ":" + t.MaximumWorkers).SequenceEqual(workforce.EfficiencyTiers.Select(t => t.Level + ":" + t.MinimumWorkers + ":" + t.MaximumWorkers)), "Authored worker tier order and bounds survive serialization");
+                    check(copy.Capabilities.Farming.RequiredWorkers == farming.RequiredWorkers && copy.Capabilities.Farming.FullCycleBonusWorkers == farming.FullCycleBonusWorkers && copy.Capabilities.Farming.FullCycleYieldBonusPercent == farming.FullCycleYieldBonusPercent, "Farm workforce rules survive authoring serialization");
                 }
                 finally
                 {
@@ -221,6 +239,9 @@ namespace Landsong.ECS.Editor
 
                 using var compiled = Compile(catalog);
                 check(compiled.Value.Definitions.Length > 0 && farm.Capabilities.Workforce.EfficiencyTiers.Length == 3 && farm.Capabilities.Workforce.EfficiencyTiers[1].MaximumWorkers == 1, "One-way compilation preserves authored tier metadata and order");
+                var farmId = new BuildingCatalogIndex(catalog).Resolve(catalog.Definitions.First(asset => asset.Metadata.Id == "b农田"));
+                ref var bakedFarming = ref compiled.Value.Definitions[farmId.Index].Capabilities.Farming;
+                check(bakedFarming.RequiredWorkers == 2 && bakedFarming.FullCycleBonusWorkers == 3 && bakedFarming.FullCycleYieldBonusPercent == 50, "Compiled farm carries shared crop rules");
             }
             finally
             {
@@ -247,6 +268,28 @@ namespace Landsong.ECS.Editor
                         Crop = crop
                     }
                 };
+                var levelOneWorkforce = farm.Capabilities.Workforce.Levels[0];
+                farm.Capabilities.Workforce.Levels = new[]
+                {
+                    levelOneWorkforce,
+                    new BuildingWorkforceLevelSource
+                    {
+                        Level = 2,
+                        Currency = levelOneWorkforce.Currency,
+                        Capacity = levelOneWorkforce.Capacity,
+                        InitialWorkers = levelOneWorkforce.InitialWorkers,
+                        InitialSubsidy = levelOneWorkforce.InitialSubsidy,
+                        BaseAttraction = levelOneWorkforce.BaseAttraction,
+                        RecruitmentCost = levelOneWorkforce.RecruitmentCost
+                    }
+                };
+                var levelTwoTiers = farm.Capabilities.Workforce.EfficiencyTiers.Select(tier => new BuildingWorkerEfficiencyTierSource
+                {
+                    Level = 2,
+                    MinimumWorkers = tier.MinimumWorkers,
+                    MaximumWorkers = tier.MaximumWorkers
+                }).ToArray();
+                farm.Capabilities.Workforce.EfficiencyTiers = farm.Capabilities.Workforce.EfficiencyTiers.Concat(levelTwoTiers).ToArray();
                 var gold = Content.Items.Definitions.First(d => d.Metadata.Id == "金币");
                 farm.Capabilities.Gathering.Enabled = true;
                 farm.Capabilities.Gathering.Levels = new[]
@@ -299,7 +342,7 @@ namespace Landsong.ECS.Editor
                         MinimumWorkers = 2,
                         MaximumWorkers = 2
                     }
-                };
+                }.Concat(levelTwoTiers).ToArray();
                 using var groupedTiers = Compile(modified);
                 EcsVerification.Bake(world, scene.GetRootGameObjects(), store);
                 var em = world.EntityManager;
@@ -382,7 +425,7 @@ namespace Landsong.ECS.Editor
                     em.SetComponentData(root, replacement);
                     var tiers = WorkerEfficiencyOps.Tiers(em, root, farmId, 1);
                     check(tiers.Count == 3 && tiers[0].MinimumWorkers == 0 && tiers[0].MaximumWorkers == 1 && tiers[2].MinimumWorkers == 3, "Shared worker query reads and sorts explicit baked ranges without reverse inference");
-                    check(WorkerEfficiencyOps.Tiers(em, root, farmId, 2).Count == 0, "Unconfigured level does not synthesize worker tiers");
+                    check(WorkerEfficiencyOps.Tiers(em, root, farmId, 2).Count == levelTwoTiers.Length, "Second-level farm retains explicit worker tiers");
                     check(beforeTierEdit.SequenceEqual(Landsong.ECS.Persistence.SnapshotCodec.Capture(em, root)), "Changing only display tier grouping preserves gameplay content signature and snapshot bytes");
                     replacement.Value = compiled;
                     em.SetComponentData(root, replacement);

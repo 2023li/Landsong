@@ -20,6 +20,15 @@ namespace Landsong.ECS.Persistence
                 throw new InvalidDataException("Invalid dawn clock");
             if (!math.isfinite(data.Clock.DawnSourceNightTime) || data.Clock.DawnSourceNightTime < -1)
                 throw new InvalidDataException("Invalid dawn lighting source");
+            if (data.Weather.Initialized != 0 && (data.Weather.DayTurn != data.Clock.Turn
+                || data.Weather.RandomState == 0 || data.Weather.Season != SeasonWeatherOps.Season(data.Clock.Turn)
+                || data.Weather.Weather > WeatherKind.Snow || data.Weather.Wind > WindKind.Strong
+                || !math.isfinite(data.Weather.WindDegrees) || data.Weather.WindDegrees < 0 || data.Weather.WindDegrees >= 360
+                || !math.isfinite(data.Weather.DayElapsed) || data.Weather.DayElapsed < 0
+                || !math.isfinite(data.Weather.NextThunderAt) || data.Weather.NextThunderAt < 0
+                || data.Weather.LightningCount > data.Weather.LightningLimit
+                || data.Weather.Weather != WeatherKind.Rain && data.Weather.LightningLimit != 0))
+                throw new InvalidDataException($"Invalid season or weather state: turn={data.Clock.Turn}, day={data.Weather.DayTurn}, season={data.Weather.Season}, weather={data.Weather.Weather}, wind={data.Weather.Wind}, degrees={data.Weather.WindDegrees}, seed={data.Weather.RandomState}, strikes={data.Weather.LightningCount}/{data.Weather.LightningLimit}, next={data.Weather.NextThunderAt}, elapsed={data.Weather.DayElapsed}");
             var ids = new HashSet<ulong>();
             foreach (var record in data.Records)
             {
@@ -27,6 +36,9 @@ namespace Landsong.ECS.Persistence
                     throw new InvalidDataException("Invalid entity identity or transform");
                 switch (record)
                 {
+                    case FirefighterSnapshot firefighter:
+                        FirefighterSnapshotStorage.Validate(em, root, data, firefighter);
+                        break;
                     case TransportWorkerSnapshot worker:
                         TransportWorkerSnapshotStorage.Validate(em, root, data, worker);
                         break;
@@ -83,6 +95,12 @@ namespace Landsong.ECS.Persistence
                 throw new InvalidDataException("Invalid quest tracking mode");
             if (data.Tracking.Target != 0 && !data.Records.OfType<QuestSnapshot>().Any(q => q.Identity.Id == data.Tracking.Target && (q.Quest.Status == QuestStatus.Active || q.Quest.Status == QuestStatus.Completed)))
                 throw new InvalidDataException("Tracked quest is missing or not trackable");
+            if (data.Tracking.Mode != 1 && data.TrackedQuests.Length != 0 || data.Tracking.Mode == 1 && (data.TrackedQuests.Length == 0 || !data.TrackedQuests.Any(q => q.Quest == data.Tracking.Target)))
+                throw new InvalidDataException("Invalid tracked quest list");
+            var tracked = new HashSet<ulong>();
+            foreach (var pin in data.TrackedQuests)
+                if (!tracked.Add(pin.Quest) || !data.Records.OfType<QuestSnapshot>().Any(q => q.Identity.Id == pin.Quest && (q.Quest.Status == QuestStatus.Active || q.Quest.Status == QuestStatus.Completed)))
+                    throw new InvalidDataException("Tracked quest is missing, duplicated or not trackable");
         }
 
         static void RequireSoldierPrefab(EntityManager em, Entity root, SoldierId definition)

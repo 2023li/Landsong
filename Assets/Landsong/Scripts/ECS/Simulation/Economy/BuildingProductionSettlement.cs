@@ -77,11 +77,13 @@ namespace Landsong.ECS
             if (stateFarming.Crop.IsValid)
             {
                 ref var crop = ref CropDefinitions.Get(em, root, stateFarming.Crop);
-                if (stateWorkforce.Workers < crop.FullStaffBonusWorkers)
+                ref var farming = ref source.Capabilities.Farming;
+                if (stateWorkforce.Workers < farming.FullCycleBonusWorkers)
                     stateFarming.FullCycle = 0;
-                if (stateWorkforce.Workers >= crop.RequiredWorkers)
-                    stateFarming.Progress = math.min(crop.GrowthTurns, stateFarming.Progress + 1);
-                if (stateFarming.Progress >= crop.GrowthTurns && stateFarming.AutoHarvest != 0)
+                var threshold = CropGrowthOps.Threshold(crop.GrowthTurns);
+                if (stateWorkforce.Workers >= farming.RequiredWorkers)
+                    stateFarming.Progress = math.min(threshold, stateFarming.Progress + CropGrowthOps.PerSettlement(SeasonWeatherOps.Season(em.GetComponentData<GameClock>(root).Turn)));
+                if (stateFarming.Progress >= threshold && stateFarming.AutoHarvest != 0)
                 {
                     {
                         em.SetComponentData(e, state);

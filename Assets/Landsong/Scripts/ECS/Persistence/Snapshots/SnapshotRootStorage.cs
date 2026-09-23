@@ -17,6 +17,7 @@ namespace Landsong.ECS.Persistence
         {
             SnapshotBinary.Write(writer, em.GetComponentData<Session>(root));
             SnapshotBinary.Write(writer, em.GetComponentData<GameClock>(root));
+            WriteWeather(writer, em.GetComponentData<SeasonWeatherState>(root));
             SnapshotBinary.Write(writer, default(SimulationControl));
             SnapshotBinary.Write(writer, em.GetComponentData<PopulationState>(root));
             SnapshotBinary.Write(writer, em.GetComponentData<PublicOpinionState>(root));
@@ -33,6 +34,7 @@ namespace Landsong.ECS.Persistence
             SnapshotBinary.Write(writer, em.GetComponentData<IdentitySequence>(root));
             SnapshotBinary.Write(writer, em.GetComponentData<DynastyIdentity>(root));
             SnapshotBinary.Write(writer, QuestOps.Tracking(em, root));
+            SnapshotBuffers.Write(writer, SnapshotBuffers.Capture<TrackedQuest>(em, root));
             SnapshotBinary.Write(writer, CourtOps.State(em, root));
             SnapshotBinary.Write(writer, NightPlanOps.State(em, root));
             SnapshotBuffers.Write(writer, SnapshotBuffers.Capture<CourtLogEntry>(em, root));
@@ -60,12 +62,13 @@ namespace Landsong.ECS.Persistence
             writer.Write(em.HasComponent<EconomyJournalState>(root) ? em.GetComponentData<EconomyJournalState>(root).Turn : 0);
         }
 
-        internal static SnapshotCodec.Snapshot Read(BinaryReader reader)
+        internal static SnapshotCodec.Snapshot Read(BinaryReader reader, int version)
         {
-            return new SnapshotCodec.Snapshot
+            var data = new SnapshotCodec.Snapshot
             {
                 Session = SnapshotBinary.Read<Session>(reader),
                 Clock = SnapshotBinary.Read<GameClock>(reader),
+                Weather = version >= 35 ? ReadWeather(reader) : default,
                 Control = SnapshotBinary.Read<SimulationControl>(reader),
                 Population = SnapshotBinary.Read<PopulationState>(reader),
                 Opinion = SnapshotBinary.Read<PublicOpinionState>(reader),
@@ -82,6 +85,7 @@ namespace Landsong.ECS.Persistence
                 Ids = SnapshotBinary.Read<IdentitySequence>(reader),
                 Dynasty = SnapshotBinary.Read<DynastyIdentity>(reader),
                 Tracking = SnapshotBinary.Read<QuestTracking>(reader),
+                TrackedQuests = version >= 34 ? SnapshotBuffers.Read<TrackedQuest>(reader) : Array.Empty<TrackedQuest>(),
                 Court = SnapshotBinary.Read<CourtState>(reader),
                 NightPlan = SnapshotBinary.Read<NightPlanState>(reader),
                 CourtLog = SnapshotBuffers.Read<CourtLogEntry>(reader),
@@ -108,12 +112,16 @@ namespace Landsong.ECS.Persistence
                 PreparedBuildings = SnapshotBuffers.Read<PreparedBuildingDefense>(reader),
                 LedgerTurn = reader.ReadInt32(),
             };
+            if (version == 33 && data.Tracking.Mode == 1 && data.Tracking.Target != 0)
+                data.TrackedQuests = new[] { new TrackedQuest { Quest = data.Tracking.Target } };
+            return data;
         }
 
         internal static void Restore(EntityManager em, Entity root, SnapshotCodec.Snapshot data)
         {
             EntityState.Set(em, root, data.Session);
             EntityState.Set(em, root, data.Clock);
+            EntityState.Set(em, root, data.Weather);
             EntityState.Set(em, root, data.Control);
             EntityState.Set(em, root, data.Population);
             EntityState.Set(em, root, data.Opinion);
@@ -130,6 +138,7 @@ namespace Landsong.ECS.Persistence
             EntityState.Set(em, root, data.Ids);
             EntityState.Set(em, root, data.Dynasty);
             EntityState.Set(em, root, data.Tracking);
+            SnapshotBuffers.Restore(em, root, data.TrackedQuests);
             EntityState.Set(em, root, data.Court);
             EntityState.Set(em, root, data.NightPlan);
             SnapshotBuffers.Restore(em, root, data.CourtLog);
@@ -156,5 +165,37 @@ namespace Landsong.ECS.Persistence
             SnapshotBuffers.Restore(em, root, data.PreparedBuildings);
             EntityState.Set(em, root, new EconomyJournalState { Turn = data.LedgerTurn });
         }
+
+        static void WriteWeather(BinaryWriter writer, SeasonWeatherState value)
+        {
+            writer.Write(value.DayTurn);
+            writer.Write(value.Temperature);
+            writer.Write((byte)value.Season);
+            writer.Write((byte)value.Weather);
+            writer.Write((byte)value.Wind);
+            writer.Write(value.WindDegrees);
+            writer.Write(value.RandomState);
+            writer.Write(value.Initialized);
+            writer.Write(value.LightningLimit);
+            writer.Write(value.LightningCount);
+            writer.Write(value.DayElapsed);
+            writer.Write(value.NextThunderAt);
+        }
+
+        static SeasonWeatherState ReadWeather(BinaryReader reader) => new SeasonWeatherState
+        {
+            DayTurn = reader.ReadInt32(),
+            Temperature = reader.ReadInt32(),
+            Season = (SeasonKind)reader.ReadByte(),
+            Weather = (WeatherKind)reader.ReadByte(),
+            Wind = (WindKind)reader.ReadByte(),
+            WindDegrees = reader.ReadSingle(),
+            RandomState = reader.ReadUInt32(),
+            Initialized = reader.ReadByte(),
+            LightningLimit = reader.ReadByte(),
+            LightningCount = reader.ReadByte(),
+            DayElapsed = reader.ReadSingle(),
+            NextThunderAt = reader.ReadSingle(),
+        };
     }
 }

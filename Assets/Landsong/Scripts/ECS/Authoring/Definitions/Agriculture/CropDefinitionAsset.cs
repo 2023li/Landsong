@@ -12,12 +12,6 @@ namespace Landsong.ECS.Authoring.Definitions
         public DefinitionMetadataSource Metadata = new DefinitionMetadataSource();
         [LabelText("成熟回合")]
         public int GrowthTurns = 1;
-        [LabelText("所需工人")]
-        public int RequiredWorkers = 1;
-        [LabelText("满岗奖励工人数")]
-        public int FullStaffBonusWorkers = 1;
-        [LabelText("满岗产出加成")]
-        public int FullStaffYieldBonus;
         [LabelText("种植费用")]
         public ItemAmountSource[] PlantingCosts = Array.Empty<ItemAmountSource>();
         [LabelText("自动收获费用")]

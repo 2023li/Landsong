@@ -12,7 +12,9 @@
     "Unity.ugui",
     "Unity.InputSystem",
     "Unity.TextMeshPro",
-    "EasySave3"
+    "EasySave3",
+    "Unity.RenderPipelines.Core.Runtime",
+    "Unity.RenderPipelines.Universal.Runtime"
   ],
   "autoReferenced": true
 }

@@ -14,6 +14,8 @@ namespace Landsong.ECS.Authoring.Definitions
         {
             if (source == null)
                 throw new InvalidOperationException("缺少 QuestObjectives 配置。");
+            if (source.Requirements == null || source.Requirements.Any(objective => objective == null))
+                throw new InvalidOperationException("任务要求列表不能包含空元素。");
             if (source.BuildingObjectives == null)
                 throw new InvalidOperationException("建筑目标列表不能为空引用。");
             var orderedBuildingObjectives = source.BuildingObjectives.OrderBy(entry => entry == null ? throw new InvalidOperationException("列表中存在空条目。") : entry.Order).ToArray();

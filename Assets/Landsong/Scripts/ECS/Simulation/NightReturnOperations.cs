@@ -15,7 +15,7 @@ namespace Landsong.ECS
             foreach (var unit in actors)
             {
                 var actor = em.GetComponentData<Combatant>(unit);
-                if (!Owned(em, root, unit) || em.HasComponent<TransportWorker>(unit) || actor.Faction != 0 || !EntityState.Alive(em, unit) || em.HasComponent<DayReturnState>(unit))
+                if (!Owned(em, root, unit) || em.HasComponent<TransportWorker>(unit) || em.HasComponent<Firefighter>(unit) || actor.Faction != 0 || !EntityState.Alive(em, unit) || em.HasComponent<DayReturnState>(unit))
                     continue;
                 if (em.HasComponent<Soldier>(unit))
                 {
@@ -99,7 +99,7 @@ namespace Landsong.ECS
             foreach (var unit in actors)
             {
                 var actor = em.GetComponentData<Combatant>(unit);
-                if (!Owned(em, root, unit) || em.HasComponent<TransportWorker>(unit) || actor.Faction != 0 || !EntityState.Alive(em, unit))
+                if (!Owned(em, root, unit) || em.HasComponent<TransportWorker>(unit) || em.HasComponent<Firefighter>(unit) || actor.Faction != 0 || !EntityState.Alive(em, unit))
                     continue;
                 total++;
                 if (actor.Deployed == 0)

@@ -31,20 +31,9 @@ MonoBehaviour:
     QuestRequirements: []
     ExpeditionRequirements: []
   Objectives:
-    BuildingObjectives: []
-    PlantedBuildingObjectives: []
-    OwnedItemObjectives: []
-    SubmittedItemObjectives: []
-    TechnologyObjectives: []
-    CameraMoveObjectives:
-    - Order: 2
-      Key: b581c12ac7554bf0ac6e76e8520379b2
-      Count: 1
-    CameraZoomObjectives:
-    - Order: 3
-      Key: 3c793d4436d447068251cbc89f4d302b
-      Count: 1
-    TurnObjectives: []
+    Requirements:
+    - rid: 1000000000000000001
+    - rid: 1000000000000000002
   Rewards:
     Items:
     - Order: 1
@@ -57,3 +46,18 @@ MonoBehaviour:
       Feature: {fileID: 11400000, guid: e448288e7ab049a47b5446d5550c8d49, type: 2}
       GrantedLevel: 1
   FailurePenalties: []
+  references:
+    version: 2
+    RefIds:
+    - rid: 1000000000000000001
+      type: {class: QuestCameraMoveObjectiveSource, ns: Landsong.ECS.Authoring.Definitions, asm: Landsong.ECS.Authoring}
+      data:
+        Order: 2
+        Key: b581c12ac7554bf0ac6e76e8520379b2
+        Count: 1
+    - rid: 1000000000000000002
+      type: {class: QuestCameraZoomObjectiveSource, ns: Landsong.ECS.Authoring.Definitions, asm: Landsong.ECS.Authoring}
+      data:
+        Order: 3
+        Key: 3c793d4436d447068251cbc89f4d302b
+        Count: 1

@@ -4614,9 +4614,7 @@ GameObject:
   - component: {fileID: 1976969577415448691}
   - component: {fileID: 9155318602646718066}
   - component: {fileID: 8870529835301254515}
-  - component: {fileID: 1507676482318575676}
   - component: {fileID: 7233589339826219007}
-  - component: {fileID: 2143949996557046373}
   m_Layer: 0
   m_Name: UI_GamePanel_Quest
   m_TagString: Untagged
@@ -4694,7 +4692,7 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &1507676482318575676
+--- !u!114 &7233589339826219007
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -4703,10 +4701,18 @@ MonoBehaviour:
   m_GameObject: {fileID: 7076718514208222549}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 89672df8c3e2eda4d96872bca98df799, type: 3}
+  m_Script: {fileID: 11500000, guid: f09bb9469fcb8fd48bd12c60b962e553, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_QuestView
-  Close: {fileID: 3724609440205775247}
+  m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_Quest
+  PanelId: 3
+  RequiredFeatureId:
+  AllowMissingFeature: 0
+  AllowLockedOpen: 0
+  ContentRoot: {fileID: 6524009277073411729}
+  Title: {fileID: 7810578826451064963}
+  CloseButton: {fileID: 3724609440205775247}
+  CloseAllowed: 1
+  ManageContentVisibility: 0
   AutoTrack: {fileID: 4205299570565100292}
   SourceFilter: {fileID: 7605103744844437260}
   Capacity: {fileID: 7810578826451064963}
@@ -4720,51 +4726,10 @@ MonoBehaviour:
   - {fileID: 4969349877081198206}
   - {fileID: 9165565903241855296}
   CardTemplate: {fileID: 4236680764118436684}
---- !u!114 &7233589339826219007
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7076718514208222549}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f09bb9469fcb8fd48bd12c60b962e553, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_Quest
-  childViews: []
-  openWithOwner: 0
-  previewBindings: []
+  RowTemplate: {fileID: 1573664279546181541, guid: a6505af27ca58fd479bd424bc2087351, type: 3}
   QuantityTemplate: {fileID: 6349835732648931730, guid: 1638db4e7c0f03f41a94e84b33627a7b, type: 3}
-  QuestPanel: {fileID: 1507676482318575676}
   QuestTracking: {fileID: 0}
   QuestDisplay: {fileID: 11400000, guid: a3977d26ab0d464d83ebdfdf83314821, type: 2}
---- !u!114 &2143949996557046373
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7076718514208222549}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7179d21ac73668a4f875bc4ffd6ab46e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_List
-  PanelId: 3
-  RequiredFeatureId: 
-  AllowMissingFeature: 0
-  AllowLockedOpen: 0
-  ContentRoot: {fileID: 6524009277073411729}
-  PrimaryRows: {fileID: 5279416735961754551}
-  SecondaryRows: {fileID: 0}
-  PrimaryScroll: {fileID: 9202489443379735256}
-  Title: {fileID: 7810578826451064963}
-  CloseButton: {fileID: 3724609440205775247}
-  Presenter: {fileID: 7233589339826219007}
-  CloseAllowed: 1
-  ManageContentVisibility: 0
-  RowTemplate: {fileID: 1573664279546181541, guid: a6505af27ca58fd479bd424bc2087351, type: 3}
 --- !u!1 &7147558933176823711
 GameObject:
   m_ObjectHideFlags: 0

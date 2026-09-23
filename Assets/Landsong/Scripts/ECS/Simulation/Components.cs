@@ -764,6 +764,12 @@ namespace Landsong.ECS
     } // 0 automatic continuation/value, 1 manual, 2 explicitly unpinned.
 
     [InternalBufferCapacity(0)]
+    public struct TrackedQuest : IBufferElementData
+    {
+        public ulong Quest;
+    }
+
+    [InternalBufferCapacity(0)]
     public struct QuestProgress : IBufferElementData
     {
         public int Amount;

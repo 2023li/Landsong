@@ -69,7 +69,8 @@ namespace Landsong.ECS.Presentation
             var pause = inputContext.PauseMenu;
             if (pause != null && pause.IsOpen)
                 owners |= GameUiInputOwner.Pause;
-            if (building.BuildingConfirmPanel != null && building.BuildingConfirmPanel.activeSelf)
+            if ((building.BuildingConfirmPanel != null && building.BuildingConfirmPanel.activeSelf) ||
+                (building.CropSelectionPanel != null && building.CropSelectionPanel.IsOpen))
                 owners |= GameUiInputOwner.BuildingConfirmation;
             return Evaluate(session.IsBound, EcsSceneFlow.GameReady, owners, intelligence.IsOpen, UiInputState.TextFocused, navigation.Panel, pause != null);
         }

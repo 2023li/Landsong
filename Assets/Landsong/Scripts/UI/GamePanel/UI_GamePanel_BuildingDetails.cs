@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
-using Unity.Mathematics;
 using Landsong.Content;
 using TMPro;
 using UnityEngine;
@@ -48,10 +47,8 @@ namespace Landsong.ECS.Presentation
         public Button Upgrade;
         [LabelText("警告"), Required]
         public Button Warning;
-        [LabelText("经验跟踪"), Required]
-        public GameObject ExperienceTrack;
         [LabelText("经验悬浮信息"), Required]
-        public UI_GamePanel_BuildingDetails_SidebarTrigger ExperienceHover;
+        public UI_GamePanel_BuildingDetails_ExperienceHover ExperienceHover;
         [LabelText("模块滚动视图"), Required]
         public ScrollRect ModulesScroll;
         [LabelText("建筑模块"), Required]
@@ -142,11 +139,14 @@ namespace Landsong.ECS.Presentation
             HideSidebar();
         }
 
-        public void ConfigureSidebar(UI_GamePanel_BuildingDetails_SidebarTrigger trigger, Func<string> content)
+        public void SetSidebarContent(Component owner, Func<string> content)
         {
-            trigger.Content = content;
-            if (sidebarOwner == trigger && content == null)
+            if (sidebarOwner != owner)
+                return;
+            if (content == null)
                 HideSidebar();
+            else
+                sidebarContent = content;
         }
 
         public void ShowSidebar(Component owner, Func<string> content)
@@ -170,6 +170,12 @@ namespace Landsong.ECS.Presentation
         {
             if (sidebarOwner == owner)
                 sidebarHideAt = Time.unscaledTime + .18f;
+        }
+
+        public void HideSidebar(Component owner)
+        {
+            if (sidebarOwner == owner)
+                HideSidebar();
         }
 
         public void SetSidebarHovered(bool value)
@@ -198,14 +204,12 @@ namespace Landsong.ECS.Presentation
                 return;
             }
 
-            var content = sidebarOwner is UI_GamePanel_BuildingDetails_SidebarTrigger trigger ? trigger.Content : sidebarContent;
-            if (!sidebarOwner.gameObject.activeInHierarchy || content == null || (!sidebarHovered && sidebarHideAt > 0 && Time.unscaledTime >= sidebarHideAt))
+            if (!sidebarOwner.gameObject.activeInHierarchy || sidebarContent == null || (!sidebarHovered && sidebarHideAt > 0 && Time.unscaledTime >= sidebarHideAt))
             {
                 HideSidebar();
                 return;
             }
 
-            sidebarContent = content;
             if (Time.unscaledTime >= sidebarRefreshAt)
                 RefreshSidebar();
         }
@@ -229,15 +233,10 @@ namespace Landsong.ECS.Presentation
         internal UI_GamePanel_Court courtController;
         internal UI_GamePanel_Hud hudController;
         internal IGameUiNavigation navigation;
-        UI_GamePanel_RowCollection rowsController;
         internal GameUiSessionHandle sessionController;
         internal UI_GamePanel_Soldier soldierController;
         internal IGameBuildingUi buildingUi;
-        internal bool showSupplySources;
-        internal bool showSpatialSources;
         bool isOpen;
-        [LabelText("详情条目模板"), Required]
-        public UI_GamePanel_Row RowTemplate;
         public RectTransform DetailsRows => Block<UI_GamePanel_BuildingDetails_Block_其他>().Rows;
         public bool IsOpen => isOpen;
 
@@ -246,10 +245,7 @@ namespace Landsong.ECS.Presentation
             sessionController = session ?? throw new ArgumentNullException(nameof(session));
             commandsController = commands ?? throw new ArgumentNullException(nameof(commands));
             this.navigation = navigation ?? throw new ArgumentNullException(nameof(navigation));
-            if (RowTemplate == null)
-                throw new InvalidOperationException("建筑详情缺少条目模板。");
-            RowTemplate.ValidateConfiguration();
-            rowsController = new UI_GamePanel_RowCollection(RowTemplate);
+            Block<UI_GamePanel_BuildingDetails_Block_其他>().Initialize();
             this.buildingUi = buildingUi ?? throw new ArgumentNullException(nameof(buildingUi));
             courtController = court ?? throw new ArgumentNullException(nameof(court));
             hudController = hud ?? throw new ArgumentNullException(nameof(hud));
@@ -281,7 +277,7 @@ namespace Landsong.ECS.Presentation
         {
             var wasOpen = isOpen || gameObject.activeSelf;
             isOpen = false;
-            rowsController.Clear(DetailsRows);
+            Block<UI_GamePanel_BuildingDetails_Block_其他>().Clear();
             gameObject.SetActive(false);
             refresh.NextPanel = 0;
             return wasOpen;
@@ -295,12 +291,8 @@ namespace Landsong.ECS.Presentation
             var plantingBlock = card.Block<UI_GamePanel_BuildingDetails_Block_种植>();
             var id = sessionController.em.GetComponentData<Identity>(entity);
             var b = sessionController.em.GetComponentData<Building>(entity);
-            BuildingFarmingState bFarming = sessionController.em.GetComponentData<BuildingFarmingState>(entity);
             BuildingExperienceState bExperience = sessionController.em.GetComponentData<BuildingExperienceState>(entity);
             var stats = sessionController.em.GetComponentData<BuildingHousingStats>(entity);
-            BuildingWorkforceStats statsWorkforce = sessionController.em.GetComponentData<BuildingWorkforceStats>(entity);
-            BuildingGarrisonStats statsGarrison = sessionController.em.GetComponentData<BuildingGarrisonStats>(entity);
-            BuildingQuestStats statsQuests = sessionController.em.GetComponentData<BuildingQuestStats>(entity);
             ref var d = ref BuildingDefinitions.Get(sessionController.em, sessionController.root, DefinitionOf(entity));
             var session = sessionController.em.GetComponentData<Session>(sessionController.root);
             SimulationControl sessionControl = sessionController.em.GetComponentData<SimulationControl>(sessionController.root);
@@ -352,52 +344,16 @@ namespace Landsong.ECS.Presentation
                 buildingUi.ConfirmBuildingCommand(CommandKind.Upgrade);
             });
             card.Upgrade.image.color = can && upgrade.Allowed ? new Color(.2f, .4f, .66f) : new Color(.34f, .36f, .36f);
-            var outputs = new List<string>();
-            if (stats.MaxPopulation + stats.BasePopulation > 0)
-                outputs.Add("人口 +" + (stats.MaxPopulation + stats.BasePopulation));
-            int research = 0;
-            for (int i = 0; i < d.Capabilities.Research.Levels.Length; i++)
-            {
-                var level = d.Capabilities.Research.Levels[i];
-                if (level.Level == 0 || level.Level == b.Level)
-                    research += level.PointsPerTurn;
-            }
-
-            if (research > 0)
-                outputs.Add("科研值 +" + research);
-            if (statsGarrison.Capacity > 0)
-                outputs.Add("士兵槽 " + statsGarrison.Capacity);
-            for (int i = 0; i < d.Capabilities.Storage.Warehouses.Length; i++)
-            {
-                var warehouse = d.Capabilities.Storage.Warehouses[i];
-                if ((warehouse.Level == 0 || warehouse.Level == b.Level) && warehouse.Slots > 0)
-                    outputs.Add("库存 " + StorageSlotDefinitions.Get(sessionController.em, sessionController.root, warehouse.SlotType).Metadata.Name + " ×" + warehouse.Slots + "（工人≥" + warehouse.RequiredWorkers + "）");
-            }
-
-            int invitations = sessionController.em.HasBuffer<QuestOfferSlot>(entity) ? sessionController.em.GetBuffer<QuestOfferSlot>(entity).Length : 0;
-            if (invitations > 0)
-                outputs.Add("邀约槽 " + invitations);
-            if (statsQuests.Capacity > 0)
-                outputs.Add("任务槽位 " + statsQuests.Capacity);
-            baseOutputBlock.Refresh(outputs, statsWorkforce.Capacity > 0 ? () => WorkerEfficiencyOps.Describe(sessionController.em, sessionController.root, entity, "全部") : null);
-            card.ConfigureSidebar(card.ExperienceHover, statsWorkforce.Capacity > 0 ? () => WorkerEfficiencyOps.Describe(sessionController.em, sessionController.root, entity, "经验") : null);
-            soldierController.RefreshBuildingGarrison(entity);
+            baseOutputBlock.Refresh(entity);
+            card.ExperienceHover.Refresh(entity);
+            card.Block<UI_GamePanel_BuildingDetails_Block_驻军>().Refresh(entity);
             var pos = EntityState.Position(sessionController.em, entity);
             card.Footer.text = $"(x: {pos.x:0.#}, y: {pos.y:0.#}, z: {pos.z:0.#})  移动力: {BuildingRangeOps.ActionPower(sessionController.em, sessionController.root, entity)}";
             card.SetWarnings(BuildingWarnings(entity));
             bool skins = sessionController.em.HasBuffer<BuildingVisualSlot>(entity) && sessionController.em.GetBuffer<BuildingVisualSlot>(entity).Length > 0;
             UI_GamePanel_BuildingDetails.Bind(card.Style, skins ? () => BuildingSkins(id.Id) : null);
-            var workforce = WorkforceOps.Quote(sessionController.em, sessionController.root, entity);
-            workforceBlock.Refresh(workforce, ItemName(workforce.Gold), can && normal, value => commandsController.TryQueue(new SetWorkforceBudgetRequest { Building = id.Id, Budget = value - workforce.SubsidyCost, Relative = 1 }), can && normal && WorkforceOps.CanChange(workforce, 1) == ResultCode.Success ? () => commandsController.TryQueue(new RecruitWorkersRequest { Building = id.Id, Count = 1, ExpectedGoldCostPerWorker = workforce.RecruitCost }) : null, can && normal && WorkforceOps.CanChange(workforce, -1) == ResultCode.Success ? () => commandsController.TryQueue(new ChangeWorkersRequest { Building = id.Id, Delta = -1 }) : null, () => WorkforceOps.Quote(sessionController.em, sessionController.root, entity));
-            bool crops = d.Capabilities.Farming.Enabled && d.Capabilities.Farming.Crops.Length > 0;
-            if (crops)
-            {
-                bool planted = bFarming.Crop.IsValid;
-                int duration = planted ? Mathf.Max(1, CropDefinitions.Get(sessionController.em, sessionController.root, bFarming.Crop).GrowthTurns) : 1;
-                plantingBlock.Refresh(planted ? "种植 · " + CropName(bFarming.Crop) + " " + bFarming.Progress + "/" + duration : "种植 · 点击圆钮选择作物", planted ? (float)bFarming.Progress / duration : 0, planted ? CropPortrait(bFarming.Crop) : null, () => BuildingCrops(id.Id), can && normal && planted ? () => buildingUi.ShowBuildingConfirmation("铲除 " + CropName(bFarming.Crop), new[] { "失去当前作物与进度，不返种植费用。" }, () => commandsController.TryQueue(new ClearCropRequest { Building = id.Id })) : null, () => WorkerEfficiencyOps.Describe(sessionController.em, sessionController.root, entity, "种植"));
-            }
-            else
-                plantingBlock.Hide();
+            workforceBlock.Refresh(entity, can && normal);
+            plantingBlock.Refresh(entity, can && normal);
         }
 
         internal string BuildingWarnings(Entity e)
@@ -445,7 +401,7 @@ namespace Landsong.ECS.Presentation
 
             if (b.Stage == LifeStage.Construction)
                 Shortage("下期施工材料不足", BuildingCostOps.ConstructionStage(sessionController.em, sessionController.root, DefinitionOf(e), bConstruction.Progress + 1));
-            if (bFarming.Crop.IsValid && bWorkforce.Workers < CropDefinitions.Get(sessionController.em, sessionController.root, bFarming.Crop).RequiredWorkers)
+            if (bFarming.Crop.IsValid && bWorkforce.Workers < BuildingDefinitions.Get(sessionController.em, sessionController.root, DefinitionOf(e)).Capabilities.Farming.RequiredWorkers)
                 warnings.Add("作物停止生长：工人不足");
             var q = WorkforceOps.Quote(sessionController.em, sessionController.root, e);
             if (q.Capacity > 0)
@@ -489,15 +445,6 @@ namespace Landsong.ECS.Presentation
             return string.Join("\n", warnings.Distinct().Select(w => "• " + w));
         }
 
-        internal Sprite CropPortrait(CropId definition)
-        {
-            var icon = Crops.Get(definition)?.Icon;
-            if (icon != null)
-                return icon;
-            ref var crop = ref CropDefinitions.Get(sessionController.em, sessionController.root, definition);
-            return crop.HarvestOutputs.Length > 0 ? Items.Get(crop.HarvestOutputs[0].Item)?.Icon : null;
-        }
-
         internal void BuildingSkins(ulong key)
         {
             var e = WorldQueries.Find(sessionController.em, key);
@@ -523,308 +470,23 @@ namespace Landsong.ECS.Presentation
             });
         }
 
-        internal void BuildingCrops(ulong key)
-        {
-            var e = WorldQueries.Find(sessionController.em, key);
-            if (e == Entity.Null)
-                return;
-            var b = sessionController.em.GetComponentData<Building>(e);
-            BuildingFarmingState bFarming = sessionController.em.GetComponentData<BuildingFarmingState>(e);
-            var definition = DefinitionOf(e);
-            buildingUi.ShowBuildingChoices("选择作物", (row, close) =>
-            {
-                ref var d = ref BuildingDefinitions.Get(sessionController.em, sessionController.root, definition);
-                if (bFarming.Crop.IsValid)
-                    row("已种植 " + CropName(bFarming.Crop) + "，更换前请先使用 X 铲除。");
-                var seen = new HashSet<CropId>();
-                for (int i = 0; i < d.Capabilities.Farming.Crops.Length; i++)
-                {
-                    var allowed = d.Capabilities.Farming.Crops[i];
-                    if ((allowed.Level != 0 && allowed.Level != b.Level) || !seen.Add(allowed.Crop))
-                        continue;
-                    var cropId = allowed.Crop;
-                    ref var crop = ref CropDefinitions.Get(sessionController.em, sessionController.root, cropId);
-                    var costs = new List<BuildingCost>();
-                    for (int cost = 0; cost < crop.PlantingCosts.Length; cost++)
-                        costs.Add(new BuildingCost(crop.PlantingCosts[cost].Item, crop.PlantingCosts[cost].Quantity));
-                    bool can = courtController.CourtDay && sessionController.em.GetComponentData<SimulationControl>(sessionController.root).Paused == 0 && BuildingStatus.Operational(sessionController.em, e) && !bFarming.Crop.IsValid && BuildingCostOps.CanPay(sessionController.em, sessionController.root, costs);
-                    row(CropName(cropId) + " · " + buildingUi.CostText(costs) + " · " + crop.GrowthTurns + " 回合", can ? () =>
-                    {
-                        close();
-                        commandsController.TryQueue(new PlantCropRequest { Building = key, Crop = cropId });
-                    } : null, key: "building-crop:" + key + ":" + cropId.Index);
-                }
-
-                row("关闭", close);
-            });
-        }
-
         internal void Refresh(Entity entity)
         {
             gameObject.SetActive(isOpen && !intelligence.IsOpen);
             if (!isOpen || intelligence.IsOpen)
                 return;
-            var b = sessionController.em.GetComponentData<Building>(entity);
-            BuildingConstructionState bConstruction = sessionController.em.GetComponentData<BuildingConstructionState>(entity);
-            BuildingWorkforceState bWorkforce = sessionController.em.GetComponentData<BuildingWorkforceState>(entity);
-            BuildingHousingState bHousing = sessionController.em.GetComponentData<BuildingHousingState>(entity);
-            BuildingProductionState bProduction = sessionController.em.GetComponentData<BuildingProductionState>(entity);
-            BuildingFarmingState bFarming = sessionController.em.GetComponentData<BuildingFarmingState>(entity);
-            BuildingSanctumState bSanctum = sessionController.em.GetComponentData<BuildingSanctumState>(entity);
-            BuildingGatheringState bGathering = sessionController.em.GetComponentData<BuildingGatheringState>(entity);
-            BuildingMarketState bMarket = sessionController.em.GetComponentData<BuildingMarketState>(entity);
-            BuildingMaintenanceState bMaintenance = sessionController.em.GetComponentData<BuildingMaintenanceState>(entity);
-            var stats = sessionController.em.GetComponentData<BuildingHousingStats>(entity);
-            BuildingGarrisonStats statsGarrison = sessionController.em.GetComponentData<BuildingGarrisonStats>(entity);
-            BuildingIntelligenceStats statsIntelligence = sessionController.em.GetComponentData<BuildingIntelligenceStats>(entity);
-            BuildingSanctumStats statsSanctum = sessionController.em.GetComponentData<BuildingSanctumStats>(entity);
-            BuildingBellStats statsBell = sessionController.em.GetComponentData<BuildingBellStats>(entity);
-            var id = sessionController.em.GetComponentData<Identity>(entity);
-            ref var d = ref BuildingDefinitions.Get(sessionController.em, sessionController.root, DefinitionOf(entity));
-            var day = sessionController.em.GetComponentData<Session>(sessionController.root).Phase == Phase.Day;
-            var normal = b.Stage == LifeStage.Operational;
-            rowsController.Clear(DetailsRows);
-            void Detail(string text, Action action = null, string key = null)
-            {
-                rowsController.Row(text, action, parent: DetailsRows, key: key);
-            }
-
-            void ProductionDetail(string text, string key = null, [System.Runtime.CompilerServices.CallerLineNumber] int sourceLine = 0) => Detail(text, key: "building:" + id.Id + ":production:" + (key ?? sourceLine.ToString()));
-            void PlantingDetail(string text, [System.Runtime.CompilerServices.CallerLineNumber] int sourceLine = 0) => Detail(text, key: "building:" + id.Id + ":planting:" + sourceLine);
             RefreshBuildingCard(entity);
-            Detail("查看本建筑账单", () => economy.OpenEconomy(id.Id));
-            var source = buildingUi.BuildingSource(DefinitionOf(entity));
-            if (!string.IsNullOrEmpty(source?.Description))
-                Detail(source.Description);
-            var provider = ResourceNetworkOps.Provider(sessionController.em, sessionController.root, entity);
-            if (b.Stage == LifeStage.Construction)
-            {
-                Detail($"施工 {bConstruction.Progress}/{d.ConstructionTurns} 回合");
-                Detail("下期材料：" + buildingUi.CostText(BuildingCostOps.ConstructionStage(sessionController.em, sessionController.root, DefinitionOf(entity), bConstruction.Progress + 1)));
-                if (provider == Entity.Null)
-                    Detail("需要从正常库存支付的施工：断连时暂停。");
-            }
-
-            if (b.Stage == LifeStage.Ruined || b.Stage == LifeStage.Repairing)
-            {
-                BuildingCostOps.RepairTotal(sessionController.em, sessionController.root, entity, out var duration);
-                Detail(b.Stage == LifeStage.Ruined ? "荒废：无建筑功能；修复无需工人。" : $"修复 {bConstruction.Progress}/{bConstruction.RepairDuration} 回合，材料不足或断连暂停。");
-                if (b.RuinPending != 0)
-                    Detail($"本夜已失效，黎明提交居民损失 {bHousing.Population} / 工人失业 {bWorkforce.Workers}。库存已标记损失。");
-                RepairDetails(entity, (text, action) => Detail(text, action));
-                if (day && b.Stage == LifeStage.Ruined)
-                    Detail("开始修复（" + duration + " 回合）", () => buildingUi.ConfirmBuildingCommand(CommandKind.Repair));
-                return;
-            }
-
-            var maintenance = BuildingCostOps.Maintenance(sessionController.em, sessionController.root, DefinitionOf(entity), b.Level);
-            if (maintenance.Count > 0)
-                Detail("每回合维护：" + buildingUi.CostText(maintenance) + (bMaintenance.Maintained != 0 ? " · 已满足" : " · 未满足"));
-            if (stats.MaxPopulation > 0)
-            {
-                Detail($"居住 {bHousing.Population}/{stats.MaxPopulation} · 增长进度 {bHousing.Growth} · 税收进度 {bHousing.TaxProgress} · 连续缺粮 {bHousing.FoodFailures}");
-                if (bHousing.DeferredResidents > 0)
-                    Detail("修复迁入人口将在黎明加入：" + bHousing.DeferredResidents);
-                foreach (var food in sessionController.em.GetBuffer<FoodSelection>(entity))
-                    Detail("上次实际食物：" + ItemName(food.Item) + " × " + food.Amount);
-            }
-
-            for (int i = 0; i < d.Capabilities.Production.Cycles.Length; i++)
-            {
-                var cycle = d.Capabilities.Production.Cycles[i];
-                if (cycle.Level != 0 && cycle.Level != b.Level)
-                    continue;
-                ProductionDetail($"生产周期进度 {bProduction.Progress}/{cycle.Interval} · 所需工人 {cycle.RequiredWorkers}");
-                ProductionDetail("原料：" + buildingUi.CostText(BuildingCostOps.ProductionInputs(sessionController.em, sessionController.root, DefinitionOf(entity), b.Level)));
-                break;
-            }
-
-            for (int i = 0; i < d.Capabilities.Production.Outputs.Length; i++)
-            {
-                var output = d.Capabilities.Production.Outputs[i];
-                if (output.Level != 0 && output.Level != b.Level)
-                    continue;
-                ProductionDetail("产品：" + ItemName(output.Item) + " × " + output.Quantity + " · 工人 " + output.MinimumWorkers + (output.MaximumWorkers > 0 ? "～" + output.MaximumWorkers : " 以上") + (bWorkforce.Workers >= output.MinimumWorkers && (output.MaximumWorkers <= 0 || bWorkforce.Workers <= output.MaximumWorkers) ? "（当前档）" : ""), "output:" + i);
-            }
-
-            for (int i = 0; i < d.Capabilities.Production.RareOutputs.Length; i++)
-            {
-                var output = d.Capabilities.Production.RareOutputs[i];
-                if (output.Level != 0 && output.Level != b.Level)
-                    continue;
-                ProductionDetail($"随机产出：{ItemName(output.Item)} ×{output.Quantity} · 概率 {output.Probability:P0} · 工人 ≥{output.RequiredWorkers}", "random:" + i);
-            }
-
-            for (int i = 0; i < d.Capabilities.Housing.Food.Length; i++)
-            {
-                var food = d.Capabilities.Housing.Food[i];
-                if (food.Level == 0 || food.Level == b.Level)
-                    Detail($"食谱：{ItemGroupDefinitions.Get(sessionController.em, sessionController.root, food.FoodGroup).Metadata.Name} · {food.Varieties} 种 · 每居民每种 {math.max(1, food.AmountPerResident)}");
-            }
-
-            for (int i = 0; i < d.Capabilities.Housing.Environment.Length; i++)
-            {
-                var requirement = d.Capabilities.Housing.Environment[i];
-                if (requirement.Level == 0 || requirement.Level == b.Level)
-                    Detail($"环境条件 {EnvironmentName((int)requirement.Type)} ≥ {requirement.RequiredValue} · 当前 {BuildingEnvironment.Value(sessionController.em, sessionController.root, entity, requirement.Type):0.#}");
-            }
-
-            for (int i = 0; i < d.Capabilities.Effects.Spatial.Length; i++)
-            {
-                var effect = d.Capabilities.Effects.Spatial[i];
-                if (effect.Level == 0 || effect.Level == b.Level)
-                    Detail($"作用 {EnvironmentName((int)effect.Type)} +{effect.Magnitude} · 范围 {effect.Radius} 格 · 工人 ≥{effect.RequiredWorkers}", key: "spatial:" + i);
-            }
-
-            for (int i = 0; i < d.Capabilities.Market.Levels.Length; i++)
-            {
-                var market = d.Capabilities.Market.Levels[i];
-                if (market.Level == 0 || market.Level == b.Level)
-                    Detail("市场结算比例：" + market.IncomeRatio + " · 本回合归因价值 " + bMarket.TurnValue, key: "market:" + i);
-            }
-
-            for (int i = 0; i < d.Capabilities.Gathering.Levels.Length; i++)
-            {
-                var gathering = d.Capabilities.Gathering.Levels[i];
-                if (gathering.Level == 0 || gathering.Level == b.Level)
-                    Detail("剩余采集次数：" + bGathering.RemainingUses, day && normal ? () => commandsController.TryQueue(new HarvestBuildingRequest { Building = id.Id }) : null);
-            }
-
-            if (bFarming.Crop.IsValid)
-            {
-                PlantingDetail($"作物 {CropName(bFarming.Crop)} · 生长 {bFarming.Progress}/{CropDefinitions.Get(sessionController.em, sessionController.root, bFarming.Crop).GrowthTurns}");
-                if (day && normal)
-                {
-                    Detail("收获", () => commandsController.TryQueue(new HarvestBuildingRequest { Building = id.Id }));
-                    Detail(bFarming.AutoHarvest != 0 ? "关闭自动收获" : "开启自动收获", () => commandsController.TryQueue(new SetAutoHarvestRequest { Building = id.Id, Enabled = (byte)((bFarming.AutoHarvest == 0 ? 1 : 0) != 0 ? 1 : 0) }));
-                }
-            }
-
-            if (statsGarrison.Capacity > 0)
-            {
-                if (normal && (sessionController.em.GetComponentData<Session>(sessionController.root).Phase == Phase.Night || sessionController.em.GetComponentData<Session>(sessionController.root).Phase == Phase.Retreat))
-                {
-                    Detail("召回所属士兵", () => commandsController.TryQueue(new RecallGarrisonRequest { Garrison = id.Id, Cancel = false }));
-                    Detail("取消途中召回", () => commandsController.TryQueue(new RecallGarrisonRequest { Garrison = id.Id, Cancel = true }));
-                }
-            }
-
-            if (statsBell.Radius > 0)
-                Detail("警铃集结范围 " + statsBell.Radius, !day && normal ? () => commandsController.TryQueue(new RingBellRequest { Building = id.Id }) : null);
-            if (statsIntelligence.Points > 0)
-                Detail("情报贡献 " + statsIntelligence.Points, () => navigation.OpenPanel(GamePanelId.Intelligence));
-            if (HasExpeditionSite(ref d.Capabilities.Expeditions, b.Level))
-                Detail(WorkforceSettlement.Locked(sessionController.em, id.Id) ? "远征在途，岗位/移动/升级锁定" : "打开远征", () => navigation.OpenPanel(GamePanelId.Expedition));
-            if (statsSanctum.Hero.IsValid)
-            {
-                ref var hero = ref HeroDefinitions.Get(sessionController.em, sessionController.root, statsSanctum.Hero);
-                Detail($"{hero.Metadata.Name} · 招募 {hero.FallbackWakeGold} 金币 · 人口 {hero.PopulationCost} · 神殿所需工人 {statsSanctum.RequiredWorkers}");
-                Detail("供奉：" + buildingUi.CostText(HeroCosts(ref hero.OfferingCosts)) + " · 唤醒：" + buildingUi.CostText(HeroCosts(ref hero.AwakeningCosts)));
-                Detail($"当前工人 {bWorkforce.Workers}/{statsSanctum.RequiredWorkers} · 持续供奉{(bSanctum.Offering == 0 ? "关闭" : "开启")} · 本回合供奉{(bSanctum.PaidOfferingTurn == sessionController.em.GetComponentData<GameClock>(sessionController.root).Turn ? "已支付" : "未支付")}");
-                Detail("供奉在平安夜也消耗资源；唤醒另外付费，未实际参战不获得战斗经验。英雄阵亡后经验清零，冷却结束重招支付完整费用。缺工不会杀死英雄，神殿荒废/拆除会。");
-                bool wake = !day;
-                string reason = HeroOps.HeroAvailability(sessionController.em, sessionController.root, entity, wake);
-                Detail((wake ? "唤醒英雄" : "招募英雄") + (reason.Length > 0 ? " · " + reason : ""), reason.Length == 0 ? () =>
-                {
-                    if (wake)
-                        commandsController.TryQueue(new WakeHeroRequest { Sanctum = id.Id });
-                    else
-                        commandsController.TryQueue(new RecruitHeroRequest { Sanctum = id.Id });
-                } : null);
-                if (normal && day)
-                    Detail(bSanctum.Offering == 0 ? "开启持续供奉" : "关闭持续供奉", () => commandsController.TryQueue(new SetOfferingRequest { Building = id.Id, Enabled = (byte)((bSanctum.Offering == 0 ? 1 : 0) != 0 ? 1 : 0) }));
-            }
+            Block<UI_GamePanel_BuildingDetails_Block_其他>().Refresh(entity);
         }
 
         Landsong.ECS.Definitions.BuildingId DefinitionOf(Entity entity) => sessionController.em.GetComponentData<BuildingDefinitionRef>(entity).Definition;
         string ItemName(ItemId item) => item.IsValid ? ItemDefinitions.Get(sessionController.em, sessionController.root, item).Metadata.Name.ToString() : "—";
-        string CropName(CropId crop) => CropDefinitions.Get(sessionController.em, sessionController.root, crop).Metadata.Name.ToString();
-        static List<BuildingCost> HeroCosts(ref BlobArray<LeveledItemAmount> costs)
-        {
-            var result = new List<BuildingCost>();
-            for (int i = 0; i < costs.Length; i++)
-                if (costs[i].Level == 0 || costs[i].Level == 1)
-                    result.Add(new BuildingCost(costs[i].Item, costs[i].Quantity));
-            return result;
-        }
-
-        static bool HasExpeditionSite(ref BuildingExpeditions expeditions, int level)
-        {
-            if (!expeditions.Enabled)
-                return false;
-            for (int i = 0; i < expeditions.Levels.Length; i++)
-                if (expeditions.Levels[i].Level == 0 || expeditions.Levels[i].Level == level)
-                    return true;
-            return false;
-        }
-
         internal static string EnvironmentName(int kind) => kind == 20 ? "美观" : kind == 30 ? "医疗" : kind == 40 ? "治安" : kind == 10 ? "生产/作物收益百分比" : "效果 " + kind;
         internal static string BuildingStageName(LifeStage stage) => stage == LifeStage.Construction ? "施工中" : stage == LifeStage.Ruined ? "建筑荒废" : stage == LifeStage.Repairing ? "修复中" : "正常运营";
-        internal void RepairDetails(Entity entity, Action<string, Action> detail)
-        {
-            var q = BuildingCostOps.QuoteRepair(sessionController.em, sessionController.root, entity);
-            detail((sessionController.em.GetComponentData<Building>(entity).Stage == LifeStage.Repairing ? "已冻结修复总额：" : "拟定修复总额：") + buildingUi.CostText(q.Total) + " · 尚需 " + buildingUi.CostText(q.Remaining), null);
-            detail($"下一期 {q.Step + 1}/{q.Duration}：{q.Reason}", null);
-            foreach (var p in q.Payments)
-                detail($"{ItemName(p.Item)}：本期需 {p.Required} = 待存放 {p.Pending} + 正常库存 {p.Normal}；正常可用 {p.Available}；缺口 {p.Missing}", null);
-            detail("以上为当前资源预览，不预留材料；同回合较早结算的建筑仍可能先用这些物资。修复开始只冻结计划，不立即付款。", null);
-        }
-
-        internal void SupplyDetails(Entity entity, Action<string, Action> detail)
-        {
-            detail(showSupplySources ? "收起供给来源" : "展开供给来源", () =>
-            {
-                showSupplySources = !showSupplySources;
-                refresh.NextPanel = 0;
-            });
-            if (!showSupplySources)
-                return;
-            var q = ResourceNetworkOps.Quote(sessionController.em, sessionController.root, entity);
-            detail("先比较提供点优先级，再比较道路加权距离，同值按稳定建筑 ID。提供点用于连接/市场归因，材料仍从全城正常库存扣除。", null);
-            foreach (var c in q.Candidates)
-            {
-                var candidate = c;
-                detail($"{sessionController.EntityName(c.Id)} · 优先级 {c.Priority} · 路径成本 {(float.IsInfinity(c.Cost) ? "不可达" : c.Cost.ToString("0.##"))} · {(q.Selected == c.Entity ? "已选中" : c.Reason)}", () => buildingUi.FocusBuilding(candidate.Id));
-            }
-
-            if (q.Candidates.Count == 0)
-                detail("没有其他资源提供点。", null);
-        }
-
-        internal void SpatialDetails(Entity entity, Action<string, Action> detail)
-        {
-            detail(showSpatialSources ? "收起空间效果来源" : "展开空间效果来源", () =>
-            {
-                showSpatialSources = !showSpatialSources;
-                refresh.NextPanel = 0;
-            });
-            if (!showSpatialSources)
-                return;
-            foreach (var kind in new[]
-            {
-                10,
-                20,
-                30,
-                40
-            }
-
-            )
-            {
-                var q = SpatialOps.Quote(sessionController.em, sessionController.root, entity, (BuildingEnvironmentKind)kind);
-                detail(EnvironmentName(kind) + " · 实际合计 " + q.Value, null);
-                foreach (var source in q.Sources)
-                {
-                    var s = source;
-                    detail($"{sessionController.EntityName(s.Source)} · {s.Group} · 配置 {s.Amount} / 计入 {s.Applied} · {s.Reason}", () => buildingUi.FocusBuilding(s.Source));
-                }
-            }
-        }
-
         internal void ResetSession()
         {
             isOpen = false;
-            showSupplySources = showSpatialSources = false;
-            rowsController?.ClearAll();
+            Block<UI_GamePanel_BuildingDetails_Block_其他>().ResetSession();
             gameObject.SetActive(false);
         }
     }

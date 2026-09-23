@@ -18,9 +18,6 @@ MonoBehaviour:
     Description: ''
     Icon: {fileID: 0}
   GrowthTurns: 2
-  RequiredWorkers: 2
-  FullStaffBonusWorkers: 3
-  FullStaffYieldBonus: 50
   PlantingCosts:
   - Order: 0
     Item: {fileID: 11400000, guid: 03e6eefa9ddbcaa4ca3552ff906f195b, type: 2}

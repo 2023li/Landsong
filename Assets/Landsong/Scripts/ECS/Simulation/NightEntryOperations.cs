@@ -64,6 +64,7 @@ namespace Landsong.ECS
                     em.SetComponentData(candidate, statePersistence);
                 }
 
+                BuildingFireOps.EnterNight(em, candidate);
                 DailyEconomySettlement.Settle(em, candidate);
                 probe?.Invoke("day-settled");
                 if (CourtOps.State(em, candidate).Extinction != 0)

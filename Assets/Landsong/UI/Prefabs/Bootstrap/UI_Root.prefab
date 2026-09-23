@@ -336,7 +336,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 76c392e42b5098c458856cdf6ecaaaa1, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.EventSystems.EventSystem
   m_FirstSelected: {fileID: 0}
   m_sendNavigationEvents: 1
@@ -351,7 +351,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 01614664b831546d2ae94a42149d80ac, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.UI.InputSystemUIInputModule
   m_SendPointerHoverToParent: 1
   m_MoveRepeatDelay: 0.5
@@ -866,7 +866,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b1bab4f1ee5824d4ab56f75afb6bdf72, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Landsong.ECS.Presentation::Landsong.ECS.Presentation.AudioRuntime
   audioCatalog: {fileID: 11400000, guid: 08875c25a0b1ef44f8ae83b37f9916df, type: 2}
   music: {fileID: 6531432434199045355}
@@ -888,6 +888,19 @@ MonoBehaviour:
   - {fileID: 5784362231993387350}
   - {fileID: 267704989225230500}
   - {fileID: 6297475855199602829}
+--- !u!114 &1191907268151044287
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4827966176038103752}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5796bbeeaf20415fa60021b2d237c6a9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Landsong.ECS.Presentation::Landsong.ECS.Presentation.LocalizationRuntime
+  catalog: {fileID: 11400000, guid: aa080526b16d493fbd87d338f0da3967, type: 2}
 --- !u!1 &4926260238275016167
 GameObject:
   m_ObjectHideFlags: 0
@@ -2720,7 +2733,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.CanvasScaler
   m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
@@ -2743,13 +2756,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dc42784cf147c0c48a680349fa168899, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.GraphicRaycaster
   m_IgnoreReversedGraphics: 1
   m_BlockingObjects: 0
   m_BlockingMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 55
 --- !u!114 &4340985497495880077
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2760,7 +2773,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 51491280a45c8d242a2157ce875e5acc, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Moyo.Runtime::Moyo.Unity.UIManager
   uiConfig: {fileID: 11400000, guid: c55bd9175cbf32745be4494db4b58946, type: 2}
   rootCanvas: {fileID: 5417749071001474251}
@@ -2796,7 +2809,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a2aa25e1eca1ee443a9b772c9d4a3e09, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Landsong.Application::Landsong.ECS.Presentation.ApplicationUiRoot
   Manager: {fileID: 4340985497495880077}
   Flow: {fileID: 7947829980410292268}
@@ -2812,7 +2825,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 422c1dd8b5eaf264cba3594789e54e08, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Landsong.Application::Landsong.ECS.Presentation.GameApplicationFlow
 --- !u!1 &8545440192238000192
 GameObject:
@@ -2978,16 +2991,3 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &1191907268151044287
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4827966176038103752}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5796bbeeaf20415fa60021b2d237c6a9, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Landsong.ECS.Presentation::Landsong.ECS.Presentation.LocalizationRuntime
-  catalog: {fileID: 11400000, guid: aa080526b16d493fbd87d338f0da3967, type: 2}

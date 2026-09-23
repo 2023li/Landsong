@@ -48,6 +48,42 @@ namespace Landsong.ECS
 
         public static QuestTracking Tracking(EntityManager em, Entity root) => em.HasComponent<QuestTracking>(root) ? em.GetComponentData<QuestTracking>(root) : default;
         public static bool Trackable(EntityManager em, Entity entity) => entity != Entity.Null && em.Exists(entity) && em.HasComponent<Quest>(entity) && (em.GetComponentData<Quest>(entity).Status == QuestStatus.Active || em.GetComponentData<Quest>(entity).Status == QuestStatus.Completed);
+        public static bool IsTracked(EntityManager em, Entity root, ulong quest)
+        {
+            if (quest == 0)
+                return false;
+            var state = Tracking(em, root);
+            if (state.Mode == 0)
+                return state.Target == quest;
+            if (state.Mode != 1 || !em.HasBuffer<TrackedQuest>(root))
+                return false;
+            foreach (var entry in em.GetBuffer<TrackedQuest>(root))
+                if (entry.Quest == quest)
+                    return true;
+            return false;
+        }
+
+        public static ulong[] TrackedIds(EntityManager em, Entity root)
+        {
+            var state = Tracking(em, root);
+            if (state.Mode == 0)
+                return state.Target == 0 ? Array.Empty<ulong>() : new[] { state.Target };
+            if (state.Mode != 1 || !em.HasBuffer<TrackedQuest>(root))
+                return Array.Empty<ulong>();
+            var pins = em.GetBuffer<TrackedQuest>(root);
+            var ids = new ulong[pins.Length];
+            for (var i = 0; i < pins.Length; i++)
+                ids[i] = pins[i].Quest;
+            return ids;
+        }
+
+        static bool Contains(DynamicBuffer<TrackedQuest> pins, ulong quest)
+        {
+            foreach (var entry in pins)
+                if (entry.Quest == quest)
+                    return true;
+            return false;
+        }
         public static int CompareValue(EntityManager em, Entity root, Entity left, Entity right)
         {
             int order = RewardValue(em, root, em.GetComponentData<QuestDefinitionRef>(right).Definition).CompareTo(RewardValue(em, root, em.GetComponentData<QuestDefinitionRef>(left).Definition));
@@ -76,18 +112,49 @@ namespace Landsong.ECS
             ulong next = Trackable(em, WorldQueries.Find(em, continuation)) ? continuation : BestAccepted(em, root, quest);
             if (next == 0)
                 next = BestAccepted(em, root);
-            EntityState.Set(em, root, new QuestTracking { Target = next });
+            var state = Tracking(em, root);
+            EntityState.Buffer<TrackedQuest>(em, root);
+            var pins = em.GetBuffer<TrackedQuest>(root);
+            if (state.Mode == 1 || state.Mode == 2 && next != 0)
+            {
+                if (next != 0 && !Contains(pins, next))
+                    pins.Add(new TrackedQuest { Quest = next });
+                state.Mode = pins.Length == 0 ? (byte)0 : (byte)1;
+                state.Target = next != 0 ? next : pins.Length == 0 ? 0 : pins[pins.Length - 1].Quest;
+            }
+            else
+            {
+                pins.Clear();
+                state = new QuestTracking { Target = next };
+            }
+            EntityState.Set(em, root, state);
         }
 
         public static void RefreshTracking(EntityManager em, Entity root)
         {
             var state = Tracking(em, root);
             ulong prior = state.Target;
+            var previousMode = state.Mode;
+            EntityState.Buffer<TrackedQuest>(em, root);
+            var pins = em.GetBuffer<TrackedQuest>(root);
             if (state.Mode == 0 && !Trackable(em, WorldQueries.Find(em, state.Target)))
                 state.Target = BestAccepted(em, root);
-            else if (state.Mode == 2 || !Trackable(em, WorldQueries.Find(em, state.Target)))
+            else if (state.Mode == 1)
+            {
+                for (var i = pins.Length - 1; i >= 0; i--)
+                    if (!Trackable(em, WorldQueries.Find(em, pins[i].Quest)))
+                        pins.RemoveAt(i);
+                if (pins.Length == 0)
+                {
+                    state.Mode = 2;
+                    state.Target = 0;
+                }
+                else if (!Contains(pins, state.Target))
+                    state.Target = pins[pins.Length - 1].Quest;
+            }
+            else if (state.Mode == 2)
                 state.Target = 0;
-            if (prior != state.Target || !em.HasComponent<QuestTracking>(root))
+            if (prior != state.Target || previousMode != state.Mode || !em.HasComponent<QuestTracking>(root))
                 EntityState.Set(em, root, state);
         }
 
@@ -95,9 +162,54 @@ namespace Landsong.ECS
         {
             if (mode < 0 || mode > 2 || mode == 1 && !Trackable(em, WorldQueries.Find(em, target)))
                 return ResultCode.InvalidTarget;
-            if (mode == 2 && target != 0 && Tracking(em, root).Target != target)
-                return ResultCode.Success;
-            EntityState.Set(em, root, new QuestTracking { Mode = (byte)mode, Target = mode == 1 ? target : 0 });
+            var state = Tracking(em, root);
+            EntityState.Buffer<TrackedQuest>(em, root);
+            var pins = em.GetBuffer<TrackedQuest>(root);
+            if (mode == 0)
+            {
+                pins.Clear();
+                state = default;
+            }
+            else if (mode == 1)
+            {
+                if (state.Mode != 1)
+                {
+                    pins.Clear();
+                    if (state.Mode == 0 && Trackable(em, WorldQueries.Find(em, state.Target)))
+                        pins.Add(new TrackedQuest { Quest = state.Target });
+                }
+                if (!Contains(pins, target))
+                    pins.Add(new TrackedQuest { Quest = target });
+                state.Mode = 1;
+                state.Target = target;
+            }
+            else if (target == 0)
+            {
+                pins.Clear();
+                state.Mode = 2;
+                state.Target = 0;
+            }
+            else if (state.Mode == 0)
+            {
+                if (state.Target != target)
+                    return ResultCode.Success;
+                state.Mode = 2;
+                state.Target = 0;
+            }
+            else if (state.Mode == 1)
+            {
+                for (var i = pins.Length - 1; i >= 0; i--)
+                    if (pins[i].Quest == target)
+                        pins.RemoveAt(i);
+                if (pins.Length == 0)
+                {
+                    state.Mode = 2;
+                    state.Target = 0;
+                }
+                else if (state.Target == target)
+                    state.Target = pins[pins.Length - 1].Quest;
+            }
+            EntityState.Set(em, root, state);
             RefreshTracking(em, root);
             return ResultCode.Success;
         }

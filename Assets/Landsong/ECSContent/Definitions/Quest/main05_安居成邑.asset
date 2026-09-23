@@ -44,17 +44,17 @@ MonoBehaviour:
       GrantedLevel: 1
   FailurePenalties: []
   Objectives:
-    BuildingObjectives:
-    - Order: 3
-      Key: c82c7f66860a402a8354e9d541c9408f
-      Building: {fileID: 11400000, guid: c18eee413b97cad42baa968736fccae8, type: 2}
-      Count: 3
-      MinimumLevel: 0
-      CompletedOnly: 1
-    PlantedBuildingObjectives: []
-    OwnedItemObjectives: []
-    SubmittedItemObjectives: []
-    TechnologyObjectives: []
-    CameraMoveObjectives: []
-    CameraZoomObjectives: []
-    TurnObjectives: []
+    Requirements:
+    - rid: 1000000000000000001
+  references:
+    version: 2
+    RefIds:
+    - rid: 1000000000000000001
+      type: {class: QuestBuildingObjectiveSource, ns: Landsong.ECS.Authoring.Definitions, asm: Landsong.ECS.Authoring}
+      data:
+        Order: 3
+        Key: c82c7f66860a402a8354e9d541c9408f
+        Building: {fileID: 11400000, guid: c18eee413b97cad42baa968736fccae8, type: 2}
+        Count: 3
+        MinimumLevel: 0
+        CompletedOnly: 1

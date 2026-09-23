@@ -24,7 +24,7 @@ namespace Landsong.ECS.Authoring.Definitions
         public float ItemQuantityScale = 1;
         [LabelText("完成前置")]
         public DefinitionPrerequisitesSource Prerequisites = new DefinitionPrerequisitesSource();
-        [LabelText("任务目标")]
+        [InlineProperty, HideLabel]
         public QuestObjectivesSource Objectives = new QuestObjectivesSource();
         [LabelText("完成奖励")]
         public DefinitionRewardsSource Rewards = new DefinitionRewardsSource();

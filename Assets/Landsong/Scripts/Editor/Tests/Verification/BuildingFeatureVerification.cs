@@ -174,8 +174,13 @@ namespace Landsong.ECS.Editor
             var buildings = view.Buildings;
             var details = view.BuildingDetails;
             var productionBlock = details.Block<UI_GamePanel_BuildingDetails_Block_基础产出>();
+            var workforceBlock = details.Block<UI_GamePanel_BuildingDetails_Block_岗位>();
             var plantingBlock = details.Block<UI_GamePanel_BuildingDetails_Block_种植>();
-            Check(buildings.BuildingActionBar != null && buildings.BuildingDetailsButton != null && details != null && buildings.DetailsPanel == details && details.DetailsRows == details.Block<UI_GamePanel_BuildingDetails_Block_其他>().Rows && productionBlock.Hover != null && productionBlock.Hover.View == details && plantingBlock.Hover != null && plantingBlock.Hover.View == details && buildings.BuildingConfirmRows != null && buildings.BuildingCatalog == AssetDatabase.LoadAssetAtPath<Landsong.Content.BuildingDisplayCatalog>(BuildingDisplayCatalogCompiler.Path) && buildings.BuildingBar != null && buildings.BuildingBar.Cards != null && buildings.BuildingBar.Tabs != null, "Game panel serialized building UGUI wiring");
+            var garrisonBlock = details.Block<UI_GamePanel_BuildingDetails_Block_驻军>();
+            var otherBlock = details.Block<UI_GamePanel_BuildingDetails_Block_其他>();
+            Check(buildings.BuildingActionBar != null && buildings.BuildingDetailsButton != null && details != null && buildings.DetailsPanel == details && details.DetailsRows == otherBlock.Rows && productionBlock.View == details && workforceBlock.View == details && plantingBlock.View == details && garrisonBlock.View == details && otherBlock.View == details && otherBlock.RowTemplate != null && details.ExperienceHover != null && details.ExperienceHover.View == details && buildings.BuildingConfirmRows != null && buildings.BuildingCatalog == AssetDatabase.LoadAssetAtPath<Landsong.Content.BuildingDisplayCatalog>(BuildingDisplayCatalogCompiler.Path) && buildings.BuildingBar != null && buildings.BuildingBar.Cards != null && buildings.BuildingBar.Tabs != null, "Game panel serialized building UGUI wiring");
+            Check(buildings.CropSelectionPanel != null && buildings.CropSelectionPanel.transform.IsChildOf(view.ModalRoot), "Planting has an independent crop selection modal");
+            buildings.CropSelectionPanel.ValidateConfiguration();
             Check(new SerializedObject(buildings).FindProperty("openWithOwner").boolValue, "Building action bar controller opens with GamePanel owner");
         }
 

@@ -21,7 +21,12 @@ namespace Landsong.ECS.Authoring.Definitions
                 return;
             }
 
+            if (source.RequiredWorkers < 1 || source.FullCycleBonusWorkers < source.RequiredWorkers || source.FullCycleYieldBonusPercent < 0)
+                throw new InvalidOperationException("农田工人要求或收获加成无效。");
             target.Enabled = source.Enabled;
+            target.RequiredWorkers = source.RequiredWorkers;
+            target.FullCycleBonusWorkers = source.FullCycleBonusWorkers;
+            target.FullCycleYieldBonusPercent = source.FullCycleYieldBonusPercent;
             if (source.Crops == null)
                 throw new InvalidOperationException("配置项（Crops）列表不能为空引用。");
             var Crops = builder.Allocate(ref target.Crops, source.Crops.Length);

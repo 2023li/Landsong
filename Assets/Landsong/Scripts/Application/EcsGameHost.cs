@@ -3,6 +3,7 @@ using Unity.Entities;
 using Unity.Scenes;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using Unity.Mathematics;
 using Sirenix.OdinInspector;
 
 namespace Landsong.ECS.Presentation
@@ -20,8 +21,11 @@ namespace Landsong.ECS.Presentation
         public Light Sun;
         [LabelText("昼夜光照")]
         public NightLightingSettings NightLighting = new NightLightingSettings();
+        [LabelText("雨天主光比例"), Range(0, 1)]
+        public float RainLightRatio = .75f;
         public bool Visible { get; private set; }
         NightLightingController lighting;
+        WeatherPresentationController weatherPresentation;
         World lightingWorld;
         Entity lightingRoot;
 
@@ -31,13 +35,46 @@ namespace Landsong.ECS.Presentation
             lightingWorld = em.World;
             lightingRoot = root;
             lighting = new NightLightingController(Sun, NightLighting);
+            weatherPresentation = new WeatherPresentationController(Camera);
+            UpdateLightningViewport();
             UpdateLighting(0);
         }
 
         void LateUpdate()
         {
             if (Visible && EcsSceneFlow.GameReady)
+            {
+                UpdateLightningViewport();
                 UpdateLighting(Time.unscaledDeltaTime);
+                var em = lightingWorld.EntityManager;
+                if (em.Exists(lightingRoot) && em.HasComponent<SeasonWeatherState>(lightingRoot))
+                    weatherPresentation?.Tick(em.GetComponentData<SeasonWeatherState>(lightingRoot),
+                        em.GetComponentData<SimulationControl>(lightingRoot).Paused != 0,
+                        Time.unscaledDeltaTime, em.GetBuffer<LightningVisualEvent>(lightingRoot));
+            }
+        }
+
+        static float4 Column(Vector4 value) => new float4(value.x, value.y, value.z, value.w);
+
+        void UpdateLightningViewport()
+        {
+            if (lightingWorld == null || !lightingWorld.IsCreated || Camera == null)
+                return;
+            var em = lightingWorld.EntityManager;
+            if (!em.Exists(lightingRoot) || !em.HasComponent<LightningViewport>(lightingRoot))
+                return;
+            var matrix = Camera.projectionMatrix * Camera.worldToCameraMatrix;
+            var forward = Camera.transform.forward;
+            var position = Camera.transform.position;
+            em.SetComponentData(lightingRoot, new LightningViewport
+            {
+                ViewProjection = new float4x4(Column(matrix.GetColumn(0)), Column(matrix.GetColumn(1)), Column(matrix.GetColumn(2)), Column(matrix.GetColumn(3))),
+                CameraPosition = new float3(position.x, position.y, position.z),
+                Forward = new float3(forward.x, forward.y, forward.z),
+                Near = Camera.nearClipPlane,
+                Far = Camera.farClipPlane,
+                Available = (byte)(Camera.isActiveAndEnabled ? 1 : 0),
+            });
         }
 
         void UpdateLighting(float delta)
@@ -49,13 +86,16 @@ namespace Landsong.ECS.Presentation
                 return;
             lighting.Tick(em.GetComponentData<Session>(lightingRoot).Phase,
                 em.GetComponentData<GameClock>(lightingRoot), em.GetComponentData<NightSettings>(lightingRoot),
-                em.GetComponentData<NightRuntimeState>(lightingRoot), em.GetComponentData<SimulationControl>(lightingRoot).Paused != 0, delta);
+                em.GetComponentData<NightRuntimeState>(lightingRoot), em.GetComponentData<SimulationControl>(lightingRoot).Paused != 0, delta,
+                em.GetComponentData<SeasonWeatherState>(lightingRoot).Weather == WeatherKind.Rain ? RainLightRatio : 1f);
         }
 
         public void UnbindLighting()
         {
             lighting?.Dispose();
             lighting = null;
+            weatherPresentation?.Dispose();
+            weatherPresentation = null;
             lightingWorld = null;
             lightingRoot = Entity.Null;
         }

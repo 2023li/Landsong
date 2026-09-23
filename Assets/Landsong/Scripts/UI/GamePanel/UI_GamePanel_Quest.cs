@@ -20,12 +20,79 @@ using Sirenix.OdinInspector;
 
 namespace Landsong.ECS.Presentation
 {
-    public sealed class UI_GamePanel_Quest : GameFeatureViewBase
+    public sealed class UI_GamePanel_Quest : UI_GamePanel_View
     {
+        [LabelText("自动跟踪")]
+        public Button AutoTrack;
+        [LabelText("来源筛选")]
+        public Button SourceFilter;
+        [LabelText("容量")]
+        public Text Capacity;
+        [LabelText("等待")]
+        public Text Waiting;
+        [LabelText("来源筛选文字")]
+        public Text SourceFilterLabel;
+        [LabelText("已承接条目容器")]
+        public RectTransform AcceptedRows;
+        [LabelText("邀请条目容器")]
+        public RectTransform InvitationRows;
+        [LabelText("类型开关集合")]
+        public Toggle[] TypeToggles;
+        [LabelText("卡片模板")]
+        public UI_GamePanel_QuestSlot CardTemplate;
+        [LabelText("任务行模板")]
+        public UI_GamePanel_Row RowTemplate;
         [Sirenix.OdinInspector.LabelText("任务显示目录"), Sirenix.OdinInspector.Required]
         public QuestDisplayCatalog QuestDisplay;
+        internal GameUiSessionHandle sessionController;
+        internal GameUiRefreshScheduler refresh;
+        internal GameUiCommandWriter commandsController;
+        internal IGameUiNavigation navigation;
+        UI_GamePanel_RowCollection rows;
         internal IntelligenceViewState intelligence;
-        public override void Render() => Quests();
+        public override void Render()
+        {
+            rows.Begin();
+            Quests();
+            rows.End();
+        }
+        public override void ValidateConfiguration()
+        {
+            base.ValidateConfiguration();
+            if (AutoTrack == null || SourceFilter == null || Capacity == null || Waiting == null || SourceFilterLabel == null || AcceptedRows == null || InvitationRows == null || CardTemplate == null || RowTemplate == null || TypeToggles == null || TypeToggles.Length != 4)
+                throw new InvalidOperationException("任务面板检查器引用不完整。");
+            RowTemplate.ValidateConfiguration();
+        }
+        public override void Bind(GameUiSessionHandle session, GameUiCommandWriter commands, IGameUiNavigation navigation, GameUiRefreshScheduler refresh)
+        {
+            base.Bind(session, commands, navigation, refresh);
+            sessionController = session;
+            commandsController = commands;
+            this.navigation = navigation;
+            this.refresh = refresh;
+            rows = new UI_GamePanel_RowCollection(RowTemplate);
+            QuestTracking.Bind(this);
+            AutoTrack.onClick.AddListener(() => commandsController.TryQueue(new TrackQuestRequest { Mode = QuestTrackingMode.Automatic }));
+            SourceFilter.onClick.AddListener(() =>
+            {
+                questSourceFilter = 0;
+                refresh.NextPanel = 0;
+            });
+            for (var i = 0; i < TypeToggles.Length; i++)
+            {
+                var bit = 1 << i;
+                TypeToggles[i].onValueChanged.AddListener(on =>
+                {
+                    questTypeMask = on ? questTypeMask | bit : questTypeMask & ~bit;
+                    refresh.NextPanel = 0;
+                });
+            }
+        }
+        internal override void ClearAllRows()
+        {
+            rows?.ClearAll();
+            QuestTracking?.ClearAllRows();
+        }
         [Sirenix.OdinInspector.LabelText("数量模板")]
         public UI_GamePanel_QuantityRow QuantityTemplate;
         internal UI_GamePanel_BuildingActionBar buildingController;
@@ -101,8 +168,8 @@ namespace Landsong.ECS.Presentation
                 var available = QuestOfferOps.Available(sessionController.em, sessionController.root, e, out var reason);
                 var wait = !available ? "刷新暂停：" + reason : q.Code == ResultCode.Success ? q.Wait > 0 ? q.Wait + " 回合后刷新" : "下次结算刷新" : q.Reason;
                 card.Show(0, source, wait, "", true, false, null, "", null);
-                rowsController.Clear(card.Body);
-                rowsController.Row("立即邀约：" + buildingController.CostText(q.Costs), day && q.Code == ResultCode.Success && BuildingCostOps.CanPay(sessionController.em, sessionController.root, q.Costs) ? () => ConfirmQuestRecruit(id, at) : null, parent: card.Body);
+                rows.Clear(card.Body);
+                rows.Row("立即邀约：" + buildingController.CostText(q.Costs), day && q.Code == ResultCode.Success && BuildingCostOps.CanPay(sessionController.em, sessionController.root, q.Costs) ? () => ConfirmQuestRecruit(id, at) : null, parent: card.Body);
             }
         }
 
@@ -124,28 +191,29 @@ namespace Landsong.ECS.Presentation
             });
         }
 
-        [Sirenix.OdinInspector.LabelText("任务面板")]
-        public UI_GamePanel_QuestView QuestPanel;
         [Sirenix.OdinInspector.LabelText("任务跟踪")]
         public UI_GamePanel_QuestTracking QuestTracking;
-        public GameObject QuestWindow => QuestPanel != null ? QuestPanel.gameObject : null;
-        public RectTransform QuestListRows { get; internal set; }
+        public GameObject QuestWindow => gameObject;
+        public RectTransform QuestListRows => AcceptedRows;
         public RectTransform QuestDetailRows { get; internal set; }
-        public RectTransform QuestHudRows { get; internal set; }
+        public RectTransform QuestHudRows => QuestTracking != null ? QuestTracking.Rows : null;
         public InputField QuestAmountInput { get; internal set; }
-        public RectTransform QuestPoolRows { get; internal set; }
+        public RectTransform QuestPoolRows => InvitationRows;
 
         internal int questTypeMask = 15;
         internal ulong questSourceFilter;
         internal ulong selectedQuest;
         internal readonly Dictionary<string, UI_GamePanel_QuestSlot> questCards = new Dictionary<string, UI_GamePanel_QuestSlot>();
         readonly HashSet<string> seenQuestCards = new HashSet<string>();
-        internal Text questCapacityLabel;
-        internal Text questWaitingLabel;
-        internal Button questFilterButton;
-        internal readonly Toggle[] questTabs = new Toggle[4];
-        internal bool questPanelBound;
-        public Toggle QuestTypeToggle(int type) => questTabs[type];
+        sealed class QuestDetailGroups
+        {
+            public RectTransform Introduction;
+            public RectTransform Requirements;
+            public RectTransform Rewards;
+            public RectTransform Actions;
+        }
+        readonly Dictionary<UI_GamePanel_QuestSlot, QuestDetailGroups> detailGroups = new Dictionary<UI_GamePanel_QuestSlot, QuestDetailGroups>();
+        public Toggle QuestTypeToggle(int type) => TypeToggles[type];
         public void SelectQuest(ulong id)
         {
             selectedQuest = id;
@@ -162,7 +230,7 @@ namespace Landsong.ECS.Presentation
             if (q.Status == QuestStatus.Offered)
                 return "签约后开始计时，不占承接名额";
             if (q.Status == QuestStatus.Completed)
-                return "已完成，不会超时；领取后才解锁后续任务";
+                return "已完成，不会超时；领取奖励后结束本步骤";
             return q.Deadline == 0 ? "无期限" : "剩余 " + math.max(0, q.Deadline - sessionController.em.GetComponentData<GameClock>(sessionController.root).Turn) + " 回合（第 " + q.Deadline + " 回合前完成）";
         }
 
@@ -262,64 +330,6 @@ namespace Landsong.ECS.Presentation
             return lines.OrderBy(line => line.Order).Select(line => line.Text).ToList();
         }
 
-        internal string QuestSource(Quest q)
-        {
-            if (q.Mainline != 0)
-            {
-                var provider = WorldQueries.Find(sessionController.em, q.Source);
-                return "主线来源：" + (provider == Entity.Null ? "来源建筑已不存在" : QuestBuildingSource(provider));
-            }
-
-            var source = WorldQueries.Find(sessionController.em, q.Source);
-            if (source == Entity.Null || !sessionController.em.HasComponent<Building>(source))
-                return "邀约来源建筑已不存在";
-            return "邀约来源：" + QuestBuildingSource(source);
-        }
-
-        internal void RefreshQuestTracking()
-        {
-            if (QuestWindow != null)
-                QuestWindow.SetActive(navigation.IsPanelOpen && navigation.Panel == GamePanelId.Quest);
-            if (QuestTracking == null)
-                throw new InvalidOperationException("任务追踪面板检查器引用缺失。");
-            QuestHudRows = QuestTracking.Rows;
-            var visible = !intelligence.IsOpen && navigation.Panel != GamePanelId.Quest && navigation.Panel != GamePanelId.Technology && navigation.Panel != GamePanelId.BattleReport && navigation.Panel != GamePanelId.DynastyEnd && !buildingController.DetailsPanel.gameObject.activeSelf;
-            QuestTracking.gameObject.SetActive(visible);
-            if (!visible)
-                return;
-            rowsController.Clear(QuestHudRows);
-            var state = QuestOps.Tracking(sessionController.em, sessionController.root);
-            var e = WorldQueries.Find(sessionController.em, state.Target);
-            void Hud(string label, Action action = null) => rowsController.Row(label, action, parent: QuestHudRows);
-            if (!QuestOps.Trackable(sessionController.em, e))
-            {
-                Hud(state.Mode == 0 ? "暂无可追踪任务" : "未追踪任务", () => navigation.OpenPanel(GamePanelId.Quest));
-                if (state.Mode != 0)
-                    Hud("恢复自动追踪", () => commandsController.TryQueue(new TrackQuestRequest { Mode = QuestTrackingMode.Automatic }));
-                return;
-            }
-
-            var id = sessionController.em.GetComponentData<Identity>(e);
-            var q = sessionController.em.GetComponentData<Quest>(e);
-            Hud((state.Mode == 0 ? "自动追踪 · " : "追踪 · ") + id.Name + " · " + QuestStatusName(q.Status), () => SelectQuest(id.Id));
-            if (q.Status == QuestStatus.Active && !QuestOps.Prerequisites(sessionController.em, sessionController.root, DefinitionOf(WorldQueries.Find(sessionController.em, id.Id))))
-                Hud("等待前置条件，原承接槽位保留");
-            var progress = sessionController.em.GetBuffer<QuestProgress>(e);
-            for (var i = 0; i < math.min(3, progress.Length); i++)
-                Hud(RequirementText(DefinitionOf(e), progress[i]));
-            if (progress.Length > 3)
-                Hud("还有 " + (progress.Length - 3) + " 项，查看详情", () => SelectQuest(id.Id));
-            if (q.Deadline > 0 && q.Status == QuestStatus.Active)
-                Hud(QuestDeadline(q));
-            var session = sessionController.em.GetComponentData<Session>(sessionController.root);
-            PersistenceGate sessionPersistence = sessionController.em.GetComponentData<PersistenceGate>(sessionController.root);
-            if (q.Status == QuestStatus.Completed)
-                Hud("领取奖励", session.Phase == Phase.Day && sessionPersistence.CheckpointPending == 0 ? () => commandsController.TryQueue(new ClaimQuestRequest { Quest = id.Id }) : null);
-            else
-                Hud("查看任务详情", () => SelectQuest(id.Id));
-            Hud("取消追踪", () => commandsController.TryQueue(new TrackQuestRequest { Quest = 0, Mode = QuestTrackingMode.Unpinned }));
-        }
-
         public UI_GamePanel_QuestSlot FindQuestCard(ulong id)
         {
             foreach (var card in questCards.Values)
@@ -333,11 +343,11 @@ namespace Landsong.ECS.Presentation
             seenQuestCards.Add(key);
             if (!questCards.TryGetValue(key, out var card))
             {
-                card = Instantiate(QuestPanel.CardTemplate, parent);
+                card = Instantiate(CardTemplate, parent);
                 card.name = "任务卡片 " + key;
                 card.Rect.gameObject.SetActive(true);
                 questCards.Add(key, card);
-                rowsController.OwnContainer(card.Body, card.Interaction);
+                rows.Own(card.Body, card.Interaction);
             }
 
             if (!questCards.Values.Any(value => value.Interaction.IsPinned))
@@ -401,7 +411,7 @@ namespace Landsong.ECS.Presentation
             {
                 card.Tracking.gameObject.SetActive(true);
                 card.Tracking.onValueChanged.RemoveAllListeners();
-                card.Tracking.SetIsOnWithoutNotify(QuestOps.Tracking(sessionController.em, sessionController.root).Target == identity.Id);
+                card.Tracking.SetIsOnWithoutNotify(QuestOps.IsTracked(sessionController.em, sessionController.root, identity.Id));
                 card.Tracking.onValueChanged.AddListener(on =>
                 {
                     if (on)
@@ -414,41 +424,12 @@ namespace Landsong.ECS.Presentation
             if (!expanded)
                 return;
             QuestDetailRows = card.Body;
-            rowsController.Clear(card.Body);
-            QuestDetails(entity, day);
+            rows.Clear(card.Body);
+            QuestDetails(card, entity, day);
         }
 
         internal void Quests()
         {
-            if (QuestPanel == null)
-                throw new InvalidOperationException("任务面板检查器引用缺失：QuestPanel");
-            QuestPanel.ValidateConfiguration();
-            if (!questPanelBound)
-            {
-                questPanelBound = true;
-                QuestPanel.AutoTrack.onClick.AddListener(() => commandsController.TryQueue(new TrackQuestRequest { Mode = QuestTrackingMode.Automatic }));
-                questCapacityLabel = QuestPanel.Capacity;
-                questWaitingLabel = QuestPanel.Waiting;
-                QuestListRows = QuestPanel.AcceptedRows;
-                QuestPoolRows = QuestPanel.InvitationRows;
-                questFilterButton = QuestPanel.SourceFilter;
-                questFilterButton.onClick.AddListener(() =>
-                {
-                    questSourceFilter = 0;
-                    refresh.NextPanel = 0;
-                });
-                for (var i = 0; i < 4; i++)
-                {
-                    questTabs[i] = QuestPanel.TypeToggles[i];
-                    var bit = 1 << i;
-                    questTabs[i].onValueChanged.AddListener(on =>
-                    {
-                        questTypeMask = on ? questTypeMask | bit : questTypeMask & ~bit;
-                        refresh.NextPanel = 0;
-                    });
-                }
-            }
-
             QuestWindow.SetActive(true);
             QuestDetailRows = null;
             seenQuestCards.Clear();
@@ -456,12 +437,12 @@ namespace Landsong.ECS.Presentation
                 buildingController.BuildingActionBar.gameObject.SetActive(false);
             buildingController.DetailsPanel.Hide();
             var day = sessionController.em.GetComponentData<Session>(sessionController.root).Phase == Phase.Day && sessionController.em.GetComponentData<PersistenceGate>(sessionController.root).CheckpointPending == 0;
-            questCapacityLabel.text = "已接受任务 · " + QuestLifecycle.QuestCount(sessionController.em) + "/" + QuestLifecycle.QuestCapacity(sessionController.em);
-            QuestPanel.SourceFilterLabel.text = questSourceFilter == 0 ? "全部来源" : "取消来源筛选：" + sessionController.EntityName(questSourceFilter);
+            Capacity.text = "已接受任务 · " + QuestLifecycle.QuestCount(sessionController.em) + "/" + QuestLifecycle.QuestCapacity(sessionController.em);
+            SourceFilterLabel.text = questSourceFilter == 0 ? "全部来源" : "取消来源筛选：" + sessionController.EntityName(questSourceFilter);
             for (var i = 0; i < 4; i++)
-                questTabs[i].SetIsOnWithoutNotify((questTypeMask & (1 << i)) != 0);
+                TypeToggles[i].SetIsOnWithoutNotify((questTypeMask & (1 << i)) != 0);
             var waiting = QuestLifecycle.WaitingMainlines(sessionController.em, sessionController.root);
-            questWaitingLabel.text = waiting.Count == 0 ? "主线与一般任务共用槽位" : "主线等待空槽：" + QuestName(waiting[0]) + (waiting.Count > 1 ? " 等 " + waiting.Count + " 项" : "");
+            Waiting.text = waiting.Count == 0 ? "主线与一般任务共用槽位" : "主线等待空槽：" + QuestName(waiting[0]) + (waiting.Count > 1 ? " 等 " + waiting.Count + " 项" : "");
             var accepted = new List<Entity>();
             using var quests = WorldQueries.OrderedEntities<Quest>(sessionController.em);
             foreach (var e in quests)
@@ -501,46 +482,93 @@ namespace Landsong.ECS.Presentation
             foreach (var key in unused)
             {
                 var card = questCards[key];
-                rowsController.ReleaseContainer(card.Body);
+                ReleaseQuestCardRows(card);
                 Destroy(card.Rect.gameObject);
                 questCards.Remove(key);
             }
         }
 
-        internal void QuestDetails(Entity entity, bool day)
+        static RectTransform CreateDetailGroup(RectTransform parent, string name, bool framed)
         {
-            void Detail(string label, Action action = null) => rowsController.Row(label, action, parent: QuestDetailRows);
+            var group = new GameObject(name, typeof(RectTransform), typeof(VerticalLayoutGroup));
+            var rect = (RectTransform)group.transform;
+            rect.SetParent(parent, false);
+            rect.anchorMin = new Vector2(0, 1);
+            rect.anchorMax = new Vector2(1, 1);
+            rect.pivot = new Vector2(.5f, 1);
+            rect.sizeDelta = Vector2.zero;
+            var layout = group.GetComponent<VerticalLayoutGroup>();
+            layout.spacing = 6;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = true;
+            layout.childForceExpandHeight = false;
+            if (framed)
+            {
+                layout.padding = new RectOffset(8, 8, 8, 8);
+                var background = group.AddComponent<Image>();
+                background.color = new Color(.14f, .18f, .22f, .95f);
+                background.raycastTarget = false;
+            }
+            return rect;
+        }
+
+        QuestDetailGroups DetailGroups(UI_GamePanel_QuestSlot card)
+        {
+            if (detailGroups.TryGetValue(card, out var groups))
+                return groups;
+            groups = new QuestDetailGroups
+            {
+                Introduction = CreateDetailGroup(card.Body, "任务说明", false),
+                Requirements = CreateDetailGroup(card.Body, "任务要求", true),
+                Rewards = CreateDetailGroup(card.Body, "任务奖励", true),
+                Actions = CreateDetailGroup(card.Body, "任务操作", false)
+            };
+            rows.Own(groups.Introduction, card.Interaction);
+            rows.Own(groups.Requirements, card.Interaction);
+            rows.Own(groups.Rewards, card.Interaction);
+            rows.Own(groups.Actions, card.Interaction);
+            detailGroups.Add(card, groups);
+            return groups;
+        }
+
+        void ReleaseQuestCardRows(UI_GamePanel_QuestSlot card)
+        {
+            rows.Release(card.Body);
+            if (!detailGroups.TryGetValue(card, out var groups))
+                return;
+            rows.Release(groups.Introduction);
+            rows.Release(groups.Requirements);
+            rows.Release(groups.Rewards);
+            rows.Release(groups.Actions);
+            detailGroups.Remove(card);
+        }
+
+        internal void QuestDetails(UI_GamePanel_QuestSlot card, Entity entity, bool day)
+        {
+            var groups = DetailGroups(card);
+            rows.Clear(groups.Introduction);
+            rows.Clear(groups.Requirements);
+            rows.Clear(groups.Rewards);
+            rows.Clear(groups.Actions);
+            void Detail(RectTransform parent, string label, Action action = null) => rows.Row(label, action, parent: parent);
             var identity = sessionController.em.GetComponentData<Identity>(entity);
             var quest = sessionController.em.GetComponentData<Quest>(entity);
             var sourceData = QuestDisplay.Get(DefinitionOf(entity));
             if (sourceData != null && !string.IsNullOrEmpty(sourceData.Description))
-                Detail(sourceData.Description);
-            Detail(QuestSource(quest) + "\n" + QuestDeadline(quest));
+                Detail(groups.Introduction, sourceData.Description);
+            Detail(groups.Introduction, QuestDeadline(quest));
             if (!day)
-                Detail("夜晚仅查看，签约、提交、领奖请在白天操作。");
-            if (quest.Status == QuestStatus.Active && !QuestOps.Prerequisites(sessionController.em, sessionController.root, DefinitionOf(entity)))
-                Detail("等待前置条件，原承接槽位保留");
+                Detail(groups.Introduction, "夜晚仅查看，签约、提交、领奖请在白天操作。");
             var definition = DefinitionOf(entity);
             ref var definitionData = ref QuestDefinitions.Get(sessionController.em, sessionController.root, definition);
-            foreach (var line in DefinitionPrerequisiteText.Lines(sessionController.em, sessionController.root, ref definitionData.Prerequisites))
-                Detail(line);
-            for (int i = 0; i < QuestDefinitions.Count(sessionController.em, sessionController.root); i++)
-            {
-                ref var next = ref QuestDefinitions.Get(sessionController.em, sessionController.root, QuestId.FromIndex(i));
-                if ((next.Behavior & QuestBehaviorFlags.Draft) != 0)
-                    continue;
-                for (int j = 0; j < next.Prerequisites.QuestRequirements.Length; j++)
-                    if (next.Prerequisites.QuestRequirements[j].Quest == definition)
-                        Detail("后续：" + next.Metadata.Name + "（领取本任务奖励后检查解锁）");
-            }
-
             if (quest.Mainline == 0)
                 foreach (var cost in QuestLifecycle.FailureCosts(sessionController.em, sessionController.root, DefinitionOf(entity)))
-                    Detail((quest.Status == QuestStatus.Completed ? "容器失效最多扣除 " : "放弃 / 超时 / 容器失效最多扣除 ") + ItemName(cost.Item) + " × " + cost.Amount + "；不形成债务");
-            Detail("任务要求（全部满足后完成）");
+                    Detail(groups.Introduction, (quest.Status == QuestStatus.Completed ? "容器失效最多扣除 " : "放弃 / 超时 / 容器失效最多扣除 ") + ItemName(cost.Item) + " × " + cost.Amount + "；不形成债务");
+            Detail(groups.Requirements, "任务要求");
             foreach (var p in sessionController.em.GetBuffer<QuestProgress>(entity))
             {
-                Detail(RequirementText(definition, p));
+                Detail(groups.Requirements, RequirementText(definition, p));
                 var target = ObjectiveBuilding(ref definitionData.Objectives, p.Key);
                 if (target.IsValid && quest.Status == QuestStatus.Active)
                 {
@@ -549,7 +577,7 @@ namespace Landsong.ECS.Presentation
                         if (sessionController.em.GetComponentData<BuildingDefinitionRef>(b).Definition == target)
                         {
                             var buildingId = sessionController.em.GetComponentData<Identity>(b).Id;
-                            Detail("定位目标建筑：" + sessionController.EntityName(buildingId), () =>
+                            Detail(groups.Requirements, "定位同类建筑：" + sessionController.EntityName(buildingId), () =>
                             {
                                 navigation.OpenPanel(GamePanelId.Building);
                                 buildingController.FocusBuilding(buildingId);
@@ -563,28 +591,29 @@ namespace Landsong.ECS.Presentation
                     continue;
                 var key = p.Key.ToString();
                 var quote = QuestOps.Submission(sessionController.em, sessionController.root, entity, key);
-                Detail("提交 " + ItemName(submittedItem) + " · 持有 " + quote.Available + " / 尚需 " + quote.Remaining, day && quote.Code == ResultCode.Success ? () => ConfirmQuestSubmission(identity.Id, key) : null);
+                Detail(groups.Requirements, "提交 " + ItemName(submittedItem) + " · 持有 " + quote.Available + " / 尚需 " + quote.Remaining, day && quote.Code == ResultCode.Success ? () => ConfirmQuestSubmission(identity.Id, key) : null);
             }
 
-            Detail("奖励（物品总价值 " + QuestOps.RewardValue(sessionController.em, sessionController.root, DefinitionOf(entity)) + "，点击领取后发放）");
+            Detail(groups.Rewards, "任务奖励");
             foreach (var reward in QuestRewards(DefinitionOf(entity)))
-                Detail(reward);
+                Detail(groups.Rewards, reward);
             if (quest.Status == QuestStatus.Offered)
             {
                 var provider = WorldQueries.Find(sessionController.em, quest.Source);
                 if (!QuestOfferOps.Available(sessionController.em, sessionController.root, provider, out var reason))
-                    Detail(reason);
+                    Detail(groups.Actions, reason);
                 var costs = new List<string>
                 {
                     "签约后开始期限计时；分步任务领奖后由下一步沿用原槽，最后一步领奖后释放承接槽位。承接建筑停工、缺工、维护失败、拆除或缩容导致槽位失效时，任务（含待领奖）丢失并执行放弃惩罚。"
                 };
                 foreach (var c in QuestLifecycle.FailureCosts(sessionController.em, sessionController.root, DefinitionOf(entity)))
                     costs.Add("失败最多扣除 " + ItemName(c.Item) + " × " + c.Amount);
-                Detail("签约", day && QuestLifecycle.QuestCount(sessionController.em) < QuestLifecycle.QuestCapacity(sessionController.em) ? () => buildingController.ShowBuildingConfirmation("签约：" + identity.Name, costs, () => commandsController.TryQueue(new AcceptQuestRequest { Quest = identity.Id })) : null);
+                Detail(groups.Actions, "签约", day && QuestLifecycle.QuestCount(sessionController.em) < QuestLifecycle.QuestCapacity(sessionController.em) ? () => buildingController.ShowBuildingConfirmation("签约：" + identity.Name, costs, () => commandsController.TryQueue(new AcceptQuestRequest { Quest = identity.Id })) : null);
                 if (QuestLifecycle.QuestCount(sessionController.em) >= QuestLifecycle.QuestCapacity(sessionController.em))
-                    Detail("承接名额已满，请完成任务链并领取奖励，或放弃一般任务。");
-                Detail("拒绝邀约", !day ? null : () => buildingController.ShowBuildingConfirmation("拒绝：" + identity.Name, new[] { "当前邀约将移除，来源槽重新开始冷却。不扣失败惩罚。" }, () => commandsController.TryQueue(new RejectQuestRequest { Quest = identity.Id })));
+                    Detail(groups.Actions, "承接名额已满，请完成任务链并领取奖励，或放弃一般任务。");
+                Detail(groups.Actions, "拒绝邀约", !day ? null : () => buildingController.ShowBuildingConfirmation("拒绝：" + identity.Name, new[] { "当前邀约将移除，来源槽重新开始冷却。不扣失败惩罚。" }, () => commandsController.TryQueue(new RejectQuestRequest { Quest = identity.Id })));
             }
+            groups.Actions.gameObject.SetActive(quest.Status == QuestStatus.Offered);
         }
 
         internal IEnumerable<string> RewardConfirmation(QuestId definition)
@@ -689,14 +718,20 @@ namespace Landsong.ECS.Presentation
 
         public void ClearSessionViews()
         {
+            QuestTracking?.ClearSessionViews();
             foreach (var card in questCards.Values)
                 if (card != null)
+                {
+                    ReleaseQuestCardRows(card);
                     Destroy(card.gameObject);
+                }
             questCards.Clear();
+            detailGroups.Clear();
             seenQuestCards.Clear();
             selectedQuest = 0;
             questSourceFilter = 0;
             questTypeMask = 15;
+            QuestDetailRows = null;
             QuestAmountInput = null;
         }
     }

@@ -14,6 +14,17 @@ namespace Landsong.ECS.Presentation
 {
     public sealed class WorldPresentationView : MonoBehaviour
     {
+        [Serializable]
+        public sealed class WindSwaySettings
+        {
+            [Range(0, 20)] public float LightDegrees = 2;
+            [Range(0, 20)] public float ModerateDegrees = 5;
+            [Range(0, 20)] public float StrongDegrees = 9;
+            [Range(0, 10)] public float LightSpeed = 1.4f;
+            [Range(0, 10)] public float ModerateSpeed = 2.1f;
+            [Range(0, 10)] public float StrongSpeed = 2.8f;
+        }
+
         sealed class View
         {
             public GameObject Object;
@@ -33,6 +44,8 @@ namespace Landsong.ECS.Presentation
         }
 
         readonly Dictionary<Entity, View> views = new Dictionary<Entity, View>();
+        readonly Dictionary<Entity, GameObject> fireMarkers = new Dictionary<Entity, GameObject>();
+        readonly Dictionary<Entity, quaternion> treeBaseRotations = new Dictionary<Entity, quaternion>();
         readonly List<Effect> effects = new List<Effect>();
         readonly Dictionary<Entity, (LifeStage stage, int level, int progress)> buildings = new Dictionary<Entity, (LifeStage, int, int)>();
         readonly HashSet<Entity> seen = new HashSet<Entity>();
@@ -57,7 +70,11 @@ namespace Landsong.ECS.Presentation
         public Material OverlayMaterial;
         [LabelText("世界表现根模板"), Required]
         public Transform WorldRootTemplate;
+        [LabelText("树木风摆参数")]
+        public WindSwaySettings WindSway = new WindSwaySettings();
         MaterialPropertyBlock overlayProperties;
+        Material firePlaceholderMaterial;
+        float windTime;
         MaterialPropertyBlock OverlayProperties => overlayProperties ??= new MaterialPropertyBlock();
         BuildingRangeOverlayView buildingRangeOverlay;
         BuildingRangeOverlayView BuildingRangeOverlay => buildingRangeOverlay ??= new BuildingRangeOverlayView();
@@ -132,6 +149,15 @@ namespace Landsong.ECS.Presentation
         public void ClearViews()
         {
             buildingRangeOverlay?.Clear();
+            if (boundWorld != null && boundWorld.IsCreated)
+                foreach (var pair in treeBaseRotations)
+                    if (em.Exists(pair.Key) && em.HasComponent<LocalTransform>(pair.Key))
+                    {
+                        var transform = em.GetComponentData<LocalTransform>(pair.Key);
+                        transform.Rotation = pair.Value;
+                        em.SetComponentData(pair.Key, transform);
+                    }
+            treeBaseRotations.Clear();
             foreach (var pair in views)
             {
                 if (pair.Value.Object != null)
@@ -143,6 +169,10 @@ namespace Landsong.ECS.Presentation
             foreach (var effect in effects)
                 if (effect.Object != null)
                     Destroy(effect.Object.gameObject);
+            foreach (var marker in fireMarkers.Values)
+                if (marker != null)
+                    Destroy(marker);
+            fireMarkers.Clear();
             effects.Clear();
             views.Clear();
             buildings.Clear();
@@ -152,6 +182,10 @@ namespace Landsong.ECS.Presentation
             stale.Clear();
             selections.Clear();
             modelDefinitions = null;
+            if (firePlaceholderMaterial != null)
+                Destroy(firePlaceholderMaterial);
+            firePlaceholderMaterial = null;
+            windTime = 0;
             if (worldRoot != null)
                 Destroy(worldRoot.gameObject);
             worldRoot = null;
@@ -239,6 +273,8 @@ namespace Landsong.ECS.Presentation
             phase = state.Phase;
             bool paused = stateControl.Paused != 0;
             float dt = paused ? 0 : Time.deltaTime;
+            windTime += dt;
+            var wind = em.GetComponentData<SeasonWeatherState>(root);
             seen.Clear();
             using (var entities = candidates.ToEntityArray(Allocator.Temp))
                 foreach (var entity in entities)
@@ -272,6 +308,10 @@ namespace Landsong.ECS.Presentation
                     }
 
                     var key = (VisualIdentity(entity), isBuilding ? b.Stage : LifeStage.Operational, Mathf.Max(1, b.Level), bAppearance.Skin);
+                    if (isBuilding && key.Item1.ToString().StartsWith("b树木", StringComparison.Ordinal))
+                        SwayTree(entity, id.Id, wind);
+                    if (isBuilding)
+                        SetFireMarker(entity, em.HasComponent<BuildingFireState>(entity) && em.GetComponentData<BuildingFireState>(entity).Burning != 0, transform.Position);
                     if (!selections.TryGetValue(entity, out var selection) || modelsChanged || !selection.key.Equals(key))
                     {
                         selection = (key, catalog.Select(key.Item1.ToString(), key.Item2, key.Item3, bAppearance.Skin.ToString()), isBuilding && BuildingRoadOps.IsRoad(em, root, em.GetComponentData<BuildingDefinitionRef>(entity).Definition));
@@ -300,7 +340,7 @@ namespace Landsong.ECS.Presentation
                             Object = actor.gameObject,
                             Actor = actor,
                             Model = model,
-                            Position = transform.Position
+                            Position = transform.Position,
                         };
                         views.Add(entity, view);
                         EntityState.Set(em, entity, new ExternalVisual { Active = 1 });
@@ -328,6 +368,7 @@ namespace Landsong.ECS.Presentation
                             }
                         }
                     }
+
 
                     var pose = Pose(em, entity, speed);
                     bool visible = !em.HasComponent<VisualState>(entity) || em.GetComponentData<VisualState>(entity).Visible != 0;
@@ -357,6 +398,11 @@ namespace Landsong.ECS.Presentation
                     stale.Add(entity);
             foreach (var entity in stale)
             {
+                if (fireMarkers.TryGetValue(entity, out var marker))
+                {
+                    if (marker != null) Destroy(marker);
+                    fireMarkers.Remove(entity);
+                }
                 if (views.TryGetValue(entity, out var removed))
                 {
                     Destroy(removed.Object);
@@ -385,6 +431,69 @@ namespace Landsong.ECS.Presentation
             }
 
             initialized = true;
+        }
+
+        void SwayTree(Entity building, ulong id, SeasonWeatherState wind)
+        {
+            if (!em.HasComponent<BuildingVisualSelection>(building))
+                return;
+            var slot = em.GetComponentData<BuildingVisualSelection>(building).Slot;
+            if (slot == Entity.Null || !em.Exists(slot) || !em.HasComponent<LocalTransform>(slot))
+                return;
+            var transform = em.GetComponentData<LocalTransform>(slot);
+            if (!treeBaseRotations.TryGetValue(slot, out var original))
+            {
+                original = transform.Rotation;
+                treeBaseRotations.Add(slot, original);
+            }
+            var settings = WindSway ?? new WindSwaySettings();
+            var amplitude = wind.Wind == WindKind.Calm ? 0 : wind.Wind == WindKind.Light ? settings.LightDegrees : wind.Wind == WindKind.Moderate ? settings.ModerateDegrees : settings.StrongDegrees;
+            var direction = Quaternion.Euler(0, wind.WindDegrees, 0) * Vector3.right;
+            var phase = id % 97 * .31f;
+            var speed = wind.Wind == WindKind.Strong ? settings.StrongSpeed : wind.Wind == WindKind.Moderate ? settings.ModerateSpeed : settings.LightSpeed;
+            transform.Rotation = (quaternion)(Quaternion.AngleAxis(Mathf.Sin(windTime * speed + phase) * amplitude, direction) * (Quaternion)original);
+            em.SetComponentData(slot, transform);
+        }
+
+        void SetFireMarker(Entity entity, bool burning, float3 position)
+        {
+            if (!burning)
+            {
+                if (fireMarkers.TryGetValue(entity, out var existing))
+                {
+                    if (existing != null) Destroy(existing);
+                    fireMarkers.Remove(entity);
+                }
+                return;
+            }
+            if (fireMarkers.TryGetValue(entity, out var active) && active != null)
+            {
+                active.transform.position = (Vector3)position + Vector3.up * 1.3f;
+                return;
+            }
+            if (firePlaceholderMaterial == null)
+            {
+                var shader = Shader.Find("Universal Render Pipeline/Unlit");
+                if (shader == null)
+                    return;
+                firePlaceholderMaterial = new Material(shader) { name = "Fire Placeholder" };
+                firePlaceholderMaterial.color = new Color(1f, .34f, .03f);
+            }
+            var marker = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            marker.name = "Fire Placeholder";
+            marker.transform.SetParent(PresentationRoot, false);
+            marker.transform.position = (Vector3)position + Vector3.up * 1.3f;
+            marker.transform.localScale = new Vector3(.35f, .65f, .35f);
+            var collider = marker.GetComponent<Collider>();
+            if (collider != null)
+                Destroy(collider);
+            marker.GetComponent<MeshRenderer>().sharedMaterial = firePlaceholderMaterial;
+            var light = marker.AddComponent<Light>();
+            light.type = LightType.Point;
+            light.color = new Color(1f, .38f, .05f);
+            light.intensity = 1.5f;
+            light.range = 3f;
+            fireMarkers[entity] = marker;
         }
 
         FixedString128Bytes VisualIdentity(Entity entity)

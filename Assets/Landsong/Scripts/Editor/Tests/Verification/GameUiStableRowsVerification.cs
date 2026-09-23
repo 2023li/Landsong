@@ -30,7 +30,7 @@ namespace Landsong.ECS.Editor
             Check(root != null, "缺少游戏面板根组件");
             Check(root.FeaturePanels.OfType<UI_GamePanel_List>().All(panel => panel.RowTemplate != null), "每个功能面板必须持有自己的条目模板引用");
             Check(root.FeaturePanels.OfType<UI_GamePanel_List>().All(panel => EditorUtility.IsPersistent(panel.RowTemplate)), "功能面板条目模板必须来自独立资产而非根节点公共对象");
-            Check(root.Buildings.ConfirmRowTemplate != null && root.BuildingDetails.RowTemplate != null, "建筑确认和建筑详情必须各自配置条目模板");
+            Check(root.Buildings.ConfirmRowTemplate != null && root.BuildingDetails.Block<UI_GamePanel_BuildingDetails_Block_其他>().RowTemplate != null, "建筑确认和建筑详情必须各自配置条目模板");
             var inventory = root.InventoryWindow;
             inventory.ValidateConfiguration();
             Check(inventory.BuildingTemplate.transform.parent == inventory.BuildingsScroll.content, "建筑模板属于建筑列表");

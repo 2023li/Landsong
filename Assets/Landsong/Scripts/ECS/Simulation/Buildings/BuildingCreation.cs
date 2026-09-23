@@ -32,6 +32,7 @@ namespace Landsong.ECS
                 EntityState.Set(em, e, new BuildingMarketState() { });
                 EntityState.Set(em, e, new BuildingExperienceState() { });
                 EntityState.Set(em, e, new BuildingMaintenanceState() { Maintained = 1 });
+                EntityState.Set(em, e, new BuildingFireState());
             }
 
             EntityState.Set(em, e, new Health { Current = math.max(1, d.MaximumDurability), Maximum = math.max(1, d.MaximumDurability) });

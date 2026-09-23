@@ -14,13 +14,15 @@ namespace Landsong.ECS.Persistence
     // Coordinates the archive boundary; domain storage owns each record's schema.
     public static class SnapshotCodec
     {
-        public const int CurrentVersion = 33;
-        static void Header(BinaryReader reader)
+        public const int CurrentVersion = 35;
+        static int Header(BinaryReader reader)
         {
             if (reader.ReadString() != "LANDSONG-ECS")
                 throw new InvalidDataException("不是 ECS 存档。");
-            if (reader.ReadInt32() != CurrentVersion)
+            var version = reader.ReadInt32();
+            if (version != 33 && version != 34 && version != CurrentVersion)
                 throw new InvalidDataException("存档版本已过期或不受支持，请开始新王朝。");
+            return version;
         }
 
         public static string ReadMapId(byte[] bytes)
@@ -33,10 +35,10 @@ namespace Landsong.ECS.Persistence
         public static (string Map, Phase Phase, int Turn, FixedString128Bytes DynastyName) ReadSummary(byte[] bytes)
         {
             using var reader = new BinaryReader(new MemoryStream(bytes, false));
-            Header(reader);
+            var version = Header(reader);
             var map = reader.ReadString();
             reader.ReadString();
-            var data = SnapshotRootStorage.Read(reader);
+            var data = SnapshotRootStorage.Read(reader, version);
             if (data.Clock.Turn < 1 || (byte)data.Session.Phase > (byte)Phase.Ended)
                 throw new InvalidDataException("节点摘要无效。");
             return (map, data.Session.Phase, data.Clock.Turn, data.Dynasty.Name);
@@ -46,6 +48,7 @@ namespace Landsong.ECS.Persistence
         {
             public Session Session;
             public GameClock Clock;
+            public SeasonWeatherState Weather;
             public SimulationControl Control;
             public PopulationState Population;
             public PublicOpinionState Opinion;
@@ -62,6 +65,7 @@ namespace Landsong.ECS.Persistence
             public IdentitySequence Ids;
             public DynastyIdentity Dynasty;
             public QuestTracking Tracking;
+            public TrackedQuest[] TrackedQuests = Array.Empty<TrackedQuest>();
             public CourtState Court;
             public NightPlanState NightPlan;
             public CourtLogEntry[] CourtLog = Array.Empty<CourtLogEntry>();
@@ -115,15 +119,23 @@ namespace Landsong.ECS.Persistence
         {
             using var stream = new MemoryStream(bytes, false);
             using var reader = new BinaryReader(stream);
-            Header(reader);
+            var version = Header(reader);
             if (reader.ReadString() != em.GetComponentData<MapIdentity>(root).Id.ToString())
                 throw new InvalidDataException("存档属于另一张地图，请返回主菜单选择对应地图。");
             if (reader.ReadString() != ContentFingerprint(em, root))
                 throw new InvalidDataException("内容规则已改变，请开始新王朝；原存档未修改。");
-            var snapshot = SnapshotRootStorage.Read(reader);
+            var snapshot = SnapshotRootStorage.Read(reader, version);
             snapshot.Records = new EntitySnapshot[SnapshotBuffers.Count(reader)];
             for (int i = 0; i < snapshot.Records.Length; i++)
-                snapshot.Records[i] = EntitySnapshotStorage.Read(reader);
+                snapshot.Records[i] = EntitySnapshotStorage.Read(reader, version);
+            if (version < 35)
+                foreach (var record in snapshot.Records)
+                    if (record is BuildingSnapshot building)
+                    {
+                        var farming = building.BuildingFarming;
+                        farming.Progress = checked(farming.Progress * CropGrowthOps.Scale);
+                        building.BuildingFarming = farming;
+                    }
             if (stream.Position != stream.Length)
                 throw new InvalidDataException("Unexpected snapshot trailing data");
             SnapshotValidation.Validate(em, root, snapshot, deferQuestContainerReconciliation);

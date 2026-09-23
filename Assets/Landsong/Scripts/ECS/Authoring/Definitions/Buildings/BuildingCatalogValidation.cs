@@ -150,6 +150,8 @@ namespace Landsong.ECS.Authoring.Definitions
                     foreach (var expedition in modules.Expeditions.Levels.Where(x => Active(x.Level)))
                         if (expedition.MinimumCrew < 1 || expedition.MaximumCrew < expedition.MinimumCrew || expedition.FullCrewRewardBonus < 0)
                             Fail("驻地远征人数或奖励无效。");
+                if (modules.Farming.Enabled && workforce.Length == 0)
+                    Fail("种植模块需要岗位配置。");
                 if (workforce.Length == 0)
                     continue;
                 int workers = workforce[0].Capacity;
@@ -166,6 +168,8 @@ namespace Landsong.ECS.Authoring.Definitions
 
                 if (tiers.Length == 0 || next != workers + 1)
                     Fail("效率档位必须显式覆盖零到岗位容量的所有人数。");
+                if (modules.Farming.Enabled && (modules.Farming.RequiredWorkers < 1 || modules.Farming.FullCycleBonusWorkers < modules.Farming.RequiredWorkers || modules.Farming.FullCycleBonusWorkers > workers || modules.Farming.FullCycleYieldBonusPercent < 0))
+                    Fail("种植工人门槛或收获加成超出岗位配置。");
                 void Boundary(int threshold)
                 {
                     if (threshold > 0 && threshold <= workers && tiers.Any(x => x.MinimumWorkers < threshold && x.MaximumWorkers >= threshold))
@@ -215,12 +219,10 @@ namespace Landsong.ECS.Authoring.Definitions
                         for (int n = 1; n <= Math.Min(workers, row.MaximumCrew); n++)
                             Boundary(n);
                 if (modules.Farming.Enabled)
-                    foreach (var row in modules.Farming.Crops.Where(x => Active(x.Level)))
-                        if (row.Crop != null)
-                        {
-                            Boundary(row.Crop.RequiredWorkers);
-                            Boundary(row.Crop.FullStaffBonusWorkers);
-                        }
+                {
+                    Boundary(modules.Farming.RequiredWorkers);
+                    Boundary(modules.Farming.FullCycleBonusWorkers);
+                }
             }
         }
     }

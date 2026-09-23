@@ -43,15 +43,15 @@ MonoBehaviour:
     Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
     Quantity: 5
   Objectives:
-    BuildingObjectives: []
-    PlantedBuildingObjectives: []
-    OwnedItemObjectives: []
-    SubmittedItemObjectives:
-    - Order: 1
-      Key: ef4b6b6767e04113b10c4714ae15c512
-      Item: {fileID: 11400000, guid: 000df9efbc381134e832f667a32c9572, type: 2}
-      Quantity: 10
-    TechnologyObjectives: []
-    CameraMoveObjectives: []
-    CameraZoomObjectives: []
-    TurnObjectives: []
+    Requirements:
+    - rid: 1000000000000000001
+  references:
+    version: 2
+    RefIds:
+    - rid: 1000000000000000001
+      type: {class: QuestSubmittedItemObjectiveSource, ns: Landsong.ECS.Authoring.Definitions, asm: Landsong.ECS.Authoring}
+      data:
+        Order: 1
+        Key: ef4b6b6767e04113b10c4714ae15c512
+        Item: {fileID: 11400000, guid: 000df9efbc381134e832f667a32c9572, type: 2}
+        Quantity: 10

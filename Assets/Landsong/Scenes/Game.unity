@@ -447,6 +447,7 @@ MonoBehaviour:
     ClosureIntensityRatio: 0.3
     HorizonElevation: 8
     HorizonAzimuthOffset: 65
+  RainLightRatio: 0.75
 --- !u!4 &1869820108
 Transform:
   m_ObjectHideFlags: 0

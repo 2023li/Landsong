@@ -96,7 +96,8 @@ namespace Landsong.ECS
             {
                 using var returning = em.CreateEntityQuery(ComponentType.ReadOnly<DayReturnState>());
                 using var workers = em.CreateEntityQuery(ComponentType.ReadOnly<TransportWorker>());
-                if (returning.IsEmptyIgnoreFilter && workers.IsEmptyIgnoreFilter)
+                using var firefighters = em.CreateEntityQuery(ComponentType.ReadOnly<Firefighter>());
+                if (returning.IsEmptyIgnoreFilter && workers.IsEmptyIgnoreFilter && firefighters.IsEmptyIgnoreFilter)
                     return;
             }
 
@@ -121,8 +122,8 @@ namespace Landsong.ECS
                 var actor = em.GetComponentData<Combatant>(entity);
                 var health = em.GetComponentData<Health>(entity);
                 bool active = actor.Deployed != 0 && health.Current > 0 && (daytime || clock.Time >= actor.ProtectedUntil)
-                    && (!daytime || em.HasComponent<DayReturnState>(entity) || em.HasComponent<TransportWorker>(entity))
-                    && (!workersOnly || em.HasComponent<TransportWorker>(entity));
+                    && (!daytime || em.HasComponent<DayReturnState>(entity) || em.HasComponent<TransportWorker>(entity) || em.HasComponent<Firefighter>(entity))
+                    && (!workersOnly || em.HasComponent<TransportWorker>(entity) || em.HasComponent<Firefighter>(entity));
                 // Isolated edit-mode fixtures have no AstarPath/RVOSimulator service.
                 // Leave them to A* Pro's fallback resolver instead of marking them as RVO-owned.
                 SetRvoParticipation(em, entity, actor, active && astar);
@@ -280,6 +281,7 @@ namespace Landsong.ECS
                 Daytime = daytime,
                 WorkersOnly = session.Phase == Phase.Celebration && clock.PhaseTime - plan.CombatElapsed < timing.BattleAdvanceAt,
                 Workers = SystemAPI.GetComponentLookup<TransportWorker>(true),
+                Firefighters = SystemAPI.GetComponentLookup<Firefighter>(true),
                 DayReturns = SystemAPI.GetComponentLookup<DayReturnState>(true)
             }.ScheduleParallel(state.Dependency);
             state.Dependency = nodes.Dispose(state.Dependency);
@@ -296,14 +298,15 @@ namespace Landsong.ECS
             public float Delta, Now;
             public bool Daytime, WorkersOnly;
             [ReadOnly] public ComponentLookup<TransportWorker> Workers;
+            [ReadOnly] public ComponentLookup<Firefighter> Firefighters;
             [ReadOnly] public ComponentLookup<DayReturnState> DayReturns;
 
             void Execute(Entity entity, ref LocalTransform transform, ref Steering steering, in Combatant actor, in Health health,
                 in ResolvedMovement movement, in AstarNavigationAgent astarAgent, DynamicBuffer<Waypoint> path)
             {
                 if (actor.Deployed == 0 || health.Current <= 0 || !Daytime && Now < actor.ProtectedUntil
-                    || Daytime && !DayReturns.HasComponent(entity) && !Workers.HasComponent(entity)
-                    || WorkersOnly && !Workers.HasComponent(entity) || steering.Moving == 0)
+                    || Daytime && !DayReturns.HasComponent(entity) && !Workers.HasComponent(entity) && !Firefighters.HasComponent(entity)
+                    || WorkersOnly && !Workers.HasComponent(entity) && !Firefighters.HasComponent(entity) || steering.Moving == 0)
                 {
                     steering.Direction = default;
                     return;

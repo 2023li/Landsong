@@ -44,6 +44,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 42bc49d1353a48a1b15912d5c7cb714f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.GameWorldTemplateAuthoring
+  Weather:
+    SpringRain: 45
+    SummerRain: 25
+    AutumnRain: 30
+    WinterRain: 35
+    SpringTemperature: {x: 8, y: -5, z: 20}
+    SummerTemperature: {x: 25, y: 15, z: 35}
+    AutumnTemperature: {x: 8, y: -5, z: 20}
+    WinterTemperature: {x: -5, y: -15, z: 5}
+    WarmingPercent: {x: 50, y: 65, z: 50, w: 35}
+    WindPercent: {x: 10, y: 45, z: 35, w: 10}
+  FirefighterSpeed: 1.6
+  FireStation: {fileID: 11400000, guid: 9b7d6dda6fe745aeac312a135bdc202b, type: 2}
+  ThunderTemple: {fileID: 11400000, guid: 6e7baab3d00847498386dc71e0ea641d, type: 2}
 --- !u!4 &1285735762
 Transform:
   m_ObjectHideFlags: 0

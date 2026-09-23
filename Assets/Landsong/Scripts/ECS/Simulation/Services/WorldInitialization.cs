@@ -48,6 +48,7 @@ namespace Landsong.ECS
             GarrisonOps.InitializeGarrisons(em, root);
             PortraitOps.EnsurePeople(em, root);
             PortraitOps.Announce(em, root);
+            SeasonWeatherOps.Initialize(em, root);
             var session = em.GetComponentData<Session>(root);
             session.Initialized = 1;
             em.SetComponentData(root, session);

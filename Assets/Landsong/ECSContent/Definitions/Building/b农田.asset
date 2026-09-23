@@ -116,6 +116,9 @@ MonoBehaviour:
       Levels: []
     Farming:
       Enabled: 1
+      RequiredWorkers: 2
+      FullCycleBonusWorkers: 3
+      FullCycleYieldBonusPercent: 50
       Crops:
       - Level: 1
         Crop: {fileID: 11400000, guid: a2a7430aece909d409923195c6d7d645, type: 2}

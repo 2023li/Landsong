@@ -221,7 +221,7 @@ namespace Landsong.ECS.Presentation
                 Require(planting.Label.text.Contains(cropName) && planting.Icon.transform.IsChildOf(planting.Select.transform) && planting.Icon.sprite != null, "Chosen crop is shown on circle child icon and maturity label");
                 var beforeHover = SnapshotCodec.Capture(em, root);
                 ExecuteEvents.Execute(planting.gameObject, new PointerEventData(EventSystem.current), ExecuteEvents.pointerEnterHandler);
-                Require(card.Sidebar.activeSelf && card.SidebarText.text.Contains("1人口") && card.SidebarText.text.Contains(cropName) && card.SidebarText.text.Contains("全生长期") && card.SidebarText.text.Contains("生长暂停"), "Planting hover displays worker tiers, growth threshold and whole-cycle bonus");
+                Require(card.Sidebar.activeSelf && card.SidebarText.text.Contains("1工人") && card.SidebarText.text.Contains("2工人") && card.SidebarText.text.Contains("3工人") && card.SidebarText.text.Contains("作物正常生长") && card.SidebarText.text.Contains("作物产量 +50%") && card.SidebarText.text.Contains(cropName) && card.SidebarText.text.Contains("全生长期") && card.SidebarText.text.Contains("生长暂停"), "Planting hover displays farm worker tiers, growth threshold and whole-cycle bonus");
                 Require(beforeHover.SequenceEqual(SnapshotCodec.Capture(em, root)), "Worker tooltip does not mutate simulation or consume crop RNG");
                 ExecuteEvents.Execute(planting.gameObject, new PointerEventData(EventSystem.current), ExecuteEvents.pointerExitHandler);
                 ExecuteEvents.Execute(card.Sidebar, new PointerEventData(EventSystem.current), ExecuteEvents.pointerEnterHandler);

@@ -15,8 +15,11 @@ namespace Landsong.ECS
                 return;
             if (em.GetComponentData<Session>(root).Initialized == 0)
                 WorldInitialization.Initialize(em, root);
+            else if (em.GetComponentData<SeasonWeatherState>(root).Initialized == 0)
+                SeasonWeatherOps.Initialize(em, root);
             GameplayRequestProcessing.Drain(em, root);
             NightOps.Tick(em, root, SystemAPI.Time.DeltaTime);
+            LightningOps.Tick(em, root, SystemAPI.Time.DeltaTime);
             HistoryOps.Trim(em, root);
         }
     }

@@ -77,6 +77,8 @@ namespace Landsong.ECS.Persistence
             EntityState.Set(em, entity, record.Identity);
             EntityState.Set(em, entity, record.Transform);
             EntityState.Set(em, entity, record.Royal);
+            // Every royal has this buffer, even when no traits are present.
+            EntityState.Buffer<TraitEntry>(em, entity);
             SnapshotBuffers.Restore(em, entity, record.Traits);
             SnapshotBuffers.Restore(em, entity, record.PersonRequests);
             if (record.Talent.HasValue)

@@ -38,9 +38,6 @@ namespace Landsong.ECS.Definitions
     {
         public DefinitionMetadata Metadata;
         public int GrowthTurns;
-        public int RequiredWorkers;
-        public int FullStaffBonusWorkers;
-        public int FullStaffYieldBonus;
         public BlobArray<ItemAmount> PlantingCosts;
         public BlobArray<ItemAmount> AutomaticHarvestCosts;
         public BlobArray<ItemQuantityRange> HarvestOutputs;
