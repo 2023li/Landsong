@@ -23,6 +23,10 @@ namespace Landsong.ECS.Presentation
         public NightLightingSettings NightLighting = new NightLightingSettings();
         [LabelText("雨天主光比例"), Range(0, 1)]
         public float RainLightRatio = .75f;
+        [LabelText("小雨主光比例"), Range(0, 1)]
+        public float LightRainLightRatio = .85f;
+        [LabelText("大雨主光比例"), Range(0, 1)]
+        public float HeavyRainLightRatio = .65f;
         public bool Visible { get; private set; }
         NightLightingController lighting;
         WeatherPresentationController weatherPresentation;
@@ -84,10 +88,14 @@ namespace Landsong.ECS.Presentation
             var em = lightingWorld.EntityManager;
             if (!em.Exists(lightingRoot))
                 return;
+            var weather = em.GetComponentData<SeasonWeatherState>(lightingRoot).Weather;
+            var weatherLightRatio = weather == WeatherKind.LightRain ? LightRainLightRatio
+                : weather == WeatherKind.Rain ? RainLightRatio
+                : weather == WeatherKind.HeavyRain ? HeavyRainLightRatio : 1f;
             lighting.Tick(em.GetComponentData<Session>(lightingRoot).Phase,
                 em.GetComponentData<GameClock>(lightingRoot), em.GetComponentData<NightSettings>(lightingRoot),
                 em.GetComponentData<NightRuntimeState>(lightingRoot), em.GetComponentData<SimulationControl>(lightingRoot).Paused != 0, delta,
-                em.GetComponentData<SeasonWeatherState>(lightingRoot).Weather == WeatherKind.Rain ? RainLightRatio : 1f);
+                weatherLightRatio);
         }
 
         public void UnbindLighting()

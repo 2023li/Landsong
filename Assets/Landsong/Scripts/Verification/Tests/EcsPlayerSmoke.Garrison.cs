@@ -74,7 +74,7 @@ namespace Landsong.ECS.Presentation
                 foreach (var cost in quote.Costs)
                     InventoryOps.Add(em, root, cost.Item, cost.Amount);
                 view.Buildings.SelectBuilding(homeId);
-                view.Buildings.BuildingDetailsButton.onClick.Invoke();
+                view.Buildings.ActionButton("details").onClick.Invoke();
                 yield return WaitFor(() => view.BuildingDetails.Block<UI_GamePanel_BuildingDetails_Block_驻军>().gameObject.activeSelf && view.BuildingDetails.BuildingId == homeId, "Building displays standalone garrison module");
                 var card = view.BuildingDetails;
                 var baseOutput = card.Block<UI_GamePanel_BuildingDetails_Block_基础产出>();
@@ -172,7 +172,7 @@ namespace Landsong.ECS.Presentation
                 ScreenCapture.CaptureScreenshot("Library/LandsongEcs/garrison-cards.png");
                 yield return new WaitForEndOfFrame();
                 view.Buildings.SelectBuilding(assigned);
-                view.Buildings.BuildingDetailsButton.onClick.Invoke();
+                view.Buildings.ActionButton("details").onClick.Invoke();
                 yield return WaitFor(() => card.BuildingId == assigned && garrison.Slots.GetComponentsInChildren<TMP_Text>().Any(x => x.text == em.GetComponentData<Identity>(WorldQueries.Find(em, id)).Name.ToString()), "Occupied slot displays soldier name");
                 UI_GamePanel_GarrisonSlot BuildingSlot() => garrison.Slots.GetComponentsInChildren<UI_GamePanel_GarrisonSlot>().FirstOrDefault(slot => slot.NameLabel.gameObject.activeSelf && slot.NameLabel.text == em.GetComponentData<Identity>(WorldQueries.Find(em, id)).Name.ToString());
                 Image BuildingPortrait() => BuildingSlot()?.Portrait;

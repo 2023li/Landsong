@@ -14,7 +14,7 @@ namespace Landsong.ECS.Presentation
         void FocusBuilding(ulong id);
         void ShowBuildingConfirmation(string title, IEnumerable<string> lines, Action confirm);
         void ShowBuildingChoices(string title, Action<BuildingChoiceRow, Action> populate);
-        void ShowCropSelection(IReadOnlyList<CropSelectionEntry> entries, Action<CropId> choose, string hint = null);
+        void OpenCropSelection(ulong buildingId);
         void ConfirmBuildingCommand(CommandKind kind);
     }
 

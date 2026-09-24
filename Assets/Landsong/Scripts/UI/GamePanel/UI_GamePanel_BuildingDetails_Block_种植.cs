@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Landsong.ECS.Definitions;
 using Sirenix.OdinInspector;
 using TMPro;
@@ -61,7 +60,7 @@ namespace Landsong.ECS.Presentation
             Span(Fill, 0, planted ? (float)farming.Progress / threshold : 0);
             Icon.sprite = planted ? CropPortrait(farming.Crop) : null;
             Icon.enabled = Icon.sprite != null;
-            Bind(Select, () => BuildingCrops(id));
+            Bind(Select, () => View.buildingUi.OpenCropSelection(id));
             Bind(Clear, canEdit && planted ? () => View.buildingUi.ShowBuildingConfirmation("铲除 " + CropName(farming.Crop), new[] { "失去当前作物与进度，不返种植费用。" }, () => View.commandsController.TryQueue(new ClearCropRequest { Building = id })) : null);
             BindSidebar(() => WorkerEfficiencyOps.Describe(session.em, session.root, entity, "种植"));
         }
@@ -96,47 +95,5 @@ namespace Landsong.ECS.Presentation
             return crop.HarvestOutputs.Length > 0 ? View.Items.Get(crop.HarvestOutputs[0].Item)?.Icon : null;
         }
 
-        void BuildingCrops(ulong key)
-        {
-            var session = View.sessionController;
-            var e = WorldQueries.Find(session.em, key);
-            if (e == Entity.Null)
-                return;
-            var b = session.em.GetComponentData<Building>(e);
-            var farming = session.em.GetComponentData<BuildingFarmingState>(e);
-            var definition = session.em.GetComponentData<BuildingDefinitionRef>(e).Definition;
-            ref var d = ref BuildingDefinitions.Get(session.em, session.root, definition);
-            var entries = new List<CropSelectionEntry>();
-            var seen = new HashSet<CropId>();
-            for (int i = 0; i < d.Capabilities.Farming.Crops.Length; i++)
-            {
-                var allowed = d.Capabilities.Farming.Crops[i];
-                if ((allowed.Level != 0 && allowed.Level != b.Level) || !seen.Add(allowed.Crop))
-                    continue;
-                var cropId = allowed.Crop;
-                ref var crop = ref CropDefinitions.Get(session.em, session.root, cropId);
-                var costs = new List<BuildingCost>();
-                for (int cost = 0; cost < crop.PlantingCosts.Length; cost++)
-                    costs.Add(new BuildingCost(crop.PlantingCosts[cost].Item, crop.PlantingCosts[cost].Quantity));
-                var yields = new List<string>();
-                for (int output = 0; output < crop.HarvestOutputs.Length; output++)
-                {
-                    var harvest = crop.HarvestOutputs[output];
-                    var item = ItemDefinitions.Get(session.em, session.root, harvest.Item).Metadata.Name;
-                    yields.Add(item + " " + harvest.MinimumQuantity + "～" + harvest.MaximumQuantity);
-                }
-                entries.Add(new CropSelectionEntry
-                {
-                    Crop = cropId,
-                    Icon = CropPortrait(cropId),
-                    Name = crop.Metadata.Name.ToString(),
-                    BaseYield = yields.Count == 0 ? "无" : string.Join("、", yields),
-                    GrowthTurns = crop.GrowthTurns,
-                    PlantingCost = View.buildingUi.CostText(costs),
-                    Available = View.courtController.CourtDay && session.em.GetComponentData<SimulationControl>(session.root).Paused == 0 && BuildingStatus.Operational(session.em, e) && !farming.Crop.IsValid && BuildingCostOps.CanPay(session.em, session.root, costs)
-                });
-            }
-            View.buildingUi.ShowCropSelection(entries, crop => View.commandsController.TryQueue(new PlantCropRequest { Building = key, Crop = crop }), farming.Crop.IsValid ? "已种植 " + CropName(farming.Crop) + "，更换前请先使用 X 铲除。" : null);
-        }
     }
 }

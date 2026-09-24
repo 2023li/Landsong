@@ -22,12 +22,12 @@ namespace Landsong.ECS.Persistence
                 throw new InvalidDataException("Invalid dawn lighting source");
             if (data.Weather.Initialized != 0 && (data.Weather.DayTurn != data.Clock.Turn
                 || data.Weather.RandomState == 0 || data.Weather.Season != SeasonWeatherOps.Season(data.Clock.Turn)
-                || data.Weather.Weather > WeatherKind.Snow || data.Weather.Wind > WindKind.Strong
+                || data.Weather.Weather > WeatherKind.HeavyRain || data.Weather.Wind > WindKind.Strong
                 || !math.isfinite(data.Weather.WindDegrees) || data.Weather.WindDegrees < 0 || data.Weather.WindDegrees >= 360
                 || !math.isfinite(data.Weather.DayElapsed) || data.Weather.DayElapsed < 0
                 || !math.isfinite(data.Weather.NextThunderAt) || data.Weather.NextThunderAt < 0
                 || data.Weather.LightningCount > data.Weather.LightningLimit
-                || data.Weather.Weather != WeatherKind.Rain && data.Weather.LightningLimit != 0))
+                || !WeatherKindOps.IsRain(data.Weather.Weather) && data.Weather.LightningLimit != 0))
                 throw new InvalidDataException($"Invalid season or weather state: turn={data.Clock.Turn}, day={data.Weather.DayTurn}, season={data.Weather.Season}, weather={data.Weather.Weather}, wind={data.Weather.Wind}, degrees={data.Weather.WindDegrees}, seed={data.Weather.RandomState}, strikes={data.Weather.LightningCount}/{data.Weather.LightningLimit}, next={data.Weather.NextThunderAt}, elapsed={data.Weather.DayElapsed}");
             var ids = new HashSet<ulong>();
             foreach (var record in data.Records)

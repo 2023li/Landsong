@@ -59,6 +59,8 @@ namespace Landsong.EditorTools
                 visual.SwordMount = sword;
                 visual.SwordHandSocket = socket;
                 visual.TorchMount = torch;
+                visual.TorchFlameParticles = torch.GetComponentInChildren<ParticleSystem>(true);
+                visual.TorchLight = torch.GetComponentInChildren<Light>(true);
             }
             var materials = new Dictionary<(Material, bool), Material>();
             foreach (var renderer in view.GetComponentsInChildren<Renderer>(true))

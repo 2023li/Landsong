@@ -164,7 +164,7 @@ namespace Landsong.ECS.Presentation
             view.buildingController.worldController = view.worldController;
             view.buildingController.commandsController = view.commandsController;
             view.buildingController.hudController = view.hudController;
-            view.buildingDetailsController.BindPresenter(view.sessionController, view.commandsController, view.navigator, view.buildingController, view.courtController, view.hudController, view.soldierController);
+            view.buildingDetailsController.BindPresenter(view.sessionController, view.commandsController, view.navigator, view.buildingController, view.courtController, view.hudController, view.soldierController, view.worldController);
             view.technologyController.navigation = view.navigator;
             view.technologyController.buildingController = view.buildingController;
             view.technologyController.sessionController = view.sessionController;

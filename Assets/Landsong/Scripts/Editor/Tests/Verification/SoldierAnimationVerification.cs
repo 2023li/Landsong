@@ -71,11 +71,14 @@ namespace Landsong.EditorTools
                 Check(sword != null && sword.GetComponent<MeshRenderer>() != null && sword.GetComponentsInChildren<Collider>().Length == 0
                     && authoring.SwordMount.parent == authoring.SwordHandSocket && authoring.SwordMount.localScale == Vector3.zero,
                     "Roman sword starts hidden at the right-hand socket without gameplay colliders");
-                Check(authoring.TorchMount != null && authoring.TorchMount.GetComponentsInChildren<Renderer>().Length == 2
+                Check(authoring.TorchMount != null && authoring.TorchMount.GetComponentsInChildren<MeshRenderer>().Length == 2
                     && authoring.TorchMount.GetComponentsInChildren<Collider>().Length == 0
-                    && authoring.TorchMount.GetComponentsInChildren<Light>().Length == 0, "Graybox torch uses two rigid meshes and no realtime light");
+                    && authoring.TorchFlameParticles != null && authoring.TorchLight != null
+                    && authoring.TorchFlameParticles.transform.IsChildOf(authoring.TorchMount)
+                    && authoring.TorchLight.transform.IsChildOf(authoring.TorchMount), "Torch socket contains two rigid meshes, flame particles and a point light");
                 var package = SoldierAnimationSetup.CurrentPackage() + "/";
-                Check(config.VisualPrefab.GetComponentsInChildren<Renderer>(true).All(r => r.sharedMaterials.All(m => m.shader != null && AssetDatabase.GetAssetPath(m).StartsWith(package, StringComparison.Ordinal))), "All soldier materials belong to the referenced militia package");
+                Check(config.VisualPrefab.GetComponentsInChildren<Renderer>(true).All(r => r is ParticleSystemRenderer
+                    || r.sharedMaterials.All(m => m.shader != null && AssetDatabase.GetAssetPath(m).StartsWith(package, StringComparison.Ordinal))), "Soldier mesh materials belong to the referenced militia package");
                 Check(definition.Prefab == prefab, "Production militia definition references animated prefab");
                 EcsVerification.Bake(world, scene.GetRootGameObjects(), blobs);
                 var em = world.EntityManager;
@@ -127,6 +130,12 @@ namespace Landsong.EditorTools
                 Check(em.GetBuffer<AnimatorControllerLayerComponent>(binding.Rig).Length == 4 && em.Exists(binding.SwordMount)
                     && em.Exists(binding.SwordHandSocket) && em.Exists(binding.TorchMount),
                     "Rukhanka baked all four layers and remapped equipment sockets");
+                Check(em.Exists(binding.TorchFlame) && em.HasComponent<ParticleSystem>(binding.TorchFlame)
+                    && em.Exists(binding.TorchLight) && em.HasComponent<Light>(binding.TorchLight),
+                    "Torch particle and light bake as companion components and remap to the spawned view");
+                Check(em.GetComponentObject<ParticleSystem>(binding.TorchFlame).isPlaying
+                    && em.GetComponentObject<Light>(binding.TorchLight).enabled,
+                    "Patrol torch starts its baked flame and light");
                 Check(em.GetComponentData<Parent>(view).Value == soldier && em.GetComponentData<Parent>(binding.Rig).Value == view, "Independent view and rig follow the gameplay transform through ECS Parent");
                 Check(!em.HasComponent<Identity>(view) && !em.HasComponent<Persistent>(view) && !em.HasBuffer<TacticalActionData>(view), "View does not duplicate identity, persistence or DBP tasks");
                 AnimatorParametersAspect Parameters() => new AnimatorParametersAspect(em.GetBuffer<AnimatorControllerParameterComponent>(binding.Rig), em.GetComponentData<AnimatorControllerParameterIndexTableComponent>(binding.Rig));
@@ -182,6 +191,9 @@ namespace Landsong.EditorTools
                 Check(em.GetComponentData<Parent>(binding.SwordMount).Value == binding.SwordHandSocket
                     && em.GetComponentData<LocalTransform>(binding.SwordMount).Scale == 1
                     && em.GetComponentData<LocalTransform>(binding.TorchMount).Scale == 0, "Draw midpoint shows the hand sword and hides the torch");
+                Check(em.GetComponentObject<ParticleSystem>(binding.TorchFlame).isStopped
+                    && !em.GetComponentObject<Light>(binding.TorchLight).enabled,
+                    "Drawing the sword stops the baked torch flame and point light");
                 Update(config.DrawSeconds);
                 Check(Parameters().GetBoolParameter("Attack")
                     && em.GetComponentData<SoldierAnimationState>(soldier).Equipment == SoldierEquipmentState.Sword, "Queued attack plays after draw completes");
@@ -203,6 +215,9 @@ namespace Landsong.EditorTools
                 Update(config.SheatheSeconds);
                 Check(em.GetComponentData<SoldierAnimationState>(soldier).Equipment == SoldierEquipmentState.Torch
                     && em.GetComponentData<LocalTransform>(binding.TorchMount).Scale == 1, "Sheathe completes by restoring the patrol torch");
+                Check(em.GetComponentObject<ParticleSystem>(binding.TorchFlame).isPlaying
+                    && em.GetComponentObject<Light>(binding.TorchLight).enabled,
+                    "Sheathing the sword resumes the baked torch flame and point light");
                 session.Phase = Phase.Retreat;
                 em.SetComponentData(root, session);
                 em.SetComponentData(soldier, new VisualState { Visible = 1, Celebrating = (byte)NightEndPose.Celebrate });

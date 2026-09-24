@@ -6,6 +6,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Rendering;
 using Unity.Transforms;
+using UnityEngine;
 
 namespace Landsong.Animation
 {
@@ -223,7 +224,7 @@ namespace Landsong.Animation
                     layers[i] = layer;
                 }
 
-                SetEquipmentVisual(em, binding, SwordVisible(state, config), torchVisible, suppressHandPose, celebrating);
+                SetEquipmentVisual(em, binding, SwordVisible(state, config), torchVisible, suppressHandPose, celebrating, paused);
 
                 var rigTransform = em.GetComponentData<LocalTransform>(binding.Rig);
                 rigTransform.Rotation = quaternion.identity;
@@ -259,7 +260,7 @@ namespace Landsong.Animation
             => !dead && state.Equipment == SoldierEquipmentState.Torch;
 
         public static void SetEquipmentVisual(EntityManager em, in SoldierAnimationBinding binding,
-            bool swordVisible, bool torchVisible, bool suppressHandPose, bool celebrating = false)
+            bool swordVisible, bool torchVisible, bool suppressHandPose, bool celebrating = false, bool paused = false)
         {
             if (em.Exists(binding.SwordMount) && em.HasComponent<Parent>(binding.SwordMount))
             {
@@ -283,6 +284,18 @@ namespace Landsong.Animation
                 torch.Scale = torchVisible ? 1 : 0;
                 em.SetComponentData(binding.TorchMount, torch);
             }
+            if (em.Exists(binding.TorchFlame) && em.HasComponent<ParticleSystem>(binding.TorchFlame))
+            {
+                var particles = em.GetComponentObject<ParticleSystem>(binding.TorchFlame);
+                if (!torchVisible && !particles.isStopped)
+                    particles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+                else if (torchVisible && paused && !particles.isPaused)
+                    particles.Pause(true);
+                else if (torchVisible && !paused && !particles.isPlaying)
+                    particles.Play(true);
+            }
+            if (em.Exists(binding.TorchLight) && em.HasComponent<Light>(binding.TorchLight))
+                em.GetComponentObject<Light>(binding.TorchLight).enabled = torchVisible;
             if (em.Exists(binding.Rig) && em.HasBuffer<AnimatorControllerLayerComponent>(binding.Rig))
             {
                 var layers = em.GetBuffer<AnimatorControllerLayerComponent>(binding.Rig);

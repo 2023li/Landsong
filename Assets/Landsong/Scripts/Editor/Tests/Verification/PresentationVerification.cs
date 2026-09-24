@@ -85,6 +85,36 @@ namespace Landsong.ECS.Editor
             var game = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Landsong/UI/Prefabs/GamePanel/UI_GamePanel.prefab");
             var worldView = game.GetComponent<WorldPresentationView>();
             Check(worldView.Visuals == visuals && worldView.Effects == effects, "World view directly binds models and effects without a catalog facade");
+            var firePrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Landsong/粒子/火焰/低模火焰.prefab");
+            Check(firePrefab != null && worldView.FirePrefab == firePrefab && firePrefab.GetComponentInChildren<ParticleSystem>(true) != null, "Burning buildings use the authored fire particle prefab");
+            var dustPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Landsong/粒子/烟雾/施工烟尘.prefab");
+            Check(dustPrefab != null && worldView.ConstructionDustPrefab == dustPrefab && dustPrefab.GetComponentInChildren<ParticleSystem>(true) != null
+                && Mathf.Approximately(worldView.ConstructionDustDuration, .5f), "Building view transitions use the authored dust prefab for 0.5 seconds");
+            var dustInstance = UnityEngine.Object.Instantiate(dustPrefab);
+            try
+            {
+                dustInstance.transform.localScale = Vector3.one * 1.25f;
+                var particles = dustInstance.GetComponentInChildren<ParticleSystem>(true);
+                WorldPresentationView.ConfigureConstructionDustFootprint(particles, new Unity.Mathematics.int2(2, 3), 1.5f);
+                var area = particles.shape.scale;
+                var scale = particles.transform.lossyScale;
+                Check(particles.shape.shapeType == ParticleSystemShapeType.Box
+                    && Mathf.Abs(area.x * scale.x - 3f) < .001f
+                    && Mathf.Abs(area.z * scale.z - 4.5f) < .001f,
+                    "Construction dust emitter covers the rotated building footprint in world units");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(dustInstance);
+            }
+            var militiaView = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Landsong/ECSContent/Units/士兵/民兵/militiaView.prefab");
+            var militiaAnimation = militiaView.GetComponent<Landsong.Animation.SoldierAnimationVisualAuthoring>();
+            Check(militiaAnimation.TorchMount != null && militiaAnimation.TorchMount.name == "TorchMount"
+                && militiaAnimation.TorchFlameParticles != null && militiaAnimation.TorchLight != null
+                && militiaAnimation.TorchFlameParticles.transform.IsChildOf(militiaAnimation.TorchMount)
+                && militiaAnimation.TorchLight.transform.IsChildOf(militiaAnimation.TorchMount)
+                && PrefabUtility.GetCorrespondingObjectFromSource(militiaAnimation.TorchFlameParticles.gameObject) == firePrefab,
+                "Militia torch socket embeds the authored flame prefab and point light");
             Check(game.GetComponentInChildren<UI_GamePanel_Hud>(true).NightPresentation == captions, "Night HUD owns the caption definition only");
             foreach (var binding in game.GetComponentsInChildren<UI_Common_PortraitImageBinding>(true))
                 Check(binding.Portraits == portraits, "Portrait image explicitly binds its own display catalog: " + binding.name);

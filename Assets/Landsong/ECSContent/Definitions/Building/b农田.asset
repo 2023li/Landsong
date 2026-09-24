@@ -20,14 +20,35 @@ MonoBehaviour:
   LimitGroup: {fileID: 11400000, guid: 26cee760e4374f54db4fa02453c109e1, type: 2}
   MaximumLevel: 1
   ConstructionTurns: 1
-  ResourceConnectionActionPower: 100
+  ResourceConnectionActionPower: 10
   MaximumCount: 0
   Footprint: {x: 3, y: 3}
   MaximumDurability: 100
   MovementCost: 0
+  DefenseStats:
+    MaximumHealth: 100
+    Damage: 10
+    AttackRange: 1.4
+    AttackIntervalSeconds: 1
+    MovementSpeed: 0
+    ProjectileSpeed: 10
+    Profile:
+      DetectionRadius: 24
+      ChaseRadius: 12
+      ChaseSeconds: 8
+      BodyRadius: 0.35
+      Armor: 0
+      Reduction: 0
+      Penetration: 0
+      BlastRadius: 0
+      WarningSeconds: 0
+      ProjectileLifetime: 10
+      ProjectileMode: 0
+      Traits: 0
+      BlocksProjectile: 0
   PlacementAndVisuals:
     Category: 2
-    SpawnExclusionPadding: 6
+    SpawnExclusionPadding: 15
     MenuOrder: 0
     ProviderPriority: 0
     CanMove: 1
@@ -35,12 +56,17 @@ MonoBehaviour:
     MoveMaterialRatio: 0.3
     MoveExperienceRatio: 0.3
     RuinMovementCost: 4
-    DefaultSkin:
+    DefaultSkin: 
   Capabilities:
     Construction:
-      Enabled: 0
-      PlacementCosts: []
-      StageCosts: []
+      Enabled: 1
+      PlacementCosts:
+      - Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+        Quantity: 20
+      StageCosts:
+      - Stage: 1
+        Item: {fileID: 11400000, guid: 000df9efbc381134e832f667a32c9572, type: 2}
+        Quantity: 10
       StageOutputs: []
     Upgrade:
       Enabled: 0
@@ -150,24 +176,3 @@ MonoBehaviour:
       Enabled: 0
       Levels: []
   Prefab: {fileID: 4901703206989570460, guid: d0e250ea6ccdd7441ab97e4d72a6a92a, type: 3}
-  DefenseStats:
-    MaximumHealth: 100
-    Damage: 10
-    AttackRange: 1.4
-    AttackIntervalSeconds: 1
-    MovementSpeed: 0
-    ProjectileSpeed: 10
-    Profile:
-      DetectionRadius: 24
-      ChaseRadius: 12
-      ChaseSeconds: 8
-      BodyRadius: 0.35
-      Armor: 0
-      Reduction: 0
-      Penetration: 0
-      BlastRadius: 0
-      WarningSeconds: 0
-      ProjectileLifetime: 10
-      ProjectileMode: 0
-      Traits: 0
-      BlocksProjectile: 0

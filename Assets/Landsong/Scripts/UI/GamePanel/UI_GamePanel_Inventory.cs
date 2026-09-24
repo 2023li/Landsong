@@ -97,6 +97,7 @@ namespace Landsong.ECS.Presentation
         InventorySelection drag;
         string displayedFingerprint;
         bool showingBuildings, choosingTarget, dragging, restoreScrollPosition, buildingsRendered, resourcesRendered;
+        ulong focusBuildingId;
         Vector2 buildingScrollPosition = new Vector2(0, 1), resourceScrollPosition = new Vector2(0, 1);
         ItemId detailsItem;
         float forecastCheckAt;
@@ -176,6 +177,8 @@ namespace Landsong.ECS.Presentation
             EndInventoryDrag();
             choosingTarget = false;
             showingBuildings = buildings;
+            if (!buildings)
+                focusBuildingId = 0;
             restoreScrollPosition = true;
             BuildingsScroll.gameObject.SetActive(buildings);
             ResourcesScroll.gameObject.SetActive(!buildings);
@@ -183,6 +186,17 @@ namespace Landsong.ECS.Presentation
             ResourcesButton.interactable = buildings;
             if (Session != null)
                 Refresh.NextPanel = 0;
+        }
+
+        public void FocusBuilding(ulong buildingId)
+        {
+            if (buildingId == 0 || Session == null || !Session.IsBound)
+                return;
+            SetMode(true);
+            if (!showingBuildings)
+                return;
+            focusBuildingId = buildingId;
+            Refresh.NextPanel = 0;
         }
 
         public override void Render()
@@ -207,6 +221,19 @@ namespace Landsong.ECS.Presentation
                 var scroll = showingBuildings ? BuildingsScroll : ResourcesScroll;
                 scroll.normalizedPosition = showingBuildings ? buildingScrollPosition : resourceScrollPosition;
                 restoreScrollPosition = false;
+            }
+            if (focusBuildingId != 0)
+            {
+                Canvas.ForceUpdateCanvases();
+                if (buildingViews.TryGetValue(focusBuildingId, out var focused) && focused.gameObject.activeSelf)
+                {
+                    var content = BuildingsScroll.content;
+                    var bounds = RectTransformUtility.CalculateRelativeRectTransformBounds(content, focused.transform);
+                    var travel = content.rect.height - BuildingsScroll.viewport.rect.height;
+                    BuildingsScroll.verticalNormalizedPosition = travel <= 0 ? 1 :
+                        1 - Mathf.Clamp01((content.rect.yMax - bounds.max.y) / travel);
+                }
+                focusBuildingId = 0;
             }
 
             if (showingBuildings)
@@ -763,6 +790,7 @@ namespace Landsong.ECS.Presentation
             pinned.Clear();
             displayedFingerprint = null;
             showingBuildings = false;
+            focusBuildingId = 0;
             buildingsRendered = resourcesRendered = false;
             restoreScrollPosition = true;
             buildingScrollPosition = resourceScrollPosition = new Vector2(0, 1);

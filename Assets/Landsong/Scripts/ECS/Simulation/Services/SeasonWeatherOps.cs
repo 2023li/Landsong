@@ -73,19 +73,27 @@ namespace Landsong.ECS
                 state.Temperature = math.clamp(previous + (warming ? magnitude : -magnitude), settings.MinimumTemperature[index], settings.MaximumTemperature[index]);
             }
             state.Season = season;
-            state.Weather = random.NextInt(100) < settings.RainPercent[index]
-                ? (state.Temperature < 0 ? WeatherKind.Snow : WeatherKind.Rain)
-                : WeatherKind.Sunny;
+            if (random.NextInt(100) >= settings.RainPercent[index])
+                state.Weather = WeatherKind.Sunny;
+            else if (state.Temperature < 0)
+                state.Weather = WeatherKind.Snow;
+            else
+                state.Weather = random.NextInt(3) switch
+                {
+                    0 => WeatherKind.LightRain,
+                    1 => WeatherKind.Rain,
+                    _ => WeatherKind.HeavyRain,
+                };
             var wind = random.NextInt(100);
             state.Wind = wind < settings.WindPercent.x ? WindKind.Calm
                 : wind < settings.WindPercent.x + settings.WindPercent.y ? WindKind.Light
                 : wind < settings.WindPercent.x + settings.WindPercent.y + settings.WindPercent.z ? WindKind.Moderate
                 : WindKind.Strong;
             state.WindDegrees = random.NextFloat(0, 360);
-            state.LightningLimit = state.Weather == WeatherKind.Rain ? (byte)random.NextInt(1, 4) : (byte)0;
+            state.LightningLimit = WeatherKindOps.IsRain(state.Weather) ? (byte)random.NextInt(1, 4) : (byte)0;
             state.LightningCount = 0;
             state.DayElapsed = 0;
-            state.NextThunderAt = state.Weather == WeatherKind.Rain ? random.NextFloat(60, 120) : 0;
+            state.NextThunderAt = WeatherKindOps.IsRain(state.Weather) ? random.NextFloat(60, 120) : 0;
             state.DayTurn = turn;
             state.Initialized = 1;
             state.RandomState = random.state;

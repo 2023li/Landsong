@@ -9,14 +9,12 @@ namespace Landsong.ECS
     {
         public static void Tick(EntityManager em, Entity root, float delta)
         {
-            var visuals = em.GetBuffer<LightningVisualEvent>(root);
-            visuals.Clear();
             if (em.GetComponentData<Session>(root).Phase != Phase.Day
                 || em.GetComponentData<SimulationControl>(root).Paused != 0
                 || em.GetComponentData<PersistenceGate>(root).CheckpointPending != 0)
                 return;
             var state = em.GetComponentData<SeasonWeatherState>(root);
-            if (state.Weather != WeatherKind.Rain)
+            if (!WeatherKindOps.IsRain(state.Weather))
                 return;
             state.DayElapsed += math.max(0, delta);
             var random = new Random(math.max(1u, state.RandomState));
@@ -43,10 +41,32 @@ namespace Landsong.ECS
                 Flash(em, root);
                 return;
             }
+            StrikeVisible(em, root, viewport, grounds, ref random);
+            state.LightningCount++;
+        }
+
+        // Debug actions use the same viewport and target rules without consuming the daily quota.
+        public static void DebugThunder(EntityManager em, Entity root) => Flash(em, root);
+
+        public static bool DebugStrike(EntityManager em, Entity root, uint seed)
+        {
+            var viewport = em.GetComponentData<LightningViewport>(root);
+            var grounds = VisibleGround(em, root, viewport);
+            if (grounds.Count == 0)
+            {
+                Flash(em, root);
+                return false;
+            }
+            var random = new Random(math.max(1u, seed));
+            StrikeVisible(em, root, viewport, grounds, ref random);
+            return true;
+        }
+
+        static void StrikeVisible(EntityManager em, Entity root, LightningViewport viewport, List<float3> grounds, ref Random random)
+        {
             if (random.NextBool())
             {
                 StrikeGround(em, root, grounds[random.NextInt(grounds.Count)]);
-                state.LightningCount++;
                 return;
             }
             var buildings = VisibleBuildings(em, viewport);
@@ -55,9 +75,8 @@ namespace Landsong.ECS
             if (buildingFirst && buildings.Count > 0 || units.Count == 0 && buildings.Count > 0)
             {
                 var building = buildings[random.NextInt(buildings.Count)];
-                state.LightningCount++;
                 if (BuildingFireOps.Ignite(em, root, building))
-                    em.GetBuffer<LightningVisualEvent>(root).Add(new LightningVisualEvent { Kind = LightningVisualKind.Building, Position = EntityState.Position(em, building), Target = em.GetComponentData<Identity>(building).Id });
+                    QueueVisual(em, root, new LightningVisualEvent { Kind = LightningVisualKind.Building, Position = EntityState.Position(em, building), Target = em.GetComponentData<Identity>(building).Id });
                 return;
             }
             if (units.Count > 0)
@@ -65,13 +84,11 @@ namespace Landsong.ECS
                 var unit = units[random.NextInt(units.Count)];
                 var position = EntityState.Position(em, unit);
                 var id = em.GetComponentData<Identity>(unit).Id;
-                state.LightningCount++;
                 StrikeUnit(em, root, unit, ref random);
-                em.GetBuffer<LightningVisualEvent>(root).Add(new LightningVisualEvent { Kind = LightningVisualKind.Unit, Position = position, Target = id });
+                QueueVisual(em, root, new LightningVisualEvent { Kind = LightningVisualKind.Unit, Position = position, Target = id });
                 return;
             }
             StrikeGround(em, root, grounds[random.NextInt(grounds.Count)]);
-            state.LightningCount++;
         }
 
         static void StrikeUnit(EntityManager em, Entity root, Entity unit, ref Random random)
@@ -118,10 +135,19 @@ namespace Landsong.ECS
         }
 
         static void Flash(EntityManager em, Entity root)
-            => em.GetBuffer<LightningVisualEvent>(root).Add(new LightningVisualEvent { Kind = LightningVisualKind.Flash });
+            => QueueVisual(em, root, new LightningVisualEvent { Kind = LightningVisualKind.Flash });
 
         static void StrikeGround(EntityManager em, Entity root, float3 position)
-            => em.GetBuffer<LightningVisualEvent>(root).Add(new LightningVisualEvent { Kind = LightningVisualKind.Ground, Position = position });
+            => QueueVisual(em, root, new LightningVisualEvent { Kind = LightningVisualKind.Ground, Position = position });
+
+        static void QueueVisual(EntityManager em, Entity root, LightningVisualEvent visual)
+        {
+            // Presentation consumes this queue in LateUpdate. Keep a bounded tail when no camera is bound.
+            var pending = em.GetBuffer<LightningVisualEvent>(root);
+            if (pending.Length >= 32)
+                pending.RemoveAt(0);
+            pending.Add(visual);
+        }
 
         static bool Visible(LightningViewport viewport, float3 point)
         {

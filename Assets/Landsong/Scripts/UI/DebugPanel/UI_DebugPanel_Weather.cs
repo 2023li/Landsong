@@ -54,7 +54,7 @@ namespace Landsong.ECS.Presentation
             container.transform.SetParent(transform, false);
             var rect = (RectTransform)container.transform;
             rect.anchorMin = rect.anchorMax = new Vector2(.5f, .5f);
-            rect.sizeDelta = new Vector2(730, 190);
+            rect.sizeDelta = new Vector2(730, 230);
             rect.anchoredPosition = Vector2.zero;
             var layout = container.AddComponent<GridLayoutGroup>();
             layout.cellSize = new Vector2(175, 50);
@@ -64,8 +64,12 @@ namespace Landsong.ECS.Presentation
             layout.childAlignment = TextAnchor.UpperCenter;
 
             AddButton(rect, "晴天", () => ChangeWeather(WeatherKind.Sunny));
-            AddButton(rect, "雨天", () => ChangeWeather(WeatherKind.Rain));
+            AddButton(rect, "小雨", () => ChangeWeather(WeatherKind.LightRain));
+            AddButton(rect, "中雨", () => ChangeWeather(WeatherKind.Rain));
+            AddButton(rect, "大雨", () => ChangeWeather(WeatherKind.HeavyRain));
             AddButton(rect, "雪天", () => ChangeWeather(WeatherKind.Snow));
+            AddButton(rect, "雷鸣", TriggerThunder);
+            AddButton(rect, "落雷", TriggerLightning);
             AddButton(rect, "降温 5°C", () => ChangeTemperature(-5));
             AddButton(rect, "无风", () => ChangeWind(WindKind.Calm));
             AddButton(rect, "微风", () => ChangeWind(WindKind.Light));
@@ -128,7 +132,7 @@ namespace Landsong.ECS.Presentation
                 return;
             }
             var state = em.GetComponentData<SeasonWeatherState>(root);
-            status.text = $"第 {state.DayTurn} 回合  {state.Season}  {state.Weather}  {state.Temperature}°C\n"
+            status.text = $"第 {state.DayTurn} 回合  {state.Season}  {WeatherKindOps.DisplayName(state.Weather)}  {state.Temperature}°C\n"
                 + $"风力 {state.Wind} / 风向 {state.WindDegrees:0}°  落雷 {state.LightningCount}/{state.LightningLimit}\n"
                 + "调试修改持续到下次黎明，之后恢复每日随机抽取。";
         }
@@ -152,12 +156,24 @@ namespace Landsong.ECS.Presentation
             ApplyWeather(em, root, kind);
         }
 
+        void TriggerThunder()
+        {
+            if (TryWorld(out var em, out var root))
+                LightningOps.DebugThunder(em, root);
+        }
+
+        void TriggerLightning()
+        {
+            if (!TryWorld(out var em, out var root)) return;
+            LightningOps.DebugStrike(em, root, (uint)UnityEngine.Random.Range(1, int.MaxValue));
+        }
+
         public static void ApplyWeather(EntityManager em, Entity root, WeatherKind kind)
         {
             var state = em.GetComponentData<SeasonWeatherState>(root);
             var wasSnow = state.Weather == WeatherKind.Snow;
             state.Weather = kind;
-            if (kind == WeatherKind.Rain)
+            if (WeatherKindOps.IsRain(kind))
             {
                 state.Temperature = math.max(0, state.Temperature);
                 state.LightningLimit = (byte)math.clamp((int)state.LightningLimit, 1, 3);
@@ -189,7 +205,7 @@ namespace Landsong.ECS.Presentation
             state.Temperature = math.clamp(state.Temperature + amount,
                 settings.MinimumTemperature[index], settings.MaximumTemperature[index]);
             em.SetComponentData(root, state);
-            if (state.Weather == WeatherKind.Rain && state.Temperature < 0)
+            if (WeatherKindOps.IsRain(state.Weather) && state.Temperature < 0)
                 ApplyWeather(em, root, WeatherKind.Snow);
             else if (state.Weather == WeatherKind.Snow && state.Temperature >= 0)
                 ApplyWeather(em, root, WeatherKind.Rain);

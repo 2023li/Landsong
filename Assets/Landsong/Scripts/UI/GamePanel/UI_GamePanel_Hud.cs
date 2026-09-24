@@ -40,7 +40,7 @@ namespace Landsong.ECS.Presentation
             var weather = em.GetComponentData<SeasonWeatherState>(root);
             var seasonName = weather.Season == SeasonKind.Spring ? "春" : weather.Season == SeasonKind.Summer ? "夏" : weather.Season == SeasonKind.Autumn ? "秋" : "冬";
             var seasonLength = weather.Season == SeasonKind.Spring || weather.Season == SeasonKind.Autumn ? 30 : 20;
-            var weatherName = weather.Weather == WeatherKind.Rain ? "雨" : weather.Weather == WeatherKind.Snow ? "雪" : "晴";
+            var weatherName = WeatherKindOps.DisplayName(weather.Weather);
             var windName = weather.Wind == WindKind.Calm ? "无风" : weather.Wind == WindKind.Light ? "微风" : weather.Wind == WindKind.Moderate ? "中风" : "强风";
             Status.text += $"　{seasonName}{SeasonWeatherOps.DayOfSeason(sClock.Turn)}/{seasonLength}　{weatherName} {weather.Temperature}°C　{windName}";
             var fires = 0;

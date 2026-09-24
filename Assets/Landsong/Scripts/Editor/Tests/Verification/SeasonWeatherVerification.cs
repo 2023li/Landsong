@@ -20,6 +20,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 namespace Landsong.ECS.Editor
 {
@@ -62,6 +63,10 @@ namespace Landsong.ECS.Editor
                     && SeasonWeatherOps.Season(51) == SeasonKind.Autumn && SeasonWeatherOps.Season(80) == SeasonKind.Autumn
                     && SeasonWeatherOps.Season(81) == SeasonKind.Winter && SeasonWeatherOps.Season(100) == SeasonKind.Winter
                     && SeasonWeatherOps.Season(101) == SeasonKind.Spring, "30/20/30/20 season boundaries");
+                Check((byte)WeatherKind.Rain == 1 && (byte)WeatherKind.Snow == 2
+                    && WeatherKindOps.IsRain(WeatherKind.LightRain) && WeatherKindOps.IsRain(WeatherKind.Rain)
+                    && WeatherKindOps.IsRain(WeatherKind.HeavyRain) && !WeatherKindOps.IsRain(WeatherKind.Snow),
+                    "Three rain tiers retain the v35 medium-rain and snow values");
                 Check(CropGrowthOps.PerSettlement(SeasonKind.Spring) == 12 && CropGrowthOps.PerSettlement(SeasonKind.Winter) == 5
                     && CropGrowthOps.RemainingSettlements(10 * 5, 10, SeasonKind.Spring) == 5,
                     "Winter ten turns retain half growth and spring needs five more turns");
@@ -83,6 +88,9 @@ namespace Landsong.ECS.Editor
                     var weather = em.GetComponentData<SeasonWeatherState>(root);
                     Check(weather.Initialized != 0 && weather.DayTurn == 1 && weather.Season == SeasonKind.Spring && weather.Temperature == 8, "New game starts spring day 1 at base temperature");
                     var settings = em.GetComponentData<SeasonWeatherSettings>(root);
+                    var lightRainDays = 0;
+                    var mediumRainDays = 0;
+                    var heavyRainDays = 0;
                     for (var turn = 2; turn <= 201; turn++)
                     {
                         var clock = em.GetComponentData<GameClock>(root);
@@ -95,20 +103,51 @@ namespace Landsong.ECS.Editor
                             && weather.Temperature >= settings.MinimumTemperature[index]
                             && weather.Temperature <= settings.MaximumTemperature[index]
                             && (weather.Weather != WeatherKind.Snow || weather.Temperature < 0)
-                            && (weather.Weather != WeatherKind.Rain || weather.Temperature >= 0), "Daily state " + turn);
+                            && (!WeatherKindOps.IsRain(weather.Weather) || weather.Temperature >= 0), "Daily state " + turn);
+                        if (weather.Weather == WeatherKind.LightRain) lightRainDays++;
+                        if (weather.Weather == WeatherKind.Rain) mediumRainDays++;
+                        if (weather.Weather == WeatherKind.HeavyRain) heavyRainDays++;
                     }
-                    weather.Weather = WeatherKind.Rain;
-                    weather.DayElapsed = 0;
-                    weather.NextThunderAt = 1;
-                    weather.LightningLimit = 3;
-                    weather.LightningCount = 0;
-                    em.SetComponentData(root, weather);
+                    Check(lightRainDays > 0 && mediumRainDays > 0 && heavyRainDays > 0,
+                        "Daily precipitation generation reaches all three rain tiers");
+                    foreach (var rainKind in new[] { WeatherKind.LightRain, WeatherKind.Rain, WeatherKind.HeavyRain })
+                    {
+                        UI_DebugPanel_Weather.ApplyWeather(em, root, rainKind);
+                        var rainDay = em.GetComponentData<SeasonWeatherState>(root);
+                        Check(rainDay.Weather == rainKind && rainDay.Temperature >= 0 && rainDay.LightningLimit >= 1
+                            && SnapshotCodec.Decode(em, root, SnapshotCodec.Capture(em, root)).Weather.Weather == rainKind,
+                            "Debug rain tier updates lightning eligibility and survives v35 save/load: " + rainKind);
+                    }
                     em.SetComponentData(root, new LightningViewport());
-                    LightningOps.Tick(em, root, 1);
-                    Check(em.GetBuffer<LightningVisualEvent>(root).Length == 1
-                        && em.GetBuffer<LightningVisualEvent>(root)[0].Kind == LightningVisualKind.Flash
+                    foreach (var rainKind in new[] { WeatherKind.LightRain, WeatherKind.Rain, WeatherKind.HeavyRain })
+                    {
+                        weather = em.GetComponentData<SeasonWeatherState>(root);
+                        weather.Weather = rainKind;
+                        weather.DayElapsed = 0;
+                        weather.NextThunderAt = 1;
+                        weather.LightningLimit = 3;
+                        weather.LightningCount = 0;
+                        em.SetComponentData(root, weather);
+                        em.GetBuffer<LightningVisualEvent>(root).Clear();
+                        LightningOps.Tick(em, root, 1);
+                        Check(em.GetBuffer<LightningVisualEvent>(root).Length == 1
+                            && em.GetBuffer<LightningVisualEvent>(root)[0].Kind == LightningVisualKind.Flash
+                            && em.GetComponentData<SeasonWeatherState>(root).LightningCount == 0,
+                            "Off-map thunder remains scheduled for rain tier " + rainKind);
+                    }
+                    var debugVisuals = em.GetBuffer<LightningVisualEvent>(root);
+                    debugVisuals.Clear();
+                    LightningOps.DebugThunder(em, root);
+                    Check(debugVisuals.Length == 1 && debugVisuals[0].Kind == LightningVisualKind.Flash
                         && em.GetComponentData<SeasonWeatherState>(root).LightningCount == 0,
-                        "Off-map thunder flashes without consuming a strike");
+                        "Debug thunder flashes without consuming the daily lightning quota");
+                    LightningOps.Tick(em, root, 0);
+                    Check(debugVisuals.Length == 1 && debugVisuals[0].Kind == LightningVisualKind.Flash,
+                        "Simulation update preserves a pending thunder cue until presentation consumes it");
+                    debugVisuals.Clear();
+                    Check(!LightningOps.DebugStrike(em, root, 17) && debugVisuals.Length == 1
+                        && debugVisuals[0].Kind == LightningVisualKind.Flash,
+                        "Debug lightning falls back to thunder when the camera contains no map");
                     var snapshot = SnapshotCodec.Capture(em, root);
                     var restored = SnapshotCodec.Decode(em, root, snapshot);
                     Check(restored.Weather.DayTurn == em.GetComponentData<SeasonWeatherState>(root).DayTurn
@@ -221,6 +260,7 @@ namespace Landsong.ECS.Editor
                             day.NextThunderAt = 1;
                             day.RandomState = Seed(ground);
                             em.SetComponentData(root, day);
+                            em.GetBuffer<LightningVisualEvent>(root).Clear();
                             LightningOps.Tick(em, root, 1);
                         }
                         Strike(true);
@@ -237,6 +277,18 @@ namespace Landsong.ECS.Editor
                         var struck = WorldQueries.Find(em, strike.Target);
                         Check(em.GetComponentData<BuildingFireState>(struck).Burning != 0, "Targeted building enters fire state");
                         BuildingFireOps.Extinguish(em, root, struck);
+                        var debugDay = em.GetComponentData<SeasonWeatherState>(root);
+                        debugDay.Weather = WeatherKind.Sunny;
+                        debugDay.LightningLimit = debugDay.LightningCount = 0;
+                        em.SetComponentData(root, debugDay);
+                        em.GetBuffer<LightningVisualEvent>(root).Clear();
+                        uint groundSeed = 1;
+                        while (new Unity.Mathematics.Random(groundSeed).NextBool() == false) groundSeed++;
+                        Check(LightningOps.DebugStrike(em, root, groundSeed)
+                            && em.GetBuffer<LightningVisualEvent>(root).Length == 1
+                            && em.GetBuffer<LightningVisualEvent>(root)[0].Kind == LightningVisualKind.Ground
+                            && em.GetComponentData<SeasonWeatherState>(root).LightningCount == 0,
+                            "Debug lightning lands inside the camera even in sunshine without using the quota");
                     }
                     finally { UnityEngine.Object.DestroyImmediate(cameraObject); }
                     weather = em.GetComponentData<SeasonWeatherState>(root);
@@ -349,6 +401,11 @@ namespace Landsong.ECS.Editor
                     {
                         SceneManager.MoveGameObjectToScene(visualCamera, scene);
                         var camera = visualCamera.AddComponent<Camera>();
+                        camera.orthographic = true;
+                        camera.orthographicSize = 100;
+                        camera.aspect = 16f / 9f;
+                        camera.transform.position = (Vector3)EntityState.Position(em, fireTarget) + Vector3.up * 30;
+                        camera.transform.rotation = Quaternion.Euler(90, 0, 0);
                         Check(SceneManager.GetActiveScene() != camera.gameObject.scene,
                             "Weather test camera is outside the active loading scene");
                         using var visual = new WeatherPresentationController(camera);
@@ -356,6 +413,40 @@ namespace Landsong.ECS.Editor
                             .GetField("root", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(visual);
                         Check(visualRoot.scene == camera.gameObject.scene,
                             "Weather placeholders belong to the camera scene instead of the active loading scene");
+                        var cues = em.GetBuffer<LightningVisualEvent>(root);
+                        cues.Clear();
+                        cues.Add(new LightningVisualEvent { Kind = LightningVisualKind.Flash });
+                        var effectDay = em.GetComponentData<SeasonWeatherState>(root);
+                        effectDay.Season = SeasonKind.Spring;
+                        effectDay.Weather = WeatherKind.Sunny;
+                        visual.Tick(effectDay, true, .016f, cues);
+                        var flashImage = (RawImage)typeof(WeatherPresentationController)
+                            .GetField("flash", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(visual);
+                        Check(flashImage.texture == Texture2D.whiteTexture && flashImage.color.a > .8f && cues.Length == 0,
+                            "Thunder draws a visible full-screen flash and consumes the visual cue");
+                        visual.Tick(effectDay, true, .2f, cues);
+                        visual.Tick(effectDay, true, .5f, cues);
+                        Check(flashImage.color.a == 0,
+                            "Thunder flash fades with unscaled time while the simulation is paused");
+                        cues.Add(new LightningVisualEvent
+                        {
+                            Kind = LightningVisualKind.Ground,
+                            Position = EntityState.Position(em, fireTarget),
+                        });
+                        visual.Tick(effectDay, true, .016f, cues);
+                        var fallingBolt = visualRoot.transform.Find("Falling Lightning Placeholder");
+                        Check(fallingBolt != null && fallingBolt.GetComponent<LineRenderer>() != null
+                            && fallingBolt.Find("Arc Trail Particles")?.GetComponent<ParticleSystem>() != null
+                            && fallingBolt.Find("Impact Spark Particles")?.GetComponent<ParticleSystem>() != null,
+                            "Landing creates a falling bolt with arc and impact particle systems");
+                        var visibleBolt = fallingBolt.GetComponent<LineRenderer>();
+                        var firstTipHeight = camera.WorldToViewportPoint(visibleBolt.GetPosition(visibleBolt.positionCount - 1)).y;
+                        visual.Tick(effectDay, true, .10f, cues);
+                        Check(camera.WorldToViewportPoint(visibleBolt.GetPosition(visibleBolt.positionCount - 1)).y < firstTipHeight,
+                            "Lightning tip visibly travels downward toward the target");
+                        visual.Tick(effectDay, true, .08f, cues);
+                        Check(fallingBolt.Find("Impact Spark Particles").GetComponent<ParticleSystem>().particleCount > 0,
+                            "Lightning arrival emits impact sparks");
                         var states = new[] { SeasonKind.Spring, SeasonKind.Summer, SeasonKind.Autumn, SeasonKind.Winter };
                         var profiles = new VolumeProfile[4];
                         for (var i = 0; i < states.Length; i++)
@@ -363,10 +454,54 @@ namespace Landsong.ECS.Editor
                             var day = em.GetComponentData<SeasonWeatherState>(root);
                             day.Season = states[i];
                             day.Weather = i == 0 ? WeatherKind.Rain : i == 3 ? WeatherKind.Snow : WeatherKind.Sunny;
+                            day.Wind = WindKind.Strong;
+                            day.WindDegrees = 90;
+                            if (i == 3) camera.orthographicSize = 100;
                             visual.Tick(day, false, .016f, em.GetBuffer<LightningVisualEvent>(root));
                             profiles[i] = visualRoot.GetComponent<Volume>().sharedProfile;
-                            if (i == 0) Check(visualRoot.transform.Find("Rain").gameObject.activeSelf, "Rain placeholder emits in rain");
-                            if (i == 3) Check(visualRoot.transform.Find("Snow").gameObject.activeSelf, "Snow placeholder emits in snow");
+                            if (i == 0)
+                            {
+                                var rainParticles = visualRoot.transform.Find("Rain").GetComponent<ParticleSystem>();
+                                Check(rainParticles.gameObject.activeSelf, "Rain placeholder emits in rain");
+                                Check(Mathf.Approximately(rainParticles.emission.rateOverTime.constant, 450f),
+                                    "Medium rain keeps the original particle density");
+                                day.Weather = WeatherKind.LightRain;
+                                visual.Tick(day, false, .016f, em.GetBuffer<LightningVisualEvent>(root));
+                                Check(rainParticles.gameObject.activeSelf
+                                    && Mathf.Approximately(rainParticles.emission.rateOverTime.constant, 180f),
+                                    "Light rain has a lower particle density");
+                                day.Weather = WeatherKind.HeavyRain;
+                                visual.Tick(day, false, .016f, em.GetBuffer<LightningVisualEvent>(root));
+                                Check(rainParticles.gameObject.activeSelf
+                                    && Mathf.Approximately(rainParticles.emission.rateOverTime.constant, 900f),
+                                    "Heavy rain has a higher particle density");
+                                day.Weather = WeatherKind.Rain;
+                                visual.Tick(day, false, .016f, em.GetBuffer<LightningVisualEvent>(root));
+                                var wideShape = rainParticles.shape.scale;
+                                Check(rainParticles.main.simulationSpace == ParticleSystemSimulationSpace.Local
+                                    && wideShape.x > 2 * camera.orthographicSize * camera.aspect
+                                    && wideShape.y > 2 * camera.orthographicSize,
+                                    "Rain camera-space emitter covers a zoomed-out 16:9 viewport");
+                                Check(rainParticles.velocityOverLifetime.x.constant > 0,
+                                    "Rain projects eastward world wind into rightward screen drift");
+                                day.WindDegrees = 270;
+                                visual.Tick(day, false, .016f, em.GetBuffer<LightningVisualEvent>(root));
+                                Check(rainParticles.velocityOverLifetime.x.constant < 0,
+                                    "Reversed world wind reverses rain screen drift");
+                                camera.orthographicSize = 5;
+                                visual.Tick(day, false, .016f, em.GetBuffer<LightningVisualEvent>(root));
+                                Check(rainParticles.shape.scale.x < wideShape.x * .2f,
+                                    "Rain emitter contracts with camera zoom while emission remains fixed");
+                            }
+                            if (i == 3)
+                            {
+                                var snowParticles = visualRoot.transform.Find("Snow").GetComponent<ParticleSystem>();
+                                Check(snowParticles.gameObject.activeSelf, "Snow placeholder emits in snow");
+                                Check(snowParticles.shape.scale.x > 2 * camera.orthographicSize * camera.aspect
+                                    && snowParticles.shape.scale.y > 2 * camera.orthographicSize
+                                    && snowParticles.velocityOverLifetime.x.constant > 0,
+                                    "Snow covers the zoomed-out viewport and follows world wind");
+                            }
                         }
                         Check(profiles.Distinct().Count() == 4, "Four seasons have distinct URP postprocess profiles");
                     }

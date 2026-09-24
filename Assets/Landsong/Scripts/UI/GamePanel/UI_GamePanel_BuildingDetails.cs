@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
+using Unity.Mathematics;
 using Landsong.Content;
 using TMPro;
 using UnityEngine;
@@ -45,6 +46,10 @@ namespace Landsong.ECS.Presentation
         public Button Style;
         [LabelText("升级"), Required]
         public Button Upgrade;
+        [LabelText("移动建筑"), Required]
+        public Button Move;
+        [LabelText("拆除建筑"), Required]
+        public Button Demolish;
         [LabelText("警告"), Required]
         public Button Warning;
         [LabelText("经验悬浮信息"), Required]
@@ -72,7 +77,6 @@ namespace Landsong.ECS.Presentation
         Component sidebarOwner;
         Func<string> sidebarContent;
         float sidebarHideAt, sidebarRefreshAt;
-        bool sidebarHovered;
         public ulong BuildingId { get; private set; }
 
         string warningText;
@@ -178,18 +182,10 @@ namespace Landsong.ECS.Presentation
                 HideSidebar();
         }
 
-        public void SetSidebarHovered(bool value)
-        {
-            sidebarHovered = value;
-            if (!value)
-                sidebarHideAt = Time.unscaledTime + .18f;
-        }
-
         public void HideSidebar()
         {
             sidebarOwner = null;
             sidebarContent = null;
-            sidebarHovered = false;
             sidebarHideAt = 0;
             if (Sidebar != null)
                 Sidebar.SetActive(false);
@@ -204,7 +200,7 @@ namespace Landsong.ECS.Presentation
                 return;
             }
 
-            if (!sidebarOwner.gameObject.activeInHierarchy || sidebarContent == null || (!sidebarHovered && sidebarHideAt > 0 && Time.unscaledTime >= sidebarHideAt))
+            if (!sidebarOwner.gameObject.activeInHierarchy || sidebarContent == null || (sidebarHideAt > 0 && Time.unscaledTime >= sidebarHideAt))
             {
                 HideSidebar();
                 return;
@@ -235,12 +231,13 @@ namespace Landsong.ECS.Presentation
         internal IGameUiNavigation navigation;
         internal GameUiSessionHandle sessionController;
         internal UI_GamePanel_Soldier soldierController;
+        internal UI_GamePanel_WorldInteraction worldController;
         internal IGameBuildingUi buildingUi;
         bool isOpen;
         public RectTransform DetailsRows => Block<UI_GamePanel_BuildingDetails_Block_其他>().Rows;
         public bool IsOpen => isOpen;
 
-        internal void BindPresenter(GameUiSessionHandle session, GameUiCommandWriter commands, IGameUiNavigation navigation, IGameBuildingUi buildingUi, UI_GamePanel_Court court, UI_GamePanel_Hud hud, UI_GamePanel_Soldier soldier)
+        internal void BindPresenter(GameUiSessionHandle session, GameUiCommandWriter commands, IGameUiNavigation navigation, IGameBuildingUi buildingUi, UI_GamePanel_Court court, UI_GamePanel_Hud hud, UI_GamePanel_Soldier soldier, UI_GamePanel_WorldInteraction world)
         {
             sessionController = session ?? throw new ArgumentNullException(nameof(session));
             commandsController = commands ?? throw new ArgumentNullException(nameof(commands));
@@ -250,11 +247,19 @@ namespace Landsong.ECS.Presentation
             courtController = court ?? throw new ArgumentNullException(nameof(court));
             hudController = hud ?? throw new ArgumentNullException(nameof(hud));
             soldierController = soldier ?? throw new ArgumentNullException(nameof(soldier));
+            worldController = world ?? throw new ArgumentNullException(nameof(world));
         }
 
         internal void Initialize()
         {
             Close.onClick.AddListener(() => Hide());
+            Move.onClick.AddListener(() =>
+            {
+                worldController.BeginMoveBuilding();
+                if (worldController.HasBuildingPlacement)
+                    Hide();
+            });
+            Demolish.onClick.AddListener(ConfirmDemolition);
             Name.onEndEdit.AddListener(value =>
             {
                 if (BuildingId != 0)
@@ -270,6 +275,8 @@ namespace Landsong.ECS.Presentation
                 return;
             isOpen = true;
             gameObject.SetActive(true);
+            RefreshBuildingCard(selected);
+            Block<UI_GamePanel_BuildingDetails_Block_其他>().Refresh(selected);
             refresh.NextPanel = 0;
         }
 
@@ -344,6 +351,9 @@ namespace Landsong.ECS.Presentation
                 buildingUi.ConfirmBuildingCommand(CommandKind.Upgrade);
             });
             card.Upgrade.image.color = can && upgrade.Allowed ? new Color(.2f, .4f, .66f) : new Color(.34f, .36f, .36f);
+            card.Move.gameObject.SetActive(session.Phase == Phase.Day && b.Stage == LifeStage.Operational);
+            card.Move.interactable = BuildingPlacementCommands.CheckMove(sessionController.em, sessionController.root, entity).Allowed;
+            card.Demolish.gameObject.SetActive(session.Phase == Phase.Day && stats.IsCore == 0);
             baseOutputBlock.Refresh(entity);
             card.ExperienceHover.Refresh(entity);
             card.Block<UI_GamePanel_BuildingDetails_Block_驻军>().Refresh(entity);
@@ -443,6 +453,44 @@ namespace Landsong.ECS.Presentation
             }
 
             return string.Join("\n", warnings.Distinct().Select(w => "• " + w));
+        }
+
+        void ConfirmDemolition()
+        {
+            var entity = WorldQueries.Find(sessionController.em, worldSelection.SelectedEntityId);
+            if (entity == Entity.Null || !sessionController.em.HasComponent<Building>(entity) ||
+                sessionController.em.GetComponentData<BuildingHousingStats>(entity).IsCore != 0 ||
+                sessionController.em.GetComponentData<Session>(sessionController.root).Phase != Phase.Day)
+                return;
+
+            var id = sessionController.em.GetComponentData<Identity>(entity);
+            var workforce = sessionController.em.GetComponentData<BuildingWorkforceState>(entity);
+            var housing = sessionController.em.GetComponentData<BuildingHousingState>(entity);
+            var lines = new List<string> { "此操作删除建筑。修复投入不返还，按已支付建造/升级成本计算返还。" };
+            foreach (var slot in sessionController.em.GetBuffer<InventorySlot>(sessionController.root))
+                if (slot.Provider == id.Id && slot.Count > 0)
+                    lines.Add("原库存损失：" + ItemName(slot.Item) + " × " + slot.Count);
+            foreach (var refund in BuildingCostOps.DemolitionRefund(sessionController.em, sessionController.root, entity))
+                lines.Add($"返还 {ItemName(refund.Item)} × {refund.Amount}：存入 {refund.Stored}，空间不足损失 {refund.Lost}");
+            var soldiers = GarrisonOps.GarrisonCount(sessionController.em, id.Id);
+            var empty = 0;
+            using (var buildings = WorldQueries.Entities<Building>(sessionController.em))
+                foreach (var other in buildings)
+                    if (other != entity && BuildingStatus.Operational(sessionController.em, other))
+                        empty += math.max(0, sessionController.em.GetComponentData<BuildingGarrisonStats>(other).Capacity - GarrisonOps.GarrisonCount(sessionController.em, sessionController.em.GetComponentData<Identity>(other).Id));
+            if (soldiers > 0)
+                lines.Add($"{soldiers} 名士兵转待分配池；其他驻地空槽 {empty}，下一次入夜前未安排将解散。");
+            if (workforce.Workers > 0)
+                lines.Add(workforce.Workers + " 名工人失业。");
+            if (housing.Population > 0)
+                lines.Add("住宅中的 " + housing.Population + " 人将损失，请确认人口后果。");
+            if (sessionController.em.GetComponentData<BuildingSanctumStats>(entity).Hero.IsValid)
+                lines.Add("已招募的关联英雄死亡、经验清零并进入重招冷却。");
+            if (WorkforceSettlement.Locked(sessionController.em, id.Id))
+                lines.Add("在途远征将终止，进度、携带物资和奖励不保留。");
+
+            buildingUi.ShowBuildingConfirmation("拆除 " + id.Name, lines,
+                () => worldController.SubmitBuilding(new DemolishBuildingRequest { Building = id.Id }));
         }
 
         internal void BuildingSkins(ulong key)

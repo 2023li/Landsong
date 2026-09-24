@@ -73,7 +73,7 @@ namespace Landsong.ECS.Presentation
                 view.Buildings.SelectBuilding(key);
                 view.Buildings.FocusBuilding(key); // The first buildable fixture cell can be outside the initial camera view.
                 yield return WaitFor(() => view.Buildings.BuildingActionBar.gameObject.activeSelf && !view.BuildingDetails.gameObject.activeSelf, "Selecting building opens only its world-anchored action bar");
-                view.Buildings.BuildingDetailsButton.onClick.Invoke();
+                view.Buildings.ActionButton("details").onClick.Invoke();
                 yield return WaitFor(() => view.BuildingDetails.gameObject.activeSelf && view.BuildingDetails.BuildingId == key, "Action bar details button opens redesigned detail card");
                 var card = view.BuildingDetails;
                 var baseOutput = card.Block<UI_GamePanel_BuildingDetails_Block_基础产出>();
@@ -320,7 +320,7 @@ namespace Landsong.ECS.Presentation
                         grants.RemoveAt(i);
                 BuildingBlueprints.Grant(em, root, warehouseDef, 1);
                 view.Buildings.SelectBuilding(warehouseId);
-                view.Buildings.BuildingDetailsButton.onClick.Invoke();
+                view.Buildings.ActionButton("details").onClick.Invoke();
                 yield return new WaitForSecondsRealtime(.3f);
                 card.Upgrade.onClick.Invoke();
                 Require(!view.Buildings.BuildingConfirmPanel.activeSelf && view.Hud.Message.text.Contains("下一等级蓝图"), "Full XP without higher blueprint stays gray and explains missing blueprint");
@@ -360,7 +360,7 @@ namespace Landsong.ECS.Presentation
                 Require(!view.BuildingDetails.gameObject.activeSelf && !card.Sidebar.activeSelf, "Building detail X remains closed across refresh and clears its sidebar");
                 Require(view.Quests.QuestTracking.gameObject.activeInHierarchy, "Closing building details restores quest HUD during idle day without another command");
                 view.Buildings.SelectBuilding(warehouseId);
-                view.Buildings.BuildingDetailsButton.onClick.Invoke();
+                view.Buildings.ActionButton("details").onClick.Invoke();
                 yield return new WaitForSecondsRealtime(.3f);
                 Require(view.BuildingDetails.gameObject.activeSelf && !view.Quests.QuestTracking.gameObject.activeSelf, "Reopened building details hide quest tracking again");
                 for (int i = 0; i < 4 && view.Buildings.CancelBuildingInteraction(); i++)

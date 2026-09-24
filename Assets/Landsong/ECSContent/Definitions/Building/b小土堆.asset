@@ -20,11 +20,32 @@ MonoBehaviour:
   LimitGroup: {fileID: 11400000, guid: 627d6b6effb2bfe4ea2a996867a86265, type: 2}
   MaximumLevel: 1
   ConstructionTurns: 1
-  ResourceConnectionActionPower: 100
+  ResourceConnectionActionPower: 0
   MaximumCount: 0
   Footprint: {x: 1, y: 1}
   MaximumDurability: 100
   MovementCost: 0
+  DefenseStats:
+    MaximumHealth: 100
+    Damage: 10
+    AttackRange: 1.4
+    AttackIntervalSeconds: 1
+    MovementSpeed: 0
+    ProjectileSpeed: 10
+    Profile:
+      DetectionRadius: 24
+      ChaseRadius: 12
+      ChaseSeconds: 8
+      BodyRadius: 0.35
+      Armor: 0
+      Reduction: 0
+      Penetration: 0
+      BlastRadius: 0
+      WarningSeconds: 0
+      ProjectileLifetime: 10
+      ProjectileMode: 0
+      Traits: 0
+      BlocksProjectile: 0
   PlacementAndVisuals:
     Category: 4
     SpawnExclusionPadding: 6
@@ -35,7 +56,7 @@ MonoBehaviour:
     MoveMaterialRatio: 0.3
     MoveExperienceRatio: 0.3
     RuinMovementCost: 4
-    DefaultSkin:
+    DefaultSkin: 
   Capabilities:
     Construction:
       Enabled: 0
@@ -97,6 +118,9 @@ MonoBehaviour:
       Levels: []
     Farming:
       Enabled: 0
+      RequiredWorkers: 0
+      FullCycleBonusWorkers: 0
+      FullCycleYieldBonusPercent: 0
       Crops: []
     Gathering:
       Enabled: 1
@@ -128,24 +152,3 @@ MonoBehaviour:
       Enabled: 0
       Levels: []
   Prefab: {fileID: 1566282154112085092, guid: e4665b31391dd4b4f9f68e01bc5371c2, type: 3}
-  DefenseStats:
-    MaximumHealth: 100
-    Damage: 10
-    AttackRange: 1.4
-    AttackIntervalSeconds: 1
-    MovementSpeed: 0
-    ProjectileSpeed: 10
-    Profile:
-      DetectionRadius: 24
-      ChaseRadius: 12
-      ChaseSeconds: 8
-      BodyRadius: 0.35
-      Armor: 0
-      Reduction: 0
-      Penetration: 0
-      BlastRadius: 0
-      WarningSeconds: 0
-      ProjectileLifetime: 10
-      ProjectileMode: 0
-      Traits: 0
-      BlocksProjectile: 0

@@ -49,7 +49,17 @@ namespace Landsong.ECS.Presentation
                 }
 
                 var model = bar.Models.Single(m => m.Definition == warehouse);
-                Require(model.Tooltip.Contains("放置成本") && model.Tooltip.Contains("每回合消耗") && model.Name == BuildingDefinitions.Get(em, root, warehouse).Metadata.Name.ToString(), "Tooltip contains canonical building name and both cost stages");
+                var description = view.Buildings.BuildingSource(warehouse).Description.Trim();
+                Require(model.Tooltip.StartsWith(model.Name + "\n" + description + "\n\n放置消耗：" + view.Buildings.CostText(BuildingPlacementCommands.CheckBuild(em, root, warehouse).Costs), StringComparison.Ordinal) &&
+                    model.Name == BuildingDefinitions.Get(em, root, warehouse).Metadata.Name.ToString(), "Tooltip starts with building name, description and placement costs");
+                var previousCost = model.Tooltip.IndexOf("放置消耗：", StringComparison.Ordinal);
+                for (var turn = 1; turn <= BuildingDefinitions.Get(em, root, warehouse).ConstructionTurns; turn++)
+                {
+                    var stage = "第" + turn + "回合消耗：" + view.Buildings.CostText(BuildingCostOps.ConstructionStage(em, root, warehouse, turn));
+                    var position = model.Tooltip.IndexOf(stage, StringComparison.Ordinal);
+                    Require(position > previousCost, "Tooltip lists actual construction cost for turn " + turn);
+                    previousCost = position;
+                }
                 var card = bar.CardButton(warehouse);
                 ExecuteEvents.Execute(card.gameObject, new PointerEventData(EventSystem.current), ExecuteEvents.pointerEnterHandler);
                 Require(bar.Tooltip.gameObject.activeSelf && bar.TooltipText.text == model.Tooltip, "Pointer hover opens TMP tooltip");

@@ -8,6 +8,7 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
+  - component: {fileID: 1285735762}
   - component: {fileID: 920000000000100022}
   - component: {fileID: 920000000000100023}
   - component: {fileID: 920000000000100024}
@@ -22,42 +23,15 @@ GameObject:
   - component: {fileID: 920000000000100033}
   - component: {fileID: 920000000000100034}
   - component: {fileID: 920000000000100036}
-  - component: {fileID: 1285735762}
   - component: {fileID: 1285735761}
   - component: {fileID: 335903471901785243}
   m_Layer: 0
-  m_Name: GameWorld
+  m_Name: GameWorldTemplate
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1285735761
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1285735760}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 42bc49d1353a48a1b15912d5c7cb714f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.GameWorldTemplateAuthoring
-  Weather:
-    SpringRain: 45
-    SummerRain: 25
-    AutumnRain: 30
-    WinterRain: 35
-    SpringTemperature: {x: 8, y: -5, z: 20}
-    SummerTemperature: {x: 25, y: 15, z: 35}
-    AutumnTemperature: {x: 8, y: -5, z: 20}
-    WinterTemperature: {x: -5, y: -15, z: 5}
-    WarmingPercent: {x: 50, y: 65, z: 50, w: 35}
-    WindPercent: {x: 10, y: 45, z: 35, w: 10}
-  FirefighterSpeed: 1.6
-  FireStation: {fileID: 11400000, guid: 9b7d6dda6fe745aeac312a135bdc202b, type: 2}
-  ThunderTemple: {fileID: 11400000, guid: 6e7baab3d00847498386dc71e0ea641d, type: 2}
 --- !u!4 &1285735762
 Transform:
   m_ObjectHideFlags: 0
@@ -83,7 +57,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e9f3a02ccf5741de819bb00344dffc66, type: 3}
-  m_Name: ''
+  m_Name: 
   m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.NightSettingsAuthoring
 --- !u!114 &920000000000100023
 MonoBehaviour:
@@ -95,7 +69,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b06332c4b22046019817e7a9ebb830bb, type: 3}
-  m_Name: ''
+  m_Name: 
   m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.IntelligenceSettingsAuthoring
   Settings:
     LowIntel: 1
@@ -113,7 +87,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f5ecd980a9a84a8dbca66aec55989183, type: 3}
-  m_Name: ''
+  m_Name: 
   m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.RoyalFamilySettingsAuthoring
   Settings:
     MaxChildren: 8
@@ -129,7 +103,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d282d23629f74f819bc34dc7582c267a, type: 3}
-  m_Name: ''
+  m_Name: 
   m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.TalentSettingsAuthoring
   Settings:
     TalentCapacity: 8
@@ -145,15 +119,31 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f36189ba45d04595877849534676305f, type: 3}
-  m_Name: ''
+  m_Name: 
   m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.QuestGenerationSettingsAuthoring
   Settings:
     StrengthStep: 10
     MarketValuePerStrength: 100
-    Low: {x: 100, y: 35, z: 8, w: 1}
-    Medium: {x: 45, y: 100, z: 35, w: 8}
-    High: {x: 12, y: 45, z: 100, w: 35}
-    Maximum: {x: 4, y: 15, z: 55, w: 100}
+    Low:
+      x: 100
+      y: 35
+      z: 8
+      w: 1
+    Medium:
+      x: 45
+      y: 100
+      z: 35
+      w: 8
+    High:
+      x: 12
+      y: 45
+      z: 100
+      w: 35
+    Maximum:
+      x: 4
+      y: 15
+      z: 55
+      w: 100
 --- !u!114 &920000000000100027
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -164,7 +154,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9ac1737689494dfca0dfaf47b2c94939, type: 3}
-  m_Name: ''
+  m_Name: 
   m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.ExpeditionSettingsAuthoring
   Settings:
     PenaltyTurns: 5
@@ -179,15 +169,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2b329857cbe84a07808eac805077dfaf, type: 3}
-  m_Name: ''
+  m_Name: 
   m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.CourtSettingsAuthoring
   Settings:
-    ExpeditionRequestCooldown: 8
-    ExpeditionRequestChance: 0.08
-    MarriageRequestCooldown: 5
-    MarriageRequestChance: 0.12
-    MarriageRefusalGrievanceChance: 0.5
-    MarriageRefusalGrievance: 0.2
     MarriageAge: 18
     CaptainAge: 16
     GiftCost: 10
@@ -202,6 +186,12 @@ MonoBehaviour:
     VisitInterval: 5
     VisitDuration: 3
     VisitCost: 20
+    MarriageRequestCooldown: 5
+    ExpeditionRequestCooldown: 8
+    ExpeditionRequestChance: 0.08
+    MarriageRequestChance: 0.12
+    MarriageRefusalGrievanceChance: 0.5
+    MarriageRefusalGrievance: 0.2
     InitialOpinion: 50
     OpinionRecovery: 1
     DisorderOpinionCost: 5
@@ -239,7 +229,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4b8c7a98805b4d28bebab799ff0e627d, type: 3}
-  m_Name: ''
+  m_Name: 
   m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.NightRulesAuthoring
   Settings:
     WarningSeconds: 1
@@ -263,7 +253,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7e4abb1c7fdd4cff9614eb69f2359065, type: 3}
-  m_Name: ''
+  m_Name: 
   m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.PeacefulRulesAuthoring
   Settings:
     MaximumPerNight: 3
@@ -281,7 +271,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9a756ab97a644337b5a9cbff27b641bc, type: 3}
-  m_Name: ''
+  m_Name: 
   m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.CurrencyAuthoring
   Gold: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
 --- !u!114 &920000000000100032
@@ -294,7 +284,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6ca9650333174ea49897f8abfb7a9d62, type: 3}
-  m_Name: ''
+  m_Name: 
   m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.PortraitLibraryAuthoring
   Portraits: {fileID: 11400000, guid: c6ce5a3c11f94d3aab8e0bcb7d4c40c6, type: 2}
 --- !u!114 &920000000000100033
@@ -307,17 +297,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f7fbe968fe824f8e97e3e695233cfe30, type: 3}
-  m_Name: ''
+  m_Name: 
   m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.InitialRoyalFamilyAuthoring
   Family:
   - Name: "\u5F00\u56FD\u541B\u4E3B"
     Age: 20
     Role: 0
+    Gender: 0
     Traits:
     - {fileID: 11400000, guid: c235625b77497b1408fca541bf3aa5d0, type: 2}
   - Name: "\u5F00\u56FD\u914D\u5076"
     Age: 20
     Role: 1
+    Gender: 0
     Traits: []
 --- !u!114 &920000000000100034
 MonoBehaviour:
@@ -329,10 +321,22 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 628b687cd99946d2aaa2c1239e30c794, type: 3}
-  m_Name: ''
+  m_Name: 
   m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.StartingRewardsAuthoring
   Rewards:
-    Items: []
+    Items:
+    - Order: 0
+      Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+      Quantity: 1000
+    - Order: 1
+      Item: {fileID: 11400000, guid: 000df9efbc381134e832f667a32c9572, type: 2}
+      Quantity: 100
+    - Order: 2
+      Item: {fileID: 11400000, guid: a761334fe1641a74f9948313fb5ff413, type: 2}
+      Quantity: 100
+    - Order: 3
+      Item: {fileID: 11400000, guid: a927377c37e532b49af819fa89b72369, type: 2}
+      Quantity: 100
     Blueprints: []
     Buffs: []
     Features: []
@@ -346,9 +350,55 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 62b9696a6e854dda8fb6d84c967706be, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.GameContentSetAuthoring
   Content: {fileID: 11400000, guid: 3d3de3a616ae42fd93e3bfd46e3660b7, type: 2}
+--- !u!114 &1285735761
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1285735760}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42bc49d1353a48a1b15912d5c7cb714f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.GameWorldTemplateAuthoring
+  Weather:
+    SpringRain: 45
+    SummerRain: 25
+    AutumnRain: 30
+    WinterRain: 35
+    SpringTemperature:
+      x: 8
+      y: -5
+      z: 20
+    SummerTemperature:
+      x: 25
+      y: 15
+      z: 35
+    AutumnTemperature:
+      x: 8
+      y: -5
+      z: 20
+    WinterTemperature:
+      x: -5
+      y: -15
+      z: 5
+    WarmingPercent:
+      x: 50
+      y: 65
+      z: 50
+      w: 35
+    WindPercent:
+      x: 10
+      y: 45
+      z: 35
+      w: 10
+  FirefighterSpeed: 1.6
+  FireStation: {fileID: 11400000, guid: 9b7d6dda6fe745aeac312a135bdc202b, type: 2}
+  ThunderTemple: {fileID: 11400000, guid: 6e7baab3d00847498386dc71e0ea641d, type: 2}
 --- !u!114 &335903471901785243
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -359,7 +409,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3b70c0d1026808c4b90bc87d828ff8c2, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.TransportWorkerSettingsAuthoring
   Male: {fileID: 6014836599797353312, guid: 066593d18d5787341ad4da13060fecd8, type: 3}
   Female: {fileID: 462659231305028172, guid: 483fe0edaa223bf4b9e565fead7a0adc, type: 3}

@@ -91,8 +91,8 @@ namespace Landsong.ECS.Presentation
             yield return WaitFor(() => hud.gameObject.activeInHierarchy && view.Hud.heroButtons.TryGetValue(heroId, out var card) && card.Select.interactable, "Independent hero HUD available");
             Require(!view.Hud.HeroSelection.gameObject.activeSelf, "Hero selection bar excludes heroes that have not awakened");
             view.Hud.heroButtons[heroId].Select.onClick.Invoke();
-            yield return WaitFor(() => view.Buildings.SelectedBuildingId == siteId && view.Buildings.BuildingDetailsButton.gameObject.activeInHierarchy, "Sleeping portrait selects its temple");
-            view.Buildings.BuildingDetailsButton.onClick.Invoke();
+            yield return WaitFor(() => view.Buildings.SelectedBuildingId == siteId && view.Buildings.ActionButton("details")?.gameObject.activeInHierarchy == true, "Sleeping portrait selects its temple");
+            view.Buildings.ActionButton("details").onClick.Invoke();
             temple = WorldQueries.Find(em, siteId); // Night entry publishes rebuilt entities from its settlement transaction.
             Require(HeroOps.HeroAvailability(em, root, temple, true).Length == 0, "Hero wake fixture is available: " + HeroOps.HeroAvailability(em, root, temple, true));
             Button WakeButton() => view.BuildingDetails.DetailsRows.GetComponentsInChildren<Button>().FirstOrDefault(button => button.interactable && button.GetComponentInChildren<Text>()?.text == "唤醒英雄");

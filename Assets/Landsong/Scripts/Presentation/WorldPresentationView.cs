@@ -43,8 +43,17 @@ namespace Landsong.ECS.Presentation
             public float Remaining;
         }
 
+        sealed class PersistentParticleView
+        {
+            public GameObject Object;
+            public ParticleSystem[] Particles;
+            public bool Paused;
+            public float Remaining;
+        }
+
         readonly Dictionary<Entity, View> views = new Dictionary<Entity, View>();
-        readonly Dictionary<Entity, GameObject> fireMarkers = new Dictionary<Entity, GameObject>();
+        readonly Dictionary<Entity, PersistentParticleView> fireMarkers = new Dictionary<Entity, PersistentParticleView>();
+        readonly Dictionary<Entity, PersistentParticleView> constructionDust = new Dictionary<Entity, PersistentParticleView>();
         readonly Dictionary<Entity, quaternion> treeBaseRotations = new Dictionary<Entity, quaternion>();
         readonly List<Effect> effects = new List<Effect>();
         readonly Dictionary<Entity, (LifeStage stage, int level, int progress)> buildings = new Dictionary<Entity, (LifeStage, int, int)>();
@@ -70,10 +79,23 @@ namespace Landsong.ECS.Presentation
         public Material OverlayMaterial;
         [LabelText("世界表现根模板"), Required]
         public Transform WorldRootTemplate;
+        [LabelText("建筑起火粒子预制体"), Required]
+        public GameObject FirePrefab;
+        [LabelText("建筑火焰高度偏移"), MinValue(0)]
+        public float FireHeightOffset = 1.3f;
+        [LabelText("建筑火焰缩放"), MinValue(0.01f)]
+        public float FireScale = 1f;
+        [LabelText("施工烟尘粒子预制体"), Required]
+        public GameObject ConstructionDustPrefab;
+        [LabelText("施工烟尘高度偏移"), MinValue(0)]
+        public float ConstructionDustHeightOffset = .15f;
+        [LabelText("施工烟尘缩放"), MinValue(0.01f)]
+        public float ConstructionDustScale = 1f;
+        [LabelText("建筑切换烟尘时长（秒）"), MinValue(0.01f)]
+        public float ConstructionDustDuration = .5f;
         [LabelText("树木风摆参数")]
         public WindSwaySettings WindSway = new WindSwaySettings();
         MaterialPropertyBlock overlayProperties;
-        Material firePlaceholderMaterial;
         float windTime;
         MaterialPropertyBlock OverlayProperties => overlayProperties ??= new MaterialPropertyBlock();
         BuildingRangeOverlayView buildingRangeOverlay;
@@ -104,6 +126,10 @@ namespace Landsong.ECS.Presentation
         {
             if (WorldRootTemplate == null || presentation == null || Visuals == null || Effects == null || OverlayMesh == null || OverlayMaterial == null || !scene.IsValid() || !scene.isLoaded)
                 throw new InvalidOperationException("世界表现缺少根模板、模型/特效/叠加层配置、音频服务或所属场景配置。");
+            if (FirePrefab == null || FirePrefab.GetComponentInChildren<ParticleSystem>(true) == null)
+                throw new InvalidOperationException("世界表现缺少包含粒子系统的建筑起火预制体。");
+            if (ConstructionDustPrefab == null || ConstructionDustPrefab.GetComponentInChildren<ParticleSystem>(true) == null)
+                throw new InvalidOperationException("世界表现缺少包含粒子系统的施工烟尘预制体。");
             if (manager.World == null || !manager.World.IsCreated || simulation == Entity.Null || !manager.Exists(simulation) || !manager.HasComponent<SimulationReady>(simulation))
                 throw new InvalidOperationException("世界表现没有有效的游戏会话。");
             if (Visuals.Models == null || Effects.Cues == null)
@@ -170,9 +196,11 @@ namespace Landsong.ECS.Presentation
                 if (effect.Object != null)
                     Destroy(effect.Object.gameObject);
             foreach (var marker in fireMarkers.Values)
-                if (marker != null)
-                    Destroy(marker);
+                ReleasePersistentParticle(marker);
             fireMarkers.Clear();
+            foreach (var dust in constructionDust.Values)
+                ReleasePersistentParticle(dust);
+            constructionDust.Clear();
             effects.Clear();
             views.Clear();
             buildings.Clear();
@@ -182,9 +210,6 @@ namespace Landsong.ECS.Presentation
             stale.Clear();
             selections.Clear();
             modelDefinitions = null;
-            if (firePlaceholderMaterial != null)
-                Destroy(firePlaceholderMaterial);
-            firePlaceholderMaterial = null;
             windTime = 0;
             if (worldRoot != null)
                 Destroy(worldRoot.gameObject);
@@ -311,8 +336,11 @@ namespace Landsong.ECS.Presentation
                     if (isBuilding && key.Item1.ToString().StartsWith("b树木", StringComparison.Ordinal))
                         SwayTree(entity, id.Id, wind);
                     if (isBuilding)
-                        SetFireMarker(entity, em.HasComponent<BuildingFireState>(entity) && em.GetComponentData<BuildingFireState>(entity).Burning != 0, transform.Position);
-                    if (!selections.TryGetValue(entity, out var selection) || modelsChanged || !selection.key.Equals(key))
+                        SetPersistentParticle(entity, em.HasComponent<BuildingFireState>(entity) && em.GetComponentData<BuildingFireState>(entity).Burning != 0,
+                            transform.Position, paused, FirePrefab, FireHeightOffset, FireScale, fireMarkers, "Building Fire");
+                    bool hadSelection = selections.TryGetValue(entity, out var selection);
+                    bool visualStateChanged = hadSelection && !selection.key.Equals(key);
+                    if (!hadSelection || modelsChanged || visualStateChanged)
                     {
                         selection = (key, catalog.Select(key.Item1.ToString(), key.Item2, key.Item3, bAppearance.Skin.ToString()), isBuilding && BuildingRoadOps.IsRoad(em, root, em.GetComponentData<BuildingDefinitionRef>(entity).Definition));
                         selections[entity] = selection;
@@ -320,6 +348,11 @@ namespace Landsong.ECS.Presentation
 
                     var model = selection.model;
                     views.TryGetValue(entity, out var view);
+                    if (isBuilding && hadSelection && view != null && (visualStateChanged || view.Model != model))
+                    {
+                        var grid = em.GetComponentData<GridData>(root);
+                        PlayConstructionDust(entity, transform.Position, bPlacement.Size, grid.CellSize, paused);
+                    }
                     if (view != null && view.Model != model)
                     {
                         Destroy(view.Object);
@@ -398,11 +431,8 @@ namespace Landsong.ECS.Presentation
                     stale.Add(entity);
             foreach (var entity in stale)
             {
-                if (fireMarkers.TryGetValue(entity, out var marker))
-                {
-                    if (marker != null) Destroy(marker);
-                    fireMarkers.Remove(entity);
-                }
+                RemovePersistentParticle(entity, fireMarkers);
+                RemovePersistentParticle(entity, constructionDust);
                 if (views.TryGetValue(entity, out var removed))
                 {
                     Destroy(removed.Object);
@@ -415,6 +445,19 @@ namespace Landsong.ECS.Presentation
                 visitors.Remove(entity);
                 selections.Remove(entity);
             }
+
+            stale.Clear();
+            foreach (var pair in constructionDust)
+            {
+                var dust = pair.Value;
+                dust.Remaining -= dt;
+                if (dust.Object == null || dust.Remaining <= 0 || InterfaceSettings.Current.ReducedMotion)
+                    stale.Add(pair.Key);
+                else if (dust.Paused != paused)
+                    SetPersistentParticlePaused(dust, paused);
+            }
+            foreach (var entity in stale)
+                RemovePersistentParticle(entity, constructionDust);
 
             for (int i = effects.Count - 1; i >= 0; i--)
             {
@@ -455,45 +498,98 @@ namespace Landsong.ECS.Presentation
             em.SetComponentData(slot, transform);
         }
 
-        void SetFireMarker(Entity entity, bool burning, float3 position)
+        void SetPersistentParticle(Entity entity, bool enabled, float3 position, bool paused, GameObject prefab,
+            float heightOffset, float scale, Dictionary<Entity, PersistentParticleView> activeViews, string label)
         {
-            if (!burning)
+            if (!enabled)
             {
-                if (fireMarkers.TryGetValue(entity, out var existing))
+                RemovePersistentParticle(entity, activeViews);
+                return;
+            }
+            var worldPosition = (Vector3)position + Vector3.up * heightOffset;
+            if (activeViews.TryGetValue(entity, out var active) && active.Object != null)
+            {
+                active.Object.transform.position = worldPosition;
+                if (active.Paused != paused)
+                    SetPersistentParticlePaused(active, paused);
+                return;
+            }
+            var marker = Instantiate(prefab, worldPosition, Quaternion.identity, PresentationRoot);
+            marker.name = label + " · " + entity.Index;
+            marker.transform.localScale = prefab.transform.localScale * scale;
+            var view = new PersistentParticleView { Object = marker, Particles = marker.GetComponentsInChildren<ParticleSystem>(true) };
+            foreach (var particle in view.Particles)
+                particle.Play(true);
+            if (paused)
+                SetPersistentParticlePaused(view, true);
+            activeViews[entity] = view;
+        }
+
+        void PlayConstructionDust(Entity entity, float3 position, int2 footprint, float cellSize, bool paused)
+        {
+            RemovePersistentParticle(entity, constructionDust);
+            if (InterfaceSettings.Current.ReducedMotion)
+                return;
+            var marker = Instantiate(ConstructionDustPrefab, (Vector3)position + Vector3.up * ConstructionDustHeightOffset,
+                Quaternion.identity, PresentationRoot);
+            marker.name = "Building View Dust · " + entity.Index;
+            marker.transform.localScale = ConstructionDustPrefab.transform.localScale * ConstructionDustScale;
+            var dust = new PersistentParticleView
+            {
+                Object = marker,
+                Particles = marker.GetComponentsInChildren<ParticleSystem>(true),
+                Remaining = Mathf.Max(.01f, ConstructionDustDuration)
+            };
+            foreach (var particle in dust.Particles)
+            {
+                ConfigureConstructionDustFootprint(particle, footprint, cellSize);
+                particle.Play(true);
+            }
+            if (paused)
+                SetPersistentParticlePaused(dust, true);
+            constructionDust[entity] = dust;
+        }
+
+        public static void ConfigureConstructionDustFootprint(ParticleSystem particle, int2 footprint, float cellSize)
+        {
+            var shape = particle.shape;
+            shape.enabled = true;
+            shape.shapeType = ParticleSystemShapeType.Box;
+            var size = shape.scale;
+            var scale = particle.transform.lossyScale;
+            size.x = Mathf.Max(.01f, footprint.x * cellSize / Mathf.Max(.01f, Mathf.Abs(scale.x)));
+            size.z = Mathf.Max(.01f, footprint.y * cellSize / Mathf.Max(.01f, Mathf.Abs(scale.z)));
+            shape.scale = size;
+        }
+
+        static void SetPersistentParticlePaused(PersistentParticleView view, bool paused)
+        {
+            foreach (var particle in view.Particles)
+                if (particle != null)
                 {
-                    if (existing != null) Destroy(existing);
-                    fireMarkers.Remove(entity);
+                    if (paused) particle.Pause(true);
+                    else particle.Play(true);
                 }
+            view.Paused = paused;
+        }
+
+        void RemovePersistentParticle(Entity entity, Dictionary<Entity, PersistentParticleView> activeViews)
+        {
+            if (!activeViews.TryGetValue(entity, out var marker))
                 return;
-            }
-            if (fireMarkers.TryGetValue(entity, out var active) && active != null)
-            {
-                active.transform.position = (Vector3)position + Vector3.up * 1.3f;
+            ReleasePersistentParticle(marker);
+            activeViews.Remove(entity);
+        }
+
+        static void ReleasePersistentParticle(PersistentParticleView marker)
+        {
+            if (marker?.Object == null)
                 return;
-            }
-            if (firePlaceholderMaterial == null)
-            {
-                var shader = Shader.Find("Universal Render Pipeline/Unlit");
-                if (shader == null)
-                    return;
-                firePlaceholderMaterial = new Material(shader) { name = "Fire Placeholder" };
-                firePlaceholderMaterial.color = new Color(1f, .34f, .03f);
-            }
-            var marker = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            marker.name = "Fire Placeholder";
-            marker.transform.SetParent(PresentationRoot, false);
-            marker.transform.position = (Vector3)position + Vector3.up * 1.3f;
-            marker.transform.localScale = new Vector3(.35f, .65f, .35f);
-            var collider = marker.GetComponent<Collider>();
-            if (collider != null)
-                Destroy(collider);
-            marker.GetComponent<MeshRenderer>().sharedMaterial = firePlaceholderMaterial;
-            var light = marker.AddComponent<Light>();
-            light.type = LightType.Point;
-            light.color = new Color(1f, .38f, .05f);
-            light.intensity = 1.5f;
-            light.range = 3f;
-            fireMarkers[entity] = marker;
+            foreach (var particle in marker.Particles)
+                if (particle != null)
+                    particle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            marker.Object.SetActive(false);
+            Destroy(marker.Object);
         }
 
         FixedString128Bytes VisualIdentity(Entity entity)
