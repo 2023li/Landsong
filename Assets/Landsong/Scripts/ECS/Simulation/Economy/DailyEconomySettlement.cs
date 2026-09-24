@@ -45,6 +45,8 @@ namespace Landsong.ECS
                     SanctumOffering.Settle(em, root, e);
                 }
 
+                TransportWorkerOps.CloseDay(em, root);
+
                 ResourceNetworkOps.SettleMarkets(em, root);
                 InventoryDecay.Settle(em, root);
                 TurnSettlement.Settle(em, root);

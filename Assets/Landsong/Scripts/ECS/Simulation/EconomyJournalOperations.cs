@@ -99,6 +99,15 @@ namespace Landsong.ECS
         }
 
         public static void Note(EntityManager em, Entity root, FixedString128Bytes note) => Record(em, root, ItemId.None, 0, note: note);
+
+        // Material already left live inventory at worker spawn. Add its expense to the
+        // dusk bill without writing a second inventory history operation.
+        public static void RecordSettlementOnly(EntityManager em, Entity root, ItemId item, int delta)
+        {
+            var s = em.GetComponentData<EconomyJournalState>(root);
+            if (s.Recording == 0 || delta == 0) return;
+            em.GetBuffer<EconomyEntry>(root).Add(new EconomyEntry { Turn = s.Turn, Source = s.Source, SourceName = s.SourceName, Reason = s.Reason, Item = item, Delta = delta });
+        }
     }
 
     // Resource recipe transaction: rolled-back inputs/outputs must not leave phantom journal rows.

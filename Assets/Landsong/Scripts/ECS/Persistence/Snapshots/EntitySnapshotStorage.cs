@@ -16,6 +16,12 @@ namespace Landsong.ECS.Persistence
         // Stable disk tags only. Domain identity never uses these tags in gameplay.
         internal static void Capture(BinaryWriter writer, EntityManager em, Entity entity)
         {
+            if (em.HasComponent<WorkerCargoDrop>(entity))
+            {
+                writer.Write((byte)9);
+                WorkerCargoDropSnapshotStorage.Capture(writer, em, entity);
+                return;
+            }
             if (em.HasComponent<Firefighter>(entity))
             {
                 writer.Write((byte)8);
@@ -90,9 +96,11 @@ namespace Landsong.ECS.Persistence
                 case 6:
                     return PersonSnapshotStorage.Read(reader);
                 case 7:
-                    return TransportWorkerSnapshotStorage.Read(reader);
+                    return TransportWorkerSnapshotStorage.Read(reader, version);
                 case 8:
                     return FirefighterSnapshotStorage.Read(reader);
+                case 9:
+                    return WorkerCargoDropSnapshotStorage.Read(reader);
                 default:
                     throw new InvalidDataException("Unknown persistent entity domain");
             }
@@ -104,6 +112,8 @@ namespace Landsong.ECS.Persistence
             {
                 case FirefighterSnapshot value:
                     return FirefighterSnapshotStorage.Restore(em, root, value);
+                case WorkerCargoDropSnapshot value:
+                    return WorkerCargoDropSnapshotStorage.Restore(em, root, value);
                 case TransportWorkerSnapshot value:
                     return TransportWorkerSnapshotStorage.Restore(em, root, value);
                 case BuildingSnapshot value:

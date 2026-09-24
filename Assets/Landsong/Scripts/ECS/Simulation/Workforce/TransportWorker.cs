@@ -1,12 +1,13 @@
 using Unity.Entities;
 using Unity.Mathematics;
+using Landsong.ECS.Definitions;
 
 namespace Landsong.ECS
 {
     public enum TransportStage : byte { Delivering, Unloading, Returning, Loading, Sheltered, Dead }
 
     // One representative of the existing civilian population per resource connection.
-    // Cargo is presentation only; daily settlement remains the sole inventory writer.
+    // Construction cargo is reserved when the worker spawns and settled at dusk.
     public struct TransportWorker : IComponentData
     {
         public ulong Provider, Consumer;
@@ -14,8 +15,26 @@ namespace Landsong.ECS
         public int Turn, Trips;
         public float Remaining;
         public TransportStage Stage;
-        public byte Variant, Carrying, Retiring, DeathRecorded;
+        public byte Variant, Carrying, Retiring, DeathRecorded, Delivered, CargoAssigned, CargoSettled;
     }
+
+    [InternalBufferCapacity(2)]
+    public struct TransportCargo : IBufferElementData
+    {
+        public ItemId Item;
+        public int Amount;
+    }
+
+    [InternalBufferCapacity(0)]
+    public struct TransportDeliveryEvent : IBufferElementData
+    {
+        public ItemId Item;
+        public int Amount;
+        public float3 Position;
+    }
+
+    // Distinguishes refundable construction material from ordinary night rewards.
+    public struct WorkerCargoDrop : IComponentData { }
 
     public struct TransportWorkerSettings : IComponentData
     {

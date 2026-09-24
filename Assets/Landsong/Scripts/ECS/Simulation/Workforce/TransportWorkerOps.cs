@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Landsong.ECS.Definitions;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -25,6 +27,7 @@ namespace Landsong.ECS
             // Transport owns steering. No soldier definition, economic Soldier, or combat behaviour tree.
             em.RemoveComponent<TacticalState>(entity);
             EntityState.Set(em, entity, worker);
+            EntityState.Buffer<TransportCargo>(em, entity);
             return entity;
         }
 
@@ -32,6 +35,22 @@ namespace Landsong.ECS
         {
             var worker = em.GetComponentData<TransportWorker>(entity);
             if (worker.DeathRecorded != 0) return;
+            if (worker.CargoAssigned != 0 && worker.Delivered == 0)
+            {
+                using var cargo = em.GetBuffer<TransportCargo>(entity).ToNativeArray(Allocator.Temp);
+                var items = cargo.ToArray();
+                var position = EntityState.Position(em, entity);
+                if (NavigationOps.TryNearestOpen(em, root, position, 12, out var open)) position = open;
+                foreach (var item in items)
+                {
+                    if (LootDefinitions.Count(em, root) == 0) throw new System.InvalidOperationException("运输工人物资掉落缺少掉落预制体。");
+                    var drop = LootEntities.Spawn(em, root, LootId.FromIndex(0), position, true);
+                    EntityState.Set(em, drop, new Loot { Item = item.Item, Count = item.Amount, SourceName = "运输工人遗失物资" });
+                    EntityState.Set(em, drop, new WorkerCargoDrop());
+                    EntityState.Set(em, drop, new VisualState { Visible = 1 });
+                }
+                em.GetBuffer<TransportCargo>(entity).Clear();
+            }
             worker.DeathRecorded = 1;
             worker.Stage = TransportStage.Dead;
             worker.Carrying = 0;
@@ -83,15 +102,23 @@ namespace Landsong.ECS
                             worker.Stage = TransportStage.Unloading; worker.Remaining = settings.UnloadSeconds; break;
                         case TransportStage.Unloading:
                             worker.Remaining = math.max(0, worker.Remaining - dt);
-                            if (worker.Remaining <= 0) { worker.Stage = TransportStage.Returning; worker.Carrying = 0; worker.Trips++; }
+                            if (worker.Remaining <= 0)
+                            {
+                                worker.Stage = TransportStage.Returning; worker.Carrying = 0; worker.Trips++;
+                                if (worker.Delivered == 0)
+                                {
+                                    worker.Delivered = 1;
+                                    foreach (var cargo in em.GetBuffer<TransportCargo>(entity))
+                                        em.GetBuffer<TransportDeliveryEvent>(root).Add(new TransportDeliveryEvent { Item = cargo.Item, Amount = cargo.Amount, Position = worker.Destination });
+                                }
+                            }
                             break;
                         case TransportStage.Returning when Arrived(worker.Start):
-                            if (worker.Retiring != 0) { worker.Stage = TransportStage.Sheltered; worker.Carrying = 0; }
-                            else { worker.Stage = TransportStage.Loading; worker.Remaining = settings.LoadSeconds; }
+                            worker.Stage = TransportStage.Sheltered; worker.Carrying = 0;
                             break;
                         case TransportStage.Loading:
-                            worker.Remaining = math.max(0, worker.Remaining - dt);
-                            if (worker.Remaining <= 0) { worker.Stage = TransportStage.Delivering; worker.Carrying = 1; }
+                            // Older snapshots may contain the former repeat-trip state.
+                            worker.Stage = TransportStage.Sheltered; worker.Carrying = 0; worker.Remaining = 0;
                             break;
                     }
                     em.SetComponentData(entity, worker);
@@ -131,11 +158,61 @@ namespace Landsong.ECS
                 if (!Owned(em, root, consumer) || consumers.Contains(em.GetComponentData<Identity>(consumer).Id) || !NeedsConnection(em, root, consumer)) continue;
                 var provider = ResourceNetworkOps.Provider(em, root, consumer);
                 if (provider == Entity.Null || !Endpoints(em, root, provider, consumer, out var start, out var destination)) continue;
-                Spawn(em, root, new TransportWorker {
+                var b = em.GetComponentData<Building>(consumer);
+                var costs = b.Stage == LifeStage.Construction
+                    ? BuildingCostOps.ConstructionStage(em, root, em.GetComponentData<BuildingDefinitionRef>(consumer).Definition,
+                        em.GetComponentData<BuildingConstructionState>(consumer).Progress + 1)
+                    : null;
+                if (costs != null && !BuildingCostOps.CanPay(em, root, costs)) continue;
+                var spawned = Spawn(em, root, new TransportWorker {
                     Provider = em.GetComponentData<Identity>(provider).Id, Consumer = em.GetComponentData<Identity>(consumer).Id,
-                    Start = start, Destination = destination, Turn = turn, Stage = TransportStage.Delivering, Carrying = 1, Variant = (byte)(active % 2)
+                    Start = start, Destination = destination, Turn = turn, Stage = TransportStage.Delivering, Carrying = 1, Variant = (byte)(active % 2),
+                    CargoAssigned = (byte)(costs != null && costs.Count > 0 ? 1 : 0)
                 });
+                if (costs != null && costs.Count > 0)
+                {
+                    using var scope = EconomyJournalOps.For(em, root, consumer, EconomyReason.Construction);
+                    BuildingCostOps.Pay(em, root, costs);
+                    var cargo = em.GetBuffer<TransportCargo>(spawned);
+                    foreach (var cost in costs) cargo.Add(new TransportCargo { Item = cost.Item, Amount = cost.Amount });
+                }
                 active++;
+            }
+        }
+
+        public static Entity ConstructionWorker(EntityManager em, Entity root, Entity consumer)
+        {
+            var id = em.GetComponentData<Identity>(consumer).Id;
+            var turn = em.GetComponentData<GameClock>(root).Turn;
+            using var workers = WorldQueries.Entities<TransportWorker>(em);
+            foreach (var worker in workers)
+                if (Owned(em, root, worker))
+                {
+                    var state = em.GetComponentData<TransportWorker>(worker);
+                    if (state.Consumer == id && state.Turn == turn && state.CargoAssigned != 0) return worker;
+                }
+            return Entity.Null;
+        }
+
+        public static void CloseDay(EntityManager em, Entity root)
+        {
+            using var workers = WorldQueries.Entities<TransportWorker>(em);
+            foreach (var entity in workers)
+            {
+                if (!Owned(em, root, entity)) continue;
+                var worker = em.GetComponentData<TransportWorker>(entity);
+                if (worker.CargoAssigned == 0 || worker.CargoSettled != 0) continue;
+                var journal = em.GetBuffer<EconomyEntry>(root);
+                var journalLength = journal.Length;
+                foreach (var cargo in em.GetBuffer<TransportCargo>(entity))
+                    InventoryOps.Add(em, root, cargo.Item, cargo.Amount, true);
+                // The reservation happened before the dusk journal opened. A returned
+                // reservation is a net-zero transfer for this turn's economy bill.
+                if (journal.Length > journalLength) journal.RemoveRange(journalLength, journal.Length - journalLength);
+                em.GetBuffer<TransportCargo>(entity).Clear();
+                worker.CargoSettled = 1;
+                worker.Carrying = 0;
+                em.SetComponentData(entity, worker);
             }
         }
 

@@ -14,13 +14,13 @@ namespace Landsong.ECS.Persistence
     // Coordinates the archive boundary; domain storage owns each record's schema.
     public static class SnapshotCodec
     {
-        public const int CurrentVersion = 35;
+        public const int CurrentVersion = 36;
         static int Header(BinaryReader reader)
         {
             if (reader.ReadString() != "LANDSONG-ECS")
                 throw new InvalidDataException("不是 ECS 存档。");
             var version = reader.ReadInt32();
-            if (version != 33 && version != 34 && version != CurrentVersion)
+            if (version != 33 && version != 34 && version != 35 && version != CurrentVersion)
                 throw new InvalidDataException("存档版本已过期或不受支持，请开始新王朝。");
             return version;
         }

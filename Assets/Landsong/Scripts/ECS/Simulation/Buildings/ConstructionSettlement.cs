@@ -27,14 +27,22 @@ namespace Landsong.ECS
             {
                 var provider = ResourceNetworkOps.Provider(em, root, e);
                 var costs = BuildingCostOps.ConstructionStage(em, root, definition, bConstruction.Progress + 1);
-                if (costs.Count > 0 && provider == Entity.Null)
+                var carrier = costs.Count > 0 ? TransportWorkerOps.ConstructionWorker(em, root, e) : Entity.Null;
+                var prepaid = carrier != Entity.Null;
+                if (prepaid) provider = WorldQueries.Find(em, em.GetComponentData<TransportWorker>(carrier).Provider);
+                if (prepaid && em.GetComponentData<TransportWorker>(carrier).Delivered == 0)
+                {
+                    EconomyJournalOps.Note(em, root, "施工材料未送达，本期暂停并退回物资");
+                    return;
+                }
+                if (costs.Count > 0 && provider == Entity.Null && !prepaid)
                 {
                     EconomyJournalOps.Note(em, root, "断开资源连接，施工暂停");
                     return;
                 }
 
                 using var payment = new InventoryTransaction(em, root);
-                if (!BuildingCostOps.Pay(em, root, costs))
+                if (!prepaid && !BuildingCostOps.Pay(em, root, costs))
                 {
                     payment.Reject("施工材料不足，本期未支付");
                     return;
@@ -54,6 +62,14 @@ namespace Landsong.ECS
                 }
 
                 payment.Commit();
+                if (prepaid)
+                {
+                    var worker = em.GetComponentData<TransportWorker>(carrier);
+                    worker.CargoSettled = 1;
+                    em.SetComponentData(carrier, worker);
+                    foreach (var cost in costs) EconomyJournalOps.RecordSettlementOnly(em, root, cost.Item, -cost.Amount);
+                    em.GetBuffer<TransportCargo>(carrier).Clear();
+                }
                 ResourceNetworkOps.PayRecord(em, root, provider, costs);
                 BuildingCostOps.RecordInvestment(em, e, costs);
             }

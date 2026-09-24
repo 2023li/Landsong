@@ -75,7 +75,7 @@ namespace Landsong.ECS.Presentation
             IntelligenceModeState stateIntelligenceMode = sessionController.em.GetComponentData<IntelligenceModeState>(sessionController.root);
             PersistenceGate statePersistence = sessionController.em.GetComponentData<PersistenceGate>(sessionController.root);
             DynastyIdentity stateDynasty = sessionController.em.GetComponentData<DynastyIdentity>(sessionController.root);
-            refresh.Observe(state, stateClock, stateControl, stateNight, stateIntelligenceMode, statePersistence, InterfaceSettings.Revision, sessionController.em.GetBuffer<GameEvent>(sessionController.root, true).Length > 0 || sessionController.em.GetBuffer<ResearchCompletedEvent>(sessionController.root, true).Length > 0 || sessionController.em.GetBuffer<ItemPickupEvent>(sessionController.root, true).Length > 0, UI_GamePanel_InteractionLock.Revision);
+            refresh.Observe(state, stateClock, stateControl, stateNight, stateIntelligenceMode, statePersistence, InterfaceSettings.Revision, sessionController.em.GetBuffer<GameEvent>(sessionController.root, true).Length > 0 || sessionController.em.GetBuffer<ResearchCompletedEvent>(sessionController.root, true).Length > 0 || sessionController.em.GetBuffer<ItemPickupEvent>(sessionController.root, true).Length > 0 || sessionController.em.GetBuffer<TransportDeliveryEvent>(sessionController.root, true).Length > 0, UI_GamePanel_InteractionLock.Revision);
             hudController.ConsumeInterfaceEvents(state);
             technologyController.RefreshResearchHud();
             marriageController.RefreshMarriageEvents();

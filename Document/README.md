@@ -2,7 +2,7 @@
 
 更新日期：2026-09-21。本文档描述当前代码与资源组织。静态审查修复范围、当前验证结果与剩余限制见 [问题修复记录](ECS/问题修复记录20260917.md)，不使用历史 PASS 代替本轮验证。
 
-Unity **6000.3.24f1**；Entities **1.4.8**；Entities Graphics **1.4.21**；Addressables **2.9.1**；A* Pathfinding Project Pro **5.4.7**；Easy Save 3 **3.5.26**。游戏使用 ECS 权威状态，A* Pro 负责寻路与 RVO 避让，ES3 负责存档封装、压缩、文件、备份与设置持久化。当前 ECS 快照 **v35**，ES3 王朝封装 **v4**。
+Unity **6000.3.24f1**；Entities **1.4.8**；Entities Graphics **1.4.21**；Addressables **2.9.1**；A* Pathfinding Project Pro **5.4.7**；Easy Save 3 **3.5.26**。游戏使用 ECS 权威状态，A* Pro 负责寻路与 RVO 避让，ES3 负责存档封装、压缩、文件、备份与设置持久化。当前 ECS 快照 **v36**，ES3 王朝封装 **v4**。
 
 ## 从哪里开始
 

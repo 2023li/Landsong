@@ -162,6 +162,10 @@ namespace Landsong.ECS.Presentation
             }
 
             pickups.Clear();
+            var deliveries = sessionController.em.GetBuffer<TransportDeliveryEvent>(sessionController.root);
+            foreach (var delivery in deliveries)
+                DeliveryFlight(delivery);
+            deliveries.Clear();
             // IO requests remain owned by CheckpointSystem; all presentation events are consumed even while a text field is focused.
             for (int i = events.Length - 1; i >= 0; i--)
             {
@@ -524,6 +528,7 @@ namespace Landsong.ECS.Presentation
             public Vector2 From;
             [Sirenix.OdinInspector.LabelText("年龄")]
             public float Age;
+            public bool Delivery;
         }
 
         internal readonly List<Flight> rewardFlights = new List<Flight>();
@@ -553,6 +558,27 @@ namespace Landsong.ECS.Presentation
             rewardFlights.Add(new Flight { Text = text, From = local });
         }
 
+        internal void DeliveryFlight(TransportDeliveryEvent delivery)
+        {
+            if (worldController.Camera == null || delivery.Amount <= 0) return;
+            if (rewardFlights.Count >= 8)
+            {
+                Destroy(rewardFlights[0].Text.gameObject);
+                rewardFlights.RemoveAt(0);
+            }
+            NightHud.ValidateConfiguration();
+            var text = Instantiate(NightHud.RewardTemplate, NightHud.transform);
+            text.gameObject.SetActive(true);
+            text.text = "− " + ItemDefinitions.Get(sessionController.em, sessionController.root, delivery.Item).Metadata.Name + " × " + delivery.Amount;
+            var screen = worldController.Camera.WorldToScreenPoint(delivery.Position);
+            if (screen.z <= 0) { Destroy(text.gameObject); return; }
+            screen.x = math.clamp(screen.x, 120, Screen.width - 120);
+            screen.y = math.clamp(screen.y, 70, Screen.height - 70);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(NightHud.RewardSpace, screen, null, out var local);
+            text.rectTransform.anchoredPosition = local;
+            rewardFlights.Add(new Flight { Text = text, From = local, Delivery = true });
+        }
+
         internal void TickRewardFlights(Session s, GameClock sClock, SimulationControl sControl)
         {
             bool clear = s.Phase == Phase.GameOver || s.Phase == Phase.Ended || sClock.Time < priorNightTime;
@@ -572,8 +598,9 @@ namespace Landsong.ECS.Presentation
                 if (sControl.Paused == 0)
                     f.Age += Time.unscaledDeltaTime;
                 var canvas = NightHud.RewardSpace;
-                f.Text.rectTransform.anchoredPosition = InterfaceSettings.Current.ReducedMotion ? new Vector2(0, canvas.rect.height * .42f) : Vector2.Lerp(f.From, new Vector2(0, canvas.rect.height * .42f), Mathf.SmoothStep(0, 1, f.Age / 1.2f));
-                f.Text.color = new Color(1, .85f, .2f, 1 - math.saturate((f.Age - .8f) / .4f));
+                var target = f.Delivery ? f.From + new Vector2(0, 80) : new Vector2(0, canvas.rect.height * .42f);
+                f.Text.rectTransform.anchoredPosition = InterfaceSettings.Current.ReducedMotion ? f.From : Vector2.Lerp(f.From, target, Mathf.SmoothStep(0, 1, f.Age / 1.2f));
+                f.Text.color = f.Delivery ? new Color(1, .6f, .3f, 1 - math.saturate((f.Age - .8f) / .4f)) : new Color(1, .85f, .2f, 1 - math.saturate((f.Age - .8f) / .4f));
             }
         }
 
@@ -628,7 +655,7 @@ namespace Landsong.ECS.Presentation
                 {
                     var drop = sessionController.em.GetComponentData<Loot>(e);
                     color = drop.Rarity >= 3 ? new Color(1, .65f, .15f) : drop.Rarity == 2 ? new Color(.7f, .4f, 1) : Color.cyan;
-                    label = "特殊战利品 · " + ItemDefinitions.Get(sessionController.em, sessionController.root, drop.Item).Metadata.Name.ToString() + " × " + drop.Count;
+                    label = (sessionController.em.HasComponent<WorkerCargoDrop>(e) ? "遗失物资 · " : "特殊战利品 · ") + ItemDefinitions.Get(sessionController.em, sessionController.root, drop.Item).Metadata.Name.ToString() + " × " + drop.Count;
                     draw(position + new float3(0, 1.4f, 0), new Vector3(.2f, 2.8f, .2f), color);
                 }
                 else

@@ -15,7 +15,7 @@ MonoBehaviour:
   Metadata:
     Id: "b\u5C45\u6C11\u623F"
     Name: "\u5C45\u6C11\u623F"
-    Description: "\u5C45\u6C11\u623F\u4E3A\u6574\u680B\u5C45\u6C11\u7EDF\u4E00\u5B89\u6392\u98DF\u8C31\uFF1A\u6BCF\u79CD\u8981\u6C42\u7684\u98DF\u7269\u7C7B\u578B\u6BCF\u4EBA\u6D88\u80171\u5355\u4F4D\uFF0C\u4F18\u5148\u4F7F\u7528\u5E93\u5B58\u6570\u91CF\u6700\u591A\u7684\u5408\u683C\u7269\u54C1\u3002\u98DF\u8C31\u5B8C\u6574\u4E14\u7F8E\u89C2\u3001\u533B\u7597\u3001\u6CBB\u5B89\u6761\u4EF6\u8FBE\u6807\u65F6\uFF0C\u4EBA\u53E3\u589E\u957F\u8FDB\u5EA6\u624D\u4F1A\u63A8\u8FDB\uFF1B\u6EE1\u5458\u540E\u5468\u671F\u6027\u4EA7\u51FA\u7A0E\u6536\u3002"
+    Description: "\u5C45\u6C11\u623F\u80FD\u591F\u4E3A\u4F60\u7684\u57CE\u9547\u63D0\u4F9B\u4EBA\u53E3\u548C\u7A0E\u6536\u3002"
     Icon: {fileID: 21300000, guid: 6ca5a27498fd33e4b9ec3c25c5851c53, type: 3}
   LimitGroup: {fileID: 11400000, guid: 7a0ae8374e6b5724e9427301aa31e46e, type: 2}
   MaximumLevel: 2
@@ -25,6 +25,27 @@ MonoBehaviour:
   Footprint: {x: 2, y: 2}
   MaximumDurability: 100
   MovementCost: 0
+  DefenseStats:
+    MaximumHealth: 100
+    Damage: 10
+    AttackRange: 1.4
+    AttackIntervalSeconds: 1
+    MovementSpeed: 0
+    ProjectileSpeed: 10
+    Profile:
+      DetectionRadius: 24
+      ChaseRadius: 12
+      ChaseSeconds: 8
+      BodyRadius: 0.35
+      Armor: 0
+      Reduction: 0
+      Penetration: 0
+      BlastRadius: 0
+      WarningSeconds: 0
+      ProjectileLifetime: 10
+      ProjectileMode: 0
+      Traits: 0
+      BlocksProjectile: 0
   PlacementAndVisuals:
     Category: 1
     SpawnExclusionPadding: 6
@@ -35,7 +56,7 @@ MonoBehaviour:
     MoveMaterialRatio: 0.3
     MoveExperienceRatio: 0.3
     RuinMovementCost: 4
-    DefaultSkin:
+    DefaultSkin: 
   Capabilities:
     Construction:
       Enabled: 1
@@ -164,6 +185,9 @@ MonoBehaviour:
       Levels: []
     Farming:
       Enabled: 0
+      RequiredWorkers: 0
+      FullCycleBonusWorkers: 0
+      FullCycleYieldBonusPercent: 0
       Crops: []
     Gathering:
       Enabled: 0
@@ -191,24 +215,3 @@ MonoBehaviour:
       Enabled: 0
       Levels: []
   Prefab: {fileID: 1803082433438297581, guid: 43cf19b7ad4e36c4ba4ecf4ab821b49d, type: 3}
-  DefenseStats:
-    MaximumHealth: 100
-    Damage: 10
-    AttackRange: 1.4
-    AttackIntervalSeconds: 1
-    MovementSpeed: 0
-    ProjectileSpeed: 10
-    Profile:
-      DetectionRadius: 24
-      ChaseRadius: 12
-      ChaseSeconds: 8
-      BodyRadius: 0.35
-      Armor: 0
-      Reduction: 0
-      Penetration: 0
-      BlastRadius: 0
-      WarningSeconds: 0
-      ProjectileLifetime: 10
-      ProjectileMode: 0
-      Traits: 0
-      BlocksProjectile: 0

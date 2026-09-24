@@ -81,6 +81,7 @@ namespace Landsong.ECS.Authoring
                 AddBuffer<DamageRequest>(entity);
                 AddBuffer<ResearchCompletedEvent>(entity);
                 AddBuffer<ItemPickupEvent>(entity);
+                AddBuffer<TransportDeliveryEvent>(entity);
                 AddBuffer<InventorySlot>(entity);
                 AddBuffer<PendingItem>(entity);
                 AddBuffer<PolicyChoice>(entity);

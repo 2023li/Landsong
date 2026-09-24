@@ -90,7 +90,12 @@ namespace Landsong.ECS
             if (em.HasComponent<AdvanceRequest>(payload))
                 return SessionRequestActions.Advance(em, root, em.GetComponentData<AdvanceRequest>(payload));
             if (em.HasComponent<PickUpRequest>(payload))
-                return phase != Phase.Night && phase != Phase.Celebration && phase != Phase.Retreat ? ResultCode.WrongPhase : NightOps.PickUp(em, root, WorldQueries.Find(em, em.GetComponentData<PickUpRequest>(payload).Loot));
+            {
+                var target = WorldQueries.Find(em, em.GetComponentData<PickUpRequest>(payload).Loot);
+                return phase != Phase.Night && phase != Phase.Celebration && phase != Phase.Retreat
+                    && !(phase == Phase.Day && target != Entity.Null && em.HasComponent<WorkerCargoDrop>(target))
+                    ? ResultCode.WrongPhase : NightOps.PickUp(em, root, target);
+            }
             if (em.HasComponent<CameraMovedRequest>(payload) || em.HasComponent<CameraZoomedRequest>(payload))
             {
                 if (em.GetComponentData<IntelligenceModeState>(root).Enabled == 0)

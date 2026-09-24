@@ -248,6 +248,7 @@ namespace Landsong.ECS.Persistence
                 Buffer<QueuedGameplayRequest>(manager, root);
                 Buffer<ResearchCompletedEvent>(manager, root);
                 Buffer<ItemPickupEvent>(manager, root);
+                Buffer<TransportDeliveryEvent>(manager, root);
                 Buffer<GameEvent>(manager, root);
                 Buffer<DamageRequest>(manager, root);
                 Buffer<LightningVisualEvent>(manager, root);

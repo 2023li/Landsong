@@ -422,9 +422,17 @@ namespace Landsong.ECS
             if (em.HasComponent<Loot>(e))
             {
                 var loot = em.GetComponentData<Loot>(e);
-                NightResultOps.RecordItem(em, root, em.GetComponentData<Identity>(e).Id, 0, loot.Item, loot.Count, loot.SourceName);
-                em.GetBuffer<ItemPickupEvent>(root).Add(new ItemPickupEvent { Item = loot.Item, Quantity = loot.Count, Position = EntityState.Position(em, e) });
-                SimulationEvents.Emit(em, root, EventKind.Message, "已收取特殊战利品，黎明统一入库。", category: HistoryCategory.Economy);
+                if (em.HasComponent<WorkerCargoDrop>(e) && em.GetComponentData<Session>(root).Phase == Phase.Day)
+                {
+                    InventoryOps.Add(em, root, loot.Item, loot.Count, true);
+                    SimulationEvents.Emit(em, root, EventKind.Message, "已收回运输工人遗失物资。", category: HistoryCategory.Economy);
+                }
+                else
+                {
+                    NightResultOps.RecordItem(em, root, em.GetComponentData<Identity>(e).Id, 0, loot.Item, loot.Count, loot.SourceName);
+                    em.GetBuffer<ItemPickupEvent>(root).Add(new ItemPickupEvent { Item = loot.Item, Quantity = loot.Count, Position = EntityState.Position(em, e) });
+                    SimulationEvents.Emit(em, root, EventKind.Message, "已收取物资，黎明统一入库。", category: HistoryCategory.Economy);
+                }
             }
             else if (em.HasComponent<Opportunity>(e))
                 return PeacefulOps.Claim(em, root, e);

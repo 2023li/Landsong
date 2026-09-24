@@ -36,6 +36,9 @@ namespace Landsong.ECS.Persistence
                     throw new InvalidDataException("Invalid entity identity or transform");
                 switch (record)
                 {
+                    case WorkerCargoDropSnapshot drop:
+                        WorkerCargoDropSnapshotStorage.Validate(em, root, drop);
+                        break;
                     case FirefighterSnapshot firefighter:
                         FirefighterSnapshotStorage.Validate(em, root, data, firefighter);
                         break;
