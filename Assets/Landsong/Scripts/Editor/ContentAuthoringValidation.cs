@@ -22,21 +22,14 @@ namespace Landsong.ECS.Editor
         public static void ValidateCurrent()
         {
             var content = ContentAuthoringContext.Content();
-            var legacy = AssetDatabase.LoadAssetAtPath<WorldVisualCatalog>(ContentAssetPaths.LegacyPresentation + "/LandsongWorldVisuals.asset");
-            WorldPresentationValidation.VerifyLegacyModels(legacy);
-            bool UsesLegacy(string id, GameObject prefab) => legacy.Models.Any(row => row.Definition == id)
-                && prefab != null && prefab.GetComponent<SoldierAnimationAuthoring>() == null;
             foreach (var definition in content.Buildings.Definitions)
                 BuildingAuthoringWorkflow.Validate(definition);
             foreach (var definition in content.Soldiers.Definitions)
                 UnitAuthoringWorkflow.Validate(definition);
             foreach (var definition in content.Heroes.Definitions)
-                if (definition.Metadata.Id != "titan" || !UsesLegacy(definition.Metadata.Id, definition.Prefab))
-                    UnitAuthoringWorkflow.Validate(definition);
+                UnitAuthoringWorkflow.Validate(definition);
             foreach (var definition in content.Enemies.Definitions)
-                if ((definition.Metadata.Id != "raider" && definition.Metadata.Id != "boss" && definition.Metadata.Id != "invader")
-                    || !UsesLegacy(definition.Metadata.Id, definition.Prefab))
-                    UnitAuthoringWorkflow.Validate(definition);
+                UnitAuthoringWorkflow.Validate(definition);
         }
     }
 }

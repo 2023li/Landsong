@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &5481179863400179032
+--- !u!1 &8897883104741734442
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,24 +8,24 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 6183348620784684645}
-  - component: {fileID: 4614689728472703833}
-  - component: {fileID: 8369716499782522536}
-  - component: {fileID: 9212966256392421902}
+  - component: {fileID: 7425486762936029217}
+  - component: {fileID: 2012025946707875444}
+  - component: {fileID: 4802083672553001074}
+  - component: {fileID: 8744978204552516483}
   m_Layer: 0
-  m_Name: boss
+  m_Name: invader
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &6183348620784684645
+--- !u!4 &7425486762936029217
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5481179863400179032}
+  m_GameObject: {fileID: 8897883104741734442}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -34,13 +34,13 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4614689728472703833
+--- !u!114 &2012025946707875444
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5481179863400179032}
+  m_GameObject: {fileID: 8897883104741734442}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0cdaa3305fa954c45a80c9662aa6f425, type: 3}
@@ -54,92 +54,92 @@ MonoBehaviour:
     m_SharedVariableData: []
     m_DisabledEventNodesData: []
     m_DisabledLogicNodesData: []
-    m_UniqueID: -1998460666
+    m_UniqueID: 893925151
     m_LogicNodePropertiesData: []
     m_EventNodePropertiesData: []
     m_GroupPropertiesData: []
     m_SharedVariableGroupsData: []
-  m_AuthoringLayer: {fileID: 8369716499782522536}
+  m_AuthoringLayer: {fileID: 4802083672553001074}
   m_StartWhenEnabled: 0
   m_PauseWhenDisabled: 0
   m_UpdateMode: 0
   m_EvaluationType: 0
   m_MaxEvaluationCount: 1
   m_Subtree: {fileID: 0}
---- !u!114 &8369716499782522536
+--- !u!114 &4802083672553001074
 MonoBehaviour:
   m_ObjectHideFlags: 2
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5481179863400179032}
+  m_GameObject: {fileID: 8897883104741734442}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c08814195b584721947ac0899da41712, type: 3}
   m_Name:
   m_EditorClassIdentifier: Opsive.BehaviorDesigner.Runtime.Wrappers::Opsive.BehaviorDesigner.Runtime.Wrappers.BehaviorTreeAuthoringLayer
-  m_Owner: {fileID: 4614689728472703833}
+  m_Owner: {fileID: 2012025946707875444}
   m_ParentLayer: {fileID: 0}
   m_LayerID:
-    m_Low: 5534424801180512524
-    m_High: 9913977398744814769
+    m_Low: 5191657887014787250
+    m_High: 18221328283603656321
   m_SchemaVersion: 1
   m_Overrides: []
   m_SourceFingerprint: 0
-  m_EffectiveFingerprint: 6052834818525636560
+  m_EffectiveFingerprint: 6109717009120942315
   m_Data:
     m_TaskData:
     - m_ObjectType: Opsive.BehaviorDesigner.Runtime.Tasks.Decorators.Repeater
-      m_ValueHashes: 
+      m_ValueHashes:
       m_LongValueHashes: 30b77c28f48d1b2966cb3cf98c4bd96480f6501333363a665876362df79b58fae2039c790dc879a8770519b3aab1c06dc0a3d23692a50e0d1be8923c7659af365c3c4a29c3c32ba2a7364edcee18c55427e8ed2ee818c5546adb807ea82790593283189d77208dbee48d930b6b0cda08990a38d64fcf3e932eacf35377dbf0f38d1bd708c4c29d45b2336b4c26bdd55c01876e562dd96dde8159cda42bd96dde84d4a11b4d596ea73a54877c62e83ca098e0d57325363086b54b46875b75d83102ed8d0263611651c1942dce439cacb69e72151d320733fe0d1313cefea5391c8dcdb03cf8a5391ca895df4a59e38805f0cd47a986e495e2
       m_ValuePositions: 000000000200000004000000060000000700000007000000070000000700000008000000080000001000000018000000190000001a0000001a0000001a0000001a0000001b0000001b000000230000002b0000002c000000300000003000000030000000300000003100000031000000390000004100000042000000
       m_Values: 0000ffffffff01000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000
       m_UnityObjects: []
       m_Version: 3.4
     - m_ObjectType: Opsive.BehaviorDesigner.Runtime.Tasks.Composites.Selector
-      m_ValueHashes: 
+      m_ValueHashes:
       m_LongValueHashes: 30b77c28f48d1b2966cb3cf98c4bd96480f6501333363a665876362df79b58fa5b2ed1940de3c60b8ea6435e604d1251
       m_ValuePositions: 000000000200000004000000060000000700000007000000
       m_Values: 01000000ffff0100
       m_UnityObjects: []
       m_Version: 3.4
     - m_ObjectType: Landsong.ECS.AI.TacticalAction
-      m_ValueHashes: 
+      m_ValueHashes:
       m_LongValueHashes: 30b77c28f48d1b2966cb3cf98c4bd96480f6501333363a665876362df79b58faf6cf2433e9d01daa346f68e7ba6325d9
       m_ValuePositions: 000000000200000004000000060000000700000007000000
       m_Values: 0200010003000100
       m_UnityObjects: []
       m_Version: 3.4
     - m_ObjectType: Landsong.ECS.AI.TacticalAction
-      m_ValueHashes: 
+      m_ValueHashes:
       m_LongValueHashes: 30b77c28f48d1b2966cb3cf98c4bd96480f6501333363a665876362df79b58faf6cf2433e9d01daa346f68e7ba6325d9
       m_ValuePositions: 000000000200000004000000060000000700000007000000
       m_Values: 0300010004000101
       m_UnityObjects: []
       m_Version: 3.4
     - m_ObjectType: Landsong.ECS.AI.TacticalAction
-      m_ValueHashes: 
+      m_ValueHashes:
       m_LongValueHashes: 30b77c28f48d1b2966cb3cf98c4bd96480f6501333363a665876362df79b58faf6cf2433e9d01daa346f68e7ba6325d9
       m_ValuePositions: 000000000200000004000000060000000700000007000000
       m_Values: 0400010005000102
       m_UnityObjects: []
       m_Version: 3.4
     - m_ObjectType: Landsong.ECS.AI.TacticalAction
-      m_ValueHashes: 
+      m_ValueHashes:
       m_LongValueHashes: 30b77c28f48d1b2966cb3cf98c4bd96480f6501333363a665876362df79b58faf6cf2433e9d01daa346f68e7ba6325d9
       m_ValuePositions: 000000000200000004000000060000000700000007000000
       m_Values: 0500010006000103
       m_UnityObjects: []
       m_Version: 3.4
     - m_ObjectType: Landsong.ECS.AI.TacticalAction
-      m_ValueHashes: 
+      m_ValueHashes:
       m_LongValueHashes: 30b77c28f48d1b2966cb3cf98c4bd96480f6501333363a665876362df79b58faf6cf2433e9d01daa346f68e7ba6325d9
       m_ValuePositions: 000000000200000004000000060000000700000007000000
       m_Values: 0600010007000104
       m_UnityObjects: []
       m_Version: 3.4
     - m_ObjectType: Landsong.ECS.AI.TacticalAction
-      m_ValueHashes: 
+      m_ValueHashes:
       m_LongValueHashes: 30b77c28f48d1b2966cb3cf98c4bd96480f6501333363a665876362df79b58faf6cf2433e9d01daa346f68e7ba6325d9
       m_ValuePositions: 000000000200000004000000060000000700000007000000
       m_Values: 07000100ffff0105
@@ -147,7 +147,7 @@ MonoBehaviour:
       m_Version: 3.4
     m_EventTaskData:
     - m_ObjectType: Opsive.BehaviorDesigner.Runtime.Tasks.Events.Start
-      m_ValueHashes: 
+      m_ValueHashes:
       m_LongValueHashes: 5876362df79b58fa59405171878141b1
       m_ValuePositions: 0000000001000000
       m_Values: 010000
@@ -156,23 +156,23 @@ MonoBehaviour:
     m_SharedVariableData: []
     m_DisabledEventNodesData: []
     m_DisabledLogicNodesData: []
-    m_UniqueID: 1144964125
+    m_UniqueID: 817618095
     m_LogicNodePropertiesData: []
     m_EventNodePropertiesData: []
     m_GroupPropertiesData: []
     m_SharedVariableGroupsData: []
---- !u!114 &9212966256392421902
+--- !u!114 &8744978204552516483
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5481179863400179032}
+  m_GameObject: {fileID: 8897883104741734442}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2d60b571074a94e428a5cd944636f438, type: 3}
   m_Name:
   m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.ActorVisualPrefabAuthoring
-  ViewPrefab: {fileID: 5334581996761213905, guid: 9adc3543ff574ce4fb6fed92d59808d3, type: 3}
+  ViewPrefab: {fileID: 4318518625603159551, guid: 410ffbf3eecc0ba42b4e059215ad849a, type: 3}
   Offset: {x: 0, y: 0, z: 0}
-  Scale: {x: 2, y: 2, z: 2}
+  Scale: {x: 1, y: 1, z: 1}

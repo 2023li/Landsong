@@ -10,6 +10,8 @@ namespace Landsong.ECS.Authoring.Definitions
     {
         [LabelText("基本信息")]
         public DefinitionMetadataSource Metadata = new DefinitionMetadataSource();
+        [LabelText("建筑阵营")]
+        public BuildingFaction Faction = BuildingFaction.Settlement;
         [LabelText("数量限制分组")]
         public BuildingLimitGroupDefinitionAsset LimitGroup;
         [LabelText("最高等级")]

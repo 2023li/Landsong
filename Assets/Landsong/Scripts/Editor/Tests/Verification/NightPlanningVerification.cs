@@ -236,6 +236,7 @@ namespace Landsong.ECS.Editor
                         em.SetComponentData(root, sClock);
                         em.SetComponentData(root, sPersistence);
                     }
+                    SeasonWeatherOps.Dawn(em, root);
 
                     var cfg = settings;
                     cfg.FirstInvasion = 1;
@@ -400,7 +401,7 @@ namespace Landsong.ECS.Editor
                 var oldPosition = EntityState.Position(em, barracks);
                 BuildingLifecycle.Ruin(em, root, barracks);
                 var fallback = NightSpatialOps.Target(em, root, Def("raider"), point, oldPosition, Id(barracks), true);
-                Check(fallback != Entity.Null && fallback != barracks && NightSpatialOps.ValidTarget(em, fallback), "Ruined original target replaced by reachable nearby site or core");
+                Check(fallback != Entity.Null && fallback != barracks && NightSpatialOps.ValidTarget(em, root, fallback), "Ruined original target replaced by reachable nearby site or core");
                 // Restore this fixture's garrison before testing blocked deployment.
                 var repaired = em.GetComponentData<Building>(barracks);
                 repaired.Stage = LifeStage.Operational;
@@ -556,6 +557,16 @@ namespace Landsong.ECS.Editor
                 NightOps.Tick(em, root, 1);
                 NightOps.Tick(em, root, 1);
                 Check(NightPlanOps.State(em, root).AnySpawned == 1 && NightPlanOps.State(em, root).CombatElapsed == 4, "Warning and protection do not extend the night duration");
+                var spawnCueCount = 0;
+                foreach (var message in em.GetBuffer<GameEvent>(root))
+                    if (message.Kind == EventKind.EnemySpawn && message.Target != 0 && math.all(math.isfinite(message.Position)))
+                        spawnCueCount++;
+                var spawnedEnemyCount = 0;
+                using (var spawned = WorldQueries.Entities<Combatant>(em))
+                    foreach (var spawnedUnit in spawned)
+                        if (em.GetComponentData<Combatant>(spawnedUnit).Faction == 1 && EntityState.Alive(em, spawnedUnit))
+                            spawnedEnemyCount++;
+                Check(spawnedEnemyCount > 0 && spawnCueCount == spawnedEnemyCount, "Each spawned enemy publishes a positioned visual cue");
                 Entity enemy = Entity.Null;
                 using (var all = WorldQueries.Entities<Combatant>(em))
                     foreach (var e in all)

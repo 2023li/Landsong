@@ -28,11 +28,11 @@ Unity **6000.3.24f1**；Entities **1.4.8**；Entities Graphics **1.4.21**；Addr
 | Assets/Landsong/ECSContent/Buildings | 每个稳定 ID 一包的完整建筑根；Generated 子目录只放可重建的优化产物 |
 | Assets/Landsong/ECSContent/Presentation/Audio/LandsongAudio.asset | 音乐、环境音、提示音 |
 | Assets/Landsong/ECSContent/Presentation/Effects/LandsongEffects.asset | 空间特效及持续时间 |
-| Assets/Landsong/ECSContent/Presentation/Legacy/LandsongWorldVisuals.asset | 仅四个既有单位的遗留模型映射（只读） |
+| Assets/Landsong/ECSContent/World/WorldPresentationRoot.prefab | 游戏场景中的世界表现根模板 |
 | Assets/Landsong/ECSContent/Presentation/Portraits/LandsongPortraitDisplay.asset | 完整画像覆盖 |
 | Assets/Landsong/ECSContent/Presentation/Localization/Generated/LandsongLocalization.asset | 本地化运行表 |
 | Assets/Landsong/ECSContent/Presentation/Night/LandsongNightCaptions.asset | 夜晚字幕 |
-| Assets/Landsong/ECSContent/Presentation | 按 Audio、Effects、Portraits、Localization、World、Legacy 分区的表现配置 |
+| Assets/Landsong/ECSContent/Presentation | 按 Audio、Effects、Portraits、Localization、Night、Materials 分区的表现配置 |
 | Assets/Landsong/UI/Prefabs | 与脚本根面板目录对应的 UI 预制体及 Bootstrap/UI_Root.prefab |
 | Assets/Landsong/Art/Portraits/Parts | 肖像导入窗口生成的部件 PNG，按类别 / 稳定标识归档 |
 | Assets/Landsong/Scenes | Boot、Start、LoadingTransition、Game 四个正式场景 |

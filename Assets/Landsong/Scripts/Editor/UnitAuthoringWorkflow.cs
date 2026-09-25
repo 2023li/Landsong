@@ -6,6 +6,7 @@ using Landsong.Animation;
 using Landsong.ECS.Authoring;
 using Landsong.ECS.Authoring.Definitions;
 using Landsong.ECS.Editor;
+using Landsong.ECS.Presentation;
 using Rukhanka.Hybrid;
 using UnityEditor;
 using UnityEditor.Animations;
@@ -127,7 +128,17 @@ namespace Landsong.EditorTools
             var logic = Prefab(definition);
             if (logic == null || logic.GetComponentsInChildren<Renderer>(true).Length != 0 || logic.GetComponentsInChildren<Animator>(true).Length != 0)
                 throw new InvalidOperationException(definition.name + "：须引用独立逻辑预制体。");
+            var actorVisual = logic.GetComponent<ActorVisualPrefabAuthoring>();
             var animation = logic.GetComponent<SoldierAnimationAuthoring>();
+            if (actorVisual != null)
+            {
+                if (animation != null || actorVisual.ViewPrefab is not PresentationActor
+                    || !float.IsFinite(actorVisual.Scale.x) || !float.IsFinite(actorVisual.Scale.y) || !float.IsFinite(actorVisual.Scale.z)
+                    || actorVisual.Scale.x <= 0 || actorVisual.Scale.y <= 0 || actorVisual.Scale.z <= 0)
+                    throw new InvalidOperationException(definition.name + "：占位角色须有唯一、有效的独立 View。");
+                WorldPresentationValidation.VerifyActor((PresentationActor)actorVisual.ViewPrefab);
+                return;
+            }
             if (animation == null || animation.VisualPrefab == null) throw new InvalidOperationException(definition.name + "：逻辑根缺少动画 View 引用。");
             if (!Enum.IsDefined(typeof(UnitAnimationProfile), animation.Profile)) throw new InvalidOperationException(definition.name + "：未知动作类型。");
             var visual = animation.VisualPrefab.GetComponent<SoldierAnimationVisualAuthoring>();

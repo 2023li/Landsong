@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using Landsong.ECS.Definitions;
+using Landsong.Content;
 using System.Linq;
 using Landsong.ECS.Persistence;
 using TMPro;
@@ -23,9 +24,7 @@ namespace Landsong.ECS.Presentation
             var runtime = AudioRuntime.Instance;
             Require(runtime != null && runtime.Configuration != null, "15 application audio runtime and explicit audio catalog loaded");
             var audio = runtime.Configuration;
-            var visuals = view.WorldInteraction.WorldPresentation.Visuals;
             var portraitDisplay = view.Court.Portraits;
-            var models = visuals.Models;
             var portraits = portraitDisplay.Portraits;
             var dayMusic = audio.DayMusic;
             var click = audio.Find(PresentationCue.Click);
@@ -145,12 +144,12 @@ namespace Landsong.ECS.Presentation
                 using (var all = WorldQueries.OrderedEntities<Building>(em))
                     building = all[0];
                 var id = em.GetComponentData<Identity>(building);
-                var b = em.GetComponentData<Building>(building);
-                BuildingAppearanceState bAppearance = em.GetComponentData<BuildingAppearanceState>(building);
-                visuals.Models = models.Concat(new[] { new WorldVisualCatalog.Model { Definition = BuildingDefinitions.Get(em, root, em.GetComponentData<BuildingDefinitionRef>(building).Definition).Metadata.Id.ToString(), Stage = b.Stage, Level = b.Level, Skin = bAppearance.Skin.ToString(), ActorPrefab = models[0].ActorPrefab, Scale = Vector3.one * 2 } }).ToArray();
+                var testModel = em.GetComponentData<ActorVisualPrefab>(em.GetBuffer<EnemyPrefab>(root)[0].Prefab);
+                testModel.Scale = new Unity.Mathematics.float3(2);
+                em.AddComponentData(building, testModel);
                 yield return WaitFor(() => em.HasComponent<ExternalVisual>(building) && em.GetComponentData<ExternalVisual>(building).Active == 1, "15 configured dynamic model acquires render ownership");
                 var actor = FindObjectsByType<PresentationActor>(FindObjectsSortMode.None).First(a => a.gameObject.name.StartsWith("View · " + id.Id + " ·"));
-                Require(actor.transform.parent.parent == null && actor.transform.lossyScale == Vector3.one * 2 && actor.Animator != null, "15 model world scale independent of Canvas and Animator bound");
+                Require(actor.transform.parent.parent == null && actor.transform.lossyScale == Vector3.one * 2, "15 model world scale independent of Canvas");
                 Require(actor.gameObject.scene == view.WorldInteraction.Camera.gameObject.scene, "15 world presentation belongs to explicit game scene rather than persistent UI scene");
                 var authority = SnapshotCodec.Capture(em, root);
                 bridge.Emit(PresentationCue.Hit, actor.transform.position, true);
@@ -168,7 +167,7 @@ namespace Landsong.ECS.Presentation
                 yield return null;
                 int effects = bridge.EffectCount;
                 yield return new WaitForSecondsRealtime(1);
-                Require(bridge.EffectCount == effects && actor.Animator.speed == 0, "15 paused particles and Animator do not expire or advance");
+                Require(bridge.EffectCount == effects && (actor.Animator == null || actor.Animator.speed == 0), "15 paused particles and Animator do not expire or advance");
                 sControl.Paused = 0;
                 {
                     em.SetComponentData(root, sControl);
@@ -185,17 +184,17 @@ namespace Landsong.ECS.Presentation
                 yield return null;
                 Require(em.HasComponent<AnimatedUnitVisual>(native) && (!em.HasComponent<ExternalVisual>(native) || em.GetComponentData<ExternalVisual>(native).Active == 0) && !FindObjectsByType<PresentationActor>(FindObjectsSortMode.None).Any(a => a.gameObject.name.StartsWith("View · " + nativeId + " ·")), "Native animated soldier never receives a duplicate GameObject actor");
                 em.DestroyEntity(native);
-                // Exercise optional GameObject model ownership with a unit that still uses that path.
+                // Exercise prefab-owned GameObject model cleanup.
                 var probe = EnemyEntities.Spawn(em, root, EnemyId.FromIndex(0), probePosition, false);
                 EnemyCombatants.Configure(em, root, probe, true, id.Id, probePosition);
                 var probeId = em.GetComponentData<Identity>(probe).Id;
-                yield return WaitFor(() => em.HasComponent<ExternalVisual>(probe) && em.GetComponentData<ExternalVisual>(probe).Active != 0, "15 transient unit acquires a model before catalog replacement");
+                yield return WaitFor(() => em.HasComponent<ExternalVisual>(probe) && em.GetComponentData<ExternalVisual>(probe).Active != 0, "15 transient unit acquires its prefab-owned model");
                 var probeActor = FindObjectsByType<PresentationActor>(FindObjectsSortMode.None).Single(a => a.gameObject.name.StartsWith("View · " + probeId + " ·"));
                 em.DestroyEntity(probe);
-                visuals.Models = models;
+                em.RemoveComponent<ActorVisualPrefab>(building);
                 yield return null;
                 yield return null;
-                Require(probeActor == null, "15 entity destruction and catalog replacement in the same frame release the old actor");
+                Require(probeActor == null, "15 entity destruction releases its actor");
                 Require(em.GetComponentData<ExternalVisual>(building).Active == 0, "15 removing optional model returns ECS render ownership");
                 var constructionProbe = em.GetComponentData<Building>(building);
                 Require(constructionProbe.Stage == LifeStage.Operational, "15 completion dust probe starts with an operational building");
@@ -222,7 +221,6 @@ namespace Landsong.ECS.Presentation
             }
             finally
             {
-                visuals.Models = models;
                 portraitDisplay.Portraits = portraits;
                 audio.DayMusic = dayMusic;
                 click.Clip = clickClip;

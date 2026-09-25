@@ -302,7 +302,7 @@ namespace Landsong.ECS
                     if (!view.Day && w.At != focus)
                         continue;
                     var target = WorldQueries.Find(em, w.Target);
-                    if (!NightSpatialOps.ValidTarget(em, target))
+                    if (!NightSpatialOps.ValidTarget(em, root, target))
                         continue;
                     bool harassment = (((int)EnemyDefinitions.Get(em, root, w.Definition).Behavior >> 1) & 3) == 2;
                     view.Areas.Add(TargetArea(em, root, target, view.Tier, harassment));
@@ -318,7 +318,7 @@ namespace Landsong.ECS
                         if (a.Faction != 1 || a.Deployed == 0 || !EntityState.Alive(em, e) || a.HomeId == 0 || !targets.Add(a.HomeId))
                             continue;
                         var target = WorldQueries.Find(em, a.HomeId);
-                        if (!NightSpatialOps.ValidTarget(em, target))
+                        if (!NightSpatialOps.ValidTarget(em, root, target))
                             continue;
                         view.Areas.Add(TargetArea(em, root, target, view.Tier, (((int)EnemyDefinitions.Get(em, root, em.GetComponentData<EnemyDefinitionRef>(e).Definition).Behavior >> 1) & 3) == 2));
                     }

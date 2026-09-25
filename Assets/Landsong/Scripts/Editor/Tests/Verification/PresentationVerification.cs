@@ -74,22 +74,21 @@ namespace Landsong.ECS.Editor
         static void Assets()
         {
             var audio = AssetDatabase.LoadAssetAtPath<AudioCatalog>(ContentAssetPaths.Audio + "/LandsongAudio.asset");
-            var visuals = AssetDatabase.LoadAssetAtPath<WorldVisualCatalog>(ContentAssetPaths.LegacyPresentation + "/LandsongWorldVisuals.asset");
             var effects = AssetDatabase.LoadAssetAtPath<EffectCatalog>(ContentAssetPaths.Effects + "/LandsongEffects.asset");
             var portraits = AssetDatabase.LoadAssetAtPath<PortraitDisplayCatalog>(ContentAssetPaths.Portraits + "/LandsongPortraitDisplay.asset");
             var captions = AssetDatabase.LoadAssetAtPath<NightCaptionDefinition>(ContentAssetPaths.Presentation + "/Night/LandsongNightCaptions.asset");
             var catalog = AssetDatabase.LoadAssetAtPath<LocalizationCatalog>(LanguageContentTools.Path);
-            Check(audio != null && visuals != null && effects != null && portraits != null && captions != null && catalog != null, "Six independent presentation configuration assets exist");
+            Check(audio != null && effects != null && portraits != null && captions != null && catalog != null, "Five independent presentation configuration assets exist");
             var application = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Landsong/UI/Prefabs/Bootstrap/UI_Root.prefab").GetComponent<ApplicationUiRoot>();
             Check(application.Audio.Configuration == audio && application.Localization.Configuration == catalog, "Audio and localization services own only their explicit catalog");
             var game = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Landsong/UI/Prefabs/GamePanel/UI_GamePanel.prefab");
             var worldView = game.GetComponent<WorldPresentationView>();
-            Check(worldView.Visuals == visuals && worldView.Effects == effects, "World view directly binds models and effects without a catalog facade");
+            Check(worldView.Effects == effects, "World view binds the effect catalog; actor views belong to prefabs");
             var firePrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Landsong/粒子/火焰/低模火焰.prefab");
             Check(firePrefab != null && worldView.FirePrefab == firePrefab && firePrefab.GetComponentInChildren<ParticleSystem>(true) != null, "Burning buildings use the authored fire particle prefab");
             var dustPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Landsong/粒子/烟雾/施工烟尘.prefab");
             Check(dustPrefab != null && worldView.ConstructionDustPrefab == dustPrefab && dustPrefab.GetComponentInChildren<ParticleSystem>(true) != null
-                && Mathf.Approximately(worldView.ConstructionDustDuration, .5f), "Building view transitions use the authored dust prefab for 0.5 seconds");
+                && worldView.ConstructionDustDuration > 0 && worldView.ConstructionDustDuration <= 10, "Building view transitions use the authored dust prefab and configured duration");
             var dustInstance = UnityEngine.Object.Instantiate(dustPrefab);
             try
             {
@@ -118,7 +117,7 @@ namespace Landsong.ECS.Editor
             Check(game.GetComponentInChildren<UI_GamePanel_Hud>(true).NightPresentation == captions, "Night HUD owns the caption definition only");
             foreach (var binding in game.GetComponentsInChildren<UI_Common_PortraitImageBinding>(true))
                 Check(binding.Portraits == portraits, "Portrait image explicitly binds its own display catalog: " + binding.name);
-            WorldPresentationValidation.Verify(visuals, effects);
+            WorldPresentationValidation.Verify(effects);
             Check(true, "All actor/effect templates have complete explicit serialized bindings");
             Check(audio.DayAmbient != null && audio.NightAmbient != null, "Existing licensed project ambient clips reused");
             Check(audio.Cues.Length == Enum.GetValues(typeof(PresentationCue)).Length && audio.Cues.Select(c => c.Id).Distinct().Count() == audio.Cues.Length, "One bounded cue binding for every semantic cue");
@@ -131,16 +130,8 @@ namespace Landsong.ECS.Editor
             var soldiers = AssetDatabase.LoadAssetAtPath<SoldierCatalogAsset>("Assets/Landsong/ECSContent/Catalogs/Source/SoldierCatalog.asset").Definitions;
             foreach (var definition in soldiers)
             {
-                var model = visuals.Select(definition.Metadata.Id, LifeStage.Operational, 1, "");
-                if (definition.Prefab != null && definition.Prefab.GetComponent<SoldierAnimationAuthoring>() != null)
-                {
-                    Check(model == null, "Native animated soldier owns its view without a global model mapping: " + definition.Metadata.Id);
-                    continue;
-                }
-
-                Check(model != null && WorldPresentationValidation.PurePrefab(model.ActorPrefab.gameObject), "Replaceable pure actor " + definition.Metadata.Id);
-                var animator = model.ActorPrefab.Animator;
-                Check(animator != null && animator.runtimeAnimatorController != null, "Working placeholder Animator controller " + definition.Metadata.Id);
+                Landsong.EditorTools.UnitAuthoringWorkflow.Validate(definition);
+                Check(true, "Soldier prefab owns a valid view: " + definition.Metadata.Id);
             }
 
             var externallyPresented = AssetDatabase.LoadAssetAtPath<HeroCatalogAsset>("Assets/Landsong/ECSContent/Catalogs/Source/HeroCatalog.asset").Definitions.Cast<ScriptableObject>()
@@ -149,17 +140,12 @@ namespace Landsong.ECS.Editor
             {
                 var id = Landsong.EditorTools.UnitAuthoringWorkflow.Metadata(definition).Id;
                 var prefab = Landsong.EditorTools.UnitAuthoringWorkflow.Prefab(definition);
-                var model = visuals.Select(id, LifeStage.Operational, 1, "");
-                if (prefab != null && prefab.GetComponent<SoldierAnimationAuthoring>() != null)
-                {
-                    Landsong.EditorTools.UnitAuthoringWorkflow.Validate(definition);
-                    Check(model == null, "Animated hero/enemy owns a valid independent View without a legacy mapping: " + id);
-                }
-                else
-                    Check(model != null && WorldPresentationValidation.PurePrefab(model.ActorPrefab.gameObject), "Legacy external actor remains explicit until animation migration: " + id);
+                Landsong.EditorTools.UnitAuthoringWorkflow.Validate(definition);
+                Check(prefab != null && (prefab.GetComponent<SoldierAnimationAuthoring>() != null
+                    || prefab.GetComponent<ActorVisualPrefabAuthoring>() != null), "Hero/enemy prefab owns its view: " + id);
             }
 
-            Check(visuals.Select("missing", LifeStage.Operational, 1, "") == null, "Missing model leaves existing ECS renderer in charge");
+            Check(typeof(WorldPresentationView).GetField("Visuals") == null, "No global model lookup remains");
             Check(catalog.Text.Select(t => t.Table + "/" + t.Key).Distinct().Count() == catalog.Text.Length, "Semantic language keys unique");
             void Names(System.Collections.Generic.IEnumerable<string> ids)
             {

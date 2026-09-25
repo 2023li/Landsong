@@ -143,8 +143,7 @@ namespace Landsong.EditorTools
             MoveAsset(ContentAssetPaths.Root + "/Resources/LandsongPortraitDisplay.asset", ContentAssetPaths.Portraits + "/LandsongPortraitDisplay.asset");
             MoveAsset(ContentAssetPaths.Root + "/PortraitConfig.asset", ContentAssetPaths.Portraits + "/PortraitConfig.asset");
             MoveAsset(ContentAssetPaths.Root + "/Resources/LandsongNightCaptions.asset", ContentAssetPaths.Presentation + "/Night/LandsongNightCaptions.asset");
-            MoveAsset(ContentAssetPaths.Root + "/Resources/LandsongWorldVisuals.asset", ContentAssetPaths.LegacyPresentation + "/LandsongWorldVisuals.asset");
-            MoveAsset(ContentAssetPaths.Presentation + "/WorldPresentationRoot.prefab", ContentAssetPaths.Presentation + "/World/WorldPresentationRoot.prefab");
+            MoveAsset(ContentAssetPaths.Presentation + "/WorldPresentationRoot.prefab", ContentAssetPaths.World + "/WorldPresentationRoot.prefab");
             MoveAsset(ContentAssetPaths.Presentation + "/CueBurst.prefab", ContentAssetPaths.Effects + "/CueBurst.prefab");
             MoveAsset(ContentAssetPaths.Presentation + "/CueBurst.mat", ContentAssetPaths.Effects + "/CueBurst.mat");
             MoveFolder(ContentAssetPaths.Root + "/Materials", ContentAssetPaths.Presentation + "/Shared/Materials");
@@ -159,7 +158,7 @@ namespace Landsong.EditorTools
             MoveFolder("Assets/Landsong/Objects/本地化", ContentAssetPaths.Localization);
             MoveFolder("Assets/Landsong/Objects/InputSystem", "Assets/Landsong/Input");
             MoveFolder("Assets/Landsong/Objects/Prefabs/CropVisuals", ContentAssetPaths.Root + "/Crops/Visuals");
-            MoveFolder("Assets/Landsong/Objects/Materials/NightBaseline", ContentAssetPaths.LegacyPresentation + "/Materials/NightBaseline");
+            MoveFolder("Assets/Landsong/Objects/Materials/NightBaseline", ContentAssetPaths.Presentation + "/Materials/NightBaseline");
             MoveFolder("Assets/_Test", "Assets/Landsong/Tests/Experimental");
         }
 

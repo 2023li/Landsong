@@ -1,4 +1,5 @@
 using Landsong.ECS.Definitions;
+using Landsong.Content;
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
@@ -29,7 +30,7 @@ namespace Landsong.ECS.Presentation
         {
             public GameObject Object;
             public PresentationActor Actor;
-            public WorldVisualCatalog.Model Model;
+            public PresentationActor Model;
             public Vector3 Position;
             public LocalTransform SourceTransform;
             public bool HasTransform;
@@ -56,7 +57,7 @@ namespace Landsong.ECS.Presentation
         readonly Dictionary<Entity, PersistentParticleView> constructionDust = new Dictionary<Entity, PersistentParticleView>();
         readonly Dictionary<Entity, quaternion> treeBaseRotations = new Dictionary<Entity, quaternion>();
         readonly List<Effect> effects = new List<Effect>();
-        readonly Dictionary<ulong, (LifeStage stage, int level, int progress, FixedString64Bytes skin, WorldVisualCatalog.Model model)> buildings = new();
+        readonly Dictionary<ulong, (LifeStage stage, int level, int progress, FixedString64Bytes skin, PresentationActor model)> buildings = new();
         readonly HashSet<ulong> seenBuildingIds = new();
         readonly List<ulong> staleBuildingIds = new();
         readonly HashSet<ulong> pendingCompletionDust = new();
@@ -68,12 +69,9 @@ namespace Landsong.ECS.Presentation
         bool initialized;
         readonly HashSet<Entity> visitors = new HashSet<Entity>();
         readonly List<Entity> stale = new List<Entity>();
-        readonly Dictionary<Entity, ((FixedString128Bytes definition, LifeStage stage, int level, FixedString64Bytes skin) key, WorldVisualCatalog.Model model, bool road)> selections = new();
-        WorldVisualCatalog.Model[] modelDefinitions;
+        readonly Dictionary<Entity, ((FixedString128Bytes definition, LifeStage stage, int level, FixedString64Bytes skin) key, PresentationActor model, bool road)> selections = new();
         EntityQuery candidates;
         bool hasQuery;
-        [LabelText("世界模型目录"), Required]
-        public WorldVisualCatalog Visuals;
         [LabelText("空间特效目录"), Required]
         public EffectCatalog Effects;
         [LabelText("世界叠加层网格"), Required]
@@ -129,22 +127,16 @@ namespace Landsong.ECS.Presentation
 
         public void BindSession(EntityManager manager, Entity simulation, AudioRuntime presentation, Scene scene)
         {
-            if (WorldRootTemplate == null || presentation == null || Visuals == null || Effects == null || OverlayMesh == null || OverlayMaterial == null || !scene.IsValid() || !scene.isLoaded)
-                throw new InvalidOperationException("世界表现缺少根模板、模型/特效/叠加层配置、音频服务或所属场景配置。");
+            if (WorldRootTemplate == null || presentation == null || Effects == null || OverlayMesh == null || OverlayMaterial == null || !scene.IsValid() || !scene.isLoaded)
+                throw new InvalidOperationException("世界表现缺少根模板、特效/叠加层配置、音频服务或所属场景配置。");
             if (FirePrefab == null || FirePrefab.GetComponentInChildren<ParticleSystem>(true) == null)
                 throw new InvalidOperationException("世界表现缺少包含粒子系统的建筑起火预制体。");
             if (ConstructionDustPrefab == null || ConstructionDustPrefab.GetComponentInChildren<ParticleSystem>(true) == null)
                 throw new InvalidOperationException("世界表现缺少包含粒子系统的施工烟尘预制体。");
             if (manager.World == null || !manager.World.IsCreated || simulation == Entity.Null || !manager.Exists(simulation) || !manager.HasComponent<SimulationReady>(simulation))
                 throw new InvalidOperationException("世界表现没有有效的游戏会话。");
-            if (Visuals.Models == null || Effects.Cues == null)
-                throw new InvalidOperationException("模型目录或特效目录数组缺失。");
-            foreach (var model in Visuals.Models)
-            {
-                if (model == null || model.ActorPrefab == null)
-                    throw new InvalidOperationException("世界模型目录的模板引用缺失。");
-                model.ActorPrefab.ValidateConfiguration();
-            }
+            if (Effects.Cues == null)
+                throw new InvalidOperationException("特效目录数组缺失。");
 
             foreach (var cue in Effects.Cues)
             {
@@ -218,7 +210,6 @@ namespace Landsong.ECS.Presentation
             initialized = false;
             stale.Clear();
             selections.Clear();
-            modelDefinitions = null;
             windTime = 0;
             if (worldRoot != null)
                 Destroy(worldRoot.gameObject);
@@ -301,9 +292,6 @@ namespace Landsong.ECS.Presentation
                 return;
             var state = em.GetComponentData<Session>(root);
             SimulationControl stateControl = em.GetComponentData<SimulationControl>(root);
-            var catalog = Visuals;
-            bool modelsChanged = !ReferenceEquals(modelDefinitions, catalog.Models);
-            modelDefinitions = catalog.Models;
             if (initialized && phase != state.Phase)
             {
                 if (state.Phase == Phase.Celebration)
@@ -350,7 +338,7 @@ namespace Landsong.ECS.Presentation
                         }
                     }
 
-                    var key = (VisualIdentity(entity), isBuilding ? b.Stage : LifeStage.Operational, Mathf.Max(1, b.Level), bAppearance.Skin);
+                    var key = (isBuilding ? VisualIdentity(entity) : default(FixedString128Bytes), isBuilding ? b.Stage : LifeStage.Operational, Mathf.Max(1, b.Level), bAppearance.Skin);
                     if (isBuilding && key.Item1.ToString().StartsWith("b树木", StringComparison.Ordinal))
                         SwayTree(entity, id.Id, wind);
                     if (isBuilding)
@@ -358,9 +346,10 @@ namespace Landsong.ECS.Presentation
                             transform.Position, paused, FirePrefab, FireHeightOffset, FireScale, fireMarkers, "Building Fire");
                     bool hadSelection = selections.TryGetValue(entity, out var selection);
                     bool visualStateChanged = hadSelection && !selection.key.Equals(key);
-                    if (!hadSelection || modelsChanged || visualStateChanged)
+                    var modelPrefab = em.HasComponent<ActorVisualPrefab>(entity) ? em.GetComponentData<ActorVisualPrefab>(entity).Prefab.Value as PresentationActor : null;
+                    if (!hadSelection || visualStateChanged || selection.model != modelPrefab)
                     {
-                        selection = (key, catalog.Select(key.Item1.ToString(), key.Item2, key.Item3, bAppearance.Skin.ToString()), isBuilding && BuildingRoadOps.IsRoad(em, root, em.GetComponentData<BuildingDefinitionRef>(entity).Definition));
+                        selection = (key, modelPrefab, isBuilding && BuildingRoadOps.IsRoad(em, root, em.GetComponentData<BuildingDefinitionRef>(entity).Definition));
                         selections[entity] = selection;
                     }
 
@@ -389,13 +378,14 @@ namespace Landsong.ECS.Presentation
                         view = null;
                     }
 
-                    if (model == null || model.ActorPrefab == null)
+                    if (model == null)
                         continue;
+                    var visualConfig = em.GetComponentData<ActorVisualPrefab>(entity);
                     if (view == null)
                     {
-                        var actor = Instantiate(model.ActorPrefab, transform.Position, transform.Rotation, PresentationRoot);
+                        var actor = Instantiate(model, transform.Position, transform.Rotation, PresentationRoot);
                         actor.name = "View · " + id.Id + " · " + id.Name;
-                        actor.transform.localScale = model.Scale;
+                        actor.transform.localScale = visualConfig.Scale;
                         view = new View
                         {
                             Object = actor.gameObject,
@@ -413,8 +403,8 @@ namespace Landsong.ECS.Presentation
                     {
                         view.HasTransform = true;
                         view.SourceTransform = transform;
-                        view.Object.transform.SetPositionAndRotation((Vector3)transform.Position + model.Offset, transform.Rotation);
-                        view.Object.transform.localScale = model.Scale;
+                        view.Object.transform.SetPositionAndRotation((Vector3)transform.Position + (Vector3)visualConfig.Offset, transform.Rotation);
+                        view.Object.transform.localScale = visualConfig.Scale;
                         if (selection.road)
                         {
                             var grid = em.GetComponentData<GridData>(root);
@@ -425,7 +415,7 @@ namespace Landsong.ECS.Presentation
                                 var rotation = (Quaternion)transform.Rotation;
                                 view.Object.transform.rotation = Quaternion.FromToRotation(Vector3.up, normal) * rotation;
                                 var local = Quaternion.Inverse(rotation) * new Vector3(gradient.x, 0, gradient.y);
-                                view.Object.transform.localScale = Vector3.Scale(model.Scale, new Vector3(Mathf.Sqrt(1 + local.x * local.x), 1, Mathf.Sqrt(1 + local.z * local.z)));
+                                view.Object.transform.localScale = Vector3.Scale(visualConfig.Scale, new Vector3(Mathf.Sqrt(1 + local.x * local.x), 1, Mathf.Sqrt(1 + local.z * local.z)));
                             }
                         }
                     }
@@ -638,14 +628,6 @@ namespace Landsong.ECS.Presentation
         {
             if (em.HasComponent<BuildingDefinitionRef>(entity))
                 return BuildingDefinitions.Get(em, root, em.GetComponentData<BuildingDefinitionRef>(entity).Definition).Metadata.Id;
-            if (em.HasComponent<SoldierDefinitionRef>(entity))
-                return SoldierDefinitions.Get(em, root, em.GetComponentData<SoldierDefinitionRef>(entity).Definition).Metadata.Id;
-            if (em.HasComponent<HeroDefinitionRef>(entity))
-                return HeroDefinitions.Get(em, root, em.GetComponentData<HeroDefinitionRef>(entity).Definition).Metadata.Id;
-            if (em.HasComponent<EnemyDefinitionRef>(entity))
-                return EnemyDefinitions.Get(em, root, em.GetComponentData<EnemyDefinitionRef>(entity).Definition).Metadata.Id;
-            if (em.HasComponent<OpportunityDefinitionRef>(entity))
-                return OpportunityDefinitions.Get(em, root, em.GetComponentData<OpportunityDefinitionRef>(entity).Definition).Metadata.Id;
             return default;
         }
 
@@ -673,6 +655,7 @@ namespace Landsong.ECS.Presentation
                 EventKind.Reward => PresentationCue.Loot,
                 EventKind.TheftPrevented or EventKind.FairyCaught => PresentationCue.Capture,
                 EventKind.HeroWakeCost => PresentationCue.HeroWake,
+                EventKind.EnemySpawn => PresentationCue.EnemySpawn,
                 EventKind.CommandResult when message.Result != ResultCode.Success => PresentationCue.Denied,
                 _ => null
             };
@@ -690,9 +673,10 @@ namespace Landsong.ECS.Presentation
                 return;
             var entity = WorldQueries.Find(manager, message.Target);
             bool spatial = entity != Entity.Null && manager.HasComponent<LocalTransform>(entity) && (manager.HasComponent<Building>(entity) || manager.HasComponent<Combatant>(entity));
-            var point = spatial ? (Vector3)EntityState.Position(manager, entity) : (Vector3)message.Position;
+            var point = message.Kind == EventKind.EnemySpawn ? (Vector3)message.Position
+                : spatial ? (Vector3)EntityState.Position(manager, entity) : (Vector3)message.Position;
             // PickUp records position before destroying the loot entity; no payload is reconstructed from inventory.
-            if (message.Kind == EventKind.Reward || message.Kind == EventKind.Damage || message.Kind == EventKind.Death || message.Kind == EventKind.TheftPrevented || message.Kind == EventKind.FairyCaught)
+            if (message.Kind == EventKind.Reward || message.Kind == EventKind.Damage || message.Kind == EventKind.Death || message.Kind == EventKind.TheftPrevented || message.Kind == EventKind.FairyCaught || message.Kind == EventKind.EnemySpawn)
                 spatial = true;
             Emit(cue.Value, point, spatial);
             if (views.TryGetValue(entity, out var view))

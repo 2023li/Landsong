@@ -17,7 +17,7 @@ namespace Landsong.EditorTools
         public const string Effects = Presentation + "/Effects";
         public const string Portraits = Presentation + "/Portraits";
         public const string GeneratedLocalization = Presentation + "/Localization/Generated";
-        public const string LegacyPresentation = Presentation + "/Legacy";
+        public const string World = Root + "/World";
 
         public static string SourceCatalog(string domain) => CatalogSources + "/" + domain + "Catalog.asset";
         public static string DisplayCatalog(string domain) => DisplayCatalogs + "/" + domain + "DisplayCatalog.asset";

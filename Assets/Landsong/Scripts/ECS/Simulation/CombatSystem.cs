@@ -183,8 +183,10 @@ namespace Landsong.ECS
                 return;
             if (!EntityState.Alive(em, damage.Target) || !math.isfinite(damage.Amount) || !math.isfinite(damage.Penetration) || damage.Amount <= 0)
                 return;
-            byte faction = em.HasComponent<Combatant>(damage.Target) ? em.GetComponentData<Combatant>(damage.Target).Faction : (byte)0;
-            if (damage.HasPayload != 0 && damage.Faction == faction || damage.HasPayload == 0 && em.Exists(damage.Source) && em.HasComponent<Combatant>(damage.Source) && em.GetComponentData<Combatant>(damage.Source).Faction == faction)
+            byte faction = em.HasComponent<Combatant>(damage.Target) ? em.GetComponentData<Combatant>(damage.Target).Faction : BuildingFactionOps.Of(em, root, damage.Target);
+            if (damage.HasPayload != 0 && !BuildingFactionOps.Hostile(damage.Faction, faction)
+                || damage.HasPayload == 0 && em.Exists(damage.Source) && em.HasComponent<Combatant>(damage.Source)
+                    && !BuildingFactionOps.Hostile(em.GetComponentData<Combatant>(damage.Source).Faction, faction))
                 return;
             if (em.HasComponent<Combatant>(damage.Target) && em.GetComponentData<GameClock>(root).Time < em.GetComponentData<Combatant>(damage.Target).ProtectedUntil)
                 return;
@@ -208,8 +210,7 @@ namespace Landsong.ECS
             if (em.Exists(damage.Source) && em.HasComponent<Combatant>(damage.Source))
             {
                 var source = em.GetComponentData<Combatant>(damage.Source);
-                var targetFaction = em.HasComponent<Combatant>(damage.Target) ? em.GetComponentData<Combatant>(damage.Target).Faction : 0;
-                if (source.Faction != targetFaction)
+                if (BuildingFactionOps.Hostile(source.Faction, faction))
                 {
                     HeroOps.RecordHeroContribution(em, root, damage.Source, effective);
                     HeroOps.RecordHeroContribution(em, root, damage.Target, effective);
@@ -339,6 +340,10 @@ namespace Landsong.ECS
                     continue;
                 if (a.Deployed == 0 || !EntityState.Alive(em, e) || !EntityState.Alive(em, a.Target) || sClock.Time < a.NextAttack || sClock.Time < a.ProtectedUntil)
                     continue;
+                var targetFaction = em.HasComponent<Combatant>(a.Target) ? em.GetComponentData<Combatant>(a.Target).Faction
+                    : em.HasComponent<Building>(a.Target) ? BuildingFactionOps.Of(em, root, a.Target) : a.Faction;
+                if (!BuildingFactionOps.Hostile(a.Faction, targetFaction))
+                    continue;
                 if (CombatOps.Distance(em, e, a.Target) > a.Range + .2f)
                     continue;
                 var target = a.Target;
@@ -394,7 +399,7 @@ namespace Landsong.ECS
                     Entity = e,
                     Id = em.GetComponentData<Identity>(e).Id,
                     Position = EntityState.Position(em, e),
-                    Faction = em.HasComponent<Combatant>(e) ? em.GetComponentData<Combatant>(e).Faction : (byte)0
+                    Faction = em.HasComponent<Combatant>(e) ? em.GetComponentData<Combatant>(e).Faction : BuildingFactionOps.Of(em, root, e)
                 };
                 if (em.HasComponent<Building>(e))
                     target.HalfSize = (float2)em.GetComponentData<BuildingPlacementState>(e).Size * grid.CellSize * .5f;
@@ -464,7 +469,7 @@ namespace Landsong.ECS
                     else
                         foreach (var victim in Victims)
                         {
-                            if (victim.Faction == projectile.Faction)
+                            if (!BuildingFactionOps.Hostile(projectile.Faction, victim.Faction))
                                 continue;
                             var point = ProjectileOps.Closest(victim, target);
                             if (math.distance(point.xz, target.xz) > math.max(.2f, projectile.Radius) || ProjectileOps.Blocked(Grid, Blocks, target, point, projectile.TargetId, victim.Id))

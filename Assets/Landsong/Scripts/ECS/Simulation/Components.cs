@@ -222,7 +222,8 @@ namespace Landsong.ECS
         HeroOfferingExperience,
         SoldierDeath,
         HeroDeath,
-        EnemyDeath
+        EnemyDeath,
+        EnemySpawn
     }
 
     [System.Flags]

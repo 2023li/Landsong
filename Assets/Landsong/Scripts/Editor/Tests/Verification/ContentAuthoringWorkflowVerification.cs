@@ -118,13 +118,7 @@ namespace Landsong.ECS.Editor
                     Reject(() => BuildingAuthoringWorkflow.ValidateStructure(clone, building), "Missing selection anchor is diagnosed");
                 }
                 finally { Object.DestroyImmediate(clone); }
-                var legacy = ScriptableObject.CreateInstance<WorldVisualCatalog>();
-                try
-                {
-                    legacy.Models = new[] { new WorldVisualCatalog.Model { Definition = "verification.new.unit" } };
-                    Reject(() => WorldPresentationValidation.VerifyLegacyModels(legacy), "New units cannot register through legacy string mappings");
-                }
-                finally { Object.DestroyImmediate(legacy); }
+                Check(typeof(WorldPresentationView).GetField("Visuals") == null, "New units cannot register through legacy string mappings");
                 VerifyUnits(content, output, Check, Reject);
                 Check(UnityEngine.SceneManagement.SceneManager.GetActiveScene() == editingScene && editingScene.isDirty == sceneWasDirty,
                     "Unit creation and failures preserve the active scene and its existing dirty state");

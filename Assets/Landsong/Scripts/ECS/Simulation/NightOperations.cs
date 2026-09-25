@@ -382,6 +382,7 @@ namespace Landsong.ECS
                     if (!NightSpatialOps.SpawnPoint(em, root, wave.Region, preferred, out var position, space))
                         position = point;
                     var e = EnemyEntities.Spawn(em, root, wave.Definition, position, false);
+                    em.GetBuffer<GameEvent>(root).Add(new GameEvent { Kind = EventKind.EnemySpawn, Target = em.GetComponentData<Identity>(e).Id, Position = position });
                     EnemyCombatants.Configure(em, root, e, true, wave.Target, position);
                     var actor = em.GetComponentData<Combatant>(e);
                     actor.Target = target;

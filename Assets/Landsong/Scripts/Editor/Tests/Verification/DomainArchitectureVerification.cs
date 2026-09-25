@@ -182,7 +182,7 @@ namespace Landsong.ECS.Editor
             var fields = typeof(GameUiSessionHandle).GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             Check(fields.All(field => field.FieldType == typeof(EntityManager) || field.FieldType == typeof(Entity) || field.FieldType == typeof(World)), "Game UI session handle contains only world and root binding state");
             Check(typeof(IGameUiNavigation).GetProperties().All(property => property.PropertyType == typeof(GamePanelId) || property.PropertyType == typeof(bool)), "Navigation contract exposes navigation state without domain services");
-            Check(typeof(WorldPresentationView).GetField("Visuals").FieldType == typeof(WorldVisualCatalog) && typeof(WorldPresentationView).GetField("Effects").FieldType == typeof(EffectCatalog), "World visuals directly depend on independent model and effect catalogs");
+            Check(typeof(WorldPresentationView).GetField("Visuals") == null && typeof(WorldPresentationView).GetField("Effects").FieldType == typeof(EffectCatalog), "World visuals are owned by unit prefabs and effects by their catalog");
             Check(typeof(AudioRuntime).GetProperty("Configuration").PropertyType == typeof(AudioCatalog) && typeof(LocalizationRuntime).GetProperty("Configuration").PropertyType == typeof(LocalizationCatalog), "Audio and localization services use separate authored types");
         }
     }

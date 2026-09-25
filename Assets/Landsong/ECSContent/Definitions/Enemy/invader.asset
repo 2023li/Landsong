@@ -15,12 +15,8 @@ MonoBehaviour:
   Metadata:
     Id: invader
     Name: "\u7A81\u51FB\u8005\uFF08\u5360\u4F4D\uFF09"
-    Description: ''
+    Description:
     Icon: {fileID: 0}
-  ThreatValue: 14
-  Behavior: 0
-  PreferredTargetCategory: 0
-  Prefab: {fileID: 8897883104741734442, guid: 824655bfbf8f9e34b992d53c4f3a04e0, type: 3}
   CombatStats:
     MaximumHealth: 120
     Damage: 12
@@ -28,6 +24,23 @@ MonoBehaviour:
     AttackIntervalSeconds: 1
     MovementSpeed: 1.8
     ProjectileSpeed: 9
+    Profile:
+      DetectionRadius: 24
+      ChaseRadius: 12
+      ChaseSeconds: 8
+      BodyRadius: 0.35
+      Armor: 0
+      Reduction: 0
+      Penetration: 0
+      BlastRadius: 0
+      WarningSeconds: 0
+      ProjectileLifetime: 10
+      ProjectileMode: 0
+      Traits: 0
+      BlocksProjectile: 0
+  ThreatValue: 14
+  Behavior: 0
+  PreferredTargetCategory: 0
   KillRewards:
     Items:
     - Order: 0
@@ -37,3 +50,4 @@ MonoBehaviour:
     Buffs: []
     Features: []
   SpecialDrops: []
+  Prefab: {fileID: 8897883104741734442, guid: c0ae8e6cb7097eb46ae65dea5aa39c8f, type: 3}

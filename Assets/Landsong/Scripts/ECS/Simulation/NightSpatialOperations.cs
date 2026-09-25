@@ -171,7 +171,11 @@ namespace Landsong.ECS
             }
         }
 
-        public static bool ValidTarget(EntityManager em, Entity e) => EntityState.Alive(em, e) && em.HasComponent<Building>(e) && em.GetComponentData<Building>(e).Stage != LifeStage.Ruined && em.GetComponentData<Building>(e).Stage != LifeStage.Repairing;
+        public static bool ValidTarget(EntityManager em, Entity root, Entity e)
+            => EntityState.Alive(em, e) && em.HasComponent<Building>(e)
+                && BuildingFactionOps.Of(em, root, e) == (byte)BuildingFaction.Settlement
+                && em.GetComponentData<Building>(e).Stage != LifeStage.Ruined
+                && em.GetComponentData<Building>(e).Stage != LifeStage.Repairing;
         public static Entity Target(EntityManager em, Entity root, EnemyId definition, float3 position, float3 anchor, ulong preferred, bool replacing, ulong excluded = 0)
         {
             using var reachable = new Reach(em, root, position);
@@ -183,7 +187,7 @@ namespace Landsong.ECS
             for (int pass = 0; pass < 2 && chosen == Entity.Null; pass++)
                 foreach (var e in buildings)
                 {
-                    if (!ValidTarget(em, e))
+                    if (!ValidTarget(em, root, e))
                         continue;
                     var id = em.GetComponentData<Identity>(e);
                     if (id.Id == excluded)
@@ -235,12 +239,24 @@ namespace Landsong.ECS
                 }
                 var target = WorldQueries.Find(em, a.HomeId);
                 var nav = em.GetComponentData<NavigationState>(e);
-                if (ValidTarget(em, target) && nav.Failed == 0 && a.TargetRevision == em.GetComponentData<GridData>(root).Revision)
+                var targetValid = ValidTarget(em, root, target);
+                if (targetValid && nav.Failed == 0 && a.TargetRevision == em.GetComponentData<GridData>(root).Revision)
                     continue;
+                if (!targetValid)
+                {
+                    p.Building = Entity.Null;
+                    p.BuildingPosition = default;
+                    em.SetComponentData(e, p);
+                    if (a.Target == target)
+                    {
+                        a.Target = Entity.Null;
+                        em.SetComponentData(e, a);
+                    }
+                }
                 if (sClock.Time < a.DecisionAt)
                     continue;
                 a.DecisionAt = sClock.Time + 1;
-                var replacement = Target(em, root, em.GetComponentData<EnemyDefinitionRef>(e).Definition, EntityState.Position(em, e), a.TargetAnchor, a.HomeId, !ValidTarget(em, target) || nav.Failed != 0, nav.Failed != 0 ? a.HomeId : 0);
+                var replacement = Target(em, root, em.GetComponentData<EnemyDefinitionRef>(e).Definition, EntityState.Position(em, e), a.TargetAnchor, a.HomeId, !targetValid || nav.Failed != 0, nav.Failed != 0 ? a.HomeId : 0);
                 p.Building = replacement;
                 a.HomeId = replacement == Entity.Null ? 0 : em.GetComponentData<Identity>(replacement).Id;
                 a.TargetRevision = em.GetComponentData<GridData>(root).Revision;

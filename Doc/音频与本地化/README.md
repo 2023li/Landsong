@@ -1,6 +1,6 @@
 # 表现、音频与本地化
 
-表现配置按职责分区存放在 `Assets/Landsong/ECSContent/Presentation/`：`Legacy/LandsongWorldVisuals.asset` 管理仍未迁移的四个旧单位，`Portraits/LandsongPortraitDisplay.asset` 管理完整画像覆盖，`Audio/LandsongAudio.asset` 管理声音，`Effects/LandsongEffects.asset` 管理空间特效，`Localization/Generated/LandsongLocalization.asset` 管理编译后的 Text，`Night/LandsongNightCaptions.asset` 管理夜晚字幕。消费者直接绑定所需类型，不经过统一目录；静态建筑分级/皮肤位于 `ECSContent/Buildings/<稳定 ID>`。
+表现配置按职责分区存放在 `Assets/Landsong/ECSContent/Presentation/`：`Portraits/LandsongPortraitDisplay.asset` 管理完整画像覆盖，`Audio/LandsongAudio.asset` 管理声音，`Effects/LandsongEffects.asset` 管理空间特效，`Localization/Generated/LandsongLocalization.asset` 管理编译后的 Text，`Night/LandsongNightCaptions.asset` 管理夜晚字幕。单位外观由各自逻辑 Prefab 引用 View；静态建筑分级/皮肤位于 `ECSContent/Buildings/<稳定 ID>`。
 
 - 动态模型只替换外观，不改变 ECS 占地、导航、人口或伤害；缺绑定回退原 ECS 模型。
 - 应用级 AudioRuntime 复用 2 个循环音源与 16 个短音源，不新增 Listener；世界特效最多 32 个。

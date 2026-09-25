@@ -893,7 +893,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c418d3b56e2dc742883a3489c884101, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Landsong.ECS.Presentation::Landsong.ECS.Presentation.WorldPresentationView
-  Visuals: {fileID: 11400000, guid: b6d92d012b7840dea1f0359332a017d1, type: 2}
   Effects: {fileID: 11400000, guid: 23e486be306d4c16ad691f63c8262a20, type: 2}
   OverlayMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
   OverlayMaterial: {fileID: 2100000, guid: 7d5eef082278b23499439adace9c7286, type: 2}

@@ -232,6 +232,9 @@ public static class EcsEditorAutomation
                 case "VerifyDynamicSpawn":
                     response.Details = Landsong.ECS.Editor.DynamicSpawnVerification.Run();
                     break;
+                case "VerifyPresentation":
+                    response.Details = Landsong.ECS.Editor.PresentationVerification.Run();
+                    break;
                 case "InspectMapBoundary":
                     response.Details = Landsong.EditorTools.MapBoundaryTools.Inspect(UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<Landsong.GridSystem.MapContentAuthoring>(true)).Single());
                     break;

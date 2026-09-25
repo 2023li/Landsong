@@ -70,8 +70,11 @@ namespace Landsong.ECS.Authoring.Definitions
                 throw new InvalidOperationException("建筑等级、占地与耐久必须大于零。");
             if (source.Metadata == null || string.IsNullOrWhiteSpace(source.Metadata.Id))
                 throw new InvalidOperationException("缺少稳定定义标识。");
+            if (!Enum.IsDefined(typeof(BuildingFaction), source.Faction))
+                throw new InvalidOperationException("建筑阵营配置无效：" + source.name);
             target.Metadata.Id = new FixedString128Bytes(source.Metadata.Id);
             target.Metadata.Name = new FixedString128Bytes(source.Metadata.Name ?? "");
+            target.Faction = source.Faction;
             target.LimitGroup = buildingLimitGroupIndex.Resolve(source.LimitGroup, true);
             target.MaximumLevel = source.MaximumLevel;
             target.ConstructionTurns = source.ConstructionTurns;

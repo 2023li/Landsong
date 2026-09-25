@@ -17,6 +17,7 @@ MonoBehaviour:
     Name: "\u6811\u6728 1"
     Description: "\u8FD0\u8425\u540E\u4E3A\u6B63\u4EA4\u76F8\u90BB\u683C\u63D0\u4F9B\u7F8E\u5316\uFF0C\u53CC\u51FB\u53EF\u91C7\u96C6\uFF0C\u751F\u547D\u8017\u5C3D\u6216\u62C6\u9664\u65F6\u53D1\u653E\u8D44\u6E90\u3002"
     Icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
+  Faction: 2
   LimitGroup: {fileID: 11400000, guid: 6afe27fed738cd24995c174f1df54830, type: 2}
   MaximumLevel: 1
   ConstructionTurns: 1

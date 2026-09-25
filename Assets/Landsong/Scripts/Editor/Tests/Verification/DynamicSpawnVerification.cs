@@ -5,6 +5,8 @@ using System.Text;
 using Landsong.ECS.Authoring;
 using Landsong.ECS.Definitions;
 using Landsong.ECS.Persistence;
+using Landsong.ECS.Presentation;
+using Landsong.Content;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -71,9 +73,12 @@ namespace Landsong.ECS.Editor
                 using (var builder = new BlobBuilder(Allocator.Temp))
                 {
                     ref var blob = ref builder.ConstructRoot<BuildingCatalogBlob>();
-                    var definitions = builder.Allocate(ref blob.Definitions, 1);
+                    var definitions = builder.Allocate(ref blob.Definitions, 2);
                     definitions[0].Footprint = new int2(1);
                     definitions[0].PlacementAndVisuals.SpawnExclusionPadding = padding;
+                    definitions[1].Faction = BuildingFaction.Neutral;
+                    definitions[1].Footprint = new int2(1);
+                    definitions[1].PlacementAndVisuals.SpawnExclusionPadding = padding;
                     catalog = builder.CreateBlobAssetReference<BuildingCatalogBlob>(Allocator.Persistent);
                 }
 
@@ -129,14 +134,15 @@ namespace Landsong.ECS.Editor
                     occupancy[i] = default;
                 Em.AddBuffer<SpawnRegion>(Root);
                 Em.AddBuffer<IntelGeometry>(Root);
+                Em.AddBuffer<GameEvent>(Root);
                 Core = Building(new int2(10, 10), new int2(2), 1);
             }
 
-            public Entity Building(int2 cell, int2 size, ulong id)
+            public Entity Building(int2 cell, int2 size, ulong id, bool neutral = false)
             {
                 var entity = Em.CreateEntity();
                 Em.AddComponentData(entity, new Identity { Id = id });
-                Em.AddComponentData(entity, new BuildingDefinitionRef { Definition = BuildingId.FromIndex(0) });
+                Em.AddComponentData(entity, new BuildingDefinitionRef { Definition = BuildingId.FromIndex(neutral ? 1 : 0) });
                 {
                     Em.AddComponentData(entity, new Building { Stage = LifeStage.Operational });
                     Em.AddComponentData(entity, new BuildingPlacementState() { Cell = cell, Size = size });
@@ -205,6 +211,16 @@ namespace Landsong.ECS.Editor
             fixture.Building(new int2(10, 20), new int2(2), 4);
             fixture.Building(new int2(20, 20), new int2(2), 5);
             Check(new NightSpawnOps.Space(em, root).Legal(new int2(16, 16), false), "Uncovered interior courtyard is eligible");
+            var neutral = fixture.Building(new int2(30, 30), new int2(1), 7, true);
+            space = new NightSpawnOps.Space(em, root);
+            Check(space.Coverage[GridOps.Index(grid, new int2(30, 29))] == 0
+                && !space.Legal(new int2(30, 30), false)
+                && !NightSpatialOps.ValidTarget(em, root, neutral),
+                "Neutral scenery blocks its own cell but adds no city coverage or attack target");
+            CombatOps.ApplyDamage(em, root, new DamageRequest { Target = neutral, Amount = 5, Faction = 1, HasPayload = 1 });
+            Check(em.GetComponentData<Health>(neutral).Current == 10, "Enemy damage cannot hurt neutral scenery");
+            Check(space.CityEdge(new int2(7, 10)) && !space.CityEdge(new int2(30, 29)),
+                "Preferred entry cells hug the settlement coverage, not neutral scenery");
             var random = new Random(123);
             space = NightSpawnOps.Generate(em, root, 4, ref random);
             var first = Regions(em, root);
@@ -217,6 +233,17 @@ namespace Landsong.ECS.Editor
             random = new Random(987);
             NightSpawnOps.Generate(em, root, 4, ref random);
             Check(!first.SequenceEqual(Regions(em, root)), "New night seed can choose different regions");
+            var rules = em.GetComponentData<NightRules>(root);
+            rules.SpawnRegionSize = 1;
+            rules.MinSpawnRegions = 1;
+            rules.MaxSpawnRegions = 1;
+            em.SetComponentData(root, rules);
+            random = new Random(456);
+            var edgeSpace = NightSpawnOps.Generate(em, root, 1, ref random);
+            Check(edgeSpace.CityEdge(GridOps.Cell(grid, Regions(em, root)[0].Center)),
+                "When available, the first spawn region is selected at the settlement edge");
+            em.SetComponentData(root, NightRules.Default);
+            NightSpawnOps.Generate(em, root, 4, ref random);
             var before = Regions(em, root);
             var session = em.GetComponentData<Session>(root);
             NightSpawnOps.Repair(em, root, new NightSpawnOps.Space(em, root));
@@ -294,6 +321,23 @@ namespace Landsong.ECS.Editor
                 EcsVerification.Bake(world, scene.GetRootGameObjects(), blobs);
                 var em = world.EntityManager;
                 var root = WorldQueries.Root(em);
+                var sceneryIds = Enumerable.Range(1, 8).Select(index => "b树木" + index)
+                    .Concat(new[] { "b小石堆", "b小土堆" });
+                Check(sceneryIds.All(id =>
+                {
+                    var definition = BuildingDefinitions.Find(em, root, new FixedString128Bytes(id));
+                    return definition.IsValid && BuildingDefinitions.Get(em, root, definition).Faction == BuildingFaction.Neutral;
+                }), "All authored trees, small stone piles and small dirt piles bake as neutral");
+                foreach (var entry in em.GetBuffer<EnemyPrefab>(root))
+                    if (EnemyDefinitions.Get(em, root, entry.Definition).Metadata.Id.ToString() is "boss" or "raider" or "invader")
+                        Check(em.HasComponent<ActorVisualPrefab>(entry.Prefab)
+                            && em.GetComponentData<ActorVisualPrefab>(entry.Prefab).Prefab.Value is PresentationActor,
+                            "Baked enemy prefab retains its own actor View");
+                foreach (var entry in em.GetBuffer<HeroPrefab>(root))
+                    if (HeroDefinitions.Get(em, root, entry.Definition).Metadata.Id.ToString() == "titan")
+                        Check(em.HasComponent<ActorVisualPrefab>(entry.Prefab)
+                            && em.GetComponentData<ActorVisualPrefab>(entry.Prefab).Prefab.Value is PresentationActor,
+                            "Baked titan prefab retains its own actor View");
                 WorldInitialization.Initialize(em, root);
                 var settings = em.GetComponentData<NightSettings>(root);
                 settings.FirstInvasion = 1;
@@ -305,6 +349,7 @@ namespace Landsong.ECS.Editor
                 {
                     em.SetComponentData(root, sessionClock);
                 }
+                SeasonWeatherOps.Dawn(em, root);
 
                 EntityState.Set(em, root, new NightPlanState());
                 NightPlanOps.Plan(em, root, false);

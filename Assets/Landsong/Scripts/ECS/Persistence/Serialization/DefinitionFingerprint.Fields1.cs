@@ -175,6 +175,7 @@ namespace Landsong.ECS.Persistence
         internal static void Write(BinaryWriter writer, ref Landsong.ECS.Definitions.BuildingDefinition value)
         {
             Write(writer, ref value.Metadata);
+            SnapshotBinary.Write(writer, (byte)value.Faction);
             SnapshotBinary.Write(writer, value.LimitGroup);
             SnapshotBinary.Write(writer, value.MaximumLevel);
             SnapshotBinary.Write(writer, value.ConstructionTurns);

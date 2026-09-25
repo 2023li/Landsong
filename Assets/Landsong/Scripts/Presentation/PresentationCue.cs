@@ -55,6 +55,8 @@ namespace Landsong.ECS.Presentation
         [LabelText("战报")]
         Report,
         [LabelText("雷声")]
-        Thunder
+        Thunder,
+        [LabelText("敌人刷新")]
+        EnemySpawn
     }
 }

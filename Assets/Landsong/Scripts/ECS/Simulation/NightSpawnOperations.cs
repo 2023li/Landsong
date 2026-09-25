@@ -16,7 +16,7 @@ namespace Landsong.ECS
             public readonly GridData Grid;
             public readonly int[] Coverage;
             public readonly List<int2> Normal = new List<int2>(), Edge = new List<int2>();
-            readonly bool[] open, reachable;
+            readonly bool[] open, reachable, cityEdge;
             readonly float3 cityCenter;
             public Space(EntityManager em, Entity root)
             {
@@ -44,6 +44,7 @@ namespace Landsong.ECS
                 Coverage = new int[length];
                 open = new bool[length];
                 reachable = new bool[length];
+                cityEdge = new bool[length];
                 var walkable = new bool[length];
                 for (int i = 0; i < length; i++)
                 {
@@ -57,6 +58,8 @@ namespace Landsong.ECS
                 using var buildings = WorldQueries.OrderedEntities<Building>(em);
                 foreach (var site in buildings)
                 {
+                    if (BuildingFactionOps.Of(em, root, site) != (byte)BuildingFaction.Settlement)
+                        continue;
                     BuildingPlacementState buildingPlacement = em.GetComponentData<BuildingPlacementState>(site);
                     ref var definition = ref BuildingDefinitions.Get(em, root, em.GetComponentData<BuildingDefinitionRef>(site).Definition);
                     int padding = math.clamp(definition.PlacementAndVisuals.SpawnExclusionPadding, 0, 256);
@@ -65,7 +68,7 @@ namespace Landsong.ECS
                     for (int y = lo.y; y < hi.y; y++)
                         for (int x = lo.x; x < hi.x; x++)
                             Coverage[GridOps.Index(Grid, new int2(x, y))]++;
-                    if (!NightSpatialOps.ValidTarget(em, site))
+                    if (!NightSpatialOps.ValidTarget(em, root, site))
                         continue;
                     if (em.HasComponent<BuildingHousingStats>(site) && em.GetComponentData<BuildingHousingStats>(site).IsCore != 0)
                         cityCenter = GridOps.Position(Grid, buildingPlacement.Cell, buildingPlacement.Size);
@@ -107,12 +110,63 @@ namespace Landsong.ECS
                     if (Grid.Value.Value.Cells[i].EdgeZone != 0)
                         Edge.Add(Cell(i));
                 }
+
+                // Flood the uncovered exterior from the authored map boundary. An
+                // uncovered courtyard may be legal, but should not be a preferred
+                // entry while the outside of the city remains reachable.
+                var exterior = new bool[length];
+                var exteriorQueue = new Queue<int>();
+                void AddExterior(int at)
+                {
+                    if (at < 0 || Coverage[at] != 0 || exterior[at])
+                        return;
+                    exterior[at] = true;
+                    exteriorQueue.Enqueue(at);
+                }
+
+                for (int y = 0; y < Grid.Value.Value.Size.y; y++)
+                {
+                    AddExterior(y * Grid.Value.Value.Size.x);
+                    AddExterior(y * Grid.Value.Value.Size.x + Grid.Value.Value.Size.x - 1);
+                }
+                for (int x = 0; x < Grid.Value.Value.Size.x; x++)
+                {
+                    AddExterior(x);
+                    AddExterior((Grid.Value.Value.Size.y - 1) * Grid.Value.Value.Size.x + x);
+                }
+                while (exteriorQueue.Count > 0)
+                {
+                    int at = exteriorQueue.Dequeue();
+                    var cell = Cell(at);
+                    for (int d = 0; d < 4; d++)
+                        AddExterior(GridOps.Index(Grid, cell + Offset(d)));
+                }
+                foreach (var cell in Normal)
+                {
+                    int at = GridOps.Index(Grid, cell);
+                    if (!exterior[at])
+                        continue;
+                    for (int d = 0; d < 4; d++)
+                    {
+                        int neighbor = GridOps.Index(Grid, cell + Offset(d));
+                        if (neighbor < 0 || Coverage[neighbor] == 0)
+                            continue;
+                        cityEdge[at] = true;
+                        break;
+                    }
+                }
             }
 
             public bool Legal(int2 cell, bool edgeOnly)
             {
                 int at = GridOps.Index(Grid, cell);
                 return at >= 0 && open[at] && reachable[at] && (edgeOnly ? Grid.Value.Value.Cells[at].EdgeZone != 0 : Coverage[at] == 0);
+            }
+
+            public bool CityEdge(int2 cell)
+            {
+                int at = GridOps.Index(Grid, cell);
+                return at >= 0 && cityEdge[at];
             }
 
             public int2 Cell(int index) => Grid.Value.Value.Min + new int2(index % Grid.Value.Value.Size.x, index / Grid.Value.Value.Size.x);
@@ -157,6 +211,16 @@ namespace Landsong.ECS
                 (candidates[n], candidates[at]) = (candidates[at], candidates[n]);
             }
 
+            if (!edgeOnly)
+            {
+                var ordered = new List<int2>(candidates.Count);
+                foreach (var cell in candidates)
+                    if (space.CityEdge(cell)) ordered.Add(cell);
+                foreach (var cell in candidates)
+                    if (!space.CityEdge(cell)) ordered.Add(cell);
+                candidates = ordered;
+            }
+
             foreach (var cell in candidates)
             {
                 var candidate = space.Region(cell, edgeOnly, rules.SpawnRegionSize);
@@ -190,6 +254,7 @@ namespace Landsong.ECS
                 bool edgeOnly = space.Normal.Count == 0;
                 var candidates = edgeOnly ? space.Edge : space.Normal;
                 float best = float.MaxValue;
+                int bestPriority = int.MaxValue;
                 var replacement = previous;
                 // Prefer separated regions. If edits leave too little room, waves may share
                 // a legal area rather than retaining an impossible entry.
@@ -207,9 +272,11 @@ namespace Landsong.ECS
 
                         if (pass == 0 && !separated)
                             continue;
+                        int priority = !edgeOnly && space.CityEdge(cell) ? 0 : 1;
                         float distance = math.distancesq(previous.Center.xz, candidate.Center.xz);
-                        if (distance >= best)
+                        if (priority > bestPriority || priority == bestPriority && distance >= best)
                             continue;
+                        bestPriority = priority;
                         best = distance;
                         replacement = candidate;
                     }

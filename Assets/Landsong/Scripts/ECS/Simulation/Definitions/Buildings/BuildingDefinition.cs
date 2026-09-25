@@ -5,6 +5,22 @@ using Unity.Mathematics;
 
 namespace Landsong.ECS.Definitions
 {
+    public enum BuildingFaction : byte
+    {
+        [Sirenix.OdinInspector.LabelText("己方")] Settlement = 0,
+        [Sirenix.OdinInspector.LabelText("敌方")] Invaders = 1,
+        [Sirenix.OdinInspector.LabelText("中立")] Neutral = 2
+    }
+
+    public static class BuildingFactionOps
+    {
+        public static byte Of(EntityManager em, Entity root, Entity building)
+            => (byte)BuildingDefinitions.Get(em, root, em.GetComponentData<BuildingDefinitionRef>(building).Definition).Faction;
+
+        public static bool Hostile(byte attacker, byte target)
+            => target != (byte)BuildingFaction.Neutral && attacker != target;
+    }
+
     /// <summary>A local Building catalog index. The default value is an absent reference.</summary>
     public readonly struct BuildingId : IEquatable<BuildingId>, IComparable<BuildingId>
     {
@@ -37,6 +53,7 @@ namespace Landsong.ECS.Definitions
     public struct BuildingDefinition
     {
         public DefinitionMetadata Metadata;
+        public BuildingFaction Faction;
         public BuildingLimitGroupId LimitGroup;
         public int MaximumLevel;
         public int ConstructionTurns;
