@@ -18,7 +18,7 @@ MonoBehaviour:
     Description: "\u738B\u5BAB\u662F\u805A\u843D\u7684\u6838\u5FC3\u5EFA\u7B51\uFF0C\u4E3A\u73A9\u5BB6\u63D0\u4F9B\u56FA\u5B9A\u4EBA\u53E3\u3001\u5E93\u5B58\u69FD\u4F4D\u548C\u79D1\u6280\u70B9\uFF0C\u4E5F\u662F\u91CD\u8981\u7684\u8D44\u6E90\u63D0\u4F9B\u8282\u70B9\u3002"
     Icon: {fileID: 0}
   LimitGroup: {fileID: 11400000, guid: da0c12365c5050749861324dfd6406cd, type: 2}
-  MaximumLevel: 1
+  MaximumLevel: 2
   ConstructionTurns: 1
   ResourceConnectionActionPower: 20
   MaximumCount: 1
@@ -64,12 +64,29 @@ MonoBehaviour:
       StageCosts: []
       StageOutputs: []
     Upgrade:
-      Enabled: 0
-      Costs: []
+      Enabled: 1
+      Costs:
+      - TargetLevel: 2
+        Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+        Quantity: 200
+      - TargetLevel: 2
+        Item: {fileID: 11400000, guid: a761334fe1641a74f9948313fb5ff413, type: 2}
+        Quantity: 30
+      - TargetLevel: 2
+        Item: {fileID: 11400000, guid: a927377c37e532b49af819fa89b72369, type: 2}
+        Quantity: 20
       Workers: []
       Residents: []
       MaintenanceRequirements: []
-      Experience: []
+      Experience:
+      - Level: 1
+        ExperiencePerTurn: 1
+        UpgradeExperience: 10
+        RequiredWorkers: 0
+      - Level: 2
+        ExperiencePerTurn: 0
+        UpgradeExperience: 0
+        RequiredWorkers: 0
     Maintenance:
       Enabled: 0
       RepairTurns: 0
@@ -86,10 +103,10 @@ MonoBehaviour:
       Enabled: 1
       InvitationCosts: []
       Capacity:
-      - Level: 1
+      - Level: 0
         Slots: 4
       Invitations:
-      - Level: 1
+      - Level: 0
         Slots: 1
         Type: 0
         MinimumRefreshTurns: 5
@@ -108,7 +125,7 @@ MonoBehaviour:
       Providers:
       - Level: 0
       Warehouses:
-      - Level: 1
+      - Level: 0
         SlotType: {fileID: 11400000, guid: 1f9a9c9bb078fce4ca49c9b5809c20af, type: 2}
         Slots: 15
         RequiredWorkers: 0
@@ -121,7 +138,7 @@ MonoBehaviour:
     Housing:
       Enabled: 1
       Population:
-      - Level: 1
+      - Level: 0
         Population: 10
         IsCore: 1
       Residences: []
@@ -131,7 +148,7 @@ MonoBehaviour:
     Research:
       Enabled: 1
       Levels:
-      - Level: 1
+      - Level: 0
         PointsPerTurn: 1
     Farming:
       Enabled: 0
@@ -144,7 +161,7 @@ MonoBehaviour:
       Enabled: 1
       RecruitmentLimitPerTurn: 0
       Levels:
-      - Level: 1
+      - Level: 0
         Capacity: 3
         DeploymentBatchSize: 1
       InitialUnits:

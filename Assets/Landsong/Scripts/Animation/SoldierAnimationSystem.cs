@@ -26,6 +26,7 @@ namespace Landsong.Animation
         static readonly FastAnimatorParameter DrawWeapon = new FastAnimatorParameter("DrawWeapon");
         static readonly FastAnimatorParameter SheatheWeapon = new FastAnimatorParameter("SheatheWeapon");
         static readonly FastAnimatorParameter Attack = new FastAnimatorParameter("Attack");
+        static readonly FastAnimatorParameter Shoot = new FastAnimatorParameter("Shoot");
         static readonly FastAnimatorParameter Hit = new FastAnimatorParameter("Hit");
         static readonly FastAnimatorParameter AttackSpeed = new FastAnimatorParameter("AttackSpeed");
         protected override void OnCreate()
@@ -188,6 +189,8 @@ namespace Landsong.Animation
                     parameters.ResetTrigger(SheatheWeapon);
                 }
                 parameters.ResetTrigger(Attack);
+                if (usesEquipment)
+                    parameters.ResetTrigger(Shoot);
                 parameters.ResetTrigger(Hit);
                 if (drawStarted)
                     parameters.SetTrigger(DrawWeapon);
@@ -197,7 +200,10 @@ namespace Landsong.Animation
                 {
                     if (signal.AttackSequence != state.AttackSequence && state.Equipment == SoldierEquipmentState.Sword)
                     {
-                        parameters.SetTrigger(Attack);
+                        if (em.HasComponent<Soldier>(entity) && em.GetComponentData<Soldier>(entity).Weapon == SoldierWeaponKind.Bow)
+                            parameters.SetTrigger(Shoot);
+                        else
+                            parameters.SetTrigger(Attack);
                         state.AttackSequence = signal.AttackSequence;
                     }
                     // Avoid a flinch cancelling every attack during sustained combat.
@@ -224,7 +230,10 @@ namespace Landsong.Animation
                     layers[i] = layer;
                 }
 
-                SetEquipmentVisual(em, binding, SwordVisible(state, config), torchVisible, suppressHandPose, celebrating, paused);
+                var switchingWeapon = usesEquipment && !dead && !celebrating && state.PoseOverrideRemaining <= 0
+                    && (state.Equipment == SoldierEquipmentState.DrawingSword || state.Equipment == SoldierEquipmentState.SheathingSword);
+                var weaponKind = em.HasComponent<Soldier>(entity) ? em.GetComponentData<Soldier>(entity).Weapon : SoldierWeaponKind.Sword;
+                SetEquipmentVisual(em, binding, SwordVisible(state, config), torchVisible, suppressHandPose, celebrating, paused, switchingWeapon, (byte)weaponKind);
 
                 var rigTransform = em.GetComponentData<LocalTransform>(binding.Rig);
                 rigTransform.Rotation = quaternion.identity;
@@ -260,7 +269,8 @@ namespace Landsong.Animation
             => !dead && state.Equipment == SoldierEquipmentState.Torch;
 
         public static void SetEquipmentVisual(EntityManager em, in SoldierAnimationBinding binding,
-            bool swordVisible, bool torchVisible, bool suppressHandPose, bool celebrating = false, bool paused = false)
+            bool swordVisible, bool torchVisible, bool suppressHandPose, bool celebrating = false, bool paused = false, bool switchingWeapon = false,
+            byte weaponKind = (byte)SoldierWeaponKind.Sword)
         {
             if (em.Exists(binding.SwordMount) && em.HasComponent<Parent>(binding.SwordMount))
             {
@@ -275,8 +285,20 @@ namespace Landsong.Animation
             if (em.Exists(binding.SwordMount) && em.HasComponent<LocalTransform>(binding.SwordMount))
             {
                 var sword = em.GetComponentData<LocalTransform>(binding.SwordMount);
-                sword.Scale = swordVisible ? 1 : 0;
+                sword.Scale = swordVisible && weaponKind == (byte)SoldierWeaponKind.Sword ? 1 : 0;
                 em.SetComponentData(binding.SwordMount, sword);
+            }
+            if (em.Exists(binding.ClubMount) && em.HasComponent<LocalTransform>(binding.ClubMount))
+            {
+                var club = em.GetComponentData<LocalTransform>(binding.ClubMount);
+                club.Scale = swordVisible && weaponKind == (byte)SoldierWeaponKind.None ? 1 : 0;
+                em.SetComponentData(binding.ClubMount, club);
+            }
+            if (em.Exists(binding.BowMount) && em.HasComponent<LocalTransform>(binding.BowMount))
+            {
+                var bow = em.GetComponentData<LocalTransform>(binding.BowMount);
+                bow.Scale = swordVisible && weaponKind == (byte)SoldierWeaponKind.Bow ? 1 : 0;
+                em.SetComponentData(binding.BowMount, bow);
             }
             if (em.Exists(binding.TorchMount) && em.HasComponent<LocalTransform>(binding.TorchMount))
             {
@@ -303,6 +325,7 @@ namespace Landsong.Animation
                 {
                     var layer = layers[i];
                     layer.weight = i == binding.CelebrationLayer && celebrating ? 1
+                        : i == binding.WeaponLayer && switchingWeapon && !celebrating ? 1
                         : i == binding.TorchLayer && torchVisible && !suppressHandPose && !celebrating ? 1 : 0;
                     layers[i] = layer;
                 }

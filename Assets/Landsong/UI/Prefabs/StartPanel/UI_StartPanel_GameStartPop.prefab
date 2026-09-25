@@ -2823,7 +2823,6 @@ GameObject:
   - component: {fileID: 8961834526367150238}
   - component: {fileID: 3625250729014123174}
   - component: {fileID: 3377917207841191311}
-  - component: {fileID: 9176617230057752679}
   m_Layer: 0
   m_Name: UI_StartPanel_GameStartPop
   m_TagString: Untagged
@@ -2915,8 +2914,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_StartPanel_GameStartPop
   childViews: []
   openWithOwner: 0
-  previewBindings:
-  - {fileID: 9176617230057752679}
+  previewContent:
+  - key: Recipe
+    sampleObjects: []
+    sampleTextTargets:
+    - {fileID: 2658253706740353974}
+    runtimeTexts:
+    - ""
   Catalog: {fileID: 11400000, guid: a32c678444a714940aed613bd3eb69c2, type: 2}
   MapSelection: {fileID: 6808880857313279600}
   DifficultySelection: {fileID: 699252212960122879}
@@ -2925,23 +2929,6 @@ MonoBehaviour:
   MapPreview: {fileID: 2121961247007007348}
   CreateDynastyButton: {fileID: 1324706212039254542}
   BackButton: {fileID: 395957467340071364}
---- !u!114 &9176617230057752679
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3925640800721416367}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 34d223bf2e064464b0034eac33461f6a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Moyo.Runtime::Moyo.Unity.UIPreviewOnly
-  sampleObjects: []
-  sampleTextTargets:
-  - {fileID: 2658253706740353974}
-  runtimeTexts:
-  - 
 --- !u!1 &3953976013770967362
 GameObject:
   m_ObjectHideFlags: 0

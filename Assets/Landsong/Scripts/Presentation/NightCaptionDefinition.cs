@@ -7,23 +7,51 @@ namespace Landsong.ECS.Presentation
     [CreateAssetMenu(menuName = "Landsong/Presentation/Night Captions")]
     public sealed class NightCaptionDefinition : ScriptableObject
     {
-        [LabelText("正式夜晚提示延迟（秒）"), Min(0)]
+        [LabelText("正式夜晚提示延迟（秒）"),MinValue(0)]
         public float NightCaptionDelay = 3;
-        [LabelText("平安夜提示后按钮延迟（秒）"), Min(0)]
+        [LabelText("平安夜提示后按钮延迟（秒）"), MinValue(0)]
         public float PeacefulAdvanceDelay = 2;
         [LabelText("入侵夜字幕"), TextArea]
         public string InvasionNightCaption = "今晚有敌军来袭";
         [LabelText("平安夜字幕"), TextArea]
         public string PeacefulNightCaption = "今晚似乎是个平安夜";
+        [LabelText("首领夜来袭字幕"), TextArea]
+        public string BossArrivalCaption = "他们来了...";
         [LabelText("战斗胜利字幕"), TextArea]
         public string VictoryNightCaption = "胜利属于我们";
+
+        [Header("字幕动画时间（秒）")]
+        [LabelText("普通字幕展示时长"), MinValue(0)]
+        public float StandardCaptionSeconds = 2f;
+        [LabelText("平安夜淡入"), MinValue(0)]
+        public float PeacefulFadeInSeconds = .35f;
+        [LabelText("平安夜淡出"), MinValue(0)]
+        public float PeacefulFadeOutSeconds = .35f;
+        [LabelText("战斗夜淡入"), MinValue(0)]
+        public float InvasionFadeInSeconds = .12f;
+        [LabelText("战斗夜淡出"), MinValue(0)]
+        public float InvasionFadeOutSeconds = .12f;
+        [LabelText("Boss 开场淡入"), MinValue(0)]
+        public float BossOpeningFadeInSeconds = .3f;
+        [LabelText("Boss 开场抖动时长"), MinValue(0)]
+        public float BossShakeSeconds = .3f;
+        [LabelText("Boss 开场横向抖动幅度"), MinValue(0)]
+        public float BossShakeHorizontal = 10f;
+        [LabelText("Boss 开场纵向抖动幅度"), MinValue(0)]
+        public float BossShakeVertical = 6f;
+        [LabelText("Boss 开场碎散"), MinValue(0)]
+        public float BossShatterSeconds = .35f;
+        [LabelText("Boss 警告淡入"), MinValue(0)]
+        public float BossWarningFadeInSeconds = .12f;
+        [LabelText("Boss 警告淡出"), MinValue(0)]
+        public float BossWarningFadeOutSeconds = .12f;
 
         public string Caption(Phase phase, NightKind kind, float nightElapsed, float closureElapsed = -1, float closureVictoryAt = 0, float battleVictoryElapsed = -1, float battleVictoryAt = 0)
         {
             if (phase == Phase.Celebration && battleVictoryElapsed >= battleVictoryAt) return VictoryNightCaption;
             if (phase == Phase.Retreat && closureElapsed >= closureVictoryAt) return VictoryNightCaption;
             if (phase != Phase.Night || nightElapsed < Mathf.Max(0, NightCaptionDelay)) return "";
-            return kind == NightKind.Peaceful ? PeacefulNightCaption : InvasionNightCaption;
+            return kind == NightKind.Peaceful || kind == NightKind.Boss ? PeacefulNightCaption : InvasionNightCaption;
         }
 
         public bool PeacefulAdvanceReady(Phase phase, NightKind kind, float nightElapsed)

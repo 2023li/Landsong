@@ -115,6 +115,18 @@ namespace Landsong.ECS.Editor
                 }
 
                 var original = SnapshotCodec.Capture(em, root);
+                using (var roster = WorldQueries.OrderedEntities<Soldier>(em))
+                {
+                    var member = roster[0];
+                    var memberId = em.GetComponentData<Identity>(member).Id;
+                    Check(GameRequestExecution.Execute(em, root, new EquipSoldierWeaponRequest { Soldier = memberId, Weapon = SoldierWeaponKind.Bow }) == ResultCode.Success,
+                        "Weapon slot accepts a daytime ranged loadout");
+                    var equipped = SnapshotCodec.Capture(em, root);
+                    SnapshotCodec.Restore(em, root, SnapshotCodec.Decode(em, root, equipped));
+                    Check(em.GetComponentData<Soldier>(WorldQueries.Find(em, memberId)).Weapon == SoldierWeaponKind.Bow,
+                        "Weapon choice survives ECS snapshot roundtrip");
+                    SnapshotCodec.Restore(em, root, SnapshotCodec.Decode(em, root, original));
+                }
                 var grid = em.GetComponentData<GridData>(root);
                 var occupancy = em.GetBuffer<Occupancy>(root);
                 int2 center = default;
@@ -149,6 +161,7 @@ namespace Landsong.ECS.Editor
                     if (faction == 0)
                     {
                         var e = SoldierEntities.Spawn(em, root, soldier, position, false);
+                        em.AddComponentData(e, new Soldier());
                         SoldierCombatants.Configure(em, root, e, true, 0, origin);
                         return e;
                     }
@@ -171,8 +184,56 @@ namespace Landsong.ECS.Editor
                     em.SetComponentData(root, sPersistence);
                 }
 
+                using (var garrison = WorldQueries.Entities<Soldier>(em))
+                    foreach (var member in garrison)
+                    {
+                        var actor = em.GetComponentData<Combatant>(member);
+                        actor.Deployed = 0;
+                        em.SetComponentData(member, actor);
+                    }
                 var a = Unit(0, origin);
                 var b = Unit(1, origin + new float3(1, 0, 0));
+                Check(em.GetComponentData<Combatant>(a).ProjectileSpeed == 0
+                    && em.GetComponentData<Combatant>(a).Range == 1.15f,
+                    "Unequipped militia attacks in club melee range without spawning a projectile");
+                var equippedSoldier = em.GetComponentData<Soldier>(a);
+                equippedSoldier.Weapon = SoldierWeaponKind.Bow;
+                em.SetComponentData(a, equippedSoldier);
+                SoldierCombatants.Configure(em, root, a, true, 0, origin);
+                Check(em.GetComponentData<Combatant>(a).ProjectileSpeed > 0
+                    && em.GetComponentData<Combatant>(a).Range >= 4.5f,
+                    "Bow loadout restores ranged projectiles and ranged reach");
+                equippedSoldier.Weapon = SoldierWeaponKind.None;
+                em.SetComponentData(a, equippedSoldier);
+                SoldierCombatants.Configure(em, root, a, true, 0, origin);
+                var intruder = Unit(1, origin + new float3(4, 0, 4));
+                var guard = Unit(0, origin + new float3(5, 0, 4));
+                var rear = Unit(0, origin + new float3(6, 0, 4));
+                var rearActor = em.GetComponentData<Combatant>(rear);
+                rearActor.Threat = 100;
+                rearActor.Target = intruder;
+                em.SetComponentData(rear, rearActor);
+                Check(EntityState.Alive(em, guard) && em.GetComponentData<Combatant>(guard).Deployed == 1
+                    && math.distance(EntityState.Position(em, guard).xz, EntityState.Position(em, intruder).xz) < 1.1f,
+                    "Interception fixture has a living melee guard beside the attacker");
+                var isolated = em.GetComponentData<Combatant>(a);
+                isolated.Deployed = 0;
+                em.SetComponentData(a, isolated);
+                world.GetOrCreateSystem<PerceptionSystem>().Update(world.Unmanaged);
+                em.CompleteAllTrackedJobs();
+                Check(em.GetComponentData<Perception>(intruder).Enemy == guard,
+                    "A melee frontliner intercepts an enemy trying to target the high-threat rear soldier");
+                var guardLoadout = em.GetComponentData<Soldier>(guard);
+                guardLoadout.Weapon = SoldierWeaponKind.Bow;
+                em.SetComponentData(guard, guardLoadout);
+                SoldierCombatants.Configure(em, root, guard, true, 0, origin);
+                Check(em.GetComponentData<Combatant>(guard).ProjectileSpeed > 0,
+                    "Ranged loadout is ineligible for the melee interception sample");
+                em.DestroyEntity(intruder);
+                em.DestroyEntity(guard);
+                em.DestroyEntity(rear);
+                isolated.Deployed = 1;
+                em.SetComponentData(a, isolated);
                 float Life(Entity e) => em.GetComponentData<Health>(e).Current;
                 Entity Shot(Entity source, Entity target, ProjectileMode mode, float radius = 0, float warning = 0)
                 {

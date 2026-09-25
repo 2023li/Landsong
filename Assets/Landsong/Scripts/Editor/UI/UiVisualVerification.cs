@@ -104,7 +104,7 @@ namespace Landsong.ECS.Editor
                     if (state == "Talent") foreach (var view in panel.GetComponentsInChildren<UI_GamePanel_Talent>(true)) view.gameObject.SetActive(true);
                     if (state == "RoyalDetails")
                     {
-                        game.Court.gameObject.SetActive(true); game.Court.CourtGraph.gameObject.SetActive(true);
+                        game.Court.gameObject.SetActive(true); game.Court.GraphRoot.gameObject.SetActive(true);
                         game.Court.RoyalDetails.gameObject.SetActive(true);
                         game.Court.RoyalDetails.PersonContent.SetActive(true); game.Court.RoyalDetails.OverviewHost.gameObject.SetActive(false);
                     }

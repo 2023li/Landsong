@@ -1365,7 +1365,7 @@ namespace Landsong.ECS.Persistence
             Fields<Session>(new string[] { "Phase", "Initialized" });
             Fields<SimulationControl>(new string[] { "Paused" });
             Fields<SimulationRandomState>(new string[] { "State" });
-            Fields<Soldier>(new string[] { "Garrison", "Slot", "PopulationCost", "PendingSince", "Experience", "LastExperienceTurn", "RecallState" });
+            Fields<Soldier>(new string[] { "Garrison", "Slot", "PopulationCost", "PendingSince", "Experience", "LastExperienceTurn", "RecallState", "Weapon" });
             Fields<SoldierPerson>(new string[] { "Age", "Lifespan", "LastAgeTurn", "Incarnation", "Gender", "SpecialAttention", "DeathNotified" });
             Fields<SpawnRegion>(new string[] { "Direction", "Center", "Size", "EdgeOnly" });
             Fields<Talent>(new string[] { "Slot", "Experience", "Level", "AssignedTurns", "WageTurn", "LastBenefitTurn", "Recruited", "Paid" });

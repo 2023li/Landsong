@@ -88,7 +88,7 @@ namespace Moyo.Unity.Editor
                 var child = (UIFrameworkTestChild)a.ChildViews[0];
                 Require(child.OwnerPanel == a && child.Manager == manager && child.Creates == 1 && child.IsViewOpen,
                     "子视图配置归属和一次创建"); checks++;
-                Require(a.PreviewBindings.Count == 1 && !a.PreviewBindings[0].SampleObjects[0].activeSelf,
+                Require(a.PreviewContent.Count == 1 && !a.PreviewContent[0].SampleObjects[0].activeSelf,
                     "框架创建阶段通过显式引用禁用编辑样例"); checks++;
 
                 var b = await manager.OpenAsync<UIFrameworkTestPanelB>();
@@ -238,9 +238,7 @@ namespace Moyo.Unity.Editor
                 panel.ConfigurePanel(group, child);
                 var previewObject = NewObject("PreviewOnly_验证条目", scene, root.transform);
                 previewObject.tag = "EditorOnly";
-                var preview = root.AddComponent<UIPreviewOnly>();
-                preview.Configure(new[] { previewObject }, Array.Empty<TMPro.TMP_Text>(), Array.Empty<string>());
-                panel.ConfigurePreview(preview);
+                panel.ConfigurePreview("Framework", new[] { previewObject }, Array.Empty<TMPro.TMP_Text>(), Array.Empty<string>());
             }
             else panel.ConfigurePanel(group);
             var asset = ScriptableObject.CreateInstance<UIPanelAsset>();

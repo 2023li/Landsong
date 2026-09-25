@@ -144,6 +144,7 @@ namespace Landsong.ECS.Editor
                 var em = world.EntityManager;
                 var root = WorldQueries.Root(em);
                 WorldInitialization.Initialize(em, root);
+                RoyalFoundingVerification.UnlockFixture(em, root, false);
                 Check(PortraitOps.Ready(em, root), "Map baking creates immutable portrait library");
                 var monarch = CourtOps.Monarch(em);
                 Check(em.HasComponent<PortraitDNA>(monarch), "Initial royal receives persistent portrait");

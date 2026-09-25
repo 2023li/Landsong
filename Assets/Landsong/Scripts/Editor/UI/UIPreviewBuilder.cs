@@ -104,7 +104,7 @@ namespace Landsong.Editor.UI
             return profile;
         }
 
-        public static UIPreviewOnly Apply(UIViewBase owner, UIPreviewProfile profile,
+        public static UIViewPreviewContent Apply(UIViewBase owner, UIPreviewProfile profile,
             UIPreviewTextBinding[] texts, UIPreviewListBinding[] lists, bool recordUndo = false)
         {
             if (Application.isPlaying) throw new InvalidOperationException("编辑预览不能在真实运行会话中应用。");
@@ -113,12 +113,9 @@ namespace Landsong.Editor.UI
             lists ??= Array.Empty<UIPreviewListBinding>();
             Validate(owner, profile, texts, lists);
             using var rootLayout = UiPanelLayoutAuthoring.Preserve(owner.transform as RectTransform);
-            // 此查询仅发生在 Editor 资源制作阶段；运行时使用下面写入的 previewBindings。
-            var marker = owner.GetComponent<UIPreviewOnly>();
-            if (marker == null)
-                marker = recordUndo ? Undo.AddComponent<UIPreviewOnly>(owner.gameObject) : owner.gameObject.AddComponent<UIPreviewOnly>();
-            else ClearSamples(marker, recordUndo);
-            if (recordUndo) { Undo.RecordObject(owner, "配置界面预览"); Undo.RecordObject(marker, "配置界面预览"); }
+            var content = owner.PreviewContent.FirstOrDefault(item => item != null && item.Key == "Recipe");
+            if (recordUndo) Undo.RecordObject(owner, "配置界面预览");
+            if (content != null) ClearSamples(owner, content, recordUndo);
             var sampleObjects = new List<GameObject>();
             try
             {
@@ -147,38 +144,35 @@ namespace Landsong.Editor.UI
                         clone.gameObject.SetActive(true);
                     }
                 }
-                marker.Configure(sampleObjects.ToArray(), texts.Select(x => x.target).ToArray(), texts.Select(x => x.runtimeText).ToArray());
-                var markers = owner.PreviewBindings.Where(x => x != null).ToList();
-                if (!markers.Contains(marker)) markers.Add(marker);
-                owner.ConfigurePreview(markers.ToArray());
+                content = owner.ConfigurePreview("Recipe", sampleObjects.ToArray(), texts.Select(x => x.target).ToArray(), texts.Select(x => x.runtimeText).ToArray());
                 if (recordUndo) Undo.RecordObject(owner.gameObject, "显示界面预览");
                 owner.gameObject.SetActive(true);
-                EditorUtility.SetDirty(marker);
                 EditorUtility.SetDirty(owner);
-                return marker;
+                return content;
             }
             catch
             {
                 foreach (var sample in sampleObjects) if (sample != null) DestroySample(sample, recordUndo);
                 foreach (var binding in texts) if (binding.target != null) binding.target.text = binding.runtimeText ?? string.Empty;
-                marker.Configure(Array.Empty<GameObject>(), Array.Empty<TMP_Text>(), Array.Empty<string>());
+                content?.Configure(Array.Empty<GameObject>(), Array.Empty<TMP_Text>(), Array.Empty<string>());
                 throw;
             }
         }
 
-        public static void ClearSamples(UIPreviewOnly marker, bool recordUndo = false)
+        public static void ClearSamples(UIViewBase owner, UIViewPreviewContent content, bool recordUndo = false)
         {
-            if (marker == null) return;
-            marker.ValidateConfiguration();
-            foreach (var sample in marker.SampleObjects) if (sample != null) DestroySample(sample, recordUndo);
-            for (var i = 0; i < marker.SampleTextTargets.Length; i++)
+            if (content == null) return;
+            content.ValidateConfiguration(owner.transform);
+            if (recordUndo) Undo.RecordObject(owner, "清除界面预览配置");
+            foreach (var sample in content.SampleObjects) if (sample != null) DestroySample(sample, recordUndo);
+            for (var i = 0; i < content.SampleTextTargets.Length; i++)
             {
-                var target = marker.SampleTextTargets[i];
+                var target = content.SampleTextTargets[i];
                 if (recordUndo) Undo.RecordObject(target, "清除界面示例文字");
-                target.text = marker.RuntimeTexts[i] ?? string.Empty;
+                target.text = content.RuntimeTexts[i] ?? string.Empty;
             }
-            if (recordUndo) Undo.RecordObject(marker, "清除界面预览配置");
-            marker.Configure(Array.Empty<GameObject>(), Array.Empty<TMP_Text>(), Array.Empty<string>());
+            content.Configure(Array.Empty<GameObject>(), Array.Empty<TMP_Text>(), Array.Empty<string>());
+            EditorUtility.SetDirty(owner);
         }
 
         private static void Validate(UIViewBase owner, UIPreviewProfile profile,

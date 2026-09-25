@@ -78,7 +78,7 @@ namespace Landsong.ECS.Persistence
                 || !math.all(math.isfinite(w.Start)) || !math.all(math.isfinite(w.Destination)) || !math.isfinite(w.Remaining) || w.Remaining < 0
                 || w.Stage > TransportStage.Dead || w.Variant > 1 || w.Carrying > 1 || w.Retiring > 1 || w.DeathRecorded > 1
                 || w.Delivered > 1 || w.CargoAssigned > 1 || w.CargoSettled > 1 || record.Cargo == null || record.Cargo.Length > 64
-                || (w.CargoAssigned == 0 || w.CargoSettled != 0 || w.DeathRecorded != 0 && w.Delivered == 0) && record.Cargo.Length != 0
+                || (w.CargoAssigned == 0 || w.Delivered != 0 && w.CargoSettled != 0 || w.DeathRecorded != 0) && record.Cargo.Length != 0
                 || (w.Stage == TransportStage.Dead) != (w.DeathRecorded == 1) || (record.Health.Current <= 0) != (w.DeathRecorded == 1))
                 throw new InvalidDataException("Invalid transport worker");
             foreach (var item in record.Cargo)

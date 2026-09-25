@@ -35,7 +35,7 @@ namespace Landsong.ECS
         {
             var worker = em.GetComponentData<TransportWorker>(entity);
             if (worker.DeathRecorded != 0) return;
-            if (worker.CargoAssigned != 0 && worker.Delivered == 0)
+            if (worker.CargoAssigned != 0 && worker.Delivered == 0 && worker.CargoSettled == 0)
             {
                 using var cargo = em.GetBuffer<TransportCargo>(entity).ToNativeArray(Allocator.Temp);
                 var items = cargo.ToArray();
@@ -51,6 +51,8 @@ namespace Landsong.ECS
                 }
                 em.GetBuffer<TransportCargo>(entity).Clear();
             }
+            else if (worker.CargoSettled != 0)
+                em.GetBuffer<TransportCargo>(entity).Clear();
             worker.DeathRecorded = 1;
             worker.Stage = TransportStage.Dead;
             worker.Carrying = 0;
@@ -85,8 +87,11 @@ namespace Landsong.ECS
                     var settings = em.GetComponentData<TransportWorkerSettings>(root);
                     var provider = WorldQueries.Find(em, worker.Provider);
                     var consumer = WorldQueries.Find(em, worker.Consumer);
-                    if (!day || !BuildingRangeOps.IsProvider(em, provider) || !em.Exists(consumer) || !em.HasComponent<Building>(consumer)
-                        || em.GetComponentData<Building>(consumer).Stage == LifeStage.Ruined)
+                    // A paid construction delivery finishes its route after dusk, even if
+                    // the building has completed construction in the settlement.
+                    bool committedDelivery = worker.CargoAssigned != 0 && worker.CargoSettled != 0 && worker.Delivered == 0;
+                    if (!committedDelivery && (!day || !BuildingRangeOps.IsProvider(em, provider) || !em.Exists(consumer)
+                        || !em.HasComponent<Building>(consumer) || em.GetComponentData<Building>(consumer).Stage == LifeStage.Ruined))
                         worker.Retiring = 1;
                     if (worker.Retiring != 0 && worker.Stage != TransportStage.Returning)
                     {
@@ -110,6 +115,8 @@ namespace Landsong.ECS
                                     worker.Delivered = 1;
                                     foreach (var cargo in em.GetBuffer<TransportCargo>(entity))
                                         em.GetBuffer<TransportDeliveryEvent>(root).Add(new TransportDeliveryEvent { Item = cargo.Item, Amount = cargo.Amount, Position = worker.Destination });
+                                    if (worker.CargoSettled != 0)
+                                        em.GetBuffer<TransportCargo>(entity).Clear();
                                 }
                             }
                             break;
@@ -194,25 +201,37 @@ namespace Landsong.ECS
             return Entity.Null;
         }
 
+        public static void SettleCargo(EntityManager em, Entity root, Entity entity)
+        {
+            var worker = em.GetComponentData<TransportWorker>(entity);
+            if (worker.CargoAssigned == 0 || worker.CargoSettled != 0) return;
+            var consumer = WorldQueries.Find(em, worker.Consumer);
+            using (var scope = EconomyJournalOps.For(em, root, consumer, EconomyReason.Construction))
+                foreach (var cargo in em.GetBuffer<TransportCargo>(entity))
+                    EconomyJournalOps.RecordSettlementOnly(em, root, cargo.Item, -cargo.Amount);
+            worker.CargoSettled = 1;
+            if (worker.DeathRecorded == 0 && worker.Delivered == 0)
+            {
+                worker.Retiring = 0;
+                if (worker.Stage != TransportStage.Unloading) worker.Carrying = 1;
+                if (worker.Stage != TransportStage.Delivering && worker.Stage != TransportStage.Unloading)
+                {
+                    worker.Stage = TransportStage.Delivering;
+                    worker.Remaining = 0;
+                }
+            }
+            else
+                em.GetBuffer<TransportCargo>(entity).Clear();
+            em.SetComponentData(entity, worker);
+        }
+
         public static void CloseDay(EntityManager em, Entity root)
         {
             using var workers = WorldQueries.Entities<TransportWorker>(em);
             foreach (var entity in workers)
             {
                 if (!Owned(em, root, entity)) continue;
-                var worker = em.GetComponentData<TransportWorker>(entity);
-                if (worker.CargoAssigned == 0 || worker.CargoSettled != 0) continue;
-                var journal = em.GetBuffer<EconomyEntry>(root);
-                var journalLength = journal.Length;
-                foreach (var cargo in em.GetBuffer<TransportCargo>(entity))
-                    InventoryOps.Add(em, root, cargo.Item, cargo.Amount, true);
-                // The reservation happened before the dusk journal opened. A returned
-                // reservation is a net-zero transfer for this turn's economy bill.
-                if (journal.Length > journalLength) journal.RemoveRange(journalLength, journal.Length - journalLength);
-                em.GetBuffer<TransportCargo>(entity).Clear();
-                worker.CargoSettled = 1;
-                worker.Carrying = 0;
-                em.SetComponentData(entity, worker);
+                SettleCargo(em, root, entity);
             }
         }
 

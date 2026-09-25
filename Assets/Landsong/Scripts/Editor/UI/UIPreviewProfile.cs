@@ -13,9 +13,8 @@ namespace Landsong.Editor.UI
         [LabelText("科技")] Technology,
         [LabelText("人才")] Talent,
         [LabelText("建筑详情")] BuildingDetails,
-        [LabelText("王室人物详情")] RoyalDetails,
-        [LabelText("婚姻请求")] Marriage,
-        [LabelText("士兵详情")] SoldierDetails
+        [LabelText("婚姻请求")] Marriage = 8,
+        [LabelText("士兵详情")] SoldierDetails = 9
     }
 
     [Serializable]
@@ -116,12 +115,6 @@ namespace Landsong.Editor.UI
                     lists = new[] { L("outputs", R("粮食", "+24 / 回合", "预计入库 24")),
                         L("workers", R("自然吸引力", "4 人"), R("岗位预算", "2 人")),
                         L("crops", R("小麦", "成熟度 75%"), R("蔬菜", "成熟度 40%")) };
-                    break;
-                case UIPreviewKind.RoyalDetails:
-                    texts = new[] { T("identity", "沈明远 · 男 · 20 岁 · 储君"),
-                        T("description", "父亲：开国君主\n母亲：开国配偶\n配偶：无\n\n国中声望：68.0 / 100\n成长性：1.15\n野心：尚未表现出野心\n\n特性：\n擅长组织生产，关注边境民生。\n\n待办：希望参与下一次远征。") };
-                    lists = new[] { L("people", R("开国君主", "42 岁 · 君王", "影响力 82.0"),
-                        R("沈明远", "20 岁 · 储君", "影响力 68.0")) };
                     break;
                 case UIPreviewKind.Marriage:
                     texts = new[] { T("title", "沈知远希望能和苏清和结婚"), T("hint", "请审阅双方情况，再决定是否赐婚。"),

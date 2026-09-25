@@ -138,7 +138,6 @@ GameObject:
   - component: {fileID: 703974849531477079}
   - component: {fileID: 8332347949773751084}
   - component: {fileID: 7707850302802510670}
-  - component: {fileID: 5782208375711649705}
   m_Layer: 0
   m_Name: Worker tier sidebar
   m_TagString: Untagged
@@ -235,19 +234,6 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &5782208375711649705
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 133533700976152650}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ea13ebbb22dc66445aab079226a35ac3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_BuildingWorkerSidebarHover
-  View: {fileID: 3729718196166514561}
 --- !u!1 &164584910773114072
 GameObject:
   m_ObjectHideFlags: 0
@@ -3869,7 +3855,6 @@ GameObject:
   - component: {fileID: 2634584452151776437}
   - component: {fileID: 925875443313302611}
   - component: {fileID: 3729718196166514561}
-  - component: {fileID: 8000234006582578568}
   m_Layer: 0
   m_Name: "UI_GamePanel_\u5EFA\u7B51\u8BE6\u60C5"
   m_TagString: Untagged
@@ -3953,6 +3938,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d9a186b6397644e59e7df7adc687c041, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_BuildingDetails
+  previewContent:
+    key: BuildingDetails
+    sampleObjects: []
+    sampleTextTargets:
+    - {fileID: 9195122283922958247}
+    - {fileID: 5234125200165621364}
+    - {fileID: 1617074762326442388}
+    - {fileID: 307727737360363296}
+    - {fileID: 7678089114502236086}
+    - {fileID: 5140550606986500389}
+    runtimeTexts:
+    - "\u5EFA\u7B51\u540D\u79F0"
+    - 
+    - 
+    - 
+    - 
+    - 
   Items: {fileID: 11400000, guid: 319f79e63ed641ad95eee7374998bf9b, type: 2}
   Crops: {fileID: 11400000, guid: bcd6cb7d6ad04d46a9627e766ac58056, type: 2}
   Name: {fileID: 977231214286674452}
@@ -3966,6 +3968,8 @@ MonoBehaviour:
   Close: {fileID: 3286753177589541441}
   Style: {fileID: 4023322470748260964}
   Upgrade: {fileID: 1911410095626851868}
+  Move: {fileID: 1738892502183714600}
+  Demolish: {fileID: 3474012249975204636}
   Warning: {fileID: 6657278380307001840}
   ExperienceHover: {fileID: 2335016749882259976}
   ModulesScroll: {fileID: 358052313347747607}
@@ -3981,33 +3985,6 @@ MonoBehaviour:
   TooltipText: {fileID: 6973131991523406175}
   Sidebar: {fileID: 133533700976152650}
   SidebarText: {fileID: 9185615387141199638}
---- !u!114 &8000234006582578568
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3577485457890964208}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 34d223bf2e064464b0034eac33461f6a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Moyo.Runtime::Moyo.Unity.UIPreviewOnly
-  sampleObjects: []
-  sampleTextTargets:
-  - {fileID: 9195122283922958247}
-  - {fileID: 5234125200165621364}
-  - {fileID: 1617074762326442388}
-  - {fileID: 307727737360363296}
-  - {fileID: 7678089114502236086}
-  - {fileID: 5140550606986500389}
-  runtimeTexts:
-  - "\u5EFA\u7B51\u540D\u79F0"
-  - 
-  - 
-  - 
-  - 
-  - 
 --- !u!1 &3627375017952187910
 GameObject:
   m_ObjectHideFlags: 0

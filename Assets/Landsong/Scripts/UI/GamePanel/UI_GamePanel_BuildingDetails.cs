@@ -10,12 +10,23 @@ using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
 using Sirenix.OdinInspector;
+using Moyo.Unity;
 
 namespace Landsong.ECS.Presentation
 {
     // Stable controls preserve input focus while the simulation refreshes their read models.
     public sealed class UI_GamePanel_BuildingDetails : MonoBehaviour
     {
+        [SerializeField, LabelText("界面预览内容"), Required]
+        private UIViewPreviewContent previewContent;
+        public UIViewPreviewContent PreviewContent => previewContent;
+        internal void RefreshInitialPreview()
+        {
+            if (previewContent == null)
+                throw new InvalidOperationException("建筑详情预览内容未配置。");
+            previewContent.ValidateConfiguration(transform);
+            previewContent.PrepareRuntime();
+        }
         [Sirenix.OdinInspector.LabelText("物品显示目录"), Sirenix.OdinInspector.Required]
         public ItemDisplayCatalog Items;
         [Sirenix.OdinInspector.LabelText("作物显示目录"), Sirenix.OdinInspector.Required]
@@ -226,7 +237,7 @@ namespace Landsong.ECS.Presentation
         }
 
         internal GameUiCommandWriter commandsController;
-        internal UI_GamePanel_Court courtController;
+        internal UI_GamePanel_Royal courtController;
         internal UI_GamePanel_Hud hudController;
         internal IGameUiNavigation navigation;
         internal GameUiSessionHandle sessionController;
@@ -237,7 +248,7 @@ namespace Landsong.ECS.Presentation
         public RectTransform DetailsRows => Block<UI_GamePanel_BuildingDetails_Block_其他>().Rows;
         public bool IsOpen => isOpen;
 
-        internal void BindPresenter(GameUiSessionHandle session, GameUiCommandWriter commands, IGameUiNavigation navigation, IGameBuildingUi buildingUi, UI_GamePanel_Court court, UI_GamePanel_Hud hud, UI_GamePanel_Soldier soldier, UI_GamePanel_WorldInteraction world)
+        internal void BindPresenter(GameUiSessionHandle session, GameUiCommandWriter commands, IGameUiNavigation navigation, IGameBuildingUi buildingUi, UI_GamePanel_Royal court, UI_GamePanel_Hud hud, UI_GamePanel_Soldier soldier, UI_GamePanel_WorldInteraction world)
         {
             sessionController = session ?? throw new ArgumentNullException(nameof(session));
             commandsController = commands ?? throw new ArgumentNullException(nameof(commands));

@@ -1374,10 +1374,10 @@ RectTransform:
   - {fileID: 7121048954999174545}
   m_Father: {fileID: 2369948564015433782}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.19, y: 0.06}
-  m_AnchorMax: {x: 0.81, y: 0.94}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: -1000, y: -200}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1347001172722705444
 CanvasRenderer:
@@ -2557,13 +2557,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 24fd82fcaa5703f4abb5fadf4daa0283, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_PausePop
-  View: {fileID: 0}
   Overlay: {fileID: 5071882128432870490}
   MainPage: {fileID: 1308792783204035319}
   ModalGroup: {fileID: 7738365360524353991}
-  BackgroundGroup: {fileID: 0}
   OverlayImage: {fileID: 2312007601617259878}
-  OpenButton: {fileID: 0}
   SaveButton: {fileID: 1039779922099697018}
   QuickSaveButton: {fileID: 3482185853041338321}
   SettingsButton: {fileID: 6482129368371603592}

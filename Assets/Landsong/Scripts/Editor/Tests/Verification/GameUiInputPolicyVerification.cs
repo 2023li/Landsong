@@ -44,6 +44,10 @@ namespace Landsong.ECS.Editor
             var confirm = State(GameUiInputOwner.BuildingConfirmation);
             Check(confirm.BackOwner(true) == GameUiInputOwner.Pause && confirm.BackOwner() == GameUiInputOwner.None, "建筑确认保留 Esc 暂停、返回按钮取消的区别");
             Check(confirm.CanTogglePause && !State(GameUiInputOwner.Marriage).CanTogglePause, "暂停覆盖建筑确认，不抢婚姻返回");
+            var founding = State(GameUiInputOwner.RoyalFounding);
+            Check(founding.CanQueue(CommandKind.FoundRoyal) && !founding.CanQueue(CommandKind.Advance)
+                && !founding.CanQueue(CommandKind.Pause) && !founding.CanNavigate && !founding.CanHandleBack,
+                "王室拥立只接受取名确认，不允许跳过弹窗或操作底层界面");
             var owners = GameUiInputOwner.SoldierDetails | GameUiInputOwner.Portrait | GameUiInputOwner.PersonRequests | GameUiInputOwner.Marriage | GameUiInputOwner.Pause;
             foreach (var expected in new[] { GameUiInputOwner.SoldierDetails, GameUiInputOwner.Portrait, GameUiInputOwner.PersonRequests, GameUiInputOwner.Marriage, GameUiInputOwner.Pause })
             {

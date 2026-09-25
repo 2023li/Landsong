@@ -482,7 +482,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_List
   PanelId: 9
-  RequiredFeatureId: 
+  RequiredFeatureId: feature.Royal
   AllowMissingFeature: 0
   AllowLockedOpen: 0
   ContentRoot: {fileID: 3019684937139562376}

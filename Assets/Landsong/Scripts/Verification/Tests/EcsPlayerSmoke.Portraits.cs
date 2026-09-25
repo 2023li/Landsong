@@ -36,8 +36,8 @@ namespace Landsong.ECS.Presentation
                 PortraitOps.Announce(em, root);
                 yield return WaitFor(() => PersonRequestOps.Pending(em, root, king).Any(request => request.Kind == PersonRequestKind.Portrait), "Youth beauty remains available through personal requests");
                 view.OpenPanel(GamePanelId.Royal);
-                var graph = view.Court.CourtGraph;
-                yield return WaitFor(() => graph.gameObject.activeInHierarchy && graph.Node(id) != null, "Portrait family fixture is visible");
+                var graph = view.Court;
+                yield return WaitFor(() => graph.GraphRoot.gameObject.activeInHierarchy && graph.Node(id) != null, "Portrait family fixture is visible");
                 graph.Node(id).onClick.Invoke();
                 yield return WaitFor(() => view.Court.RoyalDetails.Portrait.sprite != null, "Burst composition publishes royal detail sprite");
                 var face = graph.NodeView(id).Portrait;

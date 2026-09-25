@@ -25,12 +25,11 @@ namespace Landsong.ECS
             if (em.GetComponentData<Session>(root).Phase != Phase.Day || em.GetComponentData<GameClock>(root).DawnRemaining > 0)
                 return ResultCode.WrongPhase;
             var bytes = SnapshotCodec.Capture(em, root);
-            string fingerprint;
-            using (var hash = SHA256.Create())
-                // Walking cargo representatives cannot invalidate an otherwise unchanged economy review.
-                fingerprint = Convert.ToBase64String(hash.ComputeHash(SnapshotCodec.Capture(em, root, includeTransportWorkers: false)));
             var review = em.HasComponent<NightEntryReview>(root) ? em.GetComponentData<NightEntryReview>(root) : default;
-            var approved = confirmed && token != 0 && token == review.Token && review.Fingerprint.ToString() == fingerprint;
+            // The ordinary entry path does not need a review fingerprint. Capture it only
+            // for an existing confirmation or when staging discovers losses to review.
+            string fingerprint = confirmed && token != 0 && token == review.Token ? ReviewFingerprint(em, root) : null;
+            var approved = fingerprint != null && review.Fingerprint.ToString() == fingerprint;
             var expected = new List<NightEntryLoss>();
             if (em.HasBuffer<NightEntryLoss>(root))
                 foreach (var loss in em.GetBuffer<NightEntryLoss>(root))
@@ -130,6 +129,7 @@ namespace Landsong.ECS
             }
 
             // Only the review is published. All settlement costs, RNG, entities and messages rolled back.
+            fingerprint ??= ReviewFingerprint(em, root);
             EntityState.Set(em, root, new NightEntryReview { Fingerprint = fingerprint, Token = review.Token == ulong.MaxValue ? 1 : review.Token + 1 });
             EntityState.Buffer<NightEntryLoss>(em, root);
             var rows = em.GetBuffer<NightEntryLoss>(root);
@@ -137,6 +137,13 @@ namespace Landsong.ECS
             foreach (var loss in losses)
                 rows.Add(loss);
             return ResultCode.ConfirmationRequired;
+        }
+
+        static string ReviewFingerprint(EntityManager em, Entity root)
+        {
+            using var hash = SHA256.Create();
+            // Walking cargo representatives cannot invalidate an otherwise unchanged economy review.
+            return Convert.ToBase64String(hash.ComputeHash(SnapshotCodec.Capture(em, root, includeTransportWorkers: false)));
         }
 
         static List<NightEntryLoss> Losses(EntityManager em, Entity root)

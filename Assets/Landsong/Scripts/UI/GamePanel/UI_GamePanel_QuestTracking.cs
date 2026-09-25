@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Landsong.ECS;
+using Moyo.Unity;
 using Unity.Entities;
 using UnityEngine;
 using UnityEngine.UI;
@@ -25,10 +26,16 @@ namespace Landsong.ECS.Presentation
                 throw new InvalidOperationException("任务追踪滚动视图或内容容器未配置。");
         }
 
-        internal void Bind(UI_GamePanel_Quest quest)
+        void EnsureOwner()
         {
-            owner = quest;
-            rows = new UI_GamePanel_RowCollection(quest.RowTemplate);
+            if (owner != null)
+                return;
+            if (!UIManager.TryGetInstance(out var uiManager)
+                || !uiManager.TryGetActivePanel<UI_GamePanel>(out var gamePanel)
+                || gamePanel.Quests == null || gamePanel.Quests.QuestTracking != this)
+                throw new InvalidOperationException("任务追踪无法从 UIManager 获取所属任务面板。");
+            owner = gamePanel.Quests;
+            rows = new UI_GamePanel_RowCollection(owner.RowTemplate);
         }
 
         RectTransform Card(ulong id)
@@ -54,6 +61,7 @@ namespace Landsong.ECS.Presentation
 
         public void Refresh()
         {
+            EnsureOwner();
             if (owner.QuestWindow != null)
                 owner.QuestWindow.SetActive(owner.navigation.IsPanelOpen && owner.navigation.Panel == GamePanelId.Quest);
             var visible = !owner.intelligence.IsOpen && owner.navigation.Panel != GamePanelId.Quest && owner.navigation.Panel != GamePanelId.Technology && owner.navigation.Panel != GamePanelId.BattleReport && owner.navigation.Panel != GamePanelId.DynastyEnd && !owner.buildingController.DetailsPanel.gameObject.activeSelf;

@@ -178,7 +178,7 @@ namespace Landsong.ECS.Editor
             }
 
             public QueryScope Query(float radius = .2f) => new QueryScope(Em, Root, radius);
-            public Entity Unit(float3 from, float3 to, float radius = .2f)
+            public Entity Unit(float3 from, float3 to, float radius = .2f, float speed = 2)
             {
                 var e = Em.CreateEntity();
                 Em.AddComponentData(e, new Identity { Id = EntityIdentityAllocator.AllocateId(Em, Root) });
@@ -186,7 +186,7 @@ namespace Landsong.ECS.Editor
                 Em.AddComponentData(e, new Health { Current = 10, Maximum = 10 });
                 var profile = CombatProfile.Default;
                 profile.BodyRadius = radius;
-                Em.AddComponentData(e, new Combatant { Deployed = 1, Speed = 2, Profile = profile });
+                Em.AddComponentData(e, new Combatant { Deployed = 1, Speed = speed, Profile = profile });
                 Em.AddComponentData(e, new NavigationState { Revision = -1 });
                 Em.AddComponentData(e, new Steering { Moving = 1, Destination = to });
                 Em.AddBuffer<Waypoint>(e);
@@ -341,6 +341,7 @@ namespace Landsong.ECS.Editor
             f.Complete(f.Building(1, new int2(10, 4)));
             var uphill = f.Unit(StairsA, StairsB);
             var downhill = f.Unit(StairsB, StairsA);
+            var wolfSized = f.Unit(StairsA + new float3(1, 0, 0), StairsB + new float3(1, 0, 0), .4f, 3.2f);
             var upper = f.Unit(BridgeA, BridgeB);
             var lower = f.Unit(new float3(1.5f, .5f, 8.5f), new float3(8.5f, .5f, 8.5f));
             var opposite = f.Unit(BridgeB + new float3(1, 0, 0), BridgeA + new float3(1, 0, 0));
@@ -365,9 +366,35 @@ namespace Landsong.ECS.Editor
 
             report.AppendLine("DETAIL moving units: up=" + EntityState.Position(f.Em, uphill) + "; down=" + EntityState.Position(f.Em, downhill) + "; bridge=" + EntityState.Position(f.Em, upper) + "; under=" + EntityState.Position(f.Em, lower) + "; failed=" + f.Em.GetComponentData<NavigationState>(uphill).Failed + "/" + f.Em.GetComponentData<NavigationState>(downhill).Failed);
             Check(math.distance(EntityState.Position(f.Em, uphill), StairsB) < .4f && math.distance(EntityState.Position(f.Em, downhill), StairsA) < .4f, "Actual ECS NavigationSystem moves opposing units up and down stairs");
+            Check(math.distance(EntityState.Position(f.Em, wolfSized), StairsB + new float3(1, 0, 0)) < .5f, "Wolf-sized fast agent traverses the stair beside other units");
             Check(maxError < .12f, "Actual ECS stair movement follows continuous logical height trajectory; error=" + maxError + "; position=" + maxErrorPosition + "; tick=" + maxErrorTick);
             Check(math.distance(EntityState.Position(f.Em, upper), BridgeB) < .4f && math.distance(EntityState.Position(f.Em, opposite), BridgeA + new float3(1, 0, 0)) < .4f, "Actual ECS units traverse wide bridge in opposite directions");
             Check(math.distance(EntityState.Position(f.Em, lower), new float3(8.5f, .5f, 8.5f)) < .4f, "Actual ECS underpass unit never snaps onto upper deck");
+            using (var slope = new Fixture())
+            {
+                slope.Complete(slope.Building(1, new int2(10, 4)));
+                using var query = slope.Query(.4f);
+                var start = query.Value.Nodes.ToArray().First(n => n.Corridor != 0 && n.Cell.x == 12 && n.Cell.y == 6).Position;
+                Check(query.Value.Shift(start, start + new float3(0, 2, .1f), out var projected)
+                    && math.abs(projected.y - start.y) < .1f,
+                    "Slope movement projects an avoidance target onto its connected surface");
+                var agent = slope.Unit(start, StairsB + new float3(1, 0, 0), .4f, 3.2f);
+                slope.World.SetTime(new TimeData(.05f, .05f));
+                slope.World.GetOrCreateSystem<NavigationSystem>().Update(slope.World.Unmanaged);
+                slope.World.GetOrCreateSystem<FallbackResolveMovementSystem>().Update(slope.World.Unmanaged);
+                slope.Em.CompleteAllTrackedJobs();
+                var before = EntityState.Position(slope.Em, agent);
+                var resolved = slope.Em.GetComponentData<ResolvedMovement>(agent);
+                resolved.targetPoint = before + new float3(3, 0, 0);
+                resolved.speed = 3.2f;
+                slope.Em.SetComponentData(agent, resolved);
+                Check(!query.Value.Shift(before, before + new float3(.16f, 0, 0), out _),
+                    "Wolf-sized lateral avoidance step exceeds stair corridor clearance");
+                slope.World.GetOrCreateSystem<AstarNavigationMoveSystem>().Update(slope.World.Unmanaged);
+                slope.Em.CompleteAllTrackedJobs();
+                Check(EntityState.Position(slope.Em, agent).z > before.z + .01f,
+                    "Blocked lateral avoidance falls back toward the connected stair waypoint");
+            }
             using var narrow = new Fixture(1);
             Check(!TerrainConnectionOps.CanPlace(narrow.Em, narrow.Root, BuildingId.FromIndex(0), new int2(4, 4), 0, 0, out var reason)
                 && reason.Contains("3 格宽"), "Bridge authoring rejects obsolete single-width decks: " + reason);

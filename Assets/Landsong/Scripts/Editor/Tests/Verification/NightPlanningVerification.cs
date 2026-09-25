@@ -128,7 +128,7 @@ namespace Landsong.ECS.Editor
                 Check(captions.Caption(Phase.Night, NightKind.Peaceful, 3) == captions.PeacefulNightCaption, "Peaceful caption appears three seconds into formal night");
                 Check(!captions.PeacefulAdvanceReady(Phase.Night, NightKind.Peaceful, 4.99f) && captions.PeacefulAdvanceReady(Phase.Night, NightKind.Peaceful, 5), "Peaceful advance appears two seconds after its caption");
                 Check(!captions.PeacefulAdvanceReady(Phase.Night, NightKind.Invasion, 20), "Battle notice never exposes peaceful advancement");
-                Check(captions.Caption(Phase.Night, NightKind.Boss, 3) == captions.InvasionNightCaption, "Battle caption shares the configured delay");
+                Check(captions.Caption(Phase.Night, NightKind.Boss, 3) == captions.PeacefulNightCaption && captions.BossArrivalCaption == "他们来了...", "Boss night starts with the peaceful caption before its warning");
                 Check(captions.Caption(Phase.Retreat, NightKind.Boss, 303, 3.99f, 4) == "" && captions.Caption(Phase.Retreat, NightKind.Boss, 304, 4, 4) == captions.VictoryNightCaption, "Victory caption begins exactly at the configured closure beat");
                 Check(captions.Caption(Phase.Celebration, NightKind.Boss, 100, battleVictoryElapsed: 1.99f, battleVictoryAt: 2) == "" && captions.Caption(Phase.Celebration, NightKind.Boss, 100, battleVictoryElapsed: 2, battleVictoryAt: 2) == captions.VictoryNightCaption, "Early victory caption waits two seconds after the last enemy falls");
                 captions.NightCaptionDelay = 5;
@@ -741,6 +741,7 @@ namespace Landsong.ECS.Editor
                 var archive = world.GetOrCreateSystemManaged<CheckpointSystem>();
                 archive.Update();
                 Check(NightOps.Begin(em, root) == ResultCode.Success, "Night entry transaction succeeds with new root buffers");
+                archive.Update();
                 archive.Update();
                 PhaseTo(Phase.Night);
                 CombatOps.ApplyDamage(em, root, new DamageRequest { Target = Core(), Amount = 9999999 });

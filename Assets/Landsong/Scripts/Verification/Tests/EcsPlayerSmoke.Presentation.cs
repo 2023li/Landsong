@@ -118,14 +118,14 @@ namespace Landsong.ECS.Presentation
                 Require(em.HasComponent<PortraitDNA>(kid), "15 manually created fixture receives the normal portrait initialization");
                 portraitDisplay.Portraits = portraits.Concat(new[] { new PortraitDisplayCatalog.Portrait { Person = kidId, Image = ownedPortrait } }).ToArray();
                 view.OpenPanel(GamePanelId.Royal);
-                var graph = view.Court.CourtGraph;
-                yield return WaitFor(() => graph.gameObject.activeInHierarchy && graph.Node(kidId) != null, "15 actual family graph node creation");
+                var graph = view.Court;
+                yield return WaitFor(() => graph.GraphRoot.gameObject.activeInHierarchy && graph.Node(kidId) != null, "15 actual family graph node creation");
                 Require(graph.EdgeCount > 0 && graph.NodeView(kidId)?.PortraitBinding != null, "15 parent relation and persistent portrait view binding");
                 graph.Node(kidId).onClick.Invoke();
                 yield return WaitFor(() => view.Court.RoyalDetails != null && view.Court.RoyalDetails.PersonId == kidId && view.Court.RoyalDetails.Designate.interactable, "15 graph selection routes to existing lawful royal actions");
                 yield return WaitFor(() => view.Court.RoyalDetails.Portrait.sprite == ownedPortrait, "15 stable person ID resolves its configured portrait in selected details");
                 int node = graph.Node(kidId).GetInstanceID();
-                graph.Scroll.horizontalNormalizedPosition = .4f;
+                graph.GraphScroll.horizontalNormalizedPosition = .4f;
                 yield return new WaitForSecondsRealtime(.5f);
                 Require(graph.Node(kidId).GetInstanceID() == node, "15 family cards remain stable across refreshes");
                 if (Application.isEditor)
@@ -137,10 +137,10 @@ namespace Landsong.ECS.Presentation
                 view.OpenPanel(GamePanelId.Policy);
                 yield return new WaitForSecondsRealtime(.4f);
                 var policyGraph = view.Policies.CourtGraph;
-                Require(policyGraph != graph && policyGraph.gameObject.activeInHierarchy && policyGraph.NodeCount > 0 && policyGraph.Header.text.StartsWith("政策"), "15 policies render selectable tiered cards in their own configured graph");
-                Require(!graph.gameObject.activeSelf && !view.Talents.CourtGraph.gameObject.activeSelf && view.FeaturePanels.All(panel => panel.gameObject.activeSelf == (panel.PanelId == GamePanelId.Policy)), "15 policy navigation hides royal/talent graphs and every other feature root");
+                Require(policyGraph.gameObject != graph.GraphRoot.gameObject && policyGraph.gameObject.activeInHierarchy && policyGraph.NodeCount > 0 && policyGraph.Header.text.StartsWith("政策"), "15 policies render selectable tiered cards in their own configured graph");
+                Require(!graph.GraphRoot.gameObject.activeSelf && !view.Talents.CourtGraph.gameObject.activeSelf && view.FeaturePanels.All(panel => panel.gameObject.activeSelf == (panel.PanelId == GamePanelId.Policy)), "15 policy navigation hides royal/talent graphs and every other feature root");
                 view.OpenPanel(GamePanelId.Building);
-                Require(!graph.gameObject.activeSelf && !policyGraph.gameObject.activeSelf && !view.Talents.CourtGraph.gameObject.activeSelf, "15 all court graphs release input ownership immediately on panel switch");
+                Require(!graph.GraphRoot.gameObject.activeSelf && !policyGraph.gameObject.activeSelf && !view.Talents.CourtGraph.gameObject.activeSelf, "15 all court graphs release input ownership immediately on panel switch");
                 Entity building;
                 using (var all = WorldQueries.OrderedEntities<Building>(em))
                     building = all[0];
@@ -197,6 +197,23 @@ namespace Landsong.ECS.Presentation
                 yield return null;
                 Require(probeActor == null, "15 entity destruction and catalog replacement in the same frame release the old actor");
                 Require(em.GetComponentData<ExternalVisual>(building).Active == 0, "15 removing optional model returns ECS render ownership");
+                var constructionProbe = em.GetComponentData<Building>(building);
+                Require(constructionProbe.Stage == LifeStage.Operational, "15 completion dust probe starts with an operational building");
+                constructionProbe.Stage = LifeStage.Construction;
+                em.SetComponentData(building, constructionProbe);
+                yield return null;
+                constructionProbe.Stage = LifeStage.Operational;
+                em.SetComponentData(building, constructionProbe);
+                var completedSnapshot = SnapshotCodec.Capture(em, root);
+                SnapshotCodec.Restore(em, root, SnapshotCodec.Decode(em, root, completedSnapshot));
+                yield return null;
+                var rebuiltBuilding = WorldQueries.Find(em, id.Id);
+                var completionDust = FindObjectsByType<ParticleSystem>(FindObjectsSortMode.None)
+                    .FirstOrDefault(particle => particle.gameObject.name.StartsWith("Building View Dust · "));
+                Require(rebuiltBuilding != Entity.Null && rebuiltBuilding != building
+                    && completionDust != null && completionDust.particleCount > 0
+                    && completionDust.shape.shapeType == ParticleSystemShapeType.BoxEdge,
+                    "15 completion dust survives entity reconstruction and emits a visible footprint-edge burst");
                 for (int i = 0; i < 50; i++)
                     bridge.Emit(PresentationCue.Hit, Vector3.zero, true);
                 Require(bridge.EffectCount == 32, "15 visual effect concurrency bounded at 32");

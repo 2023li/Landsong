@@ -107,22 +107,31 @@ namespace Landsong.EditorTools
                 controller.AddParameter("Equipment", AnimatorControllerParameterType.Int);
                 controller.AddParameter("DrawWeapon", AnimatorControllerParameterType.Trigger);
                 controller.AddParameter("SheatheWeapon", AnimatorControllerParameterType.Trigger);
-                var draw = State("Draw", Clip(recipe.Draw, "Draw", false));
-                var sheathe = State("Sheathe", Clip(recipe.Sheathe, "Sheathe", false));
-                Trigger(machine, draw, "DrawWeapon");
-                Trigger(machine, sheathe, "SheatheWeapon");
-                Exit(draw, idle);
-                Exit(sheathe, idle);
+                controller.AddParameter("Shoot", AnimatorControllerParameterType.Trigger);
+                var rangedClip = recipe.Clips.RangedAttack != null ? Clip(recipe.Clips.RangedAttack, "RangedAttack", false) : attackClip;
+                var shoot = State("Ranged Attack", rangedClip);
+                shoot.speedParameter = "AttackSpeed";
+                shoot.speedParameterActive = true;
+                Trigger(machine, shoot, "Shoot");
+                Exit(shoot, idle);
                 var left = Layer("Torch Arm", true, false);
                 var pose = left.stateMachine.AddState("Torch");
                 pose.motion = Clip(recipe.Torch, "Torch", true);
                 left.stateMachine.defaultState = pose;
                 layers.Add(left);
-                var right = Layer("Reserved Weapon Arm", false, true);
-                var reserved = right.stateMachine.AddState("Inactive");
-                reserved.motion = idleClip;
-                right.stateMachine.defaultState = reserved;
-                layers.Add(right);
+                var weapon = Layer("Weapon Arms", true, true);
+                var inactive = weapon.stateMachine.AddState("Inactive");
+                inactive.motion = idleClip;
+                weapon.stateMachine.defaultState = inactive;
+                var draw = weapon.stateMachine.AddState("Draw");
+                draw.motion = Clip(recipe.Draw, "Draw", false);
+                var sheathe = weapon.stateMachine.AddState("Sheathe");
+                sheathe.motion = Clip(recipe.Sheathe, "Sheathe", false);
+                Trigger(weapon.stateMachine, draw, "DrawWeapon");
+                Trigger(weapon.stateMachine, sheathe, "SheatheWeapon");
+                Exit(draw, inactive);
+                Exit(sheathe, inactive);
+                layers.Add(weapon);
             }
             if (!creature)
             {

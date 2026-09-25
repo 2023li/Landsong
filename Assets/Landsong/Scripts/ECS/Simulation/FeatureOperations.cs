@@ -34,6 +34,25 @@ namespace Landsong.ECS
                 case CommandKind.ClaimExpedition:
                 case CommandKind.AbandonExpedition:
                     return "Expedition";
+                case CommandKind.RecruitTalent:
+                case CommandKind.AssignTalent:
+                case CommandKind.DismissTalent:
+                case CommandKind.RefreshTalents:
+                case CommandKind.Abdicate:
+                case CommandKind.SelectPolicy:
+                case CommandKind.CancelPolicy:
+                case CommandKind.GiftPerson:
+                case CommandKind.CompleteSocialTask:
+                case CommandKind.ProposeMarriage:
+                case CommandKind.DesignateHeir:
+                case CommandKind.ExecuteHeir:
+                case CommandKind.RoyalVisit:
+                case CommandKind.ResolveMarriage:
+                case CommandKind.PrepareMarriage:
+                case CommandKind.ArrangeMarriage:
+                case CommandKind.RefusePersonRequest:
+                case CommandKind.CustomizePortrait:
+                    return "Royal";
                 default:
                     return null;
             }

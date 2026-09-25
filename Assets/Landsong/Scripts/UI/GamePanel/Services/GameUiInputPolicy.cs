@@ -23,7 +23,9 @@ namespace Landsong.ECS.Presentation
         [LabelText("建筑操作确认")]
         BuildingConfirmation = 64,
         [LabelText("资源详情")]
-        InventoryDetails = 128
+        InventoryDetails = 128,
+        [LabelText("王室拥立")]
+        RoyalFounding = 256
     }
 
     /// <summary>由 Game 根注入固定所有者；每次事件读取当前状态，不维护另一份模态开关。</summary>
@@ -39,8 +41,10 @@ namespace Landsong.ECS.Presentation
         readonly UI_GamePanel_PersonRequests requests;
         readonly UI_GamePanel_Marriage marriage;
         readonly UI_GamePanel_Inventory inventory;
-        public GameUiInputPolicy(GameUiSessionHandle session, IntelligenceViewState intelligence, IGameUiNavigation navigation, GameUiInputContext inputContext, UI_GamePanel_BuildingActionBar building, UI_GamePanel_Soldier soldier, UI_GamePanel_Portrait portrait, UI_GamePanel_PersonRequests requests, UI_GamePanel_Marriage marriage, UI_GamePanel_Inventory inventory)
+        readonly UI_GamePanel_RoyalFounding royalFounding;
+        public GameUiInputPolicy(GameUiSessionHandle session, IntelligenceViewState intelligence, IGameUiNavigation navigation, GameUiInputContext inputContext, UI_GamePanel_BuildingActionBar building, UI_GamePanel_Soldier soldier, UI_GamePanel_Portrait portrait, UI_GamePanel_PersonRequests requests, UI_GamePanel_Marriage marriage, UI_GamePanel_Inventory inventory, UI_GamePanel_RoyalFounding royalFounding)
         {
+            this.royalFounding = royalFounding != null ? royalFounding : throw new ArgumentNullException(nameof(royalFounding));
             this.inventory = inventory != null ? inventory : throw new ArgumentNullException(nameof(inventory));
             this.inputContext = inputContext ?? throw new ArgumentNullException(nameof(inputContext));
             this.intelligence = intelligence ?? throw new ArgumentNullException(nameof(intelligence));
@@ -66,6 +70,8 @@ namespace Landsong.ECS.Presentation
                 owners |= GameUiInputOwner.Marriage;
             if (inventory.ResourceDetailsOpen)
                 owners |= GameUiInputOwner.InventoryDetails;
+            if (royalFounding.IsOpen)
+                owners |= GameUiInputOwner.RoyalFounding;
             var pause = inputContext.PauseMenu;
             if (pause != null && pause.IsOpen)
                 owners |= GameUiInputOwner.Pause;
@@ -91,7 +97,8 @@ namespace Landsong.ECS.Presentation
             Intelligence = 16,
             Camera = 32,
             Forecast = 64,
-            All = 127
+            RoyalFounding = 128,
+            All = 255
         }
 
         static readonly (GameUiInputOwner Owner, CommandAccess Commands)[] Rules =
@@ -103,7 +110,8 @@ namespace Landsong.ECS.Presentation
             (GameUiInputOwner.Marriage, CommandAccess.Pause),
             (GameUiInputOwner.InventoryDetails, CommandAccess.Pause | CommandAccess.Forecast),
             (GameUiInputOwner.Pause, CommandAccess.Pause | CommandAccess.Archive),
-            (GameUiInputOwner.BuildingConfirmation, CommandAccess.Pause)
+            (GameUiInputOwner.BuildingConfirmation, CommandAccess.Pause),
+            (GameUiInputOwner.RoyalFounding, CommandAccess.RoyalFounding)
         };
         public GameUiInputOwner Owners { get; }
         public bool SessionBound { get; }
@@ -126,13 +134,13 @@ namespace Landsong.ECS.Presentation
 
         public bool HasOwner(GameUiInputOwner owner) => (Owners & owner) != 0;
         public bool CanNavigate => SessionBound && Owners == GameUiInputOwner.None;
-        public bool CanHandleBack => SessionBound && !HasOwner(GameUiInputOwner.Application);
+        public bool CanHandleBack => SessionBound && !HasOwner(GameUiInputOwner.Application | GameUiInputOwner.RoyalFounding);
         public bool CanWorldInput => CanNavigate && Panel != GamePanelId.Technology && Panel != GamePanelId.Quest;
         public bool CanWorldShortcuts => CanWorldInput && !TextFocused && !Intelligence;
         public bool CanWorldActions => CanWorldInput && !TextFocused && !Intelligence;
         public bool CanTogglePause => CanHandleBack && hasPauseMenu && (Owners & ~(GameUiInputOwner.Pause | GameUiInputOwner.BuildingConfirmation)) == 0;
         // 此组不包含私有模态本身；它保留现有 CanvasGroup 分组的交互边界。
-        public bool CanInteractWithBackgroundGroup => SessionBound && !HasOwner(GameUiInputOwner.Application | GameUiInputOwner.Pause | GameUiInputOwner.BuildingConfirmation);
+        public bool CanInteractWithBackgroundGroup => SessionBound && !HasOwner(GameUiInputOwner.Application | GameUiInputOwner.Pause | GameUiInputOwner.BuildingConfirmation | GameUiInputOwner.RoyalFounding);
 
         public bool CanOpenModal(GameUiInputOwner requested, bool allowReopen = false)
         {
@@ -178,12 +186,15 @@ namespace Landsong.ECS.Presentation
                 case CommandKind.Load:
                     return CommandAccess.Archive;
                 case CommandKind.RenameSoldier:
+                case CommandKind.EquipSoldierWeapon:
                     return CommandAccess.SoldierRename;
                 case CommandKind.IntelligenceMode:
                 case CommandKind.ReadIntelligence:
                     return CommandAccess.Intelligence;
                 case CommandKind.ForecastEconomy:
                     return CommandAccess.Forecast;
+                case CommandKind.FoundRoyal:
+                    return CommandAccess.RoyalFounding;
                 case CommandKind.CameraMoved:
                 case CommandKind.CameraZoomed:
                     return CommandAccess.Camera;

@@ -53,9 +53,35 @@ namespace Landsong.ECS.Presentation
 
         public int Rebuild(EntityManager em, Entity sessionRoot, Entity building, Transform parent, Material material, bool highContrast)
         {
-            Clear();
             if (building == Entity.Null || !em.Exists(building) || !em.HasComponent<Building>(building) || !em.HasComponent<Identity>(building))
+            {
+                Clear();
                 return 0;
+            }
+
+            var placement = em.GetComponentData<BuildingPlacementState>(building);
+            var definition = em.GetComponentData<BuildingDefinitionRef>(building).Definition;
+            var level = em.GetComponentData<Building>(building).Level;
+            using var distances = BuildingRangeOps.Reach(em, sessionRoot, building, Allocator.Temp);
+            var provider = ResourceNetworkOps.Provider(em, sessionRoot, building, distances);
+            return RebuildGeometry(em, sessionRoot, placement, definition, level, distances, provider,
+                em.GetComponentData<Identity>(building).Id, parent, material, highContrast);
+        }
+
+        public int RebuildPreview(EntityManager em, Entity sessionRoot, BuildingId definition, BuildingPlacementState placement,
+            Transform parent, Material material, bool highContrast)
+        {
+            using var distances = BuildingRangeOps.Reach(em, sessionRoot, placement,
+                BuildingRangeOps.ActionPower(em, sessionRoot, definition), Allocator.Temp);
+            var provider = ResourceNetworkOps.Provider(em, sessionRoot, distances);
+            return RebuildGeometry(em, sessionRoot, placement, definition, 1, distances, provider,
+                0, parent, material, highContrast);
+        }
+
+        int RebuildGeometry(EntityManager em, Entity sessionRoot, BuildingPlacementState placement, BuildingId definition, int level,
+            NativeArray<float> distances, Entity provider, ulong sourceId, Transform parent, Material material, bool highContrast)
+        {
+            Clear();
 
             var geometry = new Dictionary<Color32, Geometry>();
             void Add(float3 position, Vector3 size, Color color)
@@ -78,7 +104,6 @@ namespace Landsong.ECS.Presentation
             }
 
             var grid = em.GetComponentData<GridData>(sessionRoot);
-            using var distances = BuildingRangeOps.Reach(em, sessionRoot, building, Allocator.Temp);
             for (var i = 0; i < distances.Length; i++)
                 if (math.isfinite(distances[i]))
                 {
@@ -86,14 +111,11 @@ namespace Landsong.ECS.Presentation
                     Add(GridOps.Position(grid, cell, new int2(1)), new Vector3(grid.CellSize, .035f, grid.CellSize), new Color(.1f, .65f, 1, .22f));
                 }
 
-            var state = em.GetComponentData<Building>(building);
-            var placement = em.GetComponentData<BuildingPlacementState>(building);
-            var definition = em.GetComponentData<BuildingDefinitionRef>(building).Definition;
             ref var data = ref BuildingDefinitions.Get(em, sessionRoot, definition);
             for (var i = 0; i < data.Capabilities.Effects.Spatial.Length; i++)
             {
                 var effect = data.Capabilities.Effects.Spatial[i];
-                if (effect.Level != 0 && effect.Level != state.Level)
+                if (effect.Level != 0 && effect.Level != level)
                     continue;
                 var radius = (int)math.ceil(effect.Radius);
                 for (var y = -radius; y < placement.Size.y + radius; y++)
@@ -107,7 +129,6 @@ namespace Landsong.ECS.Presentation
                     }
             }
 
-            var provider = ResourceNetworkOps.Provider(em, sessionRoot, building);
             var path = BuildingRangeOps.ProviderPath(em, sessionRoot, provider, distances);
             foreach (var cell in path)
                 Add(GridOps.Position(grid, cell, new int2(1)), new Vector3(grid.CellSize * .28f, .085f, grid.CellSize * .28f), new Color(.15f, 1, .3f, .9f));
@@ -148,7 +169,7 @@ namespace Landsong.ECS.Presentation
                 renderer.SetPropertyBlock(properties);
             }
 
-            SourceId = em.GetComponentData<Identity>(building).Id;
+            SourceId = sourceId;
             HighContrast = highContrast;
             return path.Count;
         }

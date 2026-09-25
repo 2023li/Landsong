@@ -80,7 +80,7 @@ namespace Landsong.ECS.Presentation
                     view.PanelCloseButton.onClick.Invoke();
                     yield return new WaitForSecondsRealtime(.4f);
                     Require(!view.IsPanelOpen && !primary.activeInHierarchy && !secondary.activeInHierarchy, panel + " stays closed across periodic refresh");
-                    Require(!canvas.GetComponentsInChildren<UI_GamePanel_CourtGraph>().Any(), "Closing also hides associated family or policy graph");
+                    Require(!view.Court.GraphRoot.gameObject.activeInHierarchy && !canvas.GetComponentsInChildren<UI_GamePanel_CourtGraph>().Any(), "Closing also hides associated family or policy graph");
                 }
 
                 view.OpenPanel(GamePanelId.Quest);

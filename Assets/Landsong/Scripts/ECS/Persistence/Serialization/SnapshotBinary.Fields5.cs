@@ -80,6 +80,7 @@ namespace Landsong.ECS.Persistence
             Write(writer, value.Experience);
             Write(writer, value.LastExperienceTurn);
             Write(writer, value.RecallState);
+            Write(writer, (byte)value.Weapon);
         }
 
         static Soldier ReadSoldier(BinaryReader reader)
@@ -93,6 +94,7 @@ namespace Landsong.ECS.Persistence
                 Experience = Read<int>(reader),
                 LastExperienceTurn = Read<int>(reader),
                 RecallState = Read<byte>(reader),
+                Weapon = (SoldierWeaponKind)Read<byte>(reader),
             };
         }
 

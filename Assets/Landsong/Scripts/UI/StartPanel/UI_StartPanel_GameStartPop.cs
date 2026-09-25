@@ -30,7 +30,6 @@ namespace Landsong.ECS.Presentation
         public Button BackButton;
         Action<Action> begin;
         Action close;
-        bool initialized;
         bool HasMaps => Catalog != null && Catalog.Maps != null && Catalog.Maps.Length > 0;
 
         protected override void ValidateLocalConfiguration()
@@ -53,14 +52,13 @@ namespace Landsong.ECS.Presentation
                     throw new InvalidOperationException("开始游戏弹窗检查器引用不完整。");
         }
 
-        public void Bind(Action<Action> start, Action back)
+        public override Task OnCreateAsync()
         {
             ValidateConfiguration();
-            begin = start;
-            close = back;
-            if (initialized)
-                return;
-            initialized = true;
+            if (OwnerPanel is not UI_StartPanel menu || menu.NewDynasty != this)
+                throw new InvalidOperationException("开始游戏弹窗未绑定所属主菜单。");
+            begin = menu.TryStart;
+            close = menu.CloseManagement;
             MapSelection.ClearOptions();
             if (HasMaps)
                 MapSelection.AddOptions(Catalog.Maps.Select(map => map.DisplayName).ToList());
@@ -79,6 +77,7 @@ namespace Landsong.ECS.Presentation
             });
             BackButton.onClick.AddListener(() => close());
             MapSelection.onValueChanged.AddListener(_ => Refresh());
+            return base.OnCreateAsync();
         }
 
         public async void Open()

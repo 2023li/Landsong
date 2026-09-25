@@ -97,6 +97,7 @@ namespace Landsong.ECS.Editor
             var rows = new[]
             {
                 ("ui.ecs.night.peaceful_caption", "今晚似乎是个平安夜", "It seems tonight will be peaceful."),
+                ("ui.ecs.night.boss_arrival_caption", "他们来了...", "They are coming..."),
                 ("ui.ecs.night.victory_caption", "今晚胜利属于我们", "Tonight, victory is ours."),
                 ("ui.ecs.night.preparation", "入夜准备阶段", "Night preparation"),
                 ("ui.ecs.night.dawn", "黎明阶段", "Dawn"),

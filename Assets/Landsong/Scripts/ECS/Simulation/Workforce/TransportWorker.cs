@@ -33,7 +33,7 @@ namespace Landsong.ECS
         public float3 Position;
     }
 
-    // Distinguishes refundable construction material from ordinary night rewards.
+    // Distinguishes worker material lost before payment confirmation from night rewards.
     public struct WorkerCargoDrop : IComponentData { }
 
     public struct TransportWorkerSettings : IComponentData

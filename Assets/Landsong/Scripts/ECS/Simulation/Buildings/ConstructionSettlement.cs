@@ -30,9 +30,10 @@ namespace Landsong.ECS
                 var carrier = costs.Count > 0 ? TransportWorkerOps.ConstructionWorker(em, root, e) : Entity.Null;
                 var prepaid = carrier != Entity.Null;
                 if (prepaid) provider = WorldQueries.Find(em, em.GetComponentData<TransportWorker>(carrier).Provider);
-                if (prepaid && em.GetComponentData<TransportWorker>(carrier).Delivered == 0)
+                if (prepaid && em.GetComponentData<TransportWorker>(carrier).DeathRecorded != 0
+                    && em.GetComponentData<TransportWorker>(carrier).Delivered == 0)
                 {
-                    EconomyJournalOps.Note(em, root, "施工材料未送达，本期暂停并退回物资");
+                    EconomyJournalOps.Note(em, root, "施工材料在送达前遗失，本期暂停");
                     return;
                 }
                 if (costs.Count > 0 && provider == Entity.Null && !prepaid)
@@ -56,7 +57,7 @@ namespace Landsong.ECS
                         continue;
                     if (InventoryOps.Add(em, root, output.Item, output.Quantity) != output.Quantity)
                     {
-                        payment.Reject("施工产物放不下，本期材料与产出撤销");
+                        payment.Reject(prepaid ? "施工产物放不下，本期施工暂停；预扣材料在阶段结束确认" : "施工产物放不下，本期材料与产出撤销");
                         return;
                     }
                 }
@@ -64,11 +65,7 @@ namespace Landsong.ECS
                 payment.Commit();
                 if (prepaid)
                 {
-                    var worker = em.GetComponentData<TransportWorker>(carrier);
-                    worker.CargoSettled = 1;
-                    em.SetComponentData(carrier, worker);
-                    foreach (var cost in costs) EconomyJournalOps.RecordSettlementOnly(em, root, cost.Item, -cost.Amount);
-                    em.GetBuffer<TransportCargo>(carrier).Clear();
+                    TransportWorkerOps.SettleCargo(em, root, carrier);
                 }
                 ResourceNetworkOps.PayRecord(em, root, provider, costs);
                 BuildingCostOps.RecordInvestment(em, e, costs);

@@ -495,7 +495,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_Expedition
   childViews: []
   openWithOwner: 0
-  previewBindings: []
+  previewContent: []
 --- !u!1 &5392369024048028478
 GameObject:
   m_ObjectHideFlags: 0

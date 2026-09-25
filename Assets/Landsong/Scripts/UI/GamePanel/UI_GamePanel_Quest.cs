@@ -71,7 +71,6 @@ namespace Landsong.ECS.Presentation
             this.navigation = navigation;
             this.refresh = refresh;
             rows = new UI_GamePanel_RowCollection(RowTemplate);
-            QuestTracking.Bind(this);
             AutoTrack.onClick.AddListener(() => commandsController.TryQueue(new TrackQuestRequest { Mode = QuestTrackingMode.Automatic }));
             SourceFilter.onClick.AddListener(() =>
             {

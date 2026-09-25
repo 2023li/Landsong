@@ -27,9 +27,21 @@ namespace Landsong.ECS
         public static Entity Provider(EntityManager em, Entity root, Entity consumer) => Quote(em, root, consumer).Selected;
         public static ResourceNetworkQuote Quote(EntityManager em, Entity root, Entity consumer)
         {
+            using var distance = BuildingRangeOps.Reach(em, root, consumer, Allocator.Temp);
+            return Quote(em, root, consumer, distance);
+        }
+
+        // Placement previews already have a reach graph; select from it using the live network rules.
+        public static Entity Provider(EntityManager em, Entity root, NativeArray<float> distance)
+            => Quote(em, root, Entity.Null, distance).Selected;
+
+        public static Entity Provider(EntityManager em, Entity root, Entity consumer, NativeArray<float> distance)
+            => Quote(em, root, consumer, distance).Selected;
+
+        static ResourceNetworkQuote Quote(EntityManager em, Entity root, Entity consumer, NativeArray<float> distance)
+        {
             var quote = new ResourceNetworkQuote();
             var grid = em.GetComponentData<GridData>(root);
-            using var distance = BuildingRangeOps.Reach(em, root, consumer, Allocator.Temp);
             using var buildings = WorldQueries.Entities<Building>(em);
             var best = Entity.Null;
             var bestCost = float.PositiveInfinity;

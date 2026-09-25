@@ -140,7 +140,9 @@ namespace Landsong.ECS
         CustomizePortrait,
         SetSoldierAttention,
         RecruitWorkerAtQuotedCost,
-        MoveInventoryToPending
+        MoveInventoryToPending,
+        FoundRoyal,
+        EquipSoldierWeapon
     }
 
     public enum ResultCode : byte
@@ -523,6 +525,14 @@ namespace Landsong.ECS
         public ulong Garrison;
         public int Slot, PopulationCost, PendingSince, Experience, LastExperienceTurn;
         public byte RecallState;
+        public SoldierWeaponKind Weapon;
+    }
+
+    public enum SoldierWeaponKind : byte
+    {
+        None = 0,
+        Sword = 1,
+        Bow = 2
     }
 
     public struct Hero : IComponentData

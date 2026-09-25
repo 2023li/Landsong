@@ -69,6 +69,14 @@ namespace Landsong.ECS
         public ulong Target => Soldier;
     }
 
+    public struct EquipSoldierWeaponRequest : IGameRequest
+    {
+        public ulong Soldier;
+        public SoldierWeaponKind Weapon;
+        public CommandKind Kind => CommandKind.EquipSoldierWeapon;
+        public ulong Target => Soldier;
+    }
+
     public struct FillGarrisonRequest : IGameRequest
     {
         public ulong Garrison;

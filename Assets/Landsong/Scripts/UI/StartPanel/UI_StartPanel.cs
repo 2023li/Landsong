@@ -49,7 +49,6 @@ namespace Landsong.ECS.Presentation
             QuitButton.onClick.AddListener(ConfirmMenuQuit);
             LoadButton.onClick.AddListener(OpenArchives);
             SettingsButton.onClick.AddListener(OpenSettings);
-            NewDynasty.Bind(TryStart, CloseManagement);
             return base.OnCreateAsync();
         }
 

@@ -10,9 +10,9 @@ namespace Landsong.ECS
         {
             var id = em.GetComponentData<SoldierDefinitionRef>(unit).Definition;
             ref var definition = ref SoldierDefinitions.Get(em, root, id);
-            var stats = SoldierCombatStats.ForNight(em, root, id);
-            if (em.HasComponent<Soldier>(unit))
-                UnitProgression.ApplyGrowth(ref stats, definition.Growth, em.GetComponentData<Soldier>(unit).Experience);
+            var stats = em.HasComponent<Soldier>(unit) ? SoldierOps.SoldierStats(em, root, unit) : SoldierCombatStats.ForNight(em, root, id);
+            if (!em.HasComponent<Soldier>(unit))
+                SoldierCombatStats.ApplyWeapon(ref stats, SoldierWeaponKind.None);
             CombatantState.Initialize(em, root, unit, stats, new Combatant { Faction = 0, Deployed = (byte)(deployed ? 1 : 0), Home = home, HomeId = homeId, TargetMode = definition.TargetMode, Threat = math.max(1, definition.ThreatValue) });
         }
     }

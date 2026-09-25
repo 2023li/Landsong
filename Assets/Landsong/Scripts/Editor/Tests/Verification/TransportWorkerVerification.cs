@@ -200,9 +200,37 @@ namespace Landsong.EditorTools
                     && materials.Select((m, i) => InventoryOps.Count(em, root, m.Item) == beforeCargo[i] - m.Amount).All(x => x),
                     "Worker creation immediately debits exactly one construction delivery");
                 var cargoSave = SnapshotCodec.Capture(em, root);
-                TransportWorkerOps.CloseDay(em, root);
-                Check(materials.Select((m, i) => InventoryOps.Count(em, root, m.Item) == beforeCargo[i]).All(x => x),
-                    "Undelivered construction cargo is refunded at the phase boundary");
+                var priorProgress = em.GetComponentData<BuildingConstructionState>(construction).Progress;
+                DailyEconomySettlement.Settle(em, root);
+                constructionWorker = WorldQueries.Find(em, carrierId);
+                Check(em.GetComponentData<BuildingConstructionState>(construction).Progress == priorProgress + 1
+                    && em.GetComponentData<TransportWorker>(constructionWorker).CargoSettled == 1
+                    && em.GetComponentData<TransportWorker>(constructionWorker).Stage == TransportStage.Delivering
+                    && em.GetBuffer<TransportCargo>(constructionWorker).Length == materials.Count,
+                    "Dusk charges undelivered cargo and leaves its worker on the delivery route");
+                foreach (var material in materials)
+                    Check(em.GetBuffer<EconomyBillEntry>(root).ToNativeArray(Allocator.Temp).ToArray().Any(row => row.Source == constructionId && row.Item == material.Item && row.Expense == material.Amount),
+                        "Dusk bill records the undelivered prepaid material once");
+                var chargedSave = SnapshotCodec.Capture(em, root);
+                TransportWorkerOps.Kill(em, root, constructionWorker);
+                using (var drops = WorldQueries.Entities<WorkerCargoDrop>(em))
+                    Check(drops.Length == 0, "Worker death after dusk payment cannot drop charged cargo");
+                SnapshotCodec.Restore(em, root, SnapshotCodec.Decode(em, root, chargedSave));
+                constructionWorker = WorldQueries.Find(em, carrierId);
+                var chargedStock = materials.Select(m => InventoryOps.Count(em, root, m.Item)).ToArray();
+                session = em.GetComponentData<Session>(root); session.Phase = Phase.Deployment; em.SetComponentData(root, session);
+                safety = 0;
+                while (em.GetComponentData<TransportWorker>(constructionWorker).Delivered == 0 && safety++ < 2000) Tick(1);
+                Check(em.GetComponentData<TransportWorker>(constructionWorker).Delivered == 1
+                    && em.GetComponentData<TransportWorker>(constructionWorker).Trips == 1
+                    && em.GetBuffer<TransportCargo>(constructionWorker).Length == 0
+                    && materials.Select((m, i) => InventoryOps.Count(em, root, m.Item) == chargedStock[i]).All(x => x),
+                    "Paid worker finishes the remaining route after dusk without another debit");
+                safety = 0;
+                while (em.GetComponentData<TransportWorker>(constructionWorker).Stage != TransportStage.Sheltered && safety++ < 2000) Tick(1);
+                Check(em.GetComponentData<TransportWorker>(constructionWorker).Trips == 1
+                    && em.GetComponentData<TransportWorker>(constructionWorker).Stage == TransportStage.Sheltered,
+                    "Worker unloads the paid shipment and returns home without another trip");
                 SnapshotCodec.Restore(em, root, SnapshotCodec.Decode(em, root, cargoSave));
                 construction = WorldQueries.Find(em, constructionId);
                 constructionWorker = WorldQueries.Find(em, carrierId);
@@ -215,7 +243,7 @@ namespace Landsong.EditorTools
                 Check(em.GetComponentData<TransportWorker>(constructionWorker).Delivered == 1
                     && em.GetBuffer<TransportDeliveryEvent>(root).Length == materials.Count,
                     "First unload emits each prepaid material once for floating text");
-                var priorProgress = em.GetComponentData<BuildingConstructionState>(construction).Progress;
+                priorProgress = em.GetComponentData<BuildingConstructionState>(construction).Progress;
                 DailyEconomySettlement.Settle(em, root);
                 constructionWorker = WorldQueries.Find(em, carrierId);
                 Check(em.GetComponentData<BuildingConstructionState>(construction).Progress == priorProgress + 1
@@ -240,7 +268,7 @@ namespace Landsong.EditorTools
                     foreach (var drop in drops) Check(NightOps.PickUp(em, root, drop) == ResultCode.Success, "Dropped material is clickable for immediate daytime recovery");
                 TransportWorkerOps.CloseDay(em, root);
                 Check(materials.Select((m, i) => InventoryOps.Count(em, root, m.Item) == beforeCargo[i]).All(x => x),
-                    "Death and phase close cannot refund the same cargo twice");
+                    "Death and phase close cannot charge or refund the same cargo twice");
                 em.DestroyEntity(root); SimulationLifetimeSystem.Cleanup(em);
                 using (var survivors = WorldQueries.Entities<TransportWorker>(em)) Check(survivors.Length == 0, "Unloading the session releases every owned transport worker");
                 log.AppendLine("Assertions: " + checks); File.WriteAllText("Library/LandsongEcs/transport-worker-verification.txt", log.ToString()); return log.ToString();

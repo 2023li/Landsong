@@ -46,10 +46,12 @@ namespace Landsong.ECS
             readonly NativeArray<float> distances;
             readonly NativeArray<SurfaceNavNode> nodes;
             readonly float radius;
+            readonly bool indexCells;
             readonly System.Collections.Generic.Dictionary<int2, System.Collections.Generic.List<int>> cells = new System.Collections.Generic.Dictionary<int2, System.Collections.Generic.List<int>>();
-            public Reach(EntityManager em, Entity root, float3 from, float radius = 0)
+            public Reach(EntityManager em, Entity root, float3 from, float radius = 0, bool indexCells = true)
             {
                 this.radius = math.max(0, radius);
+                this.indexCells = indexCells;
                 SurfaceNavigationGraph.Ensure(em, root);
                 grid = em.GetComponentData<GridData>(root);
                 nodes = em.GetBuffer<SurfaceNavNode>(root).ToNativeArray(Allocator.Temp);
@@ -59,9 +61,12 @@ namespace Landsong.ECS
                 for (int i = 0; i < nodes.Length; i++)
                 {
                     result[i] = float.MaxValue;
-                    if (!cells.TryGetValue(nodes[i].Cell, out var indices))
-                        cells.Add(nodes[i].Cell, indices = new System.Collections.Generic.List<int>());
-                    indices.Add(i);
+                    if (indexCells)
+                    {
+                        if (!cells.TryGetValue(nodes[i].Cell, out var indices))
+                            cells.Add(nodes[i].Cell, indices = new System.Collections.Generic.List<int>());
+                        indices.Add(i);
+                    }
                 }
 
                 int first = Locate(from);
@@ -91,10 +96,29 @@ namespace Landsong.ECS
 
             int Locate(float3 point)
             {
-                if (!cells.TryGetValue(GridOps.Cell(grid, point), out var indices))
-                    return -1;
+                var cell = GridOps.Cell(grid, point);
                 int best = -1;
                 float error = .55f;
+                if (!indexCells)
+                {
+                    for (int i = 0; i < nodes.Length; i++)
+                    {
+                        if (!math.all(nodes[i].Cell == cell))
+                            continue;
+                        var height = nodes[i].Position.y + math.dot(nodes[i].Gradient, point.xz - nodes[i].Position.xz);
+                        var distance = math.abs(height - point.y);
+                        if (Accessible(i) && distance <= error)
+                        {
+                            best = i;
+                            error = distance;
+                        }
+                    }
+
+                    return best;
+                }
+
+                if (!cells.TryGetValue(cell, out var indices))
+                    return -1;
                 foreach (int i in indices)
                 {
                     float height = nodes[i].Position.y + math.dot(nodes[i].Gradient, point.xz - nodes[i].Position.xz);
@@ -133,6 +157,7 @@ namespace Landsong.ECS
             }
 
             public bool Point(float3 point) => Distance(point) < float.MaxValue;
+            public float DistanceAt(int index) => index >= 0 && index < distances.Length ? distances[index] : float.MaxValue;
             public float Distance(float3 point)
             {
                 int at = Locate(point);

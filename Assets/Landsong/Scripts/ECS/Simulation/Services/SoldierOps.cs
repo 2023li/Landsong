@@ -24,8 +24,25 @@ namespace Landsong.ECS
         {
             var d = em.GetComponentData<SoldierDefinitionRef>(unit).Definition;
             var result = SoldierCombatStats.ForNight(em, root, d);
-            UnitProgression.ApplyGrowth(ref result, SoldierDefinitions.Get(em, root, d).Growth, em.GetComponentData<Soldier>(unit).Experience);
+            var soldier = em.GetComponentData<Soldier>(unit);
+            UnitProgression.ApplyGrowth(ref result, SoldierDefinitions.Get(em, root, d).Growth, soldier.Experience);
+            SoldierCombatStats.ApplyWeapon(ref result, soldier.Weapon);
             return result;
+        }
+
+        public static ResultCode EquipWeapon(EntityManager em, Entity root, EquipSoldierWeaponRequest request)
+        {
+            if (em.GetComponentData<Session>(root).Phase != Phase.Day)
+                return ResultCode.WrongPhase;
+            if (request.Weapon > SoldierWeaponKind.Bow)
+                return ResultCode.InvalidContent;
+            var unit = WorldQueries.Find(em, request.Soldier);
+            if (unit == Entity.Null || !em.HasComponent<Soldier>(unit) || !EntityState.Alive(em, unit))
+                return ResultCode.InvalidTarget;
+            var soldier = em.GetComponentData<Soldier>(unit);
+            soldier.Weapon = request.Weapon;
+            em.SetComponentData(unit, soldier);
+            return ResultCode.Success;
         }
 
         public static SoldierRecruitQuote RecruitQuote(EntityManager em, Entity root, ulong home, SoldierId definition, int quantity, bool pending = false)

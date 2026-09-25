@@ -314,17 +314,23 @@ namespace Landsong.ECS.Editor
 
         static void VerifyPreview(GameObject prefab, string path, Action<bool, string> check, Action<string, Action> attempt)
         {
-            var configured = new HashSet<UIPreviewOnly>(prefab.GetComponentsInChildren<UIViewBase>(true).SelectMany(x => x.PreviewBindings ?? Array.Empty<UIPreviewOnly>()).Where(x => x != null));
-            foreach (var marker in prefab.GetComponentsInChildren<UIPreviewOnly>(true))
+            var configured = prefab.GetComponentsInChildren<UIViewBase>(true)
+                .SelectMany(owner => owner.PreviewContent.Select(content => (owner, content))).ToArray();
+            foreach (var (owner, content) in configured)
             {
-                check(configured.Contains(marker), prefab.name + " 的预览标记由所属视图显式绑定");
-                attempt(prefab.name + " 预览标记引用有效", marker.ValidateConfiguration);
-                foreach (var sample in marker.SampleObjects)
+                attempt(prefab.name + " 预览内容引用有效", () => content.ValidateConfiguration(owner.transform));
+                foreach (var sample in content.SampleObjects)
                     check(sample != null && sample.CompareTag("EditorOnly") && sample.name.StartsWith("PreviewOnly_", StringComparison.Ordinal), prefab.name + " 的样例对象明确标记且不会进入 Player");
+            }
+            if (path == ApplicationUiAuthoring.GamePath)
+            {
+                var details = prefab.GetComponent<UI_GamePanel>().BuildingDetails;
+                check(details.PreviewContent != null, "建筑详情直接持有预览内容");
+                attempt("建筑详情预览内容引用有效", () => details.PreviewContent.ValidateConfiguration(details.transform));
             }
 
             if (path == ApplicationUiAuthoring.StartPath || path == ApplicationUiAuthoring.SettingPath || path == ApplicationUiAuthoring.SavePath || path == ApplicationUiAuthoring.GamePath)
-                check(configured.Any(marker => marker.SampleObjects.Length > 0 || marker.SampleTextTargets.Length > 0), prefab.name + " 提供可直接看到且可运行清理的代表性样例");
+                check(configured.Any(entry => entry.content.SampleObjects.Length > 0 || entry.content.SampleTextTargets.Length > 0), prefab.name + " 提供可直接看到且可在初始化时刷新的代表性样例");
         }
 
         static void CollectOwnedViews(UIViewBase view, HashSet<UIViewBase> result)

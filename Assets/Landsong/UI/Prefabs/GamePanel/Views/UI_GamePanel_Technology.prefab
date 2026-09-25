@@ -1944,7 +1944,6 @@ GameObject:
   - component: {fileID: 2814037746736733623}
   - component: {fileID: 1534303018490690168}
   - component: {fileID: 1616967558953934129}
-  - component: {fileID: 5101466318690099085}
   - component: {fileID: 2107107328949734000}
   m_Layer: 0
   m_Name: UI_GamePanel_Technology
@@ -2036,7 +2035,6 @@ MonoBehaviour:
   DetailRows: {fileID: 1993173131212939269}
   Lines: {fileID: 424851693478745121}
   NodeTemplate: {fileID: 14550182148543810}
-  Selected: -1
 --- !u!114 &1616967558953934129
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2051,43 +2049,31 @@ MonoBehaviour:
   m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_Technology
   childViews: []
   openWithOwner: 0
-  previewBindings:
-  - {fileID: 5101466318690099085}
-  ResearchHud: {fileID: 0}
-  TechnologyButton: {fileID: 0}
-  TechnologyTree: {fileID: 1534303018490690168}
+  previewContent:
+  - key: Recipe
+    sampleObjects:
+    - {fileID: 6925161739902894296}
+    - {fileID: 7338849330187895663}
+    - {fileID: 5427232763739973275}
+    - {fileID: 550169440998999182}
+    - {fileID: 5933819953266684503}
+    - {fileID: 4559083119560383001}
+    - {fileID: 3399654153666939280}
+    - {fileID: 7440519703137671408}
+    - {fileID: 8103045523539960894}
+    - {fileID: 7318270181261402608}
+    sampleTextTargets:
+    - {fileID: 8501934342826936467}
+    runtimeTexts:
+    - ""
   Technologies: {fileID: 11400000, guid: 299775b2bf874df3b2843aa4afa4fef5, type: 2}
   RewardItems: {fileID: 11400000, guid: 319f79e63ed641ad95eee7374998bf9b, type: 2}
   RewardBuildings: {fileID: 11400000, guid: 5fc69b9a62e84fa4385b5ce003be2a64, type: 2}
   RewardBuffs: {fileID: 11400000, guid: afbabf64fb0e49ebb5192c3a71b1043e, type: 2}
   RewardFeatures: {fileID: 11400000, guid: 6e7e7df8f2cd4522859ffa2809071ce6, type: 2}
---- !u!114 &5101466318690099085
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2769099476007261083}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 34d223bf2e064464b0034eac33461f6a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Moyo.Runtime::Moyo.Unity.UIPreviewOnly
-  sampleObjects:
-  - {fileID: 6925161739902894296}
-  - {fileID: 7338849330187895663}
-  - {fileID: 5427232763739973275}
-  - {fileID: 550169440998999182}
-  - {fileID: 5933819953266684503}
-  - {fileID: 4559083119560383001}
-  - {fileID: 3399654153666939280}
-  - {fileID: 7440519703137671408}
-  - {fileID: 8103045523539960894}
-  - {fileID: 7318270181261402608}
-  sampleTextTargets:
-  - {fileID: 8501934342826936467}
-  runtimeTexts:
-  - 
+  ResearchHud: {fileID: 0}
+  TechnologyButton: {fileID: 0}
+  TechnologyTree: {fileID: 1534303018490690168}
 --- !u!114 &2107107328949734000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2105,14 +2091,14 @@ MonoBehaviour:
   AllowMissingFeature: 1
   AllowLockedOpen: 0
   ContentRoot: {fileID: 1635905870952638646}
+  Title: {fileID: 8501934342826936467}
+  CloseButton: {fileID: 1407529530937670218}
+  CloseAllowed: 1
+  ManageContentVisibility: 0
   PrimaryRows: {fileID: 1993173131212939269}
   SecondaryRows: {fileID: 0}
   PrimaryScroll: {fileID: 7808890133080952131}
-  Title: {fileID: 8501934342826936467}
-  CloseButton: {fileID: 1407529530937670218}
   Presenter: {fileID: 1616967558953934129}
-  CloseAllowed: 1
-  ManageContentVisibility: 0
   RowTemplate: {fileID: 1573664279546181541, guid: a6505af27ca58fd479bd424bc2087351, type: 3}
 --- !u!1 &2891216283314166623
 GameObject:

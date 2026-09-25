@@ -1,5 +1,6 @@
 using System;
 using Landsong.ECS.Persistence;
+using Moyo.Unity;
 using Sirenix.OdinInspector;
 using Unity.Entities;
 using UnityEngine;
@@ -10,20 +11,17 @@ namespace Landsong.ECS.Presentation
 {
     public sealed class UI_GamePanel_PausePop : MonoBehaviour
     {
-        [LabelText("游戏界面"), Required]
-        public UI_GamePanel View;
+        public UI_GamePanel View { get; private set; }
         [LabelText("模态遮罩"), Required]
         public GameObject Overlay;
         [LabelText("暂停主页"), Required]
         public GameObject MainPage;
         [LabelText("弹窗交互组"), Required]
         public CanvasGroup ModalGroup;
-        [LabelText("游戏交互组"), Required]
-        public CanvasGroup BackgroundGroup;
+        public CanvasGroup BackgroundGroup { get; private set; }
         [LabelText("遮罩图片"), Required]
         public Image OverlayImage;
-        [LabelText("暂停入口"), Required]
-        public Button OpenButton;
+
         [LabelText("保存入口"), Required]
         public Button SaveButton;
         [LabelText("快速保存"), Required]
@@ -47,6 +45,12 @@ namespace Landsong.ECS.Presentation
 
         public void Bind(IApplicationUi navigation, EntityManager manager, Entity root)
         {
+            if (navigation == null || !UIManager.TryGetInstance(out var uiManager)
+                || !uiManager.TryGetActivePanel<UI_GamePanel>(out var view)
+                || view.PauseMenu != this || view.InterfaceGroup == null)
+                throw new InvalidOperationException("暂停弹窗无法从 UIManager 获取所属游戏界面及交互组。");
+            View = view;
+            BackgroundGroup = view.InterfaceGroup;
             this.navigation = navigation;
             this.manager = manager;
             this.root = root;
@@ -56,17 +60,20 @@ namespace Landsong.ECS.Presentation
         public void Unbind()
         {
             closing = false;
+            if (visible && BackgroundGroup != null)
+                BackgroundGroup.interactable = previousInteraction;
             SetVisible(false);
             navigation = null;
             world = null;
             root = Entity.Null;
+            View = null;
+            BackgroundGroup = null;
         }
 
         void Awake()
         {
             ValidateConfiguration();
             SetVisible(false);
-            OpenButton.onClick.AddListener(Open);
             SaveButton.onClick.AddListener(OpenSaves);
             QuickSaveButton.onClick.AddListener(() => Queue(new QuickSaveRequest()));
             ResumeButton.onClick.AddListener(Close);
@@ -79,13 +86,10 @@ namespace Landsong.ECS.Presentation
         {
             foreach (var value in new UnityEngine.Object[]
             {
-                View,
                 Overlay,
                 MainPage,
                 ModalGroup,
-                BackgroundGroup,
                 OverlayImage,
-                OpenButton,
                 SaveButton,
                 QuickSaveButton,
                 SettingsButton,

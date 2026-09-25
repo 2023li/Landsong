@@ -113,6 +113,7 @@ namespace Landsong.ECS.Editor
                 var em = world.EntityManager;
                 var root = WorldQueries.Root(em);
                 WorldInitialization.Initialize(em, root);
+                RoyalFoundingVerification.UnlockFixture(em, root, true);
                 ulong Id(Entity e) => em.GetComponentData<Identity>(e).Id;
                 Entity Person(string id)
                 {
@@ -136,6 +137,7 @@ namespace Landsong.ECS.Editor
                         em.SetComponentData(root, sClock);
                         em.SetComponentData(root, sPersistence);
                     }
+                    SeasonWeatherOps.Dawn(em, root);
                 }
 
                 void Stock(ItemId d, int n)

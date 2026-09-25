@@ -30,6 +30,11 @@ namespace Landsong.ECS
 
     public static class SurfaceNavigationGraph
     {
+        struct CellChain
+        {
+            public int First, Last;
+        }
+
         public static void Invalidate(EntityManager em, Entity root)
         {
             if (em.HasComponent<SurfaceNavCache>(root))
@@ -51,18 +56,26 @@ namespace Landsong.ECS
             }
 
             var roadCost = new RoadWeatherCostOps.Context(em, root);
-            var nodes = new List<SurfaceNavNode>();
+            int baseNodeCount = grid.Value.Value.Cells.Length + grid.Value.Value.NavigationSurfaces.Length;
+            var nodes = new List<SurfaceNavNode>(baseNodeCount);
             var edges = new List<SurfaceNavEdge>();
-            var byCell = new Dictionary<int2, List<int>>();
+            var byCell = new Dictionary<int2, CellChain>(grid.Value.Value.Cells.Length);
+            var nextInCell = new List<int>(baseNodeCount);
             var occupied = occupancyInput;
             int Add(SurfaceNavNode n)
             {
                 n.FirstEdge = -1;
                 int i = nodes.Count;
                 nodes.Add(n);
-                if (!byCell.TryGetValue(n.Cell, out var list))
-                    byCell.Add(n.Cell, list = new List<int>());
-                list.Add(i);
+                nextInCell.Add(-1);
+                if (byCell.TryGetValue(n.Cell, out var chain))
+                {
+                    nextInCell[chain.Last] = i;
+                    chain.Last = i;
+                    byCell[n.Cell] = chain;
+                }
+                else
+                    byCell.Add(n.Cell, new CellChain { First = i, Last = i });
                 return i;
             }
 
@@ -102,7 +115,7 @@ namespace Landsong.ECS
                     int2 delta = d == 0 ? new int2(1, 0) : d == 1 ? new int2(-1, 0) : d == 2 ? new int2(0, 1) : new int2(0, -1);
                     if (!byCell.TryGetValue(n.Cell + delta, out var others))
                         continue;
-                    foreach (int j in others)
+                    for (int j = others.First; j >= 0; j = nextInCell[j])
                         if (nodes[j].Open != 0 && nodes[j].Surface == n.Surface && nodes[j].Elevation == n.Elevation && math.abs(nodes[j].Position.y - n.Position.y) < .001f)
                             Link(i, j);
                 }
@@ -111,7 +124,7 @@ namespace Landsong.ECS
             int Endpoint(int2 cell, int surface, int elevation)
             {
                 if (byCell.TryGetValue(cell, out var candidates))
-                    foreach (int i in candidates)
+                    for (int i = candidates.First; i >= 0; i = nextInCell[i])
                         if (nodes[i].Corridor == 0 && nodes[i].Open != 0 && nodes[i].Surface == surface && nodes[i].Elevation == elevation)
                             return i;
                 return -1;
@@ -140,7 +153,7 @@ namespace Landsong.ECS
                         var reservation = occupied[GridOps.Index(grid, at)];
                         indices[x, z] = Add(new SurfaceNavNode { Cell = at, Position = p, Gradient = gradient, Lateral = new float2(direction.y, -direction.x), Surface = surface, Elevation = elevation, Owner = owner, Corridor = (byte)(rise == 0 && !slope ? 0 : 1), Open = (byte)(!slope || reservation.Owner == 0 || reservation.MovementCost > 0 ? 1 : 0), Cost = slope && reservation.Owner != 0 ? roadCost.Effective(reservation) : road && roadCost.Snowing ? cost * RoadWeatherCostOps.SnowMultiplier : cost, Width = size.x * grid.CellSize, SideClearance = math.min(x + .5f, size.x - x - .5f) * grid.CellSize });
                         if (byCell.TryGetValue(at, out var below))
-                            foreach (int j in below)
+                            for (int j = below.First; j >= 0; j = nextInCell[j])
                             {
                                 if (j == indices[x, z])
                                     continue;

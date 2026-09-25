@@ -27,7 +27,13 @@ namespace Landsong.ECS.Editor
             foreach (var panel in new[] { "Talent", "Royal", "Policy" })
                 Edit(panel, root =>
                 {
-                    var court = root.GetComponent<UI_GamePanel_CourtGraph>();
+                    if (panel == "Royal")
+                    {
+                        var royal = root.GetComponent<UI_GamePanel_Royal>();
+                        FixButtonGroup(royal.ZoomOutButton, royal.ZoomInButton, royal.GraphCloseButton);
+                        return;
+                    }
+                    var court = root.GetComponentInChildren<UI_GamePanel_CourtGraph>(true);
                     FixButtonGroup(court.ZoomOutButton, court.ZoomInButton, court.CloseButton);
                 });
             Edit("BuildingDetails", root =>

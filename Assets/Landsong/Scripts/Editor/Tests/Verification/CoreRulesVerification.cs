@@ -383,6 +383,11 @@ namespace Landsong.ECS.Editor
                 Check(InventoryOps.Count(em, root, gold) == manualGold, "Cold envelope restore resumes manual white-day state");
                 Check(NightOps.Begin(em, root, true) == ResultCode.Success, "Test reaches dusk");
                 checkpoint.Update();
+                bool duskQueued = false;
+                foreach (var e in em.GetBuffer<GameEvent>(root))
+                    duskQueued |= e.Kind == EventKind.DuskCheckpoint;
+                Check(em.GetComponentData<PersistenceGate>(root).CheckpointPending != 0 && duskQueued, "Dusk checkpoint remains gated for one update");
+                checkpoint.Update();
                 var duskGold = InventoryOps.Count(em, root, gold);
                 var originalStrength = em.GetComponentData<NightRuntimeState>(root).StartCombatStrength;
                 PhaseTo(em, root, Phase.Night);

@@ -134,7 +134,7 @@ namespace Landsong.AnimationPreview
                     : sheathing ? (int)SoldierEquipmentState.SheathingSword
                     : swordInHand ? (int)SoldierEquipmentState.Sword : (int)SoldierEquipmentState.Torch);
                 SoldierAnimationSystem.SetEquipmentVisual(em, binding, swordInHand, torchVisible,
-                    transition || preview.Slot == 4 || preview.Slot == 5);
+                    transition || preview.Slot == 4 || preview.Slot == 5, switchingWeapon: transition);
                 if (cycle != preview.Cycle)
                 {
                     if (preview.Slot == 3) parameters.SetTrigger(Attack);

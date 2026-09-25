@@ -2,6 +2,7 @@
 using System;
 using System.Linq;
 using Landsong.ECS.Presentation;
+using Moyo.Unity;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
@@ -10,6 +11,20 @@ namespace Landsong.EditorTools
 {
     public static class NightFlowSetup
     {
+        [MenuItem("Landsong/UI/预览 Boss 夜字幕 (Play)")]
+        public static void PreviewBossNightCaption()
+        {
+            if (!UIManager.TryGetInstance(out var manager)
+                || !manager.TryGetActivePanel<UI_GamePanel>(out var game))
+                throw new InvalidOperationException("请先进入游戏局，再播放 Boss 夜字幕预览。");
+            game.Hud.PreviewBossNightCaption();
+        }
+
+        [MenuItem("Landsong/UI/预览 Boss 夜字幕 (Play)", true)]
+        static bool CanPreviewBossNightCaption()
+            => EditorApplication.isPlaying && UIManager.TryGetInstance(out var manager)
+                && manager.TryGetActivePanel<UI_GamePanel>(out _);
+
         [MenuItem("Landsong/昼夜/配置夜晚字幕")]
         public static string Configure()
         {

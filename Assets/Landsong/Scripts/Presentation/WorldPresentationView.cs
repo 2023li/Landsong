@@ -56,7 +56,10 @@ namespace Landsong.ECS.Presentation
         readonly Dictionary<Entity, PersistentParticleView> constructionDust = new Dictionary<Entity, PersistentParticleView>();
         readonly Dictionary<Entity, quaternion> treeBaseRotations = new Dictionary<Entity, quaternion>();
         readonly List<Effect> effects = new List<Effect>();
-        readonly Dictionary<Entity, (LifeStage stage, int level, int progress)> buildings = new Dictionary<Entity, (LifeStage, int, int)>();
+        readonly Dictionary<ulong, (LifeStage stage, int level, int progress, FixedString64Bytes skin, WorldVisualCatalog.Model model)> buildings = new();
+        readonly HashSet<ulong> seenBuildingIds = new();
+        readonly List<ulong> staleBuildingIds = new();
+        readonly HashSet<ulong> pendingCompletionDust = new();
         readonly HashSet<Entity> seen = new HashSet<Entity>();
         EntityManager em;
         World boundWorld;
@@ -100,6 +103,8 @@ namespace Landsong.ECS.Presentation
         MaterialPropertyBlock OverlayProperties => overlayProperties ??= new MaterialPropertyBlock();
         BuildingRangeOverlayView buildingRangeOverlay;
         BuildingRangeOverlayView BuildingRangeOverlay => buildingRangeOverlay ??= new BuildingRangeOverlayView();
+        BuildingRangeOverlayView placementRangeOverlay;
+        BuildingRangeOverlayView PlacementRangeOverlay => placementRangeOverlay ??= new BuildingRangeOverlayView();
         AudioRuntime runtime;
         Scene ownerScene;
         Transform worldRoot;
@@ -175,6 +180,7 @@ namespace Landsong.ECS.Presentation
         public void ClearViews()
         {
             buildingRangeOverlay?.Clear();
+            placementRangeOverlay?.Clear();
             if (boundWorld != null && boundWorld.IsCreated)
                 foreach (var pair in treeBaseRotations)
                     if (em.Exists(pair.Key) && em.HasComponent<LocalTransform>(pair.Key))
@@ -204,6 +210,9 @@ namespace Landsong.ECS.Presentation
             effects.Clear();
             views.Clear();
             buildings.Clear();
+            seenBuildingIds.Clear();
+            staleBuildingIds.Clear();
+            pendingCompletionDust.Clear();
             visitors.Clear();
             seen.Clear();
             initialized = false;
@@ -238,6 +247,14 @@ namespace Landsong.ECS.Presentation
         }
 
         public void ClearBuildingRange() => buildingRangeOverlay?.Clear();
+
+        public void ShowPlacementRange(BuildingId definition, BuildingPlacementState placement, bool highContrast)
+        {
+            if (IsBound)
+                PlacementRangeOverlay.RebuildPreview(em, root, definition, placement, PresentationRoot, OverlayMaterial, highContrast);
+        }
+
+        public void ClearPlacementRange() => placementRangeOverlay?.Clear();
 
         public void DrawOverlay(Camera camera, float3 position, Vector3 size, Color color)
         {
@@ -299,8 +316,10 @@ namespace Landsong.ECS.Presentation
             bool paused = stateControl.Paused != 0;
             float dt = paused ? 0 : Time.deltaTime;
             windTime += dt;
+            TickConstructionDust(dt, paused);
             var wind = em.GetComponentData<SeasonWeatherState>(root);
             seen.Clear();
+            seenBuildingIds.Clear();
             using (var entities = candidates.ToEntityArray(Allocator.Temp))
                 foreach (var entity in entities)
                 {
@@ -321,15 +340,14 @@ namespace Landsong.ECS.Presentation
                         Emit(PresentationCue.Visitor, transform.Position, true);
                     if (isBuilding)
                     {
-                        if (buildings.TryGetValue(entity, out var prior) && !paused)
+                        seenBuildingIds.Add(id.Id);
+                        if (buildings.TryGetValue(id.Id, out var prior) && !paused)
                         {
                             if (prior.stage != b.Stage && b.Stage == LifeStage.Operational)
                                 Emit(PresentationCue.Complete, transform.Position, true);
                             else if (prior.progress != bConstruction.Progress && b.Stage == LifeStage.Construction)
                                 Emit(PresentationCue.Build, transform.Position, true);
                         }
-
-                        buildings[entity] = (b.Stage, b.Level, bConstruction.Progress);
                     }
 
                     var key = (VisualIdentity(entity), isBuilding ? b.Stage : LifeStage.Operational, Mathf.Max(1, b.Level), bAppearance.Skin);
@@ -348,10 +366,20 @@ namespace Landsong.ECS.Presentation
 
                     var model = selection.model;
                     views.TryGetValue(entity, out var view);
-                    if (isBuilding && hadSelection && view != null && (visualStateChanged || view.Model != model))
+                    if (isBuilding)
                     {
-                        var grid = em.GetComponentData<GridData>(root);
-                        PlayConstructionDust(entity, transform.Position, bPlacement.Size, grid.CellSize, paused);
+                        bool hadBuilding = buildings.TryGetValue(id.Id, out var prior);
+                        bool changed = hadBuilding && (prior.stage != b.Stage || prior.level != b.Level
+                            || !prior.skin.Equals(bAppearance.Skin) || prior.model != model);
+                        if (changed && prior.stage == LifeStage.Construction && b.Stage == LifeStage.Operational && state.Phase != Phase.Day)
+                            pendingCompletionDust.Add(id.Id);
+                        else if (changed || state.Phase == Phase.Day && pendingCompletionDust.Contains(id.Id))
+                        {
+                            var grid = em.GetComponentData<GridData>(root);
+                            PlayConstructionDust(entity, transform.Position, bPlacement.Size, grid.CellSize, paused);
+                            pendingCompletionDust.Remove(id.Id);
+                        }
+                        buildings[id.Id] = (b.Stage, b.Level, bConstruction.Progress, bAppearance.Skin, model);
                     }
                     if (view != null && view.Model != model)
                     {
@@ -441,23 +469,19 @@ namespace Landsong.ECS.Presentation
 
                 if (em.Exists(entity) && em.HasComponent<ExternalVisual>(entity))
                     em.SetComponentData(entity, new ExternalVisual());
-                buildings.Remove(entity);
                 visitors.Remove(entity);
                 selections.Remove(entity);
             }
 
-            stale.Clear();
-            foreach (var pair in constructionDust)
+            staleBuildingIds.Clear();
+            foreach (var id in buildings.Keys)
+                if (!seenBuildingIds.Contains(id))
+                    staleBuildingIds.Add(id);
+            foreach (var id in staleBuildingIds)
             {
-                var dust = pair.Value;
-                dust.Remaining -= dt;
-                if (dust.Object == null || dust.Remaining <= 0 || InterfaceSettings.Current.ReducedMotion)
-                    stale.Add(pair.Key);
-                else if (dust.Paused != paused)
-                    SetPersistentParticlePaused(dust, paused);
+                buildings.Remove(id);
+                pendingCompletionDust.Remove(id);
             }
-            foreach (var entity in stale)
-                RemovePersistentParticle(entity, constructionDust);
 
             for (int i = effects.Count - 1; i >= 0; i--)
             {
@@ -542,19 +566,37 @@ namespace Landsong.ECS.Presentation
             };
             foreach (var particle in dust.Particles)
             {
+                particle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
                 ConfigureConstructionDustFootprint(particle, footprint, cellSize);
                 particle.Play(true);
+                particle.Emit(Mathf.Clamp(footprint.x * footprint.y * 4, 12, 48));
             }
             if (paused)
                 SetPersistentParticlePaused(dust, true);
             constructionDust[entity] = dust;
         }
 
+        void TickConstructionDust(float dt, bool paused)
+        {
+            stale.Clear();
+            foreach (var pair in constructionDust)
+            {
+                var dust = pair.Value;
+                dust.Remaining -= dt;
+                if (dust.Object == null || dust.Remaining <= 0 || InterfaceSettings.Current.ReducedMotion)
+                    stale.Add(pair.Key);
+                else if (dust.Paused != paused)
+                    SetPersistentParticlePaused(dust, paused);
+            }
+            foreach (var entity in stale)
+                RemovePersistentParticle(entity, constructionDust);
+        }
+
         public static void ConfigureConstructionDustFootprint(ParticleSystem particle, int2 footprint, float cellSize)
         {
             var shape = particle.shape;
             shape.enabled = true;
-            shape.shapeType = ParticleSystemShapeType.Box;
+            shape.shapeType = ParticleSystemShapeType.BoxEdge;
             var size = shape.scale;
             var scale = particle.transform.lossyScale;
             size.x = Mathf.Max(.01f, footprint.x * cellSize / Mathf.Max(.01f, Mathf.Abs(scale.x)));

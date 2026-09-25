@@ -11,19 +11,17 @@ namespace Landsong.ECS.Editor
 {
     public static class RoyalDetailsUiAuthoring
     {
-        const string PrefabPath = "Assets/Landsong/UI/Prefabs/GamePanel/Views/UI_GamePanel_Court.prefab";
-        const string ProfilePath = "Assets/Landsong/Editor/UI/Profiles/RoyalDetails.asset";
-        const string RecipePath = "Assets/Landsong/Editor/UI/Profiles/RoyalDetailsRecipe.asset";
-        public static void ConfigureRecipe()
+        const string PrefabPath = "Assets/Landsong/UI/Prefabs/GamePanel/Views/UI_GamePanel_Royal.prefab";
+        const string GamePath = "Assets/Landsong/UI/Prefabs/GamePanel/UI_GamePanel.prefab";
+        public static void ConfigurePrefab()
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode) throw new InvalidOperationException("请退出运行模式后修复王室详情布局。");
             var contents = PrefabUtility.LoadPrefabContents(PrefabPath);
             try
             {
                 using var rootLayout = UiPanelLayoutAuthoring.Preserve(contents.transform as RectTransform);
-                var court = contents.GetComponent<UI_GamePanel_Court>();
-                if (court == null || court.RoyalDetails == null) throw new InvalidOperationException("王室详情缺少显式绑定。");
-                var detail = court.RoyalDetails;
+                var detail = contents.GetComponentInChildren<UI_GamePanel_RoyalPersonDetails>(true);
+                if (detail == null) throw new InvalidOperationException("王室详情缺少显式绑定。");
                 var tabs = detail.PersonTab.transform.parent as RectTransform;
                 var tabLayout = tabs != null ? tabs.GetComponent<HorizontalLayoutGroup>() : null;
                 var actions = detail.PersonContent.transform.Find("Person actions") as RectTransform;
@@ -56,17 +54,24 @@ namespace Landsong.ECS.Editor
                 if (PrefabUtility.SaveAsPrefabAsset(contents, PrefabPath) == null) throw new InvalidOperationException("无法保存王室详情布局。");
             }
             finally { PrefabUtility.UnloadPrefabContents(contents); }
-            var owner = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath).GetComponent<UI_GamePanel_Court>();
-            var profile = UIPreviewBuilder.EnsureDefaultProfile(ProfilePath, UIPreviewKind.RoyalDetails);
-            var recipe = AssetDatabase.LoadAssetAtPath<UIPreviewRecipe>(RecipePath);
-            if (recipe == null) { recipe = ScriptableObject.CreateInstance<UIPreviewRecipe>(); AssetDatabase.CreateAsset(recipe, RecipePath); }
-            var node = owner.CourtGraph.FamilyNodeTemplate;
-            var grid = UIPreviewListLayout.GraphGrid(); grid.columnCount = 2; grid.cellSize = new Vector2(200, 210);
-            recipe.Configure(owner, profile,
-                new[] { new UIPreviewTextBinding("identity", owner.RoyalDetails.Identity), new UIPreviewTextBinding("description", owner.RoyalDetails.Description) },
-                new[] { new UIPreviewListBinding("people", owner.CourtGraph.FamilyLayer, (RectTransform)node.transform,
-                    new TMP_Text[] { node.PersonName, node.Detail, node.Influence }, new[] { 0, 1, 2 }, grid) });
-            EditorUtility.SetDirty(recipe); AssetDatabase.SaveAssets();
+            BindPortraitCache();
+            AssetDatabase.SaveAssets();
+        }
+        static void BindPortraitCache()
+        {
+            var contents = PrefabUtility.LoadPrefabContents(GamePath);
+            try
+            {
+                var game = contents.GetComponent<UI_GamePanel>();
+                var cache = contents.GetComponent<PortraitCache>();
+                if (game == null || game.Court == null || cache == null)
+                    throw new InvalidOperationException("游戏主预制体缺少王室面板或肖像缓存。");
+                foreach (var binding in game.Court.GetComponentsInChildren<UI_Common_PortraitImageBinding>(true))
+                    binding.Cache = cache;
+                if (PrefabUtility.SaveAsPrefabAsset(contents, GamePath) == null)
+                    throw new InvalidOperationException("无法保存王室肖像缓存引用。");
+            }
+            finally { PrefabUtility.UnloadPrefabContents(contents); }
         }
         static void ConfigureLayout(HorizontalOrVerticalLayoutGroup group, float spacing)
         {

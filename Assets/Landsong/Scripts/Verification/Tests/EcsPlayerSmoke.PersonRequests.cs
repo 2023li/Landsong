@@ -22,7 +22,7 @@ namespace Landsong.ECS.Presentation
                 Require(PersonRequestOps.OfferExpedition(em, root, WorldQueries.Find(em, personId)), "Personal request UI fixture adds expedition wish");
                 view.OpenPanel(GamePanelId.Royal);
                 yield return new WaitForSecondsRealtime(.4f);
-                var graph = view.Court.CourtGraph;
+                var graph = view.Court;
                 graph.Node(personId).onClick.Invoke();
                 yield return WaitFor(() => view.Court.RoyalDetails.PersonId == personId && view.Court.RoyalDetails.Requests.interactable, "Selected living person has Handle requests action");
                 Require(graph.NodeView(personId).RequestLabel.text == "! 2", "Family badge counts simultaneous pending requests");

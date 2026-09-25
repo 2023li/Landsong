@@ -3,10 +3,58 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Sirenix.OdinInspector;
+using TMPro;
 using UnityEngine;
 
 namespace Moyo.Unity
 {
+    [Serializable]
+    public sealed class UIViewPreviewContent
+    {
+        [SerializeField, LabelText("预览内容键"), Required] private string key;
+        [SerializeField, LabelText("示例对象")] private GameObject[] sampleObjects = Array.Empty<GameObject>();
+        [SerializeField, LabelText("示例文字")] private TMP_Text[] sampleTextTargets = Array.Empty<TMP_Text>();
+        [SerializeField, LabelText("运行时初始文字")] private string[] runtimeTexts = Array.Empty<string>();
+        public string Key => key;
+        public GameObject[] SampleObjects => sampleObjects;
+        public TMP_Text[] SampleTextTargets => sampleTextTargets;
+        public string[] RuntimeTexts => runtimeTexts;
+
+        public UIViewPreviewContent() { }
+
+        public UIViewPreviewContent(string key, GameObject[] objects, TMP_Text[] texts, string[] initialTexts)
+        {
+            this.key = key;
+            Configure(objects, texts, initialTexts);
+        }
+
+        public void Configure(GameObject[] objects, TMP_Text[] texts, string[] initialTexts)
+        {
+            sampleObjects = objects == null ? Array.Empty<GameObject>() : (GameObject[])objects.Clone();
+            sampleTextTargets = texts == null ? Array.Empty<TMP_Text>() : (TMP_Text[])texts.Clone();
+            runtimeTexts = initialTexts == null ? Array.Empty<string>() : (string[])initialTexts.Clone();
+        }
+
+        public void ValidateConfiguration(Transform owner)
+        {
+            if (string.IsNullOrWhiteSpace(key) || sampleObjects == null || sampleTextTargets == null
+                || runtimeTexts == null || sampleTextTargets.Length != runtimeTexts.Length)
+                throw new InvalidOperationException($"{owner.name} 的预览内容配置不完整。");
+            foreach (var sample in sampleObjects)
+                if (sample != null && (sample.transform == owner || !sample.transform.IsChildOf(owner)))
+                    throw new InvalidOperationException($"{owner.name} 的预览对象必须是所属视图的子对象。");
+            foreach (var target in sampleTextTargets)
+                if (target == null || (target.transform != owner && !target.transform.IsChildOf(owner)))
+                    throw new InvalidOperationException($"{owner.name} 的预览文字未绑定或不属于所属视图。");
+        }
+
+        public void PrepareRuntime()
+        {
+            foreach (var sample in sampleObjects) if (sample != null) sample.SetActive(false);
+            for (var i = 0; i < sampleTextTargets.Length; i++) sampleTextTargets[i].text = runtimeTexts[i] ?? string.Empty;
+        }
+    }
+
     /// <summary>
     /// 根面板明确拥有的子视图。只通过 childViews 建立归属，不搜索层级，不登记成全局面板。
     /// 子类在生命周期中只处理自身职责；不能在根生命周期中等待 Manager 的另一个导航操作。
@@ -15,7 +63,7 @@ namespace Moyo.Unity
     {
         [SerializeField, LabelText("直属子视图")] private UIViewBase[] childViews = Array.Empty<UIViewBase>();
         [SerializeField, LabelText("随所属视图打开")] private bool openWithOwner;
-        [SerializeField, LabelText("编辑示例清理配置")] private UIPreviewOnly[] previewBindings = Array.Empty<UIPreviewOnly>();
+        [SerializeField, LabelText("界面预览内容")] private UIViewPreviewContent[] previewContent = Array.Empty<UIViewPreviewContent>();
         private readonly SemaphoreSlim viewGate = new SemaphoreSlim(1, 1);
         private bool created;
         private bool opening;
@@ -24,7 +72,7 @@ namespace Moyo.Unity
         public UIPanelBase OwnerPanel { get; private set; }
         public UIManager Manager { get; private set; }
         public IReadOnlyList<UIViewBase> ChildViews => childViews;
-        public IReadOnlyList<UIPreviewOnly> PreviewBindings => previewBindings;
+        public IReadOnlyList<UIViewPreviewContent> PreviewContent => previewContent;
         public bool IsViewOpen { get; private set; }
         public object Context { get; private set; }
         public CancellationToken OperationToken { get; private set; }
@@ -38,10 +86,21 @@ namespace Moyo.Unity
             openWithOwner = opensWithOwner;
         }
 
-        public void ConfigurePreview(params UIPreviewOnly[] bindings)
+        public UIViewPreviewContent ConfigurePreview(string key, GameObject[] objects, TMP_Text[] texts, string[] initialTexts)
         {
-            if (Manager != null) throw new InvalidOperationException("已绑定的 UI 不能更改预览清理引用。");
-            previewBindings = bindings == null ? Array.Empty<UIPreviewOnly>() : (UIPreviewOnly[])bindings.Clone();
+            if (Manager != null) throw new InvalidOperationException("已绑定的 UI 不能更改预览内容。");
+            if (string.IsNullOrWhiteSpace(key)) throw new ArgumentException("预览内容必须有稳定键。", nameof(key));
+            var entries = new List<UIViewPreviewContent>(previewContent ?? Array.Empty<UIViewPreviewContent>());
+            var content = entries.Find(item => item != null && item.Key == key);
+            if (content == null)
+            {
+                content = new UIViewPreviewContent(key, objects, texts, initialTexts);
+                entries.Add(content);
+                previewContent = entries.ToArray();
+            }
+            else content.Configure(objects, texts, initialTexts);
+            content.ValidateConfiguration(transform);
+            return content;
         }
 
         public virtual void ValidateConfiguration()
@@ -60,13 +119,13 @@ namespace Moyo.Unity
                     throw new InvalidOperationException($"{view.name} 不属于配置父视图 {parent.name} 的子对象。");
             }
             view.ValidateLocalConfiguration();
-            if (view.previewBindings == null) throw new InvalidOperationException($"{view.name} 的预览清理列表未配置。");
-            foreach (var preview in view.previewBindings)
+            if (view.previewContent == null) throw new InvalidOperationException($"{view.name} 的预览内容列表未配置。");
+            var keys = new HashSet<string>();
+            foreach (var preview in view.previewContent)
             {
-                if (preview == null) continue; // 构建可能移除显式 EditorOnly 预览节点。
-                if (preview.transform != view.transform && !preview.transform.IsChildOf(view.transform))
-                    throw new InvalidOperationException($"{view.name} 的预览清理引用不属于该视图。");
-                preview.ValidateConfiguration();
+                if (preview == null || !keys.Add(preview.Key))
+                    throw new InvalidOperationException($"{view.name} 的预览内容为空或键重复。");
+                preview.ValidateConfiguration(view.transform);
             }
             if (view.childViews == null) throw new InvalidOperationException($"{view.name} 的子视图列表未配置。");
             foreach (var child in view.childViews) ValidateTree(child, view, visited);
@@ -86,7 +145,7 @@ namespace Moyo.Unity
             if (created) return;
             created = true; // 即便本次创建失败，已经注册的资源也会进入 Release。
             OperationToken = token;
-            foreach (var preview in previewBindings) if (preview != null) preview.PrepareRuntime();
+            foreach (var preview in previewContent) preview.PrepareRuntime();
             if (!(this is UIPanelBase)) gameObject.SetActive(false);
             token.ThrowIfCancellationRequested();
             await OnCreateAsync();

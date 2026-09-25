@@ -49,10 +49,18 @@ namespace Landsong.ECS.Presentation
         internal GameObject buildingGhost;
         BuildingPlacementPreviewBinding buildingGhostBinding;
         Vector3 buildingGhostBaseScale;
+        BuildingId placementRangeDefinition;
+        int2 placementRangeCell;
+        int placementRangeRotation;
+        int placementRangeGridRevision;
+        bool placementRangeHighContrast;
+        bool placementRangeActive;
+        float placementRangeNextRefresh;
         public bool HasBuildingPlacement => buildDefinition.IsValid || movingBuilding != 0;
 
         internal void EndBuildingPlacement()
         {
+            ClearPlacementRange();
             buildDefinition = default;
             movingBuilding = 0;
             roadStart = null;
@@ -272,17 +280,30 @@ namespace Landsong.ECS.Presentation
         {
             var grid = sessionController.em.GetComponentData<GridData>(sessionController.root);
             if (!HasBuildingPlacement || Mouse.current == null)
+            {
+                ClearPlacementRange();
                 return;
+            }
             if (!GroundPoint(Camera.ScreenPointToRay(Mouse.current.position.ReadValue()), out var point))
+            {
+                ClearPlacementRange();
                 return;
+            }
             var moving = WorldQueries.Find(sessionController.em, movingBuilding);
             if (movingBuilding != 0 && moving == Entity.Null)
+            {
+                ClearPlacementRange();
                 return;
+            }
             var definition = movingBuilding == 0 ? buildDefinition : sessionController.em.GetComponentData<BuildingDefinitionRef>(moving).Definition;
             var cellAt = GridOps.Cell(grid, point);
             ref var definitionData = ref BuildingDefinitions.Get(sessionController.em, sessionController.root, definition);
             var size = (buildRotation & 1) == 0 ? definitionData.Footprint : definitionData.Footprint.yx;
             var quote = movingBuilding == 0 ? BuildingPlacementCommands.CheckBuild(sessionController.em, sessionController.root, definition, cellAt, buildRotation) : BuildingPlacementCommands.CheckMove(sessionController.em, sessionController.root, moving, cellAt, buildRotation);
+            if (movingBuilding == 0 && !BuildingRoadOps.IsRoad(sessionController.em, sessionController.root, definition) && quote.Allowed)
+                UpdatePlacementRange(definition, cellAt, size, grid.Revision);
+            else
+                ClearPlacementRange();
             if (TerrainConnectionOps.TryGet(sessionController.em, sessionController.root, definition, out var connection))
             {
                 float height = TerrainConnectionOps.AnchorHeight(sessionController.em, sessionController.root, definition, cellAt, buildRotation);
@@ -307,6 +328,33 @@ namespace Landsong.ECS.Presentation
             }
             else
                 draw(GridOps.Position(grid, cellAt, size), new Vector3(size.x * grid.CellSize, .08f, size.y * grid.CellSize), quote.Allowed ? new Color(.2f, 1, .3f, .5f) : new Color(1, .2f, .1f, .5f));
+        }
+
+        void UpdatePlacementRange(BuildingId definition, int2 cell, int2 size, int gridRevision)
+        {
+            var highContrast = InterfaceSettings.Current.HighContrast;
+            if (placementRangeActive && placementRangeDefinition == definition && math.all(placementRangeCell == cell)
+                && placementRangeRotation == buildRotation && placementRangeGridRevision == gridRevision
+                && placementRangeHighContrast == highContrast && Time.unscaledTime < placementRangeNextRefresh)
+                return;
+
+            WorldPresentation.ShowPlacementRange(definition,
+                new BuildingPlacementState { Cell = cell, Size = size, Rotation = buildRotation }, highContrast);
+            placementRangeDefinition = definition;
+            placementRangeCell = cell;
+            placementRangeRotation = buildRotation;
+            placementRangeGridRevision = gridRevision;
+            placementRangeHighContrast = highContrast;
+            placementRangeNextRefresh = Time.unscaledTime + .5f;
+            placementRangeActive = true;
+        }
+
+        void ClearPlacementRange()
+        {
+            if (!placementRangeActive)
+                return;
+            WorldPresentation?.ClearPlacementRange();
+            placementRangeActive = false;
         }
 
         [NonSerialized]
@@ -760,6 +808,8 @@ namespace Landsong.ECS.Presentation
             WorldPresentation.SetBuildingRangeVisible(rangeVisible, InterfaceSettings.Current.HighContrast);
             if (!intelligence.IsOpen)
                 DrawBuildingPlacement(Draw);
+            else
+                ClearPlacementRange();
             if (!intelligence.IsOpen && sessionController.em.GetComponentData<Session>(sessionController.root).Phase == Phase.Night)
                 foreach (var wave in sessionController.em.GetBuffer<NightWave>(sessionController.root))
                     if (wave.Warned != 0 && wave.Spawned == 0 && wave.Region >= 0 && wave.Region < sessionController.em.GetBuffer<SpawnRegion>(sessionController.root).Length)

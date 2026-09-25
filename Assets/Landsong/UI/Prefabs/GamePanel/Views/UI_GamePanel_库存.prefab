@@ -1800,6 +1800,7 @@ MonoBehaviour:
   CloseButton: {fileID: 6401598271677041319}
   CloseAllowed: 1
   ManageContentVisibility: 1
+  Items: {fileID: 11400000, guid: 319f79e63ed641ad95eee7374998bf9b, type: 2}
   BuildingsButton: {fileID: 2952600194145124647}
   ResourcesButton: {fileID: 7534114342436473625}
   BuildingsScroll: {fileID: 9024581489158875414}
@@ -1831,7 +1832,6 @@ MonoBehaviour:
   DragRoot: {fileID: 6124761061850607487}
   DragLabel: {fileID: 6425897058247539073}
   DragSpace: {fileID: 5310663897741574352}
-  Items: {fileID: 11400000, guid: 319f79e63ed641ad95eee7374998bf9b, type: 2}
 --- !u!114 &9214262580837807372
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3702,7 +3702,6 @@ MonoBehaviour:
   Owner: {fileID: 3036001301609324293}
   Provider: 0
   Index: 0
-  Item: 0
   Count: 0
   Pending: 1
   Locked: 0
@@ -3894,7 +3893,6 @@ MonoBehaviour:
   Owner: {fileID: 3036001301609324293}
   Provider: 0
   Index: 0
-  Item: 0
   Count: 0
   Pending: 0
   Locked: 0

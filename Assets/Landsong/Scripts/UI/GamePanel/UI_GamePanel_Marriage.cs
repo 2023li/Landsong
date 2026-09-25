@@ -28,7 +28,7 @@ namespace Landsong.ECS.Presentation
         internal GameUiRefreshScheduler refresh;
         internal UI_GamePanel_BuildingActionBar buildingController;
         internal GameUiCommandWriter commandsController;
-        internal UI_GamePanel_Court courtController;
+        internal UI_GamePanel_Royal courtController;
         internal UI_GamePanel_Portrait portraitController;
         internal UI_GamePanel_PersonRequests requestsController;
         internal IGameUiNavigation navigation;
@@ -57,6 +57,14 @@ namespace Landsong.ECS.Presentation
         internal string marriageCandidatesSignature;
         internal void RefreshMarriageEvents()
         {
+            if (!FeatureOps.Unlocked(sessionController.em, sessionController.root, "Royal"))
+            {
+                if (MarriageOpen)
+                    CloseMarriage();
+                if (MarriageEventButton != null)
+                    MarriageEventButton.gameObject.SetActive(false);
+                return;
+            }
             if (MarriageOpen)
             {
                 var person = WorldQueries.Find(sessionController.em, marriagePerson);
@@ -115,7 +123,8 @@ namespace Landsong.ECS.Presentation
 
         public void ShowMarriage(ulong id)
         {
-            if (!inputContext.Policy.Capture().CanOpenModal(GameUiInputOwner.Marriage))
+            if (!FeatureOps.Unlocked(sessionController.em, sessionController.root, "Royal")
+                || !inputContext.Policy.Capture().CanOpenModal(GameUiInputOwner.Marriage))
                 return;
             var person = WorldQueries.Find(sessionController.em, id);
             if (!RoyalFamilyOps.RequestValid(sessionController.em, sessionController.root, person))
@@ -161,7 +170,7 @@ namespace Landsong.ECS.Presentation
             var lines = new List<string>
             {
                 id.Name.ToString(),
-                UI_GamePanel_Court.GenderName(p.Gender) + " · " + p.Age + " 岁 · " + (p.Role == 0 ? "国王" : p.Role == 4 ? "交际人物" : "王室成员"),
+                UI_GamePanel_Royal.GenderName(p.Gender) + " · " + p.Age + " 岁 · " + (p.Role == 0 ? "君王" : p.Role == 4 ? "交际人物" : "王室成员"),
                 "影响力 " + p.Influence.ToString("0.0") + " / 100 · 成长性 " + p.Growth.ToString("0.00"),
                 "父亲：" + courtController.PersonName(RoyalFamilyOps.ParentOfGender(sessionController.em, person, PersonGender.Male)),
                 "母亲：" + courtController.PersonName(RoyalFamilyOps.ParentOfGender(sessionController.em, person, PersonGender.Female)),
@@ -199,7 +208,8 @@ namespace Landsong.ECS.Presentation
 
         public void OpenMarriagePicker(ulong id)
         {
-            if (!inputContext.Policy.Capture().CanOpenModal(GameUiInputOwner.Marriage))
+            if (!FeatureOps.Unlocked(sessionController.em, sessionController.root, "Royal")
+                || !inputContext.Policy.Capture().CanOpenModal(GameUiInputOwner.Marriage))
                 return;
             var person = WorldQueries.Find(sessionController.em, id);
             if (!courtController.CourtDay || sessionController.em.GetComponentData<SimulationControl>(sessionController.root).Paused != 0 || !RoyalFamilyOps.CanArrange(sessionController.em, sessionController.root, person))
@@ -265,7 +275,7 @@ namespace Landsong.ECS.Presentation
                     ulong key = identity.Id;
                     var candidate = Instantiate(MarriagePanel.CandidateTemplate, MarriagePanel.CandidateRows);
                     candidate.gameObject.SetActive(true);
-                    candidate.Label.text = identity.Name + " · " + UI_GamePanel_Court.GenderName(p.Gender) + " · " + p.Age + " 岁" + (sessionController.em.HasComponent<Talent>(e) ? " · 人才" : "");
+                    candidate.Label.text = identity.Name + " · " + UI_GamePanel_Royal.GenderName(p.Gender) + " · " + p.Age + " 岁" + (sessionController.em.HasComponent<Talent>(e) ? " · 人才" : "");
                     candidate.Select.onClick.RemoveAllListeners();
                     candidate.Select.onClick.AddListener(() =>
                     {

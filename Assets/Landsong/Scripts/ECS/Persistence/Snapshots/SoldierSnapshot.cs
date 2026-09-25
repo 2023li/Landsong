@@ -51,7 +51,7 @@ namespace Landsong.ECS.Persistence
                 SnapshotBinary.Write(writer, record.Person.Value);
         }
 
-        internal static SoldierSnapshot Read(BinaryReader reader)
+        internal static SoldierSnapshot Read(BinaryReader reader, int version)
         {
             return new SoldierSnapshot
             {
@@ -59,11 +59,23 @@ namespace Landsong.ECS.Persistence
                 Transform = SnapshotBinary.Read<LocalTransform>(reader),
                 Definition = SnapshotBinary.Read<SoldierId>(reader),
                 Health = SnapshotBinary.Read<Health>(reader),
-                Soldier = SnapshotBinary.Read<Soldier>(reader),
+                Soldier = version >= 37 ? SnapshotBinary.Read<Soldier>(reader) : ReadLegacySoldier(reader),
                 Portrait = reader.ReadBoolean() ? SnapshotBinary.Read<PortraitDNA>(reader) : (PortraitDNA? )null,
                 Person = reader.ReadBoolean() ? SnapshotBinary.Read<SoldierPerson>(reader) : (SoldierPerson? )null,
             };
         }
+
+        static Soldier ReadLegacySoldier(BinaryReader reader) => new Soldier
+        {
+            Garrison = SnapshotBinary.Read<ulong>(reader),
+            Slot = SnapshotBinary.Read<int>(reader),
+            PopulationCost = SnapshotBinary.Read<int>(reader),
+            PendingSince = SnapshotBinary.Read<int>(reader),
+            Experience = SnapshotBinary.Read<int>(reader),
+            LastExperienceTurn = SnapshotBinary.Read<int>(reader),
+            RecallState = SnapshotBinary.Read<byte>(reader),
+            Weapon = SoldierWeaponKind.None
+        };
 
         internal static Entity Restore(EntityManager em, Entity root, SoldierSnapshot record)
         {

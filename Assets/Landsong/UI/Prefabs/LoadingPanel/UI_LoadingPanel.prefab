@@ -623,7 +623,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_LoadingPanel
   childViews: []
   openWithOwner: 0
-  previewBindings: []
+  previewContent: []
   panelCanvasGroup: {fileID: 5722740523293919202}
   Status: {fileID: 3291121833671739470}
   Progress: {fileID: 1584158468441326264}

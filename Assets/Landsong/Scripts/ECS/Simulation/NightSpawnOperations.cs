@@ -25,12 +25,18 @@ namespace Landsong.ECS
                 var navNodes = em.GetBuffer<SurfaceNavNode>(root);
                 var navEdges = em.GetBuffer<SurfaceNavEdge>(root);
                 var reached = new bool[navNodes.Length];
-                var incoming = new List<int>[navNodes.Length];
+                // Reverse adjacency in flat arrays avoids one managed List per navigation node.
+                var incomingHead = new int[navNodes.Length];
+                Array.Fill(incomingHead, -1);
+                var incomingNext = new int[navEdges.Length];
+                var incomingFrom = new int[navEdges.Length];
                 for (int n = 0; n < navNodes.Length; n++)
                     for (int edge = navNodes[n].FirstEdge; edge >= 0; edge = navEdges[edge].Next)
                     {
                         int to = navEdges[edge].Target;
-                        (incoming[to] ??= new List<int>()).Add(n);
+                        incomingFrom[edge] = n;
+                        incomingNext[edge] = incomingHead[to];
+                        incomingHead[to] = edge;
                     }
 
                 var occupancy = em.GetBuffer<Occupancy>(root);
@@ -80,10 +86,9 @@ namespace Landsong.ECS
                 while (queue.Count > 0)
                 {
                     int at = queue.Dequeue();
-                    if (incoming[at] == null)
-                        continue;
-                    foreach (int next in incoming[at])
+                    for (int edge = incomingHead[at]; edge >= 0; edge = incomingNext[edge])
                     {
+                        int next = incomingFrom[edge];
                         if (reached[next] || navNodes[next].Open == 0)
                             continue;
                         reached[next] = true;

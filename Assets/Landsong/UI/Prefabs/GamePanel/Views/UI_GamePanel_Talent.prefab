@@ -4493,7 +4493,6 @@ GameObject:
   - component: {fileID: 616474789900783321}
   - component: {fileID: 5782129576604559792}
   - component: {fileID: 8897137313784676687}
-  - component: {fileID: 5773483605691002266}
   m_Layer: 0
   m_Name: UI_GamePanel_Talent
   m_TagString: Untagged
@@ -4580,13 +4579,7 @@ MonoBehaviour:
   ZoomInButton: {fileID: 5629529425154918110}
   Links: {fileID: 697404802793637208}
   NodesRoot: {fileID: 5297785432237503231}
-  FamilyLayer: {fileID: 748225478787552578}
-  TemplateRoot: {fileID: 1260771203676929928}
   NodeTemplate: {fileID: 9158604015616376696}
-  FamilyNodeTemplate: {fileID: 7390608998217988791}
-  GenerationBandTemplate: {fileID: 6099841380962013898}
-  FamilyFrameTemplate: {fileID: 3672143590302403396}
-  CrownIcon: {fileID: 0}
 --- !u!114 &8897137313784676687
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4601,31 +4594,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_Talent
   childViews: []
   openWithOwner: 0
-  previewBindings:
-  - {fileID: 5773483605691002266}
-  CourtGraph: {fileID: 5782129576604559792}
-  Portraits: {fileID: 11400000, guid: dda6ee5c44eb4fe88097f9f89685f945, type: 2}
+  previewContent:
+  - key: Recipe
+    sampleObjects:
+    - {fileID: 4604290687031439901}
+    - {fileID: 7056554644194455250}
+    - {fileID: 63304236905143851}
+    sampleTextTargets:
+    - {fileID: 8493736573597883233}
+    runtimeTexts:
+    - ""
   Talents: {fileID: 11400000, guid: 8bc7e4576de2405095dd0aede688b9e4, type: 2}
---- !u!114 &5773483605691002266
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7557712800201930995}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 34d223bf2e064464b0034eac33461f6a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Moyo.Runtime::Moyo.Unity.UIPreviewOnly
-  sampleObjects:
-  - {fileID: 4604290687031439901}
-  - {fileID: 7056554644194455250}
-  - {fileID: 63304236905143851}
-  sampleTextTargets:
-  - {fileID: 8493736573597883233}
-  runtimeTexts:
-  - 
+  Portraits: {fileID: 11400000, guid: dda6ee5c44eb4fe88097f9f89685f945, type: 2}
+  CourtGraph: {fileID: 5782129576604559792}
 --- !u!1 &7580271255511264553
 GameObject:
   m_ObjectHideFlags: 0

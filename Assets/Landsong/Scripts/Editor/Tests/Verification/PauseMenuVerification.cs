@@ -46,7 +46,8 @@ namespace Landsong.ECS.Editor
                 var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(ApplicationUiAuthoring.GamePath);
                 Check(prefab != null, "GamePanel prefab exists independently from Game scene");
                 var view = prefab.GetComponent<UI_GamePanel>(); var menu = view.PauseMenu;
-                Check(menu != null && menu.View == view && menu.gameObject == menu.Overlay && menu.transform.parent == view.ModalRoot, "Pause popup has one explicit game owner");
+                Check(menu != null && menu.View == null && menu.BackgroundGroup == null && menu.gameObject == menu.Overlay && menu.transform.parent == view.ModalRoot, "Pause popup has no serialized parent references before initialization");
+                Check(view.Hud.PauseButton != null && view.Hud.PauseButton.transform.IsChildOf(view.HudRoot), "HUD owns the pause button");
                 menu.ValidateConfiguration();
                 Check(menu.gameObject.activeSelf && menu.ModalGroup.alpha == 0 && !menu.ModalGroup.blocksRaycasts && !menu.OverlayImage.enabled, "Authored pause popup begins hidden");
                 Check(menu.GetComponentsInChildren<UI_SettingPanel>(true).Length == 0 && menu.GetComponentsInChildren<UI_SavePanel>(true).Length == 0, "Pause owns no duplicate shared settings or archive view");

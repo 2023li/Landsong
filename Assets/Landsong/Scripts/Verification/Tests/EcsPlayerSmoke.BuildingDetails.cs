@@ -344,7 +344,15 @@ namespace Landsong.ECS.Presentation
                 yield return WaitFor(() => em.GetComponentData<Building>(warehouse).Level == 2, "Upgrade confirmation changes real building level");
                 using (var reach = BuildingRangeOps.Reach(em, root, farm, Allocator.Temp))
                 {
+                    var farmDefinition = em.GetComponentData<BuildingDefinitionRef>(farm).Definition;
+                    var farmPlacement = em.GetComponentData<BuildingPlacementState>(farm);
+                    using var previewReach = BuildingRangeOps.Reach(em, root, farmPlacement,
+                        BuildingRangeOps.ActionPower(em, root, farmDefinition), Allocator.Temp);
+                    Require(reach.Length == previewReach.Length && Enumerable.Range(0, reach.Length).All(i => reach[i] == previewReach[i]),
+                        "Placement range matches the weighted reach of the built building");
                     var provider = ResourceNetworkOps.Provider(em, root, farm);
+                    Require(ResourceNetworkOps.Provider(em, root, previewReach) == provider,
+                        "Placement provider uses the same priority and weighted path as the built building");
                     if (provider != Entity.Null)
                     {
                         var path = BuildingRangeOps.ProviderPath(em, root, provider, reach);

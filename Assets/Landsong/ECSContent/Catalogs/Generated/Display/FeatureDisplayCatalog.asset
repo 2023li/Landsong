@@ -25,3 +25,6 @@ MonoBehaviour:
   - Id: feature.Technology
     Description: 
     Icon: {fileID: 0}
+  - Id: feature.Royal
+    Description: 
+    Icon: {fileID: 0}

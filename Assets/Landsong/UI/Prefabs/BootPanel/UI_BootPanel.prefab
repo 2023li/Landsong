@@ -205,7 +205,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_BootPanel
   childViews: []
   openWithOwner: 0
-  previewBindings: []
+  previewContent: []
   panelCanvasGroup: {fileID: 925042326540666859}
   SplashSeconds: 2
 --- !u!225 &925042326540666859

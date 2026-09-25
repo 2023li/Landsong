@@ -26,7 +26,7 @@ namespace Landsong.ECS.Presentation
         internal GameUiRefreshScheduler refresh;
         internal UI_GamePanel_BuildingActionBar buildingController;
         internal GameUiCommandWriter commandsController;
-        internal UI_GamePanel_Court courtController;
+        internal UI_GamePanel_Royal courtController;
         internal UI_GamePanel_Marriage marriageController;
         internal UI_GamePanel_PersonRequests requestsController;
         internal IGameUiNavigation navigation;
@@ -76,7 +76,8 @@ namespace Landsong.ECS.Presentation
 
         public void OpenPortrait(ulong id)
         {
-            if (!inputContext.Policy.Capture().CanOpenModal(GameUiInputOwner.Portrait))
+            if (!FeatureOps.Unlocked(sessionController.em, sessionController.root, "Royal")
+                || !inputContext.Policy.Capture().CanOpenModal(GameUiInputOwner.Portrait))
                 return;
             var person = WorldQueries.Find(sessionController.em, id);
             if (!PortraitOps.CanCustomize(sessionController.em, sessionController.root, person))

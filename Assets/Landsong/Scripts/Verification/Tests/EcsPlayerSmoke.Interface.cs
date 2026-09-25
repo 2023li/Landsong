@@ -60,8 +60,8 @@ namespace Landsong.ECS.Presentation
                 InterfaceSettings.Apply(new InterfacePreferences(), false, false);
                 view.OpenPanel(GamePanelId.Royal);
                 yield return new WaitForSecondsRealtime(.35f);
-                var graph = FindFirstObjectByType<UI_GamePanel_CourtGraph>();
-                var scroll = graph.Scroll;
+                var graph = view.Court;
+                var scroll = graph.GraphScroll;
                 var first = scroll.content.GetComponentsInChildren<Button>().First();
                 int identity = first.GetInstanceID();
                 scroll.verticalNormalizedPosition = .4f;

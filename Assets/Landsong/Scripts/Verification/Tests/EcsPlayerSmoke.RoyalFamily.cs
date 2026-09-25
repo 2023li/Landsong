@@ -68,8 +68,8 @@ namespace Landsong.ECS.Presentation
                 CourtOps.Succeed(em, root, king, child, true);
                 CourtOps.Die(em, root, king, 0);
                 view.OpenPanel(GamePanelId.Royal);
-                var graph = view.Court.CourtGraph;
-                yield return WaitFor(() => graph.gameObject.activeInHierarchy && graph.GenerationCount >= 3, "Family view groups all historical generations into horizontal bands");
+                var graph = view.Court;
+                yield return WaitFor(() => graph.GraphRoot.gameObject.activeInHierarchy && graph.GenerationCount >= 3, "Family view groups all historical generations into horizontal bands");
                 Require(graph.FamilyCount >= 2 && graph.SuccessionEdgeCount >= 1, "Family groups and permanent succession links are drawn");
                 Require(graph.NodeView(childId).CrownRoot.activeSelf && !graph.NodeView(oldId).CrownRoot.activeSelf, "Only current monarch carries crown marker");
                 Require(graph.Node(oldId).image.color.r < graph.Node(childId).image.color.r, "Dead monarch is rendered gray");
@@ -100,9 +100,9 @@ namespace Landsong.ECS.Presentation
                     yield return null;
                 }
 
-                graph.CloseButton.onClick.Invoke();
+                graph.GraphCloseButton.onClick.Invoke();
                 yield return new WaitForSecondsRealtime(.3f);
-                Require(!view.IsPanelOpen && !graph.gameObject.activeSelf, "Family close dismisses entire royal panel");
+                Require(!view.IsPanelOpen && !graph.GraphRoot.gameObject.activeSelf, "Family close dismisses entire royal panel");
                 var request = DynastyOps.CreateRoyal(em, root, "沈云舒", 2, 20, childId);
                 var proposed = DynastyOps.CreateRoyal(em, root, "陆怀瑾", 4, 22);
                 Gender(request, PersonGender.Female);

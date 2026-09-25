@@ -153,6 +153,8 @@ namespace Landsong.ECS.Presentation
                 Require(!view.Hud.Advance.gameObject.activeSelf, "Peaceful advance stays hidden when the caption first appears");
                 yield return WaitFor(() => view.Hud.Advance.interactable, "Peaceful advance appears after its own two-second delay");
                 Require(em.GetComponentData<GameClock>(root).PhaseTime >= fixture.NightPreparationSeconds + view.Hud.NightPresentation.NightCaptionDelay + view.Hud.NightPresentation.PeacefulAdvanceDelay, "Peaceful button delay starts after the caption delay");
+                yield return WaitFor(() => !view.Hud.NightCaption.gameObject.activeSelf, "Peaceful caption fades out after its two-second display");
+                Require(view.Hud.NightCaption.color.a <= .01f, "Peaceful caption reaches zero opacity before hiding");
                 if (Application.isEditor)
                 {
                     ScreenCapture.CaptureScreenshot("Library/LandsongEcs/night-peaceful-caption.png");

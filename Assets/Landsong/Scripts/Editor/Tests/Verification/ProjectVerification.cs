@@ -58,6 +58,7 @@ namespace Landsong.ECS.Editor
             new VerificationSuite(nameof(SeasonWeatherVerification), "季节与天气系统", "天气", SeasonWeatherVerification.Run),
             new VerificationSuite(nameof(DynamicSpawnVerification), "动态出生区域", "地图", DynamicSpawnVerification.Run),
             new VerificationSuite(nameof(CourtVerification), "宫廷系统", "宫廷", CourtVerification.Run),
+            new VerificationSuite(nameof(RoyalFoundingVerification), "王室拥立", "宫廷", RoyalFoundingVerification.Run),
             new VerificationSuite(nameof(InvitationExpeditionVerification), "邀请与远征", "宫廷", InvitationExpeditionVerification.Run),
             new VerificationSuite(nameof(QuestVerification), "任务系统", "玩法", QuestVerification.Run),
             new VerificationSuite(nameof(TechnologyVerification), "科技系统", "玩法", TechnologyVerification.Run),

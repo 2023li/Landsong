@@ -32,8 +32,8 @@ namespace Landsong.Animation
 
     public struct SoldierAnimationBinding : IComponentData
     {
-        public Entity Rig, SwordMount, SwordHandSocket, TorchMount, TorchFlame, TorchLight;
-        public byte TorchLayer, CelebrationLayer;
+        public Entity Rig, SwordMount, ClubMount, BowMount, SwordHandSocket, TorchMount, TorchFlame, TorchLight;
+        public byte TorchLayer, WeaponLayer, CelebrationLayer;
     }
     public struct SoldierAnimationViewOwner : IComponentData { public Entity Unit; }
 

@@ -63,7 +63,9 @@ namespace Landsong.ECS.AI
                 if (!NavigationOps.TryNearestOpenOnSurface(em, root, exitProbe, 12, placement.Surface, placement.Elevation, out var start))
                     continue;
 
-                using var reach = new NightSpatialOps.Reach(em, root, start);
+                // Patrol scoring visits every node by index, so a cell-to-node index would
+                // allocate a large managed dictionary for every garrison without being used.
+                using var reach = new NightSpatialOps.Reach(em, root, start, indexCells: false);
                 var center = EntityState.Position(em, building).xz;
                 var bestCost = new float[SectorCount];
                 var bestDistance = new float[SectorCount];
@@ -72,11 +74,12 @@ namespace Landsong.ECS.AI
                     bestCost[i] = -1;
                 float globalCost = 0;
                 float3 globalPoint = start;
-                foreach (var node in nodes)
+                for (int nodeIndex = 0; nodeIndex < nodes.Length; nodeIndex++)
                 {
+                    var node = nodes[nodeIndex];
                     if (node.Open == 0 || node.Corridor != 0)
                         continue;
-                    var cost = reach.Distance(node.Position);
+                    var cost = reach.DistanceAt(nodeIndex);
                     if (!math.isfinite(cost) || cost > budget + .001f)
                         continue;
                     var offset = node.Position.xz - center;
@@ -205,6 +208,10 @@ namespace Landsong.ECS.AI
         public void OnUpdate(ref SystemState state)
         {
             var root = SystemAPI.GetSingletonEntity<Session>();
+            // Dusk publication rebuilds the navigation graph. Wait until its checkpoint
+            // completes so the patrol cache is built in a later frame.
+            if (SystemAPI.GetComponent<PersistenceGate>(root).CheckpointPending != 0)
+                return;
             var revision = SystemAPI.GetComponent<GridData>(root).Revision;
             var buildingCount = buildingQuery.CalculateEntityCount();
             var hasNavCache = state.EntityManager.HasComponent<SurfaceNavCache>(root);

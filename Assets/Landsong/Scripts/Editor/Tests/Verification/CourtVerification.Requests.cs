@@ -35,6 +35,7 @@ namespace Landsong.ECS.Editor
                     em.SetComponentData(root, sPopulation);
                     em.SetComponentData(root, sPersistence);
                 }
+                SeasonWeatherOps.Dawn(em, root);
             }
 
             Turn(2);

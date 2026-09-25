@@ -6,6 +6,24 @@ namespace Landsong.ECS
 {
     public static class SoldierCombatStats
     {
+        public static void ApplyWeapon(ref CombatStatsSnapshot stats, SoldierWeaponKind weapon)
+        {
+            if (weapon == SoldierWeaponKind.Bow)
+            {
+                stats.Range = math.max(4.5f, stats.Range);
+                stats.ProjectileSpeed = math.max(10, stats.ProjectileSpeed);
+                stats.Damage *= .85f;
+            }
+            else
+            {
+                stats.Range = 1.15f;
+                stats.ProjectileSpeed = 0;
+                stats.Combat.BlastRadius = 0;
+                if (weapon == SoldierWeaponKind.None)
+                    stats.Damage *= .75f;
+            }
+        }
+
         public static CombatStatsSnapshot Current(EntityManager em, Entity root, SoldierId definition)
         {
             var stats = SoldierDefinitions.Get(em, root, definition).CombatStats;

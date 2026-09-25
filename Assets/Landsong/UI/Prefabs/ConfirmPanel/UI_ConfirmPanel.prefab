@@ -630,7 +630,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_ConfirmPanel
   childViews: []
   openWithOwner: 0
-  previewBindings: []
+  previewContent: []
   panelCanvasGroup: {fileID: 3751388326206092909}
   Title: {fileID: 7988157234346724836}
   Message: {fileID: 1213581903309740209}

@@ -13,6 +13,7 @@ namespace Landsong.ECS.Persistence
         Entity observedRoot;
         RunArchive archive;
         bool dirty;
+        bool duskCheckpointDeferred;
         double nextWrite;
         public static string SaveDirectory => Path.Combine(Application.persistentDataPath, "ECS");
         public static RunArchiveStore DefaultStore => new RunArchiveStore(SaveDirectory);
@@ -25,6 +26,7 @@ namespace Landsong.ECS.Persistence
                 return;
             observedRoot = root;
             dirty = false;
+            duskCheckpointDeferred = false;
             nextWrite = 0;
             EntityState.Set(EntityManager, root, new RunPersistence { RunId = Guid.NewGuid().ToString("N") });
             if (!EntityManager.HasComponent<RecoveryState>(root) || EntityManager.GetComponentData<RecoveryState>(root).Turn < 1)
@@ -82,6 +84,7 @@ namespace Landsong.ECS.Persistence
             observedRoot = root;
             archive = preparedArchive;
             dirty = false;
+            duskCheckpointDeferred = false;
         }
 
         public static void ValidateArchive(EntityManager em, Entity root, RunArchive data)
@@ -124,13 +127,24 @@ namespace Landsong.ECS.Persistence
             if (EntityManager.GetComponentData<Session>(root).Phase == Phase.GameOver && recovery.AwaitingDecision == 0)
                 PrepareRecovery(root);
             using var events = EntityManager.GetBuffer<GameEvent>(root).ToNativeArray(Allocator.Temp);
+            bool hasDuskCheckpoint = false;
+            foreach (var e in events)
+                if (e.Kind == EventKind.DuskCheckpoint)
+                {
+                    hasDuskCheckpoint = true;
+                    break;
+                }
+            // Entry preparation already ran in GameLoopSystem this frame. Keep the gate
+            // closed and capture the dusk node on the next simulation update.
+            bool postponeDusk = hasDuskCheckpoint && !duskCheckpointDeferred;
+            duskCheckpointDeferred = postponeDusk;
             var pending = EntityManager.GetBuffer<GameEvent>(root);
             for (var i = pending.Length - 1; i >= 0; i--)
-                if (IsRequest(pending[i].Kind))
+                if (IsRequest(pending[i].Kind) && !(postponeDusk && pending[i].Kind == EventKind.DuskCheckpoint))
                     pending.RemoveAt(i);
             foreach (var e in events)
             {
-                if (!IsRequest(e.Kind))
+                if (!IsRequest(e.Kind) || postponeDusk && e.Kind == EventKind.DuskCheckpoint)
                     continue;
                 try
                 {
@@ -184,7 +198,7 @@ namespace Landsong.ECS.Persistence
                 }
             }
 
-            if (dirty && UnityEngine.Time.realtimeSinceStartupAsDouble >= nextWrite)
+            if (dirty && !postponeDusk && UnityEngine.Time.realtimeSinceStartupAsDouble >= nextWrite)
             {
                 try
                 {

@@ -189,13 +189,7 @@ namespace Landsong.ECS.Editor
             image.sprite = sprite;
             image.preserveAspect = true;
             image.raycastTarget = false;
-            var marker = target.GetComponent<UIPreviewOnly>();
-            if (marker == null)
-                marker = target.gameObject.AddComponent<UIPreviewOnly>();
-            marker.Configure(new[] { sample.gameObject }, Array.Empty<TMP_Text>(), Array.Empty<string>());
-            var markers = owner.PreviewBindings.Where(item => item != null && item != marker).ToList();
-            markers.Add(marker);
-            owner.ConfigurePreview(markers.ToArray());
+            owner.ConfigurePreview("SoldierPortrait", new[] { sample.gameObject }, Array.Empty<TMP_Text>(), Array.Empty<string>());
         }
     }
 }

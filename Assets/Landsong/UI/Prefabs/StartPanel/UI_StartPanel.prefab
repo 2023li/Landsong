@@ -336,7 +336,6 @@ GameObject:
   - component: {fileID: 7776259991104475251}
   - component: {fileID: 7188479445670466766}
   - component: {fileID: 517667679954908765}
-  - component: {fileID: 7531130268152352297}
   m_Layer: 0
   m_Name: UI_StartPanel
   m_TagString: Untagged
@@ -380,8 +379,13 @@ MonoBehaviour:
   childViews:
   - {fileID: 224015354544605442}
   openWithOwner: 0
-  previewBindings:
-  - {fileID: 7531130268152352297}
+  previewContent:
+  - key: Recipe
+    sampleObjects: []
+    sampleTextTargets:
+    - {fileID: 3139977909853005000}
+    runtimeTexts:
+    - ""
   panelCanvasGroup: {fileID: 517667679954908765}
   NewDynasty: {fileID: 224015354544605442}
   StartButton: {fileID: 7224787161194233026}
@@ -403,23 +407,6 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
---- !u!114 &7531130268152352297
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2672467514761955876}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 34d223bf2e064464b0034eac33461f6a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Moyo.Runtime::Moyo.Unity.UIPreviewOnly
-  sampleObjects: []
-  sampleTextTargets:
-  - {fileID: 3139977909853005000}
-  runtimeTexts:
-  - 
 --- !u!1 &3544244942807810219
 GameObject:
   m_ObjectHideFlags: 0

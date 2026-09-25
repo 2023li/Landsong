@@ -1239,7 +1239,6 @@ GameObject:
   - component: {fileID: 8039750295127958650}
   - component: {fileID: 531196299957872691}
   - component: {fileID: 602231114125370843}
-  - component: {fileID: 1601336283574153748}
   m_Layer: 0
   m_Name: UI_SettingPanel
   m_TagString: Untagged
@@ -1319,8 +1318,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_SettingPanel
   childViews: []
   openWithOwner: 0
-  previewBindings:
-  - {fileID: 1601336283574153748}
+  previewContent:
+  - key: Recipe
+    sampleObjects: []
+    sampleTextTargets:
+    - {fileID: 105201461636626215}
+    - {fileID: 4014371524308122022}
+    - {fileID: 1751573850886477781}
+    runtimeTexts:
+    - ""
+    - ""
+    - ""
   panelCanvasGroup: {fileID: 602231114125370843}
   Status: {fileID: 105201461636626215}
   Master: {fileID: 1719523706536469724}
@@ -1381,27 +1389,6 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
---- !u!114 &1601336283574153748
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 705844354170018225}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 34d223bf2e064464b0034eac33461f6a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Moyo.Runtime::Moyo.Unity.UIPreviewOnly
-  sampleObjects: []
-  sampleTextTargets:
-  - {fileID: 105201461636626215}
-  - {fileID: 4014371524308122022}
-  - {fileID: 1751573850886477781}
-  runtimeTexts:
-  - 
-  - 
-  - 
 --- !u!1 &1144853178671705373
 GameObject:
   m_ObjectHideFlags: 0

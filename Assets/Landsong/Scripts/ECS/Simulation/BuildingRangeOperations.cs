@@ -8,13 +8,16 @@ namespace Landsong.ECS
     public static class BuildingRangeOps
     {
         public static int ActionPower(EntityManager em, Entity root, Entity building) => math.max(0, em.GetComponentData<BuildingRangeStats>(building).ActionPower + (int)math.floor(BuildingStatEffects.Modifier(em, root, NumericEffectKind.ActionPower, em.GetComponentData<BuildingDefinitionRef>(building).Definition)));
+        public static int ActionPower(EntityManager em, Entity root, BuildingId definition) => math.max(0, BuildingDefinitions.Get(em, root, definition).ResourceConnectionActionPower + (int)math.floor(BuildingStatEffects.Modifier(em, root, NumericEffectKind.ActionPower, definition)));
         // Full weighted flood for the selected building. Provider selection and overlay share this graph.
         public static NativeArray<float> Reach(EntityManager em, Entity root, Entity building, Allocator allocator)
+            => Reach(em, root, em.GetComponentData<BuildingPlacementState>(building), ActionPower(em, root, building), allocator);
+
+        // Preview uses the same weighted flood without creating a temporary ECS building.
+        public static NativeArray<float> Reach(EntityManager em, Entity root, BuildingPlacementState placement, int budget, Allocator allocator)
         {
             var grid = em.GetComponentData<GridData>(root);
             var occupancy = em.GetBuffer<Occupancy>(root);
-            BuildingPlacementState bPlacement = em.GetComponentData<BuildingPlacementState>(building);
-            var budget = ActionPower(em, root, building);
             var roadCost = new RoadWeatherCostOps.Context(em, root);
             var distance = new NativeArray<float>(occupancy.Length, allocator);
             for (var i = 0; i < distance.Length; i++)
@@ -36,10 +39,10 @@ namespace Landsong.ECS
                 }
 
             using var queue = new NativeQueue<int>(Allocator.Temp);
-            for (var y = 0; y < bPlacement.Size.y; y++)
-                for (var x = 0; x < bPlacement.Size.x; x++)
+            for (var y = 0; y < placement.Size.y; y++)
+                for (var x = 0; x < placement.Size.x; x++)
                 {
-                    var index = GridOps.Index(grid, bPlacement.Cell + new int2(x, y));
+                    var index = GridOps.Index(grid, placement.Cell + new int2(x, y));
                     if (index >= 0)
                     {
                         distance[index] = 0;

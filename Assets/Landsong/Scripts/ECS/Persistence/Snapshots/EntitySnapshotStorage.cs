@@ -86,7 +86,7 @@ namespace Landsong.ECS.Persistence
                 case 1:
                     return BuildingSnapshotStorage.Read(reader, version);
                 case 2:
-                    return SoldierSnapshotStorage.Read(reader);
+                    return SoldierSnapshotStorage.Read(reader, version);
                 case 3:
                     return HeroSnapshotStorage.Read(reader);
                 case 4:

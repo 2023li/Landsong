@@ -33,7 +33,8 @@ namespace Landsong.ECS.Presentation
         readonly UI_GamePanel_WorldInteraction worldController;
         readonly UI_GamePanel_Technology technologyController;
         readonly UI_GamePanel_Quest questController;
-        readonly UI_GamePanel_Court courtController;
+        readonly UI_GamePanel_Royal courtController;
+        readonly UI_GamePanel_RoyalFounding royalFounding;
         readonly UI_GamePanel_Talent talentController;
         readonly UI_GamePanel_Policy policyController;
         readonly UI_GamePanel_Hud hudController;
@@ -42,7 +43,7 @@ namespace Landsong.ECS.Presentation
         readonly UI_GamePanel_PersonRequests requestsController;
         readonly UI_GamePanel_Marriage marriageController;
         Phase observedPhase;
-        public GameUiRefreshLoop(GameUiSessionHandle sessionController, GameUiInputContext inputContext, GameUiRefreshScheduler refresh, IntelligenceViewState intelligence, GameUiCommandWriter commandsController, GamePanelNavigator navigator, UI_GamePanel_BuildingActionBar buildingController, UI_GamePanel_WorldInteraction worldController, UI_GamePanel_Technology technologyController, UI_GamePanel_Quest questController, UI_GamePanel_Court courtController, UI_GamePanel_Talent talentController, UI_GamePanel_Policy policyController, UI_GamePanel_Hud hudController, UI_GamePanel_Soldier soldierController, UI_GamePanel_Portrait portraitController, UI_GamePanel_PersonRequests requestsController, UI_GamePanel_Marriage marriageController)
+        public GameUiRefreshLoop(GameUiSessionHandle sessionController, GameUiInputContext inputContext, GameUiRefreshScheduler refresh, IntelligenceViewState intelligence, GameUiCommandWriter commandsController, GamePanelNavigator navigator, UI_GamePanel_BuildingActionBar buildingController, UI_GamePanel_WorldInteraction worldController, UI_GamePanel_Technology technologyController, UI_GamePanel_Quest questController, UI_GamePanel_Royal courtController, UI_GamePanel_RoyalFounding royalFounding, UI_GamePanel_Talent talentController, UI_GamePanel_Policy policyController, UI_GamePanel_Hud hudController, UI_GamePanel_Soldier soldierController, UI_GamePanel_Portrait portraitController, UI_GamePanel_PersonRequests requestsController, UI_GamePanel_Marriage marriageController)
         {
             this.sessionController = sessionController;
             this.inputContext = inputContext;
@@ -55,6 +56,7 @@ namespace Landsong.ECS.Presentation
             this.technologyController = technologyController;
             this.questController = questController;
             this.courtController = courtController;
+            this.royalFounding = royalFounding;
             this.talentController = talentController;
             this.policyController = policyController;
             this.hudController = hudController;
@@ -68,6 +70,7 @@ namespace Landsong.ECS.Presentation
         {
             if (!sessionController.IsBound || !EcsSceneFlow.GameReady)
                 return;
+            royalFounding.Refresh();
             var state = sessionController.em.GetComponentData<Session>(sessionController.root);
             GameClock stateClock = sessionController.em.GetComponentData<GameClock>(sessionController.root);
             SimulationControl stateControl = sessionController.em.GetComponentData<SimulationControl>(sessionController.root);
@@ -97,6 +100,7 @@ namespace Landsong.ECS.Presentation
         {
             if (!sessionController.IsBound)
                 return;
+            royalFounding.Refresh();
             var s = sessionController.em.GetComponentData<Session>(sessionController.root);
             GameClock sClock = sessionController.em.GetComponentData<GameClock>(sessionController.root);
             SimulationControl sControl = sessionController.em.GetComponentData<SimulationControl>(sessionController.root);

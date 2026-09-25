@@ -4705,7 +4705,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_Quest
   PanelId: 3
-  RequiredFeatureId:
+  RequiredFeatureId: 
   AllowMissingFeature: 0
   AllowLockedOpen: 0
   ContentRoot: {fileID: 6524009277073411729}
@@ -4727,9 +4727,9 @@ MonoBehaviour:
   - {fileID: 9165565903241855296}
   CardTemplate: {fileID: 4236680764118436684}
   RowTemplate: {fileID: 1573664279546181541, guid: a6505af27ca58fd479bd424bc2087351, type: 3}
+  QuestDisplay: {fileID: 11400000, guid: a3977d26ab0d464d83ebdfdf83314821, type: 2}
   QuantityTemplate: {fileID: 6349835732648931730, guid: 1638db4e7c0f03f41a94e84b33627a7b, type: 3}
   QuestTracking: {fileID: 0}
-  QuestDisplay: {fileID: 11400000, guid: a3977d26ab0d464d83ebdfdf83314821, type: 2}
 --- !u!1 &7147558933176823711
 GameObject:
   m_ObjectHideFlags: 0

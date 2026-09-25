@@ -16,6 +16,7 @@ namespace Landsong.ECS
         public int Threat;
         public Entity Target;
         public float Radius;
+        public byte BlocksAdvance;
     }
 
     [UpdateInGroup(typeof(SimulationSystemGroup), OrderFirst = true)]
@@ -42,7 +43,8 @@ namespace Landsong.ECS
                 if (a.Deployed == 0 || !EntityState.Alive(em, e) || sClock.Time < a.ProtectedUntil)
                     continue;
                 var position = EntityState.Position(em, e);
-                var sample = new TargetSample { Entity = e, Position = position, Faction = a.Faction, Id = em.GetComponentData<Identity>(e).Id, Threat = a.Threat, Target = a.Target, Radius = a.Profile.BodyRadius };
+                var sample = new TargetSample { Entity = e, Position = position, Faction = a.Faction, Id = em.GetComponentData<Identity>(e).Id, Threat = a.Threat, Target = a.Target, Radius = a.Profile.BodyRadius,
+                    BlocksAdvance = (byte)(a.Faction == 0 && em.HasComponent<Soldier>(e) && a.ProjectileSpeed <= 0 ? 1 : 0) };
                 hash.Add((int2)math.floor(position.xz / 8), sample);
                 if (em.HasComponent<SoldierDefinitionRef>(e)) soldiers.Add(sample);
             }
@@ -65,6 +67,19 @@ namespace Landsong.ECS
             void Execute(Entity entity, ref Perception perception, in LocalTransform transform, in Combatant actor)
             {
                 var result = new Perception();
+                TargetSample blocker = default;
+                float blockerDistance = math.square(math.max(2.4f, actor.Range + .5f));
+                if (actor.Faction == 1)
+                    foreach (var soldier in Soldiers)
+                    {
+                        if (soldier.BlocksAdvance == 0) continue;
+                        float distance = math.distancesq(transform.Position.xz, soldier.Position.xz);
+                        if (distance < blockerDistance || distance == blockerDistance && soldier.Id < blocker.Id)
+                        {
+                            blocker = soldier;
+                            blockerDistance = distance;
+                        }
+                    }
                 var cell = (int2)math.floor(transform.Position.xz / 8);
                 var nearest = float.MaxValue;
                 float best = float.MaxValue, targetRadius = 0;
@@ -85,6 +100,12 @@ namespace Landsong.ECS
                         }
                     }
                     result.EnemyInRange = (byte)(nearest <= math.square(actor.Range + targetRadius) ? 1 : 0);
+                    if (blocker.Entity != Entity.Null)
+                    {
+                        result.Enemy = blocker.Entity;
+                        result.EnemyPosition = blocker.Position;
+                        result.EnemyInRange = (byte)(blockerDistance <= math.square(actor.Range + blocker.Radius) ? 1 : 0);
+                    }
                     perception = result;
                     return;
                 }
@@ -118,6 +139,12 @@ namespace Landsong.ECS
                     }
 
                 result.EnemyInRange = (byte)(nearest <= (actor.Range + targetRadius) * (actor.Range + targetRadius) ? 1 : 0);
+                if (blocker.Entity != Entity.Null)
+                {
+                    result.Enemy = blocker.Entity;
+                    result.EnemyPosition = blocker.Position;
+                    result.EnemyInRange = (byte)(blockerDistance <= math.square(actor.Range + blocker.Radius) ? 1 : 0);
+                }
                 if (actor.Faction == 1)
                 {
                     result.Building = perception.Building;

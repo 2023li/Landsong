@@ -535,7 +535,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_DebugPanel
   childViews: []
   openWithOwner: 0
-  previewBindings: []
+  previewContent: []
   panelCanvasGroup: {fileID: 8013016739193901909}
   "btn_\u5173\u95ED\u8C03\u8BD5\u9762\u677F": {fileID: 8017868643864137395}
   "rt_\u5185\u5BB9\u9762\u677Froot": {fileID: 3118314394484410145}

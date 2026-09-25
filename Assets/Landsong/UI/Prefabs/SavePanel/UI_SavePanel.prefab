@@ -712,7 +712,6 @@ GameObject:
   - component: {fileID: 1632518061504471999}
   - component: {fileID: 1699353878877431549}
   - component: {fileID: 4778423492254626551}
-  - component: {fileID: 7427983285105221984}
   m_Layer: 0
   m_Name: UI_SavePanel
   m_TagString: Untagged
@@ -804,8 +803,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_SavePanel
   childViews: []
   openWithOwner: 0
-  previewBindings:
-  - {fileID: 7427983285105221984}
+  previewContent:
+  - key: Recipe
+    sampleObjects:
+    - {fileID: 9173739699305639304}
+    - {fileID: 3373348886462209276}
+    - {fileID: 1257585014742985470}
+    sampleTextTargets: []
+    runtimeTexts: []
   panelCanvasGroup: {fileID: 1699353878877431549}
   BackButton: {fileID: 8309936783078211486}
   Rows: {fileID: 3557985828918487193}
@@ -814,24 +819,6 @@ MonoBehaviour:
   PreviewRoot: {fileID: 4539305326320034078}
   PreviewImage: {fileID: 501481030607651931}
   Scroll: {fileID: 1031009377587616209}
---- !u!114 &7427983285105221984
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1871498233487557922}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 34d223bf2e064464b0034eac33461f6a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Moyo.Runtime::Moyo.Unity.UIPreviewOnly
-  sampleObjects:
-  - {fileID: 9173739699305639304}
-  - {fileID: 3373348886462209276}
-  - {fileID: 1257585014742985470}
-  sampleTextTargets: []
-  runtimeTexts: []
 --- !u!1 &3373348886462209276
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,4 +1,5 @@
 using Landsong.ECS.Definitions;
+using DG.Tweening;
 using System.Collections.Generic;
 using Unity.Entities;
 using System;
@@ -10,19 +11,13 @@ using UnityEngine.UI;
 using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine.InputSystem;
-using Text = TMPro.TextMeshProUGUI;
-using System.Text;
-using Unity.Transforms;
-using UnityEngine.EventSystems;
-using InputField = TMPro.TMP_InputField;
-using Landsong.ECS.Persistence;
 using Sirenix.OdinInspector;
 
 namespace Landsong.ECS.Presentation
 {
     public sealed class UI_GamePanel_Hud : Moyo.Unity.UIViewBase, IGameUiFeedback
     {
-        [Sirenix.OdinInspector.LabelText("英雄显示目录"), Sirenix.OdinInspector.Required]
+        [Sirenix.OdinInspector.LabelText("英雄显示目录"), Required]
         public HeroDisplayCatalog Heroes;
         internal GameUiInputContext inputContext;
         internal UI_GamePanel_Garrison garrison;
@@ -72,8 +67,7 @@ namespace Landsong.ECS.Presentation
             var caption = NightPresentation.Caption(s.Phase, sNight.Kind, nightElapsed,
                 sClock.PhaseTime - timing.NightPreparationSeconds - timing.NightSeconds, timing.ClosureVictoryCaptionAt,
                 battleVictoryElapsed, timing.BattleVictoryCaptionAt);
-            NightCaption.text = PresentationText.Source(caption);
-            NightCaption.gameObject.SetActive(!intelligence.IsOpen && !string.IsNullOrWhiteSpace(caption));
+            RefreshNightCaption(caption, s.Phase, sNight.Kind, sClock.Turn);
             bool nightProgress = s.Phase == Phase.Deployment || s.Phase == Phase.Night || s.Phase == Phase.Retreat || s.Phase == Phase.Celebration;
             MoonProgress.gameObject.SetActive(nightProgress);
             MoonProgress.SetValueWithoutNotify(NightOps.Progress(sessionController.em, sessionController.root));
@@ -88,21 +82,194 @@ namespace Landsong.ECS.Presentation
         internal GameUiSessionHandle sessionController;
         internal UI_GamePanel_WorldInteraction worldController;
         [Sirenix.OdinInspector.LabelText("状态")]
-        public Text Status;
+        public TMP_Text Status;
         [Sirenix.OdinInspector.LabelText("选中信息")]
-        public Text Selection;
+        public TMP_Text Selection;
         [Sirenix.OdinInspector.LabelText("消息")]
-        public Text Message;
+        public TMP_Text Message;
         [LabelText("夜晚字幕"), Required]
-        public Text NightCaption;
+        public TMP_Text NightCaption;
         [LabelText("夜晚字幕配置"), Required]
         public NightCaptionDefinition NightPresentation;
+        static readonly Color BattleCaptionColor = new Color(1f, .18f, .14f);
+        Sequence nightCaptionSequence;
+        TMP_MeshInfo[] nightCaptionMesh;
+        bool nightCaptionPreview;
+        string nightCaptionKey;
+        int nightCaptionTurn = -1;
+        Phase nightCaptionPhase;
+        NightKind nightCaptionKind;
+        Vector2 nightCaptionPosition;
+
+        void RefreshNightCaption(string caption, Phase phase, NightKind kind, int turn)
+        {
+            if (nightCaptionPreview)
+                return;
+            if (intelligence.IsOpen)
+            {
+                ResetNightCaption(false);
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(caption))
+            {
+                ResetNightCaption();
+                return;
+            }
+
+            var warning = phase == Phase.Night && kind == NightKind.Boss
+                ? NightPresentation.BossArrivalCaption : "";
+            var key = caption + "\n" + warning;
+            if (nightCaptionTurn == turn && nightCaptionPhase == phase
+                && nightCaptionKind == kind && nightCaptionKey == key)
+                return;
+
+            ResetNightCaption();
+            nightCaptionTurn = turn;
+            nightCaptionPhase = phase;
+            nightCaptionKind = kind;
+            nightCaptionKey = key;
+            nightCaptionPosition = NightCaption.rectTransform.anchoredPosition;
+            NightCaption.text = PresentationText.Source(caption);
+            NightCaption.color = new Color(1, 1, 1, 0);
+            NightCaption.gameObject.SetActive(true);
+
+            var sequence = DOTween.Sequence().SetUpdate(true);
+            nightCaptionSequence = sequence;
+            if (phase == Phase.Night && kind == NightKind.Boss)
+            {
+                sequence.Append(FadeNightCaption(1, Mathf.Max(0, NightPresentation.BossOpeningFadeInSeconds)));
+                sequence.AppendInterval(1.05f);
+                sequence.Append(DOTween.To(() => 0f, ShakeNightCaption, 1f,
+                    Mathf.Max(0, NightPresentation.BossShakeSeconds)));
+                sequence.AppendCallback(BeginNightCaptionShatter);
+                sequence.Append(DOTween.To(() => 0f, ShatterNightCaption, 1f,
+                    Mathf.Max(0, NightPresentation.BossShatterSeconds)).SetEase(Ease.InQuad));
+                sequence.AppendCallback(() =>
+                {
+                    nightCaptionMesh = null;
+                    NightCaption.rectTransform.anchoredPosition = nightCaptionPosition;
+                    NightCaption.text = PresentationText.Source(warning);
+                    NightCaption.color = new Color(BattleCaptionColor.r, BattleCaptionColor.g, BattleCaptionColor.b, 0);
+                });
+                sequence.Append(FadeNightCaption(1, Mathf.Max(0, NightPresentation.BossWarningFadeInSeconds)));
+                sequence.AppendInterval(1.64f);
+                sequence.Append(FadeNightCaption(0, Mathf.Max(0, NightPresentation.BossWarningFadeOutSeconds)));
+            }
+            else
+            {
+                var battle = phase == Phase.Night && kind == NightKind.Invasion;
+                var fadeIn = Mathf.Max(0, battle ? NightPresentation.InvasionFadeInSeconds
+                    : NightPresentation.PeacefulFadeInSeconds);
+                var fadeOut = Mathf.Max(0, battle ? NightPresentation.InvasionFadeOutSeconds
+                    : NightPresentation.PeacefulFadeOutSeconds);
+                if (battle)
+                    NightCaption.color = new Color(BattleCaptionColor.r, BattleCaptionColor.g, BattleCaptionColor.b, 0);
+                sequence.Append(FadeNightCaption(1, fadeIn));
+                sequence.AppendInterval(Mathf.Max(0, NightPresentation.StandardCaptionSeconds - fadeIn - fadeOut));
+                sequence.Append(FadeNightCaption(0, fadeOut));
+            }
+            sequence.OnComplete(() =>
+            {
+                nightCaptionSequence = null;
+                NightCaption.rectTransform.anchoredPosition = nightCaptionPosition;
+                NightCaption.gameObject.SetActive(false);
+                nightCaptionPreview = false;
+            });
+        }
+
+        public void PreviewBossNightCaption()
+        {
+            if (!Application.isPlaying || NightCaption == null || NightPresentation == null)
+                throw new InvalidOperationException("Boss 夜字幕预览需要已运行并配置完成的游戏 HUD。");
+            if (string.IsNullOrWhiteSpace(NightPresentation.PeacefulNightCaption)
+                || string.IsNullOrWhiteSpace(NightPresentation.BossArrivalCaption))
+                throw new InvalidOperationException("Boss 夜字幕预览缺少平安夜或来袭文案。");
+            ResetNightCaption();
+            RefreshNightCaption(NightPresentation.PeacefulNightCaption, Phase.Night, NightKind.Boss, -1);
+            nightCaptionPreview = true;
+        }
+
+        Tween FadeNightCaption(float target, float duration) => DOTween.To(
+            () => NightCaption.color.a,
+            value =>
+            {
+                var color = NightCaption.color;
+                color.a = value;
+                NightCaption.color = color;
+            }, target, duration);
+
+        void ShakeNightCaption(float progress)
+        {
+            var strength = 1f - progress;
+            NightCaption.rectTransform.anchoredPosition = nightCaptionPosition + new Vector2(
+                Mathf.Sin(progress * 110f) * Mathf.Max(0, NightPresentation.BossShakeHorizontal) * strength,
+                Mathf.Cos(progress * 143f) * Mathf.Max(0, NightPresentation.BossShakeVertical) * strength);
+        }
+
+        void BeginNightCaptionShatter()
+        {
+            NightCaption.ForceMeshUpdate();
+            nightCaptionMesh = NightCaption.textInfo.CopyMeshInfoVertexData();
+        }
+
+        void ShatterNightCaption(float progress)
+        {
+            if (nightCaptionMesh == null)
+                return;
+            var textInfo = NightCaption.textInfo;
+            for (var i = 0; i < textInfo.characterCount; i++)
+            {
+                var character = textInfo.characterInfo[i];
+                if (!character.isVisible)
+                    continue;
+                var material = character.materialReferenceIndex;
+                var vertex = character.vertexIndex;
+                var original = nightCaptionMesh[material];
+                var current = textInfo.meshInfo[material];
+                var center = (original.vertices[vertex] + original.vertices[vertex + 2]) * .5f;
+                var direction = new Vector3(Mathf.Sin(i * 17.31f) * 55f,
+                    Mathf.Cos(i * 11.73f) * 25f - 35f, 0) * progress * progress;
+                var rotation = Quaternion.Euler(0, 0, Mathf.Sin(i * 7.17f) * 65f * progress);
+                for (var corner = 0; corner < 4; corner++)
+                {
+                    current.vertices[vertex + corner] = center
+                        + rotation * (original.vertices[vertex + corner] - center) + direction;
+                    var color = original.colors32[vertex + corner];
+                    color.a = (byte)(color.a * (1f - progress));
+                    current.colors32[vertex + corner] = color;
+                }
+            }
+            NightCaption.UpdateVertexData(TMP_VertexDataUpdateFlags.Vertices | TMP_VertexDataUpdateFlags.Colors32);
+        }
+
+        void ResetNightCaption(bool forgetCaption = true)
+        {
+            nightCaptionSequence?.Kill();
+            nightCaptionSequence = null;
+            nightCaptionMesh = null;
+            if (forgetCaption)
+            {
+                nightCaptionPreview = false;
+                nightCaptionKey = null;
+                nightCaptionTurn = -1;
+            }
+            if (NightCaption == null)
+                return;
+            if (NightCaption.gameObject.activeSelf)
+                NightCaption.rectTransform.anchoredPosition = nightCaptionPosition;
+            NightCaption.gameObject.SetActive(false);
+        }
+
+        void OnEnable() => ResetNightCaption();
+        void OnDisable() => ResetNightCaption();
         [Sirenix.OdinInspector.LabelText("月亮")]
-        public Text Moon;
+        public TMP_Text Moon;
         [Sirenix.OdinInspector.LabelText("推进文字")]
-        public Text AdvanceLabel;
+        public TMP_Text AdvanceLabel;
         [Sirenix.OdinInspector.LabelText("消息按钮")]
         public Button MessageButton;
+        [LabelText("暂停入口"), Required]
+        public Button PauseButton;
         [Sirenix.OdinInspector.LabelText("月亮进度")]
         public Slider MoonProgress;
         [Sirenix.OdinInspector.LabelText("推进")]
@@ -189,7 +356,7 @@ namespace Landsong.ECS.Presentation
         public UI_GamePanel_英雄选择Item HeroSelectionTemplate;
         internal RectTransform heroHud;
         internal RectTransform heroCards;
-        internal Text defenseStatus;
+        internal TMP_Text defenseStatus;
         internal Button defenseFocus;
         internal readonly Dictionary<ulong, UI_GamePanel_HeroHudItem> heroButtons = new Dictionary<ulong, UI_GamePanel_HeroHudItem>();
         internal readonly Dictionary<ulong, UI_GamePanel_英雄选择Item> heroSelectionItems = new Dictionary<ulong, UI_GamePanel_英雄选择Item>();
@@ -523,7 +690,7 @@ namespace Landsong.ECS.Presentation
         internal sealed class Flight
         {
             [Sirenix.OdinInspector.LabelText("文字")]
-            public Text Text;
+            public TMP_Text Text;
             [Sirenix.OdinInspector.LabelText("来源")]
             public Vector2 From;
             [Sirenix.OdinInspector.LabelText("年龄")]
@@ -546,7 +713,7 @@ namespace Landsong.ECS.Presentation
             if (NightHud == null)
                 throw new InvalidOperationException("夜间 HUD 检查器引用缺失。");
             var canvas = NightHud.RewardSpace;
-            var text = Instantiate(NightHud.RewardTemplate, NightHud.transform);
+            TMP_Text text = Instantiate(NightHud.RewardTemplate, NightHud.transform);
             text.gameObject.SetActive(true);
             var rect = text.rectTransform;
             text.text = "+ " + ItemDefinitions.Get(sessionController.em, sessionController.root, reward.Item).Metadata.Name.ToString() + " × " + reward.Quantity + "（待结算）";
@@ -730,6 +897,7 @@ namespace Landsong.ECS.Presentation
 
         internal void ResetSession()
         {
+            ResetNightCaption();
             foreach (var flight in rewardFlights)
                 if (flight.Text != null)
                     DestroySessionView(flight.Text.gameObject);

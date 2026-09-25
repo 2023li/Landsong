@@ -38,7 +38,10 @@ namespace Landsong.ECS.Presentation
         internal readonly GameUiCommandWriter commandsController = new GameUiCommandWriter();
         [SerializeField]
         [Sirenix.OdinInspector.LabelText("王室控制器")]
-        internal UI_GamePanel_Court courtController;
+        internal UI_GamePanel_Royal courtController;
+        [SerializeField]
+        [Sirenix.OdinInspector.LabelText("王室拥立弹窗")]
+        internal UI_GamePanel_RoyalFounding royalFounding;
         [SerializeField]
         [Sirenix.OdinInspector.LabelText("远征控制器")]
         internal UI_GamePanel_Expedition expeditionController;
@@ -94,7 +97,7 @@ namespace Landsong.ECS.Presentation
         internal GameUiRefreshLoop refreshLoop;
         [Sirenix.OdinInspector.LabelText("通用功能面板集合")]
         public UI_GamePanel_View[] FeaturePanels;
-        public RectTransform PrimaryRows => ActiveListPanel?.PrimaryRows;
+        public RectTransform PrimaryRows => Panel == GamePanelId.Royal ? courtController.PrimaryRows : ActiveListPanel?.PrimaryRows;
         public RectTransform SecondaryRows => GarrisonWindow.SecondaryRows;
 
         [Sirenix.OdinInspector.LabelText("暂停菜单")]
@@ -107,10 +110,16 @@ namespace Landsong.ECS.Presentation
 
         public void InitializeView()
         {
+            // The pause popup must stay active so Awake can bind its buttons;
+            // its CanvasGroup and overlay image control whether it is visible.
+            if (PauseMenu != null && !PauseMenu.gameObject.activeSelf)
+                PauseMenu.gameObject.SetActive(true);
             if (initialized)
                 return;
             BindControllers();
             ValidateInspectorConfiguration();
+            buildingDetailsController.RefreshInitialPreview();
+            hudController.PauseButton.onClick.AddListener(PauseMenu.Open);
             hudController.Advance.onClick.AddListener(hudController.RequestAdvance);
             buildingController.InitializeBuildings();
             navigator.InitializeFeatureButtons();
@@ -175,7 +184,8 @@ namespace Landsong.ECS.Presentation
         public UI_GamePanel_BuildingDetails BuildingDetails => buildingDetailsController;
         public UI_GamePanel_Technology Technology => technologyController;
         public UI_GamePanel_Quest Quests => questController;
-        public UI_GamePanel_Court Court => courtController;
+        public UI_GamePanel_Royal Court => courtController;
+        public UI_GamePanel_RoyalFounding RoyalFounding => royalFounding;
         public UI_GamePanel_Talent Talents => talentController;
         public UI_GamePanel_Policy Policies => policyController;
         public UI_GamePanel_WorldInteraction WorldInteraction => worldController;

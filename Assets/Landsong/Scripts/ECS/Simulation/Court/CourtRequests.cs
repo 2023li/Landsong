@@ -5,6 +5,14 @@ using Unity.Mathematics;
 
 namespace Landsong.ECS
 {
+    public struct FoundRoyalRequest : IGameRequest
+    {
+        public FixedString128Bytes Name;
+        public PersonGender Gender;
+        public CommandKind Kind => CommandKind.FoundRoyal;
+        public ulong Target => 0;
+    }
+
     public enum RoyalVisitDecision : byte
     {
         Refuse,

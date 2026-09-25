@@ -1,0 +1,62 @@
+# Landsong 当前基准
+
+更新日期：2026-09-21。本文档描述当前代码与资源组织。静态审查修复范围、当前验证结果与剩余限制见 [问题修复记录](ECS/问题修复记录20260917.md)，不使用历史 PASS 代替本轮验证。
+
+Unity **6000.3.24f1**；Entities **1.4.8**；Entities Graphics **1.4.21**；Addressables **2.9.1**；A* Pathfinding Project Pro **5.4.7**；Easy Save 3 **3.5.26**。游戏使用 ECS 权威状态，A* Pro 负责寻路与 RVO 避让，ES3 负责存档封装、压缩、文件、备份与设置持久化。当前 ECS 快照 **v37**，ES3 王朝封装 **v4**。
+
+## 从哪里开始
+
+打开 `Assets/Landsong/Scenes/Boot.unity`，进入 Play：开幕展示 → Start 主菜单 → LoadingTransition → Game。当前游戏菜单地图为 **Map_Map01**。
+
+| 路径 | 用途 |
+| --- | --- |
+| Assets/Landsong/Scripts/ECS | 模拟与存档共同组成运行核心；Authoring、第三方 AI 适配和原生编辑器各自编译 |
+| Assets/Landsong/Scripts/Content | 生成的运行时显示目录、建筑视觉槽与共享选择规则，不引用 Authoring |
+| Assets/Landsong/Scripts/Presentation | 应用接口、存档交互服务、设置、音频、本地化和世界外观 |
+| Assets/Landsong/Scripts/UI | 按 StartPanel、GamePanel、SettingPanel 等根面板组织的 UI 组件 |
+| Assets/Landsong/Scripts/Application | 持久 UI 根、场景入口、地图宿主与加载/恢复流程 |
+| Assets/Landsong/Scripts/Verification/Tests | 编辑器和 Development Player 共用的完整流程验证 |
+| Assets/Moyo | 通用面板加载、缓存、作用域、显示层、生命周期与预览框架 |
+| Assets/Landsong/Scripts/MapAuthoring | TWC 编辑数据、坐标和初始建筑预览 |
+| Assets/Landsong/Scripts/ArtTools | 建筑模型导出与农田点位/阶段制作 |
+| Assets/Landsong/Scripts/Editor | 地图、美术、语言工具与测试 |
+| Assets/Landsong/ECSContent/Definitions | 独立领域定义；数量以当前内容集为准 |
+| Assets/Landsong/ECSContent/Catalogs/Source | 22 个独立领域目录及 NightEventCatalog，共 23 份源目录资产 |
+| Assets/Landsong/ECSContent/Catalogs/Generated/Display | 从源定义编译的 22 份运行时显示目录，不手工编辑 |
+| Assets/Landsong/ECSContent/World/GameWorldTemplate.prefab | 领域目录、独立设置和初始状态的显式世界组合 |
+| Assets/Landsong/ECSContent/Units | 按领域和稳定 ID 归包的单位逻辑根、View、动画器、动作与材质 |
+| Assets/Landsong/ECSContent/Buildings | 每个稳定 ID 一包的完整建筑根；Generated 子目录只放可重建的优化产物 |
+| Assets/Landsong/ECSContent/Presentation/Audio/LandsongAudio.asset | 音乐、环境音、提示音 |
+| Assets/Landsong/ECSContent/Presentation/Effects/LandsongEffects.asset | 空间特效及持续时间 |
+| Assets/Landsong/ECSContent/Presentation/Legacy/LandsongWorldVisuals.asset | 仅四个既有单位的遗留模型映射（只读） |
+| Assets/Landsong/ECSContent/Presentation/Portraits/LandsongPortraitDisplay.asset | 完整画像覆盖 |
+| Assets/Landsong/ECSContent/Presentation/Localization/Generated/LandsongLocalization.asset | 本地化运行表 |
+| Assets/Landsong/ECSContent/Presentation/Night/LandsongNightCaptions.asset | 夜晚字幕 |
+| Assets/Landsong/ECSContent/Presentation | 按 Audio、Effects、Portraits、Localization、World、Legacy 分区的表现配置 |
+| Assets/Landsong/UI/Prefabs | 与脚本根面板目录对应的 UI 预制体及 Bootstrap/UI_Root.prefab |
+| Assets/Landsong/Art/Portraits/Parts | 肖像导入窗口生成的部件 PNG，按类别 / 稳定标识归档 |
+| Assets/Landsong/Scenes | Boot、Start、LoadingTransition、Game 四个正式场景 |
+| Assets/Landsong/GameMaps | 地图制作源、独立 Source 数据与 Generated 烘焙资源 |
+
+四个入口场景通过显式 ApplicationSceneEntry 引用同一个 `Bootstrap/UI_Root.prefab`，运行时保留一个根 Canvas、UIManager 和 EventSystem。Start、Game、Loading、Setting、Save、Confirm 等根面板按需加载；设置与存档浏览共用同一套面板，游戏 HUD 及其功能子面板归属于游戏会话。检查器引用缺失是配置错误，由编辑器制作和校验修正。Input System 自动生成代码随输入资产保存，不手工维护。
+
+## 文档导航
+
+- [A* Pro / ES3 基准迁移进度节点](开发进度节点-AStarPro-ES3基准迁移.md)：本轮已完成项、验证结果、剩余 Unity Editor/Play Mode 验收入口。
+- [运输工人制作与接入](昼夜与战斗系统/运输工人制作与接入.md)：双模型、抱物动画、白天往返、入夜回家与遇袭人口损失。
+
+- [内容制作指南](内容制作指南.md)：建筑、单位、科技创建说明的统一入口，包含操作顺序、产物位置及后续修改位置。
+- [当前修复与验收记录](ECS/问题修复记录20260917.md)：2026-09-17 静态审查逐项处理、当前验证结果和剩余限制。
+- [架构](架构决策.md)、[定义系统与作者入口](定义系统.md)、[开发规范](开发规范.md)。
+- 当前制作 SOP：[建筑](ECS/建筑玩法与制作工作流.md)、[单位](昼夜与战斗系统/单位制作流程.md)、[科技](科技系统/README.md)、[新增建筑能力](ECS/新增建筑能力开发流程.md)。旧通用目录/Rule 文档仅作历史资料，不作为制作入口。
+- [启动与场景](ECS/启动与场景工作流.md)、[地图制作](地图系统/README.md)
+- [建筑玩法](建筑系统/README.md)、[建筑模型制作](ECS/建筑玩法与制作工作流.md)、[经济与岗位](建筑系统/经济与岗位.md)、[库存](库存系统/README.md)
+- [昼夜与战斗](昼夜与战斗系统/README.md)、[士兵与英雄](昼夜与战斗系统/士兵与英雄.md)、[AI 与飞行物](昼夜与战斗系统/AI与飞行物.md)、[情报](昼夜与战斗系统/情报.md)、[平安互动与战报](昼夜与战斗系统/平安互动与战报.md)
+- [科技](科技系统/README.md)、[任务](任务系统/README.md)、[王室与人才](玩法系统/README.md)、[远征](玩法系统/远征.md)、[政策](政策系统/README.md)
+- [季节、天气与风设计草案](玩法系统/季节与天气系统设计草案.md)：已确认的玩法数值与火灾救援规则；接入进度和验证结果见[执行记录](玩法系统/季节与天气系统接入执行记录.md)。
+- [UI 与输入](UI与输入/README.md)、[运行与存档](运行时与存档/README.md)、[表现、音频与本地化](音频与本地化/README.md)
+- [验证工作流](ECS/验证工作流.md)、[当前限制](ECS/当前限制.md)
+
+配置数值以当前资产及 Baking 校验为准。文档中的默认数值是可编辑基准，不代表最终平衡或正式美术已完成。
+
+肖像的玩法与遗传规则见 [王室与人才](玩法系统/README.md)，持久身份见 [运行与存档](运行时与存档/README.md)。美术使用 Unity 菜单 **Landsong → ECS → Portraits → Import parts** 导入，按需添加一个或多个程序层；单前发、单后发均合法。窗口检查尺寸、图层合法性和适用性别，成功后自动注册。导入及其验证必须等待脚本编译和资源导入完成。

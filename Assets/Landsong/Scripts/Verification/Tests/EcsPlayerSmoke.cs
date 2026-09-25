@@ -232,6 +232,7 @@ namespace Landsong.ECS.Presentation
 
                 if (HudPanelsOnly)
                 {
+                    yield return FoundRoyalUi(view, em, root);
                     yield return HudPanelsUi(view, em, root);
                     Finish(errors.Length == 0, errors.Length == 0 ? "Research HUD, dismissible panels, royal family, requests and portrait customization UI" : errors);
                     yield break;
@@ -239,6 +240,7 @@ namespace Landsong.ECS.Presentation
 
                 if (InterfaceOnly)
                 {
+                    yield return FoundRoyalUi(view, em, root);
                     yield return PauseMenuUi(view, em, root);
                     yield return InterfaceUi(view, em, root);
                     Finish(errors.Length == 0, errors.Length == 0 ? "Pause and 14 targeted UI workflow only" : errors);
@@ -246,6 +248,7 @@ namespace Landsong.ECS.Presentation
                 }
 
                 yield return BuildingCatalogUi(view, em, root);
+                yield return FoundRoyalUi(view, em, root);
                 yield return CourtUi(view, em, root, ids[map]);
                 yield return NightUi(view, em, root, ids[map]);
                 yield return SoldierUi(view, em, root, ids[map]);
@@ -312,7 +315,7 @@ namespace Landsong.ECS.Presentation
                 var bytes = SnapshotCodec.Capture(em, root);
                 var menuArchive = World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<CheckpointSystem>().Export(root);
                 Require(SnapshotCodec.ReadMapId(bytes) == ids[map], "Snapshot routing header");
-                view.PauseMenu.OpenButton.onClick.Invoke();
+                view.PauseMenu.Open();
                 view.PauseMenu.MenuButton.onClick.Invoke();
                 yield return ConfirmShared(true);
                 yield return WaitFor(() => MenuReady, "return to Start");

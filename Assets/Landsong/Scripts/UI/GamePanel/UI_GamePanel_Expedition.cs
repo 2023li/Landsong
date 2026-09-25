@@ -25,7 +25,7 @@ namespace Landsong.ECS.Presentation
         internal WorldSelectionState worldSelection;
         public override void Render() => Expeditions();
         internal UI_GamePanel_BuildingActionBar buildingController;
-        internal UI_GamePanel_Court courtController;
+        internal UI_GamePanel_Royal courtController;
         internal ExpeditionId expeditionDestination;
         internal int expeditionCrew = 10;
         internal int[] expeditionAmounts;

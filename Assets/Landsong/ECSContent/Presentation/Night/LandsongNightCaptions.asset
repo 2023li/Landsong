@@ -14,6 +14,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Landsong.ECS.Presentation::Landsong.ECS.Presentation.NightCaptionDefinition
   NightCaptionDelay: 3
   PeacefulAdvanceDelay: 2
-  InvasionNightCaption: 今晚有敌军来袭
+  InvasionNightCaption: "\u4ECA\u665A\u6709\u654C\u519B\u6765\u88AD"
   PeacefulNightCaption: "\u4ECA\u665A\u4F3C\u4E4E\u662F\u4E2A\u5E73\u5B89\u591C"
-  VictoryNightCaption: 胜利属于我们
+  BossArrivalCaption: "\u4ED6\u4EEC\u6765\u4E86..."
+  VictoryNightCaption: "\u80DC\u5229\u5C5E\u4E8E\u6211\u4EEC"
+  StandardCaptionSeconds: 2
+  PeacefulFadeInSeconds: 1
+  PeacefulFadeOutSeconds: 1
+  InvasionFadeInSeconds: 0.5
+  InvasionFadeOutSeconds: 0.5
+  BossOpeningFadeInSeconds: 1
+  BossShakeSeconds: 0.3
+  BossShakeHorizontal: 10
+  BossShakeVertical: 6
+  BossShatterSeconds: 1.2
+  BossWarningFadeInSeconds: 0.2
+  BossWarningFadeOutSeconds: 1

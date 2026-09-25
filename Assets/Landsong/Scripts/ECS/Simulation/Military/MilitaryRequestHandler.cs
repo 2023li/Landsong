@@ -62,6 +62,12 @@ namespace Landsong.ECS
                 return true;
             }
 
+            if (em.HasComponent<EquipSoldierWeaponRequest>(payload))
+            {
+                result = SoldierOps.EquipWeapon(em, root, em.GetComponentData<EquipSoldierWeaponRequest>(payload));
+                return true;
+            }
+
             if (em.HasComponent<FillGarrisonRequest>(payload))
             {
                 var request = em.GetComponentData<FillGarrisonRequest>(payload);

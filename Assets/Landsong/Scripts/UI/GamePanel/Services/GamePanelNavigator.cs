@@ -36,7 +36,7 @@ namespace Landsong.ECS.Presentation
         readonly UI_GamePanel_WorldInteraction worldController;
         readonly UI_GamePanel_Technology technologyController;
         readonly UI_GamePanel_Quest questController;
-        readonly UI_GamePanel_Court courtController;
+        readonly UI_GamePanel_Royal courtController;
         readonly UI_GamePanel_Talent talentController;
         readonly UI_GamePanel_Policy policyController;
         readonly UI_GamePanel_History historyController;
@@ -66,7 +66,7 @@ namespace Landsong.ECS.Presentation
             panelHistory.Clear();
         }
 
-        public GamePanelNavigator(GameUiSessionHandle sessionController, GameUiInputContext inputContext, GameUiRefreshScheduler refresh, IntelligenceViewState intelligence, GameUiCommandWriter commandsController, UI_GamePanel_View[] FeaturePanels, UI_GamePanel.NavigationButtonBinding[] NavigationButtons, UI_GamePanel_BuildingActionBar buildingController, UI_GamePanel_BuildingDetails buildingDetailsController, UI_GamePanel_WorldInteraction worldController, UI_GamePanel_Technology technologyController, UI_GamePanel_Quest questController, UI_GamePanel_Court courtController, UI_GamePanel_Talent talentController, UI_GamePanel_Policy policyController, UI_GamePanel_History historyController)
+        public GamePanelNavigator(GameUiSessionHandle sessionController, GameUiInputContext inputContext, GameUiRefreshScheduler refresh, IntelligenceViewState intelligence, GameUiCommandWriter commandsController, UI_GamePanel_View[] FeaturePanels, UI_GamePanel.NavigationButtonBinding[] NavigationButtons, UI_GamePanel_BuildingActionBar buildingController, UI_GamePanel_BuildingDetails buildingDetailsController, UI_GamePanel_WorldInteraction worldController, UI_GamePanel_Technology technologyController, UI_GamePanel_Quest questController, UI_GamePanel_Royal courtController, UI_GamePanel_Talent talentController, UI_GamePanel_Policy policyController, UI_GamePanel_History historyController)
         {
             this.sessionController = sessionController;
             this.inputContext = inputContext;
@@ -174,8 +174,8 @@ namespace Landsong.ECS.Presentation
                 questController.QuestWindow.SetActive(false);
             talentController.CourtGraph.gameObject.SetActive(panel == GamePanelId.Talent);
             policyController.CourtGraph.gameObject.SetActive(panel == GamePanelId.Policy);
-            if (courtController.courtGraph != null && panel != GamePanelId.Royal)
-                courtController.courtGraph.gameObject.SetActive(false);
+            if (panel != GamePanelId.Royal)
+                courtController.GraphRoot.gameObject.SetActive(false);
             RefreshPanelVisibility();
         }
 
@@ -199,8 +199,7 @@ namespace Landsong.ECS.Presentation
                 technologyController.TechnologyTree.gameObject.SetActive(false);
             if (questController.QuestWindow != null)
                 questController.QuestWindow.SetActive(false);
-            if (courtController.courtGraph != null)
-                courtController.courtGraph.gameObject.SetActive(false);
+            courtController.GraphRoot.gameObject.SetActive(false);
             talentController.CourtGraph.gameObject.SetActive(false);
             policyController.CourtGraph.gameObject.SetActive(false);
             if (historyController.historyTools != null)

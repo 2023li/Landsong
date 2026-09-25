@@ -61,7 +61,8 @@ namespace Landsong.ECS
                     em.SetComponentData(e, t);
                 }
 
-            CourtOps.Settle(em, root);
+            if (FeatureOps.Unlocked(em, root, "Royal"))
+                CourtOps.Settle(em, root);
         }
     }
 }

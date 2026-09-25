@@ -80,7 +80,7 @@ namespace Landsong.ECS.Editor
                     if (reference is Component component) target = component.gameObject;
                     if (target == null || !string.IsNullOrWhiteSpace(target.name) || !target.transform.IsChildOf(root.transform)) continue;
                     var fieldPath = property.propertyPath;
-                    if (fieldPath == "Target" || fieldPath == "target" || fieldPath.StartsWith("childViews", StringComparison.Ordinal) || fieldPath.StartsWith("previewBindings", StringComparison.Ordinal)) continue;
+                    if (fieldPath == "Target" || fieldPath == "target" || fieldPath.StartsWith("childViews", StringComparison.Ordinal) || fieldPath.StartsWith("previewContent", StringComparison.Ordinal)) continue;
                     var candidate = Regex.Replace(fieldPath, @"\.Array\.data\[(\d+)\]", match => "_" + (int.Parse(match.Groups[1].Value) + 1).ToString("00"));
                     candidate = Regex.Replace(candidate.Replace('.', '_'), @"[^\p{L}\p{N}_]", "");
                     if (candidate.Length == 0) continue;

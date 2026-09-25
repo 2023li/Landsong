@@ -154,7 +154,10 @@ namespace Landsong.EditorTools
             if (animation.Profile == UnitAnimationProfile.SwordAndTorch)
             {
                 if (visual.SwordMount == null || visual.SwordHandSocket == null || visual.TorchMount == null
-                    || visual.TorchLayer < 1 || visual.TorchLayer >= controller.layers.Length)
+                    || visual.TorchLayer < 1 || visual.TorchLayer >= controller.layers.Length
+                    || visual.WeaponLayer < 1 || visual.WeaponLayer >= controller.layers.Length
+                    || visual.WeaponLayer == visual.TorchLayer || visual.WeaponLayer == visual.CelebrationLayer
+                    || controller.layers[visual.WeaponLayer].avatarMask == null)
                     throw new InvalidOperationException(definition.name + "：剑与火把类型缺少装备挂点或动画层。");
                 Parameter("Equipment", AnimatorControllerParameterType.Int);
                 Parameter("DrawWeapon", AnimatorControllerParameterType.Trigger);

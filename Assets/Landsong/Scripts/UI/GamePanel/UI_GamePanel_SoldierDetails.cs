@@ -25,13 +25,15 @@ namespace Landsong.ECS.Presentation
         public Button Armor;
         [Sirenix.OdinInspector.LabelText("武器")]
         public Button Weapon;
+        [Sirenix.OdinInspector.LabelText("武器文字"), Sirenix.OdinInspector.Required]
+        public TMP_Text WeaponLabel;
         [Sirenix.OdinInspector.LabelText("关闭")]
         public Button Close;
         [Sirenix.OdinInspector.LabelText("能力布局")]
         public LayoutElement AbilitiesLayout;
         public void ValidateConfiguration()
         {
-            if (Portrait == null || PortraitBinding == null || Name == null || Age == null || Stats == null || Abilities == null || Helmet == null || Armor == null || Weapon == null || Close == null || AbilitiesLayout == null)
+            if (Portrait == null || PortraitBinding == null || Name == null || Age == null || Stats == null || Abilities == null || Helmet == null || Armor == null || Weapon == null || WeaponLabel == null || Close == null || AbilitiesLayout == null)
                 throw new InvalidOperationException("士兵详情面板检查器引用不完整。");
             PortraitBinding.ValidateConfiguration();
             if (PortraitBinding.Target != Portrait)

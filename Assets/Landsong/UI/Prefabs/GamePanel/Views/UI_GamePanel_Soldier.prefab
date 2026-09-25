@@ -1293,7 +1293,6 @@ GameObject:
   - component: {fileID: 89853232070759959}
   - component: {fileID: 8331524115494374605}
   - component: {fileID: 7395492044544824111}
-  - component: {fileID: 7126226361370905470}
   m_Layer: 0
   m_Name: "\u8096\u50CF"
   m_TagString: Untagged
@@ -1374,22 +1373,6 @@ MonoBehaviour:
   Target: {fileID: 8331524115494374605}
   Cache: {fileID: 0}
   Portraits: {fileID: 11400000, guid: dda6ee5c44eb4fe88097f9f89685f945, type: 2}
---- !u!114 &7126226361370905470
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4754196941329810844}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 34d223bf2e064464b0034eac33461f6a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Moyo.Runtime::Moyo.Unity.UIPreviewOnly
-  sampleObjects:
-  - {fileID: 8996800398846915028}
-  sampleTextTargets: []
-  runtimeTexts: []
 --- !u!1 &4995619953990098514
 GameObject:
   m_ObjectHideFlags: 0
@@ -1404,7 +1387,6 @@ GameObject:
   - component: {fileID: 4530487362446610841}
   - component: {fileID: 9182270615743433063}
   - component: {fileID: 7514950858683775348}
-  - component: {fileID: 1385058929078514331}
   m_Layer: 0
   m_Name: UI_GamePanel_Soldier
   m_TagString: Untagged
@@ -1503,6 +1485,7 @@ MonoBehaviour:
   Helmet: {fileID: 7538618270106140667}
   Armor: {fileID: 1599253194640742880}
   Weapon: {fileID: 3391460812457054310}
+  WeaponLabel: {fileID: 2173990889747103786}
   Close: {fileID: 9008199914977240899}
   AbilitiesLayout: {fileID: 8230050795075336255}
 --- !u!114 &7514950858683775348
@@ -1519,33 +1502,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_Soldier
   childViews: []
   openWithOwner: 0
-  previewBindings:
-  - {fileID: 1385058929078514331}
-  - {fileID: 7126226361370905470}
+  previewContent:
+  - key: Recipe
+    sampleObjects: []
+    sampleTextTargets:
+    - {fileID: 2668139987512289367}
+    - {fileID: 192108152934790642}
+    - {fileID: 4421929948978705950}
+    - {fileID: 8097880125851859642}
+    runtimeTexts:
+    - "\u58EB\u5175\u59D3\u540D"
+    - ""
+    - ""
+    - ""
+  - key: SoldierPortrait
+    sampleObjects:
+    - {fileID: 8996800398846915028}
+    sampleTextTargets: []
+    runtimeTexts: []
   SoldierDetailsPanel: {fileID: 9182270615743433063}
---- !u!114 &1385058929078514331
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4995619953990098514}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 34d223bf2e064464b0034eac33461f6a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Moyo.Runtime::Moyo.Unity.UIPreviewOnly
-  sampleObjects: []
-  sampleTextTargets:
-  - {fileID: 2668139987512289367}
-  - {fileID: 192108152934790642}
-  - {fileID: 4421929948978705950}
-  - {fileID: 8097880125851859642}
-  runtimeTexts:
-  - "\u58EB\u5175\u59D3\u540D"
-  - 
-  - 
-  - 
 --- !u!1 &5130786036593117339
 GameObject:
   m_ObjectHideFlags: 0

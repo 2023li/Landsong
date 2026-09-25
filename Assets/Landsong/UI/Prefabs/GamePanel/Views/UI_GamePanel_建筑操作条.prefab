@@ -51,13 +51,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_BuildingActionBar
   childViews: []
   openWithOwner: 1
-  previewBindings: []
+  previewContent: []
   ConfirmRowTemplate: {fileID: 1573664279546181541, guid: a6505af27ca58fd479bd424bc2087351, type: 3}
   BuildingBar: {fileID: 0}
   BuildingCatalog: {fileID: 11400000, guid: 5fc69b9a62e84fa4385b5ce003be2a64, type: 2}
   BuildingActionBar: {fileID: 1984931771816171901}
   BuildingActionButtons: {fileID: 1984931771816171901}
-  BuildingActionButtonTemplate: {fileID: 0}
   BuildingConfirmRows: {fileID: 0}
   DetailsPanel: {fileID: 0}
   BuildingConfirmPanel: {fileID: 0}

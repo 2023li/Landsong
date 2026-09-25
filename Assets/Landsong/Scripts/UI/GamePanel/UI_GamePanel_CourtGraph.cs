@@ -35,18 +35,8 @@ namespace Landsong.ECS.Presentation
         public UI_GamePanel_TechnologyConnections Links;
         [Sirenix.OdinInspector.LabelText("节点根对象")]
         public RectTransform NodesRoot;
-        [Sirenix.OdinInspector.LabelText("家族图层")]
-        public RectTransform FamilyLayer;
-        [Sirenix.OdinInspector.LabelText("模板根对象")]
-        public RectTransform TemplateRoot;
         [Sirenix.OdinInspector.LabelText("节点模板")]
         public UI_GamePanel_CourtNode NodeTemplate;
-        [Sirenix.OdinInspector.LabelText("家族节点模板")]
-        public UI_GamePanel_CourtNode FamilyNodeTemplate;
-        [Sirenix.OdinInspector.LabelText("世代色带模板")]
-        public UI_GamePanel_CourtGenerationBand GenerationBandTemplate;
-        [Sirenix.OdinInspector.LabelText("家族框架模板")]
-        public UI_GamePanel_CourtFamilyFrame FamilyFrameTemplate;
         readonly Dictionary<ulong, UI_GamePanel_CourtNode> nodes = new Dictionary<ulong, UI_GamePanel_CourtNode>();
         readonly List<GameObject> generated = new List<GameObject>();
         string signature;
@@ -69,12 +59,9 @@ namespace Landsong.ECS.Presentation
 
         public void ValidateConfiguration()
         {
-            if (Scroll == null || Header == null || CloseButton == null || ZoomOutButton == null || ZoomInButton == null || Links == null || NodesRoot == null || FamilyLayer == null || TemplateRoot == null || NodeTemplate == null || FamilyNodeTemplate == null || GenerationBandTemplate == null || FamilyFrameTemplate == null)
-                throw new InvalidOperationException("王室展示面板检查器引用不完整。");
+            if (Scroll == null || Header == null || CloseButton == null || ZoomOutButton == null || ZoomInButton == null || Links == null || NodesRoot == null || NodeTemplate == null)
+                throw new InvalidOperationException("人物或政策图检查器引用不完整。");
             NodeTemplate.ValidateConfiguration(false);
-            FamilyNodeTemplate.ValidateConfiguration(true);
-            if (GenerationBandTemplate.Background == null || GenerationBandTemplate.Label == null || FamilyFrameTemplate.Background == null)
-                throw new InvalidOperationException("王室家谱容器模板检查器引用不完整。");
         }
 
         void Track(Component instance)
@@ -100,29 +87,19 @@ namespace Landsong.ECS.Presentation
         public void ClearSession()
         {
             signature = null;
-            familySignature = null;
             zoom = 1;
             ClearGenerated();
-            ClearFamily();
         }
 
         void Zoom(float amount)
         {
             zoom = Mathf.Clamp(zoom + amount, .65f, 1.3f);
             signature = null;
-            familySignature = null;
         }
 
-        public void Show(string mode, List<CourtCard> cards, bool family = false)
+        public void Show(string mode, List<CourtCard> cards)
         {
             ValidateConfiguration();
-            if (family)
-            {
-                ShowFamily(mode, cards);
-                return;
-            }
-
-            ClearFamily();
             string next = mode + "/" + zoom + "/" + string.Join("|", cards.Select(c => $"{c.Id}:{c.Parent}:{c.SecondParent}:{c.Spouse}:{c.Column}:{c.Row}:{c.Title}:{c.Detail}:{c.Selected}:{c.Dead}:{c.Portrait?.GetInstanceID()}"));
             if (signature == next)
                 return;

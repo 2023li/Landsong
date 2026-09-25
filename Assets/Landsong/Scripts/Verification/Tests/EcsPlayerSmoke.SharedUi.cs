@@ -102,8 +102,11 @@ namespace Landsong.ECS.Presentation
 
         static void RequirePreviewCleared(UIViewBase panel, string context, bool beforeOpen = false)
         {
-            var previews = panel.GetComponentsInChildren<UIPreviewOnly>(true);
-            Require(previews.Length != 0, "Real prefab contains configured preview cleanup bindings: " + context);
+            var previews = panel.GetComponentsInChildren<UIViewBase>(true)
+                .SelectMany(view => view.PreviewContent).ToList();
+            if (panel is UI_GamePanel game && game.BuildingDetails.PreviewContent != null)
+                previews.Add(game.BuildingDetails.PreviewContent);
+            Require(previews.Count != 0, "Real prefab contains configured preview content: " + context);
             foreach (var preview in previews)
             {
                 Require(preview.SampleObjects.All(sample => sample == null || !sample.activeSelf), "Editor preview rows are disabled before runtime use: " + context, false);
@@ -113,7 +116,7 @@ namespace Landsong.ECS.Presentation
                     Require(preview.SampleTextTargets[index].text == (preview.RuntimeTexts[index] ?? string.Empty), "Editor sample text reset before panel open: " + context, false);
             }
 
-            Require(true, "Configured editor preview content cleared: " + context);
+            Require(true, "Configured UI preview content refreshed: " + context);
         }
 
         void ObserveGameLifetime(UI_GamePanel view, string context)

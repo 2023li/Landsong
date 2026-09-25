@@ -98,7 +98,7 @@ namespace Landsong.ECS.Presentation
             plan.CombatElapsed = 0;
             EntityState.Set(em, root, plan);
             yield return WaitFor(() => NightPlanOps.State(em, root).CombatElapsed > .1f, "12 combat clock continues while intelligence is open");
-            view.PauseMenu.OpenButton.onClick.Invoke();
+            view.PauseMenu.Open();
             yield return WaitFor(() => view.PauseMenu.IsOpen && em.GetComponentData<SimulationControl>(root).Paused != 0, "12 pause retains priority over intelligence");
             Require(view.Hud.InIntelligenceMode, "12 closing pause can return to the existing intelligence mode");
             view.PauseMenu.ResumeButton.onClick.Invoke();

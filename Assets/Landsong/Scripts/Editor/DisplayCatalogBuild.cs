@@ -47,7 +47,7 @@ namespace Landsong.ECS.Editor
             {
                 string path = AssetDatabase.GUIDToAssetPath(guid);
                 var source = AssetDatabase.LoadAssetAtPath<GameObject>(path);
-                bool ownsCatalog = source.GetComponent<UI_GamePanel_BuildingActionBar>() != null || source.GetComponent<UI_GamePanel_Technology>() != null || source.GetComponent<UI_GamePanel_Quest>() != null || source.GetComponent<UI_GamePanel_Policy>() != null || source.GetComponent<UI_GamePanel_Talent>() != null || source.GetComponent<UI_GamePanel_Court>() != null || source.GetComponent<UI_GamePanel_Hud>() != null || source.GetComponent<UI_GamePanel_Inventory>() != null || source.GetComponent<UI_GamePanel_BuildingDetails>() != null;
+                bool ownsCatalog = source.GetComponent<UI_GamePanel_BuildingActionBar>() != null || source.GetComponent<UI_GamePanel_Technology>() != null || source.GetComponent<UI_GamePanel_Quest>() != null || source.GetComponent<UI_GamePanel_Policy>() != null || source.GetComponent<UI_GamePanel_Talent>() != null || source.GetComponent<UI_GamePanel_Royal>() != null || source.GetComponent<UI_GamePanel_Hud>() != null || source.GetComponent<UI_GamePanel_Inventory>() != null || source.GetComponent<UI_GamePanel_BuildingDetails>() != null;
                 if (!ownsCatalog)
                     continue;
                 var contents = PrefabUtility.LoadPrefabContents(path);
@@ -82,7 +82,7 @@ namespace Landsong.ECS.Editor
                         talent.Talents = AssetDatabase.LoadAssetAtPath<TalentDisplayCatalog>(TalentDisplayCatalogCompiler.Path);
                     }
 
-                    if (contents.TryGetComponent<UI_GamePanel_Court>(out var court))
+                    if (contents.TryGetComponent<UI_GamePanel_Royal>(out var court))
                     {
                         court.Talents = AssetDatabase.LoadAssetAtPath<TalentDisplayCatalog>(TalentDisplayCatalogCompiler.Path);
                     }
@@ -156,7 +156,7 @@ namespace Landsong.ECS.Editor
                         throw new System.InvalidOperationException(path + " 缺少显式Talent显示目录：Talents");
                 }
 
-                if (source.TryGetComponent<UI_GamePanel_Court>(out var court))
+                if (source.TryGetComponent<UI_GamePanel_Royal>(out var court))
                 {
                     if (court.Talents != AssetDatabase.LoadAssetAtPath<TalentDisplayCatalog>(TalentDisplayCatalogCompiler.Path))
                         throw new System.InvalidOperationException(path + " 缺少显式Talent显示目录：Talents");

@@ -299,18 +299,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f7fbe968fe824f8e97e3e695233cfe30, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.InitialRoyalFamilyAuthoring
-  Family:
-  - Name: "\u5F00\u56FD\u541B\u4E3B"
-    Age: 20
-    Role: 0
-    Gender: 0
-    Traits:
-    - {fileID: 11400000, guid: c235625b77497b1408fca541bf3aa5d0, type: 2}
-  - Name: "\u5F00\u56FD\u914D\u5076"
-    Age: 20
-    Role: 1
-    Gender: 0
-    Traits: []
+  Family: []
 --- !u!114 &920000000000100034
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -337,7 +326,10 @@ MonoBehaviour:
     - Order: 3
       Item: {fileID: 11400000, guid: a927377c37e532b49af819fa89b72369, type: 2}
       Quantity: 100
-    Blueprints: []
+    Blueprints:
+    - Order: 0
+      Building: {fileID: 11400000, guid: 6f6af578252db9b4fb3f09dcdccc0ce6, type: 2}
+      GrantedLevel: 2
     Buffs: []
     Features: []
 --- !u!114 &920000000000100036

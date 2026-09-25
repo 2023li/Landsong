@@ -3646,13 +3646,7 @@ MonoBehaviour:
   ZoomInButton: {fileID: 1836990676141516517}
   Links: {fileID: 1004517216382254951}
   NodesRoot: {fileID: 217250921431401865}
-  FamilyLayer: {fileID: 1191633336024403315}
-  TemplateRoot: {fileID: 3872758249386233228}
   NodeTemplate: {fileID: 3429127535685725346}
-  FamilyNodeTemplate: {fileID: 8650757297454799766}
-  GenerationBandTemplate: {fileID: 88685554626474044}
-  FamilyFrameTemplate: {fileID: 4634721538193634585}
-  CrownIcon: {fileID: 0}
 --- !u!114 &8194249725080515850
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3667,9 +3661,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_Policy
   childViews: []
   openWithOwner: 0
-  previewBindings: []
-  CourtGraph: {fileID: 1363629600137788364}
+  previewContent: []
   Policies: {fileID: 11400000, guid: a7c5841b4de64b0b95a137efa378d1a5, type: 2}
+  CourtGraph: {fileID: 1363629600137788364}
 --- !u!1 &7039329405592388471
 GameObject:
   m_ObjectHideFlags: 0

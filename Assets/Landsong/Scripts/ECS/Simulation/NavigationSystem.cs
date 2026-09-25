@@ -320,7 +320,26 @@ namespace Landsong.ECS
                 if (distance > .0001f && step > .000001f)
                 {
                     float3 candidate = step >= distance ? movement.targetPoint : before + offset / distance * step;
-                    if (Query.Shift(before, candidate, out var safe))
+                    bool valid = Query.Shift(before, candidate, out var safe);
+                    if (!valid && path.Length > 0)
+                    {
+                        int current = Query.Locate(before);
+                        int next = Query.Locate(path[0].Position);
+                        if (current >= 0 && next >= 0
+                            && (Query.Nodes[current].Corridor != 0 || Query.Nodes[next].Corridor != 0))
+                        {
+                            // An avoidance target may fall outside a narrow slope.
+                            // Retry toward the authored waypoint at the resolved speed.
+                            float3 toward = path[0].Position - before;
+                            float planar = math.length(toward.xz);
+                            if (planar > .0001f)
+                            {
+                                float3 fallback = before + new float3(toward.x / planar, 0, toward.z / planar) * math.min(step, planar);
+                                valid = Query.Shift(before, fallback, out safe);
+                            }
+                        }
+                    }
+                    if (valid)
                     {
                         // At a stair endpoint the current planar node is flat, while the next
                         // authored corridor node owns the slope. Interpolate along that explicit

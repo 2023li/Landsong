@@ -2137,7 +2137,6 @@ GameObject:
   - component: {fileID: 6871310589426858896}
   - component: {fileID: 3054000228361225585}
   - component: {fileID: 7084358871778141050}
-  - component: {fileID: 6602079340591772708}
   m_Layer: 0
   m_Name: UI_GamePanel_Marriage
   m_TagString: Untagged
@@ -2254,40 +2253,28 @@ MonoBehaviour:
   m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_Marriage
   childViews: []
   openWithOwner: 0
-  previewBindings:
-  - {fileID: 6602079340591772708}
+  previewContent:
+  - key: Recipe
+    sampleObjects: []
+    sampleTextTargets:
+    - {fileID: 7725611011748038737}
+    - {fileID: 909242622586047773}
+    - {fileID: 7399262666172673753}
+    - {fileID: 6579355714187553749}
+    - {fileID: 4447019074157163945}
+    - {fileID: 7186478370443437282}
+    - {fileID: 5746154941673494502}
+    runtimeTexts:
+    - ""
+    - ""
+    - ""
+    - ""
+    - ""
+    - ""
+    - ""
   MarriagePanel: {fileID: 3054000228361225585}
   MarriageEventButton: {fileID: 0}
   MarriageEventLabel: {fileID: 0}
---- !u!114 &6602079340591772708
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6838714099375581971}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 34d223bf2e064464b0034eac33461f6a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Moyo.Runtime::Moyo.Unity.UIPreviewOnly
-  sampleObjects: []
-  sampleTextTargets:
-  - {fileID: 7725611011748038737}
-  - {fileID: 909242622586047773}
-  - {fileID: 7399262666172673753}
-  - {fileID: 6579355714187553749}
-  - {fileID: 4447019074157163945}
-  - {fileID: 7186478370443437282}
-  - {fileID: 5746154941673494502}
-  runtimeTexts:
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
 --- !u!1 &7033720868781982655
 GameObject:
   m_ObjectHideFlags: 0

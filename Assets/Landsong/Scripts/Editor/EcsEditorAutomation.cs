@@ -139,6 +139,9 @@ public static class EcsEditorAutomation
                 case "VerifySoldierAnimations":
                     response.Details = Landsong.EditorTools.SoldierAnimationVerification.Run();
                     break;
+                case "BuildMilitiaWeaponGrayboxes":
+                    response.Details = Landsong.EditorTools.MilitiaWeaponGrayboxBuilder.Run();
+                    break;
                 case "VerifySoldierAnimationVisibilityPlay":
                     response.Details = Landsong.EditorTools.SoldierAnimationVisibilityPlayVerification.Start();
                     break;
@@ -147,6 +150,9 @@ public static class EcsEditorAutomation
                     break;
                 case "VerifyAnimationCombatRegression":
                     response.Details = Landsong.ECS.Editor.CombatVerification.Run() + "\n" + Landsong.ECS.Editor.SoldierVerification.Run() + "\n" + Landsong.ECS.Editor.PresentationVerification.Run();
+                    break;
+                case "VerifyWeaponCombat":
+                    response.Details = Landsong.ECS.Editor.CombatVerification.Run();
                     break;
                 case "CreateSoldierAnimationPreview":
                     response.Details = Landsong.EditorTools.SoldierAnimationPreview.Create();
@@ -419,6 +425,26 @@ public static class EcsEditorAutomation
                     break;
                 case "VerifyUiConfiguration":
                     response.Details = Landsong.ECS.Editor.UiConfigurationVerification.Run();
+                    break;
+                case "BuildRoyalFoundingUi":
+                    Landsong.ECS.Editor.RoyalFoundingUiAuthoring.Build();
+                    response.Details = "Royal founding dialog built";
+                    break;
+                case "VerifyGameUiInputPolicy":
+                    response.Details = Landsong.ECS.Editor.GameUiInputPolicyVerification.Run();
+                    break;
+                case "VerifyRoyalFounding":
+                    response.Details = Landsong.ECS.Editor.RoyalFoundingVerification.Run();
+                    break;
+                case "ConfigureRoyalDetails":
+                    Landsong.ECS.Editor.RoyalDetailsUiAuthoring.ConfigurePrefab();
+                    response.Details = "Royal details prefab layout and portrait cache configured";
+                    break;
+                case "VerifyCourt":
+                    response.Details = Landsong.ECS.Editor.CourtVerification.Run();
+                    break;
+                case "VerifyPortrait":
+                    response.Details = Landsong.ECS.Editor.PortraitVerification.Run();
                     break;
                 case "VerifyPauseMenu":
                     response.Details = Landsong.ECS.Editor.PauseMenuVerification.Run();

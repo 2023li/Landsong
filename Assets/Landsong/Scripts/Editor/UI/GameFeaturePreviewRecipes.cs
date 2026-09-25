@@ -18,10 +18,10 @@ namespace Landsong.ECS.Editor
         public static string Run()
         {
             ConfigureRecipes();
-            foreach (var name in new[] { "Technology", "Talent", "RoyalDetails", "Marriage", "SoldierDetails" })
+            foreach (var name in new[] { "Technology", "Talent", "Marriage", "SoldierDetails" })
                 AssetDatabase.LoadAssetAtPath<UIPreviewRecipe>(Profiles + name + "Recipe.asset").ApplyToPrefab();
             AssetDatabase.SaveAssets();
-            return "科技、人才、王室、婚姻与士兵详情示例，以及弹窗动作布局已配置。";
+            return "科技、人才、婚姻与士兵详情示例，以及弹窗动作布局已配置。";
         }
         public static void ConfigureRecipes()
         {
@@ -47,7 +47,6 @@ namespace Landsong.ECS.Editor
                 new[] { new UIPreviewTextBinding("title", talent.CourtGraph.Header) },
                 new[] { new UIPreviewListBinding("people", talent.CourtGraph.NodesRoot, (RectTransform)talent.CourtGraph.NodeTemplate.transform,
                     new TMP_Text[] { talent.CourtGraph.NodeTemplate.Label }, new[] { 0 }, UIPreviewListLayout.GraphGrid(), new[] { "{0}\n{1} · {2}\n{3}" }) });
-            RoyalDetailsUiAuthoring.ConfigureRecipe();
             BuildingWorkforceUiAuthoring.ConfigureLayout();
             GameModalUiAuthoring.Configure();
             AssetDatabase.SaveAssets();

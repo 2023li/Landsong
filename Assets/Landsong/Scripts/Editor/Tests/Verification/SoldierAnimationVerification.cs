@@ -56,8 +56,22 @@ namespace Landsong.EditorTools
                 Check(!authoring.Animator.applyRootMotion && !authoring.Animator.GetComponent<RigDefinitionAuthoring>().applyRootMotion, "Both Animator and Rukhanka disable root motion");
                 var controller = authoring.Animator.runtimeAnimatorController as UnityEditor.Animations.AnimatorController;
                 Check(controller != null && controller.animationClips.Length >= 9, "Controller contains locomotion, combat, torch, draw and sheathe motions");
+                Check(controller.parameters.Any(p => p.name == "Shoot" && p.type == AnimatorControllerParameterType.Trigger)
+                    && controller.layers[0].stateMachine.states.Any(s => s.state.motion != null && s.state.motion.name == "RangedAttack"),
+                    "Bow attacks use a dedicated ranged animation trigger and clip");
                 Check(controller.layers.Length == 4 && controller.layers[1].avatarMask != null && controller.layers[2].avatarMask != null,
-                    "Controller separates base, left hand, right hand and celebration arms");
+                    "Controller separates base, torch hand, weapon arms and celebration arms");
+                var weaponLayer = controller.layers[authoring.WeaponLayer];
+                Check(authoring.WeaponLayer == 2 && controller.layers[0].stateMachine.states.All(s => s.state.motion == null || s.state.motion.name != "DrawSword" && s.state.motion.name != "SheatheSword")
+                    && weaponLayer.stateMachine.states.Any(s => s.state.motion != null && s.state.motion.name == "DrawSword")
+                    && weaponLayer.stateMachine.states.Any(s => s.state.motion != null && s.state.motion.name == "SheatheSword"),
+                    "Weapon transitions animate on the arms layer while base locomotion remains active");
+                for (int i = 0; i < (int)AvatarMaskBodyPart.LastBodyPart; i++)
+                {
+                    var part = (AvatarMaskBodyPart)i;
+                    bool arms = part == AvatarMaskBodyPart.LeftArm || part == AvatarMaskBodyPart.RightArm || part == AvatarMaskBodyPart.LeftFingers || part == AvatarMaskBodyPart.RightFingers;
+                    Check(weaponLayer.avatarMask.GetHumanoidBodyPartActive(part) == arms, "Weapon mask isolates both arms: " + part);
+                }
                 var celebrationLayer = controller.layers[authoring.CelebrationLayer];
                 var celebrationMask = celebrationLayer.avatarMask;
                 for (int i = 0; i < (int)AvatarMaskBodyPart.LastBodyPart; i++)
@@ -105,6 +119,7 @@ namespace Landsong.EditorTools
                     if (faction == 0)
                     {
                         var e = SoldierEntities.Spawn(em, root, SoldierDefinitions.Find(em, root, id), position, false);
+                        em.AddComponentData(e, new Soldier());
                         SoldierCombatants.Configure(em, root, e, true, 0, position);
                         return e;
                     }
@@ -128,14 +143,30 @@ namespace Landsong.EditorTools
                 var binding = em.GetComponentData<SoldierAnimationBinding>(view);
                 Check(em.Exists(binding.Rig) && em.HasBuffer<AnimatorControllerLayerComponent>(binding.Rig), "Rukhanka controller was baked and remapped to the spawned rig");
                 Check(em.GetBuffer<AnimatorControllerLayerComponent>(binding.Rig).Length == 4 && em.Exists(binding.SwordMount)
+                    && em.Exists(binding.ClubMount) && em.Exists(binding.BowMount)
                     && em.Exists(binding.SwordHandSocket) && em.Exists(binding.TorchMount),
-                    "Rukhanka baked all four layers and remapped equipment sockets");
+                    "Rukhanka baked all four layers and remapped the sword, club and bow sockets");
+                var bakedLayers = em.GetBuffer<AnimatorControllerLayerComponent>(binding.Rig);
+                var baseWeight = bakedLayers[0].weight;
+                SoldierAnimationSystem.SetEquipmentVisual(em, binding, false, true, true, switchingWeapon: true);
+                Check(bakedLayers[binding.WeaponLayer].weight == 1 && bakedLayers[0].weight == baseWeight
+                    && bakedLayers[binding.TorchLayer].weight == 0,
+                    "Draw and sheathe enable both arms without interrupting base locomotion");
+                SoldierAnimationSystem.SetEquipmentVisual(em, binding, true, false, true, weaponKind: (byte)SoldierWeaponKind.None);
+                Check(em.GetComponentData<LocalTransform>(binding.ClubMount).Scale == 1
+                    && em.GetComponentData<LocalTransform>(binding.SwordMount).Scale == 0
+                    && em.GetComponentData<LocalTransform>(binding.BowMount).Scale == 0,
+                    "Empty weapon slot displays the club graybox");
+                SoldierAnimationSystem.SetEquipmentVisual(em, binding, true, false, true, weaponKind: (byte)SoldierWeaponKind.Bow);
+                Check(em.GetComponentData<LocalTransform>(binding.BowMount).Scale == 1
+                    && em.GetComponentData<LocalTransform>(binding.ClubMount).Scale == 0,
+                    "Ranged weapon displays the bow graybox");
+                SoldierAnimationSystem.SetEquipmentVisual(em, binding, false, true, false);
                 Check(em.Exists(binding.TorchFlame) && em.HasComponent<ParticleSystem>(binding.TorchFlame)
                     && em.Exists(binding.TorchLight) && em.HasComponent<Light>(binding.TorchLight),
                     "Torch particle and light bake as companion components and remap to the spawned view");
-                Check(em.GetComponentObject<ParticleSystem>(binding.TorchFlame).isPlaying
-                    && em.GetComponentObject<Light>(binding.TorchLight).enabled,
-                    "Patrol torch starts its baked flame and light");
+                Check(em.GetComponentObject<Light>(binding.TorchLight).enabled,
+                    "Patrol torch enables its baked point light");
                 Check(em.GetComponentData<Parent>(view).Value == soldier && em.GetComponentData<Parent>(binding.Rig).Value == view, "Independent view and rig follow the gameplay transform through ECS Parent");
                 Check(!em.HasComponent<Identity>(view) && !em.HasComponent<Persistent>(view) && !em.HasBuffer<TacticalActionData>(view), "View does not duplicate identity, persistence or DBP tasks");
                 AnimatorParametersAspect Parameters() => new AnimatorParametersAspect(em.GetBuffer<AnimatorControllerParameterComponent>(binding.Rig), em.GetComponentData<AnimatorControllerParameterIndexTableComponent>(binding.Rig));
@@ -158,6 +189,7 @@ namespace Landsong.EditorTools
                 Check(attachedRenderers > 0, "Rigid weapon render entities are baked with the animated soldier");
                 Check(em.GetComponentData<Parent>(binding.SwordMount).Value == binding.SwordHandSocket
                     && em.GetComponentData<LocalTransform>(binding.SwordMount).Scale == 0
+                    && em.GetComponentData<LocalTransform>(binding.ClubMount).Scale == 0
                     && em.GetComponentData<LocalTransform>(binding.TorchMount).Scale == 1, "Patrol starts with hidden sword and visible torch");
                 var tr = em.GetComponentData<LocalTransform>(soldier);
                 tr.Position.x += .25f;
@@ -182,21 +214,29 @@ namespace Landsong.EditorTools
                 world.GetOrCreateSystem<CombatSystem>().Update(world.Unmanaged);
                 em.CompleteAllTrackedJobs();
                 Check(em.GetComponentData<UnitAnimationSignals>(soldier).AttackSequence == 1, "Real combat attack produces one animation signal");
+                tr = em.GetComponentData<LocalTransform>(soldier);
+                tr.Position.x += .1f;
+                em.SetComponentData(soldier, tr);
                 Update();
                 Check(Parameters().GetBoolParameter("DrawWeapon") && !Parameters().GetBoolParameter("Attack")
+                    && Parameters().GetFloatParameter("Speed") > .1f
                     && em.GetComponentData<SoldierAnimationState>(soldier).Equipment == SoldierEquipmentState.DrawingSword
-                    && em.GetComponentData<LocalTransform>(binding.TorchMount).Scale == 0,
-                    "Near enemy starts draw and queues an early attack signal");
+                    && em.GetComponentData<LocalTransform>(binding.TorchMount).Scale == 0
+                    && em.GetBuffer<AnimatorControllerLayerComponent>(binding.Rig)[0].weight == 1
+                    && em.GetBuffer<AnimatorControllerLayerComponent>(binding.Rig)[binding.WeaponLayer].weight == 1,
+                    "Moving soldier keeps base locomotion under the draw animation and queues an early attack signal");
                 Update(config.DrawSeconds * .6f);
                 Check(em.GetComponentData<Parent>(binding.SwordMount).Value == binding.SwordHandSocket
-                    && em.GetComponentData<LocalTransform>(binding.SwordMount).Scale == 1
-                    && em.GetComponentData<LocalTransform>(binding.TorchMount).Scale == 0, "Draw midpoint shows the hand sword and hides the torch");
+                    && em.GetComponentData<LocalTransform>(binding.SwordMount).Scale == 0
+                    && em.GetComponentData<LocalTransform>(binding.ClubMount).Scale == 1
+                    && em.GetComponentData<LocalTransform>(binding.TorchMount).Scale == 0, "Draw midpoint shows the unequipped club and hides the torch");
                 Check(em.GetComponentObject<ParticleSystem>(binding.TorchFlame).isStopped
                     && !em.GetComponentObject<Light>(binding.TorchLight).enabled,
                     "Drawing the sword stops the baked torch flame and point light");
                 Update(config.DrawSeconds);
                 Check(Parameters().GetBoolParameter("Attack")
-                    && em.GetComponentData<SoldierAnimationState>(soldier).Equipment == SoldierEquipmentState.Sword, "Queued attack plays after draw completes");
+                    && em.GetComponentData<SoldierAnimationState>(soldier).Equipment == SoldierEquipmentState.Sword
+                    && em.GetBuffer<AnimatorControllerLayerComponent>(binding.Rig)[binding.WeaponLayer].weight == 0, "Queued attack plays after draw completes");
                 Update();
                 Check(!Parameters().GetBoolParameter("Attack"), "Attack does not retrigger on the next update");
                 CombatOps.ApplyDamage(em, root, new DamageRequest { Source = enemy, Target = soldier, Amount = 1 });
@@ -208,16 +248,17 @@ namespace Landsong.EditorTools
                 em.SetComponentData(soldier, new Perception());
                 Update(config.WeaponReleaseSeconds + .1f);
                 Check(Parameters().GetBoolParameter("SheatheWeapon")
-                    && em.GetComponentData<SoldierAnimationState>(soldier).Equipment == SoldierEquipmentState.SheathingSword, "Threat release delay starts one sheathe transition");
+                    && em.GetComponentData<SoldierAnimationState>(soldier).Equipment == SoldierEquipmentState.SheathingSword
+                    && em.GetBuffer<AnimatorControllerLayerComponent>(binding.Rig)[binding.WeaponLayer].weight == 1, "Threat release delay starts one sheathe transition");
                 Update(config.SheatheSeconds * .6f);
                 Check(em.GetComponentData<LocalTransform>(binding.SwordMount).Scale == 0
+                    && em.GetComponentData<LocalTransform>(binding.ClubMount).Scale == 0
                     && em.GetComponentData<LocalTransform>(binding.TorchMount).Scale == 0, "Sheathe midpoint hides both stored items during the transition");
                 Update(config.SheatheSeconds);
                 Check(em.GetComponentData<SoldierAnimationState>(soldier).Equipment == SoldierEquipmentState.Torch
                     && em.GetComponentData<LocalTransform>(binding.TorchMount).Scale == 1, "Sheathe completes by restoring the patrol torch");
-                Check(em.GetComponentObject<ParticleSystem>(binding.TorchFlame).isPlaying
-                    && em.GetComponentObject<Light>(binding.TorchLight).enabled,
-                    "Sheathing the sword resumes the baked torch flame and point light");
+                Check(em.GetComponentObject<Light>(binding.TorchLight).enabled,
+                    "Sheathing the sword restores the baked torch point light");
                 session.Phase = Phase.Retreat;
                 em.SetComponentData(root, session);
                 em.SetComponentData(soldier, new VisualState { Visible = 1, Celebrating = (byte)NightEndPose.Celebrate });

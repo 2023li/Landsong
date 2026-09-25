@@ -38,7 +38,7 @@ namespace Landsong.Editor.UI
                 var lists = new[] { new UIPreviewListBinding("slots", container, template,
                     new TMP_Text[] { title, detail }, new[] { 0, 1 }) };
                 var marker = UIPreviewBuilder.Apply(owner, profile, texts, lists);
-                Require(heading.text == "存档" && owner.PreviewBindings.Count == 1 && root.activeSelf,
+                Require(heading.text == "存档" && owner.PreviewContent.Count == 1 && root.activeSelf,
                     "正式预制体字段显示可读示例，并配置运行清理引用");
                 Require(marker.SampleObjects.Length == 3 && !template.gameObject.activeSelf,
                     "从显式模板生成代表性条目，不启用原始模板");
@@ -101,7 +101,7 @@ namespace Landsong.Editor.UI
                 catch (InvalidOperationException) { invalidFormatRejected = true; }
                 Require(invalidFormatRejected && marker.SampleObjects.Length == 2,
                     "无效列格式在制作前报告并保留已有示例");
-                UIPreviewBuilder.ClearSamples(marker);
+                UIPreviewBuilder.ClearSamples(owner, marker);
                 Require(marker.SampleObjects.Length == 0 && container.childCount == 1
                     && heading.text == "运行时初始标题", "样例清理完整保留原模板及初始文字");
                 return "UI 预览制作验证通过：15 项；未读取 ECS、玩家存档或改写正式资产。";

@@ -36,6 +36,10 @@ namespace Landsong.ECS.Presentation
             Need(view.FeatureRoot, nameof(view.FeatureRoot));
             Need(view.ModalRoot, nameof(view.ModalRoot));
             Need(view.PauseMenu, nameof(view.PauseMenu));
+            view.PauseMenu.ValidateConfiguration();
+            if (!view.PauseMenu.gameObject.activeSelf)
+                throw new InvalidOperationException("暂停弹窗根对象必须保持激活；显示状态由遮罩图片和 CanvasGroup 控制。");
+            Need(view.royalFounding, nameof(view.royalFounding));
             Need(view.InterfaceGroup, nameof(view.InterfaceGroup));
             Need(view.InterfaceScaler, nameof(view.InterfaceScaler));
             Need(view.worldController.Camera, nameof(view.worldController.Camera));
@@ -44,7 +48,7 @@ namespace Landsong.ECS.Presentation
             if (view.buildingController.DetailsPanel != view.buildingDetailsController)
                 throw new InvalidOperationException("建筑操作条与游戏根必须绑定同一个建筑详情面板。");
             Need(view.technologyController.TechnologyTree, nameof(view.technologyController.TechnologyTree));
-            Need(view.courtController.CourtGraph, nameof(view.courtController.CourtGraph));
+            Need(view.courtController.GraphRoot, nameof(view.courtController.GraphRoot));
             Need(view.courtController.RoyalDetails, nameof(view.courtController.RoyalDetails));
             Need(view.questController, nameof(view.questController));
             Need(view.questController.QuestTracking, nameof(view.questController.QuestTracking));
@@ -64,6 +68,7 @@ namespace Landsong.ECS.Presentation
             Need(view.historyController.HistoryFilter, nameof(view.historyController.HistoryFilter));
             Need(view.hudController.AdvanceLabel, nameof(view.hudController.AdvanceLabel));
             Need(view.hudController.MessageButton, nameof(view.hudController.MessageButton));
+            Need(view.hudController.PauseButton, nameof(view.hudController.PauseButton));
             Need(view.BuildingFeatureButton, nameof(view.BuildingFeatureButton));
             Need(view.InventoryFeatureButton, nameof(view.InventoryFeatureButton));
             Need(view.ExpeditionFeatureButton, nameof(view.ExpeditionFeatureButton));
@@ -76,10 +81,11 @@ namespace Landsong.ECS.Presentation
             view.buildingController.CropSelectionPanel.ValidateConfiguration();
             view.buildingController.BuildingBar.ValidateConfiguration();
             view.technologyController.TechnologyTree.ValidateConfiguration();
-            view.courtController.CourtGraph.ValidateConfiguration();
+            view.courtController.ValidateGraphConfiguration();
             view.talentController.CourtGraph.ValidateConfiguration();
             view.policyController.CourtGraph.ValidateConfiguration();
             view.courtController.RoyalDetails.ValidateConfiguration();
+            view.royalFounding.ValidateConfiguration();
             view.questController.ValidateConfiguration();
             view.soldierController.SoldierDetailsPanel.ValidateConfiguration();
             view.marriageController.MarriagePanel.ValidateConfiguration();
@@ -105,6 +111,7 @@ namespace Landsong.ECS.Presentation
             foreach (var modal in new Component[]
             {
                 view.PauseMenu,
+                view.royalFounding,
                 view.soldierController.SoldierDetailsPanel,
                 view.marriageController.MarriagePanel,
                 view.requestsController.PersonRequestsPanel,

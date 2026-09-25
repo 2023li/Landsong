@@ -2700,7 +2700,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_Portrait
   childViews: []
   openWithOwner: 0
-  previewBindings: []
+  previewContent: []
   PortraitPanel: {fileID: 4720742472441281388}
 --- !u!1 &2805911140262532639
 GameObject:

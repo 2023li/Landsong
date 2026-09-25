@@ -55,8 +55,8 @@ namespace Landsong.ECS.Presentation
             var heir = DynastyOps.CreateRoyal(em, root, "UI 幼年继承人", 2, 8, em.GetComponentData<Identity>(king).Id);
             var hid = em.GetComponentData<Identity>(heir).Id;
             view.OpenPanel(GamePanelId.Royal);
-            yield return WaitFor(() => Object.FindFirstObjectByType<UI_GamePanel_CourtGraph>()?.Node(hid) != null, "Underage royal visible in family graph");
-            Object.FindFirstObjectByType<UI_GamePanel_CourtGraph>().Node(hid).onClick.Invoke();
+            yield return WaitFor(() => view.Court.Node(hid) != null, "Underage royal visible in family graph");
+            view.Court.Node(hid).onClick.Invoke();
             yield return WaitFor(() => view.Court.RoyalDetails != null && view.Court.RoyalDetails.PersonId == hid && view.Court.RoyalDetails.Designate.interactable, "Underage designation enabled in right details");
             var before = SnapshotCodec.Capture(em, root);
             view.Court.RoyalDetails.Designate.onClick.Invoke();

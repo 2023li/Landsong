@@ -47,7 +47,7 @@ namespace Landsong.ECS.Presentation
 
             try
             {
-                Require(menu != null && !menu.IsOpen, "Scene pause menu starts hidden");
+                Require(menu != null && menu.View == view && menu.BackgroundGroup == view.InterfaceGroup && !menu.IsOpen, "Scene pause menu has its game owner and starts hidden");
                 yield return null; // Let action bindings finish resolving the newly attached virtual keyboard before its first event.
                 yield return EscapeKey();
                 yield return null;
@@ -121,7 +121,7 @@ namespace Landsong.ECS.Presentation
                 yield return WaitFor(() => !menu.IsOpen && em.GetComponentData<SimulationControl>(root).Paused == 0, "Esc resumes previously running game");
                 view.Commands.TryQueue(new PauseRequest());
                 yield return WaitFor(() => em.GetComponentData<SimulationControl>(root).Paused != 0, "Fixture independently pauses");
-                menu.OpenButton.onClick.Invoke();
+                view.Hud.PauseButton.onClick.Invoke();
                 menu.ResumeButton.onClick.Invoke();
                 yield return WaitFor(() => !menu.IsOpen, "Resume closes menu");
                 Require(em.GetComponentData<SimulationControl>(root).Paused != 0, "Menu preserves pre-existing pause");

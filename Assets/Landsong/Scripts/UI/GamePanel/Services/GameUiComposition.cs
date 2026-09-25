@@ -29,7 +29,7 @@ namespace Landsong.ECS.Presentation
                 return;
             view.navigator = new GamePanelNavigator(view.sessionController, view.inputContext, view.refresh, view.intelligence, view.commandsController, view.FeaturePanels, view.NavigationButtons, view.buildingController, view.buildingDetailsController, view.worldController, view.technologyController, view.questController, view.courtController, view.talentController, view.policyController, view.historyController);
             view.backNavigation = new GameUiBackNavigation(view.sessionController, view.inputContext, view.navigator, view.buildingController, view.worldController, view.soldierController, view.portraitController, view.requestsController, view.marriageController);
-            view.refreshLoop = new GameUiRefreshLoop(view.sessionController, view.inputContext, view.refresh, view.intelligence, view.commandsController, view.navigator, view.buildingController, view.worldController, view.technologyController, view.questController, view.courtController, view.talentController, view.policyController, view.hudController, view.soldierController, view.portraitController, view.requestsController, view.marriageController);
+            view.refreshLoop = new GameUiRefreshLoop(view.sessionController, view.inputContext, view.refresh, view.intelligence, view.commandsController, view.navigator, view.buildingController, view.worldController, view.technologyController, view.questController, view.courtController, view.royalFounding, view.talentController, view.policyController, view.hudController, view.soldierController, view.portraitController, view.requestsController, view.marriageController);
             view.navigator.BindBack(view.backNavigation.BackPanel);
             var release = new List<Action>
             {
@@ -49,6 +49,7 @@ namespace Landsong.ECS.Presentation
                 view.talentController.ResetSession,
                 view.policyController.ResetSession,
                 view.courtController.ResetSession,
+                view.royalFounding.ResetSession,
                 view.questController.ClearSessionViews,
                 view.soldierController.CloseSoldierDetails,
                 view.portraitController.ClosePortrait,
@@ -73,6 +74,8 @@ namespace Landsong.ECS.Presentation
                 throw new InvalidOperationException("游戏面板未配置控制器：GameQuestController");
             if (view.courtController == null)
                 throw new InvalidOperationException("游戏面板未配置控制器：GameCourtController");
+            if (view.royalFounding == null)
+                throw new InvalidOperationException("游戏面板未配置王室拥立弹窗。");
             if (view.marriageController == null)
                 throw new InvalidOperationException("游戏面板未配置控制器：GameMarriageController");
             if (view.portraitController == null)
@@ -153,7 +156,7 @@ namespace Landsong.ECS.Presentation
             view.commandsController.sessionController = view.sessionController;
             view.commandsController.inputContext = view.inputContext;
             view.inputContext.PauseMenu = view.PauseMenu;
-            view.inputContext.Policy = new GameUiInputPolicy(view.sessionController, view.intelligence, view.navigator, view.inputContext, view.buildingController, view.soldierController, view.portraitController, view.requestsController, view.marriageController, view.InventoryWindow);
+            view.inputContext.Policy = new GameUiInputPolicy(view.sessionController, view.intelligence, view.navigator, view.inputContext, view.buildingController, view.soldierController, view.portraitController, view.requestsController, view.marriageController, view.InventoryWindow, view.royalFounding);
             view.worldController.sessionController = view.sessionController;
             view.worldController.buildingController = view.buildingController;
             view.worldController.hudController = view.hudController;
@@ -261,6 +264,7 @@ namespace Landsong.ECS.Presentation
             }
 
             view.navigator.RefreshPanelVisibility();
+            view.royalFounding.Bind(view.sessionController, view.commandsController);
         }
     }
 }

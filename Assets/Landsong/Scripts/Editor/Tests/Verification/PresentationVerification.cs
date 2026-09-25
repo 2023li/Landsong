@@ -98,7 +98,7 @@ namespace Landsong.ECS.Editor
                 WorldPresentationView.ConfigureConstructionDustFootprint(particles, new Unity.Mathematics.int2(2, 3), 1.5f);
                 var area = particles.shape.scale;
                 var scale = particles.transform.lossyScale;
-                Check(particles.shape.shapeType == ParticleSystemShapeType.Box
+                Check(particles.shape.shapeType == ParticleSystemShapeType.BoxEdge
                     && Mathf.Abs(area.x * scale.x - 3f) < .001f
                     && Mathf.Abs(area.z * scale.z - 4.5f) < .001f,
                     "Construction dust emitter covers the rotated building footprint in world units");

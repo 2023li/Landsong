@@ -279,7 +279,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_PersonRequests
   childViews: []
   openWithOwner: 0
-  previewBindings: []
+  previewContent: []
   PersonRequestsPanel: {fileID: 2525196016420936501}
 --- !u!1 &1155075399843372565
 GameObject:

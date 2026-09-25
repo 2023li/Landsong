@@ -6,6 +6,13 @@ namespace Landsong.ECS
     {
         public static bool TryExecute(EntityManager em, Entity root, Entity payload, out ResultCode result)
         {
+            if (em.HasComponent<FoundRoyalRequest>(payload))
+            {
+                var request = em.GetComponentData<FoundRoyalRequest>(payload);
+                result = RoyalFoundingOps.Found(em, root, request.Name, request.Gender);
+                return true;
+            }
+
             if (em.HasComponent<RecruitTalentRequest>(payload))
             {
                 var request = em.GetComponentData<RecruitTalentRequest>(payload);

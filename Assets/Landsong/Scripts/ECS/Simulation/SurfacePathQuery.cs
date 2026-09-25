@@ -35,7 +35,25 @@ namespace Landsong.ECS
         public bool Shift(float3 from, float3 to, out float3 result)
         {
             result = from; int a = Locate(from); if (a < 0) return false;
-            int b = Locate(to); if (!Connected(a, b) && !DiagonalConnected(a, b)) return false;
+            int b = Locate(to);
+            if (!Connected(a, b) && !DiagonalConnected(a, b))
+            {
+                // RVO steers on the horizontal plane. Its target height can belong to
+                // the next flat cell (or another surface), even while the step is on a
+                // connected slope. Resolve the destination from the authored surface.
+                b = -1;
+                float best = .55f;
+                if (Cells.TryGetFirstValue(GridOps.Cell(Grid, to), out int candidate, out var iterator))
+                {
+                    do
+                    {
+                        if (!Connected(a, candidate) && !DiagonalConnected(a, candidate)) continue;
+                        float error = math.abs(Height(candidate, to.xz) - from.y);
+                        if (error <= best) { best = error; b = candidate; }
+                    } while (Cells.TryGetNextValue(out candidate, ref iterator));
+                }
+                if (b < 0) return false;
+            }
             // Keep radius inside the authored width, not just the centerline sample.
             var n = Nodes[b];
             if (n.Corridor != 0)

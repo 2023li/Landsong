@@ -16,6 +16,7 @@ namespace Landsong.EditorTools
         [LabelText("行走"), Required] public AnimationClip Walk;
         [LabelText("奔跑"), Required] public AnimationClip Run;
         [LabelText("攻击"), Required] public AnimationClip Attack;
+        [LabelText("远程攻击（可选）")] public AnimationClip RangedAttack;
         [LabelText("受击（动物可留空）")] public AnimationClip Hit;
         [LabelText("死亡"), Required] public AnimationClip Death;
         [LabelText("庆祝（动物不使用）")] public AnimationClip Celebrate;
