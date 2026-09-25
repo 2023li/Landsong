@@ -6,21 +6,21 @@ namespace Landsong.ECS
 {
     public static class SoldierCombatStats
     {
-        public static void ApplyWeapon(ref CombatStatsSnapshot stats, SoldierWeaponKind weapon)
+        public static void ApplyWeapon(EntityManager em, Entity root, ref CombatStatsSnapshot stats, SoldierWeaponKind weapon)
         {
+            var item = EquipmentOps.ItemForWeapon(em, root, weapon);
+            var coefficient = item.IsValid ? ItemDefinitions.Get(em, root, item).Equipment.StrengthMultiplier : 1f;
+            stats.Damage *= coefficient;
             if (weapon == SoldierWeaponKind.Bow)
             {
                 stats.Range = math.max(4.5f, stats.Range);
                 stats.ProjectileSpeed = math.max(10, stats.ProjectileSpeed);
-                stats.Damage *= .85f;
             }
             else
             {
                 stats.Range = 1.15f;
                 stats.ProjectileSpeed = 0;
                 stats.Combat.BlastRadius = 0;
-                if (weapon == SoldierWeaponKind.None)
-                    stats.Damage *= .75f;
             }
         }
 
@@ -35,9 +35,9 @@ namespace Landsong.ECS
             profile.BlastRadius = math.clamp(profile.BlastRadius + Modifier(NumericEffectKind.BlastRadius), 0, 32);
             return new CombatStatsSnapshot
             {
-                Health = stats.MaximumHealth * math.max(.1f, 1 + Modifier(NumericEffectKind.HealthMultiplier)),
-                Damage = stats.Damage * math.max(0, 1 + Modifier(NumericEffectKind.AttackMultiplier) + Modifier(NumericEffectKind.SoldierAttackMultiplier)),
-                Speed = stats.MovementSpeed * math.max(.1f, 1 + Modifier(NumericEffectKind.MovementSpeedMultiplier) + Modifier(NumericEffectKind.SoldierSpeedMultiplier)),
+                Health = (stats.Vitality > 0 ? stats.Vitality : stats.MaximumHealth) * math.max(.1f, 1 + Modifier(NumericEffectKind.HealthMultiplier)),
+                Damage = (stats.Vitality > 0 ? stats.Strength : stats.Damage) * math.max(0, 1 + Modifier(NumericEffectKind.AttackMultiplier) + Modifier(NumericEffectKind.SoldierAttackMultiplier)),
+                Speed = (stats.Vitality > 0 ? stats.Agility : stats.MovementSpeed) * math.max(.1f, 1 + Modifier(NumericEffectKind.MovementSpeedMultiplier) + Modifier(NumericEffectKind.SoldierSpeedMultiplier)),
                 Range = math.max(.1f, stats.AttackRange * (1 + Modifier(NumericEffectKind.AttackRangeMultiplier))),
                 Interval = math.max(.05f, stats.AttackIntervalSeconds / math.max(.1f, 1 + Modifier(NumericEffectKind.AttackSpeedMultiplier))),
                 ProjectileSpeed = stats.ProjectileSpeed == 0 ? 0 : math.max(.1f, stats.ProjectileSpeed * (1 + Modifier(NumericEffectKind.ProjectileSpeedMultiplier))),

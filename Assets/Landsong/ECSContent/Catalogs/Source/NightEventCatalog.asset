@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f7ea847e6a0e421ab3d40c98be2dee1b, type: 3}
   m_Name: NightEventCatalog
   m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.NightEventCatalogAsset
+  WaveGenerator:
+    rid: 7208904576148963447
   Events:
   - Id: night.patrol
     FollowUp: 
@@ -21,7 +23,7 @@ MonoBehaviour:
     MaxTurn: 0
     Interval: 0
     Cooldown: 0
-    WaveCount: 3
+    WaveCount: 1
     ReturnDelay: 5
     Weight: 1
     BudgetScale: 1
@@ -46,11 +48,11 @@ MonoBehaviour:
     FollowUp: 
     Kind: 1
     Priority: 0
-    MinTurn: 1
+    MinTurn: 2
     MaxTurn: 0
     Interval: 0
     Cooldown: 0
-    WaveCount: 3
+    WaveCount: 1
     ReturnDelay: 5
     Weight: 1
     BudgetScale: 1
@@ -147,3 +149,11 @@ MonoBehaviour:
         FeatureRequirements: []
         QuestRequirements: []
         ExpeditionRequirements: []
+  references:
+    version: 2
+    RefIds:
+    - rid: 7208904576148963447
+      type: {class: BudgetNightWaveGeneratorSource, ns: Landsong.ECS.Authoring, asm: Landsong.ECS.Authoring}
+      data:
+        MinimumCountScale: 0.65
+        MaximumCountScale: 1.35

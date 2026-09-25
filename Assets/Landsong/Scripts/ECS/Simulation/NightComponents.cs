@@ -62,10 +62,24 @@ namespace Landsong.ECS
         public NightKind Kind;
         public int Priority, MinTurn, MaxTurn, Interval, Cooldown, WaveCount, ReturnDelay;
         public float Weight, BudgetScale;
+        public NightWaveGeneratorSettings WaveGenerator;
         public byte Once, ReturnOnly, Forced;
         public FixedList512Bytes<float> WaveTimes;
         public BlobArray<NightEnemyChoice> Enemies;
         public NightEventConditions Conditions;
+    }
+
+    public enum NightWaveGeneratorKind : byte
+    {
+        Budget,
+        FixedCount
+    }
+
+    public struct NightWaveGeneratorSettings
+    {
+        public NightWaveGeneratorKind Kind;
+        public float MinimumCountScale, MaximumCountScale;
+        public int FixedCount;
     }
 
     public struct NightEnemyChoice

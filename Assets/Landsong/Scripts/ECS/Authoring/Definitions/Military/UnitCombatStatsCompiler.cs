@@ -16,6 +16,15 @@ namespace Landsong.ECS.Authoring.Definitions
                 throw new InvalidOperationException("缺少 UnitCombatStats 配置。");
             if (!CombatProfile.Valid(source.Profile))
                 throw new InvalidOperationException("战斗行为配置无效。");
+            if (!math.isfinite(source.Strength) || source.Strength < 0 || !math.isfinite(source.Intelligence) || source.Intelligence < 0 ||
+                !math.isfinite(source.Agility) || source.Agility < 0 || !math.isfinite(source.Vitality) || source.Vitality < 0 ||
+                (byte)source.AttackAttribute > (byte)AttackAttributeKind.Intelligence)
+                throw new InvalidOperationException("单位基础属性必须为非负有限数值，且攻击属性有效。");
+            target.Strength = source.Strength;
+            target.Intelligence = source.Intelligence;
+            target.Agility = source.Agility;
+            target.Vitality = source.Vitality;
+            target.AttackAttribute = source.AttackAttribute;
             if (!math.isfinite(source.MaximumHealth))
                 throw new InvalidOperationException("生命上限必须是有限数值。");
             target.MaximumHealth = source.MaximumHealth;

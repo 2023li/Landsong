@@ -10,23 +10,43 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 03c0ae3b0a3b47698492f6ce29c88b0d, type: 3}
-  m_Name: raider
+  m_Name: invader
   m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.EnemyDefinitionAsset
   Metadata:
-    Id: raider
-    Name: "\u88AD\u51FB\u8005"
+    Id: invader
+    Name: "\u7A81\u51FB\u8005\uFF08\u5360\u4F4D\uFF09"
     Description: ''
     Icon: {fileID: 0}
-  ThreatValue: 10
-  Behavior: 4
-  Prefab: {fileID: 8897883104741734442, guid: 824655bfbf8f9e34b992d53c4f3a04e0, type: 3}
+  ThreatValue: 14
+  Behavior: 0
+  PreferredTargetCategory: 0
+  Prefab: {fileID: 8897883104741734442, guid: c0ae8e6cb7097eb46ae65dea5aa39c8f, type: 3}
   CombatStats:
-    MaximumHealth: 70
-    Damage: 8
+    Strength: 12
+    Intelligence: 0
+    Agility: 1.8
+    Vitality: 120
+    AttackAttribute: 0
+    MaximumHealth: 120
+    Damage: 12
     AttackRange: 4
     AttackIntervalSeconds: 1
     MovementSpeed: 1.8
     ProjectileSpeed: 9
+    Profile:
+      DetectionRadius: 24
+      ChaseRadius: 12
+      ChaseSeconds: 8
+      BodyRadius: 0.35
+      Armor: 0
+      Reduction: 0
+      Penetration: 0
+      BlastRadius: 0
+      WarningSeconds: 0
+      ProjectileLifetime: 10
+      ProjectileMode: 0
+      Traits: 0
+      BlocksProjectile: 0
   KillRewards:
     Items:
     - Order: 0

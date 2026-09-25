@@ -26,7 +26,7 @@ namespace Landsong.ECS
             var result = SoldierCombatStats.ForNight(em, root, d);
             var soldier = em.GetComponentData<Soldier>(unit);
             UnitProgression.ApplyGrowth(ref result, SoldierDefinitions.Get(em, root, d).Growth, soldier.Experience);
-            SoldierCombatStats.ApplyWeapon(ref result, soldier.Weapon);
+            SoldierCombatStats.ApplyWeapon(em, root, ref result, soldier.Weapon);
             return result;
         }
 
@@ -34,12 +34,20 @@ namespace Landsong.ECS
         {
             if (em.GetComponentData<Session>(root).Phase != Phase.Day)
                 return ResultCode.WrongPhase;
-            if (request.Weapon > SoldierWeaponKind.Bow)
+            if (request.Weapon > SoldierWeaponKind.Club)
                 return ResultCode.InvalidContent;
             var unit = WorldQueries.Find(em, request.Soldier);
             if (unit == Entity.Null || !em.HasComponent<Soldier>(unit) || !EntityState.Alive(em, unit))
                 return ResultCode.InvalidTarget;
             var soldier = em.GetComponentData<Soldier>(unit);
+            if (soldier.Weapon == request.Weapon)
+                return ResultCode.Success;
+            var next = EquipmentOps.ItemForWeapon(em, root, request.Weapon);
+            if (request.Weapon != SoldierWeaponKind.None && !next.IsValid)
+                return ResultCode.InvalidContent;
+            if (next.IsValid && !InventoryOps.Remove(em, root, next, 1))
+                return ResultCode.InsufficientResources;
+            EquipmentOps.ReturnWeapon(em, root, soldier.Weapon);
             soldier.Weapon = request.Weapon;
             em.SetComponentData(unit, soldier);
             return ResultCode.Success;
@@ -217,6 +225,7 @@ namespace Landsong.ECS
                 return ResultCode.InvalidTarget;
             if (!request.Confirmed)
                 return ResultCode.ConfirmationRequired;
+            EquipmentOps.ReturnWeapon(em, root, em.GetComponentData<Soldier>(unit).Weapon);
             em.DestroyEntity(unit);
             return ResultCode.Success;
         }

@@ -31,6 +31,7 @@ namespace Landsong.ECS
                 var d = em.GetComponentData<SoldierDefinitionRef>(e).Definition;
                 var stats = SoldierCombatStats.Current(em, root, d);
                 UnitProgression.ApplyGrowth(ref stats, SoldierDefinitions.Get(em, root, d).Growth, s.Experience);
+                SoldierCombatStats.ApplyWeapon(em, root, ref stats, s.Weapon);
                 value += stats.Health * .05f / (1 - stats.Combat.Reduction) + stats.Combat.Armor + stats.Damage / math.max(.1f, stats.Interval);
             }
 

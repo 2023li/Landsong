@@ -205,6 +205,20 @@ namespace Landsong.ECS.Editor
             };
             using (var blob = f.CompileBuff())
                 Check(blob.Value.Definitions[0].Effects.Intelligence[0].Level == 2, "Permanent Buff intelligence retains its authored current-level condition");
+            f.Buff.Effects = new DefinitionEffectsSource
+            {
+                Soldiers = new[]
+                {
+                    new SoldierNumericEffectSource
+                    {
+                        Effect = NumericEffectKind.EquipmentBreakChanceMultiplier,
+                        Magnitude = -.2f
+                    }
+                }
+            };
+            using (var blob = f.CompileBuff())
+                Check(blob.Value.Definitions[0].Effects.Soldiers[0].Magnitude == -.2f,
+                    "Buff can author a soldier equipment break chance modifier");
             f.Technology.Effects = new DefinitionEffectsSource
             {
                 Soldiers = new[]
@@ -750,6 +764,9 @@ namespace Landsong.ECS.Editor
 
             var current = SoldierCombatStats.Current(em, root, EffectSourceFixture.Soldier);
             Check(Near(current.Damage, 13), "Military preparation includes buff and completed technology through explicit soldier effects");
+            Check(Near(SoldierEffects.Modifier(em, root, NumericEffectKind.EquipmentBreakChanceMultiplier, EffectSourceFixture.Soldier), -.2f)
+                && Near(EquipmentOps.EffectiveBreakChance(.5f, SoldierEffects.Modifier(em, root, NumericEffectKind.EquipmentBreakChanceMultiplier, EffectSourceFixture.Soldier)), .4f),
+                "Owned Buff reduces a wooden club's battle break chance from 50 to 40 percent");
             var plan = em.GetComponentData<NightPlanState>(root);
             plan.PreparedTurn = sessionClock.Turn;
             em.SetComponentData(root, plan);

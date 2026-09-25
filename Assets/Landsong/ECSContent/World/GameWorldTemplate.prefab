@@ -326,6 +326,15 @@ MonoBehaviour:
     - Order: 3
       Item: {fileID: 11400000, guid: a927377c37e532b49af819fa89b72369, type: 2}
       Quantity: 100
+    - Order: 4
+      Item: {fileID: 11400000, guid: 93723546a0174f218732f5f29b03ef0e, type: 2}
+      Quantity: 2
+    - Order: 5
+      Item: {fileID: 11400000, guid: dbf45db6625740bab0ac9645688c958e, type: 2}
+      Quantity: 2
+    - Order: 6
+      Item: {fileID: 11400000, guid: 23d6a06449114c929ff9ad2893398a89, type: 2}
+      Quantity: 2
     Blueprints:
     - Order: 0
       Building: {fileID: 11400000, guid: 6f6af578252db9b4fb3f09dcdccc0ce6, type: 2}

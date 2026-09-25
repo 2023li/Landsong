@@ -8,6 +8,16 @@ namespace Landsong.ECS.Authoring.Definitions
     [Serializable]
     public sealed class UnitCombatStatsSource
     {
+        [LabelText("力量")]
+        public float Strength;
+        [LabelText("智力")]
+        public float Intelligence;
+        [LabelText("敏捷")]
+        public float Agility;
+        [LabelText("生命值")]
+        public float Vitality;
+        [LabelText("攻击使用属性")]
+        public AttackAttributeKind AttackAttribute;
         [LabelText("生命上限")]
         public float MaximumHealth = 100;
         [LabelText("基础攻击")]

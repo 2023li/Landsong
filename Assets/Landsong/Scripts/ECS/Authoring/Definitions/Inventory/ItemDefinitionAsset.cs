@@ -20,6 +20,8 @@ namespace Landsong.ECS.Authoring.Definitions
         public int TradeValue;
         [LabelText("自然损耗率")]
         public float NaturalLossRate;
+        [LabelText("装备参数（损坏率为基础值）")]
+        public EquipmentProfile Equipment;
         [LabelText("被盗规则")]
         public TheftProfile Theft = TheftProfile.Default;
     }

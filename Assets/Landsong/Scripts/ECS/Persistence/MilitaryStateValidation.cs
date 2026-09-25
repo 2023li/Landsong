@@ -19,7 +19,7 @@ namespace Landsong.ECS.Persistence
             {
                 var soldier = record.Soldier;
                 ref var definition = ref SoldierDefinitions.Get(em, root, record.Definition);
-                if (soldier.PopulationCost < 0 || soldier.Experience < 0 || soldier.PendingSince < 0 || soldier.PendingSince > data.Clock.Turn || soldier.LastExperienceTurn < 0 || soldier.LastExperienceTurn > data.Clock.Turn || soldier.RecallState != 0 || soldier.Weapon > SoldierWeaponKind.Bow || soldier.Slot < 0 || soldier.Experience > UnitProgression.LevelThreshold(definition.Growth, definition.Growth.MaxLevel))
+                if (soldier.PopulationCost < 0 || soldier.Experience < 0 || soldier.PendingSince < 0 || soldier.PendingSince > data.Clock.Turn || soldier.LastExperienceTurn < 0 || soldier.LastExperienceTurn > data.Clock.Turn || soldier.RecallState != 0 || soldier.Weapon > SoldierWeaponKind.Club || soldier.Slot < 0 || soldier.Experience > UnitProgression.LevelThreshold(definition.Growth, definition.Growth.MaxLevel))
                     throw new InvalidDataException("Invalid soldier state");
                 if (soldier.Garrison == 0)
                 {

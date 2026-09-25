@@ -12,9 +12,9 @@ namespace Landsong.ECS
             var value = definition.CombatStats;
             var stats = new CombatStatsSnapshot
             {
-                Health = value.MaximumHealth,
-                Damage = value.Damage,
-                Speed = value.MovementSpeed,
+                Health = value.Vitality > 0 ? value.Vitality : value.MaximumHealth,
+                Damage = value.Vitality > 0 ? value.AttackAttribute == AttackAttributeKind.Intelligence ? value.Intelligence : value.Strength : value.Damage,
+                Speed = value.Vitality > 0 ? value.Agility : value.MovementSpeed,
                 Range = value.AttackRange,
                 Interval = value.AttackIntervalSeconds,
                 ProjectileSpeed = value.ProjectileSpeed,

@@ -16,7 +16,7 @@ namespace Landsong.ECS.Authoring.Definitions
 
         public static void Item(NumericEffectKind kind) => Require(kind == NumericEffectKind.LossMultiplier || kind == NumericEffectKind.ProductionMultiplier || kind == NumericEffectKind.CropHarvestMultiplier, "物品");
         public static void Building(NumericEffectKind kind) => Require(kind == NumericEffectKind.Armor || kind == NumericEffectKind.DamageReduction || kind == NumericEffectKind.ActionPower, "建筑");
-        public static void Soldier(NumericEffectKind kind) => Require(Military(kind), "士兵");
+        public static void Soldier(NumericEffectKind kind) => Require(Military(kind) || kind == NumericEffectKind.EquipmentBreakChanceMultiplier, "士兵");
         public static void Hero(NumericEffectKind kind) => Require(Military(kind) && kind != NumericEffectKind.SoldierAttackMultiplier && kind != NumericEffectKind.SoldierSpeedMultiplier, "英雄");
         public static void Talent(NumericEffectKind kind) => Require(kind == NumericEffectKind.NaturalDeathRisk, "人才");
         public static void Kingdom(KingdomEffectKind kind) => Require(Enum.IsDefined(typeof(KingdomEffectKind), kind), "王国");

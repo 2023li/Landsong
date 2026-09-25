@@ -60,8 +60,19 @@ namespace Landsong.ECS.Presentation
                 var selected = WorldQueries.Find(sessionController.em, detailsSoldier);
                 if (selected == Entity.Null || !sessionController.em.HasComponent<Soldier>(selected)) return;
                 var current = sessionController.em.GetComponentData<Soldier>(selected).Weapon;
-                var next = current == SoldierWeaponKind.None ? SoldierWeaponKind.Sword
-                    : current == SoldierWeaponKind.Sword ? SoldierWeaponKind.Bow : SoldierWeaponKind.None;
+                var choices = new[] { SoldierWeaponKind.None, SoldierWeaponKind.Club, SoldierWeaponKind.Sword, SoldierWeaponKind.Bow };
+                var index = Array.IndexOf(choices, current);
+                SoldierWeaponKind next = SoldierWeaponKind.None;
+                for (int offset = 1; offset < choices.Length; offset++)
+                {
+                    var candidate = choices[(index + offset + choices.Length) % choices.Length];
+                    var item = EquipmentOps.ItemForWeapon(sessionController.em, sessionController.root, candidate);
+                    if (candidate == SoldierWeaponKind.None || item.IsValid && InventoryOps.Count(sessionController.em, sessionController.root, item) > 0)
+                    {
+                        next = candidate;
+                        break;
+                    }
+                }
                 commandsController.TryQueue(new EquipSoldierWeaponRequest { Soldier = detailsSoldier, Weapon = next });
             });
             soldierDetailsAge = SoldierDetailsPanel.Age;
@@ -107,14 +118,15 @@ namespace Landsong.ECS.Presentation
             SoldierDetailsPanel.PortraitBinding.Bind(sessionController.em, sessionController.root, detailsSoldier);
             SoldierDetailsName.interactable = session.Phase == Phase.Day && sessionControl.Paused == 0 && sessionPersistence.CheckpointPending == 0 && EntityState.Alive(sessionController.em, unit);
             SoldierDetailsPanel.Weapon.interactable = SoldierDetailsName.interactable;
-            SoldierDetailsPanel.WeaponLabel.text = s.Weapon == SoldierWeaponKind.Sword ? "武器\n短剑"
-                : s.Weapon == SoldierWeaponKind.Bow ? "武器\n短弓" : "武器\n木棒";
+            SoldierDetailsPanel.WeaponLabel.text = s.Weapon == SoldierWeaponKind.Sword ? "武器\n铁剑"
+                : s.Weapon == SoldierWeaponKind.Bow ? "武器\n木弓"
+                : s.Weapon == SoldierWeaponKind.Club ? "武器\n木棒" : "武器\n未装备";
             if (!SoldierDetailsName.isFocused)
                 SoldierDetailsName.SetTextWithoutNotify(sessionController.em.GetComponentData<Identity>(unit).Name.ToString());
             soldierDetailsAge.text = "年龄：" + (sessionController.em.HasComponent<SoldierPerson>(unit) ? PortraitOps.Age(sessionController.em, unit) + " 岁" : "暂无记录");
             float health = sessionController.em.HasComponent<Health>(unit) ? sessionController.em.GetComponentData<Health>(unit).Current : stats.Health;
             float maximum = sessionController.em.HasComponent<Health>(unit) ? sessionController.em.GetComponentData<Health>(unit).Maximum : stats.Health;
-            soldierDetailsStats.text = $"力量：—    知识：—\n敏捷：{stats.Speed:0.#}    血量：{health:0.#}/{maximum:0.#}";
+            soldierDetailsStats.text = $"力量：{d.CombatStats.Strength:0.#}    智力：{d.CombatStats.Intelligence:0.#}\n敏捷：{d.CombatStats.Agility:0.#}    血量：{health:0.#}/{maximum:0.#}";
             soldierDetailsAbilities.text = $"士兵能力\n{d.Metadata.Name} · Lv.{UnitProgression.Level(d.Growth, s.Experience)}\n攻击：{stats.Damage:0.#} · {(s.Weapon == SoldierWeaponKind.Bow ? "远程" : "近战")} · 射程 {stats.Range:0.#}\n经验：{s.Experience}\n自动巡逻与攻击\n\n驻地：{sessionController.EntityName(s.Garrison)}\n槽位：{s.Slot}";
         }
     }

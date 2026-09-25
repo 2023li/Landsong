@@ -291,7 +291,7 @@ namespace Landsong.Animation
             if (em.Exists(binding.ClubMount) && em.HasComponent<LocalTransform>(binding.ClubMount))
             {
                 var club = em.GetComponentData<LocalTransform>(binding.ClubMount);
-                club.Scale = swordVisible && weaponKind == (byte)SoldierWeaponKind.None ? 1 : 0;
+                club.Scale = swordVisible && weaponKind == (byte)SoldierWeaponKind.Club ? 1 : 0;
                 em.SetComponentData(binding.ClubMount, club);
             }
             if (em.Exists(binding.BowMount) && em.HasComponent<LocalTransform>(binding.BowMount))

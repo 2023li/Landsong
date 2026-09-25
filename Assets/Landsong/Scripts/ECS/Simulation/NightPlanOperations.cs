@@ -9,6 +9,16 @@ namespace Landsong.ECS
 {
     public static class NightPlanOps
     {
+        public static int WaveCount(in NightWaveGeneratorSettings generator, int threat, int totalWaves, int cost, bool boss, ref Random rng)
+        {
+            if (boss)
+                return 1;
+            if (generator.Kind == NightWaveGeneratorKind.FixedCount)
+                return generator.FixedCount;
+            return math.clamp((int)(threat / (float)totalWaves / math.max(1, cost) *
+                rng.NextFloat(generator.MinimumCountScale, generator.MaximumCountScale)), 1, 256);
+        }
+
         public static float DefaultWaveAt(in NightSettings settings, int index, int count)
         {
             if (index <= 0 || count <= 1)
@@ -246,7 +256,8 @@ namespace Landsong.ECS
                     if (legal)
                         position = point;
                     var cost = math.max(1, EnemyDefinitions.Get(em, root, d).ThreatValue);
-                    int count = (EnemyDefinitions.Get(em, root, d).Behavior & EnemyBehaviorFlags.Boss) != 0 ? 1 : math.clamp((int)(sNight.Threat / (float)e.WaveCount / cost * rng.NextFloat(.65f, 1.35f)), 1, 256);
+                    int count = WaveCount(e.WaveGenerator, sNight.Threat, e.WaveCount, cost,
+                        (EnemyDefinitions.Get(em, root, d).Behavior & EnemyBehaviorFlags.Boss) != 0, ref rng);
                     var target = legal ? NightSpatialOps.Target(em, root, d, position, position, 0, false) : Entity.Null;
                     // Persist this night's selected region and wave together; day edits repair blocked regions before dusk.
                     waves = em.GetBuffer<NightWave>(root);

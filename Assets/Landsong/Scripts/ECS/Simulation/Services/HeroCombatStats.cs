@@ -17,9 +17,9 @@ namespace Landsong.ECS
             profile.BlastRadius = math.clamp(profile.BlastRadius + Modifier(NumericEffectKind.BlastRadius), 0, 32);
             return new CombatStatsSnapshot
             {
-                Health = stats.MaximumHealth * math.max(.1f, 1 + Modifier(NumericEffectKind.HealthMultiplier)),
-                Damage = stats.Damage * math.max(0, 1 + Modifier(NumericEffectKind.AttackMultiplier)),
-                Speed = stats.MovementSpeed * math.max(.1f, 1 + Modifier(NumericEffectKind.MovementSpeedMultiplier)),
+                Health = (stats.Vitality > 0 ? stats.Vitality : stats.MaximumHealth) * math.max(.1f, 1 + Modifier(NumericEffectKind.HealthMultiplier)),
+                Damage = (stats.Vitality > 0 ? stats.AttackAttribute == AttackAttributeKind.Intelligence ? stats.Intelligence : stats.Strength : stats.Damage) * math.max(0, 1 + Modifier(NumericEffectKind.AttackMultiplier)),
+                Speed = (stats.Vitality > 0 ? stats.Agility : stats.MovementSpeed) * math.max(.1f, 1 + Modifier(NumericEffectKind.MovementSpeedMultiplier)),
                 Range = math.max(.1f, stats.AttackRange * (1 + Modifier(NumericEffectKind.AttackRangeMultiplier))),
                 Interval = math.max(.05f, stats.AttackIntervalSeconds / math.max(.1f, 1 + Modifier(NumericEffectKind.AttackSpeedMultiplier))),
                 ProjectileSpeed = stats.ProjectileSpeed == 0 ? 0 : math.max(.1f, stats.ProjectileSpeed * (1 + Modifier(NumericEffectKind.ProjectileSpeedMultiplier))),

@@ -10,25 +10,30 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 03c0ae3b0a3b47698492f6ce29c88b0d, type: 3}
-  m_Name: invader
+  m_Name: wolf
   m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.EnemyDefinitionAsset
   Metadata:
-    Id: invader
-    Name: "\u7A81\u51FB\u8005\uFF08\u5360\u4F4D\uFF09"
-    Description:
+    Id: wolf
+    Name: "\u72FC"
+    Description: "\u5FEB\u901F\u8FD1\u6218\u654C\u4EBA\uFF0C\u6301\u7EED\u8FFD\u51FB\u6700\u8FD1\u7684\u5B58\u6D3B\u51FA\u6218\u58EB\u5175\u3002"
     Icon: {fileID: 0}
   CombatStats:
-    MaximumHealth: 120
-    Damage: 12
-    AttackRange: 4
-    AttackIntervalSeconds: 1
-    MovementSpeed: 1.8
-    ProjectileSpeed: 9
+    Strength: 8
+    Intelligence: 0
+    Agility: 3.2
+    Vitality: 60
+    AttackAttribute: 0
+    MaximumHealth: 60
+    Damage: 8
+    AttackRange: 1.1
+    AttackIntervalSeconds: 1.5
+    MovementSpeed: 3.2
+    ProjectileSpeed: 0
     Profile:
       DetectionRadius: 24
       ChaseRadius: 12
       ChaseSeconds: 8
-      BodyRadius: 0.35
+      BodyRadius: 0.4
       Armor: 0
       Reduction: 0
       Penetration: 0
@@ -36,9 +41,9 @@ MonoBehaviour:
       WarningSeconds: 0
       ProjectileLifetime: 10
       ProjectileMode: 0
-      Traits: 0
+      Traits: 4
       BlocksProjectile: 0
-  ThreatValue: 14
+  ThreatValue: 8
   Behavior: 0
   PreferredTargetCategory: 0
   KillRewards:
@@ -50,4 +55,4 @@ MonoBehaviour:
     Buffs: []
     Features: []
   SpecialDrops: []
-  Prefab: {fileID: 8897883104741734442, guid: c0ae8e6cb7097eb46ae65dea5aa39c8f, type: 3}
+  Prefab: {fileID: 6224780025837708547, guid: 0b0a7b35ab106fe4fa63dc01cdacdda1, type: 3}

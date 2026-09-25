@@ -22,6 +22,11 @@ MonoBehaviour:
   RevivalCooldownTurns: 10
   Prefab: {fileID: 38455565601157698, guid: 06414383ec350ce4996d90ed4f06a051, type: 3}
   CombatStats:
+    Strength: 0
+    Intelligence: 80
+    Agility: 1.7
+    Vitality: 1200
+    AttackAttribute: 1
     MaximumHealth: 1200
     Damage: 80
     AttackRange: 6

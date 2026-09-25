@@ -18,6 +18,11 @@ MonoBehaviour:
     Description: 
     Icon: {fileID: 0}
   CombatStats:
+    Strength: 12
+    Intelligence: 0
+    Agility: 2.5
+    Vitality: 100
+    AttackAttribute: 0
     MaximumHealth: 100
     Damage: 12
     AttackRange: 4.5

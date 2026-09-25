@@ -132,6 +132,10 @@ namespace Landsong.EditorTools
                 }
 
                 var soldier = Spawn("militia", 0, new float3(0, .5f, 0));
+                var clubLoadout = em.GetComponentData<Soldier>(soldier);
+                clubLoadout.Weapon = SoldierWeaponKind.Club;
+                em.SetComponentData(soldier, clubLoadout);
+                SoldierCombatants.Configure(em, root, soldier, true, 0, new float3(0, .5f, 0));
                 var enemy = Spawn("raider", 1, new float3(1, .5f, 0));
                 Check(em.HasComponent<AnimatedUnitVisual>(soldier) && em.HasBuffer<TacticalActionData>(soldier), "Normal Sim.Spawn retains DBP tasks and opts into native animation");
                 Check(em.GetComponentData<SoldierAnimationState>(soldier).View == Entity.Null && !em.HasComponent<SoldierAnimationBinding>(soldier), "Spawning the gameplay unit does not instantiate its view");
@@ -152,15 +156,20 @@ namespace Landsong.EditorTools
                 Check(bakedLayers[binding.WeaponLayer].weight == 1 && bakedLayers[0].weight == baseWeight
                     && bakedLayers[binding.TorchLayer].weight == 0,
                     "Draw and sheathe enable both arms without interrupting base locomotion");
-                SoldierAnimationSystem.SetEquipmentVisual(em, binding, true, false, true, weaponKind: (byte)SoldierWeaponKind.None);
+                SoldierAnimationSystem.SetEquipmentVisual(em, binding, true, false, true, weaponKind: (byte)SoldierWeaponKind.Club);
                 Check(em.GetComponentData<LocalTransform>(binding.ClubMount).Scale == 1
                     && em.GetComponentData<LocalTransform>(binding.SwordMount).Scale == 0
                     && em.GetComponentData<LocalTransform>(binding.BowMount).Scale == 0,
-                    "Empty weapon slot displays the club graybox");
+                    "Equipped club displays the club graybox");
                 SoldierAnimationSystem.SetEquipmentVisual(em, binding, true, false, true, weaponKind: (byte)SoldierWeaponKind.Bow);
                 Check(em.GetComponentData<LocalTransform>(binding.BowMount).Scale == 1
                     && em.GetComponentData<LocalTransform>(binding.ClubMount).Scale == 0,
                     "Ranged weapon displays the bow graybox");
+                SoldierAnimationSystem.SetEquipmentVisual(em, binding, true, false, true, weaponKind: (byte)SoldierWeaponKind.None);
+                Check(em.GetComponentData<LocalTransform>(binding.SwordMount).Scale == 0
+                    && em.GetComponentData<LocalTransform>(binding.ClubMount).Scale == 0
+                    && em.GetComponentData<LocalTransform>(binding.BowMount).Scale == 0,
+                    "Empty weapon slot hides all weapon models");
                 SoldierAnimationSystem.SetEquipmentVisual(em, binding, false, true, false);
                 Check(em.Exists(binding.TorchFlame) && em.HasComponent<ParticleSystem>(binding.TorchFlame)
                     && em.Exists(binding.TorchLight) && em.HasComponent<Light>(binding.TorchLight),
@@ -229,7 +238,7 @@ namespace Landsong.EditorTools
                 Check(em.GetComponentData<Parent>(binding.SwordMount).Value == binding.SwordHandSocket
                     && em.GetComponentData<LocalTransform>(binding.SwordMount).Scale == 0
                     && em.GetComponentData<LocalTransform>(binding.ClubMount).Scale == 1
-                    && em.GetComponentData<LocalTransform>(binding.TorchMount).Scale == 0, "Draw midpoint shows the unequipped club and hides the torch");
+                    && em.GetComponentData<LocalTransform>(binding.TorchMount).Scale == 0, "Draw midpoint shows the equipped club and hides the torch");
                 Check(em.GetComponentObject<ParticleSystem>(binding.TorchFlame).isStopped
                     && !em.GetComponentObject<Light>(binding.TorchLight).enabled,
                     "Drawing the sword stops the baked torch flame and point light");

@@ -71,6 +71,9 @@ namespace Landsong.ECS.Editor
             Check(!CombatProfile.Valid(p), "Permanent full mitigation rejected");
             Check(ProjectileOps.Mitigate(20, 8, 3, .25f) == 11.25f, "Flat armor minus penetration then damage reduction");
             Check(ProjectileOps.Mitigate(3, 10, 0, 0) == 0, "Armor cannot heal target");
+            Check(EquipmentOps.EffectiveBreakChance(.5f, -.2f) == .4f, "Break chance buff scales the equipment base chance");
+            Check(EquipmentOps.EffectiveBreakChance(.5f, -1f) == 0f && EquipmentOps.EffectiveBreakChance(.5f, 2f) == 1f,
+                "Break chance buff result stays within zero to one");
         }
 
         static PreparedSoldier[] Prepared(EntityManager em, Entity root)
@@ -119,12 +122,26 @@ namespace Landsong.ECS.Editor
                 {
                     var member = roster[0];
                     var memberId = em.GetComponentData<Identity>(member).Id;
+                    var bowItem = EquipmentOps.ItemForWeapon(em, root, SoldierWeaponKind.Bow);
+                    Check(bowItem.IsValid, "Wooden bow is registered as an equipment item");
+                    Check(ItemDefinitions.Get(em, root, bowItem).Equipment.BreakChance == .3f
+                        && ItemDefinitions.Get(em, root, bowItem).NaturalLossRate == .02f,
+                        "Wooden bow has separate battle break chance and storage loss rate");
+                    var bowStock = InventoryOps.Count(em, root, bowItem);
+                    Check(bowStock >= 2, "Current map starts with wooden bows in inventory");
                     Check(GameRequestExecution.Execute(em, root, new EquipSoldierWeaponRequest { Soldier = memberId, Weapon = SoldierWeaponKind.Bow }) == ResultCode.Success,
                         "Weapon slot accepts a daytime ranged loadout");
+                    Check(InventoryOps.Count(em, root, bowItem) == bowStock - 1, "Equipping a bow consumes one item");
                     var equipped = SnapshotCodec.Capture(em, root);
                     SnapshotCodec.Restore(em, root, SnapshotCodec.Decode(em, root, equipped));
                     Check(em.GetComponentData<Soldier>(WorldQueries.Find(em, memberId)).Weapon == SoldierWeaponKind.Bow,
                         "Weapon choice survives ECS snapshot roundtrip");
+                    Check(GameRequestExecution.Execute(em, root, new EquipSoldierWeaponRequest { Soldier = memberId, Weapon = SoldierWeaponKind.None }) == ResultCode.Success
+                        && InventoryOps.Count(em, root, bowItem) == bowStock, "Unequipping returns the bow to inventory");
+                    Check(InventoryOps.Remove(em, root, bowItem, bowStock)
+                        && GameRequestExecution.Execute(em, root, new EquipSoldierWeaponRequest { Soldier = memberId, Weapon = SoldierWeaponKind.Bow }) == ResultCode.InsufficientResources
+                        && em.GetComponentData<Soldier>(WorldQueries.Find(em, memberId)).Weapon == SoldierWeaponKind.None,
+                        "A soldier cannot equip a bow without inventory stock");
                     SnapshotCodec.Restore(em, root, SnapshotCodec.Decode(em, root, original));
                 }
                 var grid = em.GetComponentData<GridData>(root);
@@ -193,6 +210,42 @@ namespace Landsong.ECS.Editor
                     }
                 var a = Unit(0, origin);
                 var b = Unit(1, origin + new float3(1, 0, 0));
+                var militiaStats = SoldierDefinitions.Get(em, root, soldier).CombatStats;
+                Check(militiaStats.Strength > 0 && militiaStats.Vitality > 0 && militiaStats.Agility > 0,
+                    "Militia definition uses four-stat combat inputs");
+                var bareStats = SoldierOps.SoldierStats(em, root, a);
+                Check(math.abs(bareStats.Damage - militiaStats.Strength) < .001f
+                    && math.abs(bareStats.Health - militiaStats.Vitality) < .001f
+                    && math.abs(bareStats.Speed - militiaStats.Agility) < .001f,
+                    "Unarmed militia damage, health and speed derive from base attributes");
+                var weaponSoldier = em.GetComponentData<Soldier>(a);
+                weaponSoldier.Weapon = SoldierWeaponKind.Club;
+                em.SetComponentData(a, weaponSoldier);
+                Check(math.abs(SoldierOps.SoldierStats(em, root, a).Damage - bareStats.Damage * 1.5f) < .001f,
+                    "Wooden club applies 1.5 times strength damage");
+                weaponSoldier.Weapon = SoldierWeaponKind.Sword;
+                em.SetComponentData(a, weaponSoldier);
+                Check(math.abs(SoldierOps.SoldierStats(em, root, a).Damage - bareStats.Damage * 2f) < .001f,
+                    "Iron sword applies two times strength damage");
+                weaponSoldier.Weapon = SoldierWeaponKind.None;
+                em.SetComponentData(a, weaponSoldier);
+                var clubItem = EquipmentOps.ItemForWeapon(em, root, SoldierWeaponKind.Club);
+                var clubStock = InventoryOps.Count(em, root, clubItem);
+                var idle = Unit(0, origin + new float3(8, 0, 8));
+                var idleSoldier = em.GetComponentData<Soldier>(idle);
+                idleSoldier.Weapon = SoldierWeaponKind.Club;
+                em.SetComponentData(idle, idleSoldier);
+                EquipmentOps.SettleNight(em, root);
+                Check(em.GetComponentData<Soldier>(idle).Weapon == SoldierWeaponKind.Club,
+                    "Equipment does not break when its living owner did not fight");
+                var idleHealth = em.GetComponentData<Health>(idle);
+                idleHealth.Current = 0;
+                em.SetComponentData(idle, idleHealth);
+                EquipmentOps.SettleNight(em, root);
+                Check(em.GetComponentData<Soldier>(idle).Weapon == SoldierWeaponKind.None
+                    && InventoryOps.Count(em, root, clubItem) == clubStock,
+                    "A dead soldier's weapon always breaks without returning to inventory");
+                em.DestroyEntity(idle);
                 Check(em.GetComponentData<Combatant>(a).ProjectileSpeed == 0
                     && em.GetComponentData<Combatant>(a).Range == 1.15f,
                     "Unequipped militia attacks in club melee range without spawning a projectile");
@@ -201,7 +254,8 @@ namespace Landsong.ECS.Editor
                 em.SetComponentData(a, equippedSoldier);
                 SoldierCombatants.Configure(em, root, a, true, 0, origin);
                 Check(em.GetComponentData<Combatant>(a).ProjectileSpeed > 0
-                    && em.GetComponentData<Combatant>(a).Range >= 4.5f,
+                    && em.GetComponentData<Combatant>(a).Range >= 4.5f
+                    && math.abs(em.GetComponentData<Combatant>(a).Damage - bareStats.Damage * 1.5f) < .001f,
                     "Bow loadout restores ranged projectiles and ranged reach");
                 equippedSoldier.Weapon = SoldierWeaponKind.None;
                 em.SetComponentData(a, equippedSoldier);

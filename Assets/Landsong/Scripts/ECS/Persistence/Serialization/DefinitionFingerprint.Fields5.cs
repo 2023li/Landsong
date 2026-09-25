@@ -33,6 +33,9 @@ namespace Landsong.ECS.Persistence
             SnapshotBinary.Write(writer, value.MaximumStack);
             SnapshotBinary.Write(writer, value.TradeValue);
             SnapshotBinary.Write(writer, value.NaturalLossRate);
+            SnapshotBinary.Write(writer, (byte)value.Equipment.Weapon);
+            SnapshotBinary.Write(writer, value.Equipment.StrengthMultiplier);
+            SnapshotBinary.Write(writer, value.Equipment.BreakChance);
             Write(writer, ref value.Theft);
         }
 

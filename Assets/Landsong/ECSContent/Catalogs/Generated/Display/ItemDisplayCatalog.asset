@@ -46,3 +46,12 @@ MonoBehaviour:
   - Id: "\u9EC4\u91D1\u9C7C"
     Description: "\u4E8C\u7EA7\u8089\u7C7B\u3002"
     Icon: {fileID: 21300000, guid: 069d738ab1b187d468c9f08a84d301e1, type: 3}
+  - Id: equipment.wood_club
+    Description: 近战武器
+    Icon: {fileID: 0}
+  - Id: equipment.iron_sword
+    Description: 近战武器
+    Icon: {fileID: 0}
+  - Id: equipment.wood_bow
+    Description: 远程武器
+    Icon: {fileID: 0}

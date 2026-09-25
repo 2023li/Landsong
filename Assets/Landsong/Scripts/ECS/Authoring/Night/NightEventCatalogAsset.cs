@@ -10,6 +10,41 @@ using Landsong.ECS.Authoring.Definitions;
 namespace Landsong.ECS.Authoring
 {
     [Serializable]
+    public abstract class NightWaveGeneratorSource
+    {
+        public abstract NightWaveGeneratorSettings Compile();
+    }
+
+    [Serializable]
+    public sealed class BudgetNightWaveGeneratorSource : NightWaveGeneratorSource
+    {
+        [LabelText("数量随机倍率下限"), MinValue(0.01)]
+        public float MinimumCountScale = .65f;
+        [LabelText("数量随机倍率上限"), MinValue(0.01)]
+        public float MaximumCountScale = 1.35f;
+
+        public override NightWaveGeneratorSettings Compile() => new NightWaveGeneratorSettings
+        {
+            Kind = NightWaveGeneratorKind.Budget,
+            MinimumCountScale = MinimumCountScale,
+            MaximumCountScale = MaximumCountScale
+        };
+    }
+
+    [Serializable]
+    public sealed class FixedCountNightWaveGeneratorSource : NightWaveGeneratorSource
+    {
+        [LabelText("每波普通敌人数量"), Range(1, 256)]
+        public int Count = 3;
+
+        public override NightWaveGeneratorSettings Compile() => new NightWaveGeneratorSettings
+        {
+            Kind = NightWaveGeneratorKind.FixedCount,
+            FixedCount = Count
+        };
+    }
+
+    [Serializable]
     public sealed class NightEnemySource
     {
         [LabelText("敌军定义"), Required]
@@ -95,7 +130,7 @@ namespace Landsong.ECS.Authoring
         public bool ReturnOnly;
         [LabelText("强制事件")]
         public bool Forced;
-        [LabelText("波次时间比例")]
+        [LabelText("波次预警时间比例（0~1）")]
         public float[] WaveTimes = Array.Empty<float>();
         [LabelText("敌军抽取池")]
         public NightEnemySource[] Enemies = Array.Empty<NightEnemySource>();
@@ -106,6 +141,8 @@ namespace Landsong.ECS.Authoring
     [CreateAssetMenu(menuName = "Landsong/ECS/Night/Event Catalog")]
     public sealed class NightEventCatalogAsset : ScriptableObject
     {
+        [SerializeReference, LabelText("波次生成器")]
+        public NightWaveGeneratorSource WaveGenerator = new BudgetNightWaveGeneratorSource();
         [LabelText("夜晚事件")]
         public NightEventSource[] Events = Array.Empty<NightEventSource>();
     }

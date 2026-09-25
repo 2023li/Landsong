@@ -15,6 +15,11 @@ namespace Landsong.ECS.Authoring
         {
             if (catalog == null || catalog.Events == null)
                 throw new InvalidOperationException("缺少夜晚事件目录。");
+            var generator = (catalog.WaveGenerator ?? new BudgetNightWaveGeneratorSource()).Compile();
+            if (generator.Kind == NightWaveGeneratorKind.Budget && (!math.isfinite(generator.MinimumCountScale) || generator.MinimumCountScale <= 0 || !math.isfinite(generator.MaximumCountScale) || generator.MaximumCountScale < generator.MinimumCountScale) ||
+                generator.Kind == NightWaveGeneratorKind.FixedCount && (generator.FixedCount < 1 || generator.FixedCount > 256) ||
+                (byte)generator.Kind > (byte)NightWaveGeneratorKind.FixedCount)
+                throw new InvalidOperationException("夜晚波次生成器配置无效。");
             var ids = new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
             bool fallback = false;
             foreach (var e in catalog.Events)
@@ -24,8 +29,8 @@ namespace Landsong.ECS.Authoring
                 if (e.WaveTimes == null || e.WaveTimes.Length != 0 && e.WaveTimes.Length != e.WaveCount)
                     throw new InvalidOperationException("波次时间数量不符：" + e.Id);
                 for (int i = 0; i < e.WaveTimes.Length; i++)
-                    if (!math.isfinite(e.WaveTimes[i]) || e.WaveTimes[i] < 0 || e.WaveTimes[i] >= 1 || i == 0 && e.WaveTimes[i] != 0 || i > 0 && e.WaveTimes[i] <= e.WaveTimes[i - 1])
-                        throw new InvalidOperationException("波次时间必须从零开始并递增且小于一：" + e.Id);
+                    if (!math.isfinite(e.WaveTimes[i]) || e.WaveTimes[i] < 0 || e.WaveTimes[i] >= 1 || i > 0 && e.WaveTimes[i] <= e.WaveTimes[i - 1])
+                        throw new InvalidOperationException("波次时间必须非负、严格递增且小于一：" + e.Id);
                 bool boss = false, ordinary = false;
                 if (e.Enemies == null || e.Conditions == null)
                     throw new InvalidOperationException("缺少敌军池或夜晚条件：" + e.Id);
@@ -75,6 +80,7 @@ namespace Landsong.ECS.Authoring
                     target.ReturnDelay = source.ReturnDelay;
                     target.Weight = source.Weight;
                     target.BudgetScale = source.BudgetScale;
+                    target.WaveGenerator = generator;
                     target.Once = (byte)(source.Once ? 1 : 0);
                     target.ReturnOnly = (byte)(source.ReturnOnly ? 1 : 0);
                     target.Forced = (byte)(source.Forced ? 1 : 0);

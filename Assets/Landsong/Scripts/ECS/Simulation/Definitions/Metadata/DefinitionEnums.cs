@@ -86,7 +86,9 @@ namespace Landsong.ECS.Definitions
         [UnityEngine.InspectorName("弹体速度倍率")]
         ProjectileSpeedMultiplier,
         [UnityEngine.InspectorName("爆炸半径")]
-        BlastRadius
+        BlastRadius,
+        [UnityEngine.InspectorName("装备损坏率倍率")]
+        EquipmentBreakChanceMultiplier
     }
 
     public enum KingdomEffectKind : byte

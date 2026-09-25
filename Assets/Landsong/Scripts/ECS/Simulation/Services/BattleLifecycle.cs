@@ -13,6 +13,7 @@ namespace Landsong.ECS
         public static void Dawn(EntityManager em, Entity root)
         {
             GameClock stateClock = em.GetComponentData<GameClock>(root);
+            EquipmentOps.SettleNight(em, root);
             SoldierLifeOps.AgeSoldiers(em, root);
             SoldierOps.ReportSoldierExperience(em, root);
             HeroOps.ReportHeroExperience(em, root);
@@ -92,6 +93,8 @@ namespace Landsong.ECS
                 var site = WorldQueries.Find(em, s.Garrison);
                 if (!BuildingStatus.Operational(em, site))
                 {
+                    if (EntityState.Alive(em, e))
+                        EquipmentOps.ReturnWeapon(em, root, s.Weapon);
                     em.DestroyEntity(e);
                     continue;
                 }

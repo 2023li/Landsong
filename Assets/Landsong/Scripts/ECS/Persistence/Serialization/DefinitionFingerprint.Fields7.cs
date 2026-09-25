@@ -70,6 +70,11 @@ namespace Landsong.ECS.Persistence
 
         internal static void Write(BinaryWriter writer, ref Landsong.ECS.Definitions.UnitCombatStats value)
         {
+            SnapshotBinary.Write(writer, value.Strength);
+            SnapshotBinary.Write(writer, value.Intelligence);
+            SnapshotBinary.Write(writer, value.Agility);
+            SnapshotBinary.Write(writer, value.Vitality);
+            SnapshotBinary.Write(writer, (byte)value.AttackAttribute);
             SnapshotBinary.Write(writer, value.MaximumHealth);
             SnapshotBinary.Write(writer, value.Damage);
             SnapshotBinary.Write(writer, value.AttackRange);
@@ -188,6 +193,10 @@ namespace Landsong.ECS.Persistence
             SnapshotBinary.Write(writer, value.ReturnDelay);
             SnapshotBinary.Write(writer, value.Weight);
             SnapshotBinary.Write(writer, value.BudgetScale);
+            SnapshotBinary.Write(writer, (byte)value.WaveGenerator.Kind);
+            SnapshotBinary.Write(writer, value.WaveGenerator.MinimumCountScale);
+            SnapshotBinary.Write(writer, value.WaveGenerator.MaximumCountScale);
+            SnapshotBinary.Write(writer, value.WaveGenerator.FixedCount);
             SnapshotBinary.Write(writer, value.Once);
             SnapshotBinary.Write(writer, value.ReturnOnly);
             SnapshotBinary.Write(writer, value.Forced);

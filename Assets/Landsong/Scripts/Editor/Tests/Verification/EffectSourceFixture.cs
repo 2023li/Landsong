@@ -98,11 +98,16 @@ namespace Landsong.ECS.Editor
                         Name = new FixedString128Bytes("效果Buff " + i)
                     };
                 Effects(builder, ref definitions[0].Effects, 1, 2, true);
-                var military = builder.Allocate(ref definitions[0].Effects.Soldiers, 1);
+                var military = builder.Allocate(ref definitions[0].Effects.Soldiers, 2);
                 military[0] = new SoldierNumericEffect
                 {
                     Effect = NumericEffectKind.AttackMultiplier,
                     Magnitude = .1f
+                };
+                military[1] = new SoldierNumericEffect
+                {
+                    Effect = NumericEffectKind.EquipmentBreakChanceMultiplier,
+                    Magnitude = -.2f
                 };
                 var intel = builder.Allocate(ref definitions[0].Effects.Intelligence, 3);
                 intel[0] = new IntelligenceEffect

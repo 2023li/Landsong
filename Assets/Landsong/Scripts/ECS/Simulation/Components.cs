@@ -533,7 +533,8 @@ namespace Landsong.ECS
     {
         None = 0,
         Sword = 1,
-        Bow = 2
+        Bow = 2,
+        Club = 3
     }
 
     public struct Hero : IComponentData

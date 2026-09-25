@@ -42,7 +42,16 @@ namespace Landsong.ECS.Definitions
         public int MaximumStack;
         public int TradeValue;
         public float NaturalLossRate;
+        public EquipmentProfile Equipment;
         public TheftProfile Theft;
+    }
+
+    [Serializable]
+    public struct EquipmentProfile
+    {
+        public SoldierWeaponKind Weapon;
+        public float StrengthMultiplier;
+        public float BreakChance;
     }
 
     public struct ItemCatalogBlob
