@@ -30,6 +30,8 @@ namespace Landsong.ECS
 
     public static class SurfaceNavigationGraph
     {
+        const float FixedTerrainClearance = 1.5f;
+
         // A route through the outer column of a three-cell (or wider) slope leaves
         // only half a cell for the agent's centre. Keep that column available for
         // movement, but route across an inner column with a full cell of margin.
@@ -110,6 +112,27 @@ namespace Landsong.ECS
                 Add(new SurfaceNavNode { Cell = c.Cell, Position = p, Surface = c.Surface, Elevation = c.Elevation, Open = 1, Cost = 1, SideClearance = float.MaxValue });
             }
 
+            // A higher terrain surface is solid overhead even when it is not walkable.
+            // Keep lower surfaces in the map, but close their navigation nodes when
+            // there is less headroom than the clearance used by fixed connections.
+            for (int i = 0; i < nodes.Count; i++)
+            {
+                var lower = nodes[i];
+                if (lower.Open == 0 || !byCell.TryGetValue(lower.Cell, out var column))
+                    continue;
+                for (int j = column.First; j >= 0; j = nextInCell[j])
+                {
+                    if (j == i || j < grid.Value.Value.Cells.Length && grid.Value.Value.Cells[j].Exists == 0)
+                        continue;
+                    float gap = nodes[j].Position.y - lower.Position.y;
+                    if (gap <= 0 || gap >= FixedTerrainClearance)
+                        continue;
+                    lower.Open = 0;
+                    nodes[i] = lower;
+                    break;
+                }
+            }
+
             // Adjacency never guesses a climb from height tolerance. Different planes need authored connections.
             int planarCount = nodes.Count;
             for (int i = 0; i < planarCount; i++)
@@ -140,18 +163,32 @@ namespace Landsong.ECS
             void Corridor(int2 cell, int2 size, int rotation, int entrySurface, int exitSurface, int elevation, int rise, bool bidirectional, ulong owner, int surface, float cost, float clearance, bool slope = false, bool road = false)
             {
                 var indices = new int[size.x, size.y];
+                var validLane = new bool[size.x];
+                int firstLane = -1;
                 for (int x = 0; x < size.x; x++)
                 {
                     indices[x, 0] = Endpoint(TerrainConnectionOps.Port(cell, size, rotation, x, 0), entrySurface, elevation);
                     indices[x, size.y - 1] = Endpoint(TerrainConnectionOps.Port(cell, size, rotation, x, size.y - 1), exitSurface, elevation + rise);
                     if (indices[x, 0] < 0 || indices[x, size.y - 1] < 0)
-                        return; // Never leave a half-connected corridor.
+                    {
+                        if (!slope)
+                            return; // A constructed connection must remain complete.
+                        continue; // A blocked upper slope port must not erase the other lanes.
+                    }
+                    validLane[x] = true;
+                    if (firstLane < 0)
+                        firstLane = x;
                 }
+                if (firstLane < 0)
+                    return;
 
-                float height = nodes[indices[0, 0]].Position.y;
+                float height = nodes[indices[firstLane, 0]].Position.y;
                 var direction = TerrainConnectionOps.Port(cell, size, rotation, 0, 1) - TerrainConnectionOps.Port(cell, size, rotation, 0, 0);
                 float2 gradient = (float2)direction * (rise * TerrainConnectionOps.HeightStep(grid) / ((slope ? 1 : size.y - 1) * grid.CellSize));
                 for (int x = 0; x < size.x; x++)
+                {
+                    if (!validLane[x])
+                        continue;
                     for (int z = 1; z < size.y - 1; z++)
                     {
                         var at = TerrainConnectionOps.Port(cell, size, rotation, x, z);
@@ -171,8 +208,12 @@ namespace Landsong.ECS
                                 nodes[j] = n; // Stair body occupies low clearance space, without removing the lower surface.
                             }
                     }
+                }
 
                 for (int x = 0; x < size.x; x++)
+                {
+                    if (!validLane[x])
+                        continue;
                     for (int z = 0; z < size.y; z++)
                     {
                         int i = indices[x, z];
@@ -183,18 +224,19 @@ namespace Landsong.ECS
                                 Link(indices[x, z + 1], i);
                         }
 
-                        if (x + 1 < size.x && z > 0 && z < size.y - 1)
+                        if (x + 1 < size.x && validLane[x + 1] && z > 0 && z < size.y - 1)
                         {
                             Link(i, indices[x + 1, z]);
                             Link(indices[x + 1, z], i);
                         }
                     }
+                }
             }
 
             for (int i = 0; i < grid.Value.Value.Connections.Length; i++)
             {
                 var c = grid.Value.Value.Connections[i];
-                Corridor(c.Cell, c.Size, c.Rotation, c.EntrySurface, c.ExitSurface, c.EntryElevation, c.Rise, c.Bidirectional, 0, -c.Id, 1, 1.5f, c.ProtrudingSlope);
+                Corridor(c.Cell, c.Size, c.Rotation, c.EntrySurface, c.ExitSurface, c.EntryElevation, c.Rise, c.Bidirectional, 0, -c.Id, 1, FixedTerrainClearance, c.ProtrudingSlope);
             }
 
             using (var buildings = WorldQueries.Entities<Building>(em))

@@ -334,6 +334,26 @@ namespace Landsong.ECS.Editor
                         Check(copy.Any(n => n.Cell.Equals(new int2(1, 1)) && n.Surface == 1 && n.Open != 0), "Building reservation at upper XZ does not erase lower navigation");
                 }
 
+                var g1 = new BlueprintLayerFolder("Layer1");
+                f.Config.blueprintLayerFolders.Add(g1);
+                var lowCeiling = f.Blueprint(g1, "陆地", f.Land);
+                lowCeiling.allPositions.Add(new Vector2(2, 3));
+                using (var closeGrid = GameWorldMapAuthoring.BuildGrid(f.Map(f.Compile())))
+                using (var world = new World("Low terrain clearance test"))
+                {
+                    var em = world.EntityManager;
+                    var root = em.CreateEntity();
+                    em.AddComponentData(root, new GridData { Value = closeGrid, CellSize = 1 });
+                    em.AddBuffer<Occupancy>(root).Resize(64, NativeArrayOptions.ClearMemory);
+                    SurfaceNavigationGraph.Ensure(em, root);
+                    using var copy = em.GetBuffer<SurfaceNavNode>(root).ToNativeArray(Allocator.Temp);
+                    Check(copy.Any(n => n.Cell.Equals(new int2(2, 3)) && n.Elevation == 1 && n.Open != 0)
+                        && copy.Any(n => n.Cell.Equals(new int2(2, 3)) && n.Elevation == 0 && n.Open == 0),
+                        "Layer1 terrain blocks the Layer0 unit route directly below it");
+                    Check(copy.Any(n => n.Cell.Equals(new int2(1, 1)) && n.Elevation == 0 && n.Open != 0),
+                        "Three units of clearance keep the lower terrain traversable");
+                }
+
                 bridge.ExitCell = new Vector2Int(2, 5);
                 Reject(() => LayerTerrainCompiler.Connection(r, bridge), "Diagonal connections are rejected");
                 bridge.ExitCell = new Vector2Int(1, 5);

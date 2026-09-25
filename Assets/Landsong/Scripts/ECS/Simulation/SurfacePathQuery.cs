@@ -6,6 +6,8 @@ namespace Landsong.ECS
 {
     public struct SurfacePathQuery
     {
+        const float TerrainEdgePadding = .1f;
+
         [ReadOnly] public NativeArray<SurfaceNavNode> Nodes;
         [ReadOnly] public NativeArray<SurfaceNavEdge> Edges;
         [ReadOnly] public NativeParallelMultiHashMap<int2, int> Cells;
@@ -73,7 +75,33 @@ namespace Landsong.ECS
                 float2 lateral = n.Lateral;
                 if (math.any(lateral != 0) && math.abs(math.dot(to.xz - n.Position.xz, lateral)) + Radius > n.SideClearance) return false;
             }
+            else
+            {
+                // RVO may steer off the node centre. Leave room for the actor's
+                // body at a terrain edge, without narrowing a connected crossing.
+                float inset = math.min(math.max(0, Radius) + TerrainEdgePadding, Grid.CellSize * .45f);
+                float2 origin = Grid.Origin.xz + (float2)n.Cell * Grid.CellSize;
+                float2 local = to.xz - origin;
+                if (!OpenSide(b, new int2(-1, 0))) local.x = math.max(local.x, inset);
+                if (!OpenSide(b, new int2(1, 0))) local.x = math.min(local.x, Grid.CellSize - inset);
+                if (!OpenSide(b, new int2(0, -1))) local.y = math.max(local.y, inset);
+                if (!OpenSide(b, new int2(0, 1))) local.y = math.min(local.y, Grid.CellSize - inset);
+                to.x = origin.x + local.x;
+                to.z = origin.y + local.y;
+            }
             to.y = Height(b, to.xz); result = to; return true;
+        }
+        bool OpenSide(int node, int2 direction)
+        {
+            if (!Cells.TryGetFirstValue(Nodes[node].Cell + direction, out int neighbor, out var iterator))
+                return false;
+            do
+            {
+                if (Connected(node, neighbor) || Connected(neighbor, node))
+                    return true;
+            }
+            while (Cells.TryGetNextValue(out neighbor, ref iterator));
+            return false;
         }
         bool DiagonalConnected(int a, int b)
         {

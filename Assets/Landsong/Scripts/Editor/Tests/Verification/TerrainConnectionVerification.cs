@@ -37,6 +37,7 @@ namespace Landsong.ECS.Editor
             try
             {
                 PlacementAndPaths();
+                TerrainEdgeClearance();
                 ActualMovement();
                 WideSlopeEntryMovement();
                 CrowdAvoidance();
@@ -313,6 +314,21 @@ namespace Landsong.ECS.Editor
 
         static readonly float3 BridgeA = new float3(4.5f, 3.5f, 3.5f), BridgeB = new float3(4.5f, 3.5f, 13.5f);
         static readonly float3 StairsA = new float3(11.5f, .5f, 3.5f), StairsB = new float3(11.5f, 2.5f, 9.5f);
+
+        static void TerrainEdgeClearance()
+        {
+            using var f = new Fixture();
+            using var query = f.Query(.35f);
+            Check(query.Value.Shift(new float3(.5f, .5f, 6.5f), new float3(.02f, .5f, 6.5f), out var border)
+                && math.abs(border.x - .45f) < .001f,
+                "A soldier keeps its body and visual padding inside the map edge");
+            Check(query.Value.Shift(new float3(8.5f, .5f, 9.5f), new float3(8.98f, .5f, 9.5f), out var cliff)
+                && math.abs(cliff.x - 8.55f) < .001f,
+                "A soldier keeps its distance from an unconnected upper terrain edge");
+            Check(query.Value.Shift(new float3(7.5f, .5f, 9.5f), new float3(7.02f, .5f, 9.5f), out var crossing)
+                && math.abs(crossing.x - 7.02f) < .001f,
+                "A connected flat crossing retains its full movement width");
+        }
         static void PlacementAndPaths()
         {
             using var f = new Fixture();
@@ -483,6 +499,34 @@ namespace Landsong.ECS.Editor
                         + ", resolved=" + resolved.targetPoint + "/" + resolved.speed);
                     f.Em.DestroyEntity(unit);
                 }
+
+            // A tree or other impassable object may occupy one upper mouth cell.
+            // The remaining slope lanes must still connect the two terrain levels.
+            var grid = f.Em.GetComponentData<GridData>(f.Root);
+            var occupancy = f.Em.GetBuffer<Occupancy>(f.Root);
+            occupancy[GridOps.Index(grid, new int2(4, 8))] = new Occupancy { Owner = 42, MovementCost = 0 };
+            using (var query = f.Query())
+            {
+                Check(!query.Value.Nodes.ToArray().Any(n => n.Open != 0 && n.ProtrudingSlope != 0 && math.all(n.Cell == new int2(4, 7)))
+                    && query.Value.Nodes.ToArray().Any(n => n.Open != 0 && n.ProtrudingSlope != 0 && math.all(n.Cell == new int2(5, 7))),
+                    "Blocked upper slope port removes only its own lane");
+                Check(query.Path(new float3(5.5f, .5f, 6.5f), new float3(5.5f, 1.5f, 9.5f)),
+                    "Remaining slope lane still connects lower and upper terrain");
+            }
+            Check(AstarNavigationRuntime.EnsureGraph(f.Em, f.Root)
+                && AstarNavigationRuntime.FindPath(new float3(5.5f, .5f, 6.5f), new float3(5.5f, 1.5f, 9.5f), f.Em.AddBuffer<Waypoint>(f.Em.CreateEntity())),
+                "A* runtime graph preserves the usable slope lane");
+
+            // QueryScope creates and destroys a path entity, invalidating buffer handles.
+            occupancy = f.Em.GetBuffer<Occupancy>(f.Root);
+            occupancy[GridOps.Index(grid, new int2(4, 8))] = default;
+            using (var query = f.Query())
+                Check(query.Value.Nodes.ToArray().Any(n => n.Open != 0 && n.ProtrudingSlope != 0 && math.all(n.Cell == new int2(4, 7))),
+                    "Removing the upper obstacle restores its slope lane");
+            var restoredPath = f.Em.CreateEntity();
+            Check(AstarNavigationRuntime.EnsureGraph(f.Em, f.Root)
+                && AstarNavigationRuntime.FindPath(new float3(4.5f, .5f, 6.5f), new float3(4.5f, 1.5f, 9.5f), f.Em.AddBuffer<Waypoint>(restoredPath)),
+                "A* runtime graph restores the cleared slope lane");
         }
 
         static void CrowdAvoidance()
