@@ -306,6 +306,9 @@ public static class EcsEditorAutomation
                 case "VerifyBill":
                     response.Details = Landsong.ECS.Editor.BillVerification.Run();
                     break;
+                case "VerifyGamePanelNavigation":
+                    response.Details = Landsong.ECS.Editor.GamePanelNavigationVerification.Run();
+                    break;
                 case "RenderBillUi":
                     response.Details = Landsong.ECS.Editor.UiVisualVerification.RenderBills();
                     break;

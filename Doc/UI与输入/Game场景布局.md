@@ -14,14 +14,14 @@ UI_Root：Canvas / UIManager / ApplicationUiRoot / GameApplicationFlow
 │     ├─ BuildingRoot：建筑操作条（随 SelectionAnchor 定位）、建筑目录与放置提示
 │     ├─ FeatureRoot：建筑详情及科技、任务、经济等完整功能窗口
 │     ├─ 科技、任务、人才、王室、政策等功能视图
-│     ├─ 经济、库存、驻军、情报、战报等独立窗口
+│     ├─ 历史、库存、驻军、情报、战报等独立窗口
 │     ├─ Game 私有模态：暂停、士兵详情、赐婚、请求、塑容
 │     └─ 各控件的禁用真实模板及 EditorOnly 示例
 ├─ Popup 层：共享 UI_SettingPanel / UI_SavePanel / UI_ConfirmPanel
 └─ Blocker 层：共享 UI_LoadingPanel
 ```
 
-只有 `UI_GamePanel` 登记为 Game 根面板。控制器按实际层级进入根的“直属子视图”树，统一创建、绑定所有者和释放；HUD 与历史等需要随根打开的视图显式配置该标志。局部功能窗口与列表也保存自己的固定容器，由 Game 根的导航协调器互斥显隐，不另建全局堆栈项。列表行、网格节点、纯布局组件不因为可复用就成为根面板。
+只有 `UI_GamePanel` 登记为 Game 根面板。控制器按实际层级进入根的“直属子视图”树，统一创建、绑定所有者和释放；HUD 等需要随根打开的视图显式配置该标志。局部功能窗口与列表也保存自己的固定容器，由 Game 根的导航协调器互斥显隐，不另建全局堆栈项。列表行、网格节点、纯布局组件不因为可复用就成为根面板。
 
 Game 根配置为 Session 作用域、关闭后释放，打开时必须传入当前游戏 `UIScope`。应用流程在地图与模拟准备完成后调用 `BindSession`，传入 EntityManager、会话根、世界相机、共享 Scaler 和 EventSystem；视图不会自行查找这些对象。解绑时清理选择、导航历史、输入拖动、建造放置、稳定行、肖像/家谱缓存、请求和私有窗口，再结束作用域。相同的 Game 预制体可以用于下一局，但上一局运行实例不跨局复用。
 
@@ -34,12 +34,12 @@ Game 根配置为 Session 作用域、关闭后释放，打开时必须传入当
 | `UI_GamePanel` | 序列化视图引用、组合服务与会话生命周期入口 |
 | `Services/GamePanelNavigator` / `GameUiBackNavigation` | 功能导航、历史、互斥显隐与返回输入路由 |
 | `Services/GameUiRefreshLoop` / `GameUiSessionLifetime` | 刷新调度与会话释放；某视图释放失败时仍释放其余视图并清空会话状态 |
-| `UI_GamePanel_Hud` / `UI_GamePanel_History` / `UI_GamePanel_Phase` | HUD、历史过滤与反馈、阶段相关窗口 |
+| `UI_GamePanel_Hud` / `UI_GamePanel_History` / `UI_GamePanel_Phase` | HUD、按回合合并的经济事件战报历史、阶段相关窗口 |
 | `UI_GamePanel_BuildingActionBar` / `UI_GamePanel_Technology` / `UI_GamePanel_Quest` | 建筑操作条、科技、任务展示和用户意图；建筑完整信息由 `UI_GamePanel_BuildingDetails` 独立呈现 |
 | `UI_GamePanel_Royal` / `UI_GamePanel_Talent` / `UI_GamePanel_Policy` | 王室、人才、政策的独立控制器；王室直接继承功能视图，不经过通用列表控制器 |
 | `UI_GamePanel_RoyalFounding` | 王宫升至 2 级后拥有拥立弹窗及姓名、性别确认交互 |
 | `UI_GamePanel_Marriage` / `UI_GamePanel_PersonRequests` / `UI_GamePanel_Portrait` / `UI_GamePanel_Soldier` | 赐婚、人物待办、塑容、士兵详情等私有交互 |
-| `UI_GamePanel_Economy` / `Inventory` / `Garrison` / `Intelligence` / `BattleReport` | 分别拥有内容、筛选、选择和滚动位置的功能窗口；文件均保留完整 `UI_GamePanel_` 前缀 |
+| `UI_GamePanel_History` / `Inventory` / `Garrison` / `Intelligence` / `BattleReport` | 分别拥有内容、筛选、选择和滚动位置的功能窗口；文件均保留完整 `UI_GamePanel_` 前缀 |
 | `UI_GamePanel_List` | 通用窗口绑定与渲染接口，不包含按玩法功能分类的长分支 |
 | `UI_GamePanel_RowRenderer` / `UI_GamePanel_Row` 及行变体 | 稳定条目复用、文字/图标/按钮绑定、局部输入与选择 |
 | `Services/GameUiSessionHandle` | 只保存有效 ECS 世界与根实体句柄 |
@@ -56,7 +56,7 @@ Game 根配置为 Session 作用域、关闭后释放，打开时必须传入当
 
 通用窗口的序列化 `Presenter` 必须实现 `IGameFeatureRenderer`；绑定通过 `BindFeature` 注入会话、命令、导航和行服务，刷新由窗口的 `Render()` 分派给自己的实现。经济、库存等专用窗口可以实现自己的渲染逻辑。根不再通过逐项分支承接所有功能的绘制代码，窗口也不互相借用内容节点。
 
-视图预制体按根组件命名，例如 `Views/UI_GamePanel_Hud.prefab`、`UI_GamePanel_Technology.prefab`、`UI_GamePanel_Royal.prefab`。王室家谱、人物详情和王朝事务均在 `UI_GamePanel_Royal.prefab` 内，由同一 `UI_GamePanel_Royal` 控制；功能面板下不再有独立的王室展示面板。同一通用列表组件的用途变体使用 `UI_GamePanel_List_History.prefab` 等明确后缀。行资产如 `Items/UI_GamePanel_Row.prefab`、`UI_GamePanel_InventoryGridRow.prefab`、`UI_GamePanel_QuantityRow_Quest.prefab`。这些资产的根对象名与文件用途一致，原有 GUID 保留。
+视图预制体按根组件命名，例如 `Views/UI_GamePanel_Hud.prefab`、`UI_GamePanel_Technology.prefab`、`UI_GamePanel_Royal.prefab`、`UI_GamePanel_History.prefab`。王室家谱、人物详情和王朝事务均在 `UI_GamePanel_Royal.prefab` 内，由同一 `UI_GamePanel_Royal` 控制；功能面板下不再有独立的王室展示面板。历史面板按回合列出经济快照、事件与归档战报。行资产如 `Items/UI_GamePanel_Row.prefab`、`UI_GamePanel_InventoryGridRow.prefab`、`UI_GamePanel_QuantityRow_Quest.prefab`。这些资产的根对象名与文件用途一致，原有 GUID 保留。
 
 世界呈现的 `WorldPresentationView`、`PresentationActor`、`PresentationEffect` 、`AudioRuntime` 和 `LocalizationRuntime` 位于 `Scripts/Presentation/`，不伪装成 UI 面板。音频和本地化服务由应用根分别提供；世界表现直接绑定模型与特效目录；各肖像视图直接绑定画像目录。
 
@@ -66,7 +66,7 @@ HUD 提供状态、阶段、功能导航、研究卡、任务追踪、英雄/人
 
 建筑区域由建造目录栏、建筑操作条与详情组成。点击 HUD 建筑入口只在功能解锁后打开 `BuildingRoot` 下的建造目录栏；不存在用于显示锁定说明的“建筑许可面板”。点击世界建筑只在 `BuildingRoot` 显示操作条；操作条通过烘焙出的 `BuildingSelectionAnchor` 将世界坐标转换到 UI 坐标，点击“详情”后才在 `FeatureRoot` 打开独立详情面板。二者不使用共同的中间父对象，避免把世界浮动控件和完整功能窗口绑定到同一显隐及坐标生命周期。目录分类/建筑卡使用显式模板，悬浮说明只刷新内容。工人信息与劳动力模板由详情面板持有；详情名称输入、图标、经验、岗位、种植、驻军与其他模块均在详情预制体内制作。放置提示整体面板在放置/移动期间显示，取消或结束会话清理，不只隐藏文字而留下背景。具体规则见 [建筑系统](../建筑系统/README.md)。
 
-经济、库存、驻军、情报、战报各有独立窗口；驻军分别保存已分配/待分配两组滚动容器。科技、任务、家谱/人才/政策图保存各自图形容器和节点模板。固定标题、关闭按钮与返回入口放在滚动内容之外。王室自己的事务容器不借用其他功能窗口，普通关闭不应被定时刷新重新打开。
+历史、库存、驻军、情报、战报各有独立窗口；驻军分别保存已分配/待分配两组滚动容器。科技、任务、家谱/人才/政策图保存各自图形容器和节点模板。固定标题、关闭按钮与返回入口放在滚动内容之外。王室自己的事务容器不借用其他功能窗口，普通关闭不应被定时刷新重新打开。
 
 暂停、士兵详情、赐婚、请求和塑容属于 Game 私有交互，由局部路由阻断底层输入。暂停入口通过应用接口打开共享设置与存档，没有嵌套的第二套设置页面。返回处理与完整输入约束见 [UI 与输入](README.md)。
 

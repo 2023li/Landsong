@@ -199,6 +199,10 @@ namespace Landsong.ECS
             foreach (var supply in quote.Supplies)
                 em.GetBuffer<ExpeditionSupply>(journey).Add(supply);
             PersonRequestOps.Departed(em, root, journey);
+            var captain = request.Captain == 0 ? Entity.Null : WorldQueries.Find(em, request.Captain);
+            var leader = captain == Entity.Null ? "远征所" : em.GetComponentData<Identity>(captain).Name.ToString();
+            var destination = ExpeditionDefinitions.Get(em, root, request.Destination).Metadata.Name.ToString();
+            SimulationEvents.Emit(em, root, EventKind.Message, $"由{leader}带领的远征队出发，前往{destination}");
             return ResultCode.Success;
         }
 
@@ -350,7 +354,10 @@ namespace Landsong.ECS
                 }
 
                 em.SetComponentData(e, expedition);
-                SimulationEvents.Emit(em, root, EventKind.Message, success ? "远征归来，可领取奖励" : "远征归来，请查看伤亡及抚恤", em.GetComponentData<Identity>(e).Id);
+                var captain = expedition.Captain == 0 ? Entity.Null : WorldQueries.Find(em, expedition.Captain);
+                var leader = captain == Entity.Null ? "远征所" : em.GetComponentData<Identity>(captain).Name.ToString();
+                SimulationEvents.Emit(em, root, EventKind.Message,
+                    success ? $"由{leader}带领的远征队凯旋，可领取奖励" : $"由{leader}带领的远征队归来，请查看伤亡及抚恤");
                 PersonRequestOps.Returned(em, root, e, true);
             }
         }

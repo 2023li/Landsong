@@ -31,7 +31,7 @@ namespace Landsong.ECS.Editor
         public static string RenderBills()
         {
             Directory.CreateDirectory(Output);
-            return string.Join("\n", new[] { Render(BillUiAssets.BillPath, 1920, 1080), Render(BillUiAssets.BillPath, 1280, 720),
+            return string.Join("\n", new[] { Render(BillUiAssets.HistoryPath, 1920, 1080), Render(BillUiAssets.HistoryPath, 1280, 720),
                 Render(InventoryUiAssets.Path, 1920, 1080, "InventoryDetails"), Render(InventoryUiAssets.Path, 1280, 720, "InventoryDetails") });
         }
         public static string RenderAll()
@@ -84,16 +84,17 @@ namespace Landsong.ECS.Editor
                 var rect = (RectTransform)panel.transform;
                 UiPanelLayoutAuthoring.RequireStretchRoot(panel);
                 if (panel.TryGetComponent<UI_GamePanel_Inventory>(out var inventory)) InventoryUiVerification.PreparePreview(inventory, state);
-                if (panel.TryGetComponent<UI_GamePanel_Economy>(out var bill))
+                if (panel.TryGetComponent<UI_GamePanel_History>(out var history))
                 {
-                    bill.EmptyState.gameObject.SetActive(false);
-                    for (int turn = 351; turn <= 356; turn++)
+                    history.EmptyState.gameObject.SetActive(false);
+                    for (int turn = 391; turn <= 392; turn++)
                     {
-                        var group = UnityEngine.Object.Instantiate(bill.TurnTemplate, bill.BillScroll.content); group.TurnLabel.text = turn + "回合"; group.gameObject.SetActive(true);
-                        var stone = UnityEngine.Object.Instantiate(group.RowTemplate, group.Rows); stone.gameObject.SetActive(true);
-                        stone.Show("石头", new EconomyBillEntry { Income = 20, Expense = 25, Stored = 500 - 5 * (turn - 351) });
-                        var wood = UnityEngine.Object.Instantiate(group.RowTemplate, group.Rows); wood.gameObject.SetActive(true);
-                        wood.Show("原木", new EconomyBillEntry { Income = 30, Expense = 21, Stored = 321 + 9 * (turn - 351) });
+                        var group = UnityEngine.Object.Instantiate(history.TurnTemplate, history.HistoryScroll.content);
+                        group.TurnLabel.text = $"第{turn}回合：";
+                        group.Body.text = turn == 391
+                            ? "经济：\n石头  本回合库存量 500  本回合变化量 -5\n原木  本回合库存量 321  本回合变化量 +9\n事件：\n王国国王驾崩，由继承人继位\n由远征队长带领的远征队凯旋\n战报：\n为抵御敌人入侵，我们失去了一些勇士：守城新兵\n入侵中被损毁的建筑：城门"
+                            : "经济：\n石头  本回合库存量 495  本回合变化量 -5\n事件：\n由远征队长带领的远征队出发\n战报：\n是个平安夜";
+                        group.gameObject.SetActive(true);
                     }
                 }
                 if (state == "GameStartPop") panel.GetComponent<UI_StartPanel>().NewDynasty.gameObject.SetActive(true);

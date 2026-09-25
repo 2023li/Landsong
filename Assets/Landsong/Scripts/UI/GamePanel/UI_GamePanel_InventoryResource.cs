@@ -26,7 +26,7 @@ namespace Landsong.ECS.Presentation
 
             long income = prediction?.Income ?? 0;
             long expense = prediction?.Expense ?? 0;
-            return $"{name}  {stored}（{UI_GamePanel_Economy.Signed(income - expense)}）\n产出：{income}  消耗：{expense}";
+            return $"{name}  {stored}（{UI_GamePanel_History.Signed(income - expense)}）\n产出：{income}  消耗：{expense}";
         }
 
         public void ValidateConfiguration()

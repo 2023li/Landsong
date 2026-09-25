@@ -191,7 +191,7 @@ namespace Landsong.ECS.Presentation
                 Require(view.soldierController.SoldierDetailsOpen, "Occupied portrait opens soldier detail");
                 yield return WaitFor(() => soldierDetails.PortraitBinding.BoundPersonId == id && soldierDetails.Portrait.sprite != null && soldierDetails.Portrait.sprite == expectedDetailPortrait && !soldierDetails.Portrait.canvasRenderer.cull, "Occupied soldier detail rebinds the selected person and renders its actual visible portrait");
                 Require(view.soldierController.SoldierDetailsWindow.GetComponentsInChildren<TMP_Text>().Any(t => t.text.Contains("敏捷：") && t.text.Contains("血量：")), "Soldier basic attributes include agility and actual health");
-                view.OpenPanel(GamePanelId.Economy);
+                view.OpenPanel(GamePanelId.History);
                 Require(view.soldierController.SoldierDetailsOpen && !view.IsPanelOpen, "Soldier detail prevents underlying panel navigation");
                 view.soldierController.SoldierDetailsName.onEndEdit.Invoke("守城新兵");
                 yield return WaitFor(() => em.GetComponentData<Identity>(WorldQueries.Find(em, id)).Name.ToString() == "守城新兵", "Soldier detail renames authoritative identity");

@@ -286,7 +286,7 @@ namespace Landsong.ECS.Presentation
                 yield return WaitFor(() => view.InventoryWindow.ResourceDetailsOpen && view.InventoryWindow.ForecastStatus.text.Contains("本回合预计收支"), "Current-turn forecast shown in resource details");
                 view.InventoryWindow.ResourceDetailsClose.onClick.Invoke();
                 view.InventoryWindow.EconomyButton.onClick.Invoke();
-                yield return WaitFor(() => view.Panel == GamePanelId.Economy && view.EconomyWindow.Title.text == "账单", "Bill button opens historical bill panel");
+                yield return WaitFor(() => view.Panel == GamePanelId.History && view.HistoryWindow.Title.text == "历史", "Inventory button opens combined history panel");
                 view.Hud.Advance.onClick.Invoke();
                 yield return WaitFor(() => view.Panel == GamePanelId.NightConfirmation, "post-settlement confirmation UI");
                 Require(view.PrimaryRows.GetComponentsInChildren<TMPro.TextMeshProUGUI>().Any(t => t.text.Contains("尚未扣款")), "UGUI explains non-mutating settlement preview");

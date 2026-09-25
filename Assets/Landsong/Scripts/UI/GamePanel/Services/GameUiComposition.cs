@@ -27,7 +27,7 @@ namespace Landsong.ECS.Presentation
         {
             if (view.navigator != null)
                 return;
-            view.navigator = new GamePanelNavigator(view.sessionController, view.inputContext, view.refresh, view.intelligence, view.commandsController, view.FeaturePanels, view.NavigationButtons, view.buildingController, view.buildingDetailsController, view.worldController, view.technologyController, view.questController, view.courtController, view.talentController, view.policyController, view.historyController);
+            view.navigator = new GamePanelNavigator(view.sessionController, view.inputContext, view.refresh, view.intelligence, view.commandsController, view.FeaturePanels, view.NavigationButtons, view.buildingController, view.buildingDetailsController, view.worldController, view.technologyController, view.questController, view.courtController, view.talentController, view.policyController);
             view.backNavigation = new GameUiBackNavigation(view.sessionController, view.inputContext, view.navigator, view.buildingController, view.worldController, view.soldierController, view.portraitController, view.requestsController, view.marriageController);
             view.refreshLoop = new GameUiRefreshLoop(view.sessionController, view.inputContext, view.refresh, view.intelligence, view.commandsController, view.navigator, view.buildingController, view.worldController, view.technologyController, view.questController, view.courtController, view.royalFounding, view.talentController, view.policyController, view.hudController, view.soldierController, view.portraitController, view.requestsController, view.marriageController);
             view.navigator.BindBack(view.backNavigation.BackPanel);
@@ -37,7 +37,6 @@ namespace Landsong.ECS.Presentation
                 view.worldController.WorldPresentation.ClearViews,
                 view.InventoryWindow.EndInventoryDrag,
                 view.InventoryWindow.ResetSession,
-                view.EconomyWindow.ResetSession,
                 view.GarrisonWindow.ResetSession,
                 view.IntelligenceWindow.ResetSession,
                 view.expeditionController.ResetSession,
@@ -109,7 +108,6 @@ namespace Landsong.ECS.Presentation
             view.courtController.refresh = view.refresh;
             view.expeditionController.worldSelection = view.worldSelection;
             view.expeditionController.refresh = view.refresh;
-            view.historyController.refresh = view.refresh;
             view.hudController.intelligence = view.intelligence;
             view.hudController.refresh = view.refresh;
             view.marriageController.intelligence = view.intelligence;
@@ -127,11 +125,11 @@ namespace Landsong.ECS.Presentation
             view.commandsController.refresh = view.refresh;
             view.GarrisonWindow.WorldSelection = view.worldSelection;
             view.InventoryWindow.inputContext = view.inputContext;
-            view.InventoryWindow.economy = view.EconomyWindow;
+            view.InventoryWindow.history = view.HistoryWindow;
             view.buildingController.inputContext = view.inputContext;
             view.buildingController.inventory = view.InventoryWindow;
-            view.buildingController.economy = view.EconomyWindow;
-            view.buildingDetailsController.economy = view.EconomyWindow;
+            view.buildingController.history = view.HistoryWindow;
+            view.buildingDetailsController.history = view.HistoryWindow;
             view.hudController.inputContext = view.inputContext;
             view.hudController.garrison = view.GarrisonWindow;
             view.hudController.intelligenceWindow = view.IntelligenceWindow;
@@ -224,10 +222,6 @@ namespace Landsong.ECS.Presentation
             view.hudController.commandsController = view.commandsController;
             view.hudController.questController = view.questController;
             view.hudController.buildingController = view.buildingController;
-            view.hudController.historyController = view.historyController;
-            view.historyController.worldController = view.worldController;
-            view.historyController.navigation = view.navigator;
-            view.historyController.sessionController = view.sessionController;
             view.expeditionController.sessionController = view.sessionController;
             view.expeditionController.buildingController = view.buildingController;
             view.expeditionController.courtController = view.courtController;
@@ -242,8 +236,6 @@ namespace Landsong.ECS.Presentation
             foreach (var panel in view.FeaturePanels)
             {
                 panel.Bind(view.sessionController, view.commandsController, view.navigator, view.refresh);
-                if (panel is UI_GamePanel_Economy economy)
-                    economy.Buildings = view.buildingController;
                 if (panel is UI_GamePanel_Inventory inventory)
                 {
                     inventory.Buildings = view.buildingController;

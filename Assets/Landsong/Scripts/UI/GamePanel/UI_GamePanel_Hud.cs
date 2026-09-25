@@ -76,7 +76,6 @@ namespace Landsong.ECS.Presentation
 
         internal UI_GamePanel_BuildingActionBar buildingController;
         internal GameUiCommandWriter commandsController;
-        internal UI_GamePanel_History historyController;
         internal UI_GamePanel_Quest questController;
         internal IGameUiNavigation navigation;
         internal GameUiSessionHandle sessionController;
@@ -619,9 +618,7 @@ namespace Landsong.ECS.Presentation
         internal void RefreshInterfaceBarrier()
         {
             var input = inputContext.Policy.Capture();
-            if (historyController.historyTools != null)
-                historyController.historyTools.gameObject.SetActive(navigation.IsPanelOpen && navigation.Panel == GamePanelId.History && !input.HasOwner(GameUiInputOwner.Pause) && !input.Intelligence);
-            Selection.gameObject.SetActive(!navigation.IsPanelOpen || navigation.Panel != GamePanelId.History);
+            Selection.gameObject.SetActive(true);
             backgroundGroup.interactable = input.CanInteractWithBackgroundGroup;
             if (!backgroundGroup.interactable)
             {

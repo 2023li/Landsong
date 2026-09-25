@@ -17,7 +17,7 @@ namespace Landsong.ECS.Presentation
         {
             var original = SnapshotCodec.Capture(em, root);
             var canvas = view.GetComponentInParent<Canvas>();
-            var primary = view.EconomyWindow.BillScroll.gameObject;
+            var primary = view.HistoryWindow.HistoryScroll.gameObject;
             var secondary = view.GarrisonWindow.SecondaryRows.GetComponentInParent<ScrollRect>(true).gameObject;
             try
             {
@@ -48,7 +48,6 @@ namespace Landsong.ECS.Presentation
                 Require(view.Technology.TechnologyButton == view.Technology.ResearchHud.Open && view.Technology.ResearchHud.transform.IsChildOf(view.HudRoot) && !view.Technology.ResearchHud.transform.IsChildOf(view.FeatureRoot), "Research card belongs to the HUD independently of feature windows");
                 foreach (var panel in new[]
                 {
-                    GamePanelId.Economy,
                     GamePanelId.Inventory,
                     GamePanelId.Garrison,
                     GamePanelId.Expedition,
@@ -62,13 +61,13 @@ namespace Landsong.ECS.Presentation
                 )
                 {
                     view.OpenPanel(panel);
-                    primary = panel == GamePanelId.Royal ? view.Court.RoyalOverviewRoot.gameObject : panel == GamePanelId.Economy ? view.EconomyWindow.BillScroll.gameObject : panel == GamePanelId.Inventory ? view.InventoryWindow.ResourcesScroll.gameObject : view.GetListPanel(panel).PrimaryScroll.gameObject;
+                    primary = panel == GamePanelId.Royal ? view.Court.RoyalOverviewRoot.gameObject : panel == GamePanelId.History ? view.HistoryWindow.HistoryScroll.gameObject : panel == GamePanelId.Inventory ? view.InventoryWindow.ResourcesScroll.gameObject : view.GetListPanel(panel).PrimaryScroll.gameObject;
                     yield return new WaitForSecondsRealtime(.3f);
                     Require(view.IsPanelOpen && (panel == GamePanelId.Royal ? view.Court.RoyalDetails != null && view.Court.RoyalDetails.gameObject.activeInHierarchy : primary.activeInHierarchy) && view.PanelCloseButton.interactable, panel + " opens a dismissible function panel");
                     if (panel == GamePanelId.Garrison)
                         Require(secondary.activeInHierarchy, "Military opens both coordinated scroll views");
                     Require(view.FeaturePanels.All(p => p.gameObject.activeSelf == (p.PanelId == panel)), "Opening a feature activates exactly its registered root and hides unrelated windows");
-                    var scroll = panel == GamePanelId.Economy ? view.EconomyWindow.BillScroll : panel == GamePanelId.Inventory ? view.InventoryWindow.ResourcesScroll : view.PrimaryRows.GetComponentInParent<ScrollRect>(true);
+                    var scroll = panel == GamePanelId.History ? view.HistoryWindow.HistoryScroll : panel == GamePanelId.Inventory ? view.InventoryWindow.ResourcesScroll : view.PrimaryRows.GetComponentInParent<ScrollRect>(true);
                     scroll.verticalNormalizedPosition = 0;
                     Require(!view.PanelCloseButton.transform.IsChildOf(scroll.content), "Close button remains outside scrolling content: " + panel);
                     if (panel == GamePanelId.Inventory && Application.isEditor)

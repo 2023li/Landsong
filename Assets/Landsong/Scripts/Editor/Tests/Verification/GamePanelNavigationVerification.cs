@@ -68,7 +68,7 @@ namespace Landsong.ECS.Editor
             var selection = new WorldSelectionState();
             var intelligence = new IntelligenceViewState();
             var commands = new GameUiCommandWriter();
-            var navigation = new GamePanelNavigator(session, null, refresh, intelligence, commands, Array.Empty<UI_GamePanel_View>(), Array.Empty<UI_GamePanel.NavigationButtonBinding>(), null, null, null, null, null, null, null, null, null);
+            var navigation = new GamePanelNavigator(session, null, refresh, intelligence, commands, Array.Empty<UI_GamePanel_View>(), Array.Empty<UI_GamePanel.NavigationButtonBinding>(), null, null, null, null, null, null, null, null);
             int released = 0;
             bool failRelease = true;
             var lifetime = new GameUiSessionLifetime(session, refresh, selection, intelligence, commands, navigation, new Action[] { () =>
@@ -273,6 +273,7 @@ namespace Landsong.ECS.Editor
                 foreach (int invalid in new[]
                 {
                     0,
+                    (int)GamePanelId.Economy,
                     int.MaxValue
                 }
 

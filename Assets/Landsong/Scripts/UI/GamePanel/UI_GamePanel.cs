@@ -49,6 +49,9 @@ namespace Landsong.ECS.Presentation
         [Sirenix.OdinInspector.LabelText("历史控制器")]
         internal UI_GamePanel_History historyController;
         [SerializeField]
+        [Sirenix.OdinInspector.LabelText("界面导航")]
+        internal UI_GamePanel_Navigation navigationPanel;
+        [SerializeField]
         [Sirenix.OdinInspector.LabelText("信息栏控制器")]
         internal UI_GamePanel_Hud hudController;
         [SerializeField]
@@ -124,7 +127,8 @@ namespace Landsong.ECS.Presentation
             buildingController.InitializeBuildings();
             navigator.InitializeFeatureButtons();
             hudController.InitializeIntelligence();
-            historyController.InitializeInterface();
+            navigationPanel.Back.onClick.AddListener(navigator.BackPanel);
+            navigationPanel.History.onClick.AddListener(() => historyController.OpenHistory());
             GameUiComposition.InitializePanelWindows(this);
             technologyController.InitializeResearchHud();
             initialized = true;
@@ -160,7 +164,7 @@ namespace Landsong.ECS.Presentation
         public bool IsPanelOpen => navigator?.IsPanelOpen ?? false;
         public Button PanelCloseButton => GetPanel(Panel).CloseButton;
         internal UI_GamePanel_List ActiveListPanel => FindPanel(Panel) as UI_GamePanel_List;
-        public UI_GamePanel_Economy EconomyWindow => (UI_GamePanel_Economy)GetPanel(GamePanelId.Economy);
+        public UI_GamePanel_History HistoryWindow => (UI_GamePanel_History)GetPanel(GamePanelId.History);
         public UI_GamePanel_Inventory InventoryWindow => (UI_GamePanel_Inventory)GetPanel(GamePanelId.Inventory);
         public UI_GamePanel_Garrison GarrisonWindow => (UI_GamePanel_Garrison)GetListPanel(GamePanelId.Garrison);
         public UI_GamePanel_Intelligence IntelligenceWindow => (UI_GamePanel_Intelligence)GetListPanel(GamePanelId.Intelligence);
@@ -169,7 +173,7 @@ namespace Landsong.ECS.Presentation
         internal UI_GamePanel_View FindPanel(GamePanelId id) => FeaturePanels.FirstOrDefault(p => p.PanelId == id);
         public UI_GamePanel_List GetListPanel(GamePanelId id) => (UI_GamePanel_List)GetPanel(id);
         internal void LocateGarrison(ulong id) => GarrisonWindow.LocateGarrison(id);
-        internal void OpenEconomy(ulong source = 0) => EconomyWindow.OpenEconomy(source);
+        internal void OpenHistory(ulong source = 0) => HistoryWindow.OpenHistory(source);
         internal void EndInventoryDrag()
         {
             if (FeaturePanels != null && FeaturePanels.Length > 0)

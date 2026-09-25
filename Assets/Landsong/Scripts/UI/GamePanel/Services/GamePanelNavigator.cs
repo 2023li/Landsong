@@ -39,13 +39,12 @@ namespace Landsong.ECS.Presentation
         readonly UI_GamePanel_Royal courtController;
         readonly UI_GamePanel_Talent talentController;
         readonly UI_GamePanel_Policy policyController;
-        readonly UI_GamePanel_History historyController;
         readonly Stack<GamePanelId> panelHistory = new Stack<GamePanelId>();
         Action backRequested;
         public GamePanelId Panel { get; internal set; } = GamePanelId.Building;
         public bool IsPanelOpen { get; internal set; }
         public UI_GamePanel_Inventory InventoryWindow => (UI_GamePanel_Inventory)GetPanel(GamePanelId.Inventory);
-        public UI_GamePanel_Economy EconomyWindow => (UI_GamePanel_Economy)GetPanel(GamePanelId.Economy);
+        public UI_GamePanel_History HistoryWindow => (UI_GamePanel_History)GetPanel(GamePanelId.History);
         public UI_GamePanel_Garrison GarrisonWindow => (UI_GamePanel_Garrison)GetListPanel(GamePanelId.Garrison);
         public UI_GamePanel_Intelligence IntelligenceWindow => (UI_GamePanel_Intelligence)GetListPanel(GamePanelId.Intelligence);
 
@@ -66,7 +65,7 @@ namespace Landsong.ECS.Presentation
             panelHistory.Clear();
         }
 
-        public GamePanelNavigator(GameUiSessionHandle sessionController, GameUiInputContext inputContext, GameUiRefreshScheduler refresh, IntelligenceViewState intelligence, GameUiCommandWriter commandsController, UI_GamePanel_View[] FeaturePanels, UI_GamePanel.NavigationButtonBinding[] NavigationButtons, UI_GamePanel_BuildingActionBar buildingController, UI_GamePanel_BuildingDetails buildingDetailsController, UI_GamePanel_WorldInteraction worldController, UI_GamePanel_Technology technologyController, UI_GamePanel_Quest questController, UI_GamePanel_Royal courtController, UI_GamePanel_Talent talentController, UI_GamePanel_Policy policyController, UI_GamePanel_History historyController)
+        public GamePanelNavigator(GameUiSessionHandle sessionController, GameUiInputContext inputContext, GameUiRefreshScheduler refresh, IntelligenceViewState intelligence, GameUiCommandWriter commandsController, UI_GamePanel_View[] FeaturePanels, UI_GamePanel.NavigationButtonBinding[] NavigationButtons, UI_GamePanel_BuildingActionBar buildingController, UI_GamePanel_BuildingDetails buildingDetailsController, UI_GamePanel_WorldInteraction worldController, UI_GamePanel_Technology technologyController, UI_GamePanel_Quest questController, UI_GamePanel_Royal courtController, UI_GamePanel_Talent talentController, UI_GamePanel_Policy policyController)
         {
             this.sessionController = sessionController;
             this.inputContext = inputContext;
@@ -83,7 +82,6 @@ namespace Landsong.ECS.Presentation
             this.courtController = courtController;
             this.talentController = talentController;
             this.policyController = policyController;
-            this.historyController = historyController;
         }
 
         internal void InitializeFeatureButtons()
@@ -106,7 +104,7 @@ namespace Landsong.ECS.Presentation
         // Invalid values are configuration errors; no text-to-panel compatibility path exists.
         public static GamePanelId ParseEventTarget(int panelValue)
         {
-            if (!Enum.IsDefined(typeof(GamePanelId), panelValue) || panelValue == (int)GamePanelId.None)
+            if (!Enum.IsDefined(typeof(GamePanelId), panelValue) || panelValue == (int)GamePanelId.None || panelValue == (int)GamePanelId.Economy)
                 throw new InvalidOperationException("导航事件包含无效面板标识：" + panelValue);
             return (GamePanelId)panelValue;
         }
@@ -202,8 +200,6 @@ namespace Landsong.ECS.Presentation
             courtController.GraphRoot.gameObject.SetActive(false);
             talentController.CourtGraph.gameObject.SetActive(false);
             policyController.CourtGraph.gameObject.SetActive(false);
-            if (historyController.historyTools != null)
-                historyController.historyTools.gameObject.SetActive(false);
             if (inputContext.Events != null)
                 inputContext.Events.SetSelectedGameObject(null);
             refresh.NextPanel = 0;
@@ -224,7 +220,7 @@ namespace Landsong.ECS.Presentation
         internal UI_GamePanel_View FindPanel(GamePanelId id) => FeaturePanels.FirstOrDefault(p => p.PanelId == id);
         public UI_GamePanel_List GetListPanel(GamePanelId id) => (UI_GamePanel_List)GetPanel(id);
         internal void LocateGarrison(ulong id) => GarrisonWindow.LocateGarrison(id);
-        internal void OpenEconomy(ulong source = 0) => EconomyWindow.OpenEconomy(source);
+        internal void OpenHistory(ulong source = 0) => HistoryWindow.OpenHistory(source);
         internal void EndInventoryDrag()
         {
             if (FeaturePanels != null && FeaturePanels.Length > 0)

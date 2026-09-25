@@ -59,7 +59,7 @@ namespace Landsong.ECS.Presentation
             }
 
             void ProductionDetail(string text, string key = null, [System.Runtime.CompilerServices.CallerLineNumber] int sourceLine = 0) => Detail(text, key: "building:" + id.Id + ":production:" + (key ?? sourceLine.ToString()));
-            Detail("查看本建筑账单", () => View.economy.OpenEconomy(id.Id));
+            Detail("查看本建筑经济历史", () => View.history.OpenHistory(id.Id));
             var source = View.buildingUi.BuildingSource(DefinitionOf(entity));
             if (!string.IsNullOrEmpty(source?.Description))
                 Detail(source.Description);

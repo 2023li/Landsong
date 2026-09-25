@@ -238,15 +238,15 @@ namespace Landsong.ECS.Presentation
                 bills.Clear();
                 bills.Add(new EconomyBillEntry { Turn = 1, Item = item, Income = 20, Expense = 25, Stored = 500 });
                 bills.Add(new EconomyBillEntry { Turn = 2, Item = item, Income = 30, Expense = 21, Stored = 509 });
-                game.OpenEconomy();
-                yield return WaitFor(() => game.EconomyWindow.TurnViews.Count() == 2, "Bill navigation displays two separate turn tables");
-                Require(game.EconomyWindow.ResourceRows.Any(r => r.Net.text == "-5" && r.Stored.text == "500") && game.EconomyWindow.ResourceRows.Any(r => r.Net.text == "+9" && r.Stored.text == "509"), "Bill rows use each turn closing stock rather than today's inventory");
-                var billRows = game.EconomyWindow.ResourceRows.ToArray();
+                game.OpenHistory();
+                yield return WaitFor(() => game.HistoryWindow.TurnViews.Count() >= 2, "History navigation groups archived turns");
+                Require(game.HistoryWindow.TurnViews.Any(r => r.TurnLabel.text == "第1回合：" && r.Body.text.Contains("本回合库存量 500") && r.Body.text.Contains("本回合变化量 -5")) && game.HistoryWindow.TurnViews.Any(r => r.TurnLabel.text == "第2回合：" && r.Body.text.Contains("本回合库存量 509") && r.Body.text.Contains("本回合变化量 +9")), "History economy uses closing stock from each turn");
+                var billRows = game.HistoryWindow.TurnViews.ToArray();
                 game.Refresh();
-                Require(billRows.SequenceEqual(game.EconomyWindow.ResourceRows), "Bill rows remain stable during refresh");
+                Require(billRows.SequenceEqual(game.HistoryWindow.TurnViews), "History turn views remain stable during refresh");
                 if (Application.isEditor)
                 {
-                    ScreenCapture.CaptureScreenshot("Library/LandsongEcs/bill-panel.png");
+                    ScreenCapture.CaptureScreenshot("Library/LandsongEcs/history-panel.png");
                     yield return new WaitForEndOfFrame();
                     yield return null;
                 }

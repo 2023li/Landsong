@@ -60,12 +60,12 @@ namespace Landsong.ECS.Presentation
             Need(view.technologyController.ResearchHud, nameof(view.technologyController.ResearchHud));
             Need(view.hudController.BattleHud, nameof(view.hudController.BattleHud));
             Need(view.hudController.NightHud, nameof(view.hudController.NightHud));
-            Need(view.historyController.NavigationPanel, nameof(view.historyController.NavigationPanel));
+            Need(view.navigationPanel, nameof(view.navigationPanel));
             Need(view.worldController.WorldPresentation, nameof(view.worldController.WorldPresentation));
             Need(view.worldController.WorldPresentation.OverlayMesh, nameof(view.worldController.WorldPresentation.OverlayMesh));
             Need(view.worldController.WorldPresentation.OverlayMaterial, nameof(view.worldController.WorldPresentation.OverlayMaterial));
-            Need(view.historyController.HistoryTools, nameof(view.historyController.HistoryTools));
-            Need(view.historyController.HistoryFilter, nameof(view.historyController.HistoryFilter));
+            Need(view.historyController, nameof(view.historyController));
+            view.historyController.ValidateConfiguration();
             Need(view.hudController.AdvanceLabel, nameof(view.hudController.AdvanceLabel));
             Need(view.hudController.MessageButton, nameof(view.hudController.MessageButton));
             Need(view.hudController.PauseButton, nameof(view.hudController.PauseButton));
@@ -95,7 +95,7 @@ namespace Landsong.ECS.Presentation
             view.hudController.BattleHud.ValidateConfiguration();
             view.hudController.ValidateHeroSelectionConfiguration();
             view.hudController.NightHud.ValidateConfiguration();
-            view.historyController.NavigationPanel.ValidateConfiguration();
+            view.navigationPanel.ValidateConfiguration();
             view.buildingDetailsController.Block<UI_GamePanel_BuildingDetails_Block_基础产出>().ValidateConfiguration();
             view.buildingDetailsController.Block<UI_GamePanel_BuildingDetails_Block_种植>().ValidateConfiguration();
             view.questController.QuantityTemplate.ValidateConfiguration();

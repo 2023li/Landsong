@@ -94,6 +94,7 @@ namespace Landsong.ECS.Editor
                     em.SetComponentData(root, state);
                     em.SetComponentData(root, stateClock);
                 }
+                SeasonWeatherOps.Dawn(em, root);
 
                 var bytes = SnapshotCodec.Capture(em, root);
                 Check(EconomyForecastOps.Create(em, root) == ResultCode.Success && bytes.SequenceEqual(SnapshotCodec.Capture(em, root)), "Forecast preserves all historical bills and live state");
@@ -139,9 +140,25 @@ namespace Landsong.ECS.Editor
                 SnapshotCodec.Restore(em, root, SnapshotCodec.Decode(em, root, initial));
                 Check(Rows<EconomyBillEntry>(em, root).Length == 0, "Restoring earlier checkpoint removes future bills");
                 var prefab = AssetDatabase.LoadAssetAtPath<UnityEngine.GameObject>(BillUiAssets.GamePath).GetComponent<UI_GamePanel>();
-                prefab.EconomyWindow.ValidateConfiguration();
+                prefab.HistoryWindow.ValidateConfiguration();
                 prefab.InventoryWindow.ValidateConfiguration();
-                Check(prefab.EconomyWindow.name == "账单面板" && prefab.InventoryWindow.ResourceTemplate.Details.name == "btn_详情", "Authored names and new explicit references are retained");
+                Check(prefab.HistoryWindow.name == "历史面板" && prefab.InventoryWindow.ResourceTemplate.Details.name == "btn_详情", "Rebuilt history panel and inventory retain explicit references");
+                Check(prefab.FeaturePanels.Count(panel => panel.PanelId == GamePanelId.History) == 1 && prefab.FeaturePanels.All(panel => panel.PanelId != GamePanelId.Economy), "Old history list and standalone bill registration are removed");
+                var turn = new UI_GamePanel_History.TurnRecord();
+                turn.Economy.Add(("石头", new EconomyBillEntry { Income = 20, Expense = 25, Stored = 500 }));
+                turn.Events.Add(new HistoryEntry { Text = new FixedString128Bytes("新君即位") , SourceName = new FixedString128Bytes("继承人") });
+                turn.Battle.Add(new BattleReportEntry { Kind = EventKind.SoldierDeath, SourceName = new FixedString128Bytes("守城新兵"), Amount = 1 });
+                turn.Battle.Add(new BattleReportEntry { Kind = EventKind.Ruin, SourceName = new FixedString128Bytes("城门"), Amount = 1 });
+                var body = UI_GamePanel_History.FormatTurn(turn);
+                Check(body.Contains("石头  本回合库存量 500  本回合变化量 -5") && body.Contains("继承人") && body.Contains("守城新兵") && body.Contains("城门"), "Turn history combines economy snapshots, events and named battle losses");
+                var royalEvents = UI_GamePanel_History.EventLines(new[]
+                {
+                    new HistoryEntry { Text = new FixedString128Bytes("王室成员自然逝世"), SourceName = new FixedString128Bytes("王子") },
+                    new HistoryEntry { Text = new FixedString128Bytes("君王自然逝世"), SourceName = new FixedString128Bytes("先王") },
+                    new HistoryEntry { Text = new FixedString128Bytes("新君即位，继承结果已结算"), SourceName = new FixedString128Bytes("继承人") }
+                });
+                Check(royalEvents.Count == 2 && royalEvents[0].Contains("王子") && royalEvents[1] == "先王国王驾崩，由继承人继位", "Only a monarch death is paired with succession");
+                Check(UI_GamePanel_History.BattleLines(new[] { new BattleReportEntry { Kind = EventKind.NightClosure } }).Single() == "是个平安夜", "Peaceful archived night has a concise report");
                 Check(prefab.InventoryWindow.IncomeScroll != prefab.InventoryWindow.ExpenseScroll && prefab.InventoryWindow.IncomeBody != prefab.InventoryWindow.ExpenseBody, "Income and expenses have independent scroll content");
                 var access = GameUiInputPolicy.Evaluate(true, true, GameUiInputOwner.InventoryDetails, false, false, GamePanelId.Inventory, true);
                 Check(access.CanQueue(CommandKind.ForecastEconomy) && !access.CanQueue(CommandKind.MoveInventory), "Resource details permits forecast but blocks gameplay");

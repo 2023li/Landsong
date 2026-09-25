@@ -235,7 +235,10 @@ namespace Landsong.ECS
                 Log(em, root, "储君去世，继承秩序受损", id);
             }
 
-            Log(em, root, cause == 0 ? "王室成员自然逝世" : cause == 1 ? "王室成员被赐死" : cause == 2 ? "君王遭弑杀" : "王室成员在高风险出访中遇难", id, category: HistoryCategory.Important);
+            Log(em, root, cause == 0 ? (p.Role == 0 ? "君王自然逝世" : "王室成员自然逝世")
+                : cause == 1 ? (p.Role == 0 ? "君王被赐死" : "王室成员被赐死")
+                : cause == 2 ? "君王遭弑杀"
+                : p.Role == 0 ? "君王在高风险出访中遇难" : "王室成员在高风险出访中遇难", id, category: HistoryCategory.Important);
             if (p.Role == 0 && cause != 2)
                 Succeed(em, root, e, Entity.Null, false);
             RoyalFamilyOps.ClearInvalidRequests(em, root);

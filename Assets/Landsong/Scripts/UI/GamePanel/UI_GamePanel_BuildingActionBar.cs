@@ -60,7 +60,7 @@ namespace Landsong.ECS.Presentation
     {
         internal GameUiInputContext inputContext;
         internal UI_GamePanel_Inventory inventory;
-        internal UI_GamePanel_Economy economy;
+        internal UI_GamePanel_History history;
         internal WorldSelectionState worldSelection;
         internal IntelligenceViewState intelligence;
         internal GameUiRefreshScheduler refresh;
@@ -110,7 +110,7 @@ namespace Landsong.ECS.Presentation
             if (BuildingBar == null)
                 return;
             BuildingBar.CloseButton.onClick.AddListener(navigation.ClosePanel);
-            BuildingBar.EconomyButton.onClick.AddListener(() => economy.OpenEconomy());
+            BuildingBar.EconomyButton.onClick.AddListener(() => history.OpenHistory());
         }
 
         internal void RefreshBuildingCatalog()

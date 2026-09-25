@@ -6648,7 +6648,6 @@ GameObject:
   - component: {fileID: 2405260314316424469}
   - component: {fileID: 4435126079299826951}
   - component: {fileID: 1362748972227633117}
-  - component: {fileID: 1090336619055689486}
   m_Layer: 0
   m_Name: "\u754C\u9762\u5BFC\u822A"
   m_TagString: Untagged
@@ -6717,24 +6716,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_Navigation
   Back: {fileID: 6908619651613901504}
   History: {fileID: 745893335193098595}
---- !u!114 &1090336619055689486
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5465888489701029427}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 07392549d1a384b4c8661333ae94d9df, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_History
-  childViews: []
-  openWithOwner: 1
-  previewContent: []
-  NavigationPanel: {fileID: 1362748972227633117}
-  HistoryTools: {fileID: 0}
-  HistoryFilter: {fileID: 0}
 --- !u!1 &5501577071054820106
 GameObject:
   m_ObjectHideFlags: 0

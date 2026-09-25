@@ -18,7 +18,7 @@ namespace Landsong.ECS.Presentation
         [Sirenix.OdinInspector.LabelText("物品显示目录"), Sirenix.OdinInspector.Required]
         public ItemDisplayCatalog Items;
         internal GameUiInputContext inputContext;
-        internal UI_GamePanel_Economy economy;
+        internal UI_GamePanel_History history;
         [LabelText("按建筑显示按钮")]
         public Button BuildingsButton;
         [LabelText("按资源显示按钮")]
@@ -150,7 +150,7 @@ namespace Landsong.ECS.Presentation
             Click(PendingButton, MoveSelectedToPending);
             Click(DiscardButton, DiscardSelected);
             Click(CancelButton, ClearSelection);
-            Click(EconomyButton, () => economy.OpenEconomy());
+            Click(EconomyButton, () => history.OpenHistory());
             Click(ResourceDetailsClose, CloseResourceDetails);
             Quantity.onValueChanged.RemoveAllListeners();
             Quantity.onValueChanged.AddListener(_ => RefreshSelection());
@@ -757,8 +757,8 @@ namespace Landsong.ECS.Presentation
             foreach (var entry in entries)
             {
                 string source = entry.Source == 0 || WorldQueries.Find(em, entry.Source) == Entity.Null ? entry.SourceName.ToString() : Session.EntityName(entry.Source);
-                text.AppendLine($"{source} · {UI_GamePanel_Economy.EconomyReasonName(entry.Reason)}");
-                text.AppendLine($"{ItemName(detailsItem)}  {UI_GamePanel_Economy.Signed(entry.Delta)}" + (entry.Pending != 0 ? " · 待存区" : ""));
+                text.AppendLine($"{source} · {HistoryOps.Reason(entry.Reason)}");
+                text.AppendLine($"{ItemName(detailsItem)}  {UI_GamePanel_History.Signed(entry.Delta)}" + (entry.Pending != 0 ? " · 待存区" : ""));
                 if (!entry.Note.IsEmpty)
                     text.AppendLine(entry.Note.ToString());
                 text.AppendLine();

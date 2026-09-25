@@ -31,7 +31,7 @@ namespace Landsong.ECS.Presentation
         public ItemDisplayCatalog Items;
         [Sirenix.OdinInspector.LabelText("作物显示目录"), Sirenix.OdinInspector.Required]
         public CropDisplayCatalog Crops;
-        internal UI_GamePanel_Economy economy;
+        internal UI_GamePanel_History history;
         internal WorldSelectionState worldSelection;
         internal IntelligenceViewState intelligence;
         internal GameUiRefreshScheduler refresh;

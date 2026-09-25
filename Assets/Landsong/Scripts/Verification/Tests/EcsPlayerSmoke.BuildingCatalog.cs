@@ -128,7 +128,7 @@ namespace Landsong.ECS.Presentation
                 SnapshotCodec.Restore(em, root, SnapshotCodec.Decode(em, root, snapshot));
                 view.Buildings.CancelBuildingInteraction();
                 bar.gameObject.SetActive(false);
-                view.OpenPanel(GamePanelId.Economy);
+                view.OpenPanel(GamePanelId.History);
             }
         }
     }

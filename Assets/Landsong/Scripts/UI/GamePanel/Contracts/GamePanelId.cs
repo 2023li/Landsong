@@ -9,7 +9,7 @@ namespace Landsong.ECS.Presentation
         [LabelText("建筑")] Building = 1,
         [LabelText("科技")] Technology = 2,
         [LabelText("任务")] Quest = 3,
-        [LabelText("账单")] Economy = 4,
+        [LabelText("已停用账单")] Economy = 4,
         [LabelText("库存")] Inventory = 5,
         [LabelText("驻军")] Garrison = 6,
         [LabelText("王室")] Royal = 7,
