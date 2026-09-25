@@ -56,14 +56,14 @@ namespace Landsong.Animation
         bool UsesEquipment => Profile == UnitAnimationProfile.SwordAndTorch;
         [Tooltip("独立的动画表现预制体；出勤时创建，归营或死亡展示结束后释放。")]
         [LabelText("表现预制体"), Required] public GameObject VisualPrefab;
-        [LabelText("死亡展示时长"), Min(.1f)] public float DeathSeconds = 2;
-        [LabelText("攻击动画原始时长"), Min(.01f)] public float AttackSeconds = 1;
-        [LabelText("受击动画时长（无动作时为 0）"), Min(0)] public float HitSeconds = .5f;
-        [LabelText("拔剑动画时长"), Min(.01f), ShowIf(nameof(UsesEquipment))] public float DrawSeconds = 1;
-        [LabelText("收剑动画时长"), Min(.01f), ShowIf(nameof(UsesEquipment))] public float SheatheSeconds = 1;
-        [LabelText("提前拔剑距离"), Min(0), ShowIf(nameof(UsesEquipment))] public float DrawDistancePadding = 1.5f;
-        [LabelText("警戒解除延迟"), Min(0)] public float AlertReleaseSeconds = 2;
-        [LabelText("收剑延迟"), Min(0), ShowIf(nameof(UsesEquipment))] public float WeaponReleaseSeconds = 2;
+        [LabelText("死亡展示时长"), MinValue(.1f)] public float DeathSeconds = 2;
+        [LabelText("攻击动画原始时长"), MinValue(.01f)] public float AttackSeconds = 1;
+        [LabelText("受击动画时长（无动作时为 0）"), MinValue(0)] public float HitSeconds = .5f;
+        [LabelText("拔剑动画时长"), MinValue(.01f), ShowIf(nameof(UsesEquipment))] public float DrawSeconds = 1;
+        [LabelText("收剑动画时长"), MinValue(.01f), ShowIf(nameof(UsesEquipment))] public float SheatheSeconds = 1;
+        [LabelText("提前拔剑距离"), MinValue(0), ShowIf(nameof(UsesEquipment))] public float DrawDistancePadding = 1.5f;
+        [LabelText("警戒解除延迟"), MinValue(0)] public float AlertReleaseSeconds = 2;
+        [LabelText("收剑延迟"), MinValue(0), ShowIf(nameof(UsesEquipment))] public float WeaponReleaseSeconds = 2;
 
         sealed class Baker : Baker<SoldierAnimationAuthoring>
         {

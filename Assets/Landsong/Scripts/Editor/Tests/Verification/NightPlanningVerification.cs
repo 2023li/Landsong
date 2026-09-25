@@ -323,8 +323,14 @@ namespace Landsong.ECS.Editor
                 var soldier = Soldier(barracks);
                 var barracksPlacement = em.GetComponentData<BuildingPlacementState>(barracks);
                 var barracksGrid = em.GetComponentData<GridData>(root);
-                var exitProbe = GridOps.Position(barracksGrid, barracksPlacement.Cell + new int2(barracksPlacement.Size.x, 0), new int2(1));
-                Check(NavigationOps.TryNearestOpenOnSurface(em, root, exitProbe, 12, barracksPlacement.Surface, barracksPlacement.Elevation, out var matchingExit), "Deployment resolves an open exit on the garrison surface and elevation");
+                Check(NavigationOps.TryBuildingEdgeSpawn(em, root, barracksPlacement, em.GetComponentData<GameClock>(root).Turn, em.GetComponentData<Combatant>(soldier).Profile.BodyRadius, out var matchingExit), "Deployment resolves an open perimeter cell on the garrison surface and elevation");
+                var exitCell = GridOps.Cell(barracksGrid, matchingExit) - barracksPlacement.Cell;
+                Check(exitCell.x >= -1 && exitCell.y >= -1 && exitCell.x <= barracksPlacement.Size.x && exitCell.y <= barracksPlacement.Size.y
+                    && !(exitCell.x >= 0 && exitCell.y >= 0 && exitCell.x < barracksPlacement.Size.x && exitCell.y < barracksPlacement.Size.y),
+                    "Deployment point stays on the building perimeter instead of a fixed east-side probe");
+                var impossibleLayer = barracksPlacement;
+                impossibleLayer.Surface = int.MaxValue;
+                Check(!NavigationOps.TryBuildingEdgeSpawn(em, root, impossibleLayer, 0, 0, out _), "Deployment never falls back onto a different surface");
                 bool exitMatchesLayer = false;
                 foreach (var node in em.GetBuffer<SurfaceNavNode>(root))
                     exitMatchesLayer |= node.Open != 0 && node.Surface == barracksPlacement.Surface && node.Elevation == barracksPlacement.Elevation && math.distancesq(node.Position, matchingExit) < .0001f;
@@ -453,7 +459,8 @@ namespace Landsong.ECS.Editor
                 SnapshotCodec.Restore(em, root, SnapshotCodec.Decode(em, root, snapshot));
                 soldier = WorldQueries.Find(em, sid);
                 Check(prep.SequenceEqual(Buffer<PreparedSoldier>(em, root)), "Dusk rebuild retains exact prepared modifiers");
-                Check(em.GetComponentData<Combatant>(soldier).Damage == prep.First(p => p.Definition == em.GetComponentData<SoldierDefinitionRef>(soldier).Definition).Stats.Damage, "Rebuilt unit uses prepared attack");
+                var expectedPrepared = SoldierOps.SoldierStats(em, root, soldier);
+                Check(em.GetComponentData<Combatant>(soldier).Damage == expectedPrepared.Damage, "Rebuilt unit uses prepared attack and weapon");
                 var modifierState = CourtOps.State(em, root);
                 modifierState.TemporaryAttack = .5f;
                 modifierState.TemporaryUntil = 10;

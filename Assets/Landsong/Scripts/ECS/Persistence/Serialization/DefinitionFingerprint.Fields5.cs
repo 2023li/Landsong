@@ -141,6 +141,19 @@ namespace Landsong.ECS.Persistence
             SnapshotBinary.Write(writer, value.Count);
         }
 
+        internal static void Write(BinaryWriter writer, ref Landsong.ECS.Definitions.QuestPopulationObjective value)
+        {
+            SnapshotBinary.Write(writer, value.Key);
+            SnapshotBinary.Write(writer, value.Count);
+        }
+
+        internal static void Write(BinaryWriter writer, ref Landsong.ECS.Definitions.QuestTechnologyCompletedObjective value)
+        {
+            SnapshotBinary.Write(writer, value.Key);
+            SnapshotBinary.Write(writer, value.Technology);
+            SnapshotBinary.Write(writer, value.Count);
+        }
+
         internal static void Write(BinaryWriter writer, ref Landsong.ECS.Definitions.QuestDefinition value)
         {
             Write(writer, ref value.Metadata);
@@ -150,6 +163,10 @@ namespace Landsong.ECS.Persistence
             SnapshotBinary.Write(writer, value.Intensity);
             SnapshotBinary.Write(writer, value.OfferWeight);
             SnapshotBinary.Write(writer, value.ItemQuantityScale);
+            SnapshotBinary.Write(writer, value.NextQuest);
+            SnapshotBinary.Write(writer, value.MinimumRefreshTurns);
+            SnapshotBinary.Write(writer, value.MaximumRefreshTurns);
+            Write(writer, ref value.RefreshPrerequisites);
             Write(writer, ref value.Prerequisites);
             Write(writer, ref value.Objectives);
             Write(writer, ref value.Rewards);
@@ -206,6 +223,20 @@ namespace Landsong.ECS.Persistence
             {
                 Write(writer, ref value.TechnologyObjectives[i]);
             }
+
+            writer.Write(value.TechnologyCompletedObjectives.Length);
+            var completedOrder = new SortedDictionary<string, int>(StringComparer.Ordinal);
+            for (int i = 0; i < value.TechnologyCompletedObjectives.Length; i++)
+                completedOrder.Add(value.TechnologyCompletedObjectives[i].Key.ToString(), i);
+            foreach (var i in completedOrder.Values)
+                Write(writer, ref value.TechnologyCompletedObjectives[i]);
+
+            writer.Write(value.PopulationObjectives.Length);
+            var populationOrder = new SortedDictionary<string, int>(StringComparer.Ordinal);
+            for (int i = 0; i < value.PopulationObjectives.Length; i++)
+                populationOrder.Add(value.PopulationObjectives[i].Key.ToString(), i);
+            foreach (var i in populationOrder.Values)
+                Write(writer, ref value.PopulationObjectives[i]);
 
             writer.Write(value.CameraMoveObjectives.Length);
             var CameraMoveObjectivesOrder = new SortedDictionary<string, int>(StringComparer.Ordinal);

@@ -153,10 +153,10 @@ namespace Landsong.ECS
                 foreach (var e in quests)
                     existing.Add(em.GetComponentData<QuestDefinitionRef>(e).Definition);
             var count = QuestDefinitions.Count(em, root);
-            var best = QuestId.None;
+            var best = QuestDefinitions.Get(em, root, predecessor).NextQuest;
             long bestValue = -1;
-            var bestReady = false;
-            for (var index = 0; index < count; index++)
+            var bestReady = best.IsValid && QuestOps.Prerequisites(em, root, best);
+            for (var index = 0; !best.IsValid && index < count; index++)
             {
                 var i = QuestId.FromIndex(index);
                 ref var d = ref QuestDefinitions.Get(em, root, i);
@@ -173,6 +173,8 @@ namespace Landsong.ECS
             }
 
             if (!best.IsValid)
+                return 0;
+            if (existing.Contains(best))
                 return 0;
             // Both ordinary and mainline steps retain their invitation provenance and exact accepted slot.
             var next = QuestLifecycle.CreateQuest(em, root, best, previous.Source, previous.Slot, previous.Container, previous.ContainerSlot);
@@ -279,6 +281,7 @@ namespace Landsong.ECS
                 }
                 else
                     em.DestroyEntity(e);
+                QuestOfferOps.RestartQuestCooldown(em, root, definition);
                 // Hand off before discovery can allocate the vacated slot to another quest.
                 var continuation = QuestLifecycle.ContinueQuest(em, root, definition, previous);
                 QuestLifecycle.DiscoverQuests(em, root);
@@ -361,6 +364,7 @@ namespace Landsong.ECS
             }
 
             // Removal is the one-shot commit marker. Repeat commands and timeout cannot charge again.
+            QuestOfferOps.RestartQuestCooldown(em, root, em.GetComponentData<QuestDefinitionRef>(entity).Definition);
             em.DestroyEntity(entity);
             QuestOps.RefreshTracking(em, root);
             SimulationEvents.Emit(em, root, EventKind.Message, "任务结束：" + reason, id.Id);

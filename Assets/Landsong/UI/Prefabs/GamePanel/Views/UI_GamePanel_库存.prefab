@@ -9629,7 +9629,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u7C98\u571F*{\u6570\u91CF}     \u56DE\u5408\u5E73\u5747\u4EA7\u51FA\uFF1A "
+  m_text: "\u7C98\u571F  120\uFF08+10\uFF09\n\u4EA7\u51FA\uFF1A20  \u6D88\u8017\uFF1A10"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 3afb4c0418f3b1a4092eaa4734edf2de, type: 2}
   m_sharedMaterial: {fileID: 2543768371350609851, guid: 3afb4c0418f3b1a4092eaa4734edf2de, type: 2}

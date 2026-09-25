@@ -104,6 +104,10 @@ namespace Landsong.ECS.Persistence
             foreach (var pin in data.TrackedQuests)
                 if (!tracked.Add(pin.Quest) || !data.Records.OfType<QuestSnapshot>().Any(q => q.Identity.Id == pin.Quest && (q.Quest.Status == QuestStatus.Active || q.Quest.Status == QuestStatus.Completed)))
                     throw new InvalidDataException("Tracked quest is missing, duplicated or not trackable");
+            var cooldowns = new HashSet<QuestId>();
+            foreach (var entry in data.QuestRefreshCooldowns)
+                if (!QuestDefinitions.IsValid(em, root, entry.Quest) || entry.NextTurn < 0 || !cooldowns.Add(entry.Quest) || (QuestDefinitions.Get(em, root, entry.Quest).Behavior & QuestBehaviorFlags.Mainline) != 0)
+                    throw new InvalidDataException("Invalid quest refresh cooldown");
         }
 
         static void RequireSoldierPrefab(EntityManager em, Entity root, SoldierId definition)

@@ -27,14 +27,19 @@ MonoBehaviour:
     FeatureRequirements: []
     QuestRequirements: []
     ExpeditionRequirements: []
-  Rewards:
-    Items: []
-    Blueprints: []
-    Buffs: []
-    Features: []
+  RewardEntries: []
+  NextQuest: {fileID: 0}
+  RefreshPrerequisites:
+    BuildingRequirements: []
+    TechnologyRequirements: []
+    BuffRequirements: []
+    FeatureRequirements: []
+    QuestRequirements: []
+    ExpeditionRequirements: []
+  MinimumRefreshTurns: 0
+  MaximumRefreshTurns: 0
   FailurePenalties: []
-  Objectives:
-    Requirements: []
+  Requirements: []
   references:
     version: 2
     RefIds: []

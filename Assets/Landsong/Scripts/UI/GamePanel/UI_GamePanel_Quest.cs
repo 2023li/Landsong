@@ -273,6 +273,20 @@ namespace Landsong.ECS.Presentation
                     return Format("开始研究 " + (objective.Technology.IsValid ? TechnologyDefinitions.Get(sessionController.em, sessionController.root, objective.Technology).Metadata.Name.ToString() : "任意科技") + "（排队等待不算）", objective.Count);
             }
 
+            for (int i = 0; i < objectives.TechnologyCompletedObjectives.Length; i++)
+            {
+                var objective = objectives.TechnologyCompletedObjectives[i];
+                if (objective.Key == progress.Key)
+                    return Format("完成研究 " + TechnologyDefinitions.Get(sessionController.em, sessionController.root, objective.Technology).Metadata.Name, objective.Count);
+            }
+
+            for (int i = 0; i < objectives.PopulationObjectives.Length; i++)
+            {
+                var objective = objectives.PopulationObjectives[i];
+                if (objective.Key == progress.Key)
+                    return Format("达到人口", objective.Count);
+            }
+
             for (int i = 0; i < objectives.CameraMoveObjectives.Length; i++)
             {
                 var objective = objectives.CameraMoveObjectives[i];

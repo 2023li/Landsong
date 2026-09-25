@@ -20,7 +20,15 @@ namespace Landsong.ECS
         public static bool Prerequisites(EntityManager em, Entity root, QuestId quest)
         {
             ref var definition = ref QuestDefinitions.Get(em, root, quest);
-            return PrerequisiteEvaluation.Satisfied(em, root, ref definition.Prerequisites);
+            if (!PrerequisiteEvaluation.Satisfied(em, root, ref definition.Prerequisites))
+                return false;
+            for (var i = 0; i < QuestDefinitions.Count(em, root); i++)
+            {
+                var predecessor = QuestId.FromIndex(i);
+                if (QuestDefinitions.Get(em, root, predecessor).NextQuest == quest && !QuestCompletions.Has(em, root, predecessor))
+                    return false;
+            }
+            return true;
         }
 
         public static long RewardValue(EntityManager em, Entity root, QuestId quest)
@@ -42,6 +50,11 @@ namespace Landsong.ECS
             ref var definition = ref QuestDefinitions.Get(em, root, quest);
             for (int i = 0; i < definition.Prerequisites.QuestRequirements.Length; i++)
                 if (!predecessor.IsValid || definition.Prerequisites.QuestRequirements[i].Quest == predecessor)
+                    return true;
+            if (predecessor.IsValid)
+                return QuestDefinitions.Get(em, root, predecessor).NextQuest == quest;
+            for (var i = 0; i < QuestDefinitions.Count(em, root); i++)
+                if (QuestDefinitions.Get(em, root, QuestId.FromIndex(i)).NextQuest == quest)
                     return true;
             return false;
         }

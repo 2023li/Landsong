@@ -49,6 +49,7 @@ namespace Landsong.ECS.Persistence
             SnapshotBuffers.Write(writer, SnapshotBuffers.Capture<OwnedBuff>(em, root));
             SnapshotBuffers.Write(writer, SnapshotBuffers.Capture<UnlockedFeature>(em, root));
             SnapshotBuffers.Write(writer, SnapshotBuffers.Capture<ClaimedQuest>(em, root));
+            SnapshotBuffers.Write(writer, SnapshotBuffers.Capture<QuestRefreshCooldown>(em, root));
             SnapshotBuffers.Write(writer, SnapshotBuffers.Capture<CompletedExpedition>(em, root));
             SnapshotBuffers.Write(writer, SnapshotBuffers.Capture<TechnologyProgress>(em, root));
             SnapshotBuffers.Write(writer, SnapshotBuffers.Capture<PolicyChoice>(em, root));
@@ -100,6 +101,7 @@ namespace Landsong.ECS.Persistence
                 Buffs = SnapshotBuffers.Read<OwnedBuff>(reader),
                 Features = SnapshotBuffers.Read<UnlockedFeature>(reader),
                 ClaimedQuests = SnapshotBuffers.Read<ClaimedQuest>(reader),
+                QuestRefreshCooldowns = version >= 38 ? SnapshotBuffers.Read<QuestRefreshCooldown>(reader) : Array.Empty<QuestRefreshCooldown>(),
                 CompletedExpeditions = SnapshotBuffers.Read<CompletedExpedition>(reader),
                 Research = SnapshotBuffers.Read<TechnologyProgress>(reader),
                 Policies = SnapshotBuffers.Read<PolicyChoice>(reader),
@@ -153,6 +155,7 @@ namespace Landsong.ECS.Persistence
             SnapshotBuffers.Restore(em, root, data.Buffs);
             SnapshotBuffers.Restore(em, root, data.Features);
             SnapshotBuffers.Restore(em, root, data.ClaimedQuests);
+            SnapshotBuffers.Restore(em, root, data.QuestRefreshCooldowns);
             SnapshotBuffers.Restore(em, root, data.CompletedExpeditions);
             SnapshotBuffers.Restore(em, root, data.Research);
             SnapshotBuffers.Restore(em, root, data.Policies);

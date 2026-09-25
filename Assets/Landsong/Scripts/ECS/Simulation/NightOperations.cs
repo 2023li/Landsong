@@ -308,13 +308,11 @@ namespace Landsong.ECS
                 if (a.Deployed != 0 || a.DeployAt > sClock.Time || !EntityState.Alive(em, e) || em.GetComponentData<Soldier>(e).RecallState != 0)
                     continue;
                 var site = WorldQueries.Find(em, a.HomeId);
-                var grid = em.GetComponentData<GridData>(root);
-                var start = GridOps.Cell(grid, a.Home);
-                if (site != Entity.Null)
+                if (BuildingStatus.Operational(em, site))
                 {
                     BuildingPlacementState bPlacement = em.GetComponentData<BuildingPlacementState>(site);
-                    start = bPlacement.Cell + new int2(bPlacement.Size.x, 0);
-                    if (!NavigationOps.TryNearestOpenOnSurface(em, root, GridOps.Position(grid, start, new int2(1)), 12, bPlacement.Surface, bPlacement.Elevation, out var surfaceExit))
+                    int ordinal = math.max(0, em.GetComponentData<Soldier>(e).Slot - 1) + sClock.Turn;
+                    if (!NavigationOps.TryBuildingEdgeSpawn(em, root, bPlacement, ordinal, a.Profile.BodyRadius, out var surfaceExit))
                     {
                         a.DeployAt = float.MaxValue;
                         em.SetComponentData(e, a);
@@ -331,20 +329,9 @@ namespace Landsong.ECS
                     continue;
                 }
 
-                if (!NavigationOps.TryNearestOpen(em, root, GridOps.Position(grid, start, new int2(1)), 12, out var exit))
-                {
-                    a.DeployAt = float.MaxValue;
-                    em.SetComponentData(e, a);
-                    SimulationEvents.Emit(em, root, EventKind.Message, "驻地出口阻塞，士兵留在驻地", a.HomeId);
-                    continue;
-                }
-
-                a.Deployed = 1;
+                a.DeployAt = float.MaxValue;
                 em.SetComponentData(e, a);
-                em.SetComponentData(e, new VisualState { Visible = 1 });
-                var t = em.GetComponentData<LocalTransform>(e);
-                t.Position = exit;
-                em.SetComponentData(e, t);
+                SimulationEvents.Emit(em, root, EventKind.Message, "驻地失效，士兵留在驻地", a.HomeId);
             }
         }
 

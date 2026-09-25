@@ -63,6 +63,33 @@ namespace Landsong.ECS.Authoring.Definitions
                 QuestTechnologyObjectiveCompiler.Compile(ref builder, orderedTechnologyObjectives[i], ref TechnologyObjectives[i], technologyIndex);
             }
 
+            var completed = source.TechnologyCompletedObjectives.OrderBy(entry => entry.Order).ToArray();
+            var completedTarget = builder.Allocate(ref target.TechnologyCompletedObjectives, completed.Length);
+            for (var i = 0; i < completed.Length; i++)
+            {
+                var entry = completed[i];
+                completedTarget[i] = new QuestTechnologyCompletedObjective
+                {
+                    Order = entry.Order,
+                    Key = new FixedString64Bytes(entry.Key ?? ""),
+                    Technology = technologyIndex.Resolve(entry.Technology),
+                    Count = entry.Count
+                };
+            }
+
+            var population = source.PopulationObjectives.OrderBy(entry => entry.Order).ToArray();
+            var populationTarget = builder.Allocate(ref target.PopulationObjectives, population.Length);
+            for (var i = 0; i < population.Length; i++)
+            {
+                var entry = population[i];
+                populationTarget[i] = new QuestPopulationObjective
+                {
+                    Order = entry.Order,
+                    Key = new FixedString64Bytes(entry.Key ?? ""),
+                    Count = entry.Count
+                };
+            }
+
             if (source.CameraMoveObjectives == null)
                 throw new InvalidOperationException("移动镜头目标列表不能为空引用。");
             var orderedCameraMoveObjectives = source.CameraMoveObjectives.OrderBy(entry => entry == null ? throw new InvalidOperationException("列表中存在空条目。") : entry.Order).ToArray();

@@ -90,6 +90,18 @@ namespace Landsong.ECS
                 Observe(requirement.Key, count, requirement.Count);
             }
 
+            for (int i = 0; i < objectives.TechnologyCompletedObjectives.Length; i++)
+            {
+                var requirement = objectives.TechnologyCompletedObjectives[i];
+                Observe(requirement.Key, TechnologyProgression.Read(em, root, requirement.Technology).Completions, requirement.Count);
+            }
+
+            for (int i = 0; i < objectives.PopulationObjectives.Length; i++)
+            {
+                var requirement = objectives.PopulationObjectives[i];
+                Observe(requirement.Key, PopulationOps.Population(em, root), requirement.Count);
+            }
+
             using var buildings = WorldQueries.OrderedEntities<Building>(em);
             for (int i = 0; i < objectives.BuildingObjectives.Length; i++)
             {
@@ -134,7 +146,7 @@ namespace Landsong.ECS
                     continue;
                 var id = em.GetComponentData<QuestDefinitionRef>(entity).Definition;
                 ref var definition = ref QuestDefinitions.Get(em, root, id);
-                if (!PrerequisiteEvaluation.Satisfied(em, root, ref definition.Prerequisites))
+                if (!QuestOps.Prerequisites(em, root, id))
                     continue;
                 var progress = em.GetBuffer<QuestProgress>(entity);
                 void Increment(FixedString64Bytes key, int required)
@@ -212,6 +224,18 @@ namespace Landsong.ECS
             for (int i = 0; i < objectives.TechnologyObjectives.Length; i++)
             {
                 var r = objectives.TechnologyObjectives[i];
+                keys.Add((r.Order, r.Key, r.Count));
+            }
+
+            for (int i = 0; i < objectives.TechnologyCompletedObjectives.Length; i++)
+            {
+                var r = objectives.TechnologyCompletedObjectives[i];
+                keys.Add((r.Order, r.Key, r.Count));
+            }
+
+            for (int i = 0; i < objectives.PopulationObjectives.Length; i++)
+            {
+                var r = objectives.PopulationObjectives[i];
                 keys.Add((r.Order, r.Key, r.Count));
             }
 

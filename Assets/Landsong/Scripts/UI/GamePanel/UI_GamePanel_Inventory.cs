@@ -351,8 +351,8 @@ namespace Landsong.ECS.Presentation
                 view.gameObject.SetActive(true);
                 view.transform.SetSiblingIndex(index++);
                 forecast.TryGetValue(item, out var predicted);
-                var delta = forecastReady ? UI_GamePanel_Economy.Signed((predicted?.Income ?? 0) - (predicted?.Expense ?? 0)) : ForecastUnavailable;
-                view.Information.text = $"{ItemName(item)}  {pair.Value.Stored}（{delta}）";
+                view.Information.text = UI_GamePanel_InventoryResource.FormatInformation(
+                    ItemName(item), pair.Value.Stored, predicted, forecastReady ? null : ForecastUnavailable);
                 SetIcon(view.Icon, item);
             }
 

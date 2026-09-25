@@ -20,6 +20,9 @@ MonoBehaviour:
   DeadlineTurns: 0
   Behavior: 1
   OfferType: 0
+  Intensity: 0
+  OfferWeight: 100
+  ItemQuantityScale: 1
   Prerequisites:
     BuildingRequirements: []
     TechnologyRequirements: []
@@ -30,22 +33,34 @@ MonoBehaviour:
       Quest: {fileID: 11400000, guid: 3c2b1d9dddb017f479aa1083eb96fffc, type: 2}
       Required: 1
     ExpeditionRequirements: []
-  Rewards:
-    Items: []
-    Blueprints: []
-    Buffs: []
-    Features: []
+  Requirements:
+  - rid: 7208904576148963429
+  RewardEntries:
+  - rid: 7208904576148963430
+  NextQuest: {fileID: 11400000, guid: 6d52584f20b84b94dbb8d489513d1370, type: 2}
+  RefreshPrerequisites:
+    BuildingRequirements: []
+    TechnologyRequirements: []
+    BuffRequirements: []
+    FeatureRequirements: []
+    QuestRequirements: []
+    ExpeditionRequirements: []
+  MinimumRefreshTurns: 0
+  MaximumRefreshTurns: 0
   FailurePenalties: []
-  Objectives:
-    Requirements:
-    - rid: 1000000000000000001
   references:
     version: 2
     RefIds:
-    - rid: 1000000000000000001
+    - rid: 7208904576148963429
       type: {class: QuestTechnologyObjectiveSource, ns: Landsong.ECS.Authoring.Definitions, asm: Landsong.ECS.Authoring}
       data:
         Order: 1
         Key: f6d296731d514f02878821cbc6708f4b
         Technology: {fileID: 0}
         Count: 1
+    - rid: 7208904576148963430
+      type: {class: QuestItemRewardSource, ns: Landsong.ECS.Authoring.Definitions, asm: Landsong.ECS.Authoring}
+      data:
+        Order: 0
+        Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+        Quantity: 500

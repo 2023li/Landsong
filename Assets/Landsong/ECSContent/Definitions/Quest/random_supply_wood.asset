@@ -30,21 +30,24 @@ MonoBehaviour:
     FeatureRequirements: []
     QuestRequirements: []
     ExpeditionRequirements: []
-  Rewards:
-    Items:
-    - Order: 0
-      Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
-      Quantity: 15
-    Blueprints: []
-    Buffs: []
-    Features: []
+  RewardEntries:
+  - rid: 1000000000000000002
+  NextQuest: {fileID: 0}
+  RefreshPrerequisites:
+    BuildingRequirements: []
+    TechnologyRequirements: []
+    BuffRequirements: []
+    FeatureRequirements: []
+    QuestRequirements: []
+    ExpeditionRequirements: []
+  MinimumRefreshTurns: 0
+  MaximumRefreshTurns: 0
   FailurePenalties:
   - Order: 2
     Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
     Quantity: 3
-  Objectives:
-    Requirements:
-    - rid: 1000000000000000001
+  Requirements:
+  - rid: 1000000000000000001
   references:
     version: 2
     RefIds:
@@ -55,3 +58,9 @@ MonoBehaviour:
         Key: 952451b765a24f1296945ba5458801b7
         Item: {fileID: 11400000, guid: a761334fe1641a74f9948313fb5ff413, type: 2}
         Quantity: 10
+    - rid: 1000000000000000002
+      type: {class: QuestItemRewardSource, ns: Landsong.ECS.Authoring.Definitions, asm: Landsong.ECS.Authoring}
+      data:
+        Order: 0
+        Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+        Quantity: 15

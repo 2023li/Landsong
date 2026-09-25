@@ -16,6 +16,22 @@ namespace Landsong.ECS.Authoring.Definitions
     }
 
     [Serializable]
+    public sealed class QuestPopulationObjectiveSource : QuestObjectiveSource
+    {
+        [LabelText("达到人口")]
+        public int Count = 1;
+    }
+
+    [Serializable]
+    public sealed class QuestTechnologyCompletedObjectiveSource : QuestObjectiveSource
+    {
+        [LabelText("完成研究的科技")]
+        public TechnologyDefinitionAsset Technology;
+        [LabelText("完成次数")]
+        public int Count = 1;
+    }
+
+    [Serializable]
     public sealed class QuestObjectivesSource
     {
         [SerializeReference, LabelText("任务目标"), ListDrawerSettings(ShowIndexLabels = true)]
@@ -29,6 +45,8 @@ namespace Landsong.ECS.Authoring.Definitions
         public QuestOwnedItemObjectiveSource[] OwnedItemObjectives => ByType<QuestOwnedItemObjectiveSource>();
         public QuestSubmittedItemObjectiveSource[] SubmittedItemObjectives => ByType<QuestSubmittedItemObjectiveSource>();
         public QuestTechnologyObjectiveSource[] TechnologyObjectives => ByType<QuestTechnologyObjectiveSource>();
+        public QuestTechnologyCompletedObjectiveSource[] TechnologyCompletedObjectives => ByType<QuestTechnologyCompletedObjectiveSource>();
+        public QuestPopulationObjectiveSource[] PopulationObjectives => ByType<QuestPopulationObjectiveSource>();
         public QuestCameraMoveObjectiveSource[] CameraMoveObjectives => ByType<QuestCameraMoveObjectiveSource>();
         public QuestCameraZoomObjectiveSource[] CameraZoomObjectives => ByType<QuestCameraZoomObjectiveSource>();
         public QuestTurnObjectiveSource[] TurnObjectives => ByType<QuestTurnObjectiveSource>();

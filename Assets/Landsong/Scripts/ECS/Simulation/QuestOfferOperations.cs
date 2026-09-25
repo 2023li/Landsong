@@ -18,6 +18,36 @@ namespace Landsong.ECS
 
     public static class QuestOfferOps
     {
+        public static bool RefreshReady(EntityManager em, Entity root, QuestId quest)
+        {
+            if (!em.HasBuffer<QuestRefreshCooldown>(root))
+                return true;
+            foreach (var entry in em.GetBuffer<QuestRefreshCooldown>(root))
+                if (entry.Quest == quest)
+                    return em.GetComponentData<GameClock>(root).Turn >= entry.NextTurn;
+            return true;
+        }
+
+        public static void RestartQuestCooldown(EntityManager em, Entity root, QuestId quest)
+        {
+            ref var definition = ref QuestDefinitions.Get(em, root, quest);
+            if ((definition.Behavior & QuestBehaviorFlags.Mainline) != 0 || definition.MaximumRefreshTurns == 0)
+                return;
+            var range = (uint)((long)definition.MaximumRefreshTurns - definition.MinimumRefreshTurns + 1);
+            var delay = (long)definition.MinimumRefreshTurns + SimulationRandom.NextRandom(em, root) % range;
+            var turn = em.GetComponentData<GameClock>(root).Turn;
+            var next = (int)math.min(int.MaxValue, (long)turn + delay);
+            EntityState.Buffer<QuestRefreshCooldown>(em, root);
+            var entries = em.GetBuffer<QuestRefreshCooldown>(root);
+            for (var i = 0; i < entries.Length; i++)
+                if (entries[i].Quest == quest)
+                {
+                    entries[i] = new QuestRefreshCooldown { Quest = quest, NextTurn = next };
+                    return;
+                }
+            entries.Add(new QuestRefreshCooldown { Quest = quest, NextTurn = next });
+        }
+
         public static string TypeName(int type) => type == 0 ? "贸易" : type == 1 ? "建设" : type == 2 ? "民生" : "探索";
         public static BuildingQuestInvitation SourceRule(EntityManager em, Entity root, Entity source, int type)
         {
@@ -189,7 +219,7 @@ namespace Landsong.ECS
             {
                 var quest = QuestId.FromIndex(questIndex);
                 ref var definition = ref QuestDefinitions.Get(em, root, quest);
-                if ((definition.Behavior & (QuestBehaviorFlags.Mainline | QuestBehaviorFlags.Draft)) != 0 || (int)definition.OfferType != slot.Type || QuestOps.HasQuestPredecessor(em, root, quest) || !QuestOps.Prerequisites(em, root, quest))
+                if ((definition.Behavior & (QuestBehaviorFlags.Mainline | QuestBehaviorFlags.Draft)) != 0 || (int)definition.OfferType != slot.Type || QuestOps.HasQuestPredecessor(em, root, quest) || !QuestOps.Prerequisites(em, root, quest) || !PrerequisiteEvaluation.Satisfied(em, root, ref definition.RefreshPrerequisites) || !RefreshReady(em, root, quest))
                     continue;
                 double weight = Weight(settings, ref definition, q.Strength);
                 if (weight <= 0)

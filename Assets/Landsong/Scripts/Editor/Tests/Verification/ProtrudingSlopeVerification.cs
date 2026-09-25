@@ -223,6 +223,21 @@ namespace Landsong.EditorTools
                     using var cells = new NativeParallelMultiHashMap<int2, int>(nodes.Length, Allocator.Temp);
                     for (int i = 0; i < nodes.Length; i++)
                         cells.Add(nodes[i].Cell, i);
+                    if (direction == 0)
+                    {
+                        var upperNode = nodes.First(n => n.Open != 0 && n.Corridor == 0 && n.Surface == strip.Connection.ExitSurface);
+                        var upperBuilding = new BuildingPlacementState
+                        {
+                            Cell = upperNode.Cell,
+                            Size = new int2(1),
+                            Surface = upperNode.Surface,
+                            Elevation = upperNode.Elevation
+                        };
+                        Check(NavigationOps.TryBuildingEdgeSpawn(em, root, upperBuilding, 0, .1f, out var upperExit)
+                            && nodes.Any(n => n.Open != 0 && n.Surface == upperNode.Surface && n.Elevation == upperNode.Elevation
+                                && math.distancesq(n.Position, upperExit) < .0001f),
+                            "Upper-layer building perimeter spawn remains on its authored surface");
+                    }
                     var query = new SurfacePathQuery
                     {
                         Grid = grid,

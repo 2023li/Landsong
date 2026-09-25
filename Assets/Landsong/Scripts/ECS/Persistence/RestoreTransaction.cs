@@ -235,6 +235,7 @@ namespace Landsong.ECS.Persistence
                 Buffer<OwnedBuff>(manager, root);
                 Buffer<UnlockedFeature>(manager, root);
                 Buffer<ClaimedQuest>(manager, root);
+                Buffer<QuestRefreshCooldown>(manager, root);
                 Buffer<TrackedQuest>(manager, root);
                 Buffer<CompletedExpedition>(manager, root);
                 Buffer<TechnologyProgress>(manager, root);

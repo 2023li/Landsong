@@ -19,6 +19,16 @@ namespace Landsong.ECS.Presentation
         public UI_GamePanel_InteractionLock Interaction;
         public ItemId Item { get; internal set; }
 
+        public static string FormatInformation(string name, long stored, ResourceForecastReadModel.Resource prediction, string unavailable)
+        {
+            if (unavailable != null)
+                return $"{name}  {stored}（{unavailable}）\n产出：{unavailable}  消耗：{unavailable}";
+
+            long income = prediction?.Income ?? 0;
+            long expense = prediction?.Expense ?? 0;
+            return $"{name}  {stored}（{UI_GamePanel_Economy.Signed(income - expense)}）\n产出：{income}  消耗：{expense}";
+        }
+
         public void ValidateConfiguration()
         {
             if (Information == null || Icon == null || Details == null || Interaction == null)

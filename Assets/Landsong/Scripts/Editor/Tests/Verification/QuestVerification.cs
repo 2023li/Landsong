@@ -58,10 +58,17 @@ namespace Landsong.ECS.Editor
             QuestCatalogValidation.Validate(c);
             var quests = c.Definitions.Select(asset => asset).ToArray();
             Check(quests.Length == 11 && quests.Count(x => x.Behavior == QuestBehaviorFlags.Mainline) == 6 && quests.Count(x => x.Behavior == QuestBehaviorFlags.None) == 4 && quests.Single(x => x.Metadata.Id == "QM007").Behavior == (QuestBehaviorFlags.Mainline | QuestBehaviorFlags.Draft), "11 definitions: six mainline, four random, one disabled original placeholder");
+            var chain = new[] { "main_camera_survey", "main_collect_building_materials", "main_build_farms_3", "main_plant_farms_3", "main_build_residential_houses_3", "main_select_technology" };
+            for (var i = 0; i < chain.Length - 1; i++)
+                Check(quests.Single(x => x.Metadata.Id == chain[i]).NextQuest == quests.Single(x => x.Metadata.Id == chain[i + 1]), "Explicit successor " + chain[i]);
+            Check(quests.Single(x => x.Metadata.Id == chain[chain.Length - 1]).NextQuest == null, "Last mainline has no successor");
             foreach (var quest in quests)
             {
-                var requirements = new SerializedObject(quest).FindProperty("Objectives.Requirements");
+                var serialized = new SerializedObject(quest);
+                var requirements = serialized.FindProperty("Requirements");
                 Check(requirements != null && requirements.arraySize == quest.Objectives.Requirements.Count && Enumerable.Range(0, requirements.arraySize).All(i => !string.IsNullOrEmpty(requirements.GetArrayElementAtIndex(i).managedReferenceFullTypename)), "Serialized requirement list loads for " + quest.Metadata.Id);
+                var rewards = serialized.FindProperty("RewardEntries");
+                Check(rewards != null && rewards.arraySize == quest.RewardEntries.Count && Enumerable.Range(0, rewards.arraySize).All(i => !string.IsNullOrEmpty(rewards.GetArrayElementAtIndex(i).managedReferenceFullTypename)), "Serialized reward list loads for " + quest.Metadata.Id);
             }
             foreach (var d in quests.Where(x => (x.Behavior & QuestBehaviorFlags.Draft) == 0))
                 Check(Keys(d.Objectives).All(key => key.Length >= 32), "Authored stable requirement IDs: " + d.Metadata.Id);
@@ -76,7 +83,7 @@ namespace Landsong.ECS.Editor
             Expected("main_camera_survey", 0, 0, "Feature:feature.Inventory:1:0:0;Item:金币:500:0:0;CameraMove::1:0:0;CameraZoom::1:0:0");
             Expected("main_collect_building_materials", 0, 0, "Quest:main_camera_survey:1:0:0;Item:泥土:100:0:0;Item:原木:100:0:0;Item:石头:100:0:0;Blueprint:b农田:1:0:0;Feature:feature.Building:1:0:0;Owned:泥土:10:0:0;Owned:原木:10:0:0;Owned:石头:10:0:0");
             Expected("main_plant_farms_3", 0, 0, "Quest:main_build_farms_3:1:0:0;Item:小麦:200:0:0;Item:卷心菜:100:0:0;Blueprint:b居民房:1:0:0;Planted:b农田:3:0:0");
-            Expected("main_select_technology", 0, 0, "Quest:main_build_residential_houses_3:1:0:0;Technology::1:0:0");
+            Expected("main_select_technology", 0, 0, "Quest:main_build_residential_houses_3:1:0:0;Item:金币:500:0:0;Technology::1:0:0");
             Expected("QM007", 0, 0, "");
             Expected("random_exploration_supplies", 6, 3, "Item:金币:18:0:0;Submitted:原木:5:0:0;Submitted:石头:3:0:0;Penalty:金币:5:0:0");
             Expected("random_supply_soil", 5, 0, "Item:金币:15:0:0;Submitted:泥土:10:0:0;Penalty:金币:5:0:0"); // v8 authoring restores base amount; baking applies x3 to all item rules.
@@ -129,6 +136,17 @@ namespace Landsong.ECS.Editor
                 d.Prerequisites = old;
                 QuestCatalogValidation.Validate(clone);
                 Check(true, "Valid configuration still accepted after rejected edits");
+                var originalRewards = d.Rewards.Items.Length;
+                d.Requirements.Add(new QuestPopulationObjectiveSource { Order = 100, Key = Guid.NewGuid().ToString("N"), Count = 100 });
+                d.Requirements.Add(new QuestTechnologyCompletedObjectiveSource { Order = 101, Key = Guid.NewGuid().ToString("N"), Technology = Formal<TechnologyCatalogAsset>("Technology").Definitions[0], Count = 1 });
+                d.RewardEntries.Add(new QuestItemRewardSource { Order = 102, Item = d.Rewards.Items[0].Item, Quantity = 1 });
+                using (var compiled = Compile(clone))
+                {
+                    ref var definition = ref compiled.Value.Definitions[Array.IndexOf(clone.Definitions, d)];
+                    Check(definition.Objectives.PopulationObjectives.Length == 1 && definition.Objectives.PopulationObjectives[0].Count == 100, "Population requirement compiles from serialized list");
+                    Check(definition.Objectives.TechnologyCompletedObjectives.Length == 1 && definition.Objectives.TechnologyCompletedObjectives[0].Technology.IsValid, "Completed technology requirement compiles from serialized list");
+                    Check(definition.Rewards.Items.Length == originalRewards + 1, "Added item reward compiles from serialized list");
+                }
             }
             finally
             {
@@ -141,7 +159,7 @@ namespace Landsong.ECS.Editor
         static T Formal<T>(string domain)
             where T : ScriptableObject => AssetDatabase.LoadAssetAtPath<T>("Assets/Landsong/ECSContent/Catalogs/Source/" + domain + "Catalog.asset");
         static BlobAssetReference<QuestCatalogBlob> Compile(QuestCatalogAsset catalog) => QuestCatalogCompiler.Build(catalog, new BuffCatalogIndex(Formal<BuffCatalogAsset>("Buff")), new BuildingCatalogIndex(Formal<BuildingCatalogAsset>("Building")), new ExpeditionCatalogIndex(Formal<ExpeditionCatalogAsset>("Expedition")), new FeatureCatalogIndex(Formal<FeatureCatalogAsset>("Feature")), new ItemCatalogIndex(Formal<ItemCatalogAsset>("Item")), new TechnologyCatalogIndex(Formal<TechnologyCatalogAsset>("Technology")));
-        static System.Collections.Generic.IEnumerable<string> Keys(QuestObjectivesSource objectives) => objectives.BuildingObjectives.Select(row => row.Key).Concat(objectives.PlantedBuildingObjectives.Select(row => row.Key)).Concat(objectives.OwnedItemObjectives.Select(row => row.Key)).Concat(objectives.SubmittedItemObjectives.Select(row => row.Key)).Concat(objectives.TechnologyObjectives.Select(row => row.Key)).Concat(objectives.CameraMoveObjectives.Select(row => row.Key)).Concat(objectives.CameraZoomObjectives.Select(row => row.Key)).Concat(objectives.TurnObjectives.Select(row => row.Key));
+        static System.Collections.Generic.IEnumerable<string> Keys(QuestObjectivesSource objectives) => objectives.BuildingObjectives.Select(row => row.Key).Concat(objectives.PlantedBuildingObjectives.Select(row => row.Key)).Concat(objectives.OwnedItemObjectives.Select(row => row.Key)).Concat(objectives.SubmittedItemObjectives.Select(row => row.Key)).Concat(objectives.TechnologyObjectives.Select(row => row.Key)).Concat(objectives.TechnologyCompletedObjectives.Select(row => row.Key)).Concat(objectives.PopulationObjectives.Select(row => row.Key)).Concat(objectives.CameraMoveObjectives.Select(row => row.Key)).Concat(objectives.CameraZoomObjectives.Select(row => row.Key)).Concat(objectives.TurnObjectives.Select(row => row.Key));
         static string Describe(QuestDefinitionAsset source)
         {
             var terms = new System.Collections.Generic.List<(int Order, string Text)>();
@@ -301,6 +319,20 @@ namespace Landsong.ECS.Editor
                 }
 
                 Check(rollbackFailed && original.SequenceEqual(SnapshotCodec.Capture(em, root)) && em.Exists(offer), "Published root failure restores original tracking, partial progress and Entity handles");
+                var cooldownQuest = QuestDefinitions.Find(em, root, "random_exploration_supplies");
+                var currentTurn = em.GetComponentData<GameClock>(root).Turn;
+                var refresh = em.GetBuffer<QuestRefreshCooldown>(root);
+                refresh.Add(new QuestRefreshCooldown { Quest = cooldownQuest, NextTurn = currentTurn + 2 });
+                Check(!QuestOfferOps.RefreshReady(em, root, cooldownQuest), "Random task cooldown blocks early redraw");
+                var withCooldown = SnapshotCodec.Capture(em, root);
+                SnapshotCodec.Restore(em, root, SnapshotCodec.Decode(em, root, withCooldown));
+                Check(withCooldown.SequenceEqual(SnapshotCodec.Capture(em, root)) && !QuestOfferOps.RefreshReady(em, root, cooldownQuest), "Random task cooldown survives save and load");
+                var advancedClock = em.GetComponentData<GameClock>(root);
+                advancedClock.Turn += 2;
+                em.SetComponentData(root, advancedClock);
+                Check(QuestOfferOps.RefreshReady(em, root, cooldownQuest), "Random task cooldown ends at configured turn");
+                SnapshotCodec.Restore(em, root, SnapshotCodec.Decode(em, root, original));
+                offer = WorldQueries.Find(em, offerId);
                 void Reject(Action<SnapshotCodec.Snapshot> mutate, string label)
                 {
                     var invalid = SnapshotCodec.Decode(em, root, original);

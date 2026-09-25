@@ -43,6 +43,10 @@ namespace Landsong.ECS.Definitions
         public int Intensity;
         public float OfferWeight;
         public float ItemQuantityScale;
+        public QuestId NextQuest;
+        public DefinitionPrerequisites RefreshPrerequisites;
+        public int MinimumRefreshTurns;
+        public int MaximumRefreshTurns;
         public DefinitionPrerequisites Prerequisites;
         public QuestObjectives Objectives;
         public DefinitionRewards Rewards;

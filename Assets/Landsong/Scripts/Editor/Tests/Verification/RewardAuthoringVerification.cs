@@ -79,7 +79,11 @@ namespace Landsong.ECS.Editor
                 }),
                 ("Quest", value =>
                 {
-                    f.Quest.Rewards = value;
+                    f.Quest.RewardEntries = value.Items.Select(row => (QuestRewardSource)new QuestItemRewardSource { Order = row.Order, Item = row.Item, Quantity = row.Quantity })
+                        .Concat(value.Blueprints.Select(row => new QuestBlueprintRewardSource { Order = row.Order, Building = row.Building, GrantedLevel = row.GrantedLevel }))
+                        .Concat(value.Buffs.Select(row => new QuestBuffRewardSource { Order = row.Order, Buff = row.Buff, GrantedLevel = row.GrantedLevel }))
+                        .Concat(value.Features.Select(row => new QuestFeatureRewardSource { Order = row.Order, Feature = row.Feature, GrantedLevel = row.GrantedLevel }))
+                        .ToList();
                     using var blob = f.CompileQuest();
                 }),
                 ("Expedition", value =>

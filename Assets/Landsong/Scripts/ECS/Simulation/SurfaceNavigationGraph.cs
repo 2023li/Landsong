@@ -13,7 +13,7 @@ namespace Landsong.ECS
         public int Surface, Elevation, FirstEdge;
         public ulong Owner;
         public float Cost, SideClearance, Width;
-        public byte Open, Corridor;
+        public byte Open, Corridor, ProtrudingSlope;
     }
 
     public struct SurfaceNavEdge : IBufferElementData
@@ -30,6 +30,13 @@ namespace Landsong.ECS
 
     public static class SurfaceNavigationGraph
     {
+        // A route through the outer column of a three-cell (or wider) slope leaves
+        // only half a cell for the agent's centre. Keep that column available for
+        // movement, but route across an inner column with a full cell of margin.
+        public static bool OuterSlopeLane(in SurfaceNavNode node, float cellSize)
+            => node.ProtrudingSlope != 0 && node.Width + .001f >= 3 * cellSize
+                && node.SideClearance < cellSize - .001f;
+
         struct CellChain
         {
             public int First, Last;
@@ -151,7 +158,7 @@ namespace Landsong.ECS
                         var p = grid.Origin + new float3((at.x + .5f) * grid.CellSize, 0, (at.y + .5f) * grid.CellSize);
                         p.y = height + rise * TerrainConnectionOps.HeightStep(grid) * z / (size.y - 1f);
                         var reservation = occupied[GridOps.Index(grid, at)];
-                        indices[x, z] = Add(new SurfaceNavNode { Cell = at, Position = p, Gradient = gradient, Lateral = new float2(direction.y, -direction.x), Surface = surface, Elevation = elevation, Owner = owner, Corridor = (byte)(rise == 0 && !slope ? 0 : 1), Open = (byte)(!slope || reservation.Owner == 0 || reservation.MovementCost > 0 ? 1 : 0), Cost = slope && reservation.Owner != 0 ? roadCost.Effective(reservation) : road && roadCost.Snowing ? cost * RoadWeatherCostOps.SnowMultiplier : cost, Width = size.x * grid.CellSize, SideClearance = math.min(x + .5f, size.x - x - .5f) * grid.CellSize });
+                        indices[x, z] = Add(new SurfaceNavNode { Cell = at, Position = p, Gradient = gradient, Lateral = new float2(direction.y, -direction.x), Surface = surface, Elevation = elevation, Owner = owner, Corridor = (byte)(rise == 0 && !slope ? 0 : 1), ProtrudingSlope = (byte)(slope ? 1 : 0), Open = (byte)(!slope || reservation.Owner == 0 || reservation.MovementCost > 0 ? 1 : 0), Cost = slope && reservation.Owner != 0 ? roadCost.Effective(reservation) : road && roadCost.Snowing ? cost * RoadWeatherCostOps.SnowMultiplier : cost, Width = size.x * grid.CellSize, SideClearance = math.min(x + .5f, size.x - x - .5f) * grid.CellSize });
                         if (byCell.TryGetValue(at, out var below))
                             for (int j = below.First; j >= 0; j = nextInCell[j])
                             {

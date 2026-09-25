@@ -13,12 +13,24 @@ namespace Landsong.ECS.Authoring.Definitions
         {
             var members = new HashSet<QuestDefinitionAsset>(catalog.Definitions);
             var marks = new Dictionary<QuestDefinitionAsset, byte>();
+            var successors = new HashSet<QuestDefinitionAsset>();
             foreach (var asset in catalog.Definitions)
             {
                 var source = asset;
                 void Fail(string reason) => throw new InvalidOperationException(source.Metadata.Id + "：" + reason);
-                if ((source.Behavior & ~(QuestBehaviorFlags.Mainline | QuestBehaviorFlags.Draft)) != 0 || (byte)source.OfferType > 3 || source.DeadlineTurns < 0 || source.Intensity < 0 || source.Intensity > 3 || !math.isfinite(source.OfferWeight) || source.OfferWeight < 0 || !math.isfinite(source.ItemQuantityScale) || source.ItemQuantityScale <= 0)
+                if ((source.Behavior & ~(QuestBehaviorFlags.Mainline | QuestBehaviorFlags.Draft)) != 0 || (byte)source.OfferType > 3 || source.DeadlineTurns < 0 || source.Intensity < 0 || source.Intensity > 3 || !math.isfinite(source.OfferWeight) || source.OfferWeight < 0 || !math.isfinite(source.ItemQuantityScale) || source.ItemQuantityScale <= 0 || source.MinimumRefreshTurns < 0 || source.MaximumRefreshTurns < source.MinimumRefreshTurns)
                     Fail("任务标记、类型、期限、强度、抽取权重或数量倍率无效。");
+                if (source.NextQuest != null && (source.NextQuest == asset || !members.Contains(source.NextQuest) || (source.NextQuest.Behavior & QuestBehaviorFlags.Draft) != 0 || !successors.Add(source.NextQuest)))
+                    Fail("后续任务必须是目录内唯一、非草稿且不能引用自身。");
+                if (source.Requirements == null || source.RewardEntries == null || source.RewardEntries.Any(reward => reward == null))
+                    Fail("任务要求或奖励列表不能包含空引用。");
+                if (source.Rewards.Items.Length + source.Rewards.Blueprints.Length + source.Rewards.Buffs.Length + source.Rewards.Features.Length != source.RewardEntries.Count)
+                    Fail("任务奖励列表包含不支持的奖励类型。");
+                if (source.RefreshPrerequisites == null || source.RefreshPrerequisites.QuestRequirements == null || source.RefreshPrerequisites.TechnologyRequirements == null || source.RefreshPrerequisites.BuildingRequirements == null || source.RefreshPrerequisites.BuffRequirements == null || source.RefreshPrerequisites.FeatureRequirements == null || source.RefreshPrerequisites.ExpeditionRequirements == null)
+                    Fail("随机任务刷新条件不能为空引用。");
+                foreach (var requirement in source.RefreshPrerequisites.QuestRequirements)
+                    if (requirement == null || requirement.Quest == null || requirement.Quest == asset || !members.Contains(requirement.Quest) || (requirement.Quest.Behavior & QuestBehaviorFlags.Draft) != 0 || requirement.Required < 0)
+                        Fail("随机任务刷新条件引用了无效任务。");
                 if ((source.Behavior & QuestBehaviorFlags.Draft) != 0)
                     continue;
                 var prerequisites = source.Prerequisites;
@@ -28,7 +40,7 @@ namespace Landsong.ECS.Authoring.Definitions
                     Fail("任务前置只支持已领取任务或已完成科技。");
                 if (source.Objectives.Requirements == null || source.Objectives.Requirements.Any(objective => objective == null))
                     Fail("任务要求列表不能包含空元素。");
-                if (source.Objectives.BuildingObjectives.Length + source.Objectives.PlantedBuildingObjectives.Length + source.Objectives.OwnedItemObjectives.Length + source.Objectives.SubmittedItemObjectives.Length + source.Objectives.TechnologyObjectives.Length + source.Objectives.CameraMoveObjectives.Length + source.Objectives.CameraZoomObjectives.Length + source.Objectives.TurnObjectives.Length != source.Objectives.Requirements.Count)
+                if (source.Objectives.BuildingObjectives.Length + source.Objectives.PlantedBuildingObjectives.Length + source.Objectives.OwnedItemObjectives.Length + source.Objectives.SubmittedItemObjectives.Length + source.Objectives.TechnologyObjectives.Length + source.Objectives.TechnologyCompletedObjectives.Length + source.Objectives.PopulationObjectives.Length + source.Objectives.CameraMoveObjectives.Length + source.Objectives.CameraZoomObjectives.Length + source.Objectives.TurnObjectives.Length != source.Objectives.Requirements.Count)
                     Fail("任务要求列表包含不支持的目标类型。");
                 var parents = new HashSet<QuestDefinitionAsset>();
                 foreach (var requirement in prerequisites.QuestRequirements)
@@ -77,6 +89,14 @@ namespace Landsong.ECS.Authoring.Definitions
 
                 foreach (var objective in source.Objectives.TechnologyObjectives)
                     Objective(objective.Key, objective.Count);
+                foreach (var objective in source.Objectives.TechnologyCompletedObjectives)
+                {
+                    Objective(objective.Key, objective.Count);
+                    if (objective.Technology == null)
+                        Fail("完成科技目标需要指定科技。");
+                }
+                foreach (var objective in source.Objectives.PopulationObjectives)
+                    Objective(objective.Key, objective.Count);
                 foreach (var objective in source.Objectives.CameraMoveObjectives)
                     Objective(objective.Key, objective.Count);
                 foreach (var objective in source.Objectives.CameraZoomObjectives)
@@ -107,12 +127,32 @@ namespace Landsong.ECS.Authoring.Definitions
                 marks[asset] = 1;
                 foreach (var parent in asset.Prerequisites.QuestRequirements)
                     Visit(parent.Quest);
+                foreach (var parent in catalog.Definitions)
+                    if (parent.NextQuest == asset)
+                        Visit(parent);
                 marks[asset] = 2;
             }
 
             foreach (var asset in catalog.Definitions)
                 if ((asset.Behavior & QuestBehaviorFlags.Draft) == 0)
                     Visit(asset);
+
+            var nextMarks = new Dictionary<QuestDefinitionAsset, byte>();
+            void VisitNext(QuestDefinitionAsset asset)
+            {
+                if (nextMarks.TryGetValue(asset, out var mark))
+                {
+                    if (mark == 1)
+                        throw new InvalidOperationException(asset.Metadata.Id + "：后续任务存在循环。");
+                    return;
+                }
+                nextMarks[asset] = 1;
+                if (asset.NextQuest != null)
+                    VisitNext(asset.NextQuest);
+                nextMarks[asset] = 2;
+            }
+            foreach (var asset in catalog.Definitions)
+                VisitNext(asset);
         }
     }
 }

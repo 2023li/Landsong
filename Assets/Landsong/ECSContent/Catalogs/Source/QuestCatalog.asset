@@ -9,8 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Name: QuestCatalog
   m_Script: {fileID: 11500000, guid: 652540b3d6824a0d8838216542c3f220, type: 3}
+  m_Name: QuestCatalog
   m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.QuestCatalogAsset
   Definitions:
   - {fileID: 11400000, guid: 237657b1c680c4748837a2921b221bd1, type: 2}
@@ -24,3 +24,4 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 3a23b2b947dab6e4f85e6027896a8173, type: 2}
   - {fileID: 11400000, guid: 60821559487f2d04eae1722d269814e5, type: 2}
   - {fileID: 11400000, guid: 17deb386bb99f964bad92697ee0205d8, type: 2}
+  - {fileID: 11400000, guid: 6d52584f20b84b94dbb8d489513d1370, type: 2}

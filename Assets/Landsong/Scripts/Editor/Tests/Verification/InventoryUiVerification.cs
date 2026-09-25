@@ -55,7 +55,7 @@ namespace Landsong.ECS.Editor
                         "石头",
                         "木板",
                         "金币"
-                    }[i] + "  120（+10）";
+                    }[i] + "  120（+10）\n产出：20  消耗：10";
                     row.gameObject.SetActive(true);
                 }
 
@@ -112,6 +112,8 @@ namespace Landsong.ECS.Editor
                 Entry(1000, EconomyReason.Production, turn: 8);
                 var forecast = ResourceForecastReadModel.Read(em, root, 9);
                 Check(forecast[ItemId.FromIndex(4)].Income == 24 && forecast[ItemId.FromIndex(4)].Expense == 10, "Current-turn forecast includes tax and loss but excludes transfers");
+                Check(UI_GamePanel_InventoryResource.FormatInformation("原木", 17, forecast[ItemId.FromIndex(4)], null) == "原木  17（+14）\n产出：24  消耗：10", "Resource row shows stock, net forecast, income, and expense");
+                Check(UI_GamePanel_InventoryResource.FormatInformation("原木", 17, null, "计算中…") == "原木  17（计算中…）\n产出：计算中…  消耗：计算中…", "Resource row does not present unfinished forecast as zero");
                 Check(forecast[ItemId.FromIndex(4)].Incomes.Count == 2 && forecast[ItemId.FromIndex(4)].Expenses.Count == 2, "Forecast details partition positive and negative entries");
                 Check(forecast.Count == 2 && !forecast.ContainsKey(ItemId.FromIndex(9)), "Forecast keeps different resources separate and absent resources empty");
                 Check(ResourceForecastReadModel.Read(em, root, 7).Count == 0, "Other turns cannot leak into current prediction");

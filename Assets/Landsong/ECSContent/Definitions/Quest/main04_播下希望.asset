@@ -31,24 +31,23 @@ MonoBehaviour:
       Quest: {fileID: 11400000, guid: bb356302abf8f6d41884f1e9ee9aba95, type: 2}
       Required: 1
     ExpeditionRequirements: []
-  Rewards:
-    Items:
-    - Order: 1
-      Item: {fileID: 11400000, guid: ae86caa71825ab54d829b6dc712d65a7, type: 2}
-      Quantity: 200
-    - Order: 2
-      Item: {fileID: 11400000, guid: 03e6eefa9ddbcaa4ca3552ff906f195b, type: 2}
-      Quantity: 100
-    Blueprints:
-    - Order: 3
-      Building: {fileID: 11400000, guid: c18eee413b97cad42baa968736fccae8, type: 2}
-      GrantedLevel: 1
-    Buffs: []
-    Features: []
+  RewardEntries:
+  - rid: 1000000000000000002
+  - rid: 1000000000000000003
+  - rid: 1000000000000000004
+  NextQuest: {fileID: 11400000, guid: 3c2b1d9dddb017f479aa1083eb96fffc, type: 2}
+  RefreshPrerequisites:
+    BuildingRequirements: []
+    TechnologyRequirements: []
+    BuffRequirements: []
+    FeatureRequirements: []
+    QuestRequirements: []
+    ExpeditionRequirements: []
+  MinimumRefreshTurns: 0
+  MaximumRefreshTurns: 0
   FailurePenalties: []
-  Objectives:
-    Requirements:
-    - rid: 1000000000000000001
+  Requirements:
+  - rid: 1000000000000000001
   references:
     version: 2
     RefIds:
@@ -59,3 +58,21 @@ MonoBehaviour:
         Key: 69dd2ae38a9d40a6b96b1ab09c56fae4
         Building: {fileID: 11400000, guid: 7df6157a6643e9c41951b0403decdba0, type: 2}
         Count: 3
+    - rid: 1000000000000000002
+      type: {class: QuestItemRewardSource, ns: Landsong.ECS.Authoring.Definitions, asm: Landsong.ECS.Authoring}
+      data:
+        Order: 1
+        Item: {fileID: 11400000, guid: ae86caa71825ab54d829b6dc712d65a7, type: 2}
+        Quantity: 200
+    - rid: 1000000000000000003
+      type: {class: QuestItemRewardSource, ns: Landsong.ECS.Authoring.Definitions, asm: Landsong.ECS.Authoring}
+      data:
+        Order: 2
+        Item: {fileID: 11400000, guid: 03e6eefa9ddbcaa4ca3552ff906f195b, type: 2}
+        Quantity: 100
+    - rid: 1000000000000000004
+      type: {class: QuestBlueprintRewardSource, ns: Landsong.ECS.Authoring.Definitions, asm: Landsong.ECS.Authoring}
+      data:
+        Order: 3
+        Building: {fileID: 11400000, guid: c18eee413b97cad42baa968736fccae8, type: 2}
+        GrantedLevel: 1

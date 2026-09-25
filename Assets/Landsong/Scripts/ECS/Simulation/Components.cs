@@ -646,7 +646,7 @@ namespace Landsong.ECS
     {
         public int2 Goal;
         public int Revision;
-        public float NextRepath, GoalHeight;
+        public float NextRepath, GoalHeight, StalledSeconds;
         public byte Failed;
     }
 

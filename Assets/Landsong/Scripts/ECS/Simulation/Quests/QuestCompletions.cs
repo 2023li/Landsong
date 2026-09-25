@@ -10,6 +10,13 @@ namespace Landsong.ECS
         public QuestId Quest;
     }
 
+    [InternalBufferCapacity(0)]
+    public struct QuestRefreshCooldown : IBufferElementData
+    {
+        public QuestId Quest;
+        public int NextTurn;
+    }
+
     public static class QuestCompletions
     {
         public static bool Has(EntityManager em, Entity root, QuestId quest)

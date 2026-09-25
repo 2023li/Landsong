@@ -17,6 +17,7 @@ namespace Landsong.ECS
     {
         const string RuntimeObjectName = "[Landsong] A* Pro Runtime";
         const string RuntimeGraphName = "Landsong Runtime Surfaces";
+        const int OuterSlopeLaneTag = 1;
 
         static AstarPath owner;
         static PointGraph graph;
@@ -118,8 +119,13 @@ namespace Landsong.ECS
             owner = AstarPath.active;
             if (rebuild)
             {
-                if (graph != null && graph.active == owner)
-                    owner.data.RemoveGraph(graph);
+                // Domain reload can leave an older runtime graph in AstarPath while
+                // these static references have been reset. Replace every graph we
+                // own before building the graph for the current map session.
+                var existingGraphs = owner.data.graphs;
+                foreach (var existing in existingGraphs)
+                    if (existing is PointGraph pointGraph && pointGraph.name == RuntimeGraphName)
+                        owner.data.RemoveGraph(pointGraph);
                 graph = owner.data.AddGraph<PointGraph>();
                 if (graph == null)
                     throw new InvalidOperationException("A* Pro 无法创建 Landsong 运行时导航图。");
@@ -138,6 +144,8 @@ namespace Landsong.ECS
                     var point = rebuild ? graph.AddNode((Int3)(Vector3)nodes[i].Position) : converted[i];
                     bool walkable = nodes[i].Open != 0;
                     if (point.Walkable != walkable) point.Walkable = walkable;
+                    uint tag = SurfaceNavigationGraph.OuterSlopeLane(nodes[i], grid.CellSize) ? (uint)OuterSlopeLaneTag : 0u;
+                    if (point.Tag != tag) point.Tag = tag;
                     uint penalty = (uint)math.round(math.max(0, nodes[i].Cost - 1) * Int3.Precision);
                     if (point.Penalty != penalty) point.Penalty = penalty;
                     converted[i] = point;
@@ -235,6 +243,9 @@ namespace Landsong.ECS
             var request = ABPath.Construct((Vector3)from, (Vector3)destination);
             var constraint = request.traversalConstraint;
             constraint.graphMask = GraphMask.FromGraph(graph);
+            // The edge columns remain physically walkable, but paths through a
+            // wide slope use its inner lanes to leave room for RVO and body radii.
+            constraint.tags &= ~(1 << OuterSlopeLaneTag);
             request.traversalConstraint = constraint;
             AstarPath.StartPath(request);
             request.BlockUntilCalculated();

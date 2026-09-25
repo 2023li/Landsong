@@ -32,6 +32,18 @@ namespace Landsong.ECS
             for (int edge = Nodes[a].FirstEdge; edge >= 0; edge = Edges[edge].Next) if (Edges[edge].Target == b) return true;
             return false;
         }
+        public float WaypointArrival(float3 position, DynamicBuffer<Waypoint> path, float usual)
+        {
+            if (path.Length < 2) return usual;
+            int current = Locate(position), first = Locate(path[0].Position), second = Locate(path[1].Position);
+            // Keep both mouths and every corridor point until the agent is close
+            // to its centre. A large arrival radius can otherwise skip the only
+            // connected stair node and steer diagonally onto another surface.
+            bool crossing = current >= 0 && Nodes[current].Corridor != 0
+                || first >= 0 && Nodes[first].Corridor != 0
+                || second >= 0 && Nodes[second].Corridor != 0;
+            return crossing ? math.min(usual, Grid.CellSize * .2f) : usual;
+        }
         public bool Shift(float3 from, float3 to, out float3 result)
         {
             result = from; int a = Locate(from); if (a < 0) return false;
@@ -118,7 +130,8 @@ namespace Landsong.ECS
                 if (current == last) { found = true; break; }
                 for (int edge = Nodes[current].FirstEdge; edge >= 0; edge = Edges[edge].Next)
                 {
-                    int at = Edges[edge].Target; if (!Open(at) || closed[at] != 0) continue;
+                    int at = Edges[edge].Target;
+                    if (!Open(at) || closed[at] != 0 || at != last && SurfaceNavigationGraph.OuterSlopeLane(Nodes[at], Grid.CellSize)) continue;
                     float cost = costs[current] + math.distance(Nodes[current].Position, Nodes[at].Position) * Nodes[at].Cost;
                     if (cost >= costs[at]) continue;
                     costs[at] = cost; previous[at] = current;

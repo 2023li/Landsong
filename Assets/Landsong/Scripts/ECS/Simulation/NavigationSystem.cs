@@ -1,6 +1,7 @@
 using Pathfinding.ECS;
 using Pathfinding.ECS.RVO;
 using Pathfinding.RVO;
+using System.Collections.Generic;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -17,6 +18,43 @@ namespace Landsong.ECS
 
         public static bool TryNearestOpenOnSurface(EntityManager em, Entity root, float3 position, int radius, int surface, int elevation, out float3 point)
             => TryNearestOpen(em, root, position, radius, true, surface, elevation, out point);
+
+        public static bool TryBuildingEdgeSpawn(EntityManager em, Entity root, BuildingPlacementState building, int ordinal, float radius, out float3 point)
+        {
+            point = default;
+            SurfaceNavigationGraph.Ensure(em, root);
+            var nodes = em.GetBuffer<SurfaceNavNode>(root);
+            var edges = em.GetBuffer<SurfaceNavEdge>(root);
+            var candidates = new List<float3>();
+            for (int i = 0; i < nodes.Length; i++)
+            {
+                var node = nodes[i];
+                var offset = node.Cell - building.Cell;
+                if (offset.x < -1 || offset.y < -1 || offset.x > building.Size.x || offset.y > building.Size.y
+                    || offset.x >= 0 && offset.y >= 0 && offset.x < building.Size.x && offset.y < building.Size.y
+                    || node.Open == 0 || node.Corridor != 0 || node.Surface != building.Surface
+                    || node.Elevation != building.Elevation || node.SideClearance + .001f < radius)
+                    continue;
+
+                bool connected = false;
+                for (int edge = node.FirstEdge; edge >= 0; edge = edges[edge].Next)
+                {
+                    var next = nodes[edges[edge].Target];
+                    if (next.Open != 0 && next.SideClearance + .001f >= radius)
+                    {
+                        connected = true;
+                        break;
+                    }
+                }
+                if (connected)
+                    candidates.Add(node.Position);
+            }
+
+            if (candidates.Count == 0)
+                return false;
+            point = candidates[(ordinal % candidates.Count + candidates.Count) % candidates.Count];
+            return true;
+        }
 
         static bool TryNearestOpen(EntityManager em, Entity root, float3 position, int radius, bool restrictSurface, int surface, int elevation, out float3 point)
         {
@@ -162,7 +200,7 @@ namespace Landsong.ECS
                 }
 
                 float arrival = math.max(.15f, actor.Profile.BodyRadius * 1.75f);
-                while (path.Length > 1 && math.distance(position, path[0].Position) <= arrival)
+                while (path.Length > 1 && math.distance(position, path[0].Position) <= query.WaypointArrival(position, path, arrival))
                     path.RemoveAt(0);
                 if (path.Length == 0)
                 {
@@ -301,7 +339,7 @@ namespace Landsong.ECS
             [ReadOnly] public ComponentLookup<Firefighter> Firefighters;
             [ReadOnly] public ComponentLookup<DayReturnState> DayReturns;
 
-            void Execute(Entity entity, ref LocalTransform transform, ref Steering steering, in Combatant actor, in Health health,
+            void Execute(Entity entity, ref LocalTransform transform, ref Steering steering, ref NavigationState navigation, in Combatant actor, in Health health,
                 in ResolvedMovement movement, in AstarNavigationAgent astarAgent, DynamicBuffer<Waypoint> path)
             {
                 if (actor.Deployed == 0 || health.Current <= 0 || !Daytime && Now < actor.ProtectedUntil
@@ -309,6 +347,7 @@ namespace Landsong.ECS
                     || WorkersOnly && !Workers.HasComponent(entity) && !Firefighters.HasComponent(entity) || steering.Moving == 0)
                 {
                     steering.Direction = default;
+                    navigation.StalledSeconds = 0;
                     return;
                 }
 
@@ -341,53 +380,48 @@ namespace Landsong.ECS
                     }
                     if (valid)
                     {
-                        // At a stair endpoint the current planar node is flat, while the next
-                        // authored corridor node owns the slope. Interpolate along that explicit
-                        // edge until Locate enters the corridor cell to avoid a half-cell height snap.
-                        int currentNode = Query.Locate(before);
-                        int targetNode = path.Length > 0 ? Query.Locate(path[0].Position) : -1;
-                        if (currentNode >= 0 && targetNode >= 0 && currentNode != targetNode
-                            && (Query.Nodes[currentNode].Corridor == 0) != (Query.Nodes[targetNode].Corridor == 0)
-                            && Query.Connected(currentNode, targetNode))
-                        {
-                            float2 segment = Query.Nodes[targetNode].Position.xz - Query.Nodes[currentNode].Position.xz;
-                            float along = math.saturate(math.dot(safe.xz - Query.Nodes[currentNode].Position.xz, segment) / math.max(.000001f, math.lengthsq(segment)));
-                            safe.y = math.lerp(Query.Nodes[currentNode].Position.y, Query.Nodes[targetNode].Position.y, along);
-                        }
-                        else if (currentNode >= 0 && currentNode == targetNode && Query.Nodes[targetNode].Corridor == 0)
-                        {
-                            // Locate switches to the flat endpoint at the cell boundary, before
-                            // reaching its centre. Keep projecting from the nearest connected stair
-                            // node until the endpoint centre is reached.
-                            int corridor = -1;
-                            float nearest = float.MaxValue;
-                            for (int edge = Query.Nodes[targetNode].FirstEdge; edge >= 0; edge = Query.Edges[edge].Next)
-                            {
-                                int candidateNode = Query.Edges[edge].Target;
-                                if (Query.Nodes[candidateNode].Corridor == 0)
-                                    continue;
-                                float distanceToCorridor = math.distancesq(before.xz, Query.Nodes[candidateNode].Position.xz);
-                                if (distanceToCorridor < nearest)
-                                {
-                                    nearest = distanceToCorridor;
-                                    corridor = candidateNode;
-                                }
-                            }
-
-                            if (corridor >= 0)
-                            {
-                                float2 segment = Query.Nodes[targetNode].Position.xz - Query.Nodes[corridor].Position.xz;
-                                float along = math.saturate(math.dot(safe.xz - Query.Nodes[corridor].Position.xz, segment) / math.max(.000001f, math.lengthsq(segment)));
-                                safe.y = math.lerp(Query.Nodes[corridor].Position.y, Query.Nodes[targetNode].Position.y, along);
-                            }
-                        }
-
-                        transform.Position = safe;
+                        transform.Position = SmoothStairEndpoint(before, safe, path);
                     }
                 }
 
                 float3 actual = transform.Position - before;
                 var flat = new float3(actual.x, 0, actual.z);
+                if (math.lengthsq(flat) > .000001f || path.Length == 0)
+                    navigation.StalledSeconds = 0;
+                else
+                {
+                    navigation.StalledSeconds += Delta;
+                    int currentNode = Query.Locate(before);
+                    int waypointNode = Query.Locate(path[0].Position);
+                    bool onStair = currentNode >= 0 && Query.Nodes[currentNode].Corridor != 0
+                        || waypointNode >= 0 && Query.Nodes[waypointNode].Corridor != 0;
+                    if (onStair && navigation.StalledSeconds >= .6f)
+                    {
+                        // A* Pro's avoidance target can point beyond a narrow stair. Follow
+                        // the authored waypoint briefly before asking A* for a fresh route.
+                        float3 toward = path[0].Position - before;
+                        float planar = math.length(toward.xz);
+                        if (planar > .0001f)
+                        {
+                            float3 fallback = before + new float3(toward.x / planar, 0, toward.z / planar)
+                                * math.min(math.max(0, actor.Speed) * Delta, planar);
+                            if (Query.Shift(before, fallback, out var safe))
+                            {
+                                safe = SmoothStairEndpoint(before, safe, path);
+                                transform.Position = safe;
+                                flat = new float3(safe.x - before.x, 0, safe.z - before.z);
+                            }
+                        }
+                    }
+                    if (math.lengthsq(flat) > .000001f)
+                        navigation.StalledSeconds = 0;
+                    else if (navigation.StalledSeconds >= 1.5f)
+                    {
+                        path.Clear();
+                        navigation.NextRepath = (Daytime ? 0 : Now) + .25f;
+                        navigation.StalledSeconds = 0;
+                    }
+                }
                 if (math.lengthsq(flat) > .000001f)
                 {
                     steering.Direction = math.normalizesafe(flat);
@@ -397,8 +431,50 @@ namespace Landsong.ECS
                     steering.Direction = default;
 
                 float arrival = math.max(.08f, actor.Profile.BodyRadius * .5f);
-                while (path.Length > 0 && math.distance(transform.Position, path[0].Position) <= arrival)
+                while (path.Length > 0 && math.distance(transform.Position, path[0].Position) <= Query.WaypointArrival(transform.Position, path, arrival))
                     path.RemoveAt(0);
+            }
+
+            float3 SmoothStairEndpoint(float3 before, float3 safe, DynamicBuffer<Waypoint> path)
+            {
+                // Preserve the continuous stair height for ordinary movement and stall recovery.
+                int currentNode = Query.Locate(before);
+                int targetNode = path.Length > 0 ? Query.Locate(path[0].Position) : -1;
+                if (currentNode >= 0 && targetNode >= 0 && currentNode != targetNode
+                    && (Query.Nodes[currentNode].Corridor == 0) != (Query.Nodes[targetNode].Corridor == 0)
+                    && Query.Nodes[currentNode].ProtrudingSlope == 0 && Query.Nodes[targetNode].ProtrudingSlope == 0
+                    && Query.Connected(currentNode, targetNode))
+                {
+                    float2 segment = Query.Nodes[targetNode].Position.xz - Query.Nodes[currentNode].Position.xz;
+                    float along = math.saturate(math.dot(safe.xz - Query.Nodes[currentNode].Position.xz, segment) / math.max(.000001f, math.lengthsq(segment)));
+                    safe.y = math.lerp(Query.Nodes[currentNode].Position.y, Query.Nodes[targetNode].Position.y, along);
+                }
+                else if (currentNode >= 0 && currentNode == targetNode && Query.Nodes[targetNode].Corridor == 0)
+                {
+                    int corridor = -1;
+                    float nearest = float.MaxValue;
+                    for (int edge = Query.Nodes[targetNode].FirstEdge; edge >= 0; edge = Query.Edges[edge].Next)
+                    {
+                        int candidateNode = Query.Edges[edge].Target;
+                        if (Query.Nodes[candidateNode].Corridor == 0 || Query.Nodes[candidateNode].ProtrudingSlope != 0)
+                            continue;
+                        float distanceToCorridor = math.distancesq(before.xz, Query.Nodes[candidateNode].Position.xz);
+                        if (distanceToCorridor < nearest)
+                        {
+                            nearest = distanceToCorridor;
+                            corridor = candidateNode;
+                        }
+                    }
+
+                    if (corridor >= 0)
+                    {
+                        float2 segment = Query.Nodes[targetNode].Position.xz - Query.Nodes[corridor].Position.xz;
+                        float along = math.saturate(math.dot(safe.xz - Query.Nodes[corridor].Position.xz, segment) / math.max(.000001f, math.lengthsq(segment)));
+                        safe.y = math.lerp(Query.Nodes[corridor].Position.y, Query.Nodes[targetNode].Position.y, along);
+                    }
+                }
+
+                return safe;
             }
         }
     }

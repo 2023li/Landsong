@@ -45,7 +45,6 @@ namespace Landsong.ECS.AI
             SurfaceNavigationGraph.Ensure(em, root);
             using var buildings = WorldQueries.Entities<Building>(em);
             var result = new NativeParallelHashMap<TacticalPatrolKey, TacticalPatrolPoint>(math.max(1, buildings.Length * SectorCount), allocator);
-            var grid = em.GetComponentData<GridData>(root);
             var nodes = em.GetBuffer<SurfaceNavNode>(root);
             foreach (var building in buildings)
             {
@@ -59,8 +58,7 @@ namespace Landsong.ECS.AI
                     continue;
                 var budget = math.max(0, buildingDefinition.PlacementAndVisuals.SpawnExclusionPadding);
                 var placement = em.GetComponentData<BuildingPlacementState>(building);
-                var exitProbe = GridOps.Position(grid, placement.Cell + new int2(placement.Size.x, 0), new int2(1));
-                if (!NavigationOps.TryNearestOpenOnSurface(em, root, exitProbe, 12, placement.Surface, placement.Elevation, out var start))
+                if (!NavigationOps.TryBuildingEdgeSpawn(em, root, placement, em.GetComponentData<GameClock>(root).Turn, 0, out var start))
                     continue;
 
                 // Patrol scoring visits every node by index, so a cell-to-node index would

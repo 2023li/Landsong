@@ -38,6 +38,7 @@ namespace Landsong.ECS.Editor
             {
                 PlacementAndPaths();
                 ActualMovement();
+                WideSlopeEntryMovement();
                 CrowdAvoidance();
                 BuildingGraphUpdates();
                 Baking();
@@ -66,7 +67,7 @@ namespace Landsong.ECS.Editor
             public BlobAssetReference<GridBlob> Grid;
             BlobAssetReference<BuildingCatalogBlob> Catalog;
             readonly GameObject navigationHost;
-            public Fixture(int bridgeWidth = 3, int mapSize = 20)
+            public Fixture(int bridgeWidth = 3, int mapSize = 20, bool wideSlope = false)
             {
                 bool createNavigationHost = AstarPath.active == null;
                 AstarNavigationRuntime.EnsureServices(true);
@@ -78,7 +79,8 @@ namespace Landsong.ECS.Editor
                 for (int z = 0; z < mapSize; z++)
                     for (int x = 0; x < mapSize; x++)
                     {
-                        int height = x >= 2 && x <= 6 && (z >= 2 && z <= 4 || z >= 12 && z <= 14) ? 3 : x >= 9 && x <= 14 && z >= 8 && z <= 11 ? 2 : 0;
+                        int height = wideSlope ? x >= 4 && x <= 10 && z >= 8 && z <= 15 ? 1 : 0
+                            : x >= 2 && x <= 6 && (z >= 2 && z <= 4 || z >= 12 && z <= 14) ? 3 : x >= 9 && x <= 14 && z >= 8 && z <= 11 ? 2 : 0;
                         map.Cells[z * mapSize + x] = new CellSource
                         {
                             Exists = true,
@@ -86,9 +88,28 @@ namespace Landsong.ECS.Editor
                             Terrain = (ulong)TerrainType.陆地,
                             Traversable = true,
                             Elevation = height,
-                            Height = height
+                            Height = height,
+                            Surface = wideSlope && height != 0 ? 2 : 1
                         };
                     }
+
+                if (wideSlope)
+                {
+                    map.ElevationStep = 1;
+                    map.Connections = new[] { new AuthoredConnection
+                    {
+                        Id = 1,
+                        Cell = new int2(4, 6),
+                        Size = new int2(3, 3),
+                        Rotation = 0,
+                        EntrySurface = 1,
+                        ExitSurface = 2,
+                        EntryElevation = 0,
+                        Rise = 1,
+                        Bidirectional = true,
+                        ProtrudingSlope = true
+                    } };
+                }
 
                 try
                 {
@@ -394,10 +415,74 @@ namespace Landsong.ECS.Editor
                 slope.Em.CompleteAllTrackedJobs();
                 Check(EntityState.Position(slope.Em, agent).z > before.z + .01f,
                     "Blocked lateral avoidance falls back toward the connected stair waypoint");
+                var stationary = EntityState.Position(slope.Em, agent);
+                for (int tick = 0; tick < 16; tick++)
+                {
+                    var frozen = slope.Em.GetComponentData<ResolvedMovement>(agent);
+                    frozen.targetPoint = EntityState.Position(slope.Em, agent);
+                    frozen.speed = 0;
+                    slope.Em.SetComponentData(agent, frozen);
+                    slope.World.GetOrCreateSystem<AstarNavigationMoveSystem>().Update(slope.World.Unmanaged);
+                    slope.Em.CompleteAllTrackedJobs();
+                }
+                Check(EntityState.Position(slope.Em, agent).z > stationary.z + .01f,
+                    "Repeated zero-velocity avoidance on a slope resumes along the authored waypoint");
             }
             using var narrow = new Fixture(1);
             Check(!TerrainConnectionOps.CanPlace(narrow.Em, narrow.Root, BuildingId.FromIndex(0), new int2(4, 4), 0, 0, out var reason)
                 && reason.Contains("3 格宽"), "Bridge authoring rejects obsolete single-width decks: " + reason);
+        }
+
+        static void WideSlopeEntryMovement()
+        {
+            using var f = new Fixture(wideSlope: true);
+            var lower = new float3(6.816f, .5f, 6.945f);
+            var upper = new float3(10.5f, 1.5f, 12.5f);
+            foreach (float radius in new[] { .35f, .4f, .8f })
+                foreach (bool uphill in new[] { true, false })
+                {
+                    var destination = uphill ? upper : lower;
+                    var unit = f.Unit(uphill ? lower : upper, destination, radius, 2.5f);
+                    f.Tick();
+                    using (var query = f.Query(radius))
+                    {
+                        var path = f.Em.GetBuffer<Waypoint>(unit);
+                        bool innerRoute = path.Length > 0;
+                        for (int i = 0; i < path.Length; i++)
+                        {
+                            int node = query.Value.Locate(path[i].Position);
+                            innerRoute &= node >= 0 && !SurfaceNavigationGraph.OuterSlopeLane(query.Value.Nodes[node], 1);
+                        }
+                        Check(innerRoute, "Wide slope route avoids edge columns for radius " + radius + ", uphill=" + uphill);
+                    }
+
+                    float3 previous = EntityState.Position(f.Em, unit);
+                    int stillTicks = 0, longestStill = 0;
+                    bool Arrived()
+                    {
+                        var grid = f.Em.GetComponentData<GridData>(f.Root);
+                        var current = EntityState.Position(f.Em, unit);
+                        return f.Em.GetBuffer<Waypoint>(unit).Length == 0
+                            && math.all(GridOps.Cell(grid, current) == GridOps.Cell(grid, destination))
+                            && math.abs(current.y - destination.y) < .03f;
+                    }
+                    for (int tick = 0; tick < 240 && !Arrived(); tick++)
+                    {
+                        f.Tick();
+                        var current = EntityState.Position(f.Em, unit);
+                        stillTicks = math.distancesq(current.xz, previous.xz) < .000001f ? stillTicks + 1 : 0;
+                        longestStill = math.max(longestStill, stillTicks);
+                        previous = current;
+                    }
+                    var remaining = f.Em.GetBuffer<Waypoint>(unit);
+                    var resolved = f.Em.GetComponentData<ResolvedMovement>(unit);
+                    Check(longestStill < 40 && Arrived(),
+                        "Wide slope movement clears the mouth without a two-second stall for radius " + radius + ", uphill=" + uphill
+                        + ", stillTicks=" + longestStill + ", position=" + EntityState.Position(f.Em, unit)
+                        + ", next=" + (remaining.Length > 0 ? remaining[0].Position.ToString() : "none")
+                        + ", resolved=" + resolved.targetPoint + "/" + resolved.speed);
+                    f.Em.DestroyEntity(unit);
+                }
         }
 
         static void CrowdAvoidance()

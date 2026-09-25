@@ -71,22 +71,23 @@ namespace Landsong.ECS.Editor
                     EditorGUIUtility.PingObject(selected);
                 }
 
-                var d = selected;
-                EditorGUILayout.LabelField("后续任务", string.Join("、", catalog.Definitions.Where(x => x != null && x.Prerequisites.QuestRequirements.Any(r => r?.Quest == selected)).Select(x => x.Metadata.Name)), EditorStyles.wordWrappedLabel);
+                EditorGUILayout.LabelField("后续任务", selected.NextQuest == null ? "无" : selected.NextQuest.Metadata.Name, EditorStyles.wordWrappedLabel);
                 using (new EditorGUI.DisabledScope(EditorApplication.isPlayingOrWillChangePlaymode))
                 {
                     UnityEditor.Editor.CreateCachedEditor(selected, typeof(QuestDefinitionInspector), ref contentEditor);
                     contentEditor.OnInspectorGUI();
-                    EditorGUILayout.HelpBox("任务目标保存稳定进度标识。物品填写基础数量，物品数量倍率在 Baking 时统一缩放；目标和奖励通过独立模块配置。", MessageType.Info);
+                    EditorGUILayout.HelpBox("任务要求保存稳定进度标识。物品填写基础数量，物品数量倍率在 Baking 时统一缩放。", MessageType.Info);
                     if (GUILayout.Button("仅为缺失 Key 的要求生成稳定 ID"))
                     {
                         Undo.RecordObject(selected, "Assign quest requirement IDs");
                         var serialized = new SerializedObject(selected);
-                        var objectives = serialized.FindProperty(nameof(QuestDefinitionAsset.Objectives));
-                        var end = objectives.GetEndProperty();
-                        while (objectives.Next(true) && !SerializedProperty.EqualContents(objectives, end))
-                            if (objectives.name == "Key" && objectives.propertyType == SerializedPropertyType.String && string.IsNullOrWhiteSpace(objectives.stringValue))
-                                objectives.stringValue = Guid.NewGuid().ToString("N");
+                        var requirements = serialized.FindProperty(nameof(QuestDefinitionAsset.Requirements));
+                        for (var i = 0; requirements != null && i < requirements.arraySize; i++)
+                        {
+                            var key = requirements.GetArrayElementAtIndex(i).FindPropertyRelative("Key");
+                            if (key != null && key.propertyType == SerializedPropertyType.String && string.IsNullOrWhiteSpace(key.stringValue))
+                                key.stringValue = Guid.NewGuid().ToString("N");
+                        }
                         serialized.ApplyModifiedProperties();
                         EditorUtility.SetDirty(selected);
                     }

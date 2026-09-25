@@ -30,21 +30,22 @@ MonoBehaviour:
     FeatureRequirements: []
     QuestRequirements: []
     ExpeditionRequirements: []
-  Objectives:
-    Requirements:
-    - rid: 1000000000000000001
-    - rid: 1000000000000000002
-  Rewards:
-    Items:
-    - Order: 1
-      Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
-      Quantity: 500
-    Blueprints: []
-    Buffs: []
-    Features:
-    - Order: 0
-      Feature: {fileID: 11400000, guid: e448288e7ab049a47b5446d5550c8d49, type: 2}
-      GrantedLevel: 1
+  Requirements:
+  - rid: 1000000000000000001
+  - rid: 1000000000000000002
+  RewardEntries:
+  - rid: 1000000000000000003
+  - rid: 1000000000000000004
+  NextQuest: {fileID: 11400000, guid: 5bde982401f1498469d54bb796fb7f40, type: 2}
+  RefreshPrerequisites:
+    BuildingRequirements: []
+    TechnologyRequirements: []
+    BuffRequirements: []
+    FeatureRequirements: []
+    QuestRequirements: []
+    ExpeditionRequirements: []
+  MinimumRefreshTurns: 0
+  MaximumRefreshTurns: 0
   FailurePenalties: []
   references:
     version: 2
@@ -61,3 +62,15 @@ MonoBehaviour:
         Order: 3
         Key: 3c793d4436d447068251cbc89f4d302b
         Count: 1
+    - rid: 1000000000000000003
+      type: {class: QuestFeatureRewardSource, ns: Landsong.ECS.Authoring.Definitions, asm: Landsong.ECS.Authoring}
+      data:
+        Order: 0
+        Feature: {fileID: 11400000, guid: e448288e7ab049a47b5446d5550c8d49, type: 2}
+        GrantedLevel: 1
+    - rid: 1000000000000000004
+      type: {class: QuestItemRewardSource, ns: Landsong.ECS.Authoring.Definitions, asm: Landsong.ECS.Authoring}
+      data:
+        Order: 1
+        Item: {fileID: 11400000, guid: 87aa6f169865b1d46b0bfbbf80f03e95, type: 2}
+        Quantity: 500

@@ -66,7 +66,7 @@ namespace Landsong.ECS.Authoring.Definitions
         {
             if (source == null)
                 throw new InvalidOperationException("缺少 Quest 定义配置。");
-            if (source.DeadlineTurns < 0 || source.Intensity < 0 || source.Intensity > 3 || source.ItemQuantityScale <= 0 || source.OfferWeight < 0)
+            if (source.DeadlineTurns < 0 || source.Intensity < 0 || source.Intensity > 3 || source.ItemQuantityScale <= 0 || source.OfferWeight < 0 || source.MinimumRefreshTurns < 0 || source.MaximumRefreshTurns < source.MinimumRefreshTurns)
                 throw new InvalidOperationException("任务时限、强度、权重或数量倍率无效。");
             foreach (var penalty in source.FailurePenalties)
                 if (penalty == null || penalty.Quantity <= 0)
@@ -85,6 +85,10 @@ namespace Landsong.ECS.Authoring.Definitions
             if (!math.isfinite(source.ItemQuantityScale))
                 throw new InvalidOperationException("物品数量倍率必须是有限数值。");
             target.ItemQuantityScale = source.ItemQuantityScale;
+            target.NextQuest = questIndex.Resolve(source.NextQuest, true);
+            target.MinimumRefreshTurns = source.MinimumRefreshTurns;
+            target.MaximumRefreshTurns = source.MaximumRefreshTurns;
+            DefinitionPrerequisitesCompiler.Compile(ref builder, source.RefreshPrerequisites, ref target.RefreshPrerequisites, buffIndex, buildingIndex, expeditionIndex, featureIndex, questIndex, technologyIndex);
             DefinitionPrerequisitesCompiler.Compile(ref builder, source.Prerequisites, ref target.Prerequisites, buffIndex, buildingIndex, expeditionIndex, featureIndex, questIndex, technologyIndex);
             QuestObjectivesCompiler.Compile(ref builder, source.Objectives, ref target.Objectives, buildingIndex, itemIndex, technologyIndex, source.ItemQuantityScale);
             DefinitionRewardsCompiler.Compile(ref builder, source.Rewards, ref target.Rewards, buffIndex, buildingIndex, featureIndex, itemIndex, source.ItemQuantityScale);
