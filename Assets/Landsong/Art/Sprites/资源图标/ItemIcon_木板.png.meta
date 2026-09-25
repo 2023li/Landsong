@@ -8,7 +8,10 @@ AssetOrigin:
   assetPath: Assets/Icons Wood Timber Lumber/Icons/birch_lumber.png
   uploadId: 548639
 TextureImporter:
-  internalIDToNameTable: []
+  internalIDToNameTable:
+  - first:
+      213: -2784277200674379487
+    second: "ItemIcon_\u6728\u677F_0"
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -141,7 +144,29 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 1
   spriteSheet:
     serializedVersion: 2
-    sprites: []
+    sprites:
+    - serializedVersion: 2
+      name: "ItemIcon_\u6728\u677F_0"
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 128
+        height: 128
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 129a59143a24c59d0800000000000000
+      internalID: -2784277200674379487
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     customData: 
     physicsShape: []

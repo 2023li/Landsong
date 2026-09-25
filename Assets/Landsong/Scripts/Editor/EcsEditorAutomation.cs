@@ -288,6 +288,15 @@ public static class EcsEditorAutomation
                 case "VerifyTerrainConnections":
                     response.Details = Landsong.ECS.Editor.TerrainConnectionVerification.Run();
                     break;
+                case "ShowRuntimeNavigationGraph":
+                    if (!Landsong.EditorTools.RuntimeNavigationGraphMenu.TryShow())
+                        throw new InvalidOperationException("当前游戏地图的导航图未能显示。");
+                    response.Details = "运行时导航图显示请求已执行。";
+                    break;
+                case "HideRuntimeNavigationGraph":
+                    Landsong.EditorTools.RuntimeNavigationGraphMenu.Hide();
+                    response.Details = "运行时导航图隐藏请求已执行。";
+                    break;
                 case "VerifyMapAuthoring":
                     response.Details = Landsong.ECS.Editor.GameMapWorkflowVerification.Run();
                     break;

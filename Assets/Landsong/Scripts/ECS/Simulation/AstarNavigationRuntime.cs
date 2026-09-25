@@ -28,6 +28,24 @@ namespace Landsong.ECS
         static int revision = int.MinValue;
         static uint occupancyHash;
         static PointNode[] converted;
+#if UNITY_EDITOR
+        static bool editorGraphVisible;
+
+        public static void SetEditorGraphVisible(bool visible)
+        {
+            editorGraphVisible = visible;
+            if (AstarPath.active != null)
+            {
+                // Older Play sessions may have created the host with DontSave,
+                // which keeps it out of the scene hierarchy and gizmo drawing.
+                if (visible && Application.isPlaying && AstarPath.active.gameObject.name == RuntimeObjectName)
+                    AstarPath.active.gameObject.hideFlags = HideFlags.None;
+                AstarPath.active.showNavGraphs = visible;
+            }
+            if (graph != null)
+                graph.drawGizmos = visible;
+        }
+#endif
         // ulong.GetHashCode XORs its two halves. Grid edges (i, i+1) then
         // collapse into a handful of buckets, making graph conversion quadratic.
         sealed class EdgeComparer : IEqualityComparer<ulong>
@@ -62,7 +80,7 @@ namespace Landsong.ECS
             {
                 var runtime = new GameObject(RuntimeObjectName)
                 {
-                    hideFlags = HideFlags.DontSave
+                    hideFlags = Application.isPlaying ? HideFlags.None : HideFlags.DontSave
                 };
                 // Edit-mode verification owns and destroys this temporary host itself.
                 // DontDestroyOnLoad is only valid while the player is running.
@@ -71,6 +89,9 @@ namespace Landsong.ECS
                 var pathfinding = runtime.AddComponent<AstarPath>();
                 // Runtime services must not cover the Game view when its Gizmos toggle is on.
                 pathfinding.showNavGraphs = false;
+#if UNITY_EDITOR
+                pathfinding.showNavGraphs = editorGraphVisible;
+#endif
                 pathfinding.showUnwalkableNodes = false;
                 pathfinding.showGraphsInStandalonePlayer = false;
             }
@@ -131,6 +152,9 @@ namespace Landsong.ECS
                     throw new InvalidOperationException("A* Pro 无法创建 Landsong 运行时导航图。");
                 graph.name = RuntimeGraphName;
                 graph.drawGizmos = false;
+#if UNITY_EDITOR
+                graph.drawGizmos = editorGraphVisible;
+#endif
                 graph.maxDistance = 0;
                 graph.raycast = false;
                 converted = new PointNode[nodes.Length];
