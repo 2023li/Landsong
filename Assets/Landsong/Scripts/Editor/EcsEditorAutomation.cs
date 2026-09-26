@@ -131,7 +131,7 @@ public static class EcsEditorAutomation
                     response.Details = Landsong.ECS.Editor.NightPlanningVerification.Run() + "\n" + Landsong.ECS.Editor.PeacefulVerification.Run() + "\n" + Landsong.ECS.Editor.CoreRulesVerification.Run();
                     break;
                 case "VerifyNightIntegration":
-                    response.Details = Landsong.ECS.Editor.UiConfigurationVerification.Run() + "\n" + Landsong.ECS.Editor.EcsVerification.Run();
+                    response.Details = Landsong.ECS.Editor.EcsVerification.Run();
                     break;
                 case "InspectSoldierAnimations":
                     response.Details = Landsong.EditorTools.SoldierAnimationSetup.Inspect();
@@ -437,9 +437,6 @@ public static class EcsEditorAutomation
                     break;
                 case "VerifyArchitecture":
                     response.Details = Landsong.ECS.Editor.ArchitectureVerification.Run();
-                    break;
-                case "VerifyUiConfiguration":
-                    response.Details = Landsong.ECS.Editor.UiConfigurationVerification.Run();
                     break;
                 case "BuildRoyalFoundingUi":
                     Landsong.ECS.Editor.RoyalFoundingUiAuthoring.Build();

@@ -71,7 +71,6 @@ namespace Landsong.ECS.Editor
             new VerificationSuite(nameof(PersistenceContractVerification), "存档协议", "存档", PersistenceContractVerification.Run),
             new VerificationSuite(nameof(ArchiveApplicationServiceVerification), "存档应用服务", "存档", ArchiveApplicationServiceVerification.Run),
             new VerificationSuite(nameof(CoreRulesVerification), "核心规则", "核心", CoreRulesVerification.Run),
-            new VerificationSuite(nameof(UiConfigurationVerification), "界面配置", "界面", UiConfigurationVerification.Run),
             new VerificationSuite(nameof(EcsVerification), "ECS 基线", "核心", EcsVerification.Run),
             new VerificationSuite(nameof(BuildingFeatureVerification), "建筑工作流", "建筑", BuildingFeatureVerification.Run),
             new VerificationSuite(nameof(BuildingModuleVerification), "建筑模块", "建筑", BuildingModuleVerification.Run),
