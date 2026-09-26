@@ -199,6 +199,52 @@ namespace Landsong.EditorTools
                     && em.GetBuffer<TransportCargo>(constructionWorker).Length == materials.Count
                     && materials.Select((m, i) => InventoryOps.Count(em, root, m.Item) == beforeCargo[i] - m.Amount).All(x => x),
                     "Worker creation immediately debits exactly one construction delivery");
+                var beforeInnerConstruction = SnapshotCodec.Capture(em, root);
+                var oldDelivery = em.GetComponentData<TransportWorker>(constructionWorker).Destination;
+                var innerCell = GridOps.Cell(em.GetComponentData<GridData>(root), oldDelivery);
+                var innerDefinition = BuildingDefinitions.Find(em, root, "b树木4");
+                Check(GridOps.CanPlace(em, root, innerDefinition, innerCell, 0),
+                    "A new inner building can occupy the outer construction worker's former delivery cell");
+                var innerBuilding = BuildingCreation.Create(em, root, innerDefinition, innerCell, 0, 1, false);
+                Check(em.GetComponentData<Building>(innerBuilding).Stage == LifeStage.Construction,
+                    "The inner building begins as construction after the outer worker route is assigned");
+                DailyEconomySettlement.Settle(em, root);
+                Check(em.GetComponentData<Building>(innerBuilding).Stage == LifeStage.Operational
+                    && em.GetComponentData<BuildingConstructionState>(construction).Progress > 0,
+                    "The inner building finishes while the outer building advances during phase settlement");
+                session = em.GetComponentData<Session>(root); session.Phase = Phase.Deployment; em.SetComponentData(root, session);
+                safety = 0;
+                while (em.GetComponentData<TransportWorker>(constructionWorker).Delivered == 0 && safety++ < 2000) Tick(1);
+                Check(em.GetComponentData<TransportWorker>(constructionWorker).Delivered == 1
+                    && math.distance(em.GetComponentData<TransportWorker>(constructionWorker).Destination, oldDelivery) > .5f,
+                    "After phase settlement the outer construction worker chooses another reachable delivery point");
+                var oldReturn = em.GetComponentData<TransportWorker>(constructionWorker).Start;
+                var routeGrid = em.GetComponentData<GridData>(root);
+                var returnCell = GridOps.Cell(routeGrid, oldReturn);
+                var routeOccupancy = em.GetBuffer<Occupancy>(root);
+                routeOccupancy[GridOps.Index(routeGrid, returnCell)] = new Occupancy { Owner = 999999, MovementCost = 0 };
+                routeGrid.Revision++;
+                em.SetComponentData(root, routeGrid);
+                safety = 0;
+                while (em.GetComponentData<TransportWorker>(constructionWorker).Stage != TransportStage.Sheltered && safety++ < 2000) Tick(1);
+                Check(em.GetComponentData<TransportWorker>(constructionWorker).Stage == TransportStage.Sheltered
+                    && math.distance(em.GetComponentData<TransportWorker>(constructionWorker).Start, oldReturn) > .5f,
+                    "A blocked return point is replaced and the construction worker reaches shelter");
+                SnapshotCodec.Restore(em, root, SnapshotCodec.Decode(em, root, beforeInnerConstruction));
+                construction = WorldQueries.Find(em, constructionId);
+                constructionWorker = WorldQueries.Find(em, carrierId);
+                var overlappedRoute = SnapshotCodec.Capture(em, root);
+                var overlappedTransform = em.GetComponentData<LocalTransform>(constructionWorker);
+                overlappedTransform.Position = oldDelivery;
+                em.SetComponentData(constructionWorker, overlappedTransform);
+                BuildingCreation.Create(em, root, innerDefinition, innerCell, 0, 1, false);
+                TransportWorkerOps.Tick(em, root, .1f, false);
+                Check(math.distance(EntityState.Position(em, constructionWorker), oldDelivery) > .5f
+                    && math.distance(em.GetComponentData<TransportWorker>(constructionWorker).Destination, oldDelivery) > .5f,
+                    "A new building under the worker releases it onto the same surface and retargets delivery");
+                SnapshotCodec.Restore(em, root, SnapshotCodec.Decode(em, root, overlappedRoute));
+                construction = WorldQueries.Find(em, constructionId);
+                constructionWorker = WorldQueries.Find(em, carrierId);
                 var cargoSave = SnapshotCodec.Capture(em, root);
                 var priorProgress = em.GetComponentData<BuildingConstructionState>(construction).Progress;
                 DailyEconomySettlement.Settle(em, root);
