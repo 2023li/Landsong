@@ -1,7 +1,13 @@
 using System;
+using Landsong.ECS;
 using Landsong.ECS.Authoring.Definitions;
 using Sirenix.OdinInspector;
 using UnityEngine;
+
+#if UNITY_EDITOR
+using System.Text;
+using UnityEditor;
+#endif
 
 namespace Landsong.ECS.Authoring
 {
@@ -76,5 +82,79 @@ namespace Landsong.ECS.Authoring
         public string VictoryCaption;
         [LabelText("波次模板")]
         public NightWaveTemplateSource[] Waves = Array.Empty<NightWaveTemplateSource>();
+
+#if UNITY_EDITOR
+        [Button("打印本夜波次", ButtonSizes.Large)]
+        public void PrintWavePreview(int turn = 1, int playerPower = 1)
+        {
+            if (turn < 1 || playerPower < 0)
+            {
+                Debug.LogError("回合数至少为 1，玩家战斗力不能为负数。", this);
+                return;
+            }
+
+            GameContentSetAsset content = null;
+            foreach (var guid in AssetDatabase.FindAssets("t:GameContentSetAsset"))
+            {
+                var candidate = AssetDatabase.LoadAssetAtPath<GameContentSetAsset>(AssetDatabase.GUIDToAssetPath(guid));
+                if (candidate?.NightEvents?.Nights == null || Array.IndexOf(candidate.NightEvents.Nights, this) < 0)
+                    continue;
+                content = candidate;
+                break;
+            }
+
+            if (content == null)
+            {
+                Debug.LogError("未找到引用此夜晚定义的 GameContentSet，无法读取难度系数配置。", this);
+                return;
+            }
+
+            var difficulty = NightTemplatePlanning.Difficulty(content.Night, turn, playerPower);
+            var result = new StringBuilder();
+            result.Append("[夜晚波次预览] ").Append(Id)
+                .Append(" | 回合 ").Append(turn)
+                .Append(" | 玩家战斗力 ").Append(playerPower)
+                .Append(" | 难度系数 ").Append(difficulty.ToString("0.###"))
+                .AppendLine();
+            if (turn < MinTurn || MaxTurn > 0 && turn > MaxTurn || Interval > 0 && (turn - MinTurn) % Interval != 0)
+                result.AppendLine("当前回合不满足此夜晚的出现条件；以下仍按输入战力预览模板。");
+
+            int waveCount = 0;
+            if (Waves != null)
+                for (int i = 0; i < Waves.Length; i++)
+                {
+                    var wave = Waves[i];
+                    if (wave?.Enemies == null) continue;
+                    var enemies = new StringBuilder();
+                    foreach (var row in wave.Enemies)
+                    {
+                        if (row?.Enemy == null) continue;
+                        int count = NightTemplatePlanning.Count(row.Weight, difficulty, row.Fixed, row.FixedCount);
+                        if (count <= 0) continue;
+                        var name = string.IsNullOrWhiteSpace(row.Enemy.Metadata.Name) ? row.Enemy.name : row.Enemy.Metadata.Name;
+                        enemies.Append("  ").Append(name).Append(" × ").Append(count).AppendLine();
+                    }
+
+                    if (enemies.Length == 0) continue;
+                    waveCount++;
+                    result.Append("第").Append(waveCount).Append("波 入夜")
+                        .Append(wave.AtSeconds.ToString("0.##")).Append("秒");
+                    if (wave.JitterSeconds > 0)
+                        result.Append("（实际时间范围 ")
+                            .Append((wave.AtSeconds - wave.JitterSeconds).ToString("0.##"))
+                            .Append("～")
+                            .Append((wave.AtSeconds + wave.JitterSeconds).ToString("0.##"))
+                            .Append("秒）");
+                    result.AppendLine().Append(enemies);
+                }
+
+            result.Insert(0, "本夜会生成 " + waveCount + " 波敌人\n");
+            if (waveCount == 0)
+                result.AppendLine("没有会生成的敌人。");
+            result.Append("普通敌人数量按权重乘难度系数后向下取整；固定数量不缩放。实际出兵时间在规划夜晚时锁定。");
+            Debug.Log(result.ToString(), this);
+        }
+#endif
+
     }
 }

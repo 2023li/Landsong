@@ -11,28 +11,26 @@ namespace Landsong.ECS.Presentation
     {
         [SerializeField, LabelText("关闭调试面板"), Required] private Button btn_关闭调试面板;
         [SerializeField, LabelText("内容面板根节点"), Required] private RectTransform rt_内容面板root;
+
         [SerializeField, LabelText("打开天气调试"), Required] private Button btn_打开天气调试;
-        [SerializeField, LabelText("天气调试面板"), Required] private GameObject go_天气调试面板;
         [SerializeField, LabelText("天气调试组件"), Required] private UI_DebugPanel_Weather weatherPanel;
+
+
+        [SerializeField, LabelText("打开一般调试"), Required]
+        private Button btn_打开一般调试;
+        [SerializeField, LabelText("一般调试组件"), Required]
+        private UI_DebugPanel_Common commonPanel;
+
 
         bool closing;
         float nextAvailabilityRefresh;
-
-        protected override void ValidateLocalConfiguration()
-        {
-            base.ValidateLocalConfiguration();
-            if (btn_关闭调试面板 == null || rt_内容面板root == null || btn_打开天气调试 == null
-                || go_天气调试面板 == null || !rt_内容面板root.IsChildOf(transform)
-                || !go_天气调试面板.transform.IsChildOf(rt_内容面板root)
-                || weatherPanel == null || weatherPanel.gameObject != go_天气调试面板)
-                throw new InvalidOperationException("调试面板检查器引用不完整。");
-        }
 
         public override Task OnCreateAsync()
         {
             ValidateConfiguration();
             btn_关闭调试面板.onClick.AddListener(Close);
             btn_打开天气调试.onClick.AddListener(OpenWeather);
+            btn_打开一般调试.onClick.AddListener(OpenCommon);
             return Task.CompletedTask;
         }
 
@@ -42,6 +40,8 @@ namespace Landsong.ECS.Presentation
             RefreshWeatherAvailability();
             if (btn_打开天气调试.interactable)
                 OpenWeather();
+            else
+                OpenCommon();
             return Task.CompletedTask;
         }
 
@@ -58,8 +58,16 @@ namespace Landsong.ECS.Presentation
                 return;
             for (var i = 0; i < rt_内容面板root.childCount; i++)
                 rt_内容面板root.GetChild(i).gameObject.SetActive(false);
-            go_天气调试面板.SetActive(true);
+            weatherPanel.gameObject.SetActive(true);
             weatherPanel.RefreshStatus();
+        }
+
+        public void OpenCommon()
+        {
+            for (var i = 0; i < rt_内容面板root.childCount; i++)
+                rt_内容面板root.GetChild(i).gameObject.SetActive(false);
+            commonPanel.gameObject.SetActive(true);
+            commonPanel.RefreshStatus();
         }
 
         void Update()
@@ -73,9 +81,8 @@ namespace Landsong.ECS.Presentation
         {
             var available = UI_DebugPanel_Weather.HasGameWorld;
             btn_打开天气调试.interactable = available;
-            if (!available)
-                for (var i = 0; i < rt_内容面板root.childCount; i++)
-                    rt_内容面板root.GetChild(i).gameObject.SetActive(false);
+            if (!available && weatherPanel.gameObject.activeSelf)
+                OpenCommon();
         }
 
         async void Close()
