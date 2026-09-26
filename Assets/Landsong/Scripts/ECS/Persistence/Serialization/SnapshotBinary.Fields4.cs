@@ -412,6 +412,21 @@ namespace Landsong.ECS.Persistence
             };
         }
 
+        static void WriteQuestRefreshCooldown(BinaryWriter writer, QuestRefreshCooldown value)
+        {
+            Write(writer, value.Quest);
+            Write(writer, value.NextTurn);
+        }
+
+        static QuestRefreshCooldown ReadQuestRefreshCooldown(BinaryReader reader)
+        {
+            return new QuestRefreshCooldown
+            {
+                Quest = Read<Landsong.ECS.Definitions.QuestId>(reader),
+                NextTurn = Read<int>(reader),
+            };
+        }
+
         static void WriteQuestTracking(BinaryWriter writer, QuestTracking value)
         {
             Write(writer, value.Target);
@@ -424,6 +439,19 @@ namespace Landsong.ECS.Persistence
             {
                 Target = Read<ulong>(reader),
                 Mode = Read<byte>(reader),
+            };
+        }
+
+        static void WriteTrackedQuest(BinaryWriter writer, TrackedQuest value)
+        {
+            Write(writer, value.Quest);
+        }
+
+        static TrackedQuest ReadTrackedQuest(BinaryReader reader)
+        {
+            return new TrackedQuest
+            {
+                Quest = Read<ulong>(reader),
             };
         }
 

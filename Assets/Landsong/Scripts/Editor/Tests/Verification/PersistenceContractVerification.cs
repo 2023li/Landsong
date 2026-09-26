@@ -63,6 +63,7 @@ namespace Landsong.ECS.Editor
             {
                 SnapshotBinary.ValidateFieldCoverage();
                 Check(true, "Current explicit schema covers every registered public field");
+                QuestBufferSerialization();
                 HarvestRollback();
                 HistoryCategories();
                 foreach (var path in Landsong.EditorTools.GameMapPaths.BakedScenes())
@@ -81,6 +82,22 @@ namespace Landsong.ECS.Editor
                 Directory.CreateDirectory("Library/LandsongEcs");
                 File.WriteAllText("Library/LandsongEcs/persistence-contract-verification.txt", report.ToString());
             }
+        }
+
+        static void QuestBufferSerialization()
+        {
+            using var stream = new MemoryStream();
+            using (var writer = new BinaryWriter(stream, Encoding.UTF8, true))
+            {
+                SnapshotBinary.Write(writer, new TrackedQuest { Quest = 42 });
+                SnapshotBinary.Write(writer, new QuestRefreshCooldown { Quest = QuestId.FromIndex(3), NextTurn = 12 });
+            }
+
+            stream.Position = 0;
+            using var reader = new BinaryReader(stream);
+            Check(SnapshotBinary.Read<TrackedQuest>(reader).Quest == 42, "Tracked quest snapshot entry round trips");
+            var cooldown = SnapshotBinary.Read<QuestRefreshCooldown>(reader);
+            Check(cooldown.Quest == QuestId.FromIndex(3) && cooldown.NextTurn == 12 && stream.Position == stream.Length, "Quest refresh cooldown snapshot entry round trips");
         }
 
         static void HarvestRollback()

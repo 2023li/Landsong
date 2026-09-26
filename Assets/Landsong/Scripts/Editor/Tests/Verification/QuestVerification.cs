@@ -539,6 +539,8 @@ namespace Landsong.ECS.Editor
                 GameRequestExecution.Execute(em, root, new TrackQuestRequest { Quest = Id(extra[2]), Mode = (QuestTrackingMode)2 });
                 Check(QuestOps.Tracking(em, root).Mode == 2 && QuestOps.Tracking(em, root).Target == 0, "Targeted uncheck clears matching tracking");
                 GameRequestExecution.Execute(em, root, new TrackQuestRequest { Quest = Id(extra[0]), Mode = (QuestTrackingMode)1 });
+                var retracked = SnapshotCodec.Decode(em, root, SnapshotCodec.Capture(em, root));
+                Check(retracked.Tracking.Mode == 1 && retracked.TrackedQuests.Length == 1 && retracked.TrackedQuests[0].Quest == Id(extra[0]), "Uncheck then retrack survives the snapshot used by stage advance");
                 Check(GameRequestExecution.Execute(em, root, new ClaimQuestRequest { Quest = Id(extra[1]) }) == ResultCode.Success && QuestOps.Tracking(em, root).Target == Id(extra[0]), "Claiming another card preserves explicit current tracking");
                 GameRequestExecution.Execute(em, root, new TrackQuestRequest { Quest = 0, Mode = (QuestTrackingMode)2 });
                 Check(GameRequestExecution.Execute(em, root, new ClaimQuestRequest { Quest = Id(extra[0]) }) == ResultCode.Success && QuestOps.Tracking(em, root).Mode == 2 && QuestOps.Tracking(em, root).Target == 0, "Claiming an untracked task respects explicit uncheck");

@@ -17,7 +17,7 @@ MonoBehaviour:
   EntitySceneGuid: 11c86afbc43c8cc4eb5b13e907b817c4
   IsBaked: 1
   RuntimeArtifactGeneratorVersion: 1
-  RuntimeArtifactSourceHash: fe3d36e0f09e98013a793d3fb4af083f14156793f1cc3faa2863d90285d49a41
+  RuntimeArtifactSourceHash: d813fc4553bb45123f1035e2ac9e08bf592e81340084156ebb5b8f6ad4e074f7
   Min: {x: 0, y: 0}
   Size: {x: 128, y: 128}
   Origin: {x: -0.5, y: 0, z: -0.5}

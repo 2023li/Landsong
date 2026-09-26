@@ -701,6 +701,12 @@ namespace Landsong.ECS.Persistence
                 return;
             }
 
+            if (typeof(T) == typeof(QuestRefreshCooldown))
+            {
+                WriteQuestRefreshCooldown(writer, (QuestRefreshCooldown)(object)value);
+                return;
+            }
+
             if (typeof(T) == typeof(QuestStatus))
             {
                 writer.Write((byte)(QuestStatus)(object)value);
@@ -710,6 +716,12 @@ namespace Landsong.ECS.Persistence
             if (typeof(T) == typeof(QuestTracking))
             {
                 WriteQuestTracking(writer, (QuestTracking)(object)value);
+                return;
+            }
+
+            if (typeof(T) == typeof(TrackedQuest))
+            {
+                WriteTrackedQuest(writer, (TrackedQuest)(object)value);
                 return;
             }
 
@@ -1193,10 +1205,14 @@ namespace Landsong.ECS.Persistence
                 return (T)(object)(ReadQuestOfferSlot(reader));
             if (typeof(T) == typeof(QuestProgress))
                 return (T)(object)(ReadQuestProgress(reader));
+            if (typeof(T) == typeof(QuestRefreshCooldown))
+                return (T)(object)(ReadQuestRefreshCooldown(reader));
             if (typeof(T) == typeof(QuestStatus))
                 return (T)(object)((QuestStatus)reader.ReadByte());
             if (typeof(T) == typeof(QuestTracking))
                 return (T)(object)(ReadQuestTracking(reader));
+            if (typeof(T) == typeof(TrackedQuest))
+                return (T)(object)(ReadTrackedQuest(reader));
             if (typeof(T) == typeof(RepairMaterial))
                 return (T)(object)(ReadRepairMaterial(reader));
             if (typeof(T) == typeof(ResearchState))
@@ -1356,7 +1372,9 @@ namespace Landsong.ECS.Persistence
             Fields<QuestGenerationSettings>(new string[] { "StrengthStep", "MarketValuePerStrength", "Low", "Medium", "High", "Maximum" });
             Fields<QuestOfferSlot>(new string[] { "Type", "Index", "NextTurn" });
             Fields<QuestProgress>(new string[] { "Amount", "Key" });
+            Fields<QuestRefreshCooldown>(new string[] { "Quest", "NextTurn" });
             Fields<QuestTracking>(new string[] { "Target", "Mode" });
+            Fields<TrackedQuest>(new string[] { "Quest" });
             Fields<RepairMaterial>(new string[] { "Item", "Amount" });
             Fields<ResearchState>(new string[] { "Points" });
             Fields<RetryState>(new string[] { "Count" });
