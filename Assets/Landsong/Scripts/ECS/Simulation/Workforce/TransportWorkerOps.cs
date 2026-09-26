@@ -11,6 +11,36 @@ namespace Landsong.ECS
     {
         static bool Owned(EntityManager em, Entity root, Entity entity) => em.GetComponentData<SimulationOwner>(entity).Root == root;
 
+        static bool EndpointBlockedByBuilding(GridData grid, DynamicBuffer<Occupancy> occupancy, float3 point)
+        {
+            var cell = GridOps.Cell(grid, point);
+            int index = GridOps.Index(grid, cell);
+            if (index < 0 || math.abs(GridOps.Position(grid, cell, new int2(1)).y + .5f - point.y) > .55f)
+                return false; // A separate upper surface is not blocked by lower-ground occupancy.
+            var reservation = occupancy[index];
+            return reservation.Owner != 0 && reservation.MovementCost <= 0;
+        }
+
+        static bool ReleaseCoveredWorker(EntityManager em, Entity root, Entity entity, GridData grid, DynamicBuffer<Occupancy> occupancy)
+        {
+            var position = EntityState.Position(em, entity);
+            if (!EndpointBlockedByBuilding(grid, occupancy, position))
+                return false;
+            int index = GridOps.Index(grid, GridOps.Cell(grid, position));
+            var ground = grid.Value.Value.Cells[index];
+            if (!NavigationOps.TryNearestOpenOnSurface(em, root, position, 12, ground.Surface, ground.Elevation, out var safe))
+                return false;
+            var transform = em.GetComponentData<LocalTransform>(entity);
+            transform.Position = safe;
+            em.SetComponentData(entity, transform);
+            em.GetBuffer<Waypoint>(entity).Clear();
+            var navigation = em.GetComponentData<NavigationState>(entity);
+            navigation.Revision = -1;
+            navigation.StalledSeconds = 0;
+            em.SetComponentData(entity, navigation);
+            return true;
+        }
+
         public static Entity Spawn(EntityManager em, Entity root, TransportWorker worker)
         {
             var settings = em.GetComponentData<TransportWorkerSettings>(root);
@@ -99,6 +129,47 @@ namespace Landsong.ECS
                         if (worker.Stage == TransportStage.Unloading) worker.Carrying = (byte)(worker.Remaining > settings.UnloadSeconds * .5f ? 1 : 0);
                         worker.Stage = TransportStage.Returning;
                         worker.Remaining = 0;
+                    }
+                    // A later building can cover the perimeter cell chosen when this worker
+                    // spawned. A* can route to a nearby node, but delivery still compares
+                    // against the old exact coordinate, so choose a reachable new port.
+                    var grid = em.GetComponentData<GridData>(root);
+                    var occupancy = em.GetBuffer<Occupancy>(root);
+                    if (ReleaseCoveredWorker(em, root, entity, grid, occupancy))
+                    {
+                        // An unloading worker whose cell was covered has not reached
+                        // the replacement delivery point yet.
+                        if (worker.Stage == TransportStage.Unloading)
+                        {
+                            worker.Stage = TransportStage.Delivering;
+                            worker.Remaining = 0;
+                        }
+                        occupancy = em.GetBuffer<Occupancy>(root);
+                    }
+                    if (worker.Stage == TransportStage.Delivering && em.Exists(consumer)
+                        && EndpointBlockedByBuilding(grid, occupancy, worker.Destination))
+                    {
+                        using var reach = new NightSpatialOps.Reach(em, root, EntityState.Position(em, entity), .25f);
+                        if (reach.Building(em.GetComponentData<BuildingPlacementState>(consumer), out var destination) < float.MaxValue)
+                        {
+                            worker.Destination = destination;
+                            var navigation = em.GetComponentData<NavigationState>(entity);
+                            navigation.Revision = -1;
+                            em.SetComponentData(entity, navigation);
+                        }
+                    }
+                    if (worker.Stage == TransportStage.Returning && em.Exists(provider)
+                        && EndpointBlockedByBuilding(grid, occupancy, worker.Start))
+                    {
+                        var placement = em.GetComponentData<BuildingPlacementState>(provider);
+                        using var reach = new NightSpatialOps.Reach(em, root, EntityState.Position(em, entity), .25f);
+                        if (reach.Building(placement, out var start) < float.MaxValue)
+                        {
+                            worker.Start = start;
+                            var navigation = em.GetComponentData<NavigationState>(entity);
+                            navigation.Revision = -1;
+                            em.SetComponentData(entity, navigation);
+                        }
                     }
                     bool Arrived(float3 point) => math.distance(EntityState.Position(em, entity), point) <= .2f;
                     switch (worker.Stage)
