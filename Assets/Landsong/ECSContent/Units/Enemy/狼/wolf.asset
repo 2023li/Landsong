@@ -44,6 +44,7 @@ MonoBehaviour:
       Traits: 4
       BlocksProjectile: 0
   ThreatValue: 8
+  NightPower: 1
   Behavior: 0
   PreferredTargetCategory: 0
   KillRewards:

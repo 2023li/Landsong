@@ -9,9 +9,10 @@ namespace Landsong.ECS
         public static void ApplyWeapon(EntityManager em, Entity root, ref CombatStatsSnapshot stats, SoldierWeaponKind weapon)
         {
             var item = EquipmentOps.ItemForWeapon(em, root, weapon);
-            var coefficient = item.IsValid ? ItemDefinitions.Get(em, root, item).Equipment.StrengthMultiplier : 1f;
+            var equipment = item.IsValid ? ItemDefinitions.Get(em, root, item).Equipment : default;
+            var coefficient = item.IsValid ? equipment.StrengthMultiplier : 1f;
             stats.Damage *= coefficient;
-            if (weapon == SoldierWeaponKind.Bow)
+            if (equipment.AttackMode == WeaponAttackMode.Ranged)
             {
                 stats.Range = math.max(4.5f, stats.Range);
                 stats.ProjectileSpeed = math.max(10, stats.ProjectileSpeed);

@@ -72,6 +72,8 @@ namespace Landsong.ECS.Authoring.Definitions
             target.Metadata.Name = new FixedString128Bytes(source.Metadata.Name ?? "");
             UnitCombatStatsCompiler.Compile(ref builder, source.CombatStats, ref target.CombatStats);
             target.ThreatValue = source.ThreatValue;
+            if (source.NightPower < 0) throw new InvalidOperationException("英雄夜晚战力不能为负数。");
+            target.NightPower = source.NightPower;
             target.TargetMode = source.TargetMode;
             target.PopulationCost = source.PopulationCost;
             target.FallbackWakeGold = source.FallbackWakeGold;

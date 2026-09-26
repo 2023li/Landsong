@@ -207,6 +207,27 @@ namespace Landsong.ECS.Persistence
                 Write(writer, ref value.Enemies[i]);
             }
 
+            SnapshotBinary.Write(writer, value.AllowedWeather);
+            writer.Write(value.OpeningCaption.ToString());
+            writer.Write(value.SpecialCaption.ToString());
+            writer.Write(value.VictoryCaption.ToString());
+            writer.Write(value.Waves.Length);
+            for (int i = 0; i < value.Waves.Length; i++)
+            {
+                ref var wave = ref value.Waves[i];
+                SnapshotBinary.Write(writer, wave.AtSeconds);
+                SnapshotBinary.Write(writer, wave.JitterSeconds);
+                writer.Write(wave.Enemies.Length);
+                for (int j = 0; j < wave.Enemies.Length; j++)
+                {
+                    var row = wave.Enemies[j];
+                    SnapshotBinary.Write(writer, row.Definition);
+                    SnapshotBinary.Write(writer, row.Weight);
+                    SnapshotBinary.Write(writer, row.FixedCount);
+                    SnapshotBinary.Write(writer, row.Fixed);
+                }
+            }
+
             Write(writer, ref value.Conditions);
         }
 

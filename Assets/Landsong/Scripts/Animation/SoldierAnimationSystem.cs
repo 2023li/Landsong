@@ -200,7 +200,7 @@ namespace Landsong.Animation
                 {
                     if (signal.AttackSequence != state.AttackSequence && state.Equipment == SoldierEquipmentState.Sword)
                     {
-                        if (em.HasComponent<Soldier>(entity) && em.GetComponentData<Soldier>(entity).Weapon == SoldierWeaponKind.Bow)
+                        if (em.GetComponentData<Combatant>(entity).ProjectileSpeed > 0)
                             parameters.SetTrigger(Shoot);
                         else
                             parameters.SetTrigger(Attack);

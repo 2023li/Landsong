@@ -11,8 +11,10 @@ namespace Landsong.ECS.Authoring
 {
     public static class NightEventCatalogCompiler
     {
-        public static BlobAssetReference<NightEventCatalogBlob> Build(NightEventCatalogAsset catalog, EnemyCatalogIndex enemies, BuildingCatalogIndex buildings, ItemCatalogIndex items, TechnologyCatalogIndex technologies, BuffCatalogIndex buffs, FeatureCatalogIndex features, QuestCatalogIndex quests, ExpeditionCatalogIndex expeditions)
+        public static BlobAssetReference<NightEventCatalogBlob> Build(NightEventCatalogAsset catalog, EnemyCatalogIndex enemies, BuildingCatalogIndex buildings, ItemCatalogIndex items, TechnologyCatalogIndex technologies, BuffCatalogIndex buffs, FeatureCatalogIndex features, QuestCatalogIndex quests, ExpeditionCatalogIndex expeditions, float nightSeconds = 0)
         {
+            if (catalog != null && catalog.Nights != null && catalog.Nights.Length > 0)
+                return BuildNights(catalog, enemies, buildings, items, technologies, buffs, features, quests, expeditions, nightSeconds);
             if (catalog == null || catalog.Events == null)
                 throw new InvalidOperationException("缺少夜晚事件目录。");
             var generator = (catalog.WaveGenerator ?? new BudgetNightWaveGeneratorSource()).Compile();
@@ -147,6 +149,129 @@ namespace Landsong.ECS.Authoring
             {
                 builder.Dispose();
             }
+        }
+
+        static BlobAssetReference<NightEventCatalogBlob> BuildNights(NightEventCatalogAsset catalog, EnemyCatalogIndex enemies, BuildingCatalogIndex buildings, ItemCatalogIndex items, TechnologyCatalogIndex technologies, BuffCatalogIndex buffs, FeatureCatalogIndex features, QuestCatalogIndex quests, ExpeditionCatalogIndex expeditions, float nightSeconds)
+        {
+            var ids = new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
+            bool fallback = false;
+            foreach (var night in catalog.Nights)
+            {
+                if (night == null || string.IsNullOrWhiteSpace(night.Id) || System.Text.Encoding.UTF8.GetByteCount(night.Id) > 60 || !ids.Add(night.Id) ||
+                    (byte)night.Kind > 2 || night.MinTurn < 1 || night.MaxTurn != 0 && night.MaxTurn < night.MinTurn || night.Interval < 0 || night.Cooldown < 0 ||
+                    !math.isfinite(night.Weight) || night.Weight <= 0 || (int)night.AllowedWeather == 0 || ((int)night.AllowedWeather & ~31) != 0 || night.Conditions == null || night.Waves == null || night.Waves.Length > 32)
+                    throw new InvalidOperationException("夜晚定义配置无效：" + (night == null ? "<空>" : night.Id));
+                if (night.Kind == NightKind.Peaceful && night.Waves.Length != 0 || night.Kind != NightKind.Peaceful && night.Waves.Length == 0)
+                    throw new InvalidOperationException("平安夜不能出兵，战斗夜必须有波次：" + night.Id);
+                if (night.Kind == NightKind.Peaceful && !night.Once && !night.Guaranteed && night.MinTurn == 1 && night.MaxTurn == 0 && night.Interval == 0 && night.Cooldown == 0 && night.AllowedWeather == NightWeatherMask.Any && Unconditional(night.Conditions))
+                    fallback = true;
+                float previousLatest = -1;
+                bool hasBoss = false;
+                foreach (var wave in night.Waves)
+                {
+                    if (wave == null || !math.isfinite(wave.AtSeconds) || !math.isfinite(wave.JitterSeconds) || wave.JitterSeconds < 0 ||
+                        wave.AtSeconds - wave.JitterSeconds < 0 || nightSeconds > 0 && wave.AtSeconds + wave.JitterSeconds >= nightSeconds ||
+                        wave.AtSeconds - wave.JitterSeconds <= previousLatest || wave.Enemies == null || wave.Enemies.Length == 0)
+                        throw new InvalidOperationException("夜晚波次时间或敌人列表无效：" + night.Id);
+                    previousLatest = wave.AtSeconds + wave.JitterSeconds;
+                    foreach (var row in wave.Enemies)
+                    {
+                        if (row == null || row.Enemy == null || !math.isfinite(row.Weight) || row.Weight < 0 || row.Weight > 256 || row.Fixed && (row.FixedCount < 1 || row.FixedCount > 256))
+                            throw new InvalidOperationException("夜晚敌人条目无效：" + night.Id);
+                        enemies.Resolve(row.Enemy);
+                        bool boss = (row.Enemy.Behavior & EnemyBehaviorFlags.Boss) != 0;
+                        if (boss && (!row.Fixed || row.FixedCount != 1))
+                            throw new InvalidOperationException("首领必须固定生成一只：" + night.Id);
+                        hasBoss |= boss;
+                    }
+                }
+                if (night.Kind == NightKind.Boss && !hasBoss || night.Kind != NightKind.Boss && hasBoss)
+                    throw new InvalidOperationException("夜晚类型与首领波次不一致：" + night.Id);
+            }
+            if (!fallback)
+                throw new InvalidOperationException("夜晚目录需要无条件、可重复的平安夜后备定义。");
+
+            var builder = new BlobBuilder(Allocator.Temp);
+            try
+            {
+                ref var root = ref builder.ConstructRoot<NightEventCatalogBlob>();
+                var events = builder.Allocate(ref root.Events, catalog.Nights.Length);
+                for (int i = 0; i < events.Length; i++)
+                {
+                    var source = catalog.Nights[i];
+                    ref var target = ref events[i];
+                    target.Id = new FixedString64Bytes(source.Id);
+                    target.Kind = source.Kind;
+                    target.Priority = source.Priority;
+                    target.MinTurn = source.MinTurn;
+                    target.MaxTurn = source.MaxTurn;
+                    target.Interval = source.Interval;
+                    target.Cooldown = source.Cooldown;
+                    target.WaveCount = source.Waves.Length;
+                    target.Weight = source.Weight;
+                    target.BudgetScale = 1;
+                    target.Once = (byte)(source.Once ? 1 : 0);
+                    target.Forced = (byte)(source.Guaranteed ? 1 : 0);
+                    target.AllowedWeather = (int)source.AllowedWeather;
+                    target.OpeningCaption = new FixedString512Bytes(source.OpeningCaption ?? "");
+                    target.SpecialCaption = new FixedString512Bytes(source.SpecialCaption ?? "");
+                    target.VictoryCaption = new FixedString512Bytes(source.VictoryCaption ?? "");
+                    var waves = builder.Allocate(ref target.Waves, source.Waves.Length);
+                    var flattened = new System.Collections.Generic.List<NightEnemyChoice>();
+                    for (int w = 0; w < waves.Length; w++)
+                    {
+                        var template = source.Waves[w];
+                        waves[w].AtSeconds = template.AtSeconds;
+                        waves[w].JitterSeconds = template.JitterSeconds;
+                        var rows = builder.Allocate(ref waves[w].Enemies, template.Enemies.Length);
+                        for (int n = 0; n < rows.Length; n++)
+                        {
+                            var row = template.Enemies[n];
+                            rows[n] = new NightWaveEnemyTemplate
+                            {
+                                Definition = enemies.Resolve(row.Enemy), Weight = row.Weight,
+                                Fixed = (byte)(row.Fixed ? 1 : 0), FixedCount = row.FixedCount
+                            };
+                            flattened.Add(new NightEnemyChoice { Definition = rows[n].Definition, Weight = math.max(.001f, row.Weight) });
+                        }
+                    }
+                    var pool = builder.Allocate(ref target.Enemies, flattened.Count);
+                    for (int n = 0; n < pool.Length; n++) pool[n] = flattened[n];
+                    CompileConditions(ref builder, source.Conditions, ref target.Conditions, buildings, items, technologies, buffs, features, quests, expeditions);
+                }
+                return builder.CreateBlobAssetReference<NightEventCatalogBlob>(Allocator.Persistent);
+            }
+            finally { builder.Dispose(); }
+        }
+
+        static void CompileConditions(ref BlobBuilder builder, NightEventConditionsSource condition, ref NightEventConditions target, BuildingCatalogIndex buildings, ItemCatalogIndex items, TechnologyCatalogIndex technologies, BuffCatalogIndex buffs, FeatureCatalogIndex features, QuestCatalogIndex quests, ExpeditionCatalogIndex expeditions)
+        {
+            if (condition.MinimumTurn < 0 || condition.Buildings == null || condition.Items == null || condition.Technologies == null || condition.Completions == null)
+                throw new InvalidOperationException("夜晚前置条件无效。");
+            target.MinimumTurn = condition.MinimumTurn;
+            var bs = builder.Allocate(ref target.Buildings, condition.Buildings.Length);
+            for (int n = 0; n < bs.Length; n++)
+            {
+                var source = condition.Buildings[n];
+                if (source == null || source.Count < 0 || source.MinimumLevel < 0 || source.Building == null || source.MinimumLevel > source.Building.MaximumLevel)
+                    throw new InvalidOperationException("夜晚建筑条件无效。");
+                bs[n] = new NightBuildingCondition { Building = buildings.Resolve(source.Building), Count = source.Count, MinimumLevel = source.MinimumLevel };
+            }
+            var its = builder.Allocate(ref target.Items, condition.Items.Length);
+            for (int n = 0; n < its.Length; n++)
+            {
+                var source = condition.Items[n];
+                if (source == null || source.Quantity < 0) throw new InvalidOperationException("夜晚物品条件无效。");
+                its[n] = new NightItemCondition { Item = items.Resolve(source.Item), Quantity = source.Quantity };
+            }
+            var tech = builder.Allocate(ref target.Technologies, condition.Technologies.Length);
+            for (int n = 0; n < tech.Length; n++)
+            {
+                var source = condition.Technologies[n];
+                if (source == null || source.Count < 0) throw new InvalidOperationException("夜晚科技条件无效。");
+                tech[n] = new NightTechnologyCondition { Technology = technologies.Resolve(source.Technology), Count = source.Count };
+            }
+            DefinitionPrerequisitesCompiler.Compile(ref builder, condition.Completions, ref target.Completions, buffs, buildings, expeditions, features, quests, technologies);
         }
 
         static bool Unconditional(NightEventConditionsSource source)

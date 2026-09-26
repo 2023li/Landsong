@@ -39,6 +39,7 @@ namespace Landsong.ECS.Definitions
         public DefinitionMetadata Metadata;
         public UnitCombatStats CombatStats;
         public int ThreatValue;
+        public int NightPower;
         public EnemyBehaviorFlags Behavior;
         public BuildingCategory PreferredTargetCategory;
         public DefinitionRewards KillRewards;

@@ -48,6 +48,7 @@ MonoBehaviour:
       Traits: 0
       BlocksProjectile: 0
   ThreatValue: 0
+  NightPower: 5
   TargetMode: 0
   AwakeningCosts:
   - Order: 0

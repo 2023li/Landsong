@@ -39,6 +39,7 @@ namespace Landsong.ECS.Definitions
         public DefinitionMetadata Metadata;
         public UnitCombatStats CombatStats;
         public int ThreatValue;
+        public int NightPower;
         public byte TargetMode;
         public int PopulationCost;
         public int FallbackWakeGold;

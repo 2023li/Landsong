@@ -42,7 +42,7 @@ namespace Landsong.ECS.Persistence
             foreach (var w in data.Waves)
                 if (w.SpatiallyBlocked > 1 || w.Region >= data.SpawnRegions.Length)
                     throw new InvalidDataException("Invalid intelligence region.");
-            if (p.Turn < 0 || p.BaseThreat < 0 || p.PreparedTurn < 0 || p.ClockStarted > 1 || p.Committed > 1 || p.AnySpawned > 1 || p.BossKilled > 1 || p.BossEscaped > 1 || !math.isfinite(p.CombatElapsed) || p.CombatElapsed < 0 || !math.isfinite(p.FirstActionAt) || p.FirstActionAt < 0 || p.Turn > 0 && NightPlanOps.Find(em, root, p.Event) < 0)
+            if (p.Turn < 0 || p.BaseThreat < 0 || p.PreparedTurn < 0 || p.ClockStarted > 1 || p.Committed > 1 || p.AnySpawned > 1 || p.BossKilled > 1 || p.BossEscaped > 1 || !math.isfinite(p.DifficultyScale) || p.DifficultyScale < 0 || !math.isfinite(p.CombatElapsed) || p.CombatElapsed < 0 || !math.isfinite(p.FirstActionAt) || p.FirstActionAt < 0 || p.Turn > 0 && NightPlanOps.Find(em, root, p.Event) < 0)
                 throw new InvalidDataException("Invalid locked night plan.");
             if (p.BossDefinition.IsValid && (!EnemyDefinitions.IsValid(em, root, p.BossDefinition) || (EnemyDefinitions.Get(em, root, p.BossDefinition).Behavior & EnemyBehaviorFlags.Boss) == 0))
                 throw new InvalidDataException("Invalid locked boss.");
@@ -79,7 +79,7 @@ namespace Landsong.ECS.Persistence
                 if (!BuildingDefinitions.IsValid(em, root, row.Definition) || !buildings.Add(row.Definition) || !CombatProfile.Valid(row.Profile))
                     throw new InvalidDataException("Invalid prepared building defense");
             foreach (var w in data.Waves)
-                if (!EnemyDefinitions.IsValid(em, root, w.Definition) || w.Count < 1 || w.Count > 256 || w.Region < 0 || w.Spawned > 2 || w.Warned > 1 || !math.isfinite(w.At) || w.At < 0 || w.At > 1 || !math.isfinite(w.PowerScale) || w.PowerScale <= 0 || !math.all(math.isfinite(w.Position)))
+                if (!EnemyDefinitions.IsValid(em, root, w.Definition) || w.Count < 1 || w.Count > 256 || w.WaveIndex < 0 || w.Region < 0 || w.Spawned > 2 || w.Warned > 1 || !math.isfinite(w.At) || w.At < 0 || w.At > 1 || !math.isfinite(w.PowerScale) || w.PowerScale <= 0 || !math.all(math.isfinite(w.Position)))
                     throw new InvalidDataException("Invalid night wave.");
         }
 

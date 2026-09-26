@@ -355,6 +355,7 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
+  - component: {fileID: 2978648500676349646}
   - component: {fileID: 2683819633283178970}
   - component: {fileID: 2874993850001228607}
   - component: {fileID: 5409144952379003621}
@@ -756,7 +757,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &4654526475981332612
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1264,6 +1265,7 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
+  - component: {fileID: 8692185891896067664}
   - component: {fileID: 2388560122306419630}
   - component: {fileID: 4788121805689350042}
   - component: {fileID: 7401181788785054028}
@@ -1914,6 +1916,7 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
+  - component: {fileID: 1974546622047408646}
   - component: {fileID: 3399722690492395677}
   - component: {fileID: 7677141245492349540}
   - component: {fileID: 4795370626736730745}
@@ -2381,7 +2384,6 @@ GameObject:
   - component: {fileID: 4313640199354709391}
   - component: {fileID: 3008263952860131666}
   - component: {fileID: 4530487362446610841}
-  - component: {fileID: 9182270615743433063}
   - component: {fileID: 7514950858683775348}
   m_Layer: 0
   m_Name: UI_GamePanel_Soldier
@@ -2461,30 +2463,6 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 1
---- !u!114 &9182270615743433063
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4995619953990098514}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d934108fc42b5cb4cb52dbfe5d355969, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_GamePanel_SoldierDetails
-  Portrait: {fileID: 8331524115494374605}
-  PortraitBinding: {fileID: 7395492044544824111}
-  Name: {fileID: 1995259875695614026}
-  Age: {fileID: 192108152934790642}
-  Stats: {fileID: 4421929948978705950}
-  Abilities: {fileID: 8097880125851859642}
-  Helmet: {fileID: 7538618270106140667}
-  Armor: {fileID: 1599253194640742880}
-  Weapon: {fileID: 3391460812457054310}
-  WeaponLabel: {fileID: 2173990889747103786}
-  Close: {fileID: 9008199914977240899}
-  AbilitiesLayout: {fileID: 8230050795075336255}
 --- !u!114 &7514950858683775348
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2517,7 +2495,25 @@ MonoBehaviour:
     - {fileID: 8996800398846915028}
     sampleTextTargets: []
     runtimeTexts: []
-  SoldierDetailsPanel: {fileID: 9182270615743433063}
+  Portrait: {fileID: 8331524115494374605}
+  PortraitBinding: {fileID: 7395492044544824111}
+  Name: {fileID: 1995259875695614026}
+  Age: {fileID: 192108152934790642}
+  Stats: {fileID: 4421929948978705950}
+  Abilities: {fileID: 8097880125851859642}
+  Helmet: {fileID: 7538618270106140667}
+  HelmetLabel: {fileID: 221171813776137570}
+  Armor: {fileID: 1599253194640742880}
+  ArmorLabel: {fileID: 8578628241357459539}
+  Weapon: {fileID: 3391460812457054310}
+  WeaponLabel: {fileID: 2173990889747103786}
+  Close: {fileID: 9008199914977240899}
+  AbilitiesLayout: {fileID: 8230050795075336255}
+  EquipmentSelectionPanel: {fileID: 7158592042616851859}
+  EquipmentSelectionTitle: {fileID: 1061037999913831910}
+  EquipmentSelectionContent: {fileID: 7451918636560356207}
+  EquipmentSelectionTemplate: {fileID: 4030177964589111811}
+  EquipmentSelectionClose: {fileID: 319578908274773851}
 --- !u!1 &5130786036593117339
 GameObject:
   m_ObjectHideFlags: 0
@@ -2721,6 +2717,7 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
+  - component: {fileID: 1495918736104239073}
   - component: {fileID: 218585350156645275}
   - component: {fileID: 3239678942879006314}
   - component: {fileID: 5134980317709173308}
@@ -3842,7 +3839,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &9078393399573236801
 RectTransform:
   m_ObjectHideFlags: 0
@@ -4615,6 +4612,7 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
+  - component: {fileID: 5371622947235162133}
   - component: {fileID: 1481742816850199314}
   - component: {fileID: 3146701377491007458}
   - component: {fileID: 1061037999913831910}
@@ -4972,3 +4970,78 @@ MonoBehaviour:
   Target: {fileID: 221171813776137570}
   ButtonLabel: 1
   Key: 
+--- !u!114 &8692185891896067664
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3898788173354803122}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c66f3cc68b2317e4fac4da201724ddd9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_Common_TextBinding
+  Target: {fileID: 7401181788785054028}
+  ButtonLabel: 1
+  Key: 
+
+--- !u!114 &1974546622047408646
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4432193701151332090}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c66f3cc68b2317e4fac4da201724ddd9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_Common_TextBinding
+  Target: {fileID: 4795370626736730745}
+  ButtonLabel: 1
+  Key: 
+
+--- !u!114 &5371622947235162133
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8836896370092546068}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c66f3cc68b2317e4fac4da201724ddd9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_Common_TextBinding
+  Target: {fileID: 1061037999913831910}
+  ButtonLabel: 1
+  Key: 
+
+--- !u!114 &2978648500676349646
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 680220966191341687}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3c9a4e5ae735d924db37d681ed312c6c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_Common_Click
+  Target: {fileID: 8568505154979352467}
+
+--- !u!114 &1495918736104239073
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5540739299102624104}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3c9a4e5ae735d924db37d681ed312c6c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Landsong.UI::Landsong.ECS.Presentation.UI_Common_Click
+  Target: {fileID: 319578908274773851}

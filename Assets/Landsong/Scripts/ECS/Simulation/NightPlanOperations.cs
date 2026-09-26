@@ -47,6 +47,8 @@ namespace Landsong.ECS
         public static bool Eligible(EntityManager em, Entity root, ref NightEventDefinition e, bool returning)
         {
             GameClock sClock = em.GetComponentData<GameClock>(root);
+            if (e.AllowedWeather != 0 && (e.AllowedWeather & (1 << (int)em.GetComponentData<SeasonWeatherState>(root).Weather)) == 0)
+                return false;
             if (sClock.Turn < e.MinTurn || e.MaxTurn > 0 && sClock.Turn > e.MaxTurn || e.Interval > 0 && (sClock.Turn - e.MinTurn) % e.Interval != 0 || e.ReturnOnly != 0 && !returning)
                 return false;
             if (em.HasBuffer<NightEventHistory>(root))
@@ -169,6 +171,12 @@ namespace Landsong.ECS
 
         public static void Plan(EntityManager em, Entity root, bool retry)
         {
+            var authored = em.GetComponentData<NightEventCatalog>(root).Value;
+            if (authored.Value.Events.Length > 0 && authored.Value.Events[0].AllowedWeather != 0)
+            {
+                NightTemplatePlanning.Plan(em, root, retry);
+                return;
+            }
             var state = State(em, root);
             GameClock sClock = em.GetComponentData<GameClock>(root);
             NightRuntimeState sNight = em.GetComponentData<NightRuntimeState>(root);

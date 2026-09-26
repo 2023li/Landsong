@@ -10,14 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4b18bb93e7f34b7fa6d4ebd8e8df70a7, type: 3}
-  m_Name: LandsongNightCaptions
+  m_Name: LandsongNightCaptionEffects
   m_EditorClassIdentifier: Landsong.ECS.Presentation::Landsong.ECS.Presentation.NightCaptionDefinition
   NightCaptionDelay: 3
   PeacefulAdvanceDelay: 2
-  InvasionNightCaption: "\u4ECA\u665A\u6709\u654C\u519B\u6765\u88AD"
-  PeacefulNightCaption: "\u4ECA\u665A\u4F3C\u4E4E\u662F\u4E2A\u5E73\u5B89\u591C"
-  BossArrivalCaption: "\u4ED6\u4EEC\u6765\u4E86..."
-  VictoryNightCaption: "\u80DC\u5229\u5C5E\u4E8E\u6211\u4EEC"
   StandardCaptionSeconds: 2
   PeacefulFadeInSeconds: 1
   PeacefulFadeOutSeconds: 1

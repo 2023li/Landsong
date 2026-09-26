@@ -57,8 +57,17 @@ namespace Landsong.ECS.Editor
             checks = 0;
             try
             {
-                Configuration();
-                Map();
+                var catalog = AssetDatabase.LoadAssetAtPath<NightEventCatalogAsset>("Assets/Landsong/ECSContent/Catalogs/Source/NightEventCatalog.asset");
+                if (catalog.Nights != null && catalog.Nights.Length > 0)
+                {
+                    TemplateConfiguration(catalog);
+                    TemplateMap();
+                }
+                else
+                {
+                    Configuration();
+                    Map();
+                }
                 log.AppendLine("Assertions: " + checks);
                 return log.ToString();
             }
@@ -75,6 +84,100 @@ namespace Landsong.ECS.Editor
         }
 
         static BlobAssetReference<NightEventCatalogBlob> Build(NightEventCatalogAsset source) => NightEventCatalogCompiler.Build(source, new EnemyCatalogIndex(AssetDatabase.LoadAssetAtPath<EnemyCatalogAsset>("Assets/Landsong/ECSContent/Catalogs/Source/EnemyCatalog.asset")), new BuildingCatalogIndex(AssetDatabase.LoadAssetAtPath<BuildingCatalogAsset>("Assets/Landsong/ECSContent/Catalogs/Source/BuildingCatalog.asset")), new ItemCatalogIndex(AssetDatabase.LoadAssetAtPath<ItemCatalogAsset>("Assets/Landsong/ECSContent/Catalogs/Source/ItemCatalog.asset")), new TechnologyCatalogIndex(AssetDatabase.LoadAssetAtPath<TechnologyCatalogAsset>("Assets/Landsong/ECSContent/Catalogs/Source/TechnologyCatalog.asset")), new BuffCatalogIndex(AssetDatabase.LoadAssetAtPath<BuffCatalogAsset>("Assets/Landsong/ECSContent/Catalogs/Source/BuffCatalog.asset")), new FeatureCatalogIndex(AssetDatabase.LoadAssetAtPath<FeatureCatalogAsset>("Assets/Landsong/ECSContent/Catalogs/Source/FeatureCatalog.asset")), new QuestCatalogIndex(AssetDatabase.LoadAssetAtPath<QuestCatalogAsset>("Assets/Landsong/ECSContent/Catalogs/Source/QuestCatalog.asset")), new ExpeditionCatalogIndex(AssetDatabase.LoadAssetAtPath<ExpeditionCatalogAsset>("Assets/Landsong/ECSContent/Catalogs/Source/ExpeditionCatalog.asset")));
+        static void TemplateConfiguration(NightEventCatalogAsset source)
+        {
+            Check(source.Nights.Length >= 3, "Separate peaceful, raid and boss night assets");
+            using (var built = Build(source))
+            {
+                Check(built.Value.Events.Length == source.Nights.Length, "Every night asset compiles into the catalog");
+                for (int i = 0; i < source.Nights.Length; i++)
+                {
+                    ref var night = ref built.Value.Events[i];
+                    Check(night.Id.ToString() == source.Nights[i].Id && night.Waves.Length == source.Nights[i].Waves.Length, "Night identity and authored wave count preserved: " + night.Id);
+                    Check(night.OpeningCaption.ToString() == (source.Nights[i].OpeningCaption ?? ""), "Night caption compiled: " + night.Id);
+                }
+                int bossIndex = -1;
+                for (int i = 0; i < built.Value.Events.Length; i++)
+                    if (built.Value.Events[i].Kind == NightKind.Boss) bossIndex = i;
+                Check(bossIndex >= 0, "Boss night exists");
+                ref var boss = ref built.Value.Events[bossIndex];
+                Check(boss.Forced != 0 && boss.MinTurn == 20 && boss.Interval == 10 && boss.FollowUp.IsEmpty, "Boss is a guaranteed independent periodic night");
+                ref var last = ref boss.Waves[boss.Waves.Length - 1];
+                Check(last.Enemies.Length > 1 && last.Enemies[0].Fixed != 0 && last.Enemies[0].FixedCount == 1, "Boss wave mixes one fixed boss with scalable enemies");
+            }
+            Check(NightTemplatePlanning.Count(1, 1.9f, false, 0) == 1 && NightTemplatePlanning.Count(2, 2.5f, false, 0) == 5, "Scalable enemy rows round down");
+            Check(NightTemplatePlanning.Count(0, 10, true, 1) == 1, "Fixed boss count ignores difficulty");
+            var settings = ContentAuthoringContext.Content().Night;
+            Check(NightTemplatePlanning.Difficulty(settings, 1, 0) == 1 && NightTemplatePlanning.Difficulty(settings, 999, int.MaxValue) == 10, "Difficulty stays within one to ten");
+            var copy = UnityEngine.Object.Instantiate(source);
+            var altered = UnityEngine.Object.Instantiate(source.Nights[1]);
+            try
+            {
+                copy.Nights = (NightDefinitionAsset[])source.Nights.Clone();
+                copy.Nights[1] = altered;
+                altered.Id = source.Nights[0].Id;
+                Reject(() => { using var blob = Build(copy); }, "Duplicate night ids rejected");
+                altered.Id = source.Nights[1].Id;
+                altered.AllowedWeather = 0;
+                Reject(() => { using var blob = Build(copy); }, "Night without allowed weather rejected");
+                altered.AllowedWeather = NightWeatherMask.AnyRain;
+                using var rainy = Build(copy);
+                Check(rainy.Value.Events[1].AllowedWeather == (int)NightWeatherMask.AnyRain, "Rain-only night mask is configurable");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(altered);
+                UnityEngine.Object.DestroyImmediate(copy);
+            }
+        }
+
+        static void TemplateMap()
+        {
+            var scene = EditorSceneManager.OpenPreviewScene(VerificationMap.EntityScene);
+            using var store = new BlobAssetStore(128);
+            using var world = new World("Template night verification", WorldFlags.Game);
+            try
+            {
+                EcsVerification.Bake(world, scene.GetRootGameObjects(), store);
+                var em = world.EntityManager;
+                var root = WorldQueries.Root(em);
+                WorldInitialization.Initialize(em, root);
+                var clock = em.GetComponentData<GameClock>(root);
+                clock.Turn = 30;
+                em.SetComponentData(root, clock);
+                var weather = em.GetComponentData<SeasonWeatherState>(root);
+                weather.Weather = WeatherKind.Sunny;
+                em.SetComponentData(root, weather);
+                NightOps.Plan(em, root, false);
+                var state = NightPlanOps.State(em, root);
+                Check(state.Event.ToString() == "night.boss", "Eligible guaranteed boss selected at turn thirty");
+                Check(state.DifficultyScale >= 1 && state.DifficultyScale <= 10, "Planned coefficient saved");
+                var first = Buffer<NightWave>(em, root);
+                Check(first.Length > 3 && first.All(w => w.PowerScale == 1), "Mixed rows are independent entries without HP or damage scaling");
+                var bossRows = first.Where(w => w.WaveIndex == 2).ToArray();
+                Check(bossRows.Length >= 2 && bossRows.Any(w => w.Count == 1 && w.Definition == state.BossDefinition), "Last wave has one fixed boss and scalable escorts");
+                Check(first.Where(w => w.WaveIndex == 0).All(w => w.At * em.GetComponentData<NightSettings>(root).NightSeconds >= 18 && w.At * em.GetComponentData<NightSettings>(root).NightSeconds <= 22), "Wave jitter locked within configured range");
+                NightOps.Plan(em, root, false);
+                Check(first.SequenceEqual(Buffer<NightWave>(em, root)), "Same-turn planning keeps locked wave times and counts");
+                NightOps.Plan(em, root, true);
+                Check(first.SequenceEqual(Buffer<NightWave>(em, root)), "Retry preserves locked wave times and counts");
+                Check(em.GetBuffer<UnresolvedBoss>(root).Length == 0 && em.GetComponentData<NightRuntimeState>(root).BossReturnTurn == 0, "Boss night has no linked return");
+                var session = em.GetComponentData<Session>(root);
+                session.Phase = Phase.Night;
+                em.SetComponentData(root, session);
+                clock = em.GetComponentData<GameClock>(root);
+                clock.PhaseTime = NightOps.WaveAt(em, root, first[0].At) - .1f;
+                em.SetComponentData(root, clock);
+                NightOps.Tick(em, root, .05f);
+                Check(em.GetBuffer<NightWave>(root)[0].Spawned == 0, "First wave stays pending before its authored spawn time");
+                NightOps.Tick(em, root, .1f);
+                Check(em.GetBuffer<NightWave>(root)[0].Spawned != 0, "First wave is resolved when its authored spawn time is reached");
+            }
+            finally
+            {
+                EditorSceneManager.ClosePreviewScene(scene);
+            }
+        }
         static void Configuration()
         {
             var source = AssetDatabase.LoadAssetAtPath<NightEventCatalogAsset>("Assets/Landsong/ECSContent/Catalogs/Source/NightEventCatalog.asset");
@@ -124,16 +227,11 @@ namespace Landsong.ECS.Editor
             var captions = UnityEngine.ScriptableObject.CreateInstance<Landsong.ECS.Presentation.NightCaptionDefinition>();
             try
             {
-                Check(captions.NightCaptionDelay == 3 && captions.PeacefulAdvanceDelay == 2 && captions.Caption(Phase.Night, NightKind.Peaceful, 2.99f) == "", "Night caption stays hidden during the first three formal-night seconds");
-                Check(captions.Caption(Phase.Night, NightKind.Peaceful, 3) == captions.PeacefulNightCaption, "Peaceful caption appears three seconds into formal night");
+                Check(captions.NightCaptionDelay == 3 && captions.PeacefulAdvanceDelay == 2, "Caption timing stays in the presentation asset");
                 Check(!captions.PeacefulAdvanceReady(Phase.Night, NightKind.Peaceful, 4.99f) && captions.PeacefulAdvanceReady(Phase.Night, NightKind.Peaceful, 5), "Peaceful advance appears two seconds after its caption");
                 Check(!captions.PeacefulAdvanceReady(Phase.Night, NightKind.Invasion, 20), "Battle notice never exposes peaceful advancement");
-                Check(captions.Caption(Phase.Night, NightKind.Boss, 3) == captions.PeacefulNightCaption && captions.BossArrivalCaption == "他们来了...", "Boss night starts with the peaceful caption before its warning");
-                Check(captions.Caption(Phase.Retreat, NightKind.Boss, 303, 3.99f, 4) == "" && captions.Caption(Phase.Retreat, NightKind.Boss, 304, 4, 4) == captions.VictoryNightCaption, "Victory caption begins exactly at the configured closure beat");
-                Check(captions.Caption(Phase.Celebration, NightKind.Boss, 100, battleVictoryElapsed: 1.99f, battleVictoryAt: 2) == "" && captions.Caption(Phase.Celebration, NightKind.Boss, 100, battleVictoryElapsed: 2, battleVictoryAt: 2) == captions.VictoryNightCaption, "Early victory caption waits two seconds after the last enemy falls");
                 captions.NightCaptionDelay = 5;
-                Check(captions.Caption(Phase.Night, NightKind.Peaceful, 4) == "" && captions.Caption(Phase.Night, NightKind.Peaceful, 5) != "" && captions.PeacefulAdvanceReady(Phase.Night, NightKind.Peaceful, 7), "Caption and following button delay are independently configurable");
-                Check(captions.Caption(Phase.Deployment, NightKind.Peaceful, 10) == "" && captions.Caption(Phase.Retreat, NightKind.Peaceful, 10) == "", "Caption does not leak into sunset or closure");
+                Check(captions.PeacefulAdvanceReady(Phase.Night, NightKind.Peaceful, 7), "Caption and following button delay are independently configurable");
             }
             finally { UnityEngine.Object.DestroyImmediate(captions); }
             var copy = UnityEngine.Object.Instantiate(source);

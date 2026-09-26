@@ -84,6 +84,8 @@ namespace Landsong.ECS.Authoring.Definitions
             if (!math.isfinite(source.MaximumDurability))
                 throw new InvalidOperationException("耐久上限必须是有限数值。");
             target.MaximumDurability = source.MaximumDurability;
+            if (source.NightPower < 0) throw new InvalidOperationException("建筑夜晚战力不能为负数。");
+            target.NightPower = source.NightPower;
             if (!math.isfinite(source.MovementCost))
                 throw new InvalidOperationException("通行消耗必须是有限数值。");
             target.MovementCost = source.MovementCost;

@@ -24,6 +24,7 @@ MonoBehaviour:
   MaximumCount: 1
   Footprint: {x: 10, y: 10}
   MaximumDurability: 100
+  NightPower: 0
   MovementCost: 0
   DefenseStats:
     MaximumHealth: 100

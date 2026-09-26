@@ -168,7 +168,7 @@ namespace Landsong.ECS
                             plan.BossEscaped = 1;
                             EntityState.Set(em, root, plan);
                             sNight.BossEscaped = 1;
-                            SimulationEvents.Emit(em, root, EventKind.Message, "Boss 已撤离，后续仍可能来袭");
+                            SimulationEvents.Emit(em, root, EventKind.Message, "首领已撤离");
                         }
 
                         em.DestroyEntity(e);
@@ -339,6 +339,8 @@ namespace Landsong.ECS
         {
             GameClock sClock = em.GetComponentData<GameClock>(root);
             var rules = NightPlanOps.Rules(em, root);
+            var settings = em.GetComponentData<NightSettings>(root);
+            var templated = em.GetComponentData<NightEventCatalog>(root).Value.Value.Events[0].AllowedWeather != 0;
             NightSpawnOps.Space space = null;
             for (int i = 0; i < em.GetBuffer<NightWave>(root).Length; i++)
             {
@@ -346,60 +348,67 @@ namespace Landsong.ECS
                 var wave = em.GetBuffer<NightWave>(root)[i];
                 if (wave.Spawned != 0)
                     continue;
-                var previousWaveCleared = plan.AnySpawned != 0 && !HasLivingEnemy(em, root);
-                if (sClock.PhaseTime < WaveAt(em, root, wave.At) && !previousWaveCleared)
+                var end = i + 1;
+                if (templated)
+                    while (end < em.GetBuffer<NightWave>(root).Length && em.GetBuffer<NightWave>(root)[end].WaveIndex == wave.WaveIndex)
+                        end++;
+                var spawnAt = WaveAt(em, root, wave.At);
+                var warningAt = templated ? math.max(settings.NightPreparationSeconds, spawnAt - rules.WarningSeconds) : spawnAt;
+                if (sClock.PhaseTime < warningAt)
                     continue;
                 if (wave.Warned == 0)
                 {
-                    wave.Warned = 1;
-                    wave.WarnedAt = sClock.Time;
-                    NightPlanOps.SetWave(em, root, i, wave);
+                    for (int j = i; j < end; j++)
+                    {
+                        var pending = em.GetBuffer<NightWave>(root)[j];
+                        pending.Warned = 1;
+                        pending.WarnedAt = sClock.Time;
+                        NightPlanOps.SetWave(em, root, j, pending);
+                    }
                     SimulationEvents.Emit(em, root, EventKind.Message, wave.Direction == 10 ? "北侧出现入侵动静" : wave.Direction == 20 ? "东侧出现入侵动静" : wave.Direction == 30 ? "南侧出现入侵动静" : "西侧出现入侵动静");
-                    break;
+                    if (!templated || sClock.PhaseTime < spawnAt)
+                        break;
                 }
 
-                if (sClock.Time - wave.WarnedAt < rules.WarningSeconds)
+                if (sClock.PhaseTime < spawnAt || !templated && sClock.Time - wave.WarnedAt < rules.WarningSeconds)
                     break;
                 space ??= new NightSpawnOps.Space(em, root);
-                var legal = NightSpatialOps.SpawnPoint(em, root, wave.Region, wave.Position, out var point, space);
-                var target = legal ? NightSpatialOps.Target(em, root, wave.Definition, point, point, wave.Target, false) : Entity.Null;
-                if (!legal || target == Entity.Null)
+                for (int j = i; j < end; j++)
                 {
-                    wave.Spawned = 2;
-                    NightPlanOps.SetWave(em, root, i, wave);
-                    SimulationEvents.Emit(em, root, EventKind.Message, "入侵通路不可用，该股敌军未能入场");
-                    continue;
+                    wave = em.GetBuffer<NightWave>(root)[j];
+                    var legal = NightSpatialOps.SpawnPoint(em, root, wave.Region, wave.Position, out var point, space);
+                    var target = legal ? NightSpatialOps.Target(em, root, wave.Definition, point, point, wave.Target, false) : Entity.Null;
+                    if (!legal || target == Entity.Null)
+                    {
+                        wave.Spawned = 2;
+                        NightPlanOps.SetWave(em, root, j, wave);
+                        SimulationEvents.Emit(em, root, EventKind.Message, "入侵通路不可用，该股敌军未能入场");
+                        continue;
+                    }
+                    wave.Position = point;
+                    wave.Target = em.GetComponentData<Identity>(target).Id;
+                    wave.Spawned = 1;
+                    NightPlanOps.SetWave(em, root, j, wave);
+                    for (int n = 0; n < wave.Count; n++)
+                    {
+                        // No NearestOpen relocation outside the advertised entry strip.
+                        var preferred = point + new float3((n % 5 - 2) * .6f, 0, (n / 5) * .6f);
+                        if (!NightSpatialOps.SpawnPoint(em, root, wave.Region, preferred, out var position, space))
+                            position = point;
+                        var e = EnemyEntities.Spawn(em, root, wave.Definition, position, false);
+                        em.GetBuffer<GameEvent>(root).Add(new GameEvent { Kind = EventKind.EnemySpawn, Target = em.GetComponentData<Identity>(e).Id, Position = position });
+                        EnemyCombatants.Configure(em, root, e, true, wave.Target, position);
+                        var actor = em.GetComponentData<Combatant>(e);
+                        actor.Target = target;
+                        actor.ProtectedUntil = sClock.Time + rules.ProtectionSeconds;
+                        em.SetComponentData(e, actor);
+                    }
+                    if (plan.AnySpawned == 0)
+                        plan.FirstActionAt = sClock.Time + rules.ProtectionSeconds;
+                    plan.AnySpawned = 1;
                 }
-
-                wave.Position = point;
-                wave.Target = em.GetComponentData<Identity>(target).Id;
-                wave.Spawned = 1;
-                NightPlanOps.SetWave(em, root, i, wave);
-                for (int n = 0; n < wave.Count; n++)
-                {
-                    // No NearestOpen relocation outside the advertised entry strip.
-                    var preferred = point + new float3((n % 5 - 2) * .6f, 0, (n / 5) * .6f);
-                    if (!NightSpatialOps.SpawnPoint(em, root, wave.Region, preferred, out var position, space))
-                        position = point;
-                    var e = EnemyEntities.Spawn(em, root, wave.Definition, position, false);
-                    em.GetBuffer<GameEvent>(root).Add(new GameEvent { Kind = EventKind.EnemySpawn, Target = em.GetComponentData<Identity>(e).Id, Position = position });
-                    EnemyCombatants.Configure(em, root, e, true, wave.Target, position);
-                    var actor = em.GetComponentData<Combatant>(e);
-                    actor.Target = target;
-                    actor.ProtectedUntil = sClock.Time + rules.ProtectionSeconds;
-                    var scale = math.sqrt(math.max(.01f, wave.PowerScale));
-                    actor.Damage *= scale;
-                    em.SetComponentData(e, actor);
-                    var health = em.GetComponentData<Health>(e);
-                    health.Maximum *= scale;
-                    health.Current = health.Maximum;
-                    em.SetComponentData(e, health);
-                }
-
-                if (plan.AnySpawned == 0)
-                    plan.FirstActionAt = sClock.Time + rules.ProtectionSeconds;
-                plan.AnySpawned = 1;
                 EntityState.Set(em, root, plan);
+                i = end - 1;
             }
         }
 

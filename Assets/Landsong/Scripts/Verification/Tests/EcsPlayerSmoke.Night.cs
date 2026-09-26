@@ -19,13 +19,12 @@ namespace Landsong.ECS.Presentation
             var settings = em.GetComponentData<NightSettings>(root);
             Require(settings.DawnSeconds == 3, "Production game content owns the three-second dawn contract");
             Require(settings.BattleVictoryCaptionAt == 2 && settings.BattleCelebrationAt == 4 && settings.BattleAdvanceAt == 7, "Production game content owns the two-two-three second victory contract");
-            var testSettings = settings;
-            testSettings.FirstInvasion = 1;
-            testSettings.InvasionChance = 1;
-            testSettings.FirstBoss = 99999;
-            em.SetComponentData(root, testSettings);
+            var battleClock = em.GetComponentData<GameClock>(root);
+            battleClock.Turn = 30;
+            em.SetComponentData(root, battleClock);
             EntityState.Set(em, root, new NightPlanState { BossDefinition = EnemyId.None });
             NightOps.Plan(em, root, false);
+            Require(em.GetComponentData<NightRuntimeState>(root).Kind == NightKind.Boss, "Battle UI fixture selects the guaranteed boss night");
             SimulationEvents.Emit(em, root, EventKind.DayCheckpoint, "");
             view.OpenPanel(GamePanelId.Building);
             yield return null;
@@ -116,7 +115,6 @@ namespace Landsong.ECS.Presentation
                 yield return new WaitForEndOfFrame();
             }
 
-            em.SetComponentData(root, settings);
             SnapshotCodec.Restore(em, root, SnapshotCodec.Decode(em, root, original));
             SimulationEvents.Emit(em, root, EventKind.DayCheckpoint, "");
             view.OpenPanel(GamePanelId.Building);
@@ -128,14 +126,17 @@ namespace Landsong.ECS.Presentation
         {
             var original = SnapshotCodec.Capture(em, root);
             var settings = em.GetComponentData<NightSettings>(root);
-            var caption = view.Hud.NightPresentation.PeacefulNightCaption;
             try
             {
-                var fixture = settings;
-                fixture.FirstInvasion = fixture.FirstBoss = 99999;
-                em.SetComponentData(root, fixture);
+                var peacefulClock = em.GetComponentData<GameClock>(root);
+                peacefulClock.Turn = 1;
+                em.SetComponentData(root, peacefulClock);
                 EntityState.Set(em, root, new NightPlanState { BossDefinition = EnemyId.None });
                 NightOps.Plan(em, root, false);
+                var selected = NightPlanOps.State(em, root);
+                var index = NightPlanOps.Find(em, root, selected.Event);
+                Require(index >= 0 && em.GetComponentData<NightEventCatalog>(root).Value.Value.Events[index].Kind == NightKind.Peaceful, "Peaceful UI fixture selects a peaceful night");
+                var caption = em.GetComponentData<NightEventCatalog>(root).Value.Value.Events[index].OpeningCaption.ToString();
                 view.OpenPanel(GamePanelId.Building);
                 yield return null;
                 view.Hud.Advance.onClick.Invoke();
@@ -149,10 +150,10 @@ namespace Landsong.ECS.Presentation
                 Require(em.GetComponentData<GameClock>(root).PhaseTime == pausedTime && !view.Hud.NightCaption.gameObject.activeSelf, "Paused preparation cannot release its notice");
                 view.Commands.TryQueue(new PauseRequest());
                 yield return WaitFor(() => view.Hud.NightCaption.gameObject.activeSelf, "Formal night displays its delayed peaceful caption");
-                Require(em.GetComponentData<GameClock>(root).PhaseTime >= fixture.NightPreparationSeconds + view.Hud.NightPresentation.NightCaptionDelay && view.Hud.NightCaption.text == caption, "Peaceful subtitle uses authored text at the configured time");
+                Require(em.GetComponentData<GameClock>(root).PhaseTime >= settings.NightPreparationSeconds + view.Hud.NightPresentation.NightCaptionDelay && view.Hud.NightCaption.text == caption, "Peaceful subtitle uses authored text at the configured time");
                 Require(!view.Hud.Advance.gameObject.activeSelf, "Peaceful advance stays hidden when the caption first appears");
                 yield return WaitFor(() => view.Hud.Advance.interactable, "Peaceful advance appears after its own two-second delay");
-                Require(em.GetComponentData<GameClock>(root).PhaseTime >= fixture.NightPreparationSeconds + view.Hud.NightPresentation.NightCaptionDelay + view.Hud.NightPresentation.PeacefulAdvanceDelay, "Peaceful button delay starts after the caption delay");
+                Require(em.GetComponentData<GameClock>(root).PhaseTime >= settings.NightPreparationSeconds + view.Hud.NightPresentation.NightCaptionDelay + view.Hud.NightPresentation.PeacefulAdvanceDelay, "Peaceful button delay starts after the caption delay");
                 yield return WaitFor(() => !view.Hud.NightCaption.gameObject.activeSelf, "Peaceful caption fades out after its two-second display");
                 Require(view.Hud.NightCaption.color.a <= .01f, "Peaceful caption reaches zero opacity before hiding");
                 if (Application.isEditor)
@@ -161,9 +162,6 @@ namespace Landsong.ECS.Presentation
                     yield return new WaitForEndOfFrame();
                 }
 
-                view.Hud.NightPresentation.PeacefulNightCaption = "可配置的平安夜字幕";
-                yield return WaitFor(() => view.Hud.NightCaption.text == "可配置的平安夜字幕", "Changing the caption configuration changes the actual TMP subtitle");
-                view.Hud.NightPresentation.PeacefulNightCaption = caption;
                 Entity soldier = Entity.Null;
                 using (var units = WorldQueries.Entities<Soldier>(em))
                     foreach (var unit in units)
@@ -209,8 +207,6 @@ namespace Landsong.ECS.Presentation
             }
             finally
             {
-                view.Hud.NightPresentation.PeacefulNightCaption = caption;
-                em.SetComponentData(root, settings);
                 SnapshotCodec.Restore(em, root, SnapshotCodec.Decode(em, root, original));
                 SimulationEvents.Emit(em, root, EventKind.DayCheckpoint, "");
                 view.OpenPanel(GamePanelId.Building);

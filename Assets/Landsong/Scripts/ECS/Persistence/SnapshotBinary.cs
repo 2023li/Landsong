@@ -1334,11 +1334,11 @@ namespace Landsong.ECS.Persistence
             Fields<IntelligenceSettings>(new string[] { "LowIntel", "MediumIntel", "HighIntel", "MediumIntelLead", "HighIntelLead" });
             Fields<InventorySlot>(new string[] { "Provider", "Index", "Count", "SlotType", "Item", "LossRemainder", "Unavailable" });
             Fields<NightEventHistory>(new string[] { "Event", "LastTurn", "Count" });
-            Fields<NightPlanState>(new string[] { "Event", "Turn", "BaseThreat", "PreparedTurn", "BossDefinition", "CombatElapsed", "FirstActionAt", "ClockStarted", "Committed", "AnySpawned", "BossKilled", "BossEscaped" });
+            Fields<NightPlanState>(new string[] { "Event", "Turn", "BaseThreat", "PreparedTurn", "BossDefinition", "DifficultyScale", "CombatElapsed", "FirstActionAt", "ClockStarted", "Committed", "AnySpawned", "BossKilled", "BossEscaped" });
             Fields<NightRules>(new string[] { "WarningSeconds", "ProtectionSeconds", "MinSpawnRegions", "MaxSpawnRegions", "SpawnRegionSize", "SpawnRegionGap", "HeroWeight", "FacilityWeight", "TargetRadius", "ThreatFloor", "ThreatPerStrengthCap" });
             Fields<NightRuntimeState>(new string[] { "Kind", "Seed", "Duration", "Speed", "Threat", "StartCombatStrength", "DeploymentTime", "BossEscaped", "BossReturnTurn", "Intelligence" });
-            Fields<NightSettings>(new string[] { "NightSeconds", "DeployInterval", "NightPreparationSeconds", "NightClosureSeconds", "RetreatDelaySeconds", "VictoryCaptionDelaySeconds", "CelebrationDelaySeconds", "VictoryAdvanceDelaySeconds", "WaveIntervalSeconds", "DawnSeconds", "InvasionChance", "StrengthRatio", "RetryStep", "RetryCap", "FirstInvasion", "FirstBoss", "BossInterval", "ThreatPerTurn" });
-            Fields<NightWave>(new string[] { "At", "PowerScale", "WarnedAt", "Definition", "Count", "Direction", "Region", "Position", "Target", "Spawned", "Warned", "SpatiallyBlocked" });
+            Fields<NightSettings>(new string[] { "NightSeconds", "DeployInterval", "NightPreparationSeconds", "NightClosureSeconds", "RetreatDelaySeconds", "VictoryCaptionDelaySeconds", "CelebrationDelaySeconds", "VictoryAdvanceDelaySeconds", "WaveIntervalSeconds", "DawnSeconds", "InvasionChance", "StrengthRatio", "RetryStep", "RetryCap", "FirstInvasion", "FirstBoss", "BossInterval", "ThreatPerTurn", "DifficultyPerTurn", "ExpectedPowerAtTurnOne", "ExpectedPowerPerTurn", "PlayerPowerSensitivity" });
+            Fields<NightWave>(new string[] { "At", "PowerScale", "WarnedAt", "WaveIndex", "Definition", "Count", "Direction", "Region", "Position", "Target", "Spawned", "Warned", "SpatiallyBlocked" });
             Fields<OwnedBuff>(new string[] { "Buff", "Level" });
             Fields<PeacefulRules>(new string[] { "MaximumPerNight", "MaximumConcurrent", "TheftValueBudget", "FirstOpportunity", "Interval" });
             Fields<PendingItem>(new string[] { "Item", "Amount", "LossRemainder" });

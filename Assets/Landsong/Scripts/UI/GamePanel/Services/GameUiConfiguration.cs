@@ -53,7 +53,7 @@ namespace Landsong.ECS.Presentation
             Need(view.questController, nameof(view.questController));
             Need(view.questController.QuestTracking, nameof(view.questController.QuestTracking));
             view.questController.QuestTracking.ValidateConfiguration();
-            Need(view.soldierController.SoldierDetailsPanel, nameof(view.soldierController.SoldierDetailsPanel));
+            Need(view.soldierController, nameof(view.soldierController));
             Need(view.marriageController.MarriagePanel, nameof(view.marriageController.MarriagePanel));
             Need(view.requestsController.PersonRequestsPanel, nameof(view.requestsController.PersonRequestsPanel));
             Need(view.portraitController.PortraitPanel, nameof(view.portraitController.PortraitPanel));
@@ -87,7 +87,7 @@ namespace Landsong.ECS.Presentation
             view.courtController.RoyalDetails.ValidateConfiguration();
             view.royalFounding.ValidateConfiguration();
             view.questController.ValidateConfiguration();
-            view.soldierController.SoldierDetailsPanel.ValidateConfiguration();
+            view.soldierController.ValidateConfiguration();
             view.marriageController.MarriagePanel.ValidateConfiguration();
             view.requestsController.PersonRequestsPanel.ValidateConfiguration();
             view.portraitController.PortraitPanel.ValidateConfiguration();
@@ -112,7 +112,7 @@ namespace Landsong.ECS.Presentation
             {
                 view.PauseMenu,
                 view.royalFounding,
-                view.soldierController.SoldierDetailsPanel,
+                view.soldierController,
                 view.marriageController.MarriagePanel,
                 view.requestsController.PersonRequestsPanel,
                 view.portraitController.PortraitPanel,

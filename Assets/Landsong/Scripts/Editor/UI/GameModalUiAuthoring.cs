@@ -31,7 +31,7 @@ namespace Landsong.ECS.Editor
             });
             Edit("Soldier", contents =>
             {
-                var panel = contents.GetComponent<UI_GamePanel_Soldier>().SoldierDetailsPanel;
+                var panel = contents.GetComponent<UI_GamePanel_Soldier>();
                 var binding = panel.Portrait.GetComponent<UI_Common_PortraitImageBinding>();
                 if (binding == null)
                     binding = panel.Portrait.gameObject.AddComponent<UI_Common_PortraitImageBinding>();
@@ -46,7 +46,7 @@ namespace Landsong.ECS.Editor
             {
                 UiPanelLayoutAuthoring.RequireStretchRoot(gameContents);
                 var soldierInstance = gameContents.GetComponentInChildren<UI_GamePanel_Soldier>(true);
-                var binding = soldierInstance.SoldierDetailsPanel.PortraitBinding;
+                var binding = soldierInstance.PortraitBinding;
                 binding.Cache = gameContents.GetComponentsInChildren<PortraitCache>(true).Single();
                 binding.Portraits = AssetDatabase.LoadAssetAtPath<PortraitDisplayCatalog>("Assets/Landsong/ECSContent/Presentation/Portraits/LandsongPortraitDisplay.asset");
                 binding.ValidateConfiguration();
@@ -62,7 +62,7 @@ namespace Landsong.ECS.Editor
             var p = marriage.MarriagePanel;
             Recipe("Marriage", marriage, UIPreviewKind.Marriage, new[] { new UIPreviewTextBinding("title", p.Title), new UIPreviewTextBinding("hint", p.Hint), new UIPreviewTextBinding("person", p.Person.Details), new UIPreviewTextBinding("mate", p.Mate.Details), new UIPreviewTextBinding("approve", p.ApproveLabel), new UIPreviewTextBinding("refuse", p.RefuseLabel), new UIPreviewTextBinding("close", p.CloseLabel) });
             var soldier = AssetDatabase.LoadAssetAtPath<GameObject>(Views + "UI_GamePanel_Soldier.prefab").GetComponent<UI_GamePanel_Soldier>();
-            var s = soldier.SoldierDetailsPanel;
+            var s = soldier;
             Recipe("SoldierDetails", soldier, UIPreviewKind.SoldierDetails, new[] { new UIPreviewTextBinding("name", s.Name.placeholder as TMP_Text, "士兵姓名"), new UIPreviewTextBinding("age", s.Age), new UIPreviewTextBinding("stats", s.Stats), new UIPreviewTextBinding("abilities", s.Abilities) });
         }
 

@@ -61,6 +61,7 @@ namespace Landsong.ECS.Definitions
         public int MaximumCount;
         public int2 Footprint;
         public float MaximumDurability;
+        public int NightPower;
         public float MovementCost;
         public UnitCombatStats DefenseStats;
         public BuildingPlacementAndVisuals PlacementAndVisuals;

@@ -14,6 +14,8 @@ namespace Landsong.ECS.Authoring.Definitions
         public UnitCombatStatsSource CombatStats = new UnitCombatStatsSource();
         [LabelText("威胁值")]
         public int ThreatValue;
+        [LabelText("夜晚基础战力"), MinValue(0)]
+        public int NightPower = 5;
         [LabelText("目标选择模式")]
         public byte TargetMode;
         [LabelText("占用人口")]

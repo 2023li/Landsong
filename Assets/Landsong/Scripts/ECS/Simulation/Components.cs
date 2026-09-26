@@ -725,6 +725,7 @@ namespace Landsong.ECS
     public struct NightWave : IBufferElementData
     {
         public float At, PowerScale, WarnedAt;
+        public int WaveIndex;
         public EnemyId Definition;
         public int Count, Direction, Region;
         public float3 Position;

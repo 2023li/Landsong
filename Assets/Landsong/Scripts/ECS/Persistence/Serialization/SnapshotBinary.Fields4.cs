@@ -33,6 +33,10 @@ namespace Landsong.ECS.Persistence
             Write(writer, value.FirstBoss);
             Write(writer, value.BossInterval);
             Write(writer, value.ThreatPerTurn);
+            Write(writer, value.DifficultyPerTurn);
+            Write(writer, value.ExpectedPowerAtTurnOne);
+            Write(writer, value.ExpectedPowerPerTurn);
+            Write(writer, value.PlayerPowerSensitivity);
         }
 
         static NightSettings ReadNightSettings(BinaryReader reader)
@@ -57,6 +61,10 @@ namespace Landsong.ECS.Persistence
                 FirstBoss = Read<int>(reader),
                 BossInterval = Read<int>(reader),
                 ThreatPerTurn = Read<int>(reader),
+                DifficultyPerTurn = Read<float>(reader),
+                ExpectedPowerAtTurnOne = Read<float>(reader),
+                ExpectedPowerPerTurn = Read<float>(reader),
+                PlayerPowerSensitivity = Read<float>(reader),
             };
         }
 
@@ -65,6 +73,7 @@ namespace Landsong.ECS.Persistence
             Write(writer, value.At);
             Write(writer, value.PowerScale);
             Write(writer, value.WarnedAt);
+            Write(writer, value.WaveIndex);
             Write(writer, value.Definition);
             Write(writer, value.Count);
             Write(writer, value.Direction);
@@ -83,6 +92,7 @@ namespace Landsong.ECS.Persistence
                 At = Read<float>(reader),
                 PowerScale = Read<float>(reader),
                 WarnedAt = Read<float>(reader),
+                WaveIndex = Read<int>(reader),
                 Definition = Read<Landsong.ECS.Definitions.EnemyId>(reader),
                 Count = Read<int>(reader),
                 Direction = Read<int>(reader),

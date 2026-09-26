@@ -1,0 +1,70 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e332af2042614493850357dd490472d5, type: 3}
+  m_Name: night.raid
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.NightDefinitionAsset
+  Id: night.raid
+  Kind: 1
+  MinTurn: 3
+  MaxTurn: 0
+  Interval: 0
+  Cooldown: 0
+  Weight: 1
+  Guaranteed: 0
+  Priority: 0
+  Once: 0
+  AllowedWeather: 31
+  Conditions:
+    MinimumTurn: 0
+    Buildings: []
+    Items: []
+    Technologies: []
+    Completions:
+      BuildingRequirements: []
+      TechnologyRequirements: []
+      BuffRequirements: []
+      FeatureRequirements: []
+      QuestRequirements: []
+      ExpeditionRequirements: []
+  OpeningCaption: 今晚有敌军来袭
+  SpecialCaption: 
+  VictoryCaption: 胜利属于我们
+  Waves:
+  - AtSeconds: 20
+    JitterSeconds: 2
+    Enemies:
+    - Enemy: {fileID: 11400000, guid: 93edf1cdb8af93643a896b73ed774ba3, type: 2}
+      Fixed: 0
+      Weight: 3
+      FixedCount: 1
+  - AtSeconds: 30
+    JitterSeconds: 2
+    Enemies:
+    - Enemy: {fileID: 11400000, guid: 93edf1cdb8af93643a896b73ed774ba3, type: 2}
+      Fixed: 0
+      Weight: 2
+      FixedCount: 1
+    - Enemy: {fileID: 11400000, guid: 513a727933addac4ebc4a38fcbea11bb, type: 2}
+      Fixed: 0
+      Weight: 1
+      FixedCount: 1
+  - AtSeconds: 45
+    JitterSeconds: 3
+    Enemies:
+    - Enemy: {fileID: 11400000, guid: 93edf1cdb8af93643a896b73ed774ba3, type: 2}
+      Fixed: 0
+      Weight: 3
+      FixedCount: 1
+    - Enemy: {fileID: 11400000, guid: 4418dcca54a356049be1a915d4275c1b, type: 2}
+      Fixed: 0
+      Weight: 1
+      FixedCount: 1

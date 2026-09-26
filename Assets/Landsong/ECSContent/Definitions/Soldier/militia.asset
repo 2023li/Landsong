@@ -44,6 +44,7 @@ MonoBehaviour:
       Traits: 0
       BlocksProjectile: 0
   ThreatValue: 0
+  NightPower: 1
   TargetMode: 0
   PopulationCost: 1
   FallbackRecruitGold: 25

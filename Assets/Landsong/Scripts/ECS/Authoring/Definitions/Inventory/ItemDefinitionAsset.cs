@@ -6,7 +6,7 @@ using Landsong.ECS.Definitions;
 namespace Landsong.ECS.Authoring.Definitions
 {
     [CreateAssetMenu(menuName = "Landsong/Definitions/Inventory/Item")]
-    public sealed class ItemDefinitionAsset : ScriptableObject
+    public class ItemDefinitionAsset : ScriptableObject
     {
         [LabelText("基本信息")]
         public DefinitionMetadataSource Metadata = new DefinitionMetadataSource();
@@ -20,8 +20,6 @@ namespace Landsong.ECS.Authoring.Definitions
         public int TradeValue;
         [LabelText("自然损耗率")]
         public float NaturalLossRate;
-        [LabelText("装备参数（损坏率为基础值）")]
-        public EquipmentProfile Equipment;
         [LabelText("被盗规则")]
         public TheftProfile Theft = TheftProfile.Default;
     }

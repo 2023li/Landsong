@@ -9,9 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 26cc5e56f77942f2a708ca02becf931d, type: 3}
+  m_Script: {fileID: 11500000, guid: 3f290ec6ccc14bdd9f066f177128bc32, type: 3}
   m_Name: 木棒
-  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.ItemDefinitionAsset
+  m_EditorClassIdentifier: Landsong.ECS.Authoring::Landsong.ECS.Authoring.Definitions.EquipmentDefinitionAsset
   Metadata:
     Id: equipment.wood_club
     Name: 木棒
@@ -24,6 +24,7 @@ MonoBehaviour:
   NaturalLossRate: 0.02
   Equipment:
     Weapon: 3
+    AttackMode: 1
     StrengthMultiplier: 1.5
     BreakChance: 0.5
   Theft:

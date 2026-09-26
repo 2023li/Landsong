@@ -109,7 +109,7 @@ namespace Landsong.ECS.Presentation
                 yield return WaitFor(() => em.GetComponentData<SoldierPerson>(WorldQueries.Find(em, id)).SpecialAttention == 1, "Attention toggle changes persistent soldier state");
                 PoolCard().Details.onClick.Invoke();
                 Require(view.soldierController.SoldierDetailsOpen, "Only explicit card detail button opens details");
-                var soldierDetails = view.soldierController.SoldierDetailsPanel;
+                var soldierDetails = view.soldierController;
                 Require(soldierDetails.PortraitBinding.Target == soldierDetails.Portrait, "Soldier details uses its explicitly configured portrait image");
                 yield return WaitFor(() => soldierDetails.PortraitBinding.BoundPersonId == id && soldierDetails.Portrait.sprite != null && PoolCard() != null && soldierDetails.Portrait.sprite == PoolCard().Portrait.sprite, "Pending soldier detail binds the selected person and shares its actual roster portrait");
                 view.soldierController.CloseSoldierDetails();

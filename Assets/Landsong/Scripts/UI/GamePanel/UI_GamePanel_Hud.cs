@@ -64,10 +64,24 @@ namespace Landsong.ECS.Presentation
                 || battleAdvance || peacefulAdvance;
             Advance.gameObject.SetActive(canAdvance);
             Advance.interactable = !intelligence.IsOpen && sControl.Paused == 0 && sPersistence.CheckpointPending == 0 && canAdvance;
-            var caption = NightPresentation.Caption(s.Phase, sNight.Kind, nightElapsed,
-                sClock.PhaseTime - timing.NightPreparationSeconds - timing.NightSeconds, timing.ClosureVictoryCaptionAt,
-                battleVictoryElapsed, timing.BattleVictoryCaptionAt);
-            RefreshNightCaption(caption, s.Phase, sNight.Kind, sClock.Turn);
+            var caption = "";
+            string specialCaption = null;
+            var selectedNight = NightPlanOps.State(sessionController.em, sessionController.root);
+            var selectedIndex = NightPlanOps.Find(sessionController.em, sessionController.root, selectedNight.Event);
+            if (selectedIndex >= 0)
+            {
+                ref var definition = ref sessionController.em.GetComponentData<NightEventCatalog>(sessionController.root).Value.Value.Events[selectedIndex];
+                if (definition.AllowedWeather != 0)
+                {
+                    specialCaption = definition.SpecialCaption.ToString();
+                    if (s.Phase == Phase.Night && nightElapsed >= NightPresentation.NightCaptionDelay)
+                        caption = definition.OpeningCaption.ToString();
+                    if ((s.Phase == Phase.Celebration && battleVictoryElapsed >= timing.BattleVictoryCaptionAt ||
+                         s.Phase == Phase.Retreat && sClock.PhaseTime - timing.NightPreparationSeconds - timing.NightSeconds >= timing.ClosureVictoryCaptionAt))
+                        caption = definition.VictoryCaption.ToString();
+                }
+            }
+            RefreshNightCaption(caption, s.Phase, sNight.Kind, sClock.Turn, specialCaption);
             bool nightProgress = s.Phase == Phase.Deployment || s.Phase == Phase.Night || s.Phase == Phase.Retreat || s.Phase == Phase.Celebration;
             MoonProgress.gameObject.SetActive(nightProgress);
             MoonProgress.SetValueWithoutNotify(NightOps.Progress(sessionController.em, sessionController.root));
@@ -88,7 +102,7 @@ namespace Landsong.ECS.Presentation
         public TMP_Text Message;
         [LabelText("夜晚字幕"), Required]
         public TMP_Text NightCaption;
-        [LabelText("夜晚字幕配置"), Required]
+        [LabelText("夜晚字幕时间与动效配置"), Required]
         public NightCaptionDefinition NightPresentation;
         static readonly Color BattleCaptionColor = new Color(1f, .18f, .14f);
         Sequence nightCaptionSequence;
@@ -100,7 +114,7 @@ namespace Landsong.ECS.Presentation
         NightKind nightCaptionKind;
         Vector2 nightCaptionPosition;
 
-        void RefreshNightCaption(string caption, Phase phase, NightKind kind, int turn)
+        void RefreshNightCaption(string caption, Phase phase, NightKind kind, int turn, string specialCaption = null)
         {
             if (nightCaptionPreview)
                 return;
@@ -115,8 +129,7 @@ namespace Landsong.ECS.Presentation
                 return;
             }
 
-            var warning = phase == Phase.Night && kind == NightKind.Boss
-                ? NightPresentation.BossArrivalCaption : "";
+            var warning = phase == Phase.Night && kind == NightKind.Boss ? specialCaption ?? "" : "";
             var key = caption + "\n" + warning;
             if (nightCaptionTurn == turn && nightCaptionPhase == phase
                 && nightCaptionKind == kind && nightCaptionKey == key)
@@ -134,7 +147,7 @@ namespace Landsong.ECS.Presentation
 
             var sequence = DOTween.Sequence().SetUpdate(true);
             nightCaptionSequence = sequence;
-            if (phase == Phase.Night && kind == NightKind.Boss)
+            if (phase == Phase.Night && kind == NightKind.Boss && !string.IsNullOrWhiteSpace(warning))
             {
                 sequence.Append(FadeNightCaption(1, Mathf.Max(0, NightPresentation.BossOpeningFadeInSeconds)));
                 sequence.AppendInterval(1.05f);
@@ -180,11 +193,19 @@ namespace Landsong.ECS.Presentation
         {
             if (!Application.isPlaying || NightCaption == null || NightPresentation == null)
                 throw new InvalidOperationException("Boss 夜字幕预览需要已运行并配置完成的游戏 HUD。");
-            if (string.IsNullOrWhiteSpace(NightPresentation.PeacefulNightCaption)
-                || string.IsNullOrWhiteSpace(NightPresentation.BossArrivalCaption))
-                throw new InvalidOperationException("Boss 夜字幕预览缺少平安夜或来袭文案。");
+            var catalog = sessionController.em.GetComponentData<NightEventCatalog>(sessionController.root).Value;
+            string opening = null, warning = null;
+            for (int i = 0; i < catalog.Value.Events.Length; i++)
+                if (catalog.Value.Events[i].Kind == NightKind.Boss)
+                {
+                    opening = catalog.Value.Events[i].OpeningCaption.ToString();
+                    warning = catalog.Value.Events[i].SpecialCaption.ToString();
+                    break;
+                }
+            if (string.IsNullOrWhiteSpace(opening) || string.IsNullOrWhiteSpace(warning))
+                throw new InvalidOperationException("Boss 夜字幕预览缺少首领之夜的开场或来袭文案。");
             ResetNightCaption();
-            RefreshNightCaption(NightPresentation.PeacefulNightCaption, Phase.Night, NightKind.Boss, -1);
+            RefreshNightCaption(opening, Phase.Night, NightKind.Boss, -1, warning);
             nightCaptionPreview = true;
         }
 

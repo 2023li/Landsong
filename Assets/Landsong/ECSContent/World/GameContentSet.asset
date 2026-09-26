@@ -31,6 +31,10 @@ MonoBehaviour:
     FirstBoss: 20
     BossInterval: 10
     ThreatPerTurn: 12
+    DifficultyPerTurn: 0.08
+    ExpectedPowerAtTurnOne: 1
+    ExpectedPowerPerTurn: 1
+    PlayerPowerSensitivity: 0.25
   DayReturn:
     MinimumSeconds: 15
     MaximumSeconds: 30

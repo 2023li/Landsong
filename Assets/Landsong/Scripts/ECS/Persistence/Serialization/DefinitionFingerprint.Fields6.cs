@@ -68,6 +68,7 @@ namespace Landsong.ECS.Persistence
             Write(writer, ref value.Metadata);
             Write(writer, ref value.CombatStats);
             SnapshotBinary.Write(writer, value.ThreatValue);
+            SnapshotBinary.Write(writer, value.NightPower);
             SnapshotBinary.Write(writer, value.TargetMode);
             SnapshotBinary.Write(writer, value.PopulationCost);
             SnapshotBinary.Write(writer, value.FallbackRecruitGold);

@@ -26,6 +26,8 @@ namespace Landsong.ECS.Authoring.Definitions
         public Vector2Int Footprint = new Vector2Int(1, 1);
         [LabelText("耐久上限")]
         public float MaximumDurability = 100;
+        [LabelText("夜晚基础战力"), MinValue(0)]
+        public int NightPower;
         [LabelText("通行消耗")]
         public float MovementCost = 2;
         [LabelText("防御属性")]

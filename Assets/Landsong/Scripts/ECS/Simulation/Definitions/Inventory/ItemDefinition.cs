@@ -2,6 +2,7 @@ using System;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using Sirenix.OdinInspector;
 
 namespace Landsong.ECS.Definitions
 {
@@ -49,9 +50,24 @@ namespace Landsong.ECS.Definitions
     [Serializable]
     public struct EquipmentProfile
     {
+        [LabelText("武器类型")]
         public SoldierWeaponKind Weapon;
+        [LabelText("攻击方式")]
+        public WeaponAttackMode AttackMode;
+        [LabelText("力量伤害系数")]
         public float StrengthMultiplier;
+        [LabelText("基础损坏率")]
         public float BreakChance;
+    }
+
+    public enum WeaponAttackMode : byte
+    {
+        [UnityEngine.InspectorName("无")]
+        None = 0,
+        [UnityEngine.InspectorName("近战")]
+        Melee = 1,
+        [UnityEngine.InspectorName("远程")]
+        Ranged = 2
     }
 
     public struct ItemCatalogBlob

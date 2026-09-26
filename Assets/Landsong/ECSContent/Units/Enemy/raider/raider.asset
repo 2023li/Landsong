@@ -18,6 +18,7 @@ MonoBehaviour:
     Description: ''
     Icon: {fileID: 0}
   ThreatValue: 10
+  NightPower: 2
   Behavior: 4
   Prefab: {fileID: 8897883104741734442, guid: 824655bfbf8f9e34b992d53c4f3a04e0, type: 3}
   CombatStats:

@@ -25,6 +25,9 @@ namespace Landsong.ECS.Authoring
                 throw new InvalidOperationException("提前胜利按钮延迟必须为非负有限秒数。");
             if (!math.isfinite(s.WaveIntervalSeconds) || s.WaveIntervalSeconds <= 0 || s.WaveIntervalSeconds >= s.NightSeconds)
                 throw new InvalidOperationException("默认波次间隔必须为正的有限秒数，且小于正式夜晚时长。");
+            if (!math.isfinite(s.DifficultyPerTurn) || s.DifficultyPerTurn < 0 || !math.isfinite(s.ExpectedPowerAtTurnOne) || s.ExpectedPowerAtTurnOne < 1 ||
+                !math.isfinite(s.ExpectedPowerPerTurn) || s.ExpectedPowerPerTurn < 0 || !math.isfinite(s.PlayerPowerSensitivity) || s.PlayerPowerSensitivity < 0)
+                throw new InvalidOperationException("夜晚难度系数配置无效。");
         }
 
         public static void Validate(DayReturnSettings s)

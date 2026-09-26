@@ -24,6 +24,7 @@ MonoBehaviour:
   MaximumCount: 0
   Footprint: {x: 1, y: 1}
   MaximumDurability: 180
+  NightPower: 1
   MovementCost: 0
   PlacementAndVisuals:
     Category: 64

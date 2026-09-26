@@ -60,7 +60,7 @@ namespace Landsong.ECS.Editor
 
                 var authoredTypes = typeof(BuildingDefinitionAsset).Assembly.GetTypes().Where(type => type.Namespace == "Landsong.ECS.Authoring.Definitions").ToArray();
                 var assets = authoredTypes.Where(type => type.Name.EndsWith("DefinitionAsset", StringComparison.Ordinal) && typeof(ScriptableObject).IsAssignableFrom(type)).ToArray();
-                Check(assets.Length == 22, "Inspector label verification includes all 22 definition assets");
+                Check(assets.Length == 23, "Inspector label verification includes all 23 definition assets");
                 var types = assets.Concat(authoredTypes.Where(type => type.Name.EndsWith("Source", StringComparison.Ordinal))).Concat(new[] { typeof(CombatProfile), typeof(SoldierGrowth), typeof(HeroGrowth), typeof(OpportunityProfile), typeof(TheftProfile) });
                 var fields = types.SelectMany(type => type.GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)).ToArray();
                 Check(fields.All(field => field.GetCustomAttribute<LabelTextAttribute>() != null), "All direct definition fields and nested module/profile fields carry Odin Chinese labels");

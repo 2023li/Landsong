@@ -439,6 +439,7 @@ namespace Landsong.ECS.Persistence
             Write(writer, value.BaseThreat);
             Write(writer, value.PreparedTurn);
             Write(writer, value.BossDefinition);
+            Write(writer, value.DifficultyScale);
             Write(writer, value.CombatElapsed);
             Write(writer, value.FirstActionAt);
             Write(writer, value.ClockStarted);
@@ -457,6 +458,7 @@ namespace Landsong.ECS.Persistence
                 BaseThreat = Read<int>(reader),
                 PreparedTurn = Read<int>(reader),
                 BossDefinition = Read<Landsong.ECS.Definitions.EnemyId>(reader),
+                DifficultyScale = Read<float>(reader),
                 CombatElapsed = Read<float>(reader),
                 FirstActionAt = Read<float>(reader),
                 ClockStarted = Read<byte>(reader),

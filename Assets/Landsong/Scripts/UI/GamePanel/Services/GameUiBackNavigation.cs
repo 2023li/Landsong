@@ -53,7 +53,10 @@ namespace Landsong.ECS.Presentation
                     navigator.InventoryWindow.CloseResourceDetails();
                     return true;
                 case GameUiInputOwner.SoldierDetails:
-                    soldierController.CloseSoldierDetails();
+                    if (soldierController.EquipmentSelectionOpen)
+                        soldierController.CloseEquipmentSelection();
+                    else
+                        soldierController.CloseSoldierDetails();
                     return true;
                 case GameUiInputOwner.Portrait:
                     portraitController.ClosePortrait();

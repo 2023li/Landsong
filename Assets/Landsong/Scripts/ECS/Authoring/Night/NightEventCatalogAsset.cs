@@ -141,9 +141,12 @@ namespace Landsong.ECS.Authoring
     [CreateAssetMenu(menuName = "Landsong/ECS/Night/Event Catalog")]
     public sealed class NightEventCatalogAsset : ScriptableObject
     {
+        [LabelText("夜晚定义")]
+        public NightDefinitionAsset[] Nights = Array.Empty<NightDefinitionAsset>();
+        [HideInInspector]
         [SerializeReference, LabelText("波次生成器")]
         public NightWaveGeneratorSource WaveGenerator = new BudgetNightWaveGeneratorSource();
-        [LabelText("夜晚事件")]
+        [HideInInspector]
         public NightEventSource[] Events = Array.Empty<NightEventSource>();
     }
 }

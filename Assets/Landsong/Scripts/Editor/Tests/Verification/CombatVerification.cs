@@ -56,6 +56,14 @@ namespace Landsong.ECS.Editor
 
         static void Configuration()
         {
+            foreach (var name in new[] { "木棒", "木弓", "铁剑" })
+            {
+                var item = AssetDatabase.LoadAssetAtPath<ItemDefinitionAsset>("Assets/Landsong/ECSContent/Definitions/Item/" + name + ".asset");
+                Check(item is EquipmentDefinitionAsset, name + " inherits the item definition as equipment");
+            }
+            Check(typeof(ItemDefinitionAsset).GetField("Equipment") == null &&
+                  typeof(EquipmentDefinitionAsset).GetField("Equipment") != null,
+                "Only equipment definitions expose equipment parameters");
             var p = CombatProfile.Default;
             Check(CombatProfile.Valid(p), "Usable editable defaults");
             p.ChaseSeconds = 0;
@@ -125,8 +133,9 @@ namespace Landsong.ECS.Editor
                     var bowItem = EquipmentOps.ItemForWeapon(em, root, SoldierWeaponKind.Bow);
                     Check(bowItem.IsValid, "Wooden bow is registered as an equipment item");
                     Check(ItemDefinitions.Get(em, root, bowItem).Equipment.BreakChance == .3f
-                        && ItemDefinitions.Get(em, root, bowItem).NaturalLossRate == .02f,
-                        "Wooden bow has separate battle break chance and storage loss rate");
+                        && ItemDefinitions.Get(em, root, bowItem).NaturalLossRate == .02f
+                        && ItemDefinitions.Get(em, root, bowItem).Equipment.AttackMode == WeaponAttackMode.Ranged,
+                        "Wooden bow defines its ranged attack and separate battle and storage loss rates");
                     var bowStock = InventoryOps.Count(em, root, bowItem);
                     Check(bowStock >= 2, "Current map starts with wooden bows in inventory");
                     Check(GameRequestExecution.Execute(em, root, new EquipSoldierWeaponRequest { Soldier = memberId, Weapon = SoldierWeaponKind.Bow }) == ResultCode.Success,

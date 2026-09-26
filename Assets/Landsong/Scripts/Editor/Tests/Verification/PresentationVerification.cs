@@ -76,7 +76,7 @@ namespace Landsong.ECS.Editor
             var audio = AssetDatabase.LoadAssetAtPath<AudioCatalog>(ContentAssetPaths.Audio + "/LandsongAudio.asset");
             var effects = AssetDatabase.LoadAssetAtPath<EffectCatalog>(ContentAssetPaths.Effects + "/LandsongEffects.asset");
             var portraits = AssetDatabase.LoadAssetAtPath<PortraitDisplayCatalog>(ContentAssetPaths.Portraits + "/LandsongPortraitDisplay.asset");
-            var captions = AssetDatabase.LoadAssetAtPath<NightCaptionDefinition>(ContentAssetPaths.Presentation + "/Night/LandsongNightCaptions.asset");
+            var captions = AssetDatabase.LoadAssetAtPath<NightCaptionDefinition>(ContentAssetPaths.Presentation + "/Night/LandsongNightCaptionEffects.asset");
             var catalog = AssetDatabase.LoadAssetAtPath<LocalizationCatalog>(LanguageContentTools.Path);
             Check(audio != null && effects != null && portraits != null && captions != null && catalog != null, "Five independent presentation configuration assets exist");
             var application = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Landsong/UI/Prefabs/Bootstrap/UI_Root.prefab").GetComponent<ApplicationUiRoot>();

@@ -11,7 +11,7 @@ namespace Landsong.ECS.Authoring
 {
     public static class NightEventCatalogBaking
     {
-        public static BlobAssetReference<NightEventCatalogBlob> Compile(GameContentSetAsset content) => NightEventCatalogCompiler.Build(content.NightEvents, new EnemyCatalogIndex(content.Enemies), new BuildingCatalogIndex(content.Buildings), new ItemCatalogIndex(content.Items), new TechnologyCatalogIndex(content.Technologies), new BuffCatalogIndex(content.Buffs), new FeatureCatalogIndex(content.Features), new QuestCatalogIndex(content.Quests), new ExpeditionCatalogIndex(content.Expeditions));
+        public static BlobAssetReference<NightEventCatalogBlob> Compile(GameContentSetAsset content) => NightEventCatalogCompiler.Build(content.NightEvents, new EnemyCatalogIndex(content.Enemies), new BuildingCatalogIndex(content.Buildings), new ItemCatalogIndex(content.Items), new TechnologyCatalogIndex(content.Technologies), new BuffCatalogIndex(content.Buffs), new FeatureCatalogIndex(content.Features), new QuestCatalogIndex(content.Quests), new ExpeditionCatalogIndex(content.Expeditions), content.Night.NightSeconds);
 
         public sealed class Baker : Baker<GameContentSetAuthoring>
         {
@@ -21,6 +21,8 @@ namespace Landsong.ECS.Authoring
                     throw new InvalidOperationException("GameContentSetAuthoring 缺少游戏内容集。");
                 DependsOn(authoring.Content);
                 DependsOn(authoring.Content.Get<NightEventCatalogAsset>());
+                foreach (var night in authoring.Content.Get<NightEventCatalogAsset>().Nights)
+                    DependsOn(night);
                 DependsOn(authoring.Content.Get<EnemyCatalogAsset>());
                 foreach (var asset in authoring.Content.Get<EnemyCatalogAsset>().Definitions)
                     DependsOn(asset);
@@ -45,7 +47,7 @@ namespace Landsong.ECS.Authoring
                 DependsOn(authoring.Content.Get<ExpeditionCatalogAsset>());
                 foreach (var asset in authoring.Content.Get<ExpeditionCatalogAsset>().Definitions)
                     DependsOn(asset);
-                var blob = NightEventCatalogCompiler.Build(authoring.Content.Get<NightEventCatalogAsset>(), new EnemyCatalogIndex(authoring.Content.Get<EnemyCatalogAsset>()), new BuildingCatalogIndex(authoring.Content.Get<BuildingCatalogAsset>()), new ItemCatalogIndex(authoring.Content.Get<ItemCatalogAsset>()), new TechnologyCatalogIndex(authoring.Content.Get<TechnologyCatalogAsset>()), new BuffCatalogIndex(authoring.Content.Get<BuffCatalogAsset>()), new FeatureCatalogIndex(authoring.Content.Get<FeatureCatalogAsset>()), new QuestCatalogIndex(authoring.Content.Get<QuestCatalogAsset>()), new ExpeditionCatalogIndex(authoring.Content.Get<ExpeditionCatalogAsset>()));
+                var blob = NightEventCatalogCompiler.Build(authoring.Content.Get<NightEventCatalogAsset>(), new EnemyCatalogIndex(authoring.Content.Get<EnemyCatalogAsset>()), new BuildingCatalogIndex(authoring.Content.Get<BuildingCatalogAsset>()), new ItemCatalogIndex(authoring.Content.Get<ItemCatalogAsset>()), new TechnologyCatalogIndex(authoring.Content.Get<TechnologyCatalogAsset>()), new BuffCatalogIndex(authoring.Content.Get<BuffCatalogAsset>()), new FeatureCatalogIndex(authoring.Content.Get<FeatureCatalogAsset>()), new QuestCatalogIndex(authoring.Content.Get<QuestCatalogAsset>()), new ExpeditionCatalogIndex(authoring.Content.Get<ExpeditionCatalogAsset>()), authoring.Content.Night.NightSeconds);
                 AddBlobAsset(ref blob, out _);
                 AddComponent(GetEntity(TransformUsageFlags.None), new NightEventCatalog { Value = blob });
                 AddBuffer<PreparedSoldier>(GetEntity(TransformUsageFlags.None));

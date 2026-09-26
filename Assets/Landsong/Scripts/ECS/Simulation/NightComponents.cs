@@ -1,6 +1,7 @@
 using Sirenix.OdinInspector;
 using Unity.Collections;
 using Unity.Entities;
+using UnityEngine;
 using Landsong.ECS.Definitions;
 
 namespace Landsong.ECS
@@ -20,15 +21,15 @@ namespace Landsong.ECS
         public int SpawnRegionSize;
         [LabelText("区域间隔（格）"), MinValue(0)]
         public int SpawnRegionGap;
-        [LabelText("英雄战力权重")]
+        [HideInInspector, LabelText("英雄战力权重")]
         public float HeroWeight;
-        [LabelText("设施战力权重")]
+        [HideInInspector, LabelText("设施战力权重")]
         public float FacilityWeight;
         [LabelText("目标搜索半径")]
         public float TargetRadius;
-        [LabelText("最低威胁预算")]
+        [HideInInspector, LabelText("最低威胁预算")]
         public float ThreatFloor;
-        [LabelText("每点战力预算上限")]
+        [HideInInspector, LabelText("每点战力预算上限")]
         public float ThreatPerStrengthCap;
         public static NightRules Default => new NightRules
         {
@@ -66,7 +67,24 @@ namespace Landsong.ECS
         public byte Once, ReturnOnly, Forced;
         public FixedList512Bytes<float> WaveTimes;
         public BlobArray<NightEnemyChoice> Enemies;
+        public BlobArray<NightWaveTemplate> Waves;
+        public int AllowedWeather;
+        public FixedString512Bytes OpeningCaption, SpecialCaption, VictoryCaption;
         public NightEventConditions Conditions;
+    }
+
+    public struct NightWaveTemplate
+    {
+        public float AtSeconds, JitterSeconds;
+        public BlobArray<NightWaveEnemyTemplate> Enemies;
+    }
+
+    public struct NightWaveEnemyTemplate
+    {
+        public EnemyId Definition;
+        public float Weight;
+        public int FixedCount;
+        public byte Fixed;
     }
 
     public enum NightWaveGeneratorKind : byte
@@ -119,6 +137,7 @@ namespace Landsong.ECS
     {
         public FixedString64Bytes Event;
         public int Turn, BaseThreat, PreparedTurn;
+        public float DifficultyScale;
         public EnemyId BossDefinition;
         public float CombatElapsed, FirstActionAt;
         public byte ClockStarted, Committed, AnySpawned, BossKilled, BossEscaped;

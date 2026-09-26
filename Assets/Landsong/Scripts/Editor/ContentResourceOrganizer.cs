@@ -142,7 +142,6 @@ namespace Landsong.EditorTools
             MoveAsset(ContentAssetPaths.Root + "/Resources/LandsongLocalization.asset", ContentAssetPaths.GeneratedLocalization + "/LandsongLocalization.asset");
             MoveAsset(ContentAssetPaths.Root + "/Resources/LandsongPortraitDisplay.asset", ContentAssetPaths.Portraits + "/LandsongPortraitDisplay.asset");
             MoveAsset(ContentAssetPaths.Root + "/PortraitConfig.asset", ContentAssetPaths.Portraits + "/PortraitConfig.asset");
-            MoveAsset(ContentAssetPaths.Root + "/Resources/LandsongNightCaptions.asset", ContentAssetPaths.Presentation + "/Night/LandsongNightCaptions.asset");
             MoveAsset(ContentAssetPaths.Presentation + "/WorldPresentationRoot.prefab", ContentAssetPaths.World + "/WorldPresentationRoot.prefab");
             MoveAsset(ContentAssetPaths.Presentation + "/CueBurst.prefab", ContentAssetPaths.Effects + "/CueBurst.prefab");
             MoveAsset(ContentAssetPaths.Presentation + "/CueBurst.mat", ContentAssetPaths.Effects + "/CueBurst.mat");

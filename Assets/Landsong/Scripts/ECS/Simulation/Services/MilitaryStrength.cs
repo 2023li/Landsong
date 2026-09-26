@@ -12,8 +12,7 @@ namespace Landsong.ECS
     {
         public static int Calculate(EntityManager em, Entity root)
         {
-            float value = 0;
-            var rules = NightPlanOps.Rules(em, root);
+            long value = 0;
             using var soldiers = WorldQueries.OrderedEntities<Soldier>(em);
             using var capacity = new NativeHashMap<ulong, int>(math.max(1, soldiers.Length), Allocator.Temp);
             var usedSlots = capacity;
@@ -29,10 +28,7 @@ namespace Landsong.ECS
                     continue;
                 usedSlots[s.Garrison] = used + 1;
                 var d = em.GetComponentData<SoldierDefinitionRef>(e).Definition;
-                var stats = SoldierCombatStats.Current(em, root, d);
-                UnitProgression.ApplyGrowth(ref stats, SoldierDefinitions.Get(em, root, d).Growth, s.Experience);
-                SoldierCombatStats.ApplyWeapon(em, root, ref stats, s.Weapon);
-                value += stats.Health * .05f / (1 - stats.Combat.Reduction) + stats.Combat.Armor + stats.Damage / math.max(.1f, stats.Interval);
+                value += math.max(0, SoldierDefinitions.Get(em, root, d).NightPower);
             }
 
             using var heroes = WorldQueries.OrderedEntities<Hero>(em);
@@ -44,22 +40,19 @@ namespace Landsong.ECS
                     continue;
                 // Potentially awakenable, independent of offering toggle: turning supply off must not hide a titan.
                 var d = em.GetComponentData<HeroDefinitionRef>(e).Definition;
-                var stats = HeroCombatStats.Current(em, root, d);
-                UnitProgression.ApplyGrowth(ref stats, HeroDefinitions.Get(em, root, d).Growth.Progression, hero.Experience);
-                value += (stats.Health * .05f / (1 - stats.Combat.Reduction) + stats.Combat.Armor + stats.Damage / math.max(.1f, stats.Interval)) * rules.HeroWeight;
+                value += math.max(0, HeroDefinitions.Get(em, root, d).NightPower);
             }
 
             using var buildings = WorldQueries.OrderedEntities<Building>(em);
             foreach (var e in buildings)
                 if (BuildingStatus.Operational(em, e))
                 {
-                    BuildingGarrisonStats statsGarrison = em.GetComponentData<BuildingGarrisonStats>(e);
-                    BuildingBellStats statsBell = em.GetComponentData<BuildingBellStats>(e);
-                    if (statsGarrison.Capacity > 0 || statsBell.Radius > 0)
-                        value += math.max(1, statsGarrison.Capacity) * rules.FacilityWeight;
+                    ref var definition = ref BuildingDefinitions.Get(em, root, em.GetComponentData<BuildingDefinitionRef>(e).Definition);
+                    if (definition.Faction == BuildingFaction.Settlement)
+                        value += math.max(0, definition.NightPower);
                 }
 
-            return (int)value;
+            return (int)Math.Min(int.MaxValue, value);
         }
     }
 }

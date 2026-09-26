@@ -9,7 +9,7 @@ using Sirenix.OdinInspector.Editor;
 
 namespace Landsong.ECS.Editor
 {
-    [CustomEditor(typeof(ItemDefinitionAsset))]
+    [CustomEditor(typeof(ItemDefinitionAsset), true)]
     public sealed class ItemDefinitionInspector : OdinEditor
     {
         public override void OnInspectorGUI()

@@ -48,7 +48,7 @@ namespace Landsong.ECS.Authoring.Definitions
             var itemIndex = new ItemCatalogIndex(catalog);
             var equipmentKinds = new HashSet<SoldierWeaponKind>();
             foreach (var item in catalog.Definitions)
-                if (item.Equipment.Weapon != SoldierWeaponKind.None && !equipmentKinds.Add(item.Equipment.Weapon))
+                if (item is EquipmentDefinitionAsset equipment && equipment.Equipment.Weapon != SoldierWeaponKind.None && !equipmentKinds.Add(equipment.Equipment.Weapon))
                     throw new InvalidOperationException("同一种装备类型不能对应多个物品：" + item.name);
             var builder = new BlobBuilder(Allocator.Temp);
             try
@@ -73,11 +73,13 @@ namespace Landsong.ECS.Authoring.Definitions
                 throw new InvalidOperationException("物品堆叠上限必须大于零。");
             if (source.NaturalLossRate < 0)
                 throw new InvalidOperationException("物品自然损耗率不能为负。");
-            if ((byte)source.Equipment.Weapon > (byte)SoldierWeaponKind.Club ||
-                !math.isfinite(source.Equipment.StrengthMultiplier) || !math.isfinite(source.Equipment.BreakChance) ||
-                source.Equipment.BreakChance < 0 || source.Equipment.BreakChance > 1 ||
-                (source.Equipment.Weapon == SoldierWeaponKind.None ? source.Equipment.StrengthMultiplier != 0 : source.Equipment.StrengthMultiplier <= 0))
-                throw new InvalidOperationException("装备类型、力量系数或损坏概率无效：" + source.name);
+            var equipment = source is EquipmentDefinitionAsset equipmentSource ? equipmentSource.Equipment : default;
+            if (source is EquipmentDefinitionAsset &&
+                ((byte)equipment.Weapon == 0 || (byte)equipment.Weapon > (byte)SoldierWeaponKind.Club ||
+                 equipment.AttackMode < WeaponAttackMode.Melee || equipment.AttackMode > WeaponAttackMode.Ranged ||
+                 !math.isfinite(equipment.StrengthMultiplier) || equipment.StrengthMultiplier <= 0 ||
+                 !math.isfinite(equipment.BreakChance) || equipment.BreakChance < 0 || equipment.BreakChance > 1))
+                throw new InvalidOperationException("装备类型、攻击方式、力量系数或损坏概率无效：" + source.name);
             if ((byte)source.Theft.Protection > 7 || source.Theft.Weight < 0 || source.Theft.Weight > 10000 || source.Theft.Maximum < 0 || source.Theft.Maximum > 10000 || source.Theft.UnitValue < 1 || source.Theft.UnitValue > 100000)
                 throw new InvalidOperationException("物品被盗价值、权重或数量上限无效。");
             if (source.Metadata == null || string.IsNullOrWhiteSpace(source.Metadata.Id))
@@ -98,7 +100,7 @@ namespace Landsong.ECS.Authoring.Definitions
             if (!math.isfinite(source.NaturalLossRate))
                 throw new InvalidOperationException("自然损耗率必须是有限数值。");
             target.NaturalLossRate = source.NaturalLossRate;
-            target.Equipment = source.Equipment;
+            target.Equipment = equipment;
             target.Theft = source.Theft;
         }
     }

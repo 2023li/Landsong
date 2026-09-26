@@ -183,6 +183,7 @@ namespace Landsong.ECS.Persistence
             SnapshotBinary.Write(writer, value.MaximumCount);
             Write(writer, ref value.Footprint);
             SnapshotBinary.Write(writer, value.MaximumDurability);
+            SnapshotBinary.Write(writer, value.NightPower);
             SnapshotBinary.Write(writer, value.MovementCost);
             Write(writer, ref value.DefenseStats);
             Write(writer, ref value.PlacementAndVisuals);

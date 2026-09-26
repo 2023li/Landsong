@@ -18,6 +18,7 @@ MonoBehaviour:
     Description: ''
     Icon: {fileID: 0}
   ThreatValue: 14
+  NightPower: 3
   Behavior: 0
   PreferredTargetCategory: 0
   Prefab: {fileID: 8897883104741734442, guid: c0ae8e6cb7097eb46ae65dea5aa39c8f, type: 3}

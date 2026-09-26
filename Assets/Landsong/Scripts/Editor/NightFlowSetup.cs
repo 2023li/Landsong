@@ -64,7 +64,7 @@ namespace Landsong.EditorTools
                     binding = caption.gameObject.AddComponent<UI_Common_TextBinding>();
                 binding.Target = caption;
                 hud.NightCaption = caption;
-                hud.NightPresentation = AssetDatabase.LoadAssetAtPath<NightCaptionDefinition>("Assets/Landsong/ECSContent/Presentation/Night/LandsongNightCaptions.asset");
+                hud.NightPresentation = AssetDatabase.LoadAssetAtPath<NightCaptionDefinition>("Assets/Landsong/ECSContent/Presentation/Night/LandsongNightCaptionEffects.asset");
                 var localization = AssetDatabase.LoadAssetAtPath<LocalizationCatalog>(Landsong.ECS.Editor.LanguageContentTools.Path);
                 var entries = localization.Text.ToList();
                 foreach (var entry in Landsong.ECS.Editor.LanguageContentTools.NativeText().Where(e => e.Key.StartsWith("ui.ecs.night.", StringComparison.Ordinal)))
@@ -80,7 +80,7 @@ namespace Landsong.EditorTools
                 PrefabUtility.UnloadPrefabContents(root);
             }
 
-            return "夜晚字幕已绑定；文案在 LandsongNightCaptions，流程秒数在 GameContentSet。";
+            return "夜晚字幕已绑定；文案在每个夜晚 SO，字幕时间与动效在 LandsongNightCaptionEffects，流程秒数在 GameContentSet。";
         }
     }
 }
